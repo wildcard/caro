@@ -20,6 +20,11 @@
   "created_at": "2026-01-08T18:15:14Z",
   "feature_number": "020",
   "friendly_name": "Machine Resource Assessment",
+  "mission_number": "020",
+  "mission_slug": "020-machine-resource-assessment",
+  "mission_type": "software-dev",
   "slug": "020-machine-resource-assessment",
-  "source_description": "Issue #147: Add machine resource assessment and model recommendations\n\n## Description\n\nAdd system resource assessment to recommend optimal model configurations.\n\n**Features:**\n- CPU/GPU detection\n- Memory assessment  \n- Model recommendations based on system capabilities\n\n**Source:** Claude Code session (Sun)"
+  "source_description": "Issue #147: Add machine resource assessment and model recommendations\n\n## Description\n\nAdd system resource assessment to recommend optimal model configurations.\n\n**Features:**\n- CPU/GPU detection\n- Memory assessment  \n- Model recommendations based on system capabilities\n\n**Source:** Claude Code session (Sun)",
+  "target_branch": "main",
+  "mission_id": "01KQ6BCQV2SS4PHX6NGR5YG3Z9"
 }

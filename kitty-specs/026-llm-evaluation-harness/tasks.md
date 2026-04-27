@@ -25,7 +25,7 @@ description: "Work package task list for LLM Evaluation Harness implementation"
 
 **Goal**: Establish data models and YAML dataset loading infrastructure that all evaluators depend on.
 **Independent Test**: Can load a sample YAML dataset and validate schema; models serialize to/from JSON correctly.
-**Prompt**: `/tasks/planned/WP01-core-models-and-dataset.md`
+**Prompt**: `/tasks/WP01-core-models-and-dataset.md`
 
 ### Included Subtasks
 - [ ] T001 Create `src/evaluation/` module structure with mod.rs
@@ -61,7 +61,7 @@ description: "Work package task list for LLM Evaluation Harness implementation"
 
 **Goal**: Implement the Evaluator trait and all four category-specific evaluators (Correctness, Safety, POSIX, Consistency).
 **Independent Test**: Each evaluator can be unit tested with mock TestCase and CommandResult data; produces correct EvaluationResults.
-**Prompt**: `/tasks/planned/WP02-evaluator-implementations.md`
+**Prompt**: `/tasks/WP02-evaluator-implementations.md`
 
 ### Included Subtasks
 - [ ] T009 Define `Evaluator` trait in `src/evaluation/mod.rs` with async_trait
@@ -104,7 +104,7 @@ description: "Work package task list for LLM Evaluation Harness implementation"
 
 **Goal**: Implement EvaluationHarness that orchestrates parallel backend execution and aggregates results into BenchmarkReports.
 **Independent Test**: Can run evaluation with test dataset across multiple backends; handles backend failures; completes in <5 minutes.
-**Prompt**: `/tasks/planned/WP03-harness-orchestration.md`
+**Prompt**: `/tasks/WP03-harness-orchestration.md`
 
 ### Included Subtasks
 - [ ] T019 Implement `EvaluationHarness` struct in `src/evaluation/harness.rs`
@@ -150,7 +150,7 @@ description: "Work package task list for LLM Evaluation Harness implementation"
 
 **Goal**: Implement baseline comparison logic for regression detection in CI/CD workflows.
 **Independent Test**: Can store baseline, load baseline, compare two BenchmarkReports, detect regressions with configurable threshold.
-**Prompt**: `/tasks/planned/WP04-baseline-and-regression.md`
+**Prompt**: `/tasks/WP04-baseline-and-regression.md`
 
 ### Included Subtasks
 - [ ] T029 Implement baseline storage in `src/evaluation/baseline.rs` (JSON serialization to `tests/evaluation/baselines/`)
@@ -188,7 +188,7 @@ description: "Work package task list for LLM Evaluation Harness implementation"
 
 **Goal**: Create comprehensive test dataset with 100+ labeled examples across all four categories.
 **Independent Test**: Dataset validates successfully; provides good coverage of command generation scenarios from beta testing.
-**Prompt**: `/tasks/planned/WP05-test-dataset-creation.md`
+**Prompt**: `/tasks/WP05-test-dataset-creation.md`
 
 ### Included Subtasks
 - [ ] T037 [P] Create 25 correctness test cases in `tests/evaluation/dataset.yaml` (file operations, text processing, system info)
@@ -229,7 +229,7 @@ description: "Work package task list for LLM Evaluation Harness implementation"
 
 **Goal**: Integrate evaluation harness with cargo test framework for familiar CI/CD workflow and developer experience.
 **Independent Test**: Can run `cargo test --test evaluation` with various CLI options; exits with correct codes; outputs JSON/table formats.
-**Prompt**: `/tasks/planned/WP06-cargo-test-integration.md`
+**Prompt**: `/tasks/WP06-cargo-test-integration.md`
 
 ### Included Subtasks
 - [ ] T044 Create custom test harness in `tests/evaluation/main.rs` (cargo test entry point)
@@ -275,7 +275,7 @@ description: "Work package task list for LLM Evaluation Harness implementation"
 
 **Goal**: Automate evaluation runs in GitHub Actions CI/CD pipeline with matrix strategy and baseline management.
 **Independent Test**: Workflow runs successfully on PR; detects regressions; updates baseline on main merge; stores artifacts.
-**Prompt**: `/tasks/planned/WP07-cicd-integration.md`
+**Prompt**: `/tasks/WP07-cicd-integration.md`
 
 ### Included Subtasks
 - [ ] T053 Create `.github/workflows/evaluation.yml` workflow file
@@ -322,7 +322,7 @@ description: "Work package task list for LLM Evaluation Harness implementation"
 
 **Goal**: Generate static HTML dashboard with trend visualizations for stakeholder visibility into quality metrics.
 **Independent Test**: Can generate dashboard from multiple BenchmarkReports; displays trends, comparisons, category breakdown.
-**Prompt**: `/tasks/planned/WP08-dashboard-visualization.md`
+**Prompt**: `/tasks/WP08-dashboard-visualization.md`
 
 ### Included Subtasks
 - [ ] T061 Implement dashboard generator in `src/evaluation/dashboard.rs`

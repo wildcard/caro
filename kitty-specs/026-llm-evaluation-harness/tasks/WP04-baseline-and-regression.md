@@ -1,16 +1,21 @@
 ---
-work_package_id: "WP04"
-subtasks: ["T029", "T030", "T031", "T032", "T033", "T034", "T035", "T036"]
-title: "Baseline Storage & Regression Detection"
-phase: "Phase 2 - Quality Gate"
-lane: "for_review"
-agent: "claude"
-shell_pid: "64271"
+work_package_id: WP04
+title: Baseline Storage & Regression Detection
+dependencies: []
+subtasks: [T029, T030, T031, T032, T033, T034, T035, T036]
+phase: Phase 2 - Quality Gate
 history:
-  - timestamp: "2026-01-09T11:00:00Z"
-    lane: "planned"
-    agent: "system"
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T11:00:00Z'
+  lane: planned
+  agent: system
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JP
+owned_files:
+- src/evaluation/baseline.rs
+- tests/evaluation/baselines/main-{timestamp}.json
+wp_code: WP04
 ---
 
 # Work Package Prompt: WP04 – Baseline Storage & Regression Detection

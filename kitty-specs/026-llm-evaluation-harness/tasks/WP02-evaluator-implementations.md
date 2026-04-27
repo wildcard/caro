@@ -1,16 +1,26 @@
 ---
-work_package_id: "WP02"
-subtasks: ["T009", "T010", "T011", "T012", "T013", "T014", "T015", "T016", "T017", "T018"]
-title: "Evaluator Trait & Implementations"
-phase: "Phase 1 - Core Logic"
-lane: "for_review"
-agent: "claude"
-shell_pid: "51796"
+work_package_id: WP02
+title: Evaluator Trait & Implementations
+dependencies: []
+subtasks: [T009, T010, T011, T012, T013, T014, T015, T016, T017, T018]
+phase: Phase 1 - Core Logic
 history:
-  - timestamp: "2026-01-09T11:00:00Z"
-    lane: "planned"
-    agent: "system"
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T11:00:00Z'
+  lane: planned
+  agent: system
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: src/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JP
+owned_files:
+- src/evaluation/evaluators/consistency.rs
+- src/evaluation/evaluators/correctness.rs
+- src/evaluation/evaluators/posix.rs
+- src/evaluation/evaluators/safety.rs
+- src/evaluation/mod.rs
+- src/evaluation/utils.rs
+- src/safety/**
+wp_code: WP02
 ---
 
 # Work Package Prompt: WP02 – Evaluator Trait & Implementations

@@ -1,28 +1,34 @@
 ---
-work_package_id: "WP06"
+work_package_id: WP06
+title: Multi-Backend Comparison
+dependencies: []
 subtasks:
-  - "T039"
-  - "T040"
-  - "T041"
-  - "T042"
-  - "T043"
-  - "T044"
-  - "T045"
-  - "T046"
-title: "Multi-Backend Comparison"
-phase: "Phase 3 - Extended Validation"
-lane: "planned"
-assignee: ""
-agent: ""
-shell_pid: ""
-review_status: ""
-reviewed_by: ""
+- T039
+- T040
+- T041
+- T042
+- T043
+- T044
+- T045
+- T046
+phase: Phase 3 - Extended Validation
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3ZA
+owned_files:
+- kitty-specs/022-issue-135-build/data-model.md
+- kitty-specs/022-issue-135-build/spec.md
+- tests/evaluation/datasets/backend_comparison/cross_backend.json
+- tests/evaluation/src/backend_comparison.rs
+- tests/evaluation/src/executor.rs
+- tests/evaluation/tests/test_backends.rs
+wp_code: WP06
 ---
 
 # Work Package Prompt: WP06 – Multi-Backend Comparison

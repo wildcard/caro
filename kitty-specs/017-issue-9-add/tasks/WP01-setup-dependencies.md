@@ -1,30 +1,34 @@
 ---
-work_package_id: "WP01"
+work_package_id: WP01
+title: Setup & Dependencies
+dependencies: []
 subtasks:
-  - "T001"
-  - "T002"
-  - "T003"
-  - "T004"
-  - "T005"
-title: "Setup & Dependencies"
-phase: "Phase 0 - Foundation"
-lane: "done"
-assignee: "claude"
-agent: "claude-reviewer"
-shell_pid: "5230"
-review_status: ""
-reviewed_by: ""
+- T001
+- T002
+- T003
+- T004
+- T005
+phase: Phase 0 - Foundation
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
-  - timestamp: "2026-01-08T05:24:00Z"
-    lane: "doing"
-    agent: "claude"
-    shell_pid: "90455"
-    action: "Started WP01 implementation"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+- timestamp: '2026-01-08T05:24:00Z'
+  lane: doing
+  agent: claude
+  shell_pid: '90455'
+  action: Started WP01 implementation
+authoritative_surface: kitty-specs/017-issue-9-add/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z7
+owned_files:
+- kitty-specs/017-issue-9-add/data-model.md
+- kitty-specs/017-issue-9-add/plan.md
+- kitty-specs/017-issue-9-add/research.md
+- kitty-specs/017-issue-9-add/spec.md
+wp_code: WP01
 ---
 
 # Work Package Prompt: WP01 – Setup & Dependencies

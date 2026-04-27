@@ -81,6 +81,11 @@
   "created_at": "2025-12-25T10:02:40Z",
   "feature_number": "002",
   "friendly_name": "Unquoted CLI Arguments",
+  "mission_number": "002",
+  "mission_slug": "002-unquoted-cli-arguments",
+  "mission_type": "research",
   "slug": "002-unquoted-cli-arguments",
-  "source_description": "Allow users to type natural language prompts without quotes while maintaining backward compatibility"
+  "source_description": "Allow users to type natural language prompts without quotes while maintaining backward compatibility",
+  "target_branch": "main",
+  "mission_id": "01KQ6BCQV1Y4FF7Z4PHK152KSR"
 }

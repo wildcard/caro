@@ -26,7 +26,7 @@ This command manages the **project constitution** - the global set of principles
 
 **Scope**: This command is project-wide, not feature-specific
 - Does NOT need to be run from a worktree
-- Can be run from the main repository root
+- Can be run from the primary repository checkout root
 - Creates/updates principles that all features must follow
 - Updates dependent templates to stay in sync
 

@@ -1,5 +1,12 @@
 ---
-lane: "planned"
+work_package_id: 01KQ6BCQVZ69G1Q77MGGBP9QQV
+dependencies: []
+authoritative_surface: tests/website_claims/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z5
+owned_files:
+- tests/website_claims/**
+wp_code: WP01
 ---
 # WP01: Test Infrastructure Setup
 

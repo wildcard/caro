@@ -28,7 +28,7 @@ description: "Work package task list for Website Internationalization (i18n) wit
 
 **Goal**: Establish core i18n infrastructure with Astro config, translation utilities, RTL CSS foundation, and locale directory structure.
 **Independent Test**: Astro builds successfully with i18n config loaded. Layout.astro renders with `dir` attribute. Translation utility functions are importable.
-**Prompt**: `/tasks/planned/WP01-infrastructure-and-setup.md`
+**Prompt**: `/tasks/WP01-infrastructure-and-setup.md`
 
 ### Included Subtasks
 - [ ] T001 Update `website/astro.config.mjs` with i18n configuration (15 locales, routing, fallback)
@@ -64,7 +64,7 @@ description: "Work package task list for Website Internationalization (i18n) wit
 
 **Goal**: Extract all English strings from existing components to JSON translation files, organized by section (navigation, hero, features, download, common, landing, compare).
 **Independent Test**: All JSON files exist in `locales/en/` with complete string coverage. No hardcoded strings remain in targeted components (verified by grep). JSON is valid and parseable.
-**Prompt**: `/tasks/planned/WP02-translation-file-extraction.md`
+**Prompt**: `/tasks/WP02-translation-file-extraction.md`
 
 ### Included Subtasks
 - [ ] T007 [P] Extract Navigation component strings to `locales/en/navigation.json`
@@ -103,7 +103,7 @@ description: "Work package task list for Website Internationalization (i18n) wit
 
 **Goal**: Refactor critical navigation and layout components to use translation functions. Add hreflang meta tags for SEO.
 **Independent Test**: Navigation and Footer render correctly in all 15 languages. Hreflang tags present in page `<head>`. No hardcoded strings remain in these components.
-**Prompt**: `/tasks/planned/WP03-component-refactoring-navigation-core.md`
+**Prompt**: `/tasks/WP03-component-refactoring-navigation-core.md`
 
 ### Included Subtasks
 - [ ] T016 Refactor `website/src/components/Navigation.astro` to use `t(lang, 'navigation.links.*')` function
@@ -136,7 +136,7 @@ description: "Work package task list for Website Internationalization (i18n) wit
 
 **Goal**: Refactor homepage content sections (Hero, Features, Download) to use translation functions.
 **Independent Test**: All homepage sections render correctly in all 15 languages. Page content dynamically updates when `lang` prop changes.
-**Prompt**: `/tasks/planned/WP04-component-refactoring-content-sections.md`
+**Prompt**: `/tasks/WP04-component-refactoring-content-sections.md`
 
 ### Included Subtasks
 - [ ] T019 [P] Refactor `website/src/components/Hero.astro` to use `t(lang, 'hero.*')` function
@@ -167,7 +167,7 @@ description: "Work package task list for Website Internationalization (i18n) wit
 
 **Goal**: Refactor all 12 landing page components (LP01-LP12) to use translation functions.
 **Independent Test**: All landing pages render correctly in all 15 languages. Each component accepts and uses `lang` prop.
-**Prompt**: `/tasks/planned/WP05-component-refactoring-landing-pages.md`
+**Prompt**: `/tasks/WP05-component-refactoring-landing-pages.md`
 
 ### Included Subtasks
 - [ ] T022 [P] Refactor LP01-LP12 landing page components to use `t(lang, 'landing.*')` function (12 components)
@@ -200,7 +200,7 @@ description: "Work package task list for Website Internationalization (i18n) wit
 
 **Goal**: Create locale-based URL routing for all pages (`/es/`, `/ja/`, `/he/`, etc.) and refine RTL layout for Hebrew, Arabic, Urdu.
 **Independent Test**: Navigate to `/es/`, `/ja/`, `/he/`, `/ar/`, `/ur/` and verify all pages render correctly. RTL languages show mirrored navigation and right-aligned text.
-**Prompt**: `/tasks/planned/WP06-localized-routes-rtl-polish.md`
+**Prompt**: `/tasks/WP06-localized-routes-rtl-polish.md`
 
 ### Included Subtasks
 - [ ] T023 Create `website/src/pages/[lang]/index.astro` with `getStaticPaths()` generating routes for 14 non-English locales
@@ -239,7 +239,7 @@ description: "Work package task list for Website Internationalization (i18n) wit
 
 **Goal**: Automated translation workflow that triggers on English content changes and creates PRs with GPT-4 translations for all 14 non-English locales.
 **Independent Test**: Update `locales/en/navigation.json`, push to main, verify GitHub Action runs successfully and creates PR with translations within 1 hour. PR includes translations for all 14 locales with preserved placeholders.
-**Prompt**: `/tasks/planned/WP07-github-action-automation.md`
+**Prompt**: `/tasks/WP07-github-action-automation.md`
 
 ### Included Subtasks
 - [ ] T028 Create `.github/workflows/translate.yml` workflow file with triggers and permissions
@@ -285,7 +285,7 @@ description: "Work package task list for Website Internationalization (i18n) wit
 
 **Goal**: Language selection UI component with localStorage persistence, performance optimization, and SEO enhancements.
 **Independent Test**: Language switcher appears in navigation with all 15 languages. Selecting a language persists across sessions. Page load time is within 100ms of English baseline.
-**Prompt**: `/tasks/planned/WP08-language-switcher-polish.md`
+**Prompt**: `/tasks/WP08-language-switcher-polish.md`
 
 ### Included Subtasks
 - [ ] T035 Create `website/src/components/LanguageSwitcher.astro` component with dropdown of all 15 languages

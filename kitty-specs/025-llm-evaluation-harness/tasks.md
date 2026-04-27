@@ -23,7 +23,7 @@
 
 **Goal**: Establish evaluation harness directory structure and add toml dependency.
 **Independent Test**: `cargo build` succeeds with new dependency; `tests/evaluation/` directory exists with proper module structure.
-**Prompt**: `/tasks/planned/WP01-project-setup.md`
+**Prompt**: `/tasks/WP01-project-setup.md`
 
 ### Included Subtasks
 - [x] T001 Add `toml = "0.8"` dependency to `Cargo.toml` under `[dev-dependencies]`
@@ -55,7 +55,7 @@
 
 **Goal**: Implement TOML dataset loading with validation and create initial test dataset.
 **Independent Test**: Dataset loader can parse test_cases.toml and validate test case structure; fails gracefully on malformed input.
-**Prompt**: `/tasks/planned/WP02-dataset-infrastructure.md`
+**Prompt**: `/tasks/WP02-dataset-infrastructure.md`
 
 ### Included Subtasks
 - [x] T006 Define `TestCase` struct in `dataset.rs` matching data-model.md
@@ -90,7 +90,7 @@
 
 **Goal**: Implement semantic command equivalence checking with normalization.
 **Independent Test**: Normalizer correctly handles whitespace, flag sorting; comparison logic recognizes semantically equivalent commands.
-**Prompt**: `/tasks/planned/WP03-command-normalization.md`
+**Prompt**: `/tasks/WP03-command-normalization.md`
 
 ### Included Subtasks
 - [x] T015 Implement `normalize_command()` function in `validators.rs`
@@ -124,7 +124,7 @@
 
 **Goal**: Integrate caro::safety module and implement POSIX compliance checker.
 **Independent Test**: Safety validator correctly detects dangerous patterns; POSIX checker identifies bash/zsh-specific syntax.
-**Prompt**: `/tasks/planned/WP04-safety-posix-validators.md`
+**Prompt**: `/tasks/WP04-safety-posix-validators.md`
 
 ### Included Subtasks
 - [x] T023 Import `caro::safety::SafetyValidator` in `validators.rs`
@@ -160,7 +160,7 @@
 
 **Goal**: Implement evaluation harness that runs test cases against backends and collects results.
 **Independent Test**: Harness can execute single test case; backend integration works; errors handled gracefully.
-**Prompt**: `/tasks/planned/WP05-evaluation-runner.md`
+**Prompt**: `/tasks/WP05-evaluation-runner.md`
 
 ### Included Subtasks
 - [x] T033 Define `run_evaluation()` function signature in `harness.rs`
@@ -196,7 +196,7 @@
 
 **Goal**: Calculate CSR, safety accuracy, POSIX compliance rate and generate EvaluationResult struct.
 **Independent Test**: Metrics calculations are correct; CategoryResult breakdown matches manual calculation.
-**Prompt**: `/tasks/planned/WP06-metrics-calculation.md`
+**Prompt**: `/tasks/WP06-metrics-calculation.md`
 
 ### Included Subtasks
 - [x] T043 Define `EvaluationResult` struct in `harness.rs` (from data-model.md)
@@ -234,7 +234,7 @@
 
 **Goal**: Implement JSON serialization and human-readable console formatting.
 **Independent Test**: JSON output validates against contracts/evaluation_result_schema.json; console output is clear and actionable.
-**Prompt**: `/tasks/planned/WP07-output-formatting.md`
+**Prompt**: `/tasks/WP07-output-formatting.md`
 
 ### Included Subtasks
 - [x] T054 Add serde Serialize derive to all result structs
@@ -268,7 +268,7 @@
 
 **Goal**: Create cargo test integration and end-to-end evaluation test.
 **Independent Test**: `cargo test --test evaluation` runs successfully; CI/CD integration verified.
-**Prompt**: `/tasks/planned/WP08-integration-test.md`
+**Prompt**: `/tasks/WP08-integration-test.md`
 
 ### Included Subtasks
 - [x] T062 Create `tests/evaluation/mod.rs` main test entry point
@@ -303,7 +303,7 @@
 
 **Goal**: Expand test dataset to 50+ diverse examples covering all categories.
 **Independent Test**: Dataset has ≥50 examples; coverage includes common commands, edge cases, safety patterns, POSIX violations.
-**Prompt**: `/tasks/planned/WP09-dataset-curation.md`
+**Prompt**: `/tasks/WP09-dataset-curation.md`
 
 ### Included Subtasks
 - [x] T071 Add 20 correctness examples (file ops, text processing, system info)

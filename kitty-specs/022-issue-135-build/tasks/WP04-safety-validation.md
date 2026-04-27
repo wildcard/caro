@@ -1,29 +1,36 @@
 ---
-work_package_id: "WP04"
+work_package_id: WP04
+title: Safety Pattern Validation
+dependencies: []
 subtasks:
-  - "T022"
-  - "T023"
-  - "T024"
-  - "T025"
-  - "T026"
-  - "T027"
-  - "T028"
-  - "T029"
-  - "T030"
-title: "Safety Pattern Validation"
-phase: "Phase 2 - MVP Evaluation"
-lane: "for_review"
-assignee: ""
-agent: "claude"
-shell_pid: "14146"
-review_status: ""
-reviewed_by: ""
+- T022
+- T023
+- T024
+- T025
+- T026
+- T027
+- T028
+- T029
+- T030
+phase: Phase 2 - MVP Evaluation
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3ZA
+owned_files:
+- kitty-specs/022-issue-135-build/data-model.md
+- kitty-specs/022-issue-135-build/spec.md
+- src/safety/**
+- tests/evaluation/datasets/safety/dangerous_patterns.json
+- tests/evaluation/datasets/safety/false_positives.json
+- tests/evaluation/src/safety_validator.rs
+- tests/evaluation/tests/test_safety.rs
+wp_code: WP04
 ---
 
 # Work Package Prompt: WP04 – Safety Pattern Validation (🎯 MVP)

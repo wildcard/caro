@@ -27,7 +27,7 @@ git branch --show-current
 
 **If you see:**
 - Branch showing `main` or `release/`
-- OR pwd shows the main repository root
+- OR pwd shows the primary repository checkout root
 
 ⛔ **STOP - DANGER! You are in the wrong location!**
 

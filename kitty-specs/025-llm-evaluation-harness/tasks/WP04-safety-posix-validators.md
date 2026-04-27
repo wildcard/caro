@@ -1,30 +1,32 @@
 ---
-work_package_id: "WP04"
+work_package_id: WP04
+title: Safety & POSIX Validators
+dependencies: []
 subtasks:
-  - "T023"
-  - "T024"
-  - "T025"
-  - "T026"
-  - "T027"
-  - "T028"
-  - "T029"
-  - "T030"
-  - "T031"
-  - "T032"
-title: "Safety & POSIX Validators"
-phase: "Phase 0 - Foundation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "50180"
-review_status: ""
-reviewed_by: ""
+- T023
+- T024
+- T025
+- T026
+- T027
+- T028
+- T029
+- T030
+- T031
+- T032
+phase: Phase 0 - Foundation
 history:
-  - timestamp: "2026-01-09T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JN
+owned_files:
+- src/safety/**
+- tests/evaluation/validators.rs
+wp_code: WP04
 ---
 
 # Work Package Prompt: WP04 – Safety & POSIX Validators

@@ -1,28 +1,31 @@
 ---
-work_package_id: "WP01"
+work_package_id: WP01
+title: Core Models & Dataset Infrastructure
+dependencies: []
 subtasks:
-  - "T001"
-  - "T002"
-  - "T003"
-  - "T004"
-  - "T005"
-  - "T006"
-  - "T007"
-  - "T008"
-title: "Core Models & Dataset Infrastructure"
-phase: "Phase 1 - Foundation"
-lane: "for_review"
-assignee: ""
-agent: "claude"
-shell_pid: "41860"
-review_status: ""
-reviewed_by: ""
+- T001
+- T002
+- T003
+- T004
+- T005
+- T006
+- T007
+- T008
+phase: Phase 1 - Foundation
 history:
-  - timestamp: "2026-01-09T11:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T11:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JP
+owned_files:
+- src/evaluation/**
+- src/lib.rs
+- tests/evaluation/dataset.yaml
+wp_code: WP01
 ---
 
 # Work Package Prompt: WP01 – Core Models & Dataset Infrastructure

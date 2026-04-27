@@ -1,41 +1,49 @@
 ---
-work_package_id: "WP01"
+work_package_id: WP01
+title: Infrastructure & Setup
+dependencies: []
 subtasks:
-  - "T001"
-  - "T002"
-  - "T003"
-  - "T004"
-  - "T005"
-  - "T006"
-title: "Infrastructure & Setup"
-phase: "Phase 1 - Infrastructure"
-lane: "done"
-assignee: "Claude Sonnet 4.5"
-agent: "claude"
-shell_pid: "71083"
-review_status: "approved"
-reviewed_by: "user"
+- T001
+- T002
+- T003
+- T004
+- T005
+- T006
+phase: Phase 1 - Infrastructure
 history:
-  - timestamp: "2025-12-29T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
-  - timestamp: "2025-12-29T01:00:00Z"
-    lane: "doing"
-    agent: "claude"
-    shell_pid: "68286"
-    action: "Started infrastructure and setup implementation"
-  - timestamp: "2025-12-29T01:49:00Z"
-    lane: "for_review"
-    agent: "claude"
-    shell_pid: "68286"
-    action: "Completed all 6 subtasks - ready for review (commit 7e48725)"
-  - timestamp: "2025-12-29T02:10:00Z"
-    lane: "done"
-    agent: "claude"
-    shell_pid: "71083"
-    action: "Approved by user - all subtasks complete, proceeding to WP02"
+- timestamp: '2025-12-29T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+- timestamp: '2025-12-29T01:00:00Z'
+  lane: doing
+  agent: claude
+  shell_pid: '68286'
+  action: Started infrastructure and setup implementation
+- timestamp: '2025-12-29T01:49:00Z'
+  lane: for_review
+  agent: claude
+  shell_pid: '68286'
+  action: Completed all 6 subtasks - ready for review (commit 7e48725)
+- timestamp: '2025-12-29T02:10:00Z'
+  lane: done
+  agent: claude
+  shell_pid: '71083'
+  action: Approved by user - all subtasks complete, proceeding to WP02
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z0
+owned_files:
+- kitty-specs/004-add-internationalization-i18n/contracts/translation-api.ts
+- kitty-specs/004-add-internationalization-i18n/plan.md
+- kitty-specs/004-add-internationalization-i18n/quickstart.md
+- kitty-specs/004-add-internationalization-i18n/research.md
+- src/i18n/config.ts
+- src/i18n/locales/**
+- src/layouts/Layout.astro
+- src/test-i18n.ts
+wp_code: WP01
 ---
 
 # Work Package Prompt: WP01 – Infrastructure & Setup

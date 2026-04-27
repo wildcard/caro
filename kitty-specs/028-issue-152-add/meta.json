@@ -1,7 +1,12 @@
 {
+  "created_at": "2026-01-16T02:10:49Z",
   "feature_number": "028",
-  "slug": "028-issue-152-add",
   "friendly_name": "Issue #152: Add local directory context awareness",
+  "mission_number": "028",
+  "mission_slug": "028-issue-152-add",
+  "mission_type": "software-dev",
+  "slug": "028-issue-152-add",
   "source_description": "Issue #152: Add local directory context awareness",
-  "created_at": "2026-01-16T02:10:49Z"
+  "target_branch": "main",
+  "mission_id": "01KQ6BCQV39DCEQFCTFM1K33JR"
 }

@@ -1,16 +1,20 @@
 ---
-work_package_id: "WP05"
-subtasks: ["T037", "T038", "T039", "T040", "T041", "T042", "T043"]
-title: "Test Dataset Creation"
-phase: "Phase 2 - Content"
-lane: "for_review"
-agent: "claude"
-shell_pid: "68363"
+work_package_id: WP05
+title: Test Dataset Creation
+dependencies: []
+subtasks: [T037, T038, T039, T040, T041, T042, T043]
+phase: Phase 2 - Content
 history:
-  - timestamp: "2026-01-09T11:00:00Z"
-    lane: "planned"
-    agent: "system"
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T11:00:00Z'
+  lane: planned
+  agent: system
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: src/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JP
+owned_files:
+- src/**
+wp_code: WP05
 ---
 
 # Work Package Prompt: WP05 – Test Dataset Creation

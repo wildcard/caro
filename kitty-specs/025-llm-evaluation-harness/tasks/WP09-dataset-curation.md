@@ -1,28 +1,29 @@
 ---
-work_package_id: "WP09"
+work_package_id: WP09
+title: Test Dataset Curation
+dependencies: []
 subtasks:
-  - "T071"
-  - "T072"
-  - "T073"
-  - "T074"
-  - "T075"
-  - "T076"
-  - "T077"
-  - "T078"
-title: "Test Dataset Curation"
-phase: "Phase 2 - Integration"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "50180"
-review_status: ""
-reviewed_by: ""
+- T071
+- T072
+- T073
+- T074
+- T075
+- T076
+- T077
+- T078
+phase: Phase 2 - Integration
 history:
-  - timestamp: "2026-01-09T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: tests/evaluation/test_cases.toml/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JN
+owned_files:
+- tests/evaluation/test_cases.toml
+wp_code: WP09
 ---
 
 # Work Package Prompt: WP09 – Test Dataset Curation

@@ -1,20 +1,24 @@
 ---
-work_package_id: "WP05"
-subtasks: ["T032", "T033", "T034", "T035", "T036", "T037", "T038", "T039", "T040", "T041", "T042", "T043", "T044"]
-title: "CI Workflow & Regression Detection"
-phase: "Phase 2 - CI Integration"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "50418"
-review_status: ""
-reviewed_by: ""
+work_package_id: WP05
+title: CI Workflow & Regression Detection
+dependencies: []
+subtasks: [T032, T033, T034, T035, T036, T037, T038, T039, T040, T041, T042, T043, T044]
+phase: Phase 2 - CI Integration
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: kitty-specs/017-issue-9-add/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z7
+owned_files:
+- kitty-specs/017-issue-9-add/plan.md
+- kitty-specs/017-issue-9-add/research.md
+- kitty-specs/017-issue-9-add/spec.md
+- kitty-specs/017-issue-9-add/tasks.md
+wp_code: WP05
 ---
 
 # Work Package Prompt: WP05 – CI Workflow & Regression Detection

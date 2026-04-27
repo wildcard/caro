@@ -1,26 +1,28 @@
 ---
-work_package_id: "WP06"
+work_package_id: WP06
+title: User Story 5 - Shell Operator Handling
+dependencies: []
 subtasks:
-  - "T029"
-  - "T030"
-  - "T031"
-  - "T032"
-  - "T033"
-  - "T034"
-title: "User Story 5 - Shell Operator Handling"
-phase: "Phase 3 - Advanced"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "21645"
-review_status: ""
-reviewed_by: "claude"
+- T029
+- T030
+- T031
+- T032
+- T033
+- T034
+phase: Phase 3 - Advanced
 history:
-  - timestamp: "2025-12-25T02:30:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2025-12-25T02:30:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: src/
+execution_mode: code_change
+mission_id: 01KQ6BCQV1Y4FF7Z4PHK152KSR
+owned_files:
+- src/cli/mod.rs
+- src/main.rs
+wp_code: WP06
 ---
 
 # Work Package Prompt: WP06 – Shell Operator Handling

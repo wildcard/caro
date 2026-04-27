@@ -1,17 +1,19 @@
 ---
 work_package_id: WP02
-title: "Platform-Specific GPU Detection"
-priority: P1
-phase: "core"
+title: Platform-Specific GPU Detection
+dependencies: []
 subtasks: [T009, T010, T011, T012, T013, T014]
-lane: "done"
-review_status: ""
-reviewed_by: ""
-assignee: "claude"
-agent: "claude"
-shell_pid: "89134"
+phase: core
 history:
-  - 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated work package prompt
+- 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated work package prompt
+authoritative_surface: src/assessment/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z9
+owned_files:
+- src/assessment/gpu.rs
+- src/assessment/profile.rs
+priority: P1
+wp_code: WP02
 ---
 
 # Work Package 02: Platform-Specific GPU Detection

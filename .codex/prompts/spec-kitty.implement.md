@@ -70,7 +70,7 @@ This is intentional - worktrees provide isolation for parallel feature developme
    - If not, the pre-flight check should have stopped you
    - All file paths are relative to this worktree root
 
-2. Run `.kittify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute.
+2. Run `.kittify/scripts/bash/check-prerequisites.sh --json --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute.
 
 2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
    - Scan all checklist files in the checklists/ directory

@@ -1,17 +1,22 @@
 ---
 work_package_id: WP04
-title: "Output Formatting & Export"
-priority: P2
-phase: "polish"
+title: Output Formatting & Export
+dependencies: []
 subtasks: [T020, T021, T022, T023, T024, T025, T026]
-lane: "done"
-review_status: ""
-reviewed_by: ""
-assignee: "claude"
-agent: "claude"
-shell_pid: "89558"
+phase: polish
 history:
-  - 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated initial work package prompt
+- 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated initial work package prompt
+authoritative_surface: src/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z9
+owned_files:
+- src/assessment/formatters/human.rs
+- src/assessment/formatters/json.rs
+- src/assessment/formatters/markdown.rs
+- src/assessment/result.rs
+- src/cli/commands/assess.rs
+priority: P2
+wp_code: WP04
 ---
 
 # Work Package 04: Output Formatting & Export

@@ -1,20 +1,21 @@
 ---
-work_package_id: "WP07"
-subtasks: ["T054", "T055", "T056", "T057", "T058", "T059", "T060", "T061", "T062", "T063", "T064", "T065"]
-title: "Documentation"
-phase: "Phase 3 - Documentation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "62099"
-review_status: ""
-reviewed_by: ""
+work_package_id: WP07
+title: Documentation
+dependencies: []
+subtasks: [T054, T055, T056, T057, T058, T059, T060, T061, T062, T063, T064, T065]
+phase: Phase 3 - Documentation
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: kitty-specs/017-issue-9-add/
+execution_mode: planning_artifact
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z7
+owned_files:
+- kitty-specs/017-issue-9-add/**
+wp_code: WP07
 ---
 
 # Work Package Prompt: WP07 – Documentation

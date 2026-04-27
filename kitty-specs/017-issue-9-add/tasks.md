@@ -30,7 +30,7 @@ description: "Work package task list for Criterion benchmark suite implementatio
 
 **Goal**: Configure Criterion benchmarking framework and establish project structure.
 **Independent Test**: `cargo bench --no-run` compiles successfully; benchmark harness is ready.
-**Prompt**: `/tasks/planned/WP01-setup-dependencies.md`
+**Prompt**: `/tasks/WP01-setup-dependencies.md`
 
 ### Included Subtasks
 - [x] T001 Add `criterion` dev-dependency to `Cargo.toml` (version 0.5, features: html_reports)
@@ -60,7 +60,7 @@ description: "Work package task list for Criterion benchmark suite implementatio
 
 **Goal**: Implement comprehensive cache operation benchmarks.
 **Independent Test**: `cargo bench --bench cache` runs successfully; HTML reports generated in `target/criterion/`.
-**Prompt**: `/tasks/planned/WP02-cache-benchmarks.md`
+**Prompt**: `/tasks/WP02-cache-benchmarks.md`
 
 ### Included Subtasks
 - [x] T006 Create `benches/cache.rs` with Criterion boilerplate
@@ -94,7 +94,7 @@ description: "Work package task list for Criterion benchmark suite implementatio
 
 **Goal**: Implement configuration loading and merging benchmarks.
 **Independent Test**: `cargo bench --bench config` runs successfully; config operations measured at ms precision.
-**Prompt**: `/tasks/planned/WP03-config-benchmarks.md`
+**Prompt**: `/tasks/WP03-config-benchmarks.md`
 
 ### Included Subtasks
 - [x] T014 Create `benches/config.rs` with Criterion boilerplate
@@ -129,7 +129,7 @@ description: "Work package task list for Criterion benchmark suite implementatio
 
 **Goal**: Implement execution context capture and logging performance benchmarks.
 **Independent Test**: `cargo bench --bench context` and `cargo bench --bench logging` both run successfully.
-**Prompt**: `/tasks/planned/WP04-context-logging-benchmarks.md`
+**Prompt**: `/tasks/WP04-context--logging-benchmarks.md`
 
 ### Included Subtasks
 - [x] T022 Create `benches/context.rs` with Criterion boilerplate
@@ -165,7 +165,7 @@ description: "Work package task list for Criterion benchmark suite implementatio
 
 **Goal**: Implement automated benchmark execution and regression detection in GitHub Actions.
 **Independent Test**: Push to test branch triggers workflow; regression report generated for simulated change.
-**Prompt**: `/tasks/planned/WP05-ci-workflow-regression-detection.md`
+**Prompt**: `/tasks/WP05-ci-workflow--regression-detection.md`
 
 ### Included Subtasks
 - [x] T032 Create `.github/workflows/benchmarks.yml` based on contract spec
@@ -208,7 +208,7 @@ description: "Work package task list for Criterion benchmark suite implementatio
 
 **Goal**: Implement Claude skill to suggest benchmark runs based on code changes.
 **Independent Test**: Skill detects changes in `src/cache/`, suggests `cargo bench --bench cache`.
-**Prompt**: `/tasks/planned/WP06-claude-skill-integration.md`
+**Prompt**: `/tasks/WP06-claude-skill-integration.md`
 
 ### Included Subtasks
 - [x] T045 Create `.claude/skills/benchmark-advisor/` directory
@@ -243,7 +243,7 @@ description: "Work package task list for Criterion benchmark suite implementatio
 
 **Goal**: Create comprehensive developer documentation for benchmark usage and CI integration.
 **Independent Test**: Documentation covers all quickstart scenarios; new developer can run benchmarks successfully.
-**Prompt**: `/tasks/planned/WP07-documentation.md`
+**Prompt**: `/tasks/WP07-documentation.md`
 
 ### Included Subtasks
 - [x] T054 Create `docs/BENCHMARKING.md` with comprehensive guide
@@ -283,7 +283,7 @@ description: "Work package task list for Criterion benchmark suite implementatio
 
 **Goal**: Validate performance requirements, polish implementation, and prepare for merge.
 **Independent Test**: All acceptance criteria from spec.md verified; ready for PR.
-**Prompt**: `/tasks/planned/WP08-validation-polish.md`
+**Prompt**: `/tasks/WP08-validation--polish.md`
 
 ### Included Subtasks
 - [x] T066 Run full benchmark suite and collect baseline data

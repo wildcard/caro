@@ -1,28 +1,29 @@
 ---
-work_package_id: "WP07"
+work_package_id: WP07
+title: JSON & Console Output
+dependencies: []
 subtasks:
-  - "T054"
-  - "T055"
-  - "T056"
-  - "T057"
-  - "T058"
-  - "T059"
-  - "T060"
-  - "T061"
-title: "JSON & Console Output"
-phase: "Phase 1 - Core Implementation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "50180"
-review_status: ""
-reviewed_by: ""
+- T054
+- T055
+- T056
+- T057
+- T058
+- T059
+- T060
+- T061
+phase: Phase 1 - Core Implementation
 history:
-  - timestamp: "2026-01-09T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: tests/evaluation/reporter.rs/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JN
+owned_files:
+- tests/evaluation/reporter.rs
+wp_code: WP07
 ---
 
 # Work Package Prompt: WP07 – JSON & Console Output

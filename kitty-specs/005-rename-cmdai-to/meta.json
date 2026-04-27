@@ -1,7 +1,12 @@
 {
+  "created_at": "2025-12-29T10:45:16Z",
   "feature_number": "005",
-  "slug": "005-rename-cmdai-to",
   "friendly_name": "rename-cmdai-to-caro",
+  "mission_number": "005",
+  "mission_slug": "005-rename-cmdai-to",
+  "mission_type": "software-dev",
+  "slug": "005-rename-cmdai-to",
   "source_description": "rename-cmdai-to-caro",
-  "created_at": "2025-12-29T10:45:16Z"
+  "target_branch": "main",
+  "mission_id": "01KQ6BCQV2SS4PHX6NGR5YG3Z1"
 }

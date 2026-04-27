@@ -1,7 +1,12 @@
 {
+  "created_at": "2026-01-19T14:36:39Z",
   "feature_number": "043",
-  "slug": "043-complete-i18n-infrastructure",
   "friendly_name": "complete i18n infrastructure and translation execution",
+  "mission_number": "043",
+  "mission_slug": "043-complete-i18n-infrastructure",
+  "mission_type": "software-dev",
+  "slug": "043-complete-i18n-infrastructure",
   "source_description": "complete i18n infrastructure and translation execution",
-  "created_at": "2026-01-19T14:36:39Z"
+  "target_branch": "main",
+  "mission_id": "01KQ6BCQV39DCEQFCTFM1K33JV"
 }

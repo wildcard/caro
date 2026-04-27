@@ -1,30 +1,31 @@
 ---
-work_package_id: "WP05"
+work_package_id: WP05
+title: Evaluation Runner Core Logic
+dependencies: []
 subtasks:
-  - "T033"
-  - "T034"
-  - "T035"
-  - "T036"
-  - "T037"
-  - "T038"
-  - "T039"
-  - "T040"
-  - "T041"
-  - "T042"
-title: "Evaluation Runner Core Logic"
-phase: "Phase 1 - Core Implementation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "50180"
-review_status: ""
-reviewed_by: ""
+- T033
+- T034
+- T035
+- T036
+- T037
+- T038
+- T039
+- T040
+- T041
+- T042
+phase: Phase 1 - Core Implementation
 history:
-  - timestamp: "2026-01-09T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: tests/evaluation/harness.rs/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JN
+owned_files:
+- tests/evaluation/harness.rs
+wp_code: WP05
 ---
 
 # Work Package Prompt: WP05 – Evaluation Runner Core Logic

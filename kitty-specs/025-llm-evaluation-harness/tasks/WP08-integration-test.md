@@ -1,29 +1,31 @@
 ---
-work_package_id: "WP08"
+work_package_id: WP08
+title: Integration Test & Cargo Test Integration
+dependencies: []
 subtasks:
-  - "T062"
-  - "T063"
-  - "T064"
-  - "T065"
-  - "T066"
-  - "T067"
-  - "T068"
-  - "T069"
-  - "T070"
-title: "Integration Test & Cargo Test Integration"
-phase: "Phase 2 - Integration"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "50180"
-review_status: ""
-reviewed_by: ""
+- T062
+- T063
+- T064
+- T065
+- T066
+- T067
+- T068
+- T069
+- T070
+phase: Phase 2 - Integration
 history:
-  - timestamp: "2026-01-09T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: tests/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JN
+owned_files:
+- tests/evaluation.rs
+- tests/evaluation/test_cases.toml
+wp_code: WP08
 ---
 
 # Work Package Prompt: WP08 – Integration Test & Cargo Test Integration

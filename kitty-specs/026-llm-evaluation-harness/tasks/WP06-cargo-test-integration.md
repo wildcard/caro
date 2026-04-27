@@ -1,16 +1,20 @@
 ---
-work_package_id: "WP06"
-subtasks: ["T044", "T045", "T046", "T047", "T048", "T049", "T050", "T051", "T052"]
-title: "cargo test Integration & CLI"
-phase: "Phase 3 - Developer Experience"
-lane: "for_review"
-agent: "claude"
-shell_pid: "71447"
+work_package_id: WP06
+title: cargo test Integration & CLI
+dependencies: []
+subtasks: [T044, T045, T046, T047, T048, T049, T050, T051, T052]
+phase: Phase 3 - Developer Experience
 history:
-  - timestamp: "2026-01-09T11:00:00Z"
-    lane: "planned"
-    agent: "system"
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T11:00:00Z'
+  lane: planned
+  agent: system
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: tests/evaluation/main.rs/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JP
+owned_files:
+- tests/evaluation/main.rs
+wp_code: WP06
 ---
 
 # Work Package Prompt: WP06 – cargo test Integration & CLI

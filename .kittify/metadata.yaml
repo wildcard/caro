@@ -5,7 +5,14 @@
 spec_kitty:
   version: 0.9.1
   initialized_at: '2025-12-16T05:14:16.291467'
-  last_upgraded_at: '2026-04-26T19:12:21.862116'
+  last_upgraded_at: '2026-04-27T02:13:17.864289+00:00'
+  project_uuid: 01KQ6BCQTR9F5RQ6PS7MT54N11
+  schema_version: 3
+  schema_capabilities:
+  - canonical_context
+  - event_log_authority
+  - ownership_manifest
+  - thin_shims
 environment:
   python_version: 3.11.14
   platform: linux
@@ -15,87 +22,201 @@ migrations:
   - id: 0.8.0_remove_active_mission
     applied_at: '2026-04-26T19:12:21.843815'
     result: success
-    notes: Removed deprecated .kittify/active-mission;   -> Missions are now selected
-      per-feature during /spec-kitty.specify;   -> Existing features will use 'software-dev'
-      mission by default
+    notes: Removed deprecated .kittify/active-mission;   -> Missions are now selected per-feature during /spec-kitty.specify;   -> Existing features will use 'software-dev' mission by default
   - id: 0.8.0_worktree_agents_symlink
     applied_at: '2026-04-26T19:12:21.845556'
     result: success
-    notes: Created .kittify/AGENTS.md symlink in worktree 006-replace-ascii-morph;
-      Created .kittify/AGENTS.md symlink in worktree 003-backend-configuration-file;
-      Created .kittify/AGENTS.md symlink in worktree 008-installation-and-setup; Created
-      .kittify/AGENTS.md symlink in worktree 001-fix-unquoted-cli; Created .kittify/AGENTS.md
-      symlink in worktree pr-188-pitch-deck; Created .kittify/AGENTS.md symlink in
-      worktree 007-issue-161-fix; Created .kittify/AGENTS.md symlink in worktree pitch-deck-slidev;
-      Created .kittify/AGENTS.md symlink in worktree 004-add-internationalization-i18n
+    notes: Created .kittify/AGENTS.md symlink in worktree 006-replace-ascii-morph; Created .kittify/AGENTS.md symlink in worktree 003-backend-configuration-file; Created .kittify/AGENTS.md symlink in worktree 008-installation-and-setup; Created .kittify/AGENTS.md symlink in worktree 001-fix-unquoted-cli; Created .kittify/AGENTS.md symlink in worktree pr-188-pitch-deck; Created .kittify/AGENTS.md symlink in worktree 007-issue-161-fix; Created .kittify/AGENTS.md symlink in worktree pitch-deck-slidev; Created .kittify/AGENTS.md symlink in worktree 004-add-internationalization-i18n
   - id: 0.9.0_frontmatter_only_lanes
     applied_at: '2026-04-26T19:12:21.856526'
     result: success
-    notes: "[main] 002-unquoted-cli-arguments:;   Moved: done/WP01-cli-argument-parsing-setup.md\
-      \ \u2192 tasks/WP01-cli-argument-parsing-setup.md;   Moved: done/WP02-basic-prompts-and-backward-compat.md\
-      \ \u2192 tasks/WP02-basic-prompts-and-backward-compat.md;   Moved: done/WP03-prompt-source-resolution.md\
-      \ \u2192 tasks/WP03-prompt-source-resolution.md;   Moved: done/WP04-flag-and-stdin-input.md\
-      \ \u2192 tasks/WP04-flag-and-stdin-input.md;   Moved: done/WP05-validation-and-help-display.md\
-      \ \u2192 tasks/WP05-validation-and-help-display.md;   Moved: done/WP06-shell-operator-handling.md\
-      \ \u2192 tasks/WP06-shell-operator-handling.md;   Moved: done/WP07-cross-platform-testing.md\
-      \ \u2192 tasks/WP07-cross-platform-testing.md;   Moved: done/WP08-documentation-and-polish.md\
-      \ \u2192 tasks/WP08-documentation-and-polish.md;   Removed empty: done/; [main]\
-      \ 004-add-internationalization-i18n:;   Moved: planned/WP08-language-switcher-polish.md\
-      \ \u2192 tasks/WP08-language-switcher-polish.md;   Moved: for_review/WP07-github-action-automation.md\
-      \ \u2192 tasks/WP07-github-action-automation.md;   Moved: done/WP01-infrastructure-and-setup.md\
-      \ \u2192 tasks/WP01-infrastructure-and-setup.md;   Moved: done/WP02-translation-file-extraction.md\
-      \ \u2192 tasks/WP02-translation-file-extraction.md;   Moved: done/WP03-component-refactoring-navigation-core.md\
-      \ \u2192 tasks/WP03-component-refactoring-navigation-core.md;   Moved: done/WP04-component-refactoring-content-sections.md\
-      \ \u2192 tasks/WP04-component-refactoring-content-sections.md;   Moved: done/WP05-component-refactoring-landing-pages.md\
-      \ \u2192 tasks/WP05-component-refactoring-landing-pages.md;   Moved: done/WP06-localized-routes-rtl-polish.md\
-      \ \u2192 tasks/WP06-localized-routes-rtl-polish.md;   Removed empty: planned/;\
-      \   Removed empty: for_review/;   Removed empty: done/; [main] 010-website-claims-qa:;\
-      \   Moved: planned/WP01-test-infrastructure.md \u2192 tasks/WP01-test-infrastructure.md;\
-      \   Removed empty: planned/; [main] 017-issue-9-add:;   Moved: done/WP01-setup-dependencies.md\
-      \ \u2192 tasks/WP01-setup-dependencies.md;   Moved: done/WP02-cache-benchmarks.md\
-      \ \u2192 tasks/WP02-cache-benchmarks.md;   Moved: done/WP03-config-benchmarks.md\
-      \ \u2192 tasks/WP03-config-benchmarks.md;   Moved: done/WP04-context--logging-benchmarks.md\
-      \ \u2192 tasks/WP04-context--logging-benchmarks.md;   Moved: done/WP05-ci-workflow--regression-detection.md\
-      \ \u2192 tasks/WP05-ci-workflow--regression-detection.md;   Moved: done/WP06-claude-skill-integration.md\
-      \ \u2192 tasks/WP06-claude-skill-integration.md;   Moved: done/WP07-documentation.md\
-      \ \u2192 tasks/WP07-documentation.md;   Moved: done/WP08-validation--polish.md\
-      \ \u2192 tasks/WP08-validation--polish.md;   Removed empty: done/; [main] 018-issue-10-implement:;\
-      \   Moved: for_review/WP01-setup-dependencies.md \u2192 tasks/WP01-setup-dependencies.md;\
-      \   Removed empty: for_review/; [main] 020-machine-resource-assessment:;   Moved:\
-      \ done/WP01-foundation-core-detection.md \u2192 tasks/WP01-foundation-core-detection.md;\
-      \   Moved: done/WP02-gpu-detection.md \u2192 tasks/WP02-gpu-detection.md;  \
-      \ Moved: done/WP03-recommendation-engine.md \u2192 tasks/WP03-recommendation-engine.md;\
-      \   Moved: done/WP04-output-formatting.md \u2192 tasks/WP04-output-formatting.md;\
-      \   Moved: done/WP05-testing-integration.md \u2192 tasks/WP05-testing-integration.md;\
-      \   Removed empty: done/; [main] 022-issue-135-build:;   Moved: planned/WP05-posix-compliance.md\
-      \ \u2192 tasks/WP05-posix-compliance.md;   Moved: planned/WP06-backend-comparison.md\
-      \ \u2192 tasks/WP06-backend-comparison.md;   Moved: planned/WP07-reporting-integration.md\
-      \ \u2192 tasks/WP07-reporting-integration.md;   Moved: for_review/WP01-setup-infrastructure.md\
-      \ \u2192 tasks/WP01-setup-infrastructure.md;   Moved: for_review/WP02-dataset-loader.md\
-      \ \u2192 tasks/WP02-dataset-loader.md;   Moved: for_review/WP03-correctness-evaluation.md\
-      \ \u2192 tasks/WP03-correctness-evaluation.md;   Moved: for_review/WP04-safety-validation.md\
-      \ \u2192 tasks/WP04-safety-validation.md;   Removed empty: planned/;   Removed\
-      \ empty: for_review/; [main] 025-llm-evaluation-harness:;   Moved: done/WP01-project-setup.md\
-      \ \u2192 tasks/WP01-project-setup.md;   Moved: done/WP02-dataset-infrastructure.md\
-      \ \u2192 tasks/WP02-dataset-infrastructure.md;   Moved: done/WP03-command-normalization.md\
-      \ \u2192 tasks/WP03-command-normalization.md;   Moved: done/WP04-safety-posix-validators.md\
-      \ \u2192 tasks/WP04-safety-posix-validators.md;   Moved: done/WP05-evaluation-runner.md\
-      \ \u2192 tasks/WP05-evaluation-runner.md;   Moved: done/WP06-metrics-calculation.md\
-      \ \u2192 tasks/WP06-metrics-calculation.md;   Moved: done/WP07-output-formatting.md\
-      \ \u2192 tasks/WP07-output-formatting.md;   Moved: done/WP08-integration-test.md\
-      \ \u2192 tasks/WP08-integration-test.md;   Moved: done/WP09-dataset-curation.md\
-      \ \u2192 tasks/WP09-dataset-curation.md;   Removed empty: done/; [main] 026-llm-evaluation-harness:;\
-      \   Moved: planned/WP08-dashboard-visualization.md \u2192 tasks/WP08-dashboard-visualization.md;\
-      \   Moved: for_review/WP01-core-models-and-dataset.md \u2192 tasks/WP01-core-models-and-dataset.md;\
-      \   Moved: for_review/WP02-evaluator-implementations.md \u2192 tasks/WP02-evaluator-implementations.md;\
-      \   Moved: for_review/WP03-harness-orchestration.md \u2192 tasks/WP03-harness-orchestration.md;\
-      \   Moved: for_review/WP04-baseline-and-regression.md \u2192 tasks/WP04-baseline-and-regression.md;\
-      \   Moved: for_review/WP05-test-dataset-creation.md \u2192 tasks/WP05-test-dataset-creation.md;\
-      \   Moved: for_review/WP06-cargo-test-integration.md \u2192 tasks/WP06-cargo-test-integration.md;\
-      \   Moved: for_review/WP07-cicd-integration.md \u2192 tasks/WP07-cicd-integration.md;\
-      \   Removed empty: planned/;   Removed empty: for_review/; Migrated 55 WP files\
-      \ across 9 features"
+    notes: "[main] 002-unquoted-cli-arguments:;   Moved: done/WP01-cli-argument-parsing-setup.md → tasks/WP01-cli-argument-parsing-setup.md;   Moved: done/WP02-basic-prompts-and-backward-compat.md → tasks/WP02-basic-prompts-and-backward-compat.md;   Moved: done/WP03-prompt-source-resolution.md → tasks/WP03-prompt-source-resolution.md;   Moved: done/WP04-flag-and-stdin-input.md → tasks/WP04-flag-and-stdin-input.md;   Moved: done/WP05-validation-and-help-display.md → tasks/WP05-validation-and-help-display.md;   Moved: done/WP06-shell-operator-handling.md → tasks/WP06-shell-operator-handling.md;   Moved: done/WP07-cross-platform-testing.md → tasks/WP07-cross-platform-testing.md;   Moved: done/WP08-documentation-and-polish.md → tasks/WP08-documentation-and-polish.md;   Removed empty: done/; [main] 004-add-internationalization-i18n:;   Moved: planned/WP08-language-switcher-polish.md → tasks/WP08-language-switcher-polish.md;   Moved: for_review/WP07-github-action-automation.md → tasks/WP07-github-action-automation.md;   Moved: done/WP01-infrastructure-and-setup.md → tasks/WP01-infrastructure-and-setup.md;   Moved: done/WP02-translation-file-extraction.md → tasks/WP02-translation-file-extraction.md;   Moved: done/WP03-component-refactoring-navigation-core.md → tasks/WP03-component-refactoring-navigation-core.md;   Moved: done/WP04-component-refactoring-content-sections.md → tasks/WP04-component-refactoring-content-sections.md;   Moved: done/WP05-component-refactoring-landing-pages.md → tasks/WP05-component-refactoring-landing-pages.md;   Moved: done/WP06-localized-routes-rtl-polish.md → tasks/WP06-localized-routes-rtl-polish.md;   Removed empty: planned/;   Removed empty: for_review/;   Removed empty: done/; [main] 010-website-claims-qa:;   Moved: planned/WP01-test-infrastructure.md → tasks/WP01-test-infrastructure.md;   Removed empty: planned/; [main] 017-issue-9-add:;   Moved: done/WP01-setup-dependencies.md → tasks/WP01-setup-dependencies.md;   Moved: done/WP02-cache-benchmarks.md → tasks/WP02-cache-benchmarks.md;   Moved: done/WP03-config-benchmarks.md → tasks/WP03-config-benchmarks.md;   Moved: done/WP04-context--logging-benchmarks.md → tasks/WP04-context--logging-benchmarks.md;   Moved: done/WP05-ci-workflow--regression-detection.md → tasks/WP05-ci-workflow--regression-detection.md;   Moved: done/WP06-claude-skill-integration.md → tasks/WP06-claude-skill-integration.md;   Moved: done/WP07-documentation.md → tasks/WP07-documentation.md;   Moved: done/WP08-validation--polish.md → tasks/WP08-validation--polish.md;   Removed empty: done/; [main] 018-issue-10-implement:;   Moved: for_review/WP01-setup-dependencies.md → tasks/WP01-setup-dependencies.md;   Removed empty: for_review/; [main] 020-machine-resource-assessment:;   Moved: done/WP01-foundation-core-detection.md → tasks/WP01-foundation-core-detection.md;   Moved: done/WP02-gpu-detection.md → tasks/WP02-gpu-detection.md;   Moved: done/WP03-recommendation-engine.md → tasks/WP03-recommendation-engine.md;   Moved: done/WP04-output-formatting.md → tasks/WP04-output-formatting.md;   Moved: done/WP05-testing-integration.md → tasks/WP05-testing-integration.md;   Removed empty: done/; [main] 022-issue-135-build:;   Moved: planned/WP05-posix-compliance.md → tasks/WP05-posix-compliance.md;   Moved: planned/WP06-backend-comparison.md → tasks/WP06-backend-comparison.md;   Moved: planned/WP07-reporting-integration.md → tasks/WP07-reporting-integration.md;   Moved: for_review/WP01-setup-infrastructure.md → tasks/WP01-setup-infrastructure.md;   Moved: for_review/WP02-dataset-loader.md → tasks/WP02-dataset-loader.md;   Moved: for_review/WP03-correctness-evaluation.md → tasks/WP03-correctness-evaluation.md;   Moved: for_review/WP04-safety-validation.md → tasks/WP04-safety-validation.md;   Removed empty: planned/;   Removed empty: for_review/; [main] 025-llm-evaluation-harness:;   Moved: done/WP01-project-setup.md → tasks/WP01-project-setup.md;   Moved: done/WP02-dataset-infrastructure.md → tasks/WP02-dataset-infrastructure.md;   Moved: done/WP03-command-normalization.md → tasks/WP03-command-normalization.md;\
+      \   Moved: done/WP04-safety-posix-validators.md → tasks/WP04-safety-posix-validators.md;   Moved: done/WP05-evaluation-runner.md → tasks/WP05-evaluation-runner.md;   Moved: done/WP06-metrics-calculation.md → tasks/WP06-metrics-calculation.md;   Moved: done/WP07-output-formatting.md → tasks/WP07-output-formatting.md;   Moved: done/WP08-integration-test.md → tasks/WP08-integration-test.md;   Moved: done/WP09-dataset-curation.md → tasks/WP09-dataset-curation.md;   Removed empty: done/; [main] 026-llm-evaluation-harness:;   Moved: planned/WP08-dashboard-visualization.md → tasks/WP08-dashboard-visualization.md;   Moved: for_review/WP01-core-models-and-dataset.md → tasks/WP01-core-models-and-dataset.md;   Moved: for_review/WP02-evaluator-implementations.md → tasks/WP02-evaluator-implementations.md;   Moved: for_review/WP03-harness-orchestration.md → tasks/WP03-harness-orchestration.md;   Moved: for_review/WP04-baseline-and-regression.md → tasks/WP04-baseline-and-regression.md;   Moved: for_review/WP05-test-dataset-creation.md → tasks/WP05-test-dataset-creation.md;   Moved: for_review/WP06-cargo-test-integration.md → tasks/WP06-cargo-test-integration.md;   Moved: for_review/WP07-cicd-integration.md → tasks/WP07-cicd-integration.md;   Removed empty: planned/;   Removed empty: for_review/; Migrated 55 WP files across 9 features"
   - id: 0.9.1_complete_migration
     applied_at: '2026-04-26T19:12:21.859633'
     result: skipped
     notes: Not applicable
+  - id: 0.9.2_research_mission_templates
+    applied_at: '2026-04-26T19:13:16.368914'
+    result: skipped
+    notes: Not applicable
+  - id: 0.10.0_python_only
+    applied_at: '2026-04-26T19:13:16.374314'
+    result: success
+    notes: 'Removed: .kittify/scripts/bash/common.sh; Removed: .kittify/scripts/bash/tasks-list-lanes.sh; Removed: .kittify/scripts/bash/mark-task-status.sh; Removed: .kittify/scripts/bash/setup-plan.sh; Removed: .kittify/scripts/bash/move-task-to-doing.sh; Removed: .kittify/scripts/bash/accept-feature.sh; Removed: .kittify/scripts/bash/tasks-add-history-entry.sh; Removed: .kittify/scripts/bash/check-prerequisites.sh; Removed: .kittify/scripts/bash/update-agent-context.sh; Removed: .kittify/scripts/bash/tasks-move-to-lane.sh; Removed: .kittify/scripts/bash/refresh-kittify-tasks.sh; Removed: .kittify/scripts/bash/setup-sandbox.sh; Removed: .kittify/scripts/bash/tasks-rollback-move.sh; Removed: .kittify/scripts/bash/merge-feature.sh; Removed: .kittify/scripts/bash/validate-task-workflow.sh; Removed: .kittify/scripts/bash/create-new-feature.sh; Removed empty: .kittify/scripts/bash/; Total scripts removed: 16; Removed .kittify/scripts/tasks/ (obsolete task helpers); Templates directory not found at .kittify/templates/command-templates/. This is expected for projects initialized with older package versions. Run ''spec-kitty upgrade'' after upgrading to v0.10.9+ to repair templates.'
+  - id: 0.10.1_populate_slash_commands
+    applied_at: '2026-04-26T19:13:16.377433'
+    result: skipped
+    notes: Not applicable
+  - id: 0.10.2_update_slash_commands
+    applied_at: '2026-04-26T19:13:16.385451'
+    result: success
+    notes: 'Updated 12 slash commands for claude; Updated 12 slash commands for cursor; Total: Updated 24 slash commands from software-dev mission; Slash commands now use Python CLI (no bash scripts); Slash commands now enforce flat tasks/ structure (feature 007)'
+  - id: 0.10.6_workflow_simplification
+    applied_at: '2026-04-26T19:13:16.389822'
+    result: success
+    notes: 'Updated mission template: software-dev/implement.md; Updated mission template: software-dev/review.md; Updated 2 templates for claude; Updated 2 templates for cursor; Total: Updated 4 slash command templates; Templates now use ''spec-kitty agent action'' commands; Agents now see prompts directly, no file navigation needed'
+  - id: 0.10.8_fix_memory_structure
+    applied_at: '2026-04-26T19:13:16.393116'
+    result: skipped
+    notes: Not applicable
+  - id: 0.10.9_repair_templates
+    applied_at: '2026-04-26T19:13:16.396403'
+    result: skipped
+    notes: Not applicable
+  - id: 0.10.12_charter_cleanup
+    applied_at: '2026-04-26T19:13:16.399806'
+    result: skipped
+    notes: Not applicable
+  - id: 0.10.14_update_implement_slash_command
+    applied_at: '2026-04-26T19:13:16.402967'
+    result: skipped
+    notes: Not applicable
+  - id: 0.11.1_improved_workflow_templates
+    applied_at: '2026-04-26T19:13:16.406230'
+    result: skipped
+    notes: Not applicable
+  - id: 0.11.1_update_implement_slash_command
+    applied_at: '2026-04-26T19:13:16.409446'
+    result: skipped
+    notes: Not applicable
+  - id: 0.11.2_improved_workflow_templates
+    applied_at: '2026-04-26T19:13:16.412771'
+    result: skipped
+    notes: Not applicable
+  - id: 0.11.3_workflow_agent_flag
+    applied_at: '2026-04-26T19:13:16.416981'
+    result: success
+    notes: Updated 2 action prompts for claude; Updated 2 action prompts for cursor
+  - id: 0.12.0_documentation_mission
+    applied_at: '2026-04-26T19:13:16.427560'
+    result: success
+    notes: Copied documentation mission (13 files)
+  - id: 0.12.1_remove_kitty_specs_from_gitignore
+    applied_at: '2026-04-26T19:13:16.431398'
+    result: skipped
+    notes: Not applicable
+  - id: 0.13.0_research_csv_schema_check
+    applied_at: '2026-04-26T19:13:16.437171'
+    result: skipped
+    notes: Not applicable
+  - id: 0.13.0_update_charter_templates
+    applied_at: '2026-04-26T19:13:16.440797'
+    result: skipped
+    notes: Not applicable
+  - id: 0.13.0_update_research_implement_templates
+    applied_at: '2026-04-26T19:13:16.444322'
+    result: skipped
+    notes: Not applicable
+  - id: 0.13.1_exclude_worktrees
+    applied_at: '2026-04-26T19:13:16.460215'
+    result: skipped
+    notes: Not applicable
+  - id: 0.13.5_add_commit_workflow_to_templates
+    applied_at: '2026-04-26T19:13:16.464295'
+    result: skipped
+    notes: Not applicable
+  - id: 0.13.8_target_branch
+    applied_at: '2026-04-26T19:13:16.698187'
+    result: success
+    notes: Added target_branch=main to 044-adr-renumber-and; Added target_branch=main to 017-issue-9-add; Added target_branch=main to 025-llm-evaluation-harness; Added target_branch=main to 009-data-driven-holiday; Added target_branch=checked to 008-caro-web-hub; Added target_branch=main to 027-issue-281-add; Added target_branch=main to 020-machine-resource-assessment; Added target_branch=main to 022-issue-135-build; Added target_branch=main to 007-fix-website-cmdai; Added target_branch=main to 028-issue-166-add; Added target_branch=main to 026-llm-evaluation-harness; Added target_branch=main to 033-issue-467-fix; Added target_branch=main to 016-issue-8-add; Added target_branch=main to 028-issue-152-add; Added target_branch=main to 018-issue-10-implement; Added target_branch=main to 002-unquoted-cli-arguments; Added target_branch=main to 043-complete-i18n-infrastructure; Added target_branch=main to 005-rename-cmdai-to; Added target_branch=main to 004-add-internationalization-i18n
+  - id: 0.14.0_centralized_feature_detection
+    applied_at: '2026-04-26T19:13:16.702322'
+    result: skipped
+    notes: Not applicable
+  - id: 2.0.0a5_remove_wp_status_gitignore_rule
+    applied_at: '2026-04-26T19:13:16.706720'
+    result: skipped
+    notes: Not applicable
+  - id: 2.0.0_charter_directory
+    applied_at: '2026-04-26T19:13:16.710803'
+    result: skipped
+    notes: Not applicable
+  - id: 2.0.0_historical_status_migration
+    applied_at: '2026-04-26T19:13:16.714929'
+    result: skipped
+    notes: Not applicable
+  - id: 2.0.0_retire_git_hooks
+    applied_at: '2026-04-26T19:13:16.719080'
+    result: skipped
+    notes: Not applicable
+  - id: 2.0.1_fix_generated_command_templates
+    applied_at: '2026-04-26T19:13:16.728223'
+    result: success
+    notes: 'Updated: .claude/commands/spec-kitty.analyze.md; Updated: .cursor/commands/spec-kitty.analyze.md; Updated: .codex/prompts/spec-kitty.analyze.md; Updated: .codex/prompts/spec-kitty.constitution.md; Updated: .codex/prompts/spec-kitty.dashboard.md; Updated: .codex/prompts/spec-kitty.implement.md; Updated: .codex/prompts/spec-kitty.merge.md; Updated: .codex/prompts/spec-kitty.specify.md'
+  - id: 2.0.1_tool_config_key_rename
+    applied_at: '2026-04-26T19:13:16.732598'
+    result: skipped
+    notes: Not applicable
+  - id: 2.0.2_charter_context_bootstrap
+    applied_at: '2026-04-26T19:13:16.736965'
+    result: skipped
+    notes: Not applicable
+  - id: 2.0.6_consistency_sweep
+    applied_at: '2026-04-26T19:13:17.075477'
+    result: success
+    notes: 'migrated 0 identical and 48 customized legacy runtime asset(s); 002-unquoted-cli-arguments: wrote baseline meta.json; 002-unquoted-cli-arguments: normalized 8 work package files; 002-unquoted-cli-arguments: rewrote 8 legacy prompt reference(s); 004-add-internationalization-i18n: wrote baseline meta.json; 004-add-internationalization-i18n: normalized 8 work package files; 004-add-internationalization-i18n: rewrote 8 legacy prompt reference(s); 005-rename-cmdai-to: wrote baseline meta.json; 007-fix-website-cmdai: wrote baseline meta.json; 008-caro-web-hub: wrote baseline meta.json; 009-data-driven-holiday: wrote baseline meta.json; 010-website-claims-qa: wrote baseline meta.json; 010-website-claims-qa: normalized 1 work package files; 016-issue-8-add: wrote baseline meta.json; 017-issue-9-add: wrote baseline meta.json; 017-issue-9-add: normalized 8 work package files; 017-issue-9-add: rewrote 8 legacy prompt reference(s); 018-issue-10-implement: wrote baseline meta.json; 018-issue-10-implement: normalized 1 work package files; 020-machine-resource-assessment: wrote baseline meta.json; 020-machine-resource-assessment: normalized 5 work package files; 022-issue-135-build: wrote baseline meta.json; 022-issue-135-build: normalized 7 work package files; 022-issue-135-build: rewrote 7 legacy prompt reference(s); 025-llm-evaluation-harness: wrote baseline meta.json; 025-llm-evaluation-harness: normalized 9 work package files; 025-llm-evaluation-harness: rewrote 9 legacy prompt reference(s); 026-llm-evaluation-harness: wrote baseline meta.json; 026-llm-evaluation-harness: normalized 8 work package files; 026-llm-evaluation-harness: rewrote 8 legacy prompt reference(s); 027-issue-281-add: wrote baseline meta.json; 028-issue-152-add: wrote baseline meta.json; 028-issue-166-add: wrote baseline meta.json; 033-issue-467-fix: wrote baseline meta.json; 043-complete-i18n-infrastructure: wrote baseline meta.json; 044-adr-renumber-and: wrote baseline meta.json'
+  - id: 2.0.7_fix_stale_overrides
+    applied_at: '2026-04-26T19:13:17.082233'
+    result: skipped
+    notes: Not applicable
+  - id: 2.0.9_state_gitignore
+    applied_at: '2026-04-26T19:13:17.087507'
+    result: success
+    notes: 'Added runtime state entries to .gitignore: .kittify/runtime/, .kittify/merge-state.json, .kittify/events/, .kittify/dossiers/, kitty-specs/**/.kittify/dossiers/'
+  - id: 2.0.11_install_skills
+    applied_at: '2026-04-26T19:13:17.093483'
+    result: success
+    notes:
+  - id: 2.0.11_remove_clarify_command
+    applied_at: '2026-04-26T19:13:17.099277'
+    result: success
+    notes: 'Removed: .claude/commands/spec-kitty.clarify.md; Removed: .cursor/commands/spec-kitty.clarify.md; Removed 2 clarify command artifacts'
+  - id: 2.1.1_repair_skill_pack
+    applied_at: '2026-04-26T19:13:17.104590'
+    result: skipped
+    notes: Not applicable
+  - id: 2.1.2_fix_charter_doctrine_skill
+    applied_at: '2026-04-26T19:13:17.110029'
+    result: skipped
+    notes: Not applicable
+  - id: 2.1.2_fix_glossary_context_skill
+    applied_at: '2026-04-26T19:13:17.115473'
+    result: skipped
+    notes: Not applicable
+  - id: 2.1.2_fix_orchestrator_api_skill
+    applied_at: '2026-04-26T19:13:17.120950'
+    result: skipped
+    notes: Not applicable
+  - id: 2.1.2_fix_runtime_next_skill
+    applied_at: '2026-04-26T19:13:17.126527'
+    result: skipped
+    notes: Not applicable
+  - id: 2.1.2_install_git_workflow_skill
+    applied_at: '2026-04-26T19:13:17.133170'
+    result: success
+    notes: Installed .claude/skills/spec-kitty-git-workflow/SKILL.md; Installed .claude/skills/spec-kitty-git-workflow/references/git-operations-matrix.md; Installed .agents/skills/spec-kitty-git-workflow/SKILL.md; Installed .agents/skills/spec-kitty-git-workflow/references/git-operations-matrix.md
+  - id: 2.1.2_install_mission_system_skill
+    applied_at: '2026-04-26T19:13:17.139385'
+    result: success
+    notes: Installed .claude/skills/spec-kitty-mission-system/SKILL.md; Installed .claude/skills/spec-kitty-mission-system/references/mission-comparison-matrix.md; Installed .agents/skills/spec-kitty-mission-system/SKILL.md; Installed .agents/skills/spec-kitty-mission-system/references/mission-comparison-matrix.md
+  - id: 2.1.2_remove_release_skill
+    applied_at: '2026-04-26T19:13:17.145045'
+    result: skipped
+    notes: Not applicable
+  - id: 2.1.3_fix_planning_repository_terminology
+    applied_at: '2026-04-26T19:13:17.151866'
+    result: skipped
+    notes: Not applicable
+  - id: 2.1.3_restore_prompt_commands
+    applied_at: '2026-04-26T19:13:17.159038'
+    result: skipped
+    notes: Not applicable
+  - id: 2.1.4_enforce_command_file_state
+    applied_at: '2026-04-26T19:13:17.192612'
+    result: success
+    notes: 'Wrote prompt: .claude/commands/spec-kitty.analyze.md; Wrote prompt: .claude/commands/spec-kitty.charter.md; Wrote prompt: .claude/commands/spec-kitty.checklist.md; Wrote prompt: .claude/commands/spec-kitty.plan.md; Wrote prompt: .claude/commands/spec-kitty.research.md; Wrote prompt: .claude/commands/spec-kitty.specify.md; Wrote prompt: .claude/commands/spec-kitty.tasks.md; Wrote prompt: .claude/commands/spec-kitty.tasks-outline.md; Wrote prompt: .claude/commands/spec-kitty.tasks-packages.md; Wrote shim: .claude/commands/spec-kitty.accept.md; Wrote shim: .claude/commands/spec-kitty.dashboard.md; Wrote shim: .claude/commands/spec-kitty.implement.md; Wrote shim: .claude/commands/spec-kitty.merge.md; Wrote shim: .claude/commands/spec-kitty.review.md; Wrote shim: .claude/commands/spec-kitty.status.md; Wrote shim: .claude/commands/spec-kitty.tasks-finalize.md; Wrote prompt: .cursor/commands/spec-kitty.analyze.md; Wrote prompt: .cursor/commands/spec-kitty.charter.md; Wrote prompt: .cursor/commands/spec-kitty.checklist.md; Wrote prompt: .cursor/commands/spec-kitty.plan.md; Wrote prompt: .cursor/commands/spec-kitty.research.md; Wrote prompt: .cursor/commands/spec-kitty.specify.md; Wrote prompt: .cursor/commands/spec-kitty.tasks.md; Wrote prompt: .cursor/commands/spec-kitty.tasks-outline.md; Wrote prompt: .cursor/commands/spec-kitty.tasks-packages.md; Wrote shim: .cursor/commands/spec-kitty.accept.md; Wrote shim: .cursor/commands/spec-kitty.dashboard.md; Wrote shim: .cursor/commands/spec-kitty.implement.md; Wrote shim: .cursor/commands/spec-kitty.merge.md; Wrote shim: .cursor/commands/spec-kitty.review.md; Wrote shim: .cursor/commands/spec-kitty.status.md; Wrote shim: .cursor/commands/spec-kitty.tasks-finalize.md'
+  - id: 2.2.0_profile_context_deployment
+    applied_at: '2026-04-26T19:13:17.200100'
+    result: success
+    notes: Deployed .claude/commands/spec-kitty.profile-context.md; Deployed .cursor/commands/spec-kitty.profile-context.md

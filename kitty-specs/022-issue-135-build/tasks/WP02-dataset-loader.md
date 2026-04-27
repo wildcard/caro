@@ -1,26 +1,31 @@
 ---
-work_package_id: "WP02"
+work_package_id: WP02
+title: Test Dataset Structure & Loader
+dependencies: []
 subtasks:
-  - "T007"
-  - "T008"
-  - "T009"
-  - "T010"
-  - "T011"
-  - "T012"
-title: "Test Dataset Structure & Loader"
-phase: "Phase 1 - Foundation"
-lane: "for_review"
-assignee: ""
-agent: "claude"
-shell_pid: "32775"
-review_status: ""
-reviewed_by: ""
+- T007
+- T008
+- T009
+- T010
+- T011
+- T012
+phase: Phase 1 - Foundation
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3ZA
+owned_files:
+- kitty-specs/022-issue-135-build/data-model.md
+- kitty-specs/022-issue-135-build/plan.md
+- kitty-specs/022-issue-135-build/spec.md
+- tests/evaluation/datasets/correctness/file_operations.json
+- tests/evaluation/src/dataset.rs
+wp_code: WP02
 ---
 
 # Work Package Prompt: WP02 – Test Dataset Structure & Loader

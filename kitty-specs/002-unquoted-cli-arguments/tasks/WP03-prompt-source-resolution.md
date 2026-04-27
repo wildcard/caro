@@ -1,24 +1,26 @@
 ---
-work_package_id: "WP03"
+work_package_id: WP03
+title: Prompt Source Resolution
+dependencies: []
 subtasks:
-  - "T012"
-  - "T013"
-  - "T014"
-  - "T015"
-title: "Prompt Source Resolution"
-phase: "Phase 0 - Foundation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "21645"
-review_status: ""
-reviewed_by: "claude"
+- T012
+- T013
+- T014
+- T015
+phase: Phase 0 - Foundation
 history:
-  - timestamp: "2025-12-25T02:30:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2025-12-25T02:30:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV1Y4FF7Z4PHK152KSR
+owned_files:
+- src/main.rs
+- tests/unit/**
+wp_code: WP03
 ---
 
 # Work Package Prompt: WP03 – Prompt Source Resolution

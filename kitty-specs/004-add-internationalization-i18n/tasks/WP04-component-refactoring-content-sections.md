@@ -1,28 +1,29 @@
 ---
-work_package_id: "WP04"
+work_package_id: WP04
+title: Component Refactoring - Content Sections
+dependencies: []
 subtasks:
-  - "T019"
-  - "T020"
-  - "T021"
-title: "Component Refactoring - Content Sections"
-phase: "Phase 3 - Component Refactoring"
-lane: "done"
-assignee: "Claude Sonnet 4.5"
-agent: "claude"
-shell_pid: "83420"
-review_status: ""
-reviewed_by: ""
+- T019
+- T020
+- T021
+phase: Phase 3 - Component Refactoring
 history:
-  - timestamp: "2025-12-29T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
-  - timestamp: "2025-12-29T03:00:00Z"
-    lane: "doing"
-    agent: "claude"
-    shell_pid: "80406"
-    action: "Started component refactoring - Hero, Features, Download"
+- timestamp: '2025-12-29T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+- timestamp: '2025-12-29T03:00:00Z'
+  lane: doing
+  agent: claude
+  shell_pid: '80406'
+  action: Started component refactoring - Hero, Features, Download
+authoritative_surface: src/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z0
+owned_files:
+- src/**
+wp_code: WP04
 ---
 
 # Work Package Prompt: WP04 – Component Refactoring - Content Sections

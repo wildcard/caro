@@ -1,17 +1,25 @@
 ---
 work_package_id: WP01
-title: "Foundation - Core Detection"
-priority: P1
-phase: "setup"
+title: Foundation - Core Detection
+dependencies: []
 subtasks: [T001, T002, T003, T004, T005, T006, T007, T008]
-lane: "done"
-review_status: ""
-reviewed_by: ""
-assignee: "claude"
-agent: "claude"
-shell_pid: "88455"
+phase: setup
 history:
-  - 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated work package prompt
+- 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated work package prompt
+authoritative_surface: src/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z9
+owned_files:
+- src/assessment/cpu.rs
+- src/assessment/memory.rs
+- src/assessment/mod.rs
+- src/assessment/profile.rs
+- src/cli/commands/assess.rs
+- src/cli/mod.rs
+- src/doctor/**
+- src/main.rs
+priority: P1
+wp_code: WP01
 ---
 
 # Work Package 01: Foundation - Core Detection

@@ -1,20 +1,21 @@
 ---
-work_package_id: "WP01"
-subtasks: ["T001", "T002", "T003", "T004", "T005", "T006"]
-title: "Setup & Dependencies"
-phase: "Phase 1 - Foundation"
-lane: "for_review"
-assignee: ""
-agent: "claude"
-shell_pid: "13317"
-review_status: ""
-reviewed_by: ""
+work_package_id: WP01
+title: Setup & Dependencies
+dependencies: []
+subtasks: [T001, T002, T003, T004, T005, T006]
+phase: Phase 1 - Foundation
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: kitty-specs/018-issue-10-implement/
+execution_mode: planning_artifact
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z8
+owned_files:
+- kitty-specs/018-issue-10-implement/**
+wp_code: WP01
 ---
 
 # Work Package Prompt: WP01 – Setup & Dependencies

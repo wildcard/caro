@@ -1,27 +1,28 @@
 ---
-work_package_id: "WP07"
+work_package_id: WP07
+title: GitHub Action Automation
+dependencies: []
 subtasks:
-  - "T028"
-  - "T029"
-  - "T030"
-  - "T031"
-  - "T032"
-  - "T033"
-  - "T034"
-title: "GitHub Action Automation"
-phase: "Phase 5 - GitHub Action"
-lane: "for_review"
-assignee: ""
-agent: "claude"
-shell_pid: "98542"
-review_status: ""
-reviewed_by: ""
+- T028
+- T029
+- T030
+- T031
+- T032
+- T033
+- T034
+phase: Phase 5 - GitHub Action
 history:
-  - timestamp: "2025-12-29T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2025-12-29T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: src/i18n/locales/en/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z0
+owned_files:
+- src/i18n/locales/en/**
+wp_code: WP07
 ---
 
 # Work Package Prompt: WP07 – GitHub Action Automation

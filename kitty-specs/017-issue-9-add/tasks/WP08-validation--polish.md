@@ -1,20 +1,21 @@
 ---
-work_package_id: "WP08"
-subtasks: ["T066", "T067", "T068", "T069", "T070", "T071", "T072", "T073", "T074", "T075", "T076", "T077", "T078", "T079"]
-title: "Validation & Polish"
-phase: "Phase 4 - Validation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "63166"
-review_status: ""
-reviewed_by: ""
+work_package_id: WP08
+title: Validation & Polish
+dependencies: []
+subtasks: [T066, T067, T068, T069, T070, T071, T072, T073, T074, T075, T076, T077, T078, T079]
+phase: Phase 4 - Validation
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: kitty-specs/017-issue-9-add/
+execution_mode: planning_artifact
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z7
+owned_files:
+- kitty-specs/017-issue-9-add/**
+wp_code: WP08
 ---
 
 # Work Package Prompt: WP08 – Validation & Polish

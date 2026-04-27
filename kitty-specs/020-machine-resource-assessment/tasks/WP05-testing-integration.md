@@ -1,17 +1,20 @@
 ---
 work_package_id: WP05
-title: "Testing & Integration"
-priority: P3
-phase: "polish"
+title: Testing & Integration
+dependencies: []
 subtasks: [T027, T028, T029, T030, T031, T032]
-lane: "done"
-review_status: ""
-reviewed_by: ""
-assignee: "claude"
-agent: "claude"
-shell_pid: "89770"
+phase: polish
 history:
-  - 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated initial work package prompt
+- 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated initial work package prompt
+authoritative_surface: tests/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z9
+owned_files:
+- tests/assessment_tests.rs
+- tests/fixtures/mock_profiles.rs
+- tests/integration/assess_command_test.rs
+priority: P3
+wp_code: WP05
 ---
 
 # Work Package 05: Testing & Integration

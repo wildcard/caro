@@ -21,7 +21,7 @@ description: "Work package task list for LLM Evaluation Harness (Issue #135)"
 
 **Goal**: Establish evaluation harness project structure, dependencies, and foundational types.
 **Independent Test**: Project structure exists, dependencies compile, basic types defined.
-**Prompt**: `/tasks/planned/WP01-setup-infrastructure.md`
+**Prompt**: `/tasks/WP01-setup-infrastructure.md`
 
 ### Included Subtasks
 - [ ] T001 Create `tests/evaluation/` directory structure
@@ -52,7 +52,7 @@ description: "Work package task list for LLM Evaluation Harness (Issue #135)"
 
 **Goal**: Define data model types and implement JSON dataset loading.
 **Independent Test**: Load sample dataset JSON file, deserialize TestCase/TestDataset types successfully.
-**Prompt**: `/tasks/planned/WP02-dataset-loader.md`
+**Prompt**: `/tasks/WP02-dataset-loader.md`
 
 ### Included Subtasks
 - [ ] T007 Implement `tests/evaluation/src/dataset.rs` with TestCase struct
@@ -83,7 +83,7 @@ description: "Work package task list for LLM Evaluation Harness (Issue #135)"
 
 **Goal**: Implement command correctness validation (User Story 1) with exact match and semantic equivalence.
 **Independent Test**: Run 20-prompt correctness dataset, generate accuracy report showing match rate.
-**Prompt**: `/tasks/planned/WP03-correctness-evaluation.md`
+**Prompt**: `/tasks/WP03-correctness-evaluation.md`
 
 ### Included Subtasks
 - [ ] T013 Implement `tests/evaluation/src/executor.rs` for CLI invocation via std::process::Command
@@ -119,7 +119,7 @@ description: "Work package task list for LLM Evaluation Harness (Issue #135)"
 
 **Goal**: Implement safety detection validation (User Story 2) with confusion matrix calculation.
 **Independent Test**: Run 50-prompt safety dataset, generate precision/recall report.
-**Prompt**: `/tasks/planned/WP04-safety-validation.md`
+**Prompt**: `/tasks/WP04-safety-validation.md`
 
 ### Included Subtasks
 - [ ] T022 Implement `tests/evaluation/src/safety_validator.rs` module
@@ -155,7 +155,7 @@ description: "Work package task list for LLM Evaluation Harness (Issue #135)"
 
 **Goal**: Implement POSIX compliance validation (User Story 3) using shellcheck.
 **Independent Test**: Run 20-prompt POSIX dataset, identify bash-specific syntax violations.
-**Prompt**: `/tasks/planned/WP05-posix-compliance.md`
+**Prompt**: `/tasks/WP05-posix-compliance.md`
 
 ### Included Subtasks
 - [ ] T031 Implement `tests/evaluation/src/posix_checker.rs` module
@@ -190,7 +190,7 @@ description: "Work package task list for LLM Evaluation Harness (Issue #135)"
 
 **Goal**: Implement backend comparison analysis (User Story 4) with statistical significance testing.
 **Independent Test**: Run same 50-prompt dataset through MLX/Ollama/vLLM, generate variance report.
-**Prompt**: `/tasks/planned/WP06-backend-comparison.md`
+**Prompt**: `/tasks/WP06-backend-comparison.md`
 
 ### Included Subtasks
 - [ ] T039 Extend executor to support backend selection via environment variable
@@ -224,7 +224,7 @@ description: "Work package task list for LLM Evaluation Harness (Issue #135)"
 
 **Goal**: Implement JSON/Markdown report generation and end-to-end integration tests.
 **Independent Test**: Run full evaluation, generate timestamped report files, verify format.
-**Prompt**: `/tasks/planned/WP07-reporting-integration.md`
+**Prompt**: `/tasks/WP07-reporting-integration.md`
 
 ### Included Subtasks
 - [ ] T047 Implement `tests/evaluation/src/reporter.rs` module

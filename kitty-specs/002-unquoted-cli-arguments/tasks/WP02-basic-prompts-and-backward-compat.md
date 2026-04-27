@@ -1,27 +1,29 @@
 ---
-work_package_id: "WP02"
+work_package_id: WP02
+title: User Story 1 & 2 - Basic Prompts & Backward Compatibility
+dependencies: []
 subtasks:
-  - "T005"
-  - "T006"
-  - "T007"
-  - "T008"
-  - "T009"
-  - "T010"
-  - "T011"
-title: "User Story 1 & 2 - Basic Prompts & Backward Compatibility"
-phase: "Phase 1 - MVP Core"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "21645"
-review_status: ""
-reviewed_by: "claude"
+- T005
+- T006
+- T007
+- T008
+- T009
+- T010
+- T011
+phase: Phase 1 - MVP Core
 history:
-  - timestamp: "2025-12-25T02:30:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2025-12-25T02:30:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV1Y4FF7Z4PHK152KSR
+owned_files:
+- src/main.rs
+- tests/e2e_cli_tests.rs
+wp_code: WP02
 ---
 
 # Work Package Prompt: WP02 – Basic Prompts & Backward Compatibility

@@ -1,26 +1,28 @@
 ---
-work_package_id: "WP05"
+work_package_id: WP05
+title: Validation & Help Display
+dependencies: []
 subtasks:
-  - "T023"
-  - "T024"
-  - "T025"
-  - "T026"
-  - "T027"
-  - "T028"
-title: "Validation & Help Display"
-phase: "Phase 0 - Foundation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "21645"
-review_status: ""
-reviewed_by: "claude"
+- T023
+- T024
+- T025
+- T026
+- T027
+- T028
+phase: Phase 0 - Foundation
 history:
-  - timestamp: "2025-12-25T02:30:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2025-12-25T02:30:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV1Y4FF7Z4PHK152KSR
+owned_files:
+- src/main.rs
+- tests/execution_prompt_behavior.rs
+wp_code: WP05
 ---
 
 # Work Package Prompt: WP05 – Validation & Help Display

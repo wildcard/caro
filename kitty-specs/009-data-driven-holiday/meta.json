@@ -1,10 +1,15 @@
 {
-  "feature_number": "009",
-  "slug": "009-data-driven-holiday",
-  "friendly_name": "Data-driven holiday theme configuration system",
-  "source_description": "Data-driven holiday theme configuration system",
-  "created_at": "2026-01-01T09:19:42Z",
-  "status": "completed",
   "completed_at": "2026-01-02T00:00:00Z",
-  "notes": "Debug panel date selection issue parked - see docs/development/TECH_DEBT.md"
+  "created_at": "2026-01-01T09:19:42Z",
+  "feature_number": "009",
+  "friendly_name": "Data-driven holiday theme configuration system",
+  "mission_number": "009",
+  "mission_slug": "009-data-driven-holiday",
+  "mission_type": "software-dev",
+  "notes": "Debug panel date selection issue parked - see docs/development/TECH_DEBT.md",
+  "slug": "009-data-driven-holiday",
+  "source_description": "Data-driven holiday theme configuration system",
+  "status": "completed",
+  "target_branch": "main",
+  "mission_id": "01KQ6BCQV2SS4PHX6NGR5YG3Z4"
 }

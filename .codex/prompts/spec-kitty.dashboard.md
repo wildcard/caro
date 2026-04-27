@@ -36,7 +36,7 @@ A real-time, read-only web interface showing the health and status of all featur
 **Where it fits**: This is a utility command, not part of the sequential workflow
 
 **You can run this**:
-- From main repository root
+- From primary repository checkout root
 - From inside a feature worktree (dashboard still shows all projects)
 - At any point during feature development
 - Multiple times (each run can start/reuse the dashboard)
@@ -71,7 +71,7 @@ from pathlib import Path
 
 from specify_cli.dashboard import ensure_dashboard_running, stop_dashboard
 
-# CRITICAL: Find the main repository root, not worktree
+# CRITICAL: Find the primary repository checkout root, not worktree
 current_dir = Path.cwd()
 
 # Check if we're in a worktree

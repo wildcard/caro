@@ -1,21 +1,22 @@
 ---
-work_package_id: "WP05"
+work_package_id: WP05
+title: Component Refactoring - Landing Pages
+dependencies: []
 subtasks:
-  - "T022"
-title: "Component Refactoring - Landing Pages"
-phase: "Phase 3 - Component Refactoring"
-lane: "done"
-assignee: ""
-agent: "claude"
-shell_pid: "84844"
-review_status: ""
-reviewed_by: ""
+- T022
+phase: Phase 3 - Component Refactoring
 history:
-  - timestamp: "2025-12-29T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2025-12-29T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: src/components/LP*.astro/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z0
+owned_files:
+- src/components/LP*.astro
+wp_code: WP05
 ---
 
 # Work Package Prompt: WP05 – Component Refactoring - Landing Pages

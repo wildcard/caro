@@ -1,30 +1,31 @@
 ---
-work_package_id: "WP01"
+work_package_id: WP01
+title: Project Setup & Directory Structure
+dependencies: []
 subtasks:
-  - "T001"
-  - "T002"
-  - "T003"
-  - "T004"
-  - "T005"
-title: "Project Setup & Directory Structure"
-phase: "Phase 0 - Setup"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "50180"
-review_status: ""
-reviewed_by: ""
+- T001
+- T002
+- T003
+- T004
+- T005
+phase: Phase 0 - Setup
 history:
-  - timestamp: "2026-01-09T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
-  - timestamp: "2026-01-09T21:45:00Z"
-    lane: "doing"
-    agent: "claude"
-    shell_pid: "16951"
-    action: "Completed implementation: Created tests/evaluation/ directory structure, mod.rs with module declarations, stub files (dataset.rs, harness.rs, validators.rs, reporter.rs), verified cargo build succeeds. toml dependency already present at v0.9."
+- timestamp: '2026-01-09T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+- timestamp: '2026-01-09T21:45:00Z'
+  lane: doing
+  agent: claude
+  shell_pid: '16951'
+  action: 'Completed implementation: Created tests/evaluation/ directory structure, mod.rs with module declarations, stub files (dataset.rs, harness.rs, validators.rs, reporter.rs), verified cargo build succeeds. toml dependency already present at v0.9.'
+authoritative_surface: tests/evaluation/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JN
+owned_files:
+- tests/evaluation/**
+wp_code: WP01
 ---
 
 # Work Package Prompt: WP01 – Project Setup & Directory Structure

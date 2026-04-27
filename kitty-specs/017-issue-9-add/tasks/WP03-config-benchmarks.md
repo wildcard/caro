@@ -1,20 +1,21 @@
 ---
-work_package_id: "WP03"
-subtasks: ["T014", "T015", "T016", "T017", "T018", "T019", "T020", "T021"]
-title: "Config Benchmarks"
-phase: "Phase 1 - Benchmark Implementation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "1505"
-review_status: ""
-reviewed_by: ""
+work_package_id: WP03
+title: Config Benchmarks
+dependencies: []
+subtasks: [T014, T015, T016, T017, T018, T019, T020, T021]
+phase: Phase 1 - Benchmark Implementation
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: kitty-specs/017-issue-9-add/
+execution_mode: planning_artifact
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z7
+owned_files:
+- kitty-specs/017-issue-9-add/**
+wp_code: WP03
 ---
 
 # Work Package Prompt: WP03 – Config Benchmarks

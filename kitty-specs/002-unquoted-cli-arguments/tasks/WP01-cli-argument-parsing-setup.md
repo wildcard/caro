@@ -1,24 +1,29 @@
 ---
-work_package_id: "WP01"
+work_package_id: WP01
+title: CLI Argument Parsing Setup
+dependencies: []
 subtasks:
-  - "T001"
-  - "T002"
-  - "T003"
-  - "T004"
-title: "CLI Argument Parsing Setup"
-phase: "Phase 0 - Foundation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "21645"
-review_status: ""
-reviewed_by: "claude"
+- T001
+- T002
+- T003
+- T004
+phase: Phase 0 - Foundation
 history:
-  - timestamp: "2025-12-25T02:30:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2025-12-25T02:30:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV1Y4FF7Z4PHK152KSR
+owned_files:
+- kitty-specs/002-unquoted-cli-arguments/contracts/cli-argument-parsing.contract.md
+- kitty-specs/002-unquoted-cli-arguments/plan.md
+- kitty-specs/002-unquoted-cli-arguments/quickstart.md
+- src/cli/mod.rs
+- tests/cli_interface_contract.rs
+wp_code: WP01
 ---
 
 # Work Package Prompt: WP01 – CLI Argument Parsing Setup

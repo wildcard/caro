@@ -1,20 +1,21 @@
 ---
-work_package_id: "WP02"
-subtasks: ["T006", "T007", "T008", "T009", "T010", "T011", "T012", "T013"]
-title: "Cache Benchmarks"
-phase: "Phase 1 - Benchmark Implementation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "1505"
-review_status: ""
-reviewed_by: ""
+work_package_id: WP02
+title: Cache Benchmarks
+dependencies: []
+subtasks: [T006, T007, T008, T009, T010, T011, T012, T013]
+phase: Phase 1 - Benchmark Implementation
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: src/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z7
+owned_files:
+- src/**
+wp_code: WP02
 ---
 
 # Work Package Prompt: WP02 – Cache Benchmarks

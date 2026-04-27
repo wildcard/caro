@@ -1,7 +1,12 @@
 {
+  "created_at": "2026-01-15T09:01:42Z",
   "feature_number": "027",
-  "slug": "027-issue-281-add",
   "friendly_name": "Issue #281: Add command autocomplete with argument inference",
+  "mission_number": "027",
+  "mission_slug": "027-issue-281-add",
+  "mission_type": "software-dev",
+  "slug": "027-issue-281-add",
   "source_description": "Issue #281: Add command autocomplete with argument inference",
-  "created_at": "2026-01-15T09:01:42Z"
+  "target_branch": "main",
+  "mission_id": "01KQ6BCQV39DCEQFCTFM1K33JQ"
 }

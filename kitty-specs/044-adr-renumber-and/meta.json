@@ -1,7 +1,12 @@
 {
+  "created_at": "2026-01-24T14:11:28Z",
   "feature_number": "044",
-  "slug": "044-adr-renumber-and",
   "friendly_name": "adr renumber and index all files",
+  "mission_number": "044",
+  "mission_slug": "044-adr-renumber-and",
+  "mission_type": "software-dev",
+  "slug": "044-adr-renumber-and",
   "source_description": "adr renumber and index all files",
-  "created_at": "2026-01-24T14:11:28Z"
+  "target_branch": "main",
+  "mission_id": "01KQ6BCQV39DCEQFCTFM1K33JW"
 }

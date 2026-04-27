@@ -1,16 +1,20 @@
 ---
-work_package_id: "WP03"
-subtasks: ["T019", "T020", "T021", "T022", "T023", "T024", "T025", "T026", "T027", "T028"]
-title: "Harness Orchestration & Parallel Execution"
-phase: "Phase 2 - Integration"
-lane: "for_review"
-agent: "claude"
-shell_pid: "51970"
+work_package_id: WP03
+title: Harness Orchestration & Parallel Execution
+dependencies: []
+subtasks: [T019, T020, T021, T022, T023, T024, T025, T026, T027, T028]
+phase: Phase 2 - Integration
 history:
-  - timestamp: "2026-01-09T11:00:00Z"
-    lane: "planned"
-    agent: "system"
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T11:00:00Z'
+  lane: planned
+  agent: system
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: src/evaluation/harness.rs/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JP
+owned_files:
+- src/evaluation/harness.rs
+wp_code: WP03
 ---
 
 # Work Package Prompt: WP03 – Harness Orchestration & Parallel Execution

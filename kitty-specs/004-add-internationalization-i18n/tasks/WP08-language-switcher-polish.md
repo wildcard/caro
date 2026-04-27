@@ -1,24 +1,25 @@
 ---
-work_package_id: "WP08"
+work_package_id: WP08
+title: Language Switcher & Polish
+dependencies: []
 subtasks:
-  - "T035"
-  - "T036"
-  - "T037"
-  - "T038"
-title: "Language Switcher & Polish"
-phase: "Phase 6 - Polish"
-lane: "planned"
-assignee: ""
-agent: ""
-shell_pid: ""
-review_status: ""
-reviewed_by: ""
+- T035
+- T036
+- T037
+- T038
+phase: Phase 6 - Polish
 history:
-  - timestamp: "2025-12-29T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2025-12-29T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: src/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z0
+owned_files:
+- src/**
+wp_code: WP08
 ---
 
 # Work Package Prompt: WP08 – Language Switcher & Polish

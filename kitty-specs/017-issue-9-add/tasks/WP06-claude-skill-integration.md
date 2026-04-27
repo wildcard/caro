@@ -1,20 +1,25 @@
 ---
-work_package_id: "WP06"
-subtasks: ["T045", "T046", "T047", "T048", "T049", "T050", "T051", "T052", "T053"]
-title: "Claude Skill Integration"
-phase: "Phase 2 - Developer Tools"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "54050"
-review_status: ""
-reviewed_by: ""
+work_package_id: WP06
+title: Claude Skill Integration
+dependencies: []
+subtasks: [T045, T046, T047, T048, T049, T050, T051, T052, T053]
+phase: Phase 2 - Developer Tools
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z7
+owned_files:
+- kitty-specs/017-issue-9-add/plan.md
+- kitty-specs/017-issue-9-add/research.md
+- kitty-specs/017-issue-9-add/spec.md
+- kitty-specs/017-issue-9-add/tasks.md
+- src/cache/**/*.rs
+wp_code: WP06
 ---
 
 # Work Package Prompt: WP06 – Claude Skill Integration

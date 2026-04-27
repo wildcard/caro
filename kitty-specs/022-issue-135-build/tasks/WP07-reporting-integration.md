@@ -1,30 +1,36 @@
 ---
-work_package_id: "WP07"
+work_package_id: WP07
+title: Report Generation & Integration Tests
+dependencies: []
 subtasks:
-  - "T047"
-  - "T048"
-  - "T049"
-  - "T050"
-  - "T051"
-  - "T052"
-  - "T053"
-  - "T054"
-  - "T055"
-  - "T056"
-title: "Report Generation & Integration Tests"
-phase: "Phase 4 - Polish"
-lane: "planned"
-assignee: ""
-agent: ""
-shell_pid: ""
-review_status: ""
-reviewed_by: ""
+- T047
+- T048
+- T049
+- T050
+- T051
+- T052
+- T053
+- T054
+- T055
+- T056
+phase: Phase 4 - Polish
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3ZA
+owned_files:
+- kitty-specs/022-issue-135-build/data-model.md
+- kitty-specs/022-issue-135-build/spec.md
+- tests/evaluation/bin/evaluate.rs
+- tests/evaluation/results/run_<timestamp/**
+- tests/evaluation/src/reporter.rs
+- tests/evaluation/tests/test_full_evaluation.rs
+wp_code: WP07
 ---
 
 # Work Package Prompt: WP07 – Report Generation & Integration Tests

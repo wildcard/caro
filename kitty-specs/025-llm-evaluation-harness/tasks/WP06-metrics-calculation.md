@@ -1,31 +1,32 @@
 ---
-work_package_id: "WP06"
+work_package_id: WP06
+title: Metrics Calculation & Result Aggregation
+dependencies: []
 subtasks:
-  - "T043"
-  - "T044"
-  - "T045"
-  - "T046"
-  - "T047"
-  - "T048"
-  - "T049"
-  - "T050"
-  - "T051"
-  - "T052"
-  - "T053"
-title: "Metrics Calculation & Result Aggregation"
-phase: "Phase 1 - Core Implementation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "50180"
-review_status: ""
-reviewed_by: ""
+- T043
+- T044
+- T045
+- T046
+- T047
+- T048
+- T049
+- T050
+- T051
+- T052
+- T053
+phase: Phase 1 - Core Implementation
 history:
-  - timestamp: "2026-01-09T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: tests/evaluation/harness.rs/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JN
+owned_files:
+- tests/evaluation/harness.rs
+wp_code: WP06
 ---
 
 # Work Package Prompt: WP06 – Metrics Calculation & Result Aggregation

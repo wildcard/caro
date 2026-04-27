@@ -27,7 +27,7 @@ description: "Work package task list for feature 002-unquoted-cli-arguments"
 
 **Goal**: Configure clap to accept trailing variable arguments for unquoted prompts.
 **Independent Test**: `caro list files` successfully parses arguments without errors, collecting ["list", "files"] in trailing_args.
-**Prompt**: `tasks/planned/WP01-cli-argument-parsing-setup.md`
+**Prompt**: `tasks/WP01-cli-argument-parsing-setup.md`
 
 ### Included Subtasks
 - [x] T001 Update CliArgs struct with trailing_var_arg configuration in `src/cli/mod.rs`
@@ -56,7 +56,7 @@ description: "Work package task list for feature 002-unquoted-cli-arguments"
 
 **Goal**: Enable basic unquoted prompts while maintaining 100% backward compatibility with quoted prompts.
 **Independent Test**: Both `caro list files` (unquoted) and `caro "list files"` (quoted) generate commands successfully.
-**Prompt**: `tasks/planned/WP02-basic-prompts-and-backward-compat.md`
+**Prompt**: `tasks/WP02-basic-prompts-and-backward-compat.md`
 
 ### Included Subtasks
 - [x] T005 Implement trailing args collection and joining with spaces in `src/main.rs`
@@ -88,7 +88,7 @@ description: "Work package task list for feature 002-unquoted-cli-arguments"
 
 **Goal**: Implement input prioritization logic (flag > stdin > trailing args) with clean separation.
 **Independent Test**: Providing multiple input sources respects priority order correctly.
-**Prompt**: `tasks/planned/WP03-prompt-source-resolution.md`
+**Prompt**: `tasks/WP03-prompt-source-resolution.md`
 
 ### Included Subtasks
 - [x] T012 Create `PromptSource` enum (Flag, Stdin, TrailingArgs) in `src/main.rs`
@@ -117,7 +117,7 @@ description: "Work package task list for feature 002-unquoted-cli-arguments"
 
 **Goal**: Implement `-p`/`--prompt` flag and stdin piping for automation and pipeline use cases.
 **Independent Test**: `caro -p "list files"` and `echo "list files" | caro` both generate commands correctly.
-**Prompt**: `tasks/planned/WP04-flag-and-stdin-input.md`
+**Prompt**: `tasks/WP04-flag-and-stdin-input.md`
 
 ### Included Subtasks
 - [x] T016 Add `-p`/`--prompt` flag to CliArgs in `src/cli/mod.rs`
@@ -149,7 +149,7 @@ description: "Work package task list for feature 002-unquoted-cli-arguments"
 
 **Goal**: Validate prompts and show help for empty/whitespace-only input (non-error, user-friendly).
 **Independent Test**: `caro` (no args) and `caro   ` (whitespace) both display help message without error.
-**Prompt**: `tasks/planned/WP05-validation-and-help-display.md`
+**Prompt**: `tasks/WP05-validation-and-help-display.md`
 
 ### Included Subtasks
 - [x] T023 Implement `validate_prompt()` function in `src/main.rs`
@@ -180,7 +180,7 @@ description: "Work package task list for feature 002-unquoted-cli-arguments"
 
 **Goal**: Detect POSIX shell operators and truncate prompt parsing correctly.
 **Independent Test**: `caro list files > output.txt` treats "list files" as prompt (shell handles redirection).
-**Prompt**: `tasks/planned/WP06-shell-operator-handling.md`
+**Prompt**: `tasks/WP06-shell-operator-handling.md`
 
 ### Included Subtasks
 - [x] T029 Implement `truncate_at_shell_operator()` function in `src/cli/mod.rs`
@@ -211,7 +211,7 @@ description: "Work package task list for feature 002-unquoted-cli-arguments"
 
 **Goal**: Validate all functionality works on Linux, macOS, Windows; fix any identified test failures.
 **Independent Test**: Full test suite passes on all platforms without failures.
-**Prompt**: `tasks/planned/WP07-cross-platform-testing.md`
+**Prompt**: `tasks/WP07-cross-platform-testing.md`
 
 ### Included Subtasks
 - [x] T035 Run full test suite on Linux: `cargo test`
@@ -242,7 +242,7 @@ description: "Work package task list for feature 002-unquoted-cli-arguments"
 
 **Goal**: Complete documentation, code cleanup, and prepare for merge.
 **Independent Test**: CHANGELOG.md accurately describes feature; code passes clippy/fmt checks.
-**Prompt**: `tasks/planned/WP08-documentation-and-polish.md`
+**Prompt**: `tasks/WP08-documentation-and-polish.md`
 
 ### Included Subtasks
 - [x] T041 Update CHANGELOG.md with feature details and FR/SC references

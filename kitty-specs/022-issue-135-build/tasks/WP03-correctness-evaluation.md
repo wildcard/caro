@@ -1,29 +1,38 @@
 ---
-work_package_id: "WP03"
+work_package_id: WP03
+title: Command Correctness Evaluation
+dependencies: []
 subtasks:
-  - "T013"
-  - "T014"
-  - "T015"
-  - "T016"
-  - "T017"
-  - "T018"
-  - "T019"
-  - "T020"
-  - "T021"
-title: "Command Correctness Evaluation"
-phase: "Phase 2 - MVP Evaluation"
-lane: "for_review"
-assignee: ""
-agent: "claude"
-shell_pid: "12556"
-review_status: ""
-reviewed_by: ""
+- T013
+- T014
+- T015
+- T016
+- T017
+- T018
+- T019
+- T020
+- T021
+phase: Phase 2 - MVP Evaluation
 history:
-  - timestamp: "2026-01-08T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-08T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: ''
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3ZA
+owned_files:
+- kitty-specs/022-issue-135-build/data-model.md
+- kitty-specs/022-issue-135-build/plan.md
+- kitty-specs/022-issue-135-build/spec.md
+- tests/evaluation/datasets/correctness/file_operations.json
+- tests/evaluation/datasets/correctness/network_commands.json
+- tests/evaluation/datasets/correctness/text_processing.json
+- tests/evaluation/src/evaluator.rs
+- tests/evaluation/src/executor.rs
+- tests/evaluation/tests/test_correctness.rs
+wp_code: WP03
 ---
 
 # Work Package Prompt: WP03 – Command Correctness Evaluation (🎯 MVP)

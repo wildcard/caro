@@ -1,14 +1,20 @@
 ---
-work_package_id: "WP08"
-subtasks: ["T061", "T062", "T063", "T064", "T065", "T066", "T067", "T068", "T069"]
-title: "Dashboard & Visualization"
-phase: "Phase 4 - Polish (Optional)"
-lane: "planned"
+work_package_id: WP08
+title: Dashboard & Visualization
+dependencies: []
+subtasks: [T061, T062, T063, T064, T065, T066, T067, T068, T069]
+phase: Phase 4 - Polish (Optional)
 history:
-  - timestamp: "2026-01-09T11:00:00Z"
-    lane: "planned"
-    agent: "system"
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T11:00:00Z'
+  lane: planned
+  agent: system
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: src/evaluation/dashboard.rs/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JP
+owned_files:
+- src/evaluation/dashboard.rs
+wp_code: WP08
 ---
 
 # Work Package Prompt: WP08 – Dashboard & Visualization

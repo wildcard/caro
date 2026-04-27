@@ -23,7 +23,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 **IMPORTANT**: This is the FIRST command in the spec-kitty feature workflow.
 
 **Location Context**:
-- **Before running .kittify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS"**: You are in the main repository root
+- **Before running .kittify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS"**: You are in the primary repository checkout root
 - **After running .kittify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS"**: A new feature worktree is created at `.worktrees/001-feature-name/`
 
 The script handles location setup automatically. You do NOT need to navigate anywhere before running it.

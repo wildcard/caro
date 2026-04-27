@@ -1,17 +1,18 @@
 ---
 work_package_id: WP03
-title: "Recommendation Engine"
-priority: P2
-phase: "core"
+title: Recommendation Engine
+dependencies: []
 subtasks: [T015, T016, T017, T018, T019]
-lane: "done"
-review_status: ""
-reviewed_by: ""
-assignee: "claude"
-agent: "claude"
-shell_pid: "89340"
+phase: core
 history:
-  - 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated work package prompt
+- 2026-01-08T00:00:00Z – spec-kitty-tasks – Generated work package prompt
+authoritative_surface: src/assessment/recommender.rs/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z9
+owned_files:
+- src/assessment/recommender.rs
+priority: P2
+wp_code: WP03
 ---
 
 # Work Package 03: Recommendation Engine

@@ -1,26 +1,27 @@
 ---
-work_package_id: "WP07"
+work_package_id: WP07
+title: 'Cross-Platform Testing & PR #68 Fixes'
+dependencies: []
 subtasks:
-  - "T035"
-  - "T036"
-  - "T037"
-  - "T038"
-  - "T039"
-  - "T040"
-title: "Cross-Platform Testing & PR #68 Fixes"
-phase: "Phase 4 - Quality Gate"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "21645"
-review_status: ""
-reviewed_by: "claude"
+- T035
+- T036
+- T037
+- T038
+- T039
+- T040
+phase: Phase 4 - Quality Gate
 history:
-  - timestamp: "2025-12-25T02:30:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2025-12-25T02:30:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: kitty-specs/002-unquoted-cli-arguments/
+execution_mode: planning_artifact
+mission_id: 01KQ6BCQV1Y4FF7Z4PHK152KSR
+owned_files:
+- kitty-specs/002-unquoted-cli-arguments/**
+wp_code: WP07
 ---
 
 # Work Package Prompt: WP07 – Cross-Platform Testing & PR #68 Fixes

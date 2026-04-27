@@ -1,16 +1,20 @@
 ---
-work_package_id: "WP07"
-subtasks: ["T053", "T054", "T055", "T056", "T057", "T058", "T059", "T060"]
-title: "CI/CD Integration & Automation"
-phase: "Phase 3 - Automation"
-lane: "for_review"
-agent: "claude"
-shell_pid: "72431"
+work_package_id: WP07
+title: CI/CD Integration & Automation
+dependencies: []
+subtasks: [T053, T054, T055, T056, T057, T058, T059, T060]
+phase: Phase 3 - Automation
 history:
-  - timestamp: "2026-01-09T11:00:00Z"
-    lane: "planned"
-    agent: "system"
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T11:00:00Z'
+  lane: planned
+  agent: system
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: src/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JP
+owned_files:
+- src/**
+wp_code: WP07
 ---
 
 # Work Package Prompt: WP07 – CI/CD Integration & Automation

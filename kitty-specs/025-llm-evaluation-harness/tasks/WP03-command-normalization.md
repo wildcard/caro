@@ -1,28 +1,29 @@
 ---
-work_package_id: "WP03"
+work_package_id: WP03
+title: Command Normalization & Comparison
+dependencies: []
 subtasks:
-  - "T015"
-  - "T016"
-  - "T017"
-  - "T018"
-  - "T019"
-  - "T020"
-  - "T021"
-  - "T022"
-title: "Command Normalization & Comparison"
-phase: "Phase 0 - Foundation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "50180"
-review_status: ""
-reviewed_by: ""
+- T015
+- T016
+- T017
+- T018
+- T019
+- T020
+- T021
+- T022
+phase: Phase 0 - Foundation
 history:
-  - timestamp: "2026-01-09T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2026-01-09T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: tests/evaluation/validators.rs/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JN
+owned_files:
+- tests/evaluation/validators.rs
+wp_code: WP03
 ---
 
 # Work Package Prompt: WP03 – Command Normalization & Comparison

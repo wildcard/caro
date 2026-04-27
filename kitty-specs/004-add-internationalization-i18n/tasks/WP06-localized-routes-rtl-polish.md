@@ -1,25 +1,26 @@
 ---
-work_package_id: "WP06"
+work_package_id: WP06
+title: Localized Routes & RTL Polish
+dependencies: []
 subtasks:
-  - "T023"
-  - "T024"
-  - "T025"
-  - "T026"
-  - "T027"
-title: "Localized Routes & RTL Polish"
-phase: "Phase 4 - Localized Routes"
-lane: "done"
-assignee: ""
-agent: "claude"
-shell_pid: "93118"
-review_status: ""
-reviewed_by: ""
+- T023
+- T024
+- T025
+- T026
+- T027
+phase: Phase 4 - Localized Routes
 history:
-  - timestamp: "2025-12-29T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
+- timestamp: '2025-12-29T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+authoritative_surface: src/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z0
+owned_files:
+- src/**
+wp_code: WP06
 ---
 
 # Work Package Prompt: WP06 – Localized Routes & RTL Polish

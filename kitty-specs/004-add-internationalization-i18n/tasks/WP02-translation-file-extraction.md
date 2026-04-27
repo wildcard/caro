@@ -1,44 +1,48 @@
 ---
-work_package_id: "WP02"
+work_package_id: WP02
+title: Translation File Extraction
+dependencies: []
 subtasks:
-  - "T007"
-  - "T008"
-  - "T009"
-  - "T010"
-  - "T011"
-  - "T012"
-  - "T013"
-  - "T014"
-  - "T015"
-title: "Translation File Extraction"
-phase: "Phase 2 - Translation Files"
-lane: "done"
-assignee: "Claude Sonnet 4.5"
-agent: "claude"
-shell_pid: "78552"
-review_status: "approved"
-reviewed_by: "user"
+- T007
+- T008
+- T009
+- T010
+- T011
+- T012
+- T013
+- T014
+- T015
+phase: Phase 2 - Translation Files
 history:
-  - timestamp: "2025-12-29T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
-  - timestamp: "2025-12-29T02:15:00Z"
-    lane: "doing"
-    agent: "claude"
-    shell_pid: "71083"
-    action: "Started translation file extraction - extracting English strings to JSON"
-  - timestamp: "2025-12-29T02:30:00Z"
-    lane: "for_review"
-    agent: "claude"
-    shell_pid: "71083"
-    action: "Completed all 9 subtasks - 7 JSON files created, index.ts and config.ts updated (commit 8d937d6)"
-  - timestamp: "2025-12-29T02:35:00Z"
-    lane: "done"
-    agent: "claude"
-    shell_pid: "78552"
-    action: "Approved by user - all JSON files validated, proceeding to WP03"
+- timestamp: '2025-12-29T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+- timestamp: '2025-12-29T02:15:00Z'
+  lane: doing
+  agent: claude
+  shell_pid: '71083'
+  action: Started translation file extraction - extracting English strings to JSON
+- timestamp: '2025-12-29T02:30:00Z'
+  lane: for_review
+  agent: claude
+  shell_pid: '71083'
+  action: Completed all 9 subtasks - 7 JSON files created, index.ts and config.ts updated (commit 8d937d6)
+- timestamp: '2025-12-29T02:35:00Z'
+  lane: done
+  agent: claude
+  shell_pid: '78552'
+  action: Approved by user - all JSON files validated, proceeding to WP03
+authoritative_surface: src/
+execution_mode: code_change
+mission_id: 01KQ6BCQV2SS4PHX6NGR5YG3Z0
+owned_files:
+- src/components/Navigation.astro
+- src/i18n/index.ts
+- src/i18n/locales/en/*.json;
+- src/i18n/locales/en/{section}.json
+wp_code: WP02
 ---
 
 # Work Package Prompt: WP02 – Translation File Extraction

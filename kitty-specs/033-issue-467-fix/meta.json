@@ -1,7 +1,12 @@
 {
+  "created_at": "2026-01-17T01:36:10Z",
   "feature_number": "033",
-  "slug": "033-issue-467-fix",
   "friendly_name": "Issue #467: Fix flaky concurrent cache test",
+  "mission_number": "033",
+  "mission_slug": "033-issue-467-fix",
+  "mission_type": "software-dev",
+  "slug": "033-issue-467-fix",
   "source_description": "Issue #467: Fix flaky concurrent cache test",
-  "created_at": "2026-01-17T01:36:10Z"
+  "target_branch": "main",
+  "mission_id": "01KQ6BCQV39DCEQFCTFM1K33JT"
 }

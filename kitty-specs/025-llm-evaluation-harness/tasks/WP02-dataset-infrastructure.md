@@ -1,39 +1,41 @@
 ---
-work_package_id: "WP02"
+work_package_id: WP02
+title: Test Dataset Infrastructure
+dependencies: []
 subtasks:
-  - "T006"
-  - "T007"
-  - "T008"
-  - "T009"
-  - "T010"
-  - "T011"
-  - "T012"
-  - "T013"
-  - "T014"
-title: "Test Dataset Infrastructure"
-phase: "Phase 0 - Foundation"
-lane: "done"
-assignee: "claude"
-agent: "claude"
-shell_pid: "50180"
-review_status: ""
-reviewed_by: ""
+- T006
+- T007
+- T008
+- T009
+- T010
+- T011
+- T012
+- T013
+- T014
+phase: Phase 0 - Foundation
 history:
-  - timestamp: "2026-01-09T00:00:00Z"
-    lane: "planned"
-    agent: "system"
-    shell_pid: ""
-    action: "Prompt generated via /spec-kitty.tasks"
-  - timestamp: "2026-01-09T21:50:00Z"
-    lane: "doing"
-    agent: "claude"
-    shell_pid: "16951"
-    action: "Started implementation"
-  - timestamp: "2026-01-09T21:55:00Z"
-    lane: "doing"
-    agent: "claude"
-    shell_pid: "16951"
-    action: "Completed implementation: Implemented TestCase, Category, TestDataset structs with serde. Created from_toml() loader with validation (duplicate IDs, empty fields). Created test_cases.toml with 10 examples (6 correctness, 2 safety, 2 POSIX). Added 3 unit tests (load valid, duplicate ID error, empty dataset error). All 4 tests pass (3 unit + 1 integration)."
+- timestamp: '2026-01-09T00:00:00Z'
+  lane: planned
+  agent: system
+  shell_pid: ''
+  action: Prompt generated via /spec-kitty.tasks
+- timestamp: '2026-01-09T21:50:00Z'
+  lane: doing
+  agent: claude
+  shell_pid: '16951'
+  action: Started implementation
+- timestamp: '2026-01-09T21:55:00Z'
+  lane: doing
+  agent: claude
+  shell_pid: '16951'
+  action: 'Completed implementation: Implemented TestCase, Category, TestDataset structs with serde. Created from_toml() loader with validation (duplicate IDs, empty fields). Created test_cases.toml with 10 examples (6 correctness, 2 safety, 2 POSIX). Added 3 unit tests (load valid, duplicate ID error, empty dataset error). All 4 tests pass (3 unit + 1 integration).'
+authoritative_surface: tests/evaluation/
+execution_mode: code_change
+mission_id: 01KQ6BCQV39DCEQFCTFM1K33JN
+owned_files:
+- tests/evaluation/dataset.rs
+- tests/evaluation/test_cases.toml
+wp_code: WP02
 ---
 
 # Work Package Prompt: WP02 – Test Dataset Infrastructure
