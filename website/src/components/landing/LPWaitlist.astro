@@ -52,8 +52,11 @@
             class="hp-field"
             aria-hidden="true"
           />
-          <!-- Time-trap: render time, server rejects submits < 3s old -->
-          <input type="hidden" name="ts" value={Date.now().toString()} />
+          <!-- Time-trap: client-side render time. The site is statically built,
+               so we cannot fill this in the template — the value would be the
+               build timestamp, which is potentially hours old by the time a
+               visitor submits. The script (below) populates it on page load. -->
+          <input type="hidden" name="ts" value="" />
           <button type="submit" class="submit-button">
             <span class="button-text">Get Early Access</span>
             <span class="button-icon">→</span>
@@ -72,6 +75,14 @@
   import { track } from '@vercel/analytics';
 
   const form = document.getElementById('waitlist-form') as HTMLFormElement;
+
+  // Stamp the time-trap input on page load (the SSG'd template has `value=""`
+  // because Date.now() in the .astro frontmatter would be a frozen build-time
+  // value — hours stale for any visitor after deploy).
+  const tsInputAtLoad = form?.querySelector('input[name="ts"]') as HTMLInputElement | null;
+  if (tsInputAtLoad) {
+    tsInputAtLoad.value = String(Date.now());
+  }
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
