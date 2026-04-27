@@ -1240,15 +1240,12 @@ async fn run_caroml_generate(
     platform_override: Option<&str>,
     backend_override: Option<&str>,
 ) -> Result<std::path::PathBuf, String> {
-    use caro::caroml::{
-        check_file, discovery, interpreter, platform as caro_platform, validators,
-    };
+    use caro::caroml::{check_file, discovery, interpreter, platform as caro_platform, validators};
 
     let path = discovery::resolve_task_path(name)
         .ok_or_else(|| format!("could not find task `{}`", name))?;
 
-    let task = check_file(&path)
-        .map_err(|e| format!("{}: {}", path.display(), e))?;
+    let task = check_file(&path).map_err(|e| format!("{}: {}", path.display(), e))?;
 
     // Resolve target platform.
     let target_platform = match platform_override {
@@ -1259,8 +1256,8 @@ async fn run_caroml_generate(
 
     // Resolve backend. v0.1: only `mock` is wired through here (deterministic);
     // other backends arrive in PR 5+ when execution is needed.
-    let backend = build_caroml_backend(backend_override)
-        .map_err(|e| format!("backend setup: {}", e))?;
+    let backend =
+        build_caroml_backend(backend_override).map_err(|e| format!("backend setup: {}", e))?;
     let backend_ref: &dyn caro::backends::CommandGenerator = &*backend;
 
     let chain = validators::default_chain();

@@ -296,11 +296,7 @@ mod tests {
         lock
     }
 
-    fn input<'a>(
-        task: &'a Task,
-        lock: Option<&'a Lock>,
-        mode: Mode,
-    ) -> EvalInput<'a> {
+    fn input<'a>(task: &'a Task, lock: Option<&'a Lock>, mode: Mode) -> EvalInput<'a> {
         EvalInput {
             task,
             lock,

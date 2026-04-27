@@ -19,8 +19,7 @@
 use crate::backends::{CommandGenerator, GeneratorError};
 use crate::caroml::ast::Task;
 use crate::caroml::lock::{
-    HistoryEntry, Lock, Meta, Step as LockStep, TaskMeta, ValidationEntry, Variant,
-    SCHEMA_VERSION,
+    HistoryEntry, Lock, Meta, Step as LockStep, TaskMeta, ValidationEntry, Variant, SCHEMA_VERSION,
 };
 use crate::caroml::regen_evaluator::intent_hash as compute_intent_hash;
 use crate::caroml::validators::{
@@ -99,10 +98,7 @@ pub async fn generate_lock_for_platform(
         generated_at: now,
         intent_hash: lock.meta.intent_hash.clone(),
         cve_feed_rev: None,
-        notes: Some(format!(
-            "Initial generation for platform `{}`.",
-            platform
-        )),
+        notes: Some(format!("Initial generation for platform `{}`.", platform)),
     });
 
     // We need the backend's identity for the History entry; probe it once.
@@ -118,7 +114,10 @@ pub async fn generate_lock_for_platform(
         let prior_pairs: Vec<(&str, &str)> = lock
             .steps
             .iter()
-            .filter_map(|ls| ls.active_variant(platform).map(|v| (ls.intent.as_str(), v.command.as_str())))
+            .filter_map(|ls| {
+                ls.active_variant(platform)
+                    .map(|v| (ls.intent.as_str(), v.command.as_str()))
+            })
             .collect();
 
         let outcome = generate_step(
@@ -159,8 +158,7 @@ pub async fn generate_lock_for_all_platforms(
 
     let mut combined: Option<Lock> = None;
     for platform in &platforms {
-        let single =
-            generate_lock_for_platform(task, platform, backend, validators, cfg).await?;
+        let single = generate_lock_for_platform(task, platform, backend, validators, cfg).await?;
         combined = Some(merge_lock(combined, single, platform));
     }
     let mut final_lock = combined.expect("at least one platform must be processed");
@@ -374,7 +372,12 @@ fn build_step_context(
     if !prior_pairs.is_empty() {
         s.push_str("\n== PRIOR STEPS ==\n");
         for (i, (intent, command)) in prior_pairs.iter().enumerate() {
-            s.push_str(&format!("{}. (intent: {})\n   command: {}\n", i + 1, intent, command));
+            s.push_str(&format!(
+                "{}. (intent: {})\n   command: {}\n",
+                i + 1,
+                intent,
+                command
+            ));
         }
     }
 
@@ -637,8 +640,7 @@ mod tests {
         let validators = default_chain();
         let cfg = GenerateConfig::for_intent("tasks/demo.caro");
 
-        let result =
-            generate_lock_for_platform(&task, "linux", &backend, &validators, &cfg).await;
+        let result = generate_lock_for_platform(&task, "linux", &backend, &validators, &cfg).await;
         match result {
             Err(GenerateError::SafetyBlocked { step_line: 2, .. }) => {}
             other => panic!("expected SafetyBlocked, got {:?}", other),
@@ -661,16 +663,15 @@ mod tests {
             },
         ];
         let backend = ScriptedBackend::new(vec![
-            gen_cmd("ls -G /tmp"),     // macos
+            gen_cmd("ls -G /tmp"),      // macos
             gen_cmd("ls --color /tmp"), // linux
         ]);
         let validators = default_chain();
         let cfg = GenerateConfig::for_intent("tasks/demo.caro");
 
-        let lock =
-            generate_lock_for_all_platforms(&task, "macos", &backend, &validators, &cfg)
-                .await
-                .unwrap();
+        let lock = generate_lock_for_all_platforms(&task, "macos", &backend, &validators, &cfg)
+            .await
+            .unwrap();
 
         assert_eq!(lock.steps.len(), 1);
         assert_eq!(lock.steps[0].variants.len(), 2);
