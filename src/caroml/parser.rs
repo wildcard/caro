@@ -16,7 +16,7 @@
 //! returns a single `ParseError` today but the type is shaped to allow
 //! a `Vec<ParseError>` variant later without source-breaking changes.
 
-use crate::caroml::ast::{ParseError, ParseErrorKind, Param, PlatformPragma, Step, Task};
+use crate::caroml::ast::{Param, ParseError, ParseErrorKind, PlatformPragma, Step, Task};
 use std::collections::HashSet;
 use std::path::PathBuf;
 
@@ -129,9 +129,8 @@ impl ParseState {
 
     fn handle_on(&mut self, rest: &str) -> Result<(), ParseError> {
         self.require_task()?;
-        let parsed = parse_on_clause(rest).ok_or_else(|| {
-            ParseError::new(self.line_no, ParseErrorKind::MalformedOn)
-        })?;
+        let parsed = parse_on_clause(rest)
+            .ok_or_else(|| ParseError::new(self.line_no, ParseErrorKind::MalformedOn))?;
         self.pragmas.push(parsed);
         Ok(())
     }
@@ -264,11 +263,7 @@ fn parse_on_clause(rest: &str) -> Option<PlatformPragma> {
 ///
 /// UTF-8 safe: walks `raw` by char with byte-tracking, never indexes by raw byte
 /// for the literal-copy branch.
-fn substitute_params(
-    raw: &str,
-    params: &[Param],
-    line_no: usize,
-) -> Result<String, ParseError> {
+fn substitute_params(raw: &str, params: &[Param], line_no: usize) -> Result<String, ParseError> {
     let mut out = String::with_capacity(raw.len());
     let known: HashSet<&str> = params.iter().map(|p| p.name.as_str()).collect();
 
@@ -382,8 +377,7 @@ mod tests {
 
     #[test]
     fn parses_on_with_prefer_and_avoid() {
-        let src =
-            "TASK Demo\nON macos PREFER bsd-tools AVOID gnu-tools, systemd\nDO go\n";
+        let src = "TASK Demo\nON macos PREFER bsd-tools AVOID gnu-tools, systemd\nDO go\n";
         let task = must_parse(src);
         let p = &task.platform_pragmas[0];
         assert_eq!(p.platform, "macos");
@@ -574,21 +568,12 @@ DO   record what was deleted to /tmp/caro-cleanup.log
         assert_eq!(task.platform_pragmas.len(), 2);
         assert_eq!(task.params.len(), 2);
         assert_eq!(task.steps.len(), 4);
-        assert_eq!(
-            task.steps[0].intent,
-            "find log files in /var/log"
-        );
-        assert_eq!(
-            task.steps[0].raw_intent,
-            "find log files in {path}"
-        );
+        assert_eq!(task.steps[0].intent, "find log files in /var/log");
+        assert_eq!(task.steps[0].raw_intent, "find log files in {path}");
         assert_eq!(
             task.steps[0].notes,
             vec!["prefer single-pass find, avoid spawning a subshell per file".to_string()]
         );
-        assert_eq!(
-            task.steps[1].intent,
-            "filter to those older than 30 days"
-        );
+        assert_eq!(task.steps[1].intent, "filter to those older than 30 days");
     }
 }

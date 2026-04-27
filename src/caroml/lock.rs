@@ -113,10 +113,7 @@ impl Step {
     }
 
     /// All challenger variants for the given platform (active = false, not retired).
-    pub fn challengers<'a>(
-        &'a self,
-        platform: &'a str,
-    ) -> impl Iterator<Item = &'a Variant> + 'a {
+    pub fn challengers<'a>(&'a self, platform: &'a str) -> impl Iterator<Item = &'a Variant> + 'a {
         self.variants
             .iter()
             .filter(move |v| v.platform == platform && !v.active && v.retired_at.is_none())

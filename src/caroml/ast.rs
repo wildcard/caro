@@ -222,7 +222,10 @@ mod tests {
     #[test]
     fn parse_error_display_with_col() {
         let err = ParseError::new(7, ParseErrorKind::MalformedLet).with_col(12);
-        assert_eq!(err.to_string(), "line 7:12: expected `LET <name> = <value>`");
+        assert_eq!(
+            err.to_string(),
+            "line 7:12: expected `LET <name> = <value>`"
+        );
     }
 
     #[test]
