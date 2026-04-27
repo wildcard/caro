@@ -1,0 +1,3 @@
+# Advertised queries for 2026-04-26 frustrated-beta smoke test (--limit 1)
+# Source: website/src/data/gtm-use-cases.ts (useCases[0].example.input)
+find and kill the runaway process eating CPU
