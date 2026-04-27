@@ -31,10 +31,13 @@ pub mod lock;
 pub mod parser;
 pub mod platform;
 pub mod regen_evaluator;
+pub mod render;
 pub mod runbook;
 pub mod runner;
+pub mod skill;
 pub mod validators;
 pub mod variants;
+pub mod voice;
 
 pub use ast::{Param, ParseError, ParseErrorKind, PlatformPragma, Step, Task};
 pub use lock::{Lock, Step as LockStep, Variant};

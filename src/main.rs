@@ -367,6 +367,15 @@ enum KnowledgeCommands {
     },
 }
 
+/// `caro skill` subcommands.
+#[derive(Parser, Clone)]
+enum SkillSubcommand {
+    /// Install the bundled `caro-scaffold` skill into `~/.claude/skills/`.
+    Install,
+    /// Remove the installed `caro-scaffold` skill.
+    Uninstall,
+}
+
 /// Subcommands for caro
 #[derive(Parser, Clone)]
 enum Commands {
@@ -641,6 +650,22 @@ enum Commands {
         /// Print the resolved dispatch plan and exit.
         #[arg(long)]
         dry_run: bool,
+    },
+
+    /// Render a CaroML task as Markdown documentation.
+    Render {
+        /// Task name.
+        name: String,
+
+        /// Output path. If unset, prints to stdout.
+        #[arg(short = 'o', long)]
+        output: Option<std::path::PathBuf>,
+    },
+
+    /// Manage Caro's bundled coder-agent skill.
+    Skill {
+        #[command(subcommand)]
+        command: SkillSubcommand,
     },
     // /// Manage telemetry data and settings
     // Telemetry {
@@ -1709,6 +1734,57 @@ fn run_caroml_history(name: &str) -> Result<(), String> {
         );
     }
     Ok(())
+}
+
+/// `caro render <name>` — write Markdown docs from a `.caro` task.
+fn run_caroml_render(
+    name: &str,
+    output: Option<&std::path::Path>,
+) -> Result<(), String> {
+    use caro::caroml::{check_file, discovery, render};
+
+    let path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let task = check_file(&path).map_err(|e| format!("{}: {}", path.display(), e))?;
+    let md = render::render_markdown(&task);
+    match output {
+        Some(out) => {
+            if let Some(parent) = out.parent() {
+                if !parent.as_os_str().is_empty() {
+                    std::fs::create_dir_all(parent)
+                        .map_err(|e| format!("creating {}: {}", parent.display(), e))?;
+                }
+            }
+            std::fs::write(out, md).map_err(|e| format!("writing {}: {}", out.display(), e))?;
+            println!("{}: rendered", out.display());
+        }
+        None => print!("{}", md),
+    }
+    Ok(())
+}
+
+/// `caro skill install|uninstall` — manage the bundled coder-agent skill.
+fn run_caroml_skill(command: &SkillSubcommand) -> Result<(), String> {
+    use caro::caroml::skill;
+
+    let dest = skill::default_install_dir().map_err(|e| e.to_string())?;
+    match command {
+        SkillSubcommand::Install => {
+            let source = skill::bundled_source_dir();
+            let installed = skill::install(&source, &dest).map_err(|e| e.to_string())?;
+            println!("Installed `caro-scaffold` skill to {}", installed.display());
+            Ok(())
+        }
+        SkillSubcommand::Uninstall => {
+            let removed = skill::uninstall(&dest).map_err(|e| e.to_string())?;
+            if removed {
+                println!("Removed {}", dest.display());
+            } else {
+                println!("No skill installed at {}", dest.display());
+            }
+            Ok(())
+        }
+    }
 }
 
 /// `caro do <name>` — Carofile JOB / external-alias / native-alias / fallback.
@@ -3145,6 +3221,22 @@ async fn main() {
             }
         },
         Some(Commands::Do { ref name, dry_run }) => match run_caroml_do(name, dry_run) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Render { ref name, ref output }) => {
+            match run_caroml_render(name, output.as_deref()) {
+                Ok(()) => process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
+                }
+            }
+        }
+        Some(Commands::Skill { ref command }) => match run_caroml_skill(command) {
             Ok(()) => process::exit(0),
             Err(e) => {
                 eprintln!("Error: {}", e);
