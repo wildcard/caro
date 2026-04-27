@@ -545,6 +545,44 @@ enum Commands {
         #[arg(long)]
         backend: Option<String>,
     },
+
+    /// Execute a CaroML task on the current platform.
+    ///
+    /// Reads the lock, picks the active variant for the current platform,
+    /// prints the plan, asks for confirmation (unless `-y`), then executes.
+    /// Stops on first non-zero exit.
+    Run {
+        /// Task name to run.
+        name: String,
+
+        /// Skip the confirmation prompt.
+        #[arg(short = 'y', long)]
+        yes: bool,
+
+        /// Override platform.
+        #[arg(long)]
+        platform: Option<String>,
+
+        /// Print the plan and exit without executing.
+        #[arg(long)]
+        dry_run: bool,
+    },
+
+    /// Write the per-platform `.<platform>.sh` runbook from the active
+    /// variant in the lock. The committed runbook lets non-Caro users run
+    /// the task with plain `bash`.
+    Export {
+        /// Task name.
+        name: String,
+
+        /// Platform to export (default: current).
+        #[arg(long)]
+        platform: Option<String>,
+
+        /// Output path. If unset, writes to `tasks/<name>.<platform>.sh`.
+        #[arg(short = 'o', long)]
+        output: Option<std::path::PathBuf>,
+    },
     // /// Manage telemetry data and settings
     // Telemetry {
     //     #[command(subcommand)]
@@ -1298,6 +1336,100 @@ fn build_caroml_backend(
              only `mock` is supported until PR 5",
             other
         )),
+    }
+}
+
+/// Run `caro run <name>` — read lock, build plan, confirm, execute.
+fn run_caroml_run(
+    name: &str,
+    platform_override: Option<&str>,
+    yes: bool,
+    dry_run: bool,
+) -> Result<(), String> {
+    use caro::caroml::{discovery, lock::Lock, platform as caro_platform, runner};
+    use std::io::{self, Write};
+
+    let task_path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let lock_path = task_path.with_extension("caro.lock");
+    if !lock_path.exists() {
+        return Err(format!(
+            "{}: no lock found; run `caro generate {}` first",
+            lock_path.display(),
+            name
+        ));
+    }
+    let lock = Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+
+    let target_platform = match platform_override {
+        Some(p) if caro_platform::is_known(p) => p.to_string(),
+        Some(p) => return Err(format!("unknown platform `{}`", p)),
+        None => caro_platform::current().to_string(),
+    };
+
+    let plan = runner::plan_run(&lock, &target_platform)
+        .map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+
+    println!("{}", runner::render_plan(&plan));
+
+    if dry_run {
+        return Ok(());
+    }
+
+    if !yes {
+        print!("Proceed? [y/N] ");
+        io::stdout().flush().ok();
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).ok();
+        if !matches!(input.trim().to_lowercase().as_str(), "y" | "yes") {
+            println!("Aborted.");
+            return Ok(());
+        }
+    }
+
+    let results = runner::execute_plan(&plan).map_err(|e| e.to_string())?;
+    println!("All {} steps completed.", results.len());
+    Ok(())
+}
+
+/// Run `caro export <name>` — write `tasks/<name>.<platform>.sh` from the lock.
+fn run_caroml_export(
+    name: &str,
+    platform_override: Option<&str>,
+    output: Option<&std::path::Path>,
+) -> Result<std::path::PathBuf, String> {
+    use caro::caroml::{discovery, lock::Lock, platform as caro_platform, runbook};
+
+    let task_path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let lock_path = task_path.with_extension("caro.lock");
+    if !lock_path.exists() {
+        return Err(format!(
+            "{}: no lock found; run `caro generate {}` first",
+            lock_path.display(),
+            name
+        ));
+    }
+    let lock = Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+
+    let platform = match platform_override {
+        Some(p) if caro_platform::is_known(p) => p.to_string(),
+        Some(p) => return Err(format!("unknown platform `{}`", p)),
+        None => caro_platform::current().to_string(),
+    };
+
+    if let Some(out) = output {
+        let body = runbook::build_runbook(&lock, &platform).map_err(|e| e.to_string())?;
+        if let Some(parent) = out.parent() {
+            if !parent.as_os_str().is_empty() {
+                std::fs::create_dir_all(parent)
+                    .map_err(|e| format!("creating {}: {}", parent.display(), e))?;
+            }
+        }
+        std::fs::write(out, body).map_err(|e| format!("writing {}: {}", out.display(), e))?;
+        Ok(out.to_path_buf())
+    } else {
+        runbook::write_runbook(&lock, &platform, &task_path).map_err(|e| e.to_string())
     }
 }
 
@@ -2504,6 +2636,32 @@ async fn main() {
         }) => match run_caroml_generate(name, platform.as_deref(), backend.as_deref()).await {
             Ok(lock_path) => {
                 println!("{}: generated", lock_path.display());
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Run {
+            ref name,
+            yes,
+            ref platform,
+            dry_run,
+        }) => match run_caroml_run(name, platform.as_deref(), yes, dry_run) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Export {
+            ref name,
+            ref platform,
+            ref output,
+        }) => match run_caroml_export(name, platform.as_deref(), output.as_deref()) {
+            Ok(path) => {
+                println!("{}: written", path.display());
                 process::exit(0);
             }
             Err(e) => {

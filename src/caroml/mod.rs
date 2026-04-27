@@ -28,6 +28,8 @@ pub mod lock;
 pub mod parser;
 pub mod platform;
 pub mod regen_evaluator;
+pub mod runbook;
+pub mod runner;
 pub mod validators;
 pub mod variants;
 
