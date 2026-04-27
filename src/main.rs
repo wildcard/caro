@@ -1446,7 +1446,11 @@ fn run_caroml_run(
             intent,
             exit_code,
             stderr,
-        }) => (*exit_code, Some(format!("step on line {}: {}", line, intent)), stderr.clone()),
+        }) => (
+            *exit_code,
+            Some(format!("step on line {}: {}", line, intent)),
+            stderr.clone(),
+        ),
         Err(other) => (255, Some(format!("{}", other)), String::new()),
     };
     let variant_id = plan
@@ -1469,7 +1473,11 @@ fn run_caroml_run(
     }
 
     let results = result.map_err(|e| e.to_string())?;
-    println!("All {} steps completed in {} ms.", results.len(), elapsed_ms);
+    println!(
+        "All {} steps completed in {} ms.",
+        results.len(),
+        elapsed_ms
+    );
     Ok(())
 }
 
@@ -1518,11 +1526,8 @@ async fn run_caroml_experiment(
     // Bump the generation_id suffix so we don't clash with existing IDs.
     let existing_count = variant_helpers::all_challengers_for(&lock, &target_platform).count()
         + variant_helpers::active_count_for(&lock, &target_platform);
-    let new_gen_id = variant_helpers::generation_id(
-        chrono::Utc::now(),
-        &target_platform,
-        existing_count,
-    );
+    let new_gen_id =
+        variant_helpers::generation_id(chrono::Utc::now(), &target_platform, existing_count);
 
     let mut adopted_id = String::new();
     for (i, fresh_step) in fresh.steps.into_iter().enumerate() {
@@ -1597,10 +1602,7 @@ fn run_caroml_history(name: &str) -> Result<(), String> {
     }
 
     let entries = history::read_all(&lock.meta.intent_hash).unwrap_or_default();
-    println!(
-        "\nLocal run journal ({} entries):",
-        entries.len()
-    );
+    println!("\nLocal run journal ({} entries):", entries.len());
     let recent: Vec<_> = entries.iter().rev().take(10).collect();
     for e in recent {
         println!(
@@ -1647,11 +1649,14 @@ fn run_caroml_why(name: &str) -> Result<(), String> {
     println!("Task:     {}", name);
     println!("Path:     {}", task_path.display());
     println!("Platform: {}", platform);
-    println!("Decision: {:?}", match &decision {
-        regen_evaluator::Decision::UseCache => "UseCache",
-        regen_evaluator::Decision::HardRegen { .. } => "HardRegen",
-        regen_evaluator::Decision::SoftExplore { .. } => "SoftExplore",
-    });
+    println!(
+        "Decision: {:?}",
+        match &decision {
+            regen_evaluator::Decision::UseCache => "UseCache",
+            regen_evaluator::Decision::HardRegen { .. } => "HardRegen",
+            regen_evaluator::Decision::SoftExplore { .. } => "SoftExplore",
+        }
+    );
     let reasons = decision.reasons();
     if reasons.is_empty() {
         println!("(no reasons; cache is fresh)");

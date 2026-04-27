@@ -153,8 +153,14 @@ mod tests {
         let mut lock = lock_with_active_and_challenger();
         adopt(&mut lock, "gen_b").unwrap();
         let variants = &lock.steps[0].variants;
-        let a = variants.iter().find(|v| v.generation_id == "gen_a").unwrap();
-        let b = variants.iter().find(|v| v.generation_id == "gen_b").unwrap();
+        let a = variants
+            .iter()
+            .find(|v| v.generation_id == "gen_a")
+            .unwrap();
+        let b = variants
+            .iter()
+            .find(|v| v.generation_id == "gen_b")
+            .unwrap();
         assert!(!a.active);
         assert!(a.retired_at.is_some());
         assert!(b.active);
