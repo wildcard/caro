@@ -8,6 +8,14 @@ timezone: "America/Los_Angeles"
 # ═══════════════════════════════════════════════════════════════════════════
 
 technical:
+  frustrated_qa_loop:
+    description: "Frustrated power-user beta tester — exercises website-advertised commands, files bug reports for blanket replies, dropped intent, no streaming, no clarification; cross-links stale PRs that should have prevented the pain"
+    schedule: "0 5 * * *"           # Daily 5 AM — runs before the 9 AM multi-profile audit
+    skill: "/caro.frustrated-qa"
+    enabled: true
+    timeout_minutes: 45
+    notify_on_failure: true
+
   qa_automation_loop:
     description: "Run unbiased beta testers and create issues"
     schedule: "0 9 * * *"           # Daily 9 AM
