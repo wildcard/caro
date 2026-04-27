@@ -28,8 +28,7 @@
     "@xterm/xterm": "^6.0.0",
     "astro": "^5.16.6",
     "botid": "^1.5.0",
-    "canvas-confetti": "^1.9.4",
-    "disposable-email-domains": "^1.0.62"
+    "canvas-confetti": "^1.9.4"
   },
   "devDependencies": {
     "@astrojs/sitemap": "^3.0.0",

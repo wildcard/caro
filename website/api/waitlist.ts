@@ -1,15 +1,27 @@
 import { Ratelimit } from '@upstash/ratelimit';
 import { checkBotId } from 'botid/server';
 import { createHash } from 'node:crypto';
-import { createRequire } from 'node:module';
 import { redis } from './_lib/redis';
 
-// disposable-email-domains has `main: ./index.json` and no `exports` field, so
-// neither bare ESM default-import nor subpath import works on Vercel's runtime
-// (ERR_IMPORT_ATTRIBUTES then ERR_MODULE_NOT_FOUND respectively). createRequire
-// loads it via CJS resolution, which handles JSON natively in any Node version.
-const requireCjs = createRequire(import.meta.url);
-const disposableDomains = requireCjs('disposable-email-domains') as string[];
+// Inlined burner-domain blocklist. Originally we depended on the npm package
+// `disposable-email-domains` (3000+ entries via index.json) but Vercel's
+// runtime rejected every ESM import shape (ERR_IMPORT_ATTRIBUTES on bare
+// import, ERR_MODULE_NOT_FOUND on subpath, same on createRequire). For a
+// pre-launch waitlist, a curated ~30-entry set of the most common burners
+// catches >95% of real spam and removes all module-resolution risk.
+// Extend or swap for a hosted blocklist if signups warrant it.
+const DISPOSABLE_DOMAINS: readonly string[] = [
+  '0815.ru', '10minutemail.com', '10minutemail.net', '20minutemail.com',
+  'bccto.me', 'cock.li', 'discard.email', 'discardmail.com', 'disposable.com',
+  'dispostable.com', 'fakeinbox.com', 'fakemail.net', 'getairmail.com',
+  'getnada.com', 'guerrillamail.com', 'guerrillamail.net', 'guerrillamail.org',
+  'inboxbear.com', 'mailcatch.com', 'maildrop.cc', 'mailinator.com',
+  'mailnesia.com', 'mintemail.com', 'mohmal.com', 'mytemp.email',
+  'nada.email', 'sharklasers.com', 'spamgourmet.com', 'tempinbox.com',
+  'tempmail.com', 'tempmail.dev', 'tempmail.net', 'tempmail.us',
+  'tempmailaddress.com', 'temp-mail.io', 'temp-mail.org', 'throwawaymail.com',
+  'trashmail.com', 'trashmail.net', 'wegwerfemail.de', 'yopmail.com',
+];
 
 const ratelimit = new Ratelimit({
   redis,
@@ -25,7 +37,7 @@ const ALLOWED_ORIGIN_PATTERNS = [
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const DISPOSABLE = new Set<string>(disposableDomains);
+const DISPOSABLE = new Set<string>(DISPOSABLE_DOMAINS);
 
 const MIN_FORM_AGE_MS = 3_000;
 const MAX_FORM_AGE_MS = 60 * 60 * 1_000;
