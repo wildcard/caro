@@ -23,9 +23,13 @@
 pub mod ast;
 pub mod carofile;
 pub mod discovery;
+pub mod interpreter;
 pub mod lock;
 pub mod parser;
+pub mod platform;
+pub mod regen_evaluator;
 pub mod validators;
+pub mod variants;
 
 pub use ast::{Param, ParseError, ParseErrorKind, PlatformPragma, Step, Task};
 pub use lock::{Lock, Step as LockStep, Variant};

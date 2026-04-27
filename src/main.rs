@@ -525,6 +525,26 @@ enum Commands {
         /// Task name (becomes `tasks/<name>.caro`); may include `/` for subdirectories.
         name: String,
     },
+
+    /// Generate or refresh a `.caro.lock` from a `.caro` task file.
+    ///
+    /// Calls the configured backend per step, runs the validator chain,
+    /// and produces per-platform variants. Writes `tasks/<name>.caro.lock`
+    /// atomically. With `--platform`, generates only that platform; without,
+    /// uses the platforms declared by the task's `ON` pragmas (or the
+    /// current platform as fallback).
+    Generate {
+        /// Task name (resolved via `tasks/<name>.caro` or `~/.caro/library/<name>.caro`).
+        name: String,
+
+        /// Restrict generation to one platform: `macos` / `linux` / `windows` / `posix`.
+        #[arg(long)]
+        platform: Option<String>,
+
+        /// Override the backend (e.g. `mock`); defaults to the configured backend.
+        #[arg(long)]
+        backend: Option<String>,
+    },
     // /// Manage telemetry data and settings
     // Telemetry {
     //     #[command(subcommand)]
@@ -1211,6 +1231,121 @@ fn run_caroml_new(name: &str) -> Result<std::path::PathBuf, String> {
         .map_err(|e| format!("writing {}: {}", final_path.display(), e))?;
 
     Ok(final_path)
+}
+
+/// Run `caro generate <name>` — call the configured backend per step,
+/// validate, and write `tasks/<name>.caro.lock`.
+async fn run_caroml_generate(
+    name: &str,
+    platform_override: Option<&str>,
+    backend_override: Option<&str>,
+) -> Result<std::path::PathBuf, String> {
+    use caro::caroml::{
+        check_file, discovery, interpreter, platform as caro_platform, validators,
+    };
+
+    let path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+
+    let task = check_file(&path)
+        .map_err(|e| format!("{}: {}", path.display(), e))?;
+
+    // Resolve target platform.
+    let target_platform = match platform_override {
+        Some(p) if caro_platform::is_known(p) => p.to_string(),
+        Some(p) => return Err(format!("unknown platform `{}`", p)),
+        None => caro_platform::current().to_string(),
+    };
+
+    // Resolve backend. v0.1: only `mock` is wired through here (deterministic);
+    // other backends arrive in PR 5+ when execution is needed.
+    let backend = build_caroml_backend(backend_override)
+        .map_err(|e| format!("backend setup: {}", e))?;
+    let backend_ref: &dyn caro::backends::CommandGenerator = &*backend;
+
+    let chain = validators::default_chain();
+    let cfg = interpreter::GenerateConfig::for_intent(path.to_string_lossy().into_owned());
+
+    let lock = if platform_override.is_some() {
+        interpreter::generate_lock_for_platform(&task, &target_platform, backend_ref, &chain, &cfg)
+            .await
+            .map_err(|e| format!("generation failed: {}", e))?
+    } else {
+        interpreter::generate_lock_for_all_platforms(
+            &task,
+            &target_platform,
+            backend_ref,
+            &chain,
+            &cfg,
+        )
+        .await
+        .map_err(|e| format!("generation failed: {}", e))?
+    };
+
+    let lock_path = path.with_extension("caro.lock");
+    lock.write_path(&lock_path)
+        .map_err(|e| format!("writing {}: {}", lock_path.display(), e))?;
+    Ok(lock_path)
+}
+
+/// Build the backend used by `caro generate`. v0.1 supports only `mock`
+/// (an inline echo-style backend) for deterministic CLI tests; the real
+/// `embedded`/`ollama` etc. backends arrive in PR 5 when execution lands.
+fn build_caroml_backend(
+    name: Option<&str>,
+) -> Result<Box<dyn caro::backends::CommandGenerator>, String> {
+    match name.unwrap_or("mock") {
+        "mock" => Ok(Box::new(InlineMockBackend)),
+        other => Err(format!(
+            "backend `{}` not yet wired into `caro generate` in v0.1; \
+             only `mock` is supported until PR 5",
+            other
+        )),
+    }
+}
+
+/// Inline echo-style deterministic backend for `caro generate --backend mock`.
+/// Always emits `echo "<intent>"`. Used by tests and demos in v0.1.
+struct InlineMockBackend;
+
+#[async_trait::async_trait]
+impl caro::backends::CommandGenerator for InlineMockBackend {
+    async fn generate_command(
+        &self,
+        request: &caro::models::CommandRequest,
+    ) -> Result<caro::models::GeneratedCommand, caro::backends::GeneratorError> {
+        let safe_intent = request.input.replace('"', "\\\"");
+        Ok(caro::models::GeneratedCommand {
+            command: format!("echo \"{}\"", safe_intent),
+            explanation: format!("Mock echo of the intent: {}", request.input),
+            safety_level: caro::models::RiskLevel::Safe,
+            estimated_impact: "writes the intent text to stdout (no side effects)".into(),
+            alternatives: vec![],
+            backend_used: "mock-inline".into(),
+            generation_time_ms: 1,
+            confidence_score: 0.5,
+        })
+    }
+
+    async fn is_available(&self) -> bool {
+        true
+    }
+
+    fn backend_info(&self) -> caro::backends::BackendInfo {
+        caro::backends::BackendInfo {
+            backend_type: caro::models::BackendType::Mock,
+            model_name: "mock-inline".into(),
+            supports_streaming: false,
+            max_tokens: 256,
+            typical_latency_ms: 1,
+            memory_usage_mb: 0,
+            version: env!("CARGO_PKG_VERSION").into(),
+        }
+    }
+
+    async fn shutdown(&self) -> Result<(), caro::backends::GeneratorError> {
+        Ok(())
+    }
 }
 
 // =============================================================================
@@ -2358,6 +2493,20 @@ async fn main() {
         Some(Commands::New { ref name }) => match run_caroml_new(name) {
             Ok(path) => {
                 println!("{}: created", path.display());
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Generate {
+            ref name,
+            ref platform,
+            ref backend,
+        }) => match run_caroml_generate(name, platform.as_deref(), backend.as_deref()).await {
+            Ok(lock_path) => {
+                println!("{}: generated", lock_path.display());
                 process::exit(0);
             }
             Err(e) => {

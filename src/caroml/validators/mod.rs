@@ -125,9 +125,25 @@ pub async fn run_all(
     join_all(futures).await
 }
 
-/// True iff every outcome in `outcomes` is `Pass` (warnings count as not-passing for the loop).
+/// True iff every outcome in `outcomes` is `Pass`. Used by callers that want
+/// strict "fully clean" semantics (e.g. `caro check --strict`).
 pub fn all_pass(outcomes: &[ValidationOutcome]) -> bool {
     outcomes.iter().all(|o| o.result == Verdict::Pass)
+}
+
+/// True iff the loop should iterate again to repair the command.
+///
+/// - `Fail` outcomes always trigger repair (the validator wants the LLM to fix something).
+/// - `Warn` outcomes trigger repair **only when they carry a `repair_hint`** —
+///   `Warn` without a hint is purely informational (e.g. "this command uses
+///   the network"), so re-running won't change anything.
+/// - `Pass` outcomes never trigger repair.
+pub fn should_repair(outcomes: &[ValidationOutcome]) -> bool {
+    outcomes.iter().any(|o| match o.result {
+        Verdict::Fail => true,
+        Verdict::Warn => o.repair_hint.is_some(),
+        Verdict::Pass => false,
+    })
 }
 
 /// Whether the loop should give up entirely — i.e. any `must_pass` validator
