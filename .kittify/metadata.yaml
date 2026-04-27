@@ -3,12 +3,99 @@
 # DO NOT EDIT MANUALLY
 
 spec_kitty:
-  version: 0.7.3
+  version: 0.9.1
   initialized_at: '2025-12-16T05:14:16.291467'
-  last_upgraded_at: null
+  last_upgraded_at: '2026-04-26T19:12:21.862116'
 environment:
   python_version: 3.11.14
   platform: linux
   platform_version: Linux-4.4.0-x86_64-with-glibc2.39
 migrations:
-  applied: []
+  applied:
+  - id: 0.8.0_remove_active_mission
+    applied_at: '2026-04-26T19:12:21.843815'
+    result: success
+    notes: Removed deprecated .kittify/active-mission;   -> Missions are now selected
+      per-feature during /spec-kitty.specify;   -> Existing features will use 'software-dev'
+      mission by default
+  - id: 0.8.0_worktree_agents_symlink
+    applied_at: '2026-04-26T19:12:21.845556'
+    result: success
+    notes: Created .kittify/AGENTS.md symlink in worktree 006-replace-ascii-morph;
+      Created .kittify/AGENTS.md symlink in worktree 003-backend-configuration-file;
+      Created .kittify/AGENTS.md symlink in worktree 008-installation-and-setup; Created
+      .kittify/AGENTS.md symlink in worktree 001-fix-unquoted-cli; Created .kittify/AGENTS.md
+      symlink in worktree pr-188-pitch-deck; Created .kittify/AGENTS.md symlink in
+      worktree 007-issue-161-fix; Created .kittify/AGENTS.md symlink in worktree pitch-deck-slidev;
+      Created .kittify/AGENTS.md symlink in worktree 004-add-internationalization-i18n
+  - id: 0.9.0_frontmatter_only_lanes
+    applied_at: '2026-04-26T19:12:21.856526'
+    result: success
+    notes: "[main] 002-unquoted-cli-arguments:;   Moved: done/WP01-cli-argument-parsing-setup.md\
+      \ \u2192 tasks/WP01-cli-argument-parsing-setup.md;   Moved: done/WP02-basic-prompts-and-backward-compat.md\
+      \ \u2192 tasks/WP02-basic-prompts-and-backward-compat.md;   Moved: done/WP03-prompt-source-resolution.md\
+      \ \u2192 tasks/WP03-prompt-source-resolution.md;   Moved: done/WP04-flag-and-stdin-input.md\
+      \ \u2192 tasks/WP04-flag-and-stdin-input.md;   Moved: done/WP05-validation-and-help-display.md\
+      \ \u2192 tasks/WP05-validation-and-help-display.md;   Moved: done/WP06-shell-operator-handling.md\
+      \ \u2192 tasks/WP06-shell-operator-handling.md;   Moved: done/WP07-cross-platform-testing.md\
+      \ \u2192 tasks/WP07-cross-platform-testing.md;   Moved: done/WP08-documentation-and-polish.md\
+      \ \u2192 tasks/WP08-documentation-and-polish.md;   Removed empty: done/; [main]\
+      \ 004-add-internationalization-i18n:;   Moved: planned/WP08-language-switcher-polish.md\
+      \ \u2192 tasks/WP08-language-switcher-polish.md;   Moved: for_review/WP07-github-action-automation.md\
+      \ \u2192 tasks/WP07-github-action-automation.md;   Moved: done/WP01-infrastructure-and-setup.md\
+      \ \u2192 tasks/WP01-infrastructure-and-setup.md;   Moved: done/WP02-translation-file-extraction.md\
+      \ \u2192 tasks/WP02-translation-file-extraction.md;   Moved: done/WP03-component-refactoring-navigation-core.md\
+      \ \u2192 tasks/WP03-component-refactoring-navigation-core.md;   Moved: done/WP04-component-refactoring-content-sections.md\
+      \ \u2192 tasks/WP04-component-refactoring-content-sections.md;   Moved: done/WP05-component-refactoring-landing-pages.md\
+      \ \u2192 tasks/WP05-component-refactoring-landing-pages.md;   Moved: done/WP06-localized-routes-rtl-polish.md\
+      \ \u2192 tasks/WP06-localized-routes-rtl-polish.md;   Removed empty: planned/;\
+      \   Removed empty: for_review/;   Removed empty: done/; [main] 010-website-claims-qa:;\
+      \   Moved: planned/WP01-test-infrastructure.md \u2192 tasks/WP01-test-infrastructure.md;\
+      \   Removed empty: planned/; [main] 017-issue-9-add:;   Moved: done/WP01-setup-dependencies.md\
+      \ \u2192 tasks/WP01-setup-dependencies.md;   Moved: done/WP02-cache-benchmarks.md\
+      \ \u2192 tasks/WP02-cache-benchmarks.md;   Moved: done/WP03-config-benchmarks.md\
+      \ \u2192 tasks/WP03-config-benchmarks.md;   Moved: done/WP04-context--logging-benchmarks.md\
+      \ \u2192 tasks/WP04-context--logging-benchmarks.md;   Moved: done/WP05-ci-workflow--regression-detection.md\
+      \ \u2192 tasks/WP05-ci-workflow--regression-detection.md;   Moved: done/WP06-claude-skill-integration.md\
+      \ \u2192 tasks/WP06-claude-skill-integration.md;   Moved: done/WP07-documentation.md\
+      \ \u2192 tasks/WP07-documentation.md;   Moved: done/WP08-validation--polish.md\
+      \ \u2192 tasks/WP08-validation--polish.md;   Removed empty: done/; [main] 018-issue-10-implement:;\
+      \   Moved: for_review/WP01-setup-dependencies.md \u2192 tasks/WP01-setup-dependencies.md;\
+      \   Removed empty: for_review/; [main] 020-machine-resource-assessment:;   Moved:\
+      \ done/WP01-foundation-core-detection.md \u2192 tasks/WP01-foundation-core-detection.md;\
+      \   Moved: done/WP02-gpu-detection.md \u2192 tasks/WP02-gpu-detection.md;  \
+      \ Moved: done/WP03-recommendation-engine.md \u2192 tasks/WP03-recommendation-engine.md;\
+      \   Moved: done/WP04-output-formatting.md \u2192 tasks/WP04-output-formatting.md;\
+      \   Moved: done/WP05-testing-integration.md \u2192 tasks/WP05-testing-integration.md;\
+      \   Removed empty: done/; [main] 022-issue-135-build:;   Moved: planned/WP05-posix-compliance.md\
+      \ \u2192 tasks/WP05-posix-compliance.md;   Moved: planned/WP06-backend-comparison.md\
+      \ \u2192 tasks/WP06-backend-comparison.md;   Moved: planned/WP07-reporting-integration.md\
+      \ \u2192 tasks/WP07-reporting-integration.md;   Moved: for_review/WP01-setup-infrastructure.md\
+      \ \u2192 tasks/WP01-setup-infrastructure.md;   Moved: for_review/WP02-dataset-loader.md\
+      \ \u2192 tasks/WP02-dataset-loader.md;   Moved: for_review/WP03-correctness-evaluation.md\
+      \ \u2192 tasks/WP03-correctness-evaluation.md;   Moved: for_review/WP04-safety-validation.md\
+      \ \u2192 tasks/WP04-safety-validation.md;   Removed empty: planned/;   Removed\
+      \ empty: for_review/; [main] 025-llm-evaluation-harness:;   Moved: done/WP01-project-setup.md\
+      \ \u2192 tasks/WP01-project-setup.md;   Moved: done/WP02-dataset-infrastructure.md\
+      \ \u2192 tasks/WP02-dataset-infrastructure.md;   Moved: done/WP03-command-normalization.md\
+      \ \u2192 tasks/WP03-command-normalization.md;   Moved: done/WP04-safety-posix-validators.md\
+      \ \u2192 tasks/WP04-safety-posix-validators.md;   Moved: done/WP05-evaluation-runner.md\
+      \ \u2192 tasks/WP05-evaluation-runner.md;   Moved: done/WP06-metrics-calculation.md\
+      \ \u2192 tasks/WP06-metrics-calculation.md;   Moved: done/WP07-output-formatting.md\
+      \ \u2192 tasks/WP07-output-formatting.md;   Moved: done/WP08-integration-test.md\
+      \ \u2192 tasks/WP08-integration-test.md;   Moved: done/WP09-dataset-curation.md\
+      \ \u2192 tasks/WP09-dataset-curation.md;   Removed empty: done/; [main] 026-llm-evaluation-harness:;\
+      \   Moved: planned/WP08-dashboard-visualization.md \u2192 tasks/WP08-dashboard-visualization.md;\
+      \   Moved: for_review/WP01-core-models-and-dataset.md \u2192 tasks/WP01-core-models-and-dataset.md;\
+      \   Moved: for_review/WP02-evaluator-implementations.md \u2192 tasks/WP02-evaluator-implementations.md;\
+      \   Moved: for_review/WP03-harness-orchestration.md \u2192 tasks/WP03-harness-orchestration.md;\
+      \   Moved: for_review/WP04-baseline-and-regression.md \u2192 tasks/WP04-baseline-and-regression.md;\
+      \   Moved: for_review/WP05-test-dataset-creation.md \u2192 tasks/WP05-test-dataset-creation.md;\
+      \   Moved: for_review/WP06-cargo-test-integration.md \u2192 tasks/WP06-cargo-test-integration.md;\
+      \   Moved: for_review/WP07-cicd-integration.md \u2192 tasks/WP07-cicd-integration.md;\
+      \   Removed empty: planned/;   Removed empty: for_review/; Migrated 55 WP files\
+      \ across 9 features"
+  - id: 0.9.1_complete_migration
+    applied_at: '2026-04-26T19:12:21.859633'
+    result: skipped
+    notes: Not applicable

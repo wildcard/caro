@@ -1,3 +1,6 @@
+---
+lane: "planned"
+---
 # WP01: Test Infrastructure Setup
 
 **Status:** Planned
