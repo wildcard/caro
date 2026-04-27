@@ -144,12 +144,23 @@ pub enum ParseErrorKind {
     MalformedOn,
     /// A `{name}` interpolation in a `DO` line was never closed.
     UnclosedInterpolation { line: usize },
+    /// `{}` with no name between the braces.
+    EmptyInterpolation,
     /// A `{name}` referenced a name not defined by any prior `LET`.
     UndefinedParam(String),
     /// A `TASK` line had no title.
     EmptyTaskTitle,
     /// The file parsed cleanly but had zero `DO` steps.
     NoSteps,
+    // ---- Carofile-specific variants (used by `caroml::carofile`) ----
+    /// `USE` line could not be parsed as `USE <target> AS <alias>`.
+    MalformedUse,
+    /// `JOB` had no name.
+    EmptyJobName,
+    /// `RUN` appeared outside any `JOB` body.
+    RunOutsideJob,
+    /// `RUN <alias>` referenced an alias not declared by any prior `USE`.
+    UndefinedAlias(String),
 }
 
 impl std::fmt::Display for ParseErrorKind {
@@ -171,6 +182,12 @@ impl std::fmt::Display for ParseErrorKind {
             Self::UnclosedInterpolation { line } => {
                 write!(f, "unclosed `{{...}}` interpolation in DO on line {}", line)
             }
+            Self::EmptyInterpolation => {
+                write!(
+                    f,
+                    "empty `{{}}` in DO; either name a parameter or escape with `{{{{`"
+                )
+            }
             Self::UndefinedParam(name) => write!(
                 f,
                 "DO references `{{{}}}` but no `LET {} = ...` was declared",
@@ -178,6 +195,18 @@ impl std::fmt::Display for ParseErrorKind {
             ),
             Self::EmptyTaskTitle => write!(f, "TASK line has no title"),
             Self::NoSteps => write!(f, "task has no `DO` steps"),
+            Self::MalformedUse => {
+                write!(f, "expected `USE <target> AS <alias>`")
+            }
+            Self::EmptyJobName => write!(f, "JOB has no name"),
+            Self::RunOutsideJob => {
+                write!(f, "RUN appeared outside a JOB body")
+            }
+            Self::UndefinedAlias(name) => write!(
+                f,
+                "RUN references `{}` but no `USE ... AS {}` was declared",
+                name, name
+            ),
         }
     }
 }

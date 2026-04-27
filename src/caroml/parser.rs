@@ -37,6 +37,7 @@ pub fn parse_with_path(src: &str, source_path: Option<PathBuf>) -> Result<Task, 
         if trimmed.is_empty() {
             continue;
         }
+        state.last_line = state.line_no;
 
         let (keyword, rest) = split_keyword(trimmed);
         match keyword {
@@ -65,6 +66,8 @@ pub fn parse_with_path(src: &str, source_path: Option<PathBuf>) -> Result<Task, 
 
 struct ParseState {
     line_no: usize,
+    /// Last non-blank line seen — used as the location for end-of-file errors.
+    last_line: usize,
     source_path: Option<PathBuf>,
     title: Option<String>,
     why: Option<String>,
@@ -79,6 +82,7 @@ impl ParseState {
     fn new(source_path: Option<PathBuf>) -> Self {
         Self {
             line_no: 0,
+            last_line: 0,
             source_path,
             title: None,
             why: None,
@@ -173,11 +177,14 @@ impl ParseState {
     }
 
     fn finish(self) -> Result<Task, ParseError> {
+        // End-of-file errors point at the last non-blank line we saw, falling
+        // back to line 1 for entirely empty / whitespace-only files. Never 0.
+        let eof_line = self.last_line.max(1);
         let title = self
             .title
-            .ok_or_else(|| ParseError::new(0, ParseErrorKind::MissingTaskHeader))?;
+            .ok_or_else(|| ParseError::new(eof_line, ParseErrorKind::MissingTaskHeader))?;
         if self.steps.is_empty() {
-            return Err(ParseError::new(0, ParseErrorKind::NoSteps));
+            return Err(ParseError::new(eof_line, ParseErrorKind::NoSteps));
         }
         Ok(Task {
             source_path: self.source_path,
@@ -246,6 +253,17 @@ fn parse_on_clause(rest: &str) -> Option<PlatformPragma> {
     })
 }
 
+/// Substitute `{name}` placeholders in `raw` with `params` values.
+///
+/// Escape rules:
+/// - `{{` is a literal `{` (lets `awk '{{print $1}}'` survive parsing — see issue
+///   linked from PR review). The matching `}}` is also collapsed to `}` for symmetry.
+/// - `{name}` references a `LET name = value`; substitutes the value.
+/// - `{}` is an error (`EmptyInterpolation`).
+/// - `{name` without closing `}` is `UnclosedInterpolation`.
+///
+/// UTF-8 safe: walks `raw` by char with byte-tracking, never indexes by raw byte
+/// for the literal-copy branch.
 fn substitute_params(
     raw: &str,
     params: &[Param],
@@ -254,10 +272,25 @@ fn substitute_params(
     let mut out = String::with_capacity(raw.len());
     let known: HashSet<&str> = params.iter().map(|p| p.name.as_str()).collect();
 
+    let mut i = 0usize;
     let bytes = raw.as_bytes();
-    let mut i = 0;
+
     while i < bytes.len() {
+        // Literal `{` escape: `{{` → `{`
+        if bytes[i] == b'{' && i + 1 < bytes.len() && bytes[i + 1] == b'{' {
+            out.push('{');
+            i += 2;
+            continue;
+        }
+        // Literal `}` escape: `}}` → `}` (symmetric)
+        if bytes[i] == b'}' && i + 1 < bytes.len() && bytes[i + 1] == b'}' {
+            out.push('}');
+            i += 2;
+            continue;
+        }
+
         if bytes[i] == b'{' {
+            // {name} interpolation
             let close = match bytes[i + 1..].iter().position(|&b| b == b'}') {
                 Some(rel) => i + 1 + rel,
                 None => {
@@ -268,6 +301,9 @@ fn substitute_params(
                 }
             };
             let name = &raw[i + 1..close];
+            if name.is_empty() {
+                return Err(ParseError::new(line_no, ParseErrorKind::EmptyInterpolation));
+            }
             if !known.contains(name) {
                 return Err(ParseError::new(
                     line_no,
@@ -281,10 +317,14 @@ fn substitute_params(
                 .unwrap_or("");
             out.push_str(value);
             i = close + 1;
-        } else {
-            out.push(bytes[i] as char);
-            i += 1;
+            continue;
         }
+
+        // Literal copy — UTF-8 safe: read one char from raw[i..] and advance by its byte length.
+        let c = raw[i..].chars().next().unwrap();
+        let len = c.len_utf8();
+        out.push(c);
+        i += len;
     }
     Ok(out)
 }
@@ -450,6 +490,59 @@ mod tests {
             other => panic!("unexpected error: {:?}", other),
         }
         assert_eq!(err.line, 2);
+    }
+
+    #[test]
+    fn utf8_in_intent_round_trips_intact() {
+        // Regression: prior implementation truncated non-ASCII codepoints via
+        // `bytes[i] as char`. café / 日本語 / 🌱 must survive verbatim.
+        let src = "TASK Demo\nDO open the café\nDO greet 日本語 🌱\n";
+        let task = must_parse(src);
+        assert_eq!(task.steps[0].intent, "open the café");
+        assert_eq!(task.steps[1].intent, "greet 日本語 🌱");
+    }
+
+    #[test]
+    fn double_brace_escape_yields_literal_brace() {
+        // Lets shell snippets like `awk '{{print $1}}'` survive parsing.
+        let src = "TASK Demo\nDO awk '{{print $1}}' on the file\n";
+        let task = must_parse(src);
+        assert_eq!(task.steps[0].intent, "awk '{print $1}' on the file");
+    }
+
+    #[test]
+    fn empty_interpolation_is_explicit_error() {
+        let src = "TASK Demo\nDO list {}\n";
+        let err = parse(src).unwrap_err();
+        assert!(matches!(err.kind, ParseErrorKind::EmptyInterpolation));
+        assert_eq!(err.line, 2);
+    }
+
+    #[test]
+    fn missing_task_uses_last_seen_line_not_zero() {
+        let src = "REM intro\nWHY because\nNEED sudo\n";
+        let err = parse(src).unwrap_err();
+        // First non-comment, non-blank line is `WHY` on line 2 — that's where
+        // the missing `TASK` requirement bites.
+        assert!(matches!(err.kind, ParseErrorKind::MissingTaskHeader));
+        assert_eq!(err.line, 2);
+    }
+
+    #[test]
+    fn no_steps_uses_last_seen_line_not_zero() {
+        let src = "TASK Demo\nWHY because\nNEED sudo\n";
+        let err = parse(src).unwrap_err();
+        assert!(matches!(err.kind, ParseErrorKind::NoSteps));
+        // `NEED` was the last meaningful line — line 3.
+        assert_eq!(err.line, 3);
+    }
+
+    #[test]
+    fn empty_file_uses_line_one() {
+        let src = "";
+        let err = parse(src).unwrap_err();
+        assert!(matches!(err.kind, ParseErrorKind::MissingTaskHeader));
+        assert_eq!(err.line, 1);
     }
 
     #[test]
