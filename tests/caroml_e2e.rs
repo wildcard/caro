@@ -113,9 +113,7 @@ fn caroml_full_pipeline_e2e() {
         .success();
 
     let platform = current_platform();
-    let runbook_path = work
-        .join("tasks")
-        .join(format!("{}.{}.sh", TASK, platform));
+    let runbook_path = work.join("tasks").join(format!("{}.{}.sh", TASK, platform));
     assert!(runbook_path.exists(), "runbook must exist after export");
     assert!(
         fs::read_to_string(&lock_path)
@@ -273,7 +271,10 @@ fn caroml_full_pipeline_e2e() {
 
     // --- 16. caro skill install / uninstall (with HOME=tempdir) -----------
     let skill_home = work.join("skill-home");
-    let skill_dest = skill_home.join(".claude").join("skills").join("caro-scaffold");
+    let skill_dest = skill_home
+        .join(".claude")
+        .join("skills")
+        .join("caro-scaffold");
     // Provide a fake source under the cwd, since `caro skill install` reads
     // from `.claude/skills/caro-scaffold/` relative to cwd by default.
     let src = work.join(".claude").join("skills").join("caro-scaffold");
@@ -288,7 +289,10 @@ fn caroml_full_pipeline_e2e() {
         .assert()
         .success()
         .stdout(predicates::str::contains("Installed"));
-    assert!(skill_dest.exists(), "skill should land at HOME/.claude/skills/...");
+    assert!(
+        skill_dest.exists(),
+        "skill should land at HOME/.claude/skills/..."
+    );
 
     Command::new(bin)
         .current_dir(work)
@@ -347,4 +351,3 @@ fn extract_challenger_id(lock_body: &str) -> Option<String> {
     }
     None
 }
-
