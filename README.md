@@ -6,6 +6,8 @@
 
 > ✨ **Now Generally Available!** - Published on crates.io with all core features working. Visit [caro.sh](https://caro.sh) for more info.
 
+> 🆕 **CaroML preview** — Caro now interprets `.caro` task files: an eight-keyword line-keyword DSL that lets you commit *intent* and have Caro generate the script. Per-platform variants, A/B challengers, runbook drift detection, and the bundled `caro-scaffold` skill for any skill-aware coder agent. See [`docs/caroml/intro.md`](docs/caroml/intro.md) and [`examples/library/system/`](examples/library/system/).
+
 **caro** (formerly **cmdai**) converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design with intelligent platform detection.
 
 ```bash

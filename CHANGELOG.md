@@ -9,6 +9,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **CaroML preview** — a meta-language for intent-tracked shell tasks. A
+  `.caro` file describes a task as a sequence of natural-language `DO` lines
+  in an eight-keyword line-keyword DSL (TASK / WHY / NEED / ON / LET / DO /
+  NOTE / REM). Caro generates a per-platform `.caro.lock` (schema_version=2)
+  with active variants, A/B candidates, validation outcomes, and a
+  history-trail; an on-disk `.<platform>.sh` runbook can be regenerated
+  from the lock and `bash`-executed without Caro installed. New CLI verbs:
+  `caro check / generate / run / export / list / new / jobs / do /
+  experiment / adopt / history / why / render / skill install`. Carofile
+  orchestration (`caro do <job>`) lets a single project file index native
+  CaroML tasks alongside external commands. The bundled `caro-scaffold`
+  Claude-Code-style skill (under `.claude/skills/caro-scaffold/`) is
+  installable via `caro skill install`. Multi-angle validator chain
+  (safety + platform + secrets + side_effects) drives a per-step repair
+  loop. Project memory: per-user run journal at
+  `~/.caro/state/<intent_hash>/journal.jsonl`, A/B challenger lifecycle
+  via `caro experiment` / `caro adopt`. CaroML preview ships behind the
+  same `cargo install caro` path; comprehensive E2E test
+  (`tests/caroml_e2e.rs`) exercises all 16 phases of the pipeline.
+  ([#893](https://github.com/wildcard/caro/pull/893),
+   [#904](https://github.com/wildcard/caro/pull/904),
+   [#905](https://github.com/wildcard/caro/pull/905),
+   [#906](https://github.com/wildcard/caro/pull/906),
+   [#907](https://github.com/wildcard/caro/pull/907),
+   [#908](https://github.com/wildcard/caro/pull/908),
+   [#909](https://github.com/wildcard/caro/pull/909),
+   [#911](https://github.com/wildcard/caro/pull/911),
+   [#912](https://github.com/wildcard/caro/pull/912),
+   [#913](https://github.com/wildcard/caro/pull/913))
+- **CaroML voice** — pager-era epilogue codes (143/371/607/42/111111) on
+  success messages, opt-out via `CARO_NO_EGGS`. Documented at
+  `docs/caroml/voice.md`.
+- **CaroML examples library** at `examples/library/system/` plus a sample
+  `Carofile`. Walk-through documentation under `docs/caroml/`.
+
 ### Changed
 
 ### Fixed
