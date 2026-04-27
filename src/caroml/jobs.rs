@@ -31,7 +31,10 @@ pub enum Resolution {
     /// Run an external command alias (e.g. `npm test`).
     ExternalAlias { alias: String, command: String },
     /// Run a native task — caller dispatches to `caro run <task>`.
-    NativeAlias { alias: String, task_path: std::path::PathBuf },
+    NativeAlias {
+        alias: String,
+        task_path: std::path::PathBuf,
+    },
     /// No Carofile match — treat as a bare task name.
     BareTask { name: String },
 }
@@ -134,13 +137,13 @@ where
         Resolution::Job { runs, .. } => {
             let mut all_results = Vec::new();
             for alias in &runs {
-                let nested = match carofile.and_then(|cf| cf.uses.iter().find(|u| u.alias == *alias))
-                {
-                    Some(use_decl) => resolution_for_use(use_decl),
-                    None => Resolution::BareTask {
-                        name: alias.clone(),
-                    },
-                };
+                let nested =
+                    match carofile.and_then(|cf| cf.uses.iter().find(|u| u.alias == *alias)) {
+                        Some(use_decl) => resolution_for_use(use_decl),
+                        None => Resolution::BareTask {
+                            name: alias.clone(),
+                        },
+                    };
                 let mut step_results = dispatch_resolution(&nested, &mut task_runner)?;
                 all_results.append(&mut step_results);
             }
@@ -158,7 +161,9 @@ where
     F: FnMut(&str, Option<&Path>) -> Result<Vec<ExecutionResult>, DoError>,
 {
     match resolution {
-        Resolution::Job { name, .. } => Err(DoError::InvalidAliasing { alias: name.clone() }),
+        Resolution::Job { name, .. } => Err(DoError::InvalidAliasing {
+            alias: name.clone(),
+        }),
         Resolution::ExternalAlias { command, .. } => {
             let exec = CommandExecutor::new(ShellType::Bash);
             let result = exec.execute(command)?;
@@ -177,10 +182,7 @@ where
 
 /// Convenience runner used by `caro do <bare-task>`: load the task's lock
 /// and execute it on `platform`. The lock must already exist.
-pub fn run_native_task(
-    task_path: &Path,
-    platform: &str,
-) -> Result<Vec<ExecutionResult>, DoError> {
+pub fn run_native_task(task_path: &Path, platform: &str) -> Result<Vec<ExecutionResult>, DoError> {
     let lock_path = task_path.with_extension("caro.lock");
     let lock = Lock::read_path(&lock_path).map_err(|e| DoError::Other(e.to_string()))?;
     let plan = runner::plan_run(&lock, platform).map_err(DoError::StepRun)?;

@@ -1475,7 +1475,10 @@ fn run_caroml_run(
             println!("(no runbook on disk; will execute step-by-step from the lock)")
         }
         RunbookStatus::Clean => {
-            println!("(runbook clean — will run `bash {}`)", runbook_path.display())
+            println!(
+                "(runbook clean — will run `bash {}`)",
+                runbook_path.display()
+            )
         }
         RunbookStatus::Drift => {
             eprintln!(
@@ -1710,9 +1713,7 @@ fn run_caroml_history(name: &str) -> Result<(), String> {
 
 /// `caro do <name>` — Carofile JOB / external-alias / native-alias / fallback.
 fn run_caroml_do(name: &str, dry_run: bool) -> Result<(), String> {
-    use caro::caroml::{
-        carofile, discovery, jobs, platform as caro_platform,
-    };
+    use caro::caroml::{carofile, discovery, jobs, platform as caro_platform};
 
     // Try to load the Carofile (optional).
     let carofile_path = discovery::find_carofile();
@@ -1727,7 +1728,10 @@ fn run_caroml_do(name: &str, dry_run: bool) -> Result<(), String> {
     };
 
     let resolution = jobs::resolve(name, carofile.as_ref());
-    print!("{}", jobs::render_plan(name, &resolution, carofile.as_ref()));
+    print!(
+        "{}",
+        jobs::render_plan(name, &resolution, carofile.as_ref())
+    );
 
     if dry_run {
         return Ok(());
