@@ -627,6 +627,21 @@ enum Commands {
         /// Task name.
         name: String,
     },
+
+    /// Run a Carofile JOB, an external-alias, or a bare task.
+    ///
+    /// Resolution order:
+    /// 1. JOB matching `<name>` in `./Carofile` / `./Carofile.caro`
+    /// 2. USE alias matching `<name>` (external command or native task)
+    /// 3. Fallback: `caro run <name>` (treats `<name>` as a bare task name)
+    Do {
+        /// Job, alias, or task name.
+        name: String,
+
+        /// Print the resolved dispatch plan and exit.
+        #[arg(long)]
+        dry_run: bool,
+    },
     // /// Manage telemetry data and settings
     // Telemetry {
     //     #[command(subcommand)]
@@ -1614,6 +1629,48 @@ fn run_caroml_history(name: &str) -> Result<(), String> {
             e.duration_ms
         );
     }
+    Ok(())
+}
+
+/// `caro do <name>` — Carofile JOB / external-alias / native-alias / fallback.
+fn run_caroml_do(name: &str, dry_run: bool) -> Result<(), String> {
+    use caro::caroml::{
+        carofile, discovery, jobs, platform as caro_platform,
+    };
+
+    // Try to load the Carofile (optional).
+    let carofile_path = discovery::find_carofile();
+    let carofile = if let Some(path) = carofile_path.as_ref() {
+        let src = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
+        Some(
+            carofile::parse_with_path(&src, Some(path.clone()))
+                .map_err(|e| format!("{}: {}", path.display(), e))?,
+        )
+    } else {
+        None
+    };
+
+    let resolution = jobs::resolve(name, carofile.as_ref());
+    print!("{}", jobs::render_plan(name, &resolution, carofile.as_ref()));
+
+    if dry_run {
+        return Ok(());
+    }
+
+    let platform = caro_platform::current().to_string();
+    let results = jobs::dispatch(name, carofile.as_ref(), |alias_or_name, task_path_opt| {
+        // Native task or bare-task: load the lock and execute it.
+        let task_path = match task_path_opt {
+            Some(p) => p.to_path_buf(),
+            None => discovery::resolve_task_path(alias_or_name).ok_or_else(|| {
+                jobs::DoError::Other(format!("could not find task `{}`", alias_or_name))
+            })?,
+        };
+        jobs::run_native_task(&task_path, &platform)
+    })
+    .map_err(|e| e.to_string())?;
+
+    println!("Completed {} step(s) in caro do {}.", results.len(), name);
     Ok(())
 }
 
@@ -2982,6 +3039,13 @@ async fn main() {
             }
         },
         Some(Commands::Why { ref name }) => match run_caroml_why(name) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Do { ref name, dry_run }) => match run_caroml_do(name, dry_run) {
             Ok(()) => process::exit(0),
             Err(e) => {
                 eprintln!("Error: {}", e);

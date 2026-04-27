@@ -26,6 +26,7 @@ pub mod carofile;
 pub mod discovery;
 pub mod history;
 pub mod interpreter;
+pub mod jobs;
 pub mod lock;
 pub mod parser;
 pub mod platform;
