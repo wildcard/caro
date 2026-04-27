@@ -1,7 +1,9 @@
 import { Ratelimit } from '@upstash/ratelimit';
 import { checkBotId } from 'botid/server';
 import { createHash } from 'node:crypto';
-import disposableDomains from 'disposable-email-domains';
+// Bypass the package's `main: index.json` to avoid Node ESM ERR_IMPORT_ATTRIBUTES
+// — go through the CJS shim that re-exports the JSON via require().
+import disposableDomains from 'disposable-email-domains/index.js';
 import { redis } from './_lib/redis';
 
 const ratelimit = new Ratelimit({
