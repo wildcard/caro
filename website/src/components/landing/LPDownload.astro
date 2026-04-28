@@ -14,10 +14,20 @@ const copiedLabel = t(lang, 'common.buttons.copied');
 
 <section id="download" class="download-section">
   <div class="container">
+    <img
+      class="download-mascot"
+      src="/kyaro/happy-bounce.gif"
+      alt=""
+      width="140"
+      height="140"
+      loading="lazy"
+    />
+    <span class="eyebrow">Get Caro</span>
     <h2>Try Caro in 30 Seconds</h2>
     <p class="section-subtitle">No account. No API key. No data collection. Just safer shell commands.</p>
 
     <div class="install-command">
+      <span class="prompt">$</span>
       <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
       <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)" data-copy-label={copyLabel} data-copied-label={copiedLabel}>{copyLabel}</button>
     </div>
@@ -57,10 +67,11 @@ const copiedLabel = t(lang, 'common.buttons.copied');
 
 <style>
   .download-section {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--caro-grey-900);
+    color: var(--fg-inverse);
     text-align: center;
     padding: 80px 20px;
+    font-family: var(--font-body);
   }
 
   .container {
@@ -68,67 +79,109 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     margin: 0 auto;
   }
 
-  h2 {
-    font-size: 36px;
+  .download-mascot {
+    width: 140px;
+    height: 140px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    margin: 0 auto 20px;
+    display: block;
+  }
+
+  .eyebrow {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--caro-yellow-400);
+    text-transform: uppercase;
+    letter-spacing: var(--track-widest);
+    display: block;
     margin-bottom: 12px;
   }
 
+  h2 {
+    font-family: var(--font-display);
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: var(--track-tight);
+    margin-bottom: 14px;
+    color: #fff;
+  }
+
   .section-subtitle {
+    font-family: var(--font-body);
     font-size: 18px;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--caro-grey-300);
     margin-bottom: 40px;
+    line-height: 1.55;
   }
 
   .install-command {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 20px 24px;
-    border-radius: 8px;
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+    background: var(--caro-grey-700);
+    padding: 16px 22px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
     font-size: 14px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    gap: 14px;
+  }
+
+  .install-command .prompt {
+    color: var(--caro-yellow-400);
+    font-weight: 700;
+    flex-shrink: 0;
   }
 
   .install-command code {
     color: #fff;
     text-align: left;
+    flex: 1;
+    background: transparent;
+    padding: 0;
+    overflow-x: auto;
   }
 
   .copy-button {
     flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    padding: 8px 20px;
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 14px;
+    font-family: var(--font-body);
+    font-size: 12px;
     font-weight: 600;
-    transition: background 0.2s;
+    transition: background var(--dur-fast) var(--ease);
   }
 
   .copy-button:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.22);
   }
 
   .quick-start {
-    margin-top: 30px;
+    margin-top: 26px;
   }
 
   .then-run {
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.8);
-    margin-bottom: 12px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--caro-grey-400);
+    text-transform: uppercase;
+    letter-spacing: var(--track-wider);
+    margin-bottom: 10px;
   }
 
   .example-command {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 16px 24px;
-    border-radius: 6px;
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+    background: var(--caro-grey-800);
+    padding: 14px 22px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
     font-size: 14px;
+    color: var(--fg-inverse);
   }
 
   .trust-points {
@@ -143,45 +196,50 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     display: flex;
     align-items: center;
     gap: 8px;
+    font-family: var(--font-body);
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--caro-grey-300);
   }
 
   .check {
-    color: #fff;
-    font-weight: 600;
+    color: var(--caro-yellow-400);
+    font-weight: 700;
   }
 
   .source-note {
     margin-top: 40px;
     padding-top: 30px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid var(--caro-grey-800);
   }
 
   .source-note p {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--caro-grey-400);
   }
 
   .source-note a {
-    color: white;
+    color: var(--caro-beige-100);
     text-decoration: underline;
-    font-weight: 500;
+    font-weight: 600;
+    transition: color var(--dur-fast) var(--ease);
   }
 
   .source-note a:hover {
+    color: var(--accent);
     text-decoration: none;
   }
 
   @media (max-width: 768px) {
+    .download-mascot { width: 110px; height: 110px; }
     h2 {
       font-size: 28px;
     }
 
     .install-command {
       flex-direction: column;
-      gap: 16px;
-      padding: 20px;
+      gap: 14px;
+      padding: 18px;
     }
 
     .install-command code {

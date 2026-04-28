@@ -12,8 +12,11 @@ const { lang = 'en' } = Astro.props;
   <div class="container">
     <div class="footer-main">
       <div class="footer-brand">
-        <span class="brand-name">Caro</span>
-        <span class="brand-tagline">Safe shell commands, locally.</span>
+        <img class="brand-mark" src="/mark-caro-smooth.png" alt="" width="40" height="40" loading="lazy" />
+        <div class="brand-text">
+          <span class="brand-name">Caro</span>
+          <span class="brand-tagline">Your loyal shell companion.</span>
+        </div>
       </div>
       <div class="footer-links">
         <a href="https://github.com/wildcard/caro">GitHub</a>
@@ -37,9 +40,10 @@ const { lang = 'en' } = Astro.props;
 <style>
   footer {
     padding: 50px 20px 30px;
-    background: var(--color-footer-bg);
-    color: var(--color-footer-text);
-    transition: background 0.3s ease, color 0.3s ease;
+    background: var(--caro-grey-900);
+    color: var(--fg-inverse);
+    font-family: var(--font-body);
+    transition: background var(--dur-med) var(--ease), color var(--dur-med) var(--ease);
   }
 
   .container {
@@ -53,24 +57,41 @@ const { lang = 'en' } = Astro.props;
     align-items: flex-start;
     margin-bottom: 40px;
     padding-bottom: 30px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--caro-grey-800);
   }
 
   .footer-brand {
     display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    flex-shrink: 0;
+  }
+
+  .brand-text {
+    display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
   }
 
   .brand-name {
-    font-size: 24px;
-    font-weight: 700;
-    color: #ff8c42;
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: var(--track-tight);
+    color: var(--fg-inverse);
   }
 
   .brand-tagline {
-    font-size: 14px;
-    color: var(--color-footer-text-muted);
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--caro-grey-400);
   }
 
   .footer-links {
@@ -79,14 +100,15 @@ const { lang = 'en' } = Astro.props;
   }
 
   .footer-links a {
-    color: var(--color-footer-text);
+    color: var(--fg-inverse);
     text-decoration: none;
+    font-family: var(--font-body);
     font-size: 14px;
-    transition: color 0.2s;
+    transition: color var(--dur-fast) var(--ease);
   }
 
   .footer-links a:hover {
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .footer-bottom {
@@ -94,48 +116,51 @@ const { lang = 'en' } = Astro.props;
   }
 
   .built-with {
-    font-size: 13px;
-    color: var(--color-footer-text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--caro-grey-400);
     margin-bottom: 12px;
   }
 
   .mascot-tribute {
+    font-family: var(--font-body);
     font-size: 13px;
-    color: var(--color-footer-text-muted);
+    color: var(--caro-grey-400);
   }
 
   .mascot-tribute a {
-    color: var(--color-footer-text);
+    color: var(--fg-inverse);
     text-decoration: none;
-    transition: color 0.2s;
+    transition: color var(--dur-fast) var(--ease);
   }
 
   .mascot-tribute a:hover {
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .story-link {
     margin-left: 8px;
-    color: #ff8c42 !important;
+    color: var(--accent) !important;
+    font-weight: 600;
   }
 
   .sponsor-link::before {
     content: "♥ ";
-    color: #ea4aaa;
+    color: var(--color-support);
   }
 
   .sponsor-link:hover {
-    color: #ea4aaa !important;
+    color: var(--color-support) !important;
   }
 
   .footer-privacy-link {
-    color: var(--color-footer-text-muted);
+    color: var(--caro-grey-400);
     text-decoration: underline;
     text-decoration-style: dotted;
   }
 
   .footer-privacy-link:hover {
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   @media (max-width: 768px) {
