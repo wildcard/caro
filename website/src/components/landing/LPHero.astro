@@ -10,6 +10,14 @@ const { lang = 'en' } = Astro.props;
 
 <div class="hero">
   <div class="container">
+    <img
+      class="hero-mascot"
+      src="/kyaro/idle.gif"
+      alt=""
+      width="160"
+      height="160"
+      loading="eager"
+    />
     <div class="hero-badge">{t(lang, 'landing.hero.badge')}</div>
     <h1 class="headline">
       {t(lang, 'landing.hero.headline.line1')}<br />{t(lang, 'landing.hero.headline.line2')} <code class="danger-cmd">{t(lang, 'landing.hero.headline.dangerCmd')}</code>
@@ -48,58 +56,74 @@ const { lang = 'en' } = Astro.props;
     align-items: center;
     text-align: center;
     padding: 80px 20px 60px;
-    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    background: var(--bg);
+    font-family: var(--font-body);
   }
 
   .container {
     max-width: 900px;
   }
 
+  .hero-mascot {
+    width: 160px;
+    height: 160px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    margin: 0 auto 24px;
+    display: block;
+  }
+
   .hero-badge {
     display: inline-block;
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 107, 53, 0.1) 100%);
-    border: 1px solid rgba(255, 140, 66, 0.3);
-    color: #ff8c42;
-    padding: 8px 20px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
+    background: rgba(239, 51, 51, 0.10);
+    border: 1px solid rgba(239, 51, 51, 0.35);
+    color: var(--accent);
+    padding: 6px 18px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
     margin-bottom: 30px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: var(--track-widest);
+    font-family: var(--font-body);
   }
 
   .headline {
-    font-size: 52px;
-    font-weight: 700;
-    line-height: 1.2;
+    font-family: var(--font-display);
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: var(--track-tight);
     margin-bottom: 24px;
-    color: var(--color-text);
+    color: var(--fg-strong);
   }
 
   .danger-cmd {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-weight: 700;
     font-size: 0.9em;
+    background: transparent;
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: initial;
+    background-clip: initial;
   }
 
   .subtitle {
+    font-family: var(--font-body);
     font-size: 20px;
-    color: var(--color-text-secondary);
+    color: var(--fg);
     margin-bottom: 40px;
     max-width: 700px;
     margin-left: auto;
     margin-right: auto;
-    line-height: 1.7;
+    line-height: 1.55;
   }
 
   .social-proof {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-left: 4px solid #ff8c42;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
     padding: 24px 32px;
     border-radius: 8px;
     margin-bottom: 40px;
@@ -109,16 +133,21 @@ const { lang = 'en' } = Astro.props;
   }
 
   .quote {
+    font-family: var(--font-body);
     font-size: 18px;
     font-style: italic;
-    color: var(--color-text);
+    color: var(--fg);
     margin-bottom: 8px;
-    line-height: 1.6;
+    line-height: 1.55;
   }
 
   .attribution {
-    font-size: 14px;
-    color: var(--color-text-secondary);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--fg-subtle);
+    text-transform: uppercase;
+    letter-spacing: var(--track-wider);
   }
 
   .cta-buttons {
@@ -131,37 +160,58 @@ const { lang = 'en' } = Astro.props;
 
   .cta-button {
     display: inline-block;
-    padding: 16px 40px;
-    border-radius: 8px;
-    font-size: 18px;
-    font-weight: 600;
+    padding: 14px 36px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 700;
     text-decoration: none;
-    transition: transform 0.2s, box-shadow 0.2s;
+    border: 2px solid transparent;
+    transition:
+      background var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease),
+      transform var(--dur-fast) var(--ease);
   }
 
   .cta-button.primary {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
   }
 
   .cta-button.primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+
+  .cta-button.primary:active {
+    background: var(--accent-press);
+    border-color: var(--accent-press);
+    transform: translateY(0);
   }
 
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid #ff8c42;
-    color: #ff8c42;
+    border-color: var(--border-strong);
+    color: var(--fg-strong);
   }
 
   .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.1);
-    transform: translateY(-2px);
+    background: var(--border-strong);
+    color: var(--fg-inverse);
+    transform: translateY(-1px);
+  }
+
+  :global(.dark) .cta-button.secondary {
+    color: var(--color-text);
+    border-color: var(--color-text);
   }
 
   :global(.dark) .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.15);
+    background: var(--color-text);
+    color: var(--color-bg);
   }
 
   .trust-badges {
@@ -175,8 +225,9 @@ const { lang = 'en' } = Astro.props;
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 14px;
-    color: var(--color-text-secondary);
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--fg-muted);
   }
 
   .badge .icon {
@@ -185,11 +236,11 @@ const { lang = 'en' } = Astro.props;
 
   .badge-link {
     text-decoration: none;
-    transition: color 0.2s;
+    transition: color var(--dur-fast) var(--ease);
   }
 
   .badge-link:hover {
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .privacy-link {
@@ -200,11 +251,12 @@ const { lang = 'en' } = Astro.props;
   }
 
   .privacy-link:hover {
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   @media (max-width: 768px) {
-    .headline { font-size: 32px; }
+    .hero-mascot { width: 120px; height: 120px; }
+    .headline { font-size: 34px; }
     .subtitle { font-size: 18px; }
     .social-proof { padding: 20px 24px; }
     .quote { font-size: 16px; }
