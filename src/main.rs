@@ -2587,15 +2587,29 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         eprintln!("{} {}", "Warning:".yellow().bold(), warning);
     }
 
-    // Handle blocked commands
+    // Handle blocked commands — render the brand risk badge so the
+    // visual vocabulary is consistent across SAFE / MODERATE / HIGH /
+    // CRITICAL paths instead of mixing a raw "Blocked:" tag with the
+    // badge used elsewhere.
     if let Some(blocked_reason) = &result.blocked_reason {
-        eprintln!("{} {}", "Blocked:".red().bold(), blocked_reason);
+        let badge = caro::ui::render_risk_badge(
+            result
+                .risk_level
+                .unwrap_or(caro::models::RiskLevel::Critical),
+        );
+        eprintln!("{badge} {}", blocked_reason);
         std::process::exit(1);
     }
 
     // Handle confirmation required for dangerous commands
     if result.requires_confirmation && !cli.confirm {
         use dialoguer::Confirm;
+
+        // Brand risk badge before the confirmation prompt so users see the
+        // severity in the same vocabulary as the post-execute summary.
+        if let Some(level) = result.risk_level {
+            eprintln!("  {}", caro::ui::render_risk_badge(level));
+        }
 
         // Check if we're in a terminal environment
         if std::io::stdin().is_terminal() {
@@ -2689,20 +2703,16 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             }
         }
     } else {
-        // Brand badge + mascot at the decision moment. Risk is derived from
-        // the existing CliResult flags so this is purely additive — no schema
-        // changes required.
+        // Brand badge + mascot at the decision moment. Pulls the validator's
+        // verdict directly from CliResult.risk_level so MODERATE renders as
+        // its own badge instead of collapsing to SAFE. The blocked path
+        // exits earlier (line 2585) so CRITICAL is reachable here only via
+        // a stale code path — keep the match exhaustive defensively.
         if !cli.quiet {
-            let risk = if result.blocked_reason.is_some() {
-                caro::models::RiskLevel::Critical
-            } else if result.requires_confirmation {
-                caro::models::RiskLevel::High
-            } else {
-                caro::models::RiskLevel::Safe
-            };
+            let risk = result.risk_level.unwrap_or(caro::models::RiskLevel::Safe);
             display!("  {}", caro::ui::render_risk_badge(risk));
             // Show the shocked mascot inline for the decision-heavy levels
-            // only; safe commands stay uncluttered.
+            // only; safe + moderate commands stay uncluttered.
             if matches!(
                 risk,
                 caro::models::RiskLevel::High | caro::models::RiskLevel::Critical

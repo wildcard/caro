@@ -93,6 +93,11 @@ pub struct CliResult {
     /// Detailed explanation for explain mode
     #[serde(default)]
     pub detailed_explanation: Option<crate::prompts::CommandExplanation>,
+    /// Safety classifier verdict for the generated command — used by the
+    /// brand UI risk badge in `print_plain_output`. Optional for
+    /// backwards-compat with older serialized JSON results.
+    #[serde(default)]
+    pub risk_level: Option<RiskLevel>,
 }
 
 /// Supported output formats
@@ -690,6 +695,7 @@ impl CliApp {
             execution_error,
             explain_mode,
             detailed_explanation,
+            risk_level: Some(validation.risk_level),
         })
     }
 

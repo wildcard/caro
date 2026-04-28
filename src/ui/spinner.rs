@@ -52,8 +52,13 @@ impl Spinner {
         let bar = ProgressBar::new_spinner();
         bar.set_draw_target(ProgressDrawTarget::stdout());
 
+        // indicatif's template engine delegates color parsing to `console`,
+        // which accepts truecolor as a literal `#RRGGBB` style suffix
+        // (see console::utils::Style::from_dotted_str). The unsupported
+        // `color(r,g,b)` syntax we used previously was silently ignored,
+        // so the brand yellow never reached the terminal.
         let (r, g, b) = CARO_YELLOW_400;
-        let template = format!("  {{spinner:.color({r},{g},{b})}} {{msg}}");
+        let template = format!("  {{spinner:.#{r:02x}{g:02x}{b:02x}}} {{msg}}");
         let style = ProgressStyle::with_template(&template)
             .unwrap_or_else(|_| ProgressStyle::default_spinner())
             .tick_strings(TICK_FRAMES);
@@ -99,11 +104,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn template_does_not_panic() {
-        // We construct the same format used at runtime; verify it parses.
+    fn template_parses_with_brand_yellow_truecolor() {
+        // We construct the same format used at runtime; verify it parses
+        // AND that the brand yellow hex actually appears in the template.
         let (r, g, b) = CARO_YELLOW_400;
-        let template = format!("  {{spinner:.color({r},{g},{b})}} {{msg}}");
+        let hex = format!("#{r:02x}{g:02x}{b:02x}");
+        assert_eq!(hex, "#fcfc62", "brand yellow hex must match palette");
+        let template = format!("  {{spinner:.{hex}}} {{msg}}");
         assert!(ProgressStyle::with_template(&template).is_ok());
+        // The template literally embeds the brand-yellow hex; if a future
+        // refactor reintroduces the unsupported color(r,g,b) syntax, this
+        // assertion catches it.
+        assert!(template.contains("#fcfc62"));
     }
 
     #[test]
