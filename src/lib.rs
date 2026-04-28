@@ -50,6 +50,7 @@ pub mod prompts;
 pub mod safety;
 pub mod setup;
 pub mod telemetry;
+pub mod ui;
 pub mod version;
 
 #[cfg(feature = "knowledge")]
