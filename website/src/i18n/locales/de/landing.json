@@ -8,20 +8,37 @@
       }
     },
     "hero": {
-      "badge": "Companion Agent",
+      "badge": "Begleiter-Agent",
       "tagline": "Dein treuer Shell-Begleiter",
       "subtitle": "Ein spezialisierter POSIX-Shell-Befehlsagent für Claude-Nutzer. Validiert KI-generierte Befehle mit Safety-First-Design, erkennt gefährliche Muster und gewährleistet POSIX-Konformität.",
       "installLabel": "Verfügbar als Claude Skill:",
       "cta": {
         "getStarted": "Jetzt starten",
-        "watchDemo": "Demo ansehen"
+        "watchDemo": "Demo ansehen",
+        "primary": "Caro installieren",
+        "secondary": "Demo ansehen"
+      },
+      "trustBadges": {
+        "openSource": "Quelloffen",
+        "validation": "52+ Sicherheitsmuster",
+        "zeroTelemetry": "Keine Telemetrie",
+        "local": "100% Local"
+      },
+      "socialProof": {
+        "quote": "Endlich ein KI-Assistent, der nicht die Produktion lahmlegt",
+        "attribution": "— Engineering-Teams überall"
+      },
+      "headline": {
+        "line1": "Führe niemals",
+        "line2": "versehentlich aus",
+        "dangerCmd": "rm -rf /"
       }
     },
     "features": {
       "title": "Warum Caro?",
       "subtitle": "Ein Companion Agent für Sicherheit, Empathie und Expertise",
       "alphaNotice": "Wir entwickeln aktiv mit unserer Community. Hilf mit, Caros Zukunft zu gestalten!",
-      "alphaLabel": "Soft Launch Alpha",
+      "alphaLabel": "Alpha-Softlaunch",
       "ctaText": "Sieh genau, was Caro blockiert und warum",
       "ctaLink": "Sicherheitsmuster anzeigen",
       "items": [
@@ -73,7 +90,7 @@
           "description": "Ziel: Sub-100ms-Start, Sub-2s-Inferenz auf Apple Silicon. MLX-Framework-Integration für GPU-Beschleunigung auf M-Series-Chips."
         },
         "claudeCompanion": {
-          "title": "Claude's Companion",
+          "title": "Claude's Begleiter",
           "description": "Offizieller Claude Code Skill für sichere Shell-Befehlsgenerierung. Aktiviert sich automatisch, wenn du Hilfe brauchst, bietet Sicherheitshinweise und integriert sich nahtlos in deinen Workflow. Installation mit /plugin install wildcard/caro"
         }
       }
@@ -83,8 +100,8 @@
       "subtitle": "Entwickelt für DevOps-Engineers und SREs, die Privatsphäre nicht für Produktivität opfern",
       "summary": {
         "privacy": {
-          "stat": "Privacy",
-          "label": "First Design*"
+          "stat": "Datenschutz",
+          "label": "Datenschutz zuerst*"
         },
         "safety": {
           "stat": "52+",
@@ -107,7 +124,7 @@
         "opencode": "OpenCode"
       },
       "table": {
-        "feature": "Feature",
+        "feature": "Funktion",
         "youreHere": "Du bist hier"
       },
       "categories": {
@@ -190,7 +207,7 @@
               "tooltip": "MLX-Framework für M-Series-Macs"
             },
             "selfHostable": {
-              "name": "Self-hostable",
+              "name": "Selbst hostbar",
               "tooltip": "Volle Kontrolle über Infrastruktur"
             }
           }
@@ -291,12 +308,12 @@
         "playAgainButton": "NOCHMAL SPIELEN",
         "highScore": "Highscore:",
         "leaderboardTitle": "🏆 TOP-SCORES 🏆",
-        "gameOver": "GAME OVER",
+        "gameOver": "SPIEL VORBEI",
         "newHighScore": "🎉 NEUER HIGHSCORE!",
         "rank": "RANG #{{rank}}!",
         "finalScore": "Du hast Level {{level}} mit {{score}} Punkten erreicht!"
       },
-      "streak": "🔥 Streak:",
+      "streak": "🔥 Serie:",
       "messages": {
         "correct": [
           "Gut gemacht! 🎉",
@@ -351,11 +368,11 @@
       "columns": {
         "product": {
           "title": "Produkt",
-          "features": "Features",
+          "features": "Funktionen",
           "howItWorks": "Wie es funktioniert",
           "explore": "Erkunden",
-          "download": "Download",
-          "roadmap": "Roadmap"
+          "download": "Herunterladen",
+          "roadmap": "Fahrtplan"
         },
         "compare": {
           "title": "Vergleichen",
@@ -372,12 +389,12 @@
           "glossary": "Glossar",
           "github": "GitHub",
           "issues": "Issues",
-          "contributing": "Contributing",
+          "contributing": "Mitwirken",
           "credits": "Credits"
         },
         "support": {
           "title": "Support",
-          "sponsor": "♥ Sponsor",
+          "sponsor": "♥ Sponsern",
           "license": "AGPL-3.0-Lizenz"
         }
       },

@@ -35,7 +35,7 @@
     "quickStart": {
       "title": "Início Rápido",
       "intro": "Após executar o script de configuração acima, basta usar o Caro:",
-      "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
+      "exampleCommand": "caro \"encontre todos os arquivos Python modificados nos últimos 7 dias\"",
       "description": "O Caro irá gerar o comando e mantê-lo seguro. O script de configuração lida com todos os pré-requisitos, incluindo a compilação do Rust."
     }
   }

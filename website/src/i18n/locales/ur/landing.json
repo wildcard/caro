@@ -14,7 +14,24 @@
       "installLabel": "Claude Skill کے طور پر دستیاب:",
       "cta": {
         "getStarted": "شروع کریں",
-        "watchDemo": "Demo دیکھیں"
+        "watchDemo": "Demo دیکھیں",
+        "primary": "Install Caro",
+        "secondary": "See Demo"
+      },
+      "headline": {
+        "line1": "Never run",
+        "line2": "by accident again",
+        "dangerCmd": "rm -rf /"
+      },
+      "socialProof": {
+        "quote": "Finally, an AI assistant that won't crash production",
+        "attribution": "— Engineering Teams Everywhere"
+      },
+      "trustBadges": {
+        "zeroTelemetry": "Zero Telemetry",
+        "validation": "52+ Safety Patterns",
+        "local": "100% Local",
+        "openSource": "Open Source"
       }
     },
     "features": {
@@ -82,10 +99,22 @@
       "title": "Caro کا موازنہ کیسے ہے",
       "subtitle": "DevOps انجینئرز اور SREs کے لیے بنایا گیا جو پیداواریت کے لیے پرائیویسی قربان کرنے سے انکار کرتے ہیں",
       "summary": {
-        "privacy": { "stat": "پرائیویسی", "label": "پہلا ڈیزائن*" },
-        "safety": { "stat": "52+", "label": "حفاظتی پیٹرن" },
-        "offline": { "stat": "100%", "label": "آف لائن قابل" },
-        "speed": { "stat": "Rust", "label": "رفتار کے لیے بنایا گیا" }
+        "privacy": {
+          "stat": "پرائیویسی",
+          "label": "پہلا ڈیزائن*"
+        },
+        "safety": {
+          "stat": "52+",
+          "label": "حفاظتی پیٹرن"
+        },
+        "offline": {
+          "stat": "100%",
+          "label": "آف لائن قابل"
+        },
+        "speed": {
+          "stat": "Rust",
+          "label": "رفتار کے لیے بنایا گیا"
+        }
       },
       "competitors": {
         "caro": "Caro",
@@ -255,6 +284,134 @@
       ]
     },
     "download": {},
-    "footer": {}
+    "footer": {
+      "brand": {
+        "tagline": "Your loyal shell companion",
+        "description": "AI-powered POSIX shell command generation with safety-first validation."
+      },
+      "columns": {
+        "product": {
+          "title": "Product",
+          "features": "Features",
+          "howItWorks": "How It Works",
+          "explore": "Explore",
+          "download": "Download",
+          "roadmap": "Roadmap"
+        },
+        "compare": {
+          "title": "Compare",
+          "overview": "Overview",
+          "warp": "vs Warp",
+          "copilotCli": "vs GitHub Copilot CLI",
+          "kiro": "vs Kiro CLI",
+          "opencode": "vs OpenCode"
+        },
+        "resources": {
+          "title": "Resources",
+          "blog": "Blog",
+          "faq": "FAQ",
+          "glossary": "Glossary",
+          "github": "GitHub",
+          "issues": "Issues",
+          "contributing": "Contributing",
+          "credits": "Credits"
+        },
+        "support": {
+          "title": "Support",
+          "sponsor": "♥ Sponsor",
+          "license": "AGPL-3.0 License"
+        }
+      },
+      "kyaro": {
+        "title": "Meet Kyaro!",
+        "description": "The real-life inspiration behind Caro."
+      },
+      "bottom": {
+        "built": "Built with 🦀 Rust |",
+        "brandName": "caro.sh",
+        "heart": "🧡",
+        "inspiration": "Inspired by Portal's Caroline—loyalty transformed into digital companionship",
+        "heritagePre": "Proudly built on the foundations laid by",
+        "gnu": "GNU",
+        "fsf": "FSF",
+        "freebsd": "FreeBSD"
+      }
+    },
+    "video": {
+      "title": "How Caro Works",
+      "subtitle": "See Caro in action as your shell companion"
+    },
+    "game": {
+      "title": "Play with Caro",
+      "subtitle": "Test your shell command knowledge! Pick the safe commands, avoid the dangerous ones.",
+      "stats": {
+        "level": "LEVEL",
+        "score": "SCORE"
+      },
+      "header": "SAFE OR DANGER?",
+      "overlay": {
+        "title": "SAFE OR DANGER?",
+        "subtitle": "Can you identify which shell commands are safe to run?",
+        "rules": {
+          "safe": "✓ Pick SAFE commands to score points",
+          "danger": "✗ Avoid DANGEROUS commands or lose a life",
+          "timer": "⏱ Answer before time runs out!"
+        },
+        "lives": "Lives:",
+        "startButton": "START GAME",
+        "playAgainButton": "PLAY AGAIN",
+        "highScore": "High Score:",
+        "leaderboardTitle": "🏆 TOP SCORES 🏆",
+        "gameOver": "GAME OVER",
+        "newHighScore": "🎉 NEW HIGH SCORE!",
+        "rank": "RANK #{{rank}}!",
+        "finalScore": "You reached Level {{level}} with {{score}} points!"
+      },
+      "streak": "🔥 Streak:",
+      "messages": {
+        "correct": [
+          "Great job! 🎉",
+          "Correct! ✓",
+          "You know your stuff!",
+          "Safe choice! 👍",
+          "Well done!",
+          "Excellent! 🌟"
+        ],
+        "wrong": [
+          "Oops! That's dangerous! 💥",
+          "Watch out! ⚠️",
+          "That could wipe your system!",
+          "Dangerous! Never run that!",
+          "Yikes! Bad command!"
+        ],
+        "timeout": [
+          "Too slow! ⏱",
+          "Time's up!",
+          "Gotta be faster!"
+        ],
+        "start": [
+          "Pick the SAFE command!",
+          "Which one is safe?",
+          "Find the safe command!",
+          "Choose wisely!"
+        ]
+      }
+    },
+    "blog": {
+      "title": "From the Pack",
+      "subtitle": "Stories, updates, and insights about Caro",
+      "readMore": "Read full story →",
+      "viewAll": "View all blog posts →"
+    },
+    "announcement": {
+      "renameBanner": {
+        "emoji": "🎉",
+        "title": "Announcing Caro!",
+        "message": "We've renamed from cmdai to caro.",
+        "linkText": "Read the announcement",
+        "dismissLabel": "Dismiss announcement",
+        "dismissTitle": "Dismiss"
+      }
+    }
   }
 }

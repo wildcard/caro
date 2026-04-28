@@ -35,7 +35,7 @@
     "quickStart": {
       "title": "クイックスタート",
       "intro": "上記のセットアップスクリプトを実行した後、ただCaroを使用してください：",
-      "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
+      "exampleCommand": "caro \"過去7日間に修正されたすべてのPythonファイルを検索\"",
       "description": "Caroはコマンドを生成し、あなたを守ります。セットアップスクリプトはRustのコンパイルを含むすべての前提条件を処理します。"
     }
   }

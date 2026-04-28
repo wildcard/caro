@@ -14,7 +14,24 @@
       "installLabel": "Claude Skillとして利用可能:",
       "cta": {
         "getStarted": "始める",
-        "watchDemo": "デモを見る"
+        "watchDemo": "デモを見る",
+        "primary": "Caroをインストール",
+        "secondary": "See Demo"
+      },
+      "headline": {
+        "line1": "二度と実行しない",
+        "line2": "間違えて",
+        "dangerCmd": "rm -rf /"
+      },
+      "socialProof": {
+        "quote": "本番環境をクラッシュさせないAIアシスタント、ついに登場",
+        "attribution": "— 世界中のエンジニアチーム"
+      },
+      "trustBadges": {
+        "zeroTelemetry": "テレメトリなし",
+        "validation": "52以上の安全パターン",
+        "openSource": "オープンソース",
+        "local": "100% Local"
       }
     },
     "features": {
@@ -103,8 +120,8 @@
         "caro": "Caro",
         "copilotCli": "GitHub Copilot CLI",
         "warp": "Warp AI",
-        "kiro": "Kiro CLI",
-        "opencode": "OpenCode"
+        "kiro": "vs Kiro CLI",
+        "opencode": "vs OpenCode"
       },
       "table": {
         "feature": "機能",
