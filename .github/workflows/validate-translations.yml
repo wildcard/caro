@@ -56,6 +56,7 @@ jobs:
 
       - name: Run validation script
         id: validate
+        if: always() && needs.checkout.result == 'success'
         run: |
           cd website
           node scripts/i18n/validate.mjs --strict > validation-report.txt 2>&1 || true
@@ -69,6 +70,7 @@ jobs:
           fi
 
       - name: Generate coverage report
+        if: always() && needs.checkout.result == 'success'
         run: |
           cd website
           node scripts/i18n/status.mjs > coverage-report.txt
@@ -76,6 +78,7 @@ jobs:
 
       - name: Check minimum coverage
         id: coverage
+        if: always() && needs.checkout.result == 'success'
         env:
           MIN_COVERAGE: 80
         run: |
