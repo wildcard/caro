@@ -81,13 +81,13 @@
 
 /* Branded variant when checked (orange) */
 .branded .input:checked + .track {
-  background: var(--color-primary, #ff8c42);
-  border-color: var(--color-primary-dark, #ff6b35);
+  background: var(--color-primary, #ef3333);
+  border-color: var(--color-primary-dark, #c02020);
 }
 
 /* Focus state */
 .input:focus-visible + .track {
-  outline: 2px solid var(--color-primary, #ff8c42);
+  outline: 2px solid var(--color-primary, #ef3333);
   outline-offset: 2px;
 }
 
@@ -144,7 +144,7 @@
 
 /* Branded variant glow on checked */
 .branded .input:checked + .track .thumb {
-  box-shadow: 0 2px 8px rgba(255, 140, 66, 0.5);
+  box-shadow: 0 2px 8px rgba(239, 51, 51, 0.5);
 }
 
 /* Hover effect on thumb */

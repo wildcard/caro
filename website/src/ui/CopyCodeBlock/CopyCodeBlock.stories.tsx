@@ -113,7 +113,7 @@ export const Brand: Story = {
     (Story) => (
       <div
         style={{
-          background: 'linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%)',
+          background: 'linear-gradient(135deg, #ef3333 0%, #c02020 100%)',
           padding: '40px',
           borderRadius: '12px',
           maxWidth: '600px',
@@ -297,7 +297,7 @@ export const AllVariants: Story = {
       </div>
       <div
         style={{
-          background: 'linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%)',
+          background: 'linear-gradient(135deg, #ef3333 0%, #c02020 100%)',
           padding: '20px',
           borderRadius: '8px',
         }}

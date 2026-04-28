@@ -60,13 +60,13 @@
 }
 
 .trigger:hover {
-  border-color: var(--distro-color, var(--color-primary, #ff8c42));
+  border-color: var(--distro-color, var(--color-primary, #ef3333));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--distro-color, var(--color-primary)) 15%, transparent);
 }
 
 .trigger:focus-visible {
   outline: none;
-  border-color: var(--distro-color, var(--color-primary, #ff8c42));
+  border-color: var(--distro-color, var(--color-primary, #ef3333));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--distro-color, var(--color-primary)) 25%, transparent);
 }
 
@@ -202,7 +202,7 @@
 
 .resetButton {
   font-size: var(--font-size-xs, 12px);
-  color: var(--color-primary, #ff8c42);
+  color: var(--color-primary, #ef3333);
   background: none;
   border: none;
   cursor: pointer;
@@ -257,7 +257,7 @@
 
 .tabActive {
   background: var(--color-surface, #ffffff);
-  color: var(--color-primary, #ff8c42);
+  color: var(--color-primary, #ef3333);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -272,7 +272,7 @@
 
 :global(.dark) .tabActive {
   background: var(--color-surface-dark, #1e1e2e);
-  color: var(--color-primary, #ff8c42);
+  color: var(--color-primary, #ef3333);
 }
 
 /* ============================================
@@ -309,7 +309,7 @@
 .osCard:hover,
 .distroCard:hover,
 .shellCard:hover {
-  border-color: var(--card-color, var(--color-primary, #ff8c42));
+  border-color: var(--card-color, var(--color-primary, #ef3333));
   transform: translateY(-2px);
   box-shadow: 0 4px 12px color-mix(in srgb, var(--card-color, var(--color-primary)) 20%, transparent);
 }
@@ -317,7 +317,7 @@
 .osCard.selected,
 .distroCard.selected,
 .shellCard.selected {
-  border-color: var(--card-color, var(--color-primary, #ff8c42));
+  border-color: var(--card-color, var(--color-primary, #ef3333));
   background: color-mix(in srgb, var(--card-color, var(--color-primary)) 8%, transparent);
 }
 
@@ -405,7 +405,7 @@
 
 .searchInput:focus {
   outline: none;
-  border-color: var(--color-primary, #ff8c42);
+  border-color: var(--color-primary, #ef3333);
 }
 
 :global(.dark) .searchInput {
@@ -443,13 +443,13 @@
 }
 
 .categoryTab:hover {
-  border-color: var(--color-primary, #ff8c42);
-  color: var(--color-primary, #ff8c42);
+  border-color: var(--color-primary, #ef3333);
+  color: var(--color-primary, #ef3333);
 }
 
 .categoryActive {
-  background: var(--color-primary, #ff8c42);
-  border-color: var(--color-primary, #ff8c42);
+  background: var(--color-primary, #ef3333);
+  border-color: var(--color-primary, #ef3333);
   color: white;
 }
 

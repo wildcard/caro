@@ -34,12 +34,12 @@
 }
 
 .trigger:hover {
-  color: var(--color-primary, #ff8c42);
-  background: rgba(255, 140, 66, 0.08);
+  color: var(--color-primary, #ef3333);
+  background: rgba(239, 51, 51, 0.08);
 }
 
 .trigger:focus-visible {
-  outline: 2px solid var(--color-primary, #ff8c42);
+  outline: 2px solid var(--color-primary, #ef3333);
   outline-offset: 2px;
 }
 
@@ -48,7 +48,7 @@
 }
 
 :global(.dark) .trigger:hover {
-  background: rgba(255, 140, 66, 0.15);
+  background: rgba(239, 51, 51, 0.15);
 }
 
 /* ============================================
@@ -132,11 +132,11 @@
 }
 
 .item:hover {
-  background: rgba(255, 140, 66, 0.08);
+  background: rgba(239, 51, 51, 0.08);
 }
 
 .item:focus-visible {
-  outline: 2px solid var(--color-primary, #ff8c42);
+  outline: 2px solid var(--color-primary, #ef3333);
   outline-offset: -2px;
 }
 
@@ -145,7 +145,7 @@
 }
 
 :global(.dark) .item:hover {
-  background: rgba(255, 140, 66, 0.15);
+  background: rgba(239, 51, 51, 0.15);
 }
 
 /* ============================================

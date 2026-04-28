@@ -185,7 +185,7 @@
 }
 
 .copyButton:focus-visible {
-  outline: 2px solid var(--color-primary, #ff8c42);
+  outline: 2px solid var(--color-primary, #ef3333);
   outline-offset: 2px;
 }
 

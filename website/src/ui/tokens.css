@@ -4,7 +4,7 @@
  * Single source of truth for visual language. The paper-and-ink palette
  * (retro-console grey + retro-console beige + signal red + highlighter yellow)
  * comes from the official Caro Brand Guideline. The previous orange gradient
- * (#ff8c42 -> #ff6b35) is deprecated and replaced by flat signal red #ef3333.
+ * is deprecated and replaced by flat signal red #ef3333.
  *
  * Imported by Layout.astro (and any component that needs tokens directly).
  * Do NOT redefine these tokens elsewhere — that creates two-source drift.
@@ -65,9 +65,9 @@
      The orange-gradient names are kept so legacy components keep working,
      but their hex values now resolve to the paper-and-ink brand.
      ============================================ */
-  --color-primary: #ef3333;        /* was #ff8c42 — now signal red */
-  --color-primary-dark: #c02020;   /* was #ff6b35 */
-  --color-primary-light: #f56565;  /* was #ffa76c */
+  --color-primary: #ef3333;        /* signal red (replaces deprecated orange) */
+  --color-primary-dark: #c02020;
+  --color-primary-light: #f56565;
   --color-support: #ea4aaa;
   --color-support-dark: #d63d99;
   --color-success: #22c55e;
