@@ -13,9 +13,8 @@
 const IDLE_FRAME: &str = include_str!("../../assets/kyaro/001-idle/idle_ASCII/Idle_1.txt");
 const SHOCKED_FRAME: &str =
     include_str!("../../assets/kyaro/008-shocked/shocked_ASCII/Shocked1.txt");
-const HAPPY_BOUNCE_FRAME: &str = include_str!(
-    "../../assets/kyaro/006-happy bounce/happy bounce_ASCII/HappyBounce1.txt"
-);
+const HAPPY_BOUNCE_FRAME: &str =
+    include_str!("../../assets/kyaro/006-happy bounce/happy bounce_ASCII/HappyBounce1.txt");
 const SLEEPING_FRAME: &str =
     include_str!("../../assets/kyaro/003-sleeping/sleeping_ASCII/Sleeping01.txt");
 

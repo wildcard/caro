@@ -987,7 +987,8 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
 
     let last_command_hint = std::env::var("CARO_LAST_COMMAND").ok();
 
-    let outcome = run_once(AiInvocation {
+    let spinner = caro::ui::Spinner::thinking(cli.verbose);
+    let outcome_res = run_once(AiInvocation {
         prompt: resolved.text.trim(),
         ai_cfg: &user_cfg.ai,
         backend,
@@ -1000,8 +1001,9 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         session_mode,
         last_command_hint,
     })
-    .await
-    .map_err(|e| format!("{}", e))?;
+    .await;
+    spinner.stop();
+    let outcome = outcome_res.map_err(|e| format!("{}", e))?;
 
     // Stderr: human-readable risk annotation and warnings. Stdout: the command.
     use colored::Colorize;
@@ -1013,9 +1015,8 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     }
     if !outcome.allowed {
         eprintln!(
-            "{} command blocked by safety validator ({:?})",
-            "✗".red(),
-            outcome.risk
+            "{} command blocked by safety validator",
+            caro::ui::render_risk_badge(outcome.risk)
         );
         for w in &outcome.warnings {
             eprintln!("  - {}", w);
@@ -1027,8 +1028,8 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         caro::models::RiskLevel::High | caro::models::RiskLevel::Critical
     ) {
         eprintln!(
-            "{} generated command is HIGH risk — double-check before running",
-            "⚠".yellow()
+            "{} double-check before running",
+            caro::ui::render_risk_badge(outcome.risk)
         );
     }
     eprintln!(
@@ -2527,8 +2528,15 @@ async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
     )
     .await?;
 
+    // Show "caro is thinking…" while the backend generates the command. The
+    // spinner suppresses itself in non-TTY / NO_COLOR / RUST_LOG / verbose
+    // environments so it never corrupts piped or logged output.
+    let spinner = caro::ui::Spinner::thinking(cli.verbose);
+
     // Run command generation
-    let mut result = app.run_with_args(cli.clone()).await?;
+    let result = app.run_with_args(cli.clone()).await;
+    spinner.stop();
+    let mut result = result?;
 
     // Check if command was blocked by safety validation
     let was_blocked = result.blocked_reason.is_some();
@@ -2681,6 +2689,30 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             }
         }
     } else {
+        // Brand badge + mascot at the decision moment. Risk is derived from
+        // the existing CliResult flags so this is purely additive — no schema
+        // changes required.
+        if !cli.quiet {
+            let risk = if result.blocked_reason.is_some() {
+                caro::models::RiskLevel::Critical
+            } else if result.requires_confirmation {
+                caro::models::RiskLevel::High
+            } else {
+                caro::models::RiskLevel::Safe
+            };
+            display!("  {}", caro::ui::render_risk_badge(risk));
+            // Show the shocked mascot inline for the decision-heavy levels
+            // only; safe commands stay uncluttered.
+            if matches!(
+                risk,
+                caro::models::RiskLevel::High | caro::models::RiskLevel::Critical
+            ) {
+                let frame = caro::ui::kyaro::compact(caro::ui::kyaro::shocked());
+                display!("{frame}");
+            }
+            display!("");
+        }
+
         // Standard output (non-explain mode)
         display!("{}", "Command:".bold());
         display!("  {}", result.generated_command.bright_cyan().bold());

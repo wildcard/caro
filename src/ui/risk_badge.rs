@@ -44,7 +44,7 @@ mod tests {
         while let Some(c) = chars.next() {
             if c == '\x1b' && chars.peek() == Some(&'[') {
                 chars.next(); // consume '['
-                while let Some(inner) = chars.next() {
+                for inner in chars.by_ref() {
                     if inner == 'm' {
                         break;
                     }
