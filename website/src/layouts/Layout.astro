@@ -11,6 +11,7 @@ import HolidayDebugPanel from '../components/HolidayDebugPanel.astro';
 import HumanityEventBanner from '../components/HumanityEventBanner.astro';
 import SEO from '../components/SEO.astro';
 import { isRtl, getAllLocales, type Locale } from '../i18n/config';
+import '../ui/tokens.css';
 
 interface Props {
   title: string;
@@ -186,41 +187,9 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
 </html>
 
 <style is:global>
-  :root {
-    --color-bg: #ffffff;
-    --color-bg-secondary: #f8f9fa;
-    --color-bg-tertiary: #fff8f0;
-    --color-text: #2c3e50;
-    --color-text-secondary: #7f8c8d;
-    --color-text-tertiary: #34495e;
-    --color-text-muted: #95a5a6;
-    --color-border: #f0f0f0;
-    --color-footer-bg: #2c3e50;
-    --color-footer-text: #ecf0f1;
-    --color-footer-text-muted: #7f8c8d;
-    --color-links-muted: #95a5a6;
-    /* Link colors - brand primary */
-    --color-link: #ff8c42;
-    --color-link-hover: #ff6b35;
-  }
-
-  .dark {
-    --color-bg: #1a1a1a;
-    --color-bg-secondary: #2d2d2d;
-    --color-bg-tertiary: #252525;
-    --color-text: #e0e0e0;
-    --color-text-secondary: #a0a0a0;
-    --color-text-tertiary: #c0c0c0;
-    --color-text-muted: #888888;
-    --color-border: #3a3a3a;
-    --color-footer-bg: #0f0f0f;
-    --color-footer-text: #e0e0e0;
-    --color-footer-text-muted: #888888;
-    --color-links-muted: #a0a0a0;
-    /* Lighter link colors for dark mode contrast */
-    --color-link: #ffa76c;
-    --color-link-hover: #ff8c42;
-  }
+  /* :root and .dark token blocks moved to src/ui/tokens.css (single source of
+     truth). Holiday-theme overlays remain below — they layer on top of the
+     base tokens and need to live alongside the holiday-class selectors. */
 
   /* ============================================
      CHRISTMAS THEME

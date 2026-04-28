@@ -1,17 +1,73 @@
 /**
  * Caro Design System - Design Tokens
  *
- * These tokens define the visual language of the Caro brand.
- * Import this file in components and Storybook preview.
+ * Single source of truth for visual language. The paper-and-ink palette
+ * (retro-console grey + retro-console beige + signal red + highlighter yellow)
+ * comes from the official Caro Brand Guideline. The previous orange gradient
+ * (#ff8c42 -> #ff6b35) is deprecated and replaced by flat signal red #ef3333.
+ *
+ * Imported by Layout.astro (and any component that needs tokens directly).
+ * Do NOT redefine these tokens elsewhere — that creates two-source drift.
  */
+
+/* ============================================
+   FIGTREE — body / UI typeface
+   Bundled locally under public/fonts/.
+   ============================================ */
+@font-face { font-family: 'Figtree'; font-weight: 300; font-style: normal; src: url('/fonts/Figtree-Light.ttf')        format('truetype'); font-display: swap; }
+@font-face { font-family: 'Figtree'; font-weight: 400; font-style: normal; src: url('/fonts/Figtree-Regular.ttf')      format('truetype'); font-display: swap; }
+@font-face { font-family: 'Figtree'; font-weight: 500; font-style: normal; src: url('/fonts/Figtree-Medium.ttf')       format('truetype'); font-display: swap; }
+@font-face { font-family: 'Figtree'; font-weight: 600; font-style: normal; src: url('/fonts/Figtree-SemiBold.ttf')     format('truetype'); font-display: swap; }
+@font-face { font-family: 'Figtree'; font-weight: 700; font-style: normal; src: url('/fonts/Figtree-Bold.ttf')         format('truetype'); font-display: swap; }
+@font-face { font-family: 'Figtree'; font-weight: 800; font-style: normal; src: url('/fonts/Figtree-ExtraBold.ttf')    format('truetype'); font-display: swap; }
+@font-face { font-family: 'Figtree'; font-weight: 900; font-style: normal; src: url('/fonts/Figtree-Black.ttf')        format('truetype'); font-display: swap; }
+@font-face { font-family: 'Figtree'; font-weight: 400; font-style: italic; src: url('/fonts/Figtree-Italic.ttf')       format('truetype'); font-display: swap; }
+@font-face { font-family: 'Figtree'; font-weight: 500; font-style: italic; src: url('/fonts/Figtree-MediumItalic.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'Figtree'; font-weight: 700; font-style: italic; src: url('/fonts/Figtree-BoldItalic.ttf')   format('truetype'); font-display: swap; }
+
+/* Azeret Mono — display / monospace face. Loaded from Google Fonts; the
+   system-font chain falls through gracefully if the CDN is unreachable.
+   See follow-up issue [brand] Bundle Azeret Mono locally for offline use. */
+@import url('https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;600;700;800&display=swap');
 
 :root {
   /* ============================================
-     BRAND COLORS
+     CARO BRAND PRIMITIVES — paper-and-ink palette
+     Source of truth: caro-design-system/project/colors_and_type.css.
      ============================================ */
-  --color-primary: #ff8c42;
-  --color-primary-dark: #ff6b35;
-  --color-primary-light: #ffa76c;
+  --caro-grey-950: #1a1a1a;
+  --caro-grey-900: #2b2b2b;
+  --caro-grey-800: #3a3a3a;
+  --caro-grey-700: #4f4f4f; /* PRIMARY — retro console grey */
+  --caro-grey-500: #7a7a7a;
+  --caro-grey-400: #a0a0a0; /* eyebrow / FOUNDER label grey */
+  --caro-grey-300: #c9c7c1;
+  --caro-grey-200: #d1cfc9; /* business-card back */
+  --caro-grey-100: #e7e4d5;
+
+  --caro-beige-50:  #faf8ec;
+  --caro-beige-100: #f4f1df; /* PRIMARY — retro console beige (paper) */
+  --caro-beige-200: #e9e4c8;
+  --caro-beige-300: #ddd6ab;
+
+  --caro-red-500: #ef3333;   /* SECONDARY — signal red, replaces orange gradient */
+  --caro-red-600: #e63636;
+  --caro-red-700: #c02020;
+
+  --caro-yellow-400: #fcfc62; /* SECONDARY — highlighter yellow */
+  --caro-yellow-500: #f0ed3b;
+
+  --caro-black: #000000;
+  --caro-white: #ffffff;
+
+  /* ============================================
+     BRAND COLORS — backwards-compatible token names
+     The orange-gradient names are kept so legacy components keep working,
+     but their hex values now resolve to the paper-and-ink brand.
+     ============================================ */
+  --color-primary: #ef3333;        /* was #ff8c42 — now signal red */
+  --color-primary-dark: #c02020;   /* was #ff6b35 */
+  --color-primary-light: #f56565;  /* was #ffa76c */
   --color-support: #ea4aaa;
   --color-support-dark: #d63d99;
   --color-success: #22c55e;
@@ -29,7 +85,7 @@
   --color-bg: #ffffff;
   --color-bg-secondary: #f8f9fa;
   --color-bg-tertiary: #fff8f0;
-  --color-bg-hover: rgba(255, 140, 66, 0.08);
+  --color-bg-hover: rgba(239, 51, 51, 0.08);
 
   /* ============================================
      TEXT COLORS
@@ -37,21 +93,65 @@
   --color-text: #2c3e50;
   --color-text-secondary: #7f8c8d;
   --color-text-tertiary: #34495e;
+  --color-text-muted: #95a5a6;
   --color-text-on-primary: #ffffff;
 
   /* ============================================
      BORDERS
      ============================================ */
   --color-border: #e0e0e0;
-  --color-border-hover: #ff8c42;
+  --color-border-hover: #ef3333;
 
   /* ============================================
-     LINKS
-     Use brand colors for links, with darker hover state
+     LINKS — brand red, never orange
      ============================================ */
-  --color-link: #ff8c42;
-  --color-link-hover: #ff6b35;
-  --color-link-visited: #ff8c42;
+  --color-link: #ef3333;
+  --color-link-hover: #c02020;
+  --color-link-visited: #ef3333;
+
+  /* ============================================
+     FOOTER (formerly defined inline in Layout.astro)
+     ============================================ */
+  --color-footer-bg: #2c3e50;
+  --color-footer-text: #ecf0f1;
+  --color-footer-text-muted: #7f8c8d;
+  --color-links-muted: #95a5a6;
+
+  /* ============================================
+     CARO SEMANTIC TOKENS — brand-aligned aliases for new components
+     Use these in NEW code; legacy --color-* aliases stay for the migration window.
+     ============================================ */
+  --bg:            var(--caro-beige-100);   /* paper background */
+  --bg-subtle:     var(--caro-beige-50);
+  --bg-raised:     var(--caro-white);       /* cards on paper */
+  --bg-inverse:    var(--caro-grey-700);    /* dark terminal panel */
+  --bg-stage:      var(--caro-grey-200);
+
+  --fg:            var(--caro-grey-700);
+  --fg-strong:     var(--caro-grey-900);
+  --fg-muted:      var(--caro-grey-500);
+  --fg-subtle:     var(--caro-grey-400);    /* eyebrow / meta labels */
+  --fg-inverse:    var(--caro-beige-100);
+
+  --accent:        var(--caro-red-500);
+  --accent-hover:  var(--caro-red-600);
+  --accent-press:  var(--caro-red-700);
+  --highlight:     var(--caro-yellow-400);
+
+  --border:        var(--caro-grey-300);
+  --border-strong: var(--caro-grey-700);
+
+  /* Status / command-risk levels (mirrored in the Rust CLI palette) */
+  --status-safe:     #3fa34d;
+  --status-warn:     var(--caro-yellow-400);
+  --status-danger:   var(--caro-red-500);
+  --status-critical: var(--caro-red-700);
+
+  /* Terminal-window semantic colors */
+  --term-bg:     var(--caro-grey-700);
+  --term-fg:     var(--caro-beige-100);
+  --term-prompt: var(--caro-yellow-400);
+  --term-dim:    var(--caro-grey-400);
 
   /* ============================================
      SPACING SCALE
@@ -65,11 +165,17 @@
   --space-3xl: 64px;
 
   /* ============================================
-     TYPOGRAPHY
+     TYPOGRAPHY — Figtree (body) + Azeret Mono (display/code)
      ============================================ */
-  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+  --font-family-base: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, sans-serif;
-  --font-family-code: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  --font-family-code: 'Azeret Mono', ui-monospace, SFMono-Regular, 'Monaco', 'Menlo',
+    'Ubuntu Mono', monospace;
+
+  /* New semantic font tokens used by Caro brand components */
+  --font-display: 'Azeret Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-body:    var(--font-family-base);
+  --font-mono:    var(--font-family-code);
 
   --font-size-xs: 11px;
   --font-size-sm: 13px;
@@ -88,8 +194,15 @@
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.75;
 
+  /* Brand uses WIDE tracking on caps labels (200-300 per mille) */
+  --track-tight:  -0.01em;
+  --track-normal:  0;
+  --track-wide:    0.1em;
+  --track-wider:   0.2em;
+  --track-widest:  0.3em;
+
   /* ============================================
-     BORDER RADIUS
+     BORDER RADIUS — brand stays square-ish
      ============================================ */
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -98,26 +211,31 @@
   --radius-full: 9999px;
 
   /* ============================================
-     SHADOWS
+     SHADOWS — paper-and-ink, understated
      ============================================ */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
   --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
-  --shadow-primary: 0 8px 20px rgba(255, 140, 66, 0.3);
+  --shadow-primary: 0 8px 20px rgba(239, 51, 51, 0.3);   /* was orange — now red */
   --shadow-support: 0 8px 20px rgba(234, 74, 170, 0.3);
+  --shadow-pixel:   4px 4px 0 var(--caro-grey-900);      /* chunky pixel drop */
 
   /* ============================================
-     TRANSITIONS
+     TRANSITIONS — snappy, never bouncy
      ============================================ */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.2s ease;
   --transition-slow: 0.3s ease;
 
+  --ease:      cubic-bezier(.2, .8, .2, 1);
+  --ease-step: steps(4, end);
+  --dur-fast:  120ms;
+  --dur-med:   220ms;
+  --dur-slow:  420ms;
+
   /* ============================================
      CONTROL HEIGHTS
-     Consistent heights for all interactive controls
-     (buttons, inputs, dropdowns, search bars)
      ============================================ */
   --control-height-sm: 36px;
   --control-height-md: 40px;
@@ -150,18 +268,16 @@
 
   /* ============================================
      DISTRO THEME DEFAULTS
-     These are overridden by the DistroPreferences component
-     based on the user's selected OS/distro
+     Overridden by DistroPreferences component per OS/distro.
      ============================================ */
-  --distro-accent: #ff8c42;
+  --distro-accent: #ef3333;
   --distro-secondary: #ea4aaa;
-  --distro-terminal-bg: #1e1e2e;
-  --distro-terminal-text: #cdd6f4;
+  --distro-terminal-bg: #4f4f4f;
+  --distro-terminal-text: #f4f1df;
 
   /* Muted variants */
   --color-surface: #ffffff;
   --color-surface-secondary: #f8f9fa;
-  --color-text-muted: #6b7280;
   --color-info-light: #e0f2fe;
 }
 
@@ -172,18 +288,24 @@
   --color-bg: #1a1a1a;
   --color-bg-secondary: #2d2d2d;
   --color-bg-tertiary: #252525;
-  --color-bg-hover: rgba(255, 140, 66, 0.12);
+  --color-bg-hover: rgba(239, 51, 51, 0.12);
 
   --color-text: #e0e0e0;
   --color-text-secondary: #a0a0a0;
   --color-text-tertiary: #c0c0c0;
+  --color-text-muted: #888888;
 
   --color-border: #3a3a3a;
 
-  /* Lighter link colors for dark mode contrast */
-  --color-link: #ffa76c;
-  --color-link-hover: #ff8c42;
-  --color-link-visited: #ffa76c;
+  /* Lighter brand tints for dark-mode contrast */
+  --color-link: #ff6464;
+  --color-link-hover: #ef3333;
+  --color-link-visited: #ff6464;
+
+  --color-footer-bg: #0f0f0f;
+  --color-footer-text: #e0e0e0;
+  --color-footer-text-muted: #888888;
+  --color-links-muted: #a0a0a0;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
@@ -197,7 +319,6 @@
   --color-surface-secondary-dark: #16161e;
   --color-border-dark: #3a3a4a;
   --color-text-dark: #f5f5f5;
-  --color-text-muted: #9ca3af;
   --color-text-muted-dark: #9ca3af;
 }
 
