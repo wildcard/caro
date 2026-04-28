@@ -291,7 +291,7 @@
       },
       "columns": {
         "product": {
-          "title": "Product",
+          "title": "उत्पाद",
           "features": "विशेषताएँ",
           "howItWorks": "यह कैसे काम करता है",
           "explore": "खोजें",
@@ -299,7 +299,7 @@
           "roadmap": "रोडमैप"
         },
         "compare": {
-          "title": "Compare",
+          "title": "तुलना",
           "overview": "अवलोकन",
           "warp": "vs Warp",
           "copilotCli": "vs GitHub Copilot CLI",
@@ -307,10 +307,10 @@
           "opencode": "vs OpenCode"
         },
         "resources": {
-          "title": "Resources",
+          "title": "संसाधन",
           "blog": "ब्लॉग",
           "faq": "FAQ",
-          "glossary": "शब्दकोश",
+          "glossary": "शब्दकोष",
           "github": "GitHub",
           "issues": "इश्यूज़",
           "contributing": "योगदान",
@@ -323,14 +323,14 @@
         }
       },
       "kyaro": {
-        "title": "Meet Kyaro!",
-        "description": "The real-life inspiration behind Caro."
+        "title": "Kyaro से मिलें!",
+        "description": "Caro के पीछे की वास्तविक प्रेरणा।"
       },
       "bottom": {
         "built": "🦀 Rust के साथ बनाया |",
         "brandName": "caro.sh",
         "heart": "🧡",
-        "inspiration": "Inspired by Portal's Caroline—loyalty transformed into digital companionship",
+        "inspiration": "Portal की Caroline से प्रेरित",
         "heritagePre": "इनकी स्थापित नींव पर गर्व से बनाया गया",
         "gnu": "GNU",
         "fsf": "FSF",
@@ -343,29 +343,29 @@
     },
     "game": {
       "title": "Caro के साथ खेलें",
-      "subtitle": "Test your shell command knowledge! Pick the safe commands, avoid the dangerous ones.",
+      "subtitle": "अपने शैल कमांड ज्ञान का परीक्षण करें!",
       "stats": {
         "level": "लेवल",
-        "score": "SCORE"
+        "score": "स्कोर"
       },
-      "header": "SAFE OR DANGER?",
+      "header": "सुरक्षित या खतरनाक?",
       "overlay": {
-        "title": "SAFE OR DANGER?",
-        "subtitle": "Can you identify which shell commands are safe to run?",
+        "title": "सुरक्षित या खतरनाक?",
+        "subtitle": "क्या आप पहचान सकते हैं कि कौन सी शैल कमांड सुरक्षित हैं?",
         "rules": {
-          "safe": "✓ Pick SAFE commands to score points",
-          "danger": "✗ Avoid DANGEROUS commands or lose a life",
-          "timer": "⏱ Answer before time runs out!"
+          "safe": "✓ पॉइंट्स के लिए सुरक्षित कमांड चुनें",
+          "danger": "✗ खतरनाक कमांड से बचें",
+          "timer": "⏱ समय समाप्त होने से पहले उत्तर दें!"
         },
-        "lives": "Lives:",
-        "startButton": "START GAME",
-        "playAgainButton": "PLAY AGAIN",
-        "highScore": "High Score:",
-        "leaderboardTitle": "🏆 TOP SCORES 🏆",
-        "gameOver": "GAME OVER",
-        "newHighScore": "🎉 NEW HIGH SCORE!",
+        "lives": "जान:",
+        "startButton": "खेल शुरू करें",
+        "playAgainButton": "फिर से खेलें",
+        "highScore": "उच्च स्कोर:",
+        "leaderboardTitle": "🏆 शीर्ष स्कोर 🏆",
+        "gameOver": "खेल समाप्त",
+        "newHighScore": "🎉 नया उच्च स्कोर!",
         "rank": "RANK #{{rank}}!",
-        "finalScore": "You reached Level {{level}} with {{score}} points!"
+        "finalScore": "आप स्तर {{level}} तक पहुँचे {{score}} अंकों के साथ!"
       },
       "streak": "🔥 स्ट्रीक:",
       "messages": {
@@ -399,9 +399,9 @@
     },
     "blog": {
       "title": "पैक से",
-      "subtitle": "Stories, updates, and insights about Caro",
-      "readMore": "Read full story →",
-      "viewAll": "View all blog posts →"
+      "subtitle": "Caro के बारे में कहानियां, अपडेट और अंतर्दृष्टि",
+      "readMore": "पूरी कहानी पढ़ें →",
+      "viewAll": "सभी ब्लॉग पोस्ट देखें →"
     },
     "announcement": {
       "renameBanner": {
@@ -409,33 +409,12 @@
         "title": "Caro की घोषणा!",
         "message": "हमने cmdai से caro में नाम बदल दिया है।",
         "linkText": "Read the announcement",
-        "dismissLabel": "Dismiss announcement",
-        "dismissTitle": "Dismiss"
+        "dismissLabel": "घोषणा बंद करें",
+        "dismissTitle": "बंद करें"
       }
     },
     "landing": {
-      "navigation": {
-        "brand": "Caro"
-      },
       "hero": {
-        "badge": "कॉम्पेनियन एजेंट",
-        "tagline": "आपका वफादार शैल साथी",
-        "subtitle": "Claude उपयोगकर्ताओं के लिए एक विशेष POSIX शैल कमांड एजेंट। सुरक्षा-प्रथम डिज़ाइन के साथ AI-जनरेटेड कमांड को सत्यापित करता है।",
-        "installLabel": "Claude Skill के रूप में उपलब्ध:",
-        "headline": {
-          "line1": "कभी गलती से",
-          "line2": "न चलाएं"
-        },
-        "cta": {
-          "getStarted": "शुरू करें",
-          "watchDemo": "डेमो देखें",
-          "primary": "Caro इंस्टॉल करें",
-          "secondary": "डेमो देखें"
-        },
-        "socialProof": {
-          "quote": "अंत में, एक AI सहायक जो प्रोडक्शन क्रैश नहीं करेगा",
-          "attribution": "— हर जगह की इंजीनियरिंग टीमें"
-        },
         "trustBadges": {
           "zeroTelemetry": "कोई टेलीमेट्री नहीं",
           "validation": "52+ सुरक्षा पैटर्न",
@@ -444,28 +423,18 @@
         }
       },
       "features": {
-        "title": "क्यों Caro?",
-        "subtitle": "सुरक्षा, सहानुभूति और विशेषज्ञता के लिए बनाया गया कंपेनियन एजेंट",
-        "alphaNotice": "हम अपनी कम्युनिटी के साथ सक्रिय रूप से निर्माण कर रहे हैं!",
-        "alphaLabel": "सॉफ्ट लॉन्च अल्फा",
-        "ctaText": " देखें कि Caro क्या ब्लॉक करता है और क्यों",
-        "ctaLink": "सुरक्षा पैटर्न देखें",
         "items": [
           {
-            "title": "फिर से प्रोडक्शन नष्ट न करें",
-            "description": "rm -rf /, फोर्क बम और 50+ अन्य करियर-समाप्त करने वाली कमांड्स को ब्लॉक करता है।"
+            "title": {}
           },
           {
-            "title": "आपका डेटा आपका रहता है",
-            "description": "शून्य टेलीमेट्री। शून्य क्लाउड API कॉल। एयर-गैप्ड नेटवर्क में चलाएं।"
+            "title": {}
           },
           {
-            "title": "कमांड जो वास्तव में काम करते हैं",
-            "description": "कमांड जो आपके Mac, Linux सर्वर और BSD बॉक्स पर काम करते हैं।"
+            "title": {}
           },
           {
-            "title": "पर्याप्त तेज़",
-            "description": "Apple Silicon पर 2 सेकंड से कम इन्फरेंस।"
+            "title": {}
           }
         ],
         "cards": {
@@ -473,13 +442,10 @@
             "title": "सुरक्षा संरक्षक"
           },
           "crossPlatform": {
-            "title": "क्रॉस-प्लेटफ़ॉर्म विशेषज्ञ"
+            "title": "क्रॉस-प्लेटफ़ॉर्म"
           },
           "platformAware": {
             "title": "प्लेटफ़ॉर्म-जागरूक"
-          },
-          "posixSpecialist": {
-            "title": "POSIX विशेषज्ञ"
           },
           "lightningFast": {
             "title": "बिजली की तरह तेज़"
@@ -489,161 +455,68 @@
           }
         }
       },
-      "story": {
-        "title": "Caro से मिलें",
-        "subtitle": "वफादारी और परिवर्तन की कहानी वाला एक साथी"
+      "competitors": {
+        "copilotCli": "GitHub Copilot CLI"
       },
-      "faq": {
-        "title": "सामान्य चिंताएँ",
-        "subtitle": "संदेहपूर्ण इंजीनियरों के असली सवाल"
+      "competition": {
+        "competitors": {
+          "opencode": "OpenCode"
+        }
+      },
+      "comparison": {
+        "summary": {
+          "privacy": {
+            "stat": "गोपनीयता"
+          },
+          "offline": {
+            "stat": "100%"
+          }
+        },
+        "table": {
+          "feature": "विशेषता"
+        },
+        "values": {
+          "planned": "योजनाबद्ध"
+        }
+      },
+      "story": {
+        "paragraphs": {
+          "highlight": "Portal 2 में, हमने सीखा कि GLaDOS कभी Aperture Science के संस्थापक की सचिव Caroline थी—जो सुविधा के अनंत संरक्षक में बदल गई।",
+          "platforms": "वह POSIX शैल कमांडों में विशेषज्ञ है और हर प्लेटफ़ॉर्म की बारीकियों को समझती है।"
+        }
       },
       "video": {
         "title": "Caro कैसे काम करता है",
         "subtitle": "अपने शैल साथी के रूप में Caro को एक्शन में देखें"
       },
       "game": {
-        "title": "Caro के साथ खेलें",
-        "subtitle": "अपने शैल कमांड ज्ञान का परीक्षण करें!",
         "stats": {
           "level": "लेवल",
           "score": "स्कोर"
         },
         "header": "सुरक्षित या खतरनाक?",
         "overlay": {
-          "title": "सुरक्षित या खतरनाक?",
-          "subtitle": "क्या आप पहचान सकते हैं कि कौन सी शैल कमांड सुरक्षित हैं?",
-          "startButton": "खेल शुरू करें",
-          "playAgainButton": "फिर से खेलें",
-          "highScore": "उच्च स्कोर:",
-          "gameOver": "खेल समाप्त"
-        },
-        "streak": "🔥 स्ट्रीक:"
+          "rules": {
+            "safe": "✓ पॉइंट्स के लिए सुरक्षित कमांड चुनें",
+            "danger": "✗ खतरनाक कमांड से बचें"
+          }
+        }
       },
       "blog": {
         "title": "पैक से"
       },
       "announcement": {
         "renameBanner": {
-          "title": "Caro की घोषणा!",
-          "message": "हमने cmdai से caro में नाम बदल दिया है।",
           "linkText": "घोषणा पढ़ें",
-          "dismissTitle": "खारिज करें"
+          "dismissLabel": "अस्वीकृत करें",
+          "dismissTitle": "अस्वीकृत"
         }
       },
       "footer": {
-        "brand": {
-          "tagline": "आपका वफादार शैल साथी",
-          "description": "सुरक्षा-प्रथम सत्यापन के साथ AI-संचालित POSIX शैल कमांड जनरेशन।"
-        },
-        "columns": {
-          "product": {
-            "title": "उत्पाद",
-            "features": "विशेषताएँ",
-            "howItWorks": "यह कैसे काम करता है",
-            "explore": "खोजें",
-            "download": "डाउनलोड",
-            "roadmap": "रोडमैप"
-          },
-          "compare": {
-            "title": "तुलना करें",
-            "overview": "अवलोकन",
-            "warp": "vs Warp",
-            "copilotCli": "vs GitHub Copilot CLI",
-            "kiro": "vs Kiro CLI",
-            "opencode": "vs OpenCode"
-          },
-          "resources": {
-            "title": "संसाधन",
-            "blog": "ब्लॉग",
-            "faq": "FAQ",
-            "glossary": "शब्दकोश",
-            "github": "GitHub",
-            "issues": "इश्यूज़",
-            "contributing": "योगदान",
-            "credits": "क्रेडिट"
-          },
-          "support": {
-            "title": "सहायता",
-            "sponsor": "♥ स्पॉन्सर",
-            "license": "AGPL-3.0 लाइसेंस"
-          }
-        },
-        "kyaro": {
-          "title": "Kyaro से मिलें!",
-          "description": "Caro के पीछे की असली प्रेरणा।"
-        },
         "bottom": {
-          "built": "🦀 Rust के साथ बनाया |",
-          "brandName": "caro.sh",
-          "heart": "🧡",
           "inspiration": "Portal की Caroline से प्रेरित",
-          "heritagePre": "पroudly built on the foundations laid by",
-          "gnu": "GNU",
-          "fsf": "FSF",
+          "heritagePre": "इनकी स्थापित नींव पर गर्व से बनाया गया",
           "freebsd": "FreeBSD"
-        }
-      },
-      "comparison": {
-        "title": "Caro की तुलना",
-        "subtitle": "DevOps इंजीनियरों और SRE के लिए बनाया गया",
-        "summary": {
-          "privacy": {
-            "stat": "गोपनीयता",
-            "label": "प्रथम डिज़ाइन*"
-          },
-          "safety": {
-            "stat": "52+",
-            "label": "सुरक्षा पैटर्न"
-          },
-          "offline": {
-            "stat": "100%",
-            "label": "ऑफ़लाइन सक्षम"
-          },
-          "speed": {
-            "stat": "Rust",
-            "label": "गति के लिए बनाया गया"
-          }
-        },
-        "competitors": {
-          "caro": "Caro",
-          "copilotCli": "GitHub Copilot CLI",
-          "warp": "Warp AI",
-          "kiro": "Kiro CLI",
-          "opencode": "OpenCode"
-        },
-        "table": {
-          "feature": "विशेषता"
-        },
-        "categories": {
-          "privacyData": {
-            "title": "गोपनीयता और डेटा"
-          },
-          "safetyControl": {
-            "title": "सुरक्षा और नियंत्रण"
-          },
-          "shellExpertise": {
-            "title": "शैल विशेषज्ञता"
-          },
-          "modelBackend": {
-            "title": "मॉडल और बैकएंड"
-          }
-        },
-        "cta": {
-          "text": "एक शैल साथी के लिए तैयार जो आपकी गोपनीयता का सम्मान करता है?",
-          "getStarted": "मुफ़्त में शुरू करें",
-          "fullComparison": "पूरी तुलना देखें"
-        },
-        "legend": {
-          "fullSupport": "पूर्ण समर्थन",
-          "partial": "आंशिक/कॉन्फ़िगर करने योग्य",
-          "notSupported": "समर्थित नहीं",
-          "planned": "योजनाबद्ध"
-        },
-        "values": {
-          "yes": "हाँ",
-          "no": "नहीं",
-          "partial": "आंशिक",
-          "planned": "योजनाबद्ध"
         }
       }
     }

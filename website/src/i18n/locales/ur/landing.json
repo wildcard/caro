@@ -15,23 +15,23 @@
       "cta": {
         "getStarted": "شروع کریں",
         "watchDemo": "Demo دیکھیں",
-        "primary": "Install Caro",
-        "secondary": "See Demo"
+        "primary": "Caro انسٹال کریں",
+        "secondary": "ڈیمو دیکھیں"
       },
       "headline": {
-        "line1": "Never run",
-        "line2": "by accident again",
+        "line1": "کبھی غلطی سے",
+        "line2": "مت چلائیں",
         "dangerCmd": "rm -rf /"
       },
       "socialProof": {
-        "quote": "Finally, an AI assistant that won't crash production",
-        "attribution": "— Engineering Teams Everywhere"
+        "quote": "آخرکار، ایک AI اسسٹنٹ جو پروڈکشن کو کریش نہیں کرے گا",
+        "attribution": "— ہر جگہ کی انجینئرنگ ٹیمیں"
       },
       "trustBadges": {
-        "zeroTelemetry": "Zero Telemetry",
-        "validation": "52+ Safety Patterns",
-        "local": "100% Local",
-        "openSource": "Open Source"
+        "zeroTelemetry": "کوئی ٹیلی میٹری نہیں",
+        "validation": "52+ حفاظتی پیٹرنز",
+        "local": "100% مقامی",
+        "openSource": "اوپن سورس"
       }
     },
     "features": {
@@ -286,88 +286,89 @@
     "download": {},
     "footer": {
       "brand": {
-        "tagline": "Your loyal shell companion",
-        "description": "AI-powered POSIX shell command generation with safety-first validation."
+        "tagline": "آپ کا وفادار شیل ساتھی",
+        "description": "سیفٹی فرسٹ ویلیڈیشن کے ساتھ AI پاورڈ POSIX شیل کمانڈ جنریشن۔"
       },
       "columns": {
         "product": {
-          "title": "Product",
-          "features": "Features",
-          "howItWorks": "How It Works",
-          "explore": "Explore",
-          "download": "Download",
-          "roadmap": "Roadmap"
+          "title": "پروڈکٹ",
+          "features": "خصوصیات",
+          "howItWorks": "یہ کیسے کام کرتا ہے",
+          "explore": "تلاش کریں",
+          "download": "ڈاؤن لوڈ",
+          "roadmap": "روڈ میپ"
         },
         "compare": {
-          "title": "Compare",
-          "overview": "Overview",
+          "title": "موازنہ",
+          "overview": "جائزہ",
           "warp": "vs Warp",
           "copilotCli": "vs GitHub Copilot CLI",
           "kiro": "vs Kiro CLI",
           "opencode": "vs OpenCode"
         },
         "resources": {
-          "title": "Resources",
-          "blog": "Blog",
+          "title": "وسائل",
+          "blog": "بلاگ",
           "faq": "FAQ",
-          "glossary": "Glossary",
+          "glossary": "لغت",
           "github": "GitHub",
-          "issues": "Issues",
-          "contributing": "Contributing",
-          "credits": "Credits"
+          "issues": "اِشوز",
+          "contributing": "حصہ ڈالیں",
+          "credits": "کریڈٹ"
         },
         "support": {
-          "title": "Support",
-          "sponsor": "♥ Sponsor",
-          "license": "AGPL-3.0 License"
+          "title": "سپورٹ",
+          "sponsor": "♥ اسپانسر",
+          "license": "AGPL-3.0 لائسنس"
         }
       },
       "kyaro": {
-        "title": "Meet Kyaro!",
-        "description": "The real-life inspiration behind Caro."
+        "title": "Kyaro سے ملیں!",
+        "description": "Caro کے پیچھے کی اصل تحریک۔",
+        "instagram": "Instagram @kyaroblackheart"
       },
       "bottom": {
-        "built": "Built with 🦀 Rust |",
+        "built": "🦀 Rust کے ساتھ بنایا |",
         "brandName": "caro.sh",
         "heart": "🧡",
-        "inspiration": "Inspired by Portal's Caroline—loyalty transformed into digital companionship",
-        "heritagePre": "Proudly built on the foundations laid by",
+        "inspiration": "Portal کی Caroline سے متاثر",
+        "heritagePre": "ان کی بنیاد پر فخر سے بنایا گیا",
         "gnu": "GNU",
         "fsf": "FSF",
         "freebsd": "FreeBSD"
       }
     },
     "video": {
-      "title": "How Caro Works",
-      "subtitle": "See Caro in action as your shell companion"
+      "title": "Caro کیسے کام کرتا ہے",
+      "subtitle": "Caro کو اپنے شیل ساتھی کے طور پر دیکھیں"
     },
     "game": {
-      "title": "Play with Caro",
-      "subtitle": "Test your shell command knowledge! Pick the safe commands, avoid the dangerous ones.",
+      "title": "Caro کے ساتھ کھیلیں",
+      "subtitle": "اپنے شیل کمانڈ علم کا ٹیسٹ کریں!",
       "stats": {
-        "level": "LEVEL",
-        "score": "SCORE"
+        "level": "لیول",
+        "score": "اسکور"
       },
-      "header": "SAFE OR DANGER?",
+      "header": "محفوظ یا خطرناک؟",
       "overlay": {
-        "title": "SAFE OR DANGER?",
-        "subtitle": "Can you identify which shell commands are safe to run?",
+        "title": "محفوظ یا خطرناک؟",
+        "subtitle": "کیا آپ پہچان سکتے ہیں کہ کون سی شیل کمانڈ محفوظ ہے؟",
         "rules": {
-          "safe": "✓ Pick SAFE commands to score points",
-          "danger": "✗ Avoid DANGEROUS commands or lose a life",
-          "timer": "⏱ Answer before time runs out!"
+          "safe": "✓ پوائنٹس کے لیے محفوظ کمانڈ چنیں",
+          "danger": "✗ خطرناک کمانڈ سے بچیں",
+          "timer": "⏱ وقت ختم ہونے سے پہلے جواب دیں!"
         },
-        "lives": "Lives:",
-        "startButton": "START GAME",
-        "playAgainButton": "PLAY AGAIN",
-        "highScore": "High Score:",
-        "leaderboardTitle": "🏆 TOP SCORES 🏆",
-        "gameOver": "GAME OVER",
-        "newHighScore": "🎉 NEW HIGH SCORE!",
+        "lives": "جانیں:",
+        "startButton": "شروع کریں",
+        "playAgainButton": "پھر سے کھیلیں",
+        "highScore": "اعلیٰ اسکور:",
+        "leaderboardTitle": "🏆 بہترین اسکورز 🏆",
+        "gameOver": "کھیل ختم",
+        "newHighScore": "🎉 نیا اعلیٰ اسکور!",
         "rank": "RANK #{{rank}}!",
         "finalScore": "You reached Level {{level}} with {{score}} points!"
       },
-      "streak": "🔥 Streak:",
+      "streak": "🔥 سٹریک:",
       "messages": {
         "correct": [
           "Great job! 🎉",
@@ -398,26 +399,27 @@
       }
     },
     "blog": {
-      "title": "From the Pack",
-      "subtitle": "Stories, updates, and insights about Caro",
-      "readMore": "Read full story →",
-      "viewAll": "View all blog posts →"
+      "title": "پیک سے",
+      "subtitle": "Caro کے بارے میں کہانیاں اور اپڈیٹس",
+      "readMore": "پوری کہانی پڑھیں →",
+      "viewAll": "تمام بلاگ پوسٹس دیکھیں →"
     },
     "announcement": {
       "renameBanner": {
         "emoji": "🎉",
-        "title": "Announcing Caro!",
-        "message": "We've renamed from cmdai to caro.",
-        "linkText": "Read the announcement",
-        "dismissLabel": "Dismiss announcement",
-        "dismissTitle": "Dismiss"
+        "title": "Caro کا اعلان!",
+        "message": "ہم نے cmdai سے caro میں نام تبدیل کر دیا ہے۔",
+        "linkText": "اعلان پڑھیں",
+        "dismissLabel": "اعلان مسترد",
+        "dismissTitle": "مسترد"
       }
+    },
+    "competition": {
+      "title": "Caro کا موازنہ"
     },
     "landing": {
       "hero": {
         "badge": "ساتھی ایجنٹ",
-        "tagline": "آپ کا وفادار شیل ساتھی",
-        "installLabel": "Claude Skill کے طور پر دستیاب:",
         "headline": {
           "line1": "کبھی غلطی سے",
           "line2": "مت چلائیں"
@@ -438,47 +440,61 @@
         }
       },
       "competition": {
-        "title": "Caro کا موازنہ"
-      },
-      "comparison": {
+        "summary": {
+          "privacy": {
+            "stat": "رازداری"
+          }
+        },
         "competitors": {
           "copilotCli": "GitHub Copilot CLI",
-          "kiro": "vs Kiro CLI",
-          "opencode": "vs OpenCode",
           "warp": "Warp AI",
-          "caro": "Caro"
+          "kiro": "Kiro CLI",
+          "opencode": "OpenCode"
+        }
+      },
+      "video": {
+        "title": "Caro کیسے کام کرتا ہے",
+        "subtitle": "Caro کو اپنے شیل ساتھی کے طور پر دیکھیں"
+      },
+      "game": {
+        "stats": {
+          "level": "لیول"
         },
-        "table": {
-          "feature": "فیچر"
-        },
-        "cta": {
-          "text": "ایک شیل ساتھی کے لیے تیار جو آپ کی رازداری کا احترام کرتا ہے؟",
-          "getStarted": "مفت میں شروع کریں",
-          "fullComparison": "مکمل موازنہ دیکھیں"
-        },
-        "legend": {
-          "fullSupport": "مکمل سپورٹ",
-          "partial": "جزوی/ترتیب دینے کے قابل",
-          "notSupported": "سپورٹ نہیں",
-          "planned": "منصوبہ بند"
-        },
-        "values": {
-          "yes": "ہاں",
-          "no": "نہیں",
-          "partial": "جزوی",
-          "planned": "منصوبہ بند"
+        "streak": "🔥 اسٹریک:"
+      },
+      "blog": {
+        "title": "پیک سے"
+      },
+      "announcement": {
+        "renameBanner": {
+          "title": "Caro کا اعلان!",
+          "message": "ہم نے cmdai سے caro میں نام تبدیل کر دیا ہے۔",
+          "linkText": "اعلان پڑھیں",
+          "dismissTitle": "مسترد"
         }
       },
       "footer": {
         "columns": {
+          "product": {
+            "features": "خصوصیات",
+            "download": "ڈاؤن لوڈ",
+            "roadmap": "روڈ میپ"
+          },
           "compare": {
-            "copilotCli": "vs GitHub Copilot CLI",
+            "copilotCli": "GitHub Copilot CLI",
             "kiro": "vs Kiro CLI",
             "opencode": "vs OpenCode"
+          },
+          "resources": {
+            "glossary": "شبد کوश",
+            "issues": "اِشوز",
+            "contributing": "حصہ ڈالیں",
+            "credits": "کریڈٹ"
+          },
+          "support": {
+            "title": "سپورٹ",
+            "sponsor": "♥ اسپانسر"
           }
-        },
-        "kyaro": {
-          "instagram": "Instagram @kyaroblackheart"
         }
       }
     }

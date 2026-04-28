@@ -8,29 +8,29 @@
       }
     },
     "hero": {
-      "badge": "Companion Agent",
+      "badge": "Agen Pendamping",
       "tagline": "Teman setia shell kamu",
       "subtitle": "Agent khusus perintah shell POSIX untuk pengguna Claude. Validasi perintah yang dihasilkan AI dengan desain yang mengutamakan keamanan, deteksi pola berbahaya, dan pastikan kepatuhan POSIX.",
       "installLabel": "Tersedia sebagai Claude Skill:",
       "cta": {
         "getStarted": "Mulai Sekarang",
         "watchDemo": "Lihat Demo",
-        "primary": "Install Caro",
-        "secondary": "See Demo"
+        "primary": "Instal Caro",
+        "secondary": "Lihat Demo"
       },
       "headline": {
-        "line1": "Never run",
-        "line2": "by accident again",
+        "line1": "Jangan pernah jalankan",
+        "line2": "secara tidak sengaja",
         "dangerCmd": "rm -rf /"
       },
       "socialProof": {
-        "quote": "Finally, an AI assistant that won't crash production",
-        "attribution": "— Engineering Teams Everywhere"
+        "quote": "Akhirnya, AI assistant yang tidak akan mengcrash production",
+        "attribution": "— Tim Engineering di Mana-Mana"
       },
       "trustBadges": {
-        "zeroTelemetry": "Zero Telemetry",
-        "validation": "52+ Safety Patterns",
-        "local": "100% Local",
+        "zeroTelemetry": "Tanpa Telemetri",
+        "validation": "52+ Pola Keamanan",
+        "local": "100% Lokal",
         "openSource": "Open Source"
       }
     },
@@ -294,24 +294,24 @@
         "level": "LEVEL",
         "score": "SKOR"
       },
-      "header": "AMAN ATAU BAHAYA?",
+      "header": "AMAN ATAU BERBAHAYA?",
       "overlay": {
-        "title": "AMAN ATAU BAHAYA?",
-        "subtitle": "Bisa bedain perintah shell mana yang aman dijalanin?",
+        "title": "AMAN ATAU BERBAHAYA?",
+        "subtitle": "Bisa identifikasi command shell yang aman?",
         "rules": {
-          "safe": "✓ Pilih perintah AMAN untuk dapet poin",
-          "danger": "✗ Hindari perintah BERBAHAYA atau kehilangan nyawa",
+          "safe": "✓ Pilih command AMAN untuk poin",
+          "danger": "✗ Hindari command BERBAHAYA atau kehilangan nyawa",
           "timer": "⏱ Jawab sebelum waktu habis!"
         },
         "lives": "Nyawa:",
-        "startButton": "MULAI GAME",
+        "startButton": "MULAI",
         "playAgainButton": "MAIN LAGI",
         "highScore": "Skor Tertinggi:",
-        "leaderboardTitle": "🏆 SKOR TERATAS 🏆",
-        "gameOver": "GAME OVER",
+        "leaderboardTitle": "🏆 SKOR TERTINGGI 🏆",
+        "gameOver": "PERMAINAN SELESAI",
         "newHighScore": "🎉 SKOR TERTINGGI BARU!",
         "rank": "PERINGKAT #{{rank}}!",
-        "finalScore": "Kamu sampai Level {{level}} dengan {{score}} poin!"
+        "finalScore": "Anda mencapai Level {{level}} dengan {{score}} poin!"
       },
       "streak": "🔥 Streak:",
       "messages": {
@@ -344,17 +344,17 @@
       }
     },
     "blog": {
-      "title": "From the Pack",
+      "title": "Dari Pack",
       "subtitle": "Cerita, update, dan insight tentang Caro",
       "readMore": "Baca cerita lengkap →",
-      "viewAll": "Lihat semua blog post →"
+      "viewAll": "Lihat semua posting blog →"
     },
     "announcement": {
       "renameBanner": {
         "emoji": "🎉",
         "title": "Mengumumkan Caro!",
-        "message": "Kami ganti nama dari cmdai jadi caro.",
-        "linkText": "Baca pengumumannya",
+        "message": "Kami telah mengganti nama dari cmdai menjadi caro.",
+        "linkText": "Baca pengumuman",
         "dismissLabel": "Tutup pengumuman",
         "dismissTitle": "Tutup"
       }
@@ -383,7 +383,7 @@
           "opencode": "vs OpenCode"
         },
         "resources": {
-          "title": "Sumber Daya",
+          "title": "Resources",
           "blog": "Blog",
           "faq": "FAQ",
           "glossary": "Glosarium",
@@ -399,88 +399,156 @@
         }
       },
       "kyaro": {
-        "title": "Kenalan dengan Kyaro!",
-        "description": "Inspirasi kehidupan nyata di balik Caro."
+        "title": "Temui Kyaro!",
+        "description": "Inspirasi nyata di balik Caro.",
+        "instagram": "Instagram @kyaroblackheart"
       },
       "bottom": {
         "built": "Dibangun dengan 🦀 Rust |",
         "brandName": "caro.sh",
         "heart": "🧡",
-        "inspiration": "Terinspirasi dari Caroline di Portal—loyalitas yang ditransformasi jadi persahabatan digital",
+        "inspiration": "Terinspirasi oleh Caroline dari Portal",
         "heritagePre": "Dengan bangga dibangun di atas fondasi yang diletakkan oleh",
         "gnu": "GNU",
         "fsf": "FSF",
         "freebsd": "FreeBSD"
       }
     },
+    "competition": {
+      "title": "Perbandingan Caro",
+      "competitors": {
+        "copilotCli": "GitHub Copilot CLI",
+        "warp": "Warp AI",
+        "kiro": "vs Kiro CLI",
+        "opencode": "vs OpenCode"
+      },
+      "categories": {
+        "modelBackend": {
+          "title": "Model & Backend"
+        }
+      }
+    },
     "landing": {
       "hero": {
-        "badge": "Agen Pendamping",
-        "tagline": "Pendamping shell setia Anda",
-        "installLabel": "Tersedia sebagai Claude Skill:",
-        "headline": {
-          "line1": "Jangan pernah jalankan",
-          "line2": "secara tidak sengaja"
-        },
-        "socialProof": {
-          "quote": "Akhirnya, AI assistant yang tidak akan mengcrash production",
-          "attribution": "— Tim Engineering di Mana-Mana"
-        },
         "trustBadges": {
           "zeroTelemetry": "Tanpa Telemetri",
           "validation": "52+ Pola Keamanan",
-          "local": "100% Lokal",
           "openSource": "Open Source"
-        },
-        "cta": {
-          "primary": "Instal Caro",
-          "secondary": "Lihat Demo"
+        }
+      },
+      "features": {
+        "items": [
+          {
+            "title": {}
+          },
+          {
+            "title": {}
+          },
+          {
+            "title": {}
+          },
+          {
+            "title": {}
+          }
+        ],
+        "cards": {
+          "safetyGuardian": {
+            "title": "Penjaga Keamanan"
+          },
+          "crossPlatform": {
+            "title": "Ahli Cross-Platform"
+          },
+          "platformAware": {
+            "title": "Sadar Platform"
+          },
+          "lightningFast": {
+            "title": "Sangat Cepat"
+          },
+          "claudeCompanion": {
+            "title": "Pendamping Claude"
+          }
         }
       },
       "competition": {
-        "title": "Perbandingan Caro"
-      },
-      "comparison": {
         "competitors": {
-          "copilotCli": "GitHub Copilot CLI",
-          "kiro": "vs Kiro CLI",
-          "opencode": "vs OpenCode",
-          "warp": "Warp AI",
-          "caro": "Caro"
+          "opencode": "OpenCode"
+        }
+      },
+      "video": {
+        "title": "Bagaimana Caro Bekerja",
+        "subtitle": "Lihat Caro beraksi sebagai pendamping shell Anda"
+      },
+      "game": {
+        "stats": {
+          "level": "LEVEL",
+          "score": "SKOR"
         },
-        "table": {
-          "feature": "Fitur"
-        },
-        "cta": {
-          "text": "Siap untuk pendamping shell yang menghormati privasi Anda?",
-          "getStarted": "Mulai Gratis",
-          "fullComparison": "Lihat Perbandingan Lengkap"
-        },
-        "legend": {
-          "fullSupport": "Dukungan penuh",
-          "partial": "Parsial/Dapat dikonfigurasi",
-          "notSupported": "Tidak didukung",
-          "planned": "Direncanakan"
-        },
-        "values": {
-          "yes": "Ya",
-          "no": "Tidak",
-          "partial": "Parsial",
-          "planned": "Direncanakan"
+        "streak": "🔥 Streak:"
+      },
+      "blog": {
+        "title": "Dari Pack",
+        "subtitle": "Cerita, update, dan insight tentang Caro",
+        "readMore": "Baca cerita lengkap →",
+        "viewAll": "Lihat semua posting blog →"
+      },
+      "announcement": {
+        "renameBanner": {
+          "title": "Mengumumkan Caro!",
+          "message": "Kami telah mengganti nama dari cmdai menjadi caro.",
+          "linkText": "Baca pengumuman",
+          "dismissLabel": "Abaikan pengumuman",
+          "dismissTitle": "Abaikan"
         }
       },
       "footer": {
         "columns": {
+          "product": {
+            "features": "Fitur",
+            "howItWorks": "Cara Kerja",
+            "explore": "Jelajahi",
+            "download": "Download",
+            "roadmap": "Roadmap"
+          },
           "compare": {
-            "copilotCli": "vs GitHub Copilot CLI",
+            "overview": "Ikhtisar",
+            "warp": "vs Warp",
+            "copilotCli": "GitHub Copilot CLI",
             "kiro": "vs Kiro CLI",
             "opencode": "vs OpenCode"
+          },
+          "resources": {
+            "glossary": "Glosarium",
+            "issues": "Issues",
+            "contributing": "Kontribusi",
+            "credits": "Kredit"
+          },
+          "support": {
+            "title": "Dukungan",
+            "sponsor": "♥ Sponsor",
+            "license": "Lisensi AGPL-3.0"
           }
         },
         "kyaro": {
-          "instagram": "Instagram @kyaroblackheart"
+          "title": "Temui Kyaro!",
+          "description": "Inspirasi nyata di balik Caro."
+        },
+        "bottom": {
+          "built": "Dibangun dengan 🦀 Rust |",
+          "heart": "🧡",
+          "inspiration": "Terinspirasi oleh Caroline dari Portal",
+          "heritagePre": "Dengan bangga dibangun di atas fondasi yang diletakkan oleh",
+          "gnu": "GNU",
+          "fsf": "FSF",
+          "freebsd": "FreeBSD"
         }
       }
+    },
+    "competitors": {
+      "copilotCli": "GitHub Copilot CLI",
+      "warp": "Warp AI",
+      "kiro": "Kiro CLI",
+      "opencode": "OpenCode",
+      "caro": "Caro"
     }
   }
 }
