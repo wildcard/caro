@@ -412,6 +412,140 @@
         "fsf": "FSF",
         "freebsd": "FreeBSD"
       }
+    },
+    "landing": {
+      "hero": {
+        "badge": "Kasamang Ahente",
+        "tagline": "Ang iyong tapat na shell na kasama",
+        "installLabel": "Available bilang Claude Skill:",
+        "headline": {
+          "line1": "Huwag patakbuhin",
+          "line2": "nang aksidente ulit"
+        },
+        "socialProof": {
+          "quote": "Sa wakas, isang AI assistant na hindi magka-crash ng production",
+          "attribution": "— Mga Engineering Team Saanman"
+        },
+        "trustBadges": {
+          "zeroTelemetry": "Walang Telemetry",
+          "validation": "52+ Mga Pattern ng Kaligtasan",
+          "local": "100% Lokal",
+          "openSource": "Open Source"
+        },
+        "cta": {
+          "primary": "I-install ang Caro",
+          "secondary": "Tignan ang Demo"
+        }
+      },
+      "features": {
+        "title": "Bakit Caro?",
+        "alphaLabel": "Soft Launch Alpha",
+        "alphaNotice": "Aktibo kaming bumubuo kasama ang aming komunidad. Sumali sa amin!",
+        "ctaText": "Tignan kung ano ang binablock ng Caro at bakit",
+        "ctaLink": "Tignan ang mga safety pattern",
+        "items[0]": {
+          "title": "Huwag na Muling I-nuke ang Production"
+        },
+        "items[1]": {
+          "title": "Ang Iyong Data ay Nanatiling Sa Iyo"
+        },
+        "items[2]": {
+          "title": "Mga Command na Talagang Gumagana"
+        },
+        "items[3]": {
+          "title": "Mabilis nang Hindi Makakasagabal sa Daloy"
+        }
+      },
+      "story": {
+        "title": "Kilalanin si Caro",
+        "subtitle": "Isang kasama na may kwento ng katapatan at pagbabago"
+      },
+      "faq": {
+        "title": "Karaniwang mga Alalahanin",
+        "subtitle": "Mga tunay na tanong mula sa mga nagdududang engineer"
+      },
+      "video": {
+        "title": "Paano Gumagana ang Caro",
+        "subtitle": "Tignan ang Caro habang gumagana bilang iyong kasama"
+      },
+      "game": {
+        "title": "Maglaro kasama si Caro",
+        "subtitle": "Subukan ang iyong kaalaman sa shell command!"
+      },
+      "comparison": {
+        "title": "Paano Ihahambing ang Caro",
+        "subtitle": "Para sa mga DevOps engineer at SRE",
+        "competitors": {
+          "copilotCli": "GitHub Copilot CLI",
+          "kiro": "vs Kiro CLI",
+          "opencode": "vs OpenCode",
+          "warp": "Warp AI",
+          "caro": "Caro"
+        },
+        "table": {
+          "feature": "Feature"
+        },
+        "cta": {
+          "text": "Handa ka na ba sa isang shell na kasama na iggalang ang iyong privacy?",
+          "getStarted": "Magsimula nang Libre",
+          "fullComparison": "Tignan ang Buong Paghahambing"
+        },
+        "legend": {
+          "fullSupport": "Buong suporta",
+          "partial": "Bahagya/Maaaring i-configure",
+          "notSupported": "Hindi suportado",
+          "planned": "Planado"
+        },
+        "values": {
+          "yes": "Oo",
+          "no": "Hindi",
+          "partial": "Bahagya",
+          "planned": "Planado"
+        }
+      },
+      "footer": {
+        "brand": {
+          "tagline": "Ang iyong tapat na shell na kasama",
+          "description": "AI-powered na POSIX shell command generation na may safety-first validation."
+        },
+        "columns": {
+          "product": {
+            "title": "Produkto",
+            "features": "Mga Feature",
+            "howItWorks": "Paano Gumagana",
+            "explore": "Galugarin",
+            "download": "Download",
+            "roadmap": "Roadmap"
+          },
+          "compare": {
+            "title": "Ihambing",
+            "overview": "Pangkalahatan"
+          },
+          "resources": {
+            "title": "Mga Resource",
+            "blog": "Blog",
+            "faq": "FAQ",
+            "glossary": "Glossary",
+            "github": "GitHub",
+            "issues": "Issues",
+            "contributing": "Pag-ambag",
+            "credits": "Mga Kredito"
+          },
+          "support": {
+            "title": "Suporta",
+            "sponsor": "♥ Sponsor",
+            "license": "AGPL-3.0 License"
+          }
+        },
+        "kyaro": {
+          "title": "Kilalanin si Kyaro!",
+          "description": "Ang totoong inspirasyon sa likod ng Caro."
+        },
+        "bottom": {
+          "inspiration": "Inspirado ni Caroline mula sa Portal",
+          "heritagePre": "Proudly built on the foundations laid by"
+        }
+      }
     }
   }
 }

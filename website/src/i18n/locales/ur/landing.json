@@ -412,6 +412,75 @@
         "dismissLabel": "Dismiss announcement",
         "dismissTitle": "Dismiss"
       }
+    },
+    "landing": {
+      "hero": {
+        "badge": "ساتھی ایجنٹ",
+        "tagline": "آپ کا وفادار شیل ساتھی",
+        "installLabel": "Claude Skill کے طور پر دستیاب:",
+        "headline": {
+          "line1": "کبھی غلطی سے",
+          "line2": "مت چلائیں"
+        },
+        "socialProof": {
+          "quote": "آخرکار، ایک AI اسسٹنٹ جو پروڈکشن کو کریش نہیں کرے گا",
+          "attribution": "— ہر جگہ کی انجینئرنگ ٹیمیں"
+        },
+        "trustBadges": {
+          "zeroTelemetry": "کوئی ٹیلی میٹری نہیں",
+          "validation": "52+ حفاظتی پیٹرنز",
+          "local": "100% مقامی",
+          "openSource": "اوپن سورس"
+        },
+        "cta": {
+          "primary": "Caro انسٹال کریں",
+          "secondary": "ڈیمو دیکھیں"
+        }
+      },
+      "competition": {
+        "title": "Caro کا موازنہ"
+      },
+      "comparison": {
+        "competitors": {
+          "copilotCli": "GitHub Copilot CLI",
+          "kiro": "vs Kiro CLI",
+          "opencode": "vs OpenCode",
+          "warp": "Warp AI",
+          "caro": "Caro"
+        },
+        "table": {
+          "feature": "فیچر"
+        },
+        "cta": {
+          "text": "ایک شیل ساتھی کے لیے تیار جو آپ کی رازداری کا احترام کرتا ہے؟",
+          "getStarted": "مفت میں شروع کریں",
+          "fullComparison": "مکمل موازنہ دیکھیں"
+        },
+        "legend": {
+          "fullSupport": "مکمل سپورٹ",
+          "partial": "جزوی/ترتیب دینے کے قابل",
+          "notSupported": "سپورٹ نہیں",
+          "planned": "منصوبہ بند"
+        },
+        "values": {
+          "yes": "ہاں",
+          "no": "نہیں",
+          "partial": "جزوی",
+          "planned": "منصوبہ بند"
+        }
+      },
+      "footer": {
+        "columns": {
+          "compare": {
+            "copilotCli": "vs GitHub Copilot CLI",
+            "kiro": "vs Kiro CLI",
+            "opencode": "vs OpenCode"
+          }
+        },
+        "kyaro": {
+          "instagram": "Instagram @kyaroblackheart"
+        }
+      }
     }
   }
 }

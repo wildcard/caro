@@ -412,6 +412,75 @@
         "fsf": "FSF",
         "freebsd": "FreeBSD"
       }
+    },
+    "landing": {
+      "hero": {
+        "badge": "Agen Pendamping",
+        "tagline": "Pendamping shell setia Anda",
+        "installLabel": "Tersedia sebagai Claude Skill:",
+        "headline": {
+          "line1": "Jangan pernah jalankan",
+          "line2": "secara tidak sengaja"
+        },
+        "socialProof": {
+          "quote": "Akhirnya, AI assistant yang tidak akan mengcrash production",
+          "attribution": "— Tim Engineering di Mana-Mana"
+        },
+        "trustBadges": {
+          "zeroTelemetry": "Tanpa Telemetri",
+          "validation": "52+ Pola Keamanan",
+          "local": "100% Lokal",
+          "openSource": "Open Source"
+        },
+        "cta": {
+          "primary": "Instal Caro",
+          "secondary": "Lihat Demo"
+        }
+      },
+      "competition": {
+        "title": "Perbandingan Caro"
+      },
+      "comparison": {
+        "competitors": {
+          "copilotCli": "GitHub Copilot CLI",
+          "kiro": "vs Kiro CLI",
+          "opencode": "vs OpenCode",
+          "warp": "Warp AI",
+          "caro": "Caro"
+        },
+        "table": {
+          "feature": "Fitur"
+        },
+        "cta": {
+          "text": "Siap untuk pendamping shell yang menghormati privasi Anda?",
+          "getStarted": "Mulai Gratis",
+          "fullComparison": "Lihat Perbandingan Lengkap"
+        },
+        "legend": {
+          "fullSupport": "Dukungan penuh",
+          "partial": "Parsial/Dapat dikonfigurasi",
+          "notSupported": "Tidak didukung",
+          "planned": "Direncanakan"
+        },
+        "values": {
+          "yes": "Ya",
+          "no": "Tidak",
+          "partial": "Parsial",
+          "planned": "Direncanakan"
+        }
+      },
+      "footer": {
+        "columns": {
+          "compare": {
+            "copilotCli": "vs GitHub Copilot CLI",
+            "kiro": "vs Kiro CLI",
+            "opencode": "vs OpenCode"
+          }
+        },
+        "kyaro": {
+          "instagram": "Instagram @kyaroblackheart"
+        }
+      }
     }
   }
 }
