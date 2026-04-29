@@ -260,7 +260,7 @@
   }
 
   .persona-card.accelerator::before {
-    background: linear-gradient(90deg, #c02020, #ef3333);
+    background: linear-gradient(90deg, var(--accent-press), var(--accent));
   }
 
   .persona-card.guardian::before {
@@ -281,7 +281,7 @@
   }
 
   .persona-card.is-expanded {
-    border-color: #c02020;
+    border-color: var(--accent-press);
   }
 
   .persona-card.is-expanded::before {
@@ -364,7 +364,7 @@
     content: '✓';
     position: absolute;
     left: 0;
-    color: #c02020;
+    color: var(--accent-press);
     font-weight: bold;
   }
 
@@ -430,14 +430,14 @@
 
   .use-case code.blocked {
     background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    color: var(--accent);
     text-decoration: line-through;
   }
 
   .blocked-badge {
     font-size: 0.6875rem;
     font-weight: 700;
-    color: #ef4444;
+    color: var(--accent);
     background: rgba(239, 68, 68, 0.1);
     padding: 4px 8px;
     border-radius: 4px;
@@ -493,9 +493,9 @@
     margin-top: 20px;
     font-size: 0.875rem;
     font-weight: 600;
-    color: #c02020;
+    color: var(--accent-press);
     background: transparent;
-    border: 1px solid #c02020;
+    border: 1px solid var(--accent-press);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -506,7 +506,7 @@
   }
 
   .persona-cta[aria-expanded="true"] {
-    background: #c02020;
+    background: var(--accent-press);
     color: #ffffff;
   }
 

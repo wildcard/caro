@@ -149,7 +149,7 @@ const { lang = 'en' } = Astro.props;
 
   .danger-label {
     background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
+    color: var(--accent);
     border: 1px solid rgba(239, 68, 68, 0.3);
   }
 
@@ -214,7 +214,7 @@ const { lang = 'en' } = Astro.props;
   }
 
   .terminal-caro {
-    color: #ef3333;
+    color: var(--accent);
     font-weight: 600;
   }
 
@@ -275,7 +275,7 @@ const { lang = 'en' } = Astro.props;
 
   .blocked {
     background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    color: var(--accent);
     padding: 8px 16px;
     border-radius: 6px;
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;

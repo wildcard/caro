@@ -64,7 +64,7 @@
     display: inline-block;
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
     border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #ef4444;
+    color: var(--accent);
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 14px;
@@ -83,7 +83,7 @@
   }
 
   .highlight {
-    background: linear-gradient(135deg, #ef3333 0%, #c02020 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-press) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -121,7 +121,7 @@
 
   .incident-tool {
     font-weight: 700;
-    color: #ef4444;
+    color: var(--accent);
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -158,7 +158,7 @@
   }
 
   .cta-button.primary {
-    background: linear-gradient(135deg, #ef3333 0%, #c02020 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-press) 100%);
     color: white;
   }
 
@@ -169,8 +169,8 @@
 
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid #ef3333;
-    color: #ef3333;
+    border: 2px solid var(--accent);
+    color: var(--accent);
   }
 
   .cta-button.secondary:hover {

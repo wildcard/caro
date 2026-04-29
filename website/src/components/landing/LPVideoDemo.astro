@@ -39,8 +39,8 @@ const hasVideo = !!videoUrl;
           <div class="placeholder-content">
             <div class="play-button">
               <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                <circle cx="24" cy="24" r="24" fill="#c02020" fill-opacity="0.2"/>
-                <circle cx="24" cy="24" r="20" fill="#c02020"/>
+                <circle cx="24" cy="24" r="24" fill="var(--accent-press)" fill-opacity="0.2"/>
+                <circle cx="24" cy="24" r="20" fill="var(--accent-press)"/>
                 <path d="M20 16L32 24L20 32V16Z" fill="white"/>
               </svg>
             </div>
@@ -99,7 +99,7 @@ const hasVideo = !!videoUrl;
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #c02020;
+    color: var(--accent-press);
     margin-bottom: 16px;
     padding: 8px 16px;
     background: rgba(192, 32, 32, 0.1);
@@ -191,7 +191,7 @@ const hasVideo = !!videoUrl;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #c02020;
+    background: var(--accent-press);
     color: #ffffff;
     font-size: 0.75rem;
     font-weight: 700;
@@ -214,7 +214,7 @@ const hasVideo = !!videoUrl;
   }
 
   .step-arrow {
-    color: #c02020;
+    color: var(--accent-press);
     font-size: 1.25rem;
     font-weight: 600;
   }

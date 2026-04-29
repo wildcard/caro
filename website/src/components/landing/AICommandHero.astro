@@ -64,7 +64,7 @@
     display: inline-block;
     background: linear-gradient(135deg, rgba(239, 51, 51, 0.15) 0%, rgba(192, 32, 32, 0.1) 100%);
     border: 1px solid rgba(239, 51, 51, 0.3);
-    color: #ef3333;
+    color: var(--accent);
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 14px;
@@ -83,7 +83,7 @@
   }
 
   .danger-cmd {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-press) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -120,7 +120,7 @@
 
   .incident-text code {
     background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
+    color: var(--accent);
     padding: 2px 8px;
     border-radius: 4px;
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
@@ -132,7 +132,7 @@
   }
 
   .incident-link a {
-    color: #ef4444;
+    color: var(--accent);
     text-decoration: none;
     font-weight: 500;
   }
@@ -144,7 +144,7 @@
   .social-proof {
     background: var(--color-bg);
     border: 1px solid var(--color-border);
-    border-left: 4px solid #ef3333;
+    border-left: 4px solid var(--accent);
     padding: 24px 32px;
     border-radius: 8px;
     margin-bottom: 40px;
@@ -185,7 +185,7 @@
   }
 
   .cta-button.primary {
-    background: linear-gradient(135deg, #ef3333 0%, #c02020 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-press) 100%);
     color: white;
   }
 
@@ -196,8 +196,8 @@
 
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid #ef3333;
-    color: #ef3333;
+    border: 2px solid var(--accent);
+    color: var(--accent);
   }
 
   .cta-button.secondary:hover {
@@ -234,7 +234,7 @@
   }
 
   .badge-link:hover {
-    color: #ef3333;
+    color: var(--accent);
   }
 
   .privacy-link {
@@ -245,7 +245,7 @@
   }
 
   .privacy-link:hover {
-    color: #ef3333;
+    color: var(--accent);
   }
 
   @media (max-width: 768px) {

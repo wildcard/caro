@@ -171,7 +171,7 @@
 
   .critical-label {
     background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(185, 28, 28, 0.15) 100%);
-    color: #dc2626;
+    color: var(--accent-press);
     border: 1px solid rgba(220, 38, 38, 0.4);
     animation: pulse-critical 2s ease-in-out infinite;
   }
@@ -183,7 +183,7 @@
 
   .danger-label {
     background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
+    color: var(--accent);
     border: 1px solid rgba(239, 68, 68, 0.3);
   }
 
@@ -252,7 +252,7 @@
   }
 
   .terminal-caro {
-    color: #ef3333;
+    color: var(--accent);
     font-weight: 600;
   }
 
@@ -265,7 +265,7 @@
   }
 
   .terminal-critical {
-    color: #dc2626;
+    color: var(--accent-press);
     font-weight: 600;
   }
 
@@ -279,7 +279,7 @@
     padding: 8px 12px;
     border-radius: 4px;
     margin: 12px 0;
-    border-left: 3px solid #dc2626;
+    border-left: 3px solid var(--accent-press);
   }
 
   .terminal-dim {
@@ -326,7 +326,7 @@
 
   .blocked {
     background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    color: var(--accent);
     padding: 8px 16px;
     border-radius: 6px;
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;

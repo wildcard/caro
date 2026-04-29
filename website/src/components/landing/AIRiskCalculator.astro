@@ -143,7 +143,7 @@
     -webkit-appearance: none;
     width: 24px;
     height: 24px;
-    background: linear-gradient(135deg, #ef3333 0%, #c02020 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-press) 100%);
     border-radius: 50%;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(239, 51, 51, 0.3);
@@ -153,7 +153,7 @@
     font-family: 'SF Mono', 'Monaco', monospace;
     font-size: 18px;
     font-weight: 700;
-    color: #ef3333;
+    color: var(--accent);
     min-width: 80px;
     text-align: right;
   }
@@ -201,7 +201,7 @@
   }
 
   .result-item.danger .result-value {
-    color: #ef4444;
+    color: var(--accent);
   }
 
   .result-operator {
@@ -242,7 +242,7 @@
   }
 
   .summary-header.bad {
-    color: #ef4444;
+    color: var(--accent);
   }
 
   .summary-header.good {
@@ -262,7 +262,7 @@
   }
 
   .without-caro .stat-number {
-    color: #ef4444;
+    color: var(--accent);
   }
 
   .with-caro .stat-number {
@@ -282,7 +282,7 @@
 
   .summary-note code {
     background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
+    color: var(--accent);
     padding: 2px 6px;
     border-radius: 4px;
     font-family: 'SF Mono', 'Monaco', monospace;
@@ -306,7 +306,7 @@
   .cta-button {
     display: inline-block;
     padding: 14px 36px;
-    background: linear-gradient(135deg, #ef3333 0%, #c02020 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-press) 100%);
     color: white;
     border-radius: 8px;
     font-size: 16px;

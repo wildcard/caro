@@ -61,7 +61,7 @@ const { lang = 'en' } = Astro.props;
   .nav-brand {
     font-size: 22px;
     font-weight: 700;
-    color: #ef3333;
+    color: var(--accent);
     text-decoration: none;
   }
 
@@ -96,7 +96,7 @@ const { lang = 'en' } = Astro.props;
   }
 
   .nav-cta {
-    background: linear-gradient(135deg, #ef3333 0%, #c02020 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-press) 100%);
     color: white;
     padding: 10px 24px;
     border-radius: 6px;
