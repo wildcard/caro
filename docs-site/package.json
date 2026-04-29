@@ -16,9 +16,9 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.37.1",
+    "@astrojs/starlight": "^0.38.4",
     "@vercel/analytics": "^1.4.1",
-    "astro": "^5.16.6",
+    "astro": "^6.1.10",
     "sharp": "^0.34.5"
   }
 }
