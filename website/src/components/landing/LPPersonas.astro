@@ -1,5 +1,6 @@
 ---
 // LPPersonas.astro - Three personas section with interactive CTAs
+import { Glyph } from '../../ui/Glyph';
 ---
 
 <section class="personas" id="personas">
@@ -13,7 +14,7 @@
       <!-- The Accelerator -->
       <div class="persona-card accelerator" data-persona="accelerator">
         <div class="persona-icon">
-          <span>🚀</span>
+          <Glyph name="rocket" size={32} aria-label="Accelerator" />
         </div>
         <h3 class="persona-title">The Accelerator</h3>
         <p class="persona-role">Individual Developer</p>
@@ -54,7 +55,7 @@
       <!-- The Guardian -->
       <div class="persona-card guardian" data-persona="guardian">
         <div class="persona-icon">
-          <span>🛡️</span>
+          <Glyph name="shield" size={32} aria-label="Guardian" />
         </div>
         <h3 class="persona-title">The Guardian</h3>
         <p class="persona-role">Security & Platform Lead</p>
@@ -99,7 +100,7 @@
       <!-- The Operator -->
       <div class="persona-card operator" data-persona="operator">
         <div class="persona-icon">
-          <span>⚡</span>
+          <Glyph name="lightning" size={32} aria-label="Operator" />
         </div>
         <h3 class="persona-title">The Operator</h3>
         <p class="persona-role">SRE / DevOps Engineer</p>
