@@ -9,7 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`BsdFlavor` sub-classification** in `src/platform/mod.rs`: identifies the
+  underlying BSD-family OS (`FreeBsd`, `OpenBsd`, `NetBsd`, `MacOs`,
+  `DragonFlyBsd`, `Unknown`) independently of the userland `UtilityType`. A
+  macOS host with Homebrew GNU coreutils now correctly reports
+  `bsd_flavor() == Some(MacOs)` while `utility_type() == Gnu`. Surfaces
+  through `to_prompt_string()` and adds flavor-specific notes in
+  `platform_notes()` (pkg/jail/gpart for FreeBSD, pf/doas for OpenBSD,
+  pkgsrc for NetBSD).
+- **`PlatformContext::is_bsd_family()`** convenience getter on the public
+  API.
+- **`PlatformContextBuilder::bsd_flavor()`** for explicit builder
+  configuration in tests and non-async contexts.
+- **`docs/SAFETY_PHILOSOPHY.md`**: new doctrine document explaining the
+  kernel-driver mindset behind caro's defense-in-depth layering, citing
+  the FreeBSD Device Driver Book's Ch 29 (Portability), Ch 31 (Security
+  Best Practices), and Ch 37 (Submitting to FreeBSD). Linked from
+  `SECURITY.md` and `CONTRIBUTING.md`.
+
 ### Changed
+
+- **`detect_os()`** now recognizes `freebsd`, `openbsd`, `netbsd`, and
+  `dragonfly` build targets (previously fell through to `"unknown"` on
+  those platforms despite the cross-platform CI matrix building for them).
+- **`is_posix_compliant()`** extended to mark FreeBSD/OpenBSD/NetBSD/
+  DragonFly as POSIX-compliant.
 
 ### Fixed
 

@@ -237,7 +237,10 @@ While using caro:
 
 ## Security Development Practices
 
-caro employs security-first development practices:
+caro employs security-first development practices. The mindset that informs
+these practices — borrowed from kernel-driver engineering — is documented
+in [`docs/SAFETY_PHILOSOPHY.md`](docs/SAFETY_PHILOSOPHY.md). Read that for
+the *why* behind the layered defenses below.
 
 ### Defense in Depth
 
