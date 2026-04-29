@@ -5,6 +5,7 @@
  */
 import { SITE_CONFIG } from '../config/site';
 import { t } from '../i18n/config';
+import { Glyph } from '../ui/Glyph';
 
 interface Props {
   lang: string;
@@ -22,7 +23,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
       <!-- Brand Column -->
       <div class="footer-brand">
         <a href="/" class="brand-link">
-          <span class="brand-icon">🐕</span>
+          <Glyph name="kyaro-mark" size={20} class="brand-icon" aria-label="Kyaro mark" />
           <span class="brand-name">Caro</span>
         </a>
         <p class="brand-tagline">{t(lang, 'landing.footer.brand.tagline')}</p>
@@ -104,7 +105,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     <!-- Kyaro Mascot Section -->
     <div class="kyaro-banner">
       <div class="kyaro-content">
-        <span class="kyaro-emoji">🐕</span>
+        <Glyph name="kyaro-mark" size={32} class="kyaro-emoji" aria-label="Kyaro mark" />
         <div class="kyaro-info">
           <p class="kyaro-title">{t(lang, 'landing.footer.kyaro.title')}</p>
           <p class="kyaro-text">
