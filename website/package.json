@@ -26,7 +26,7 @@
     "@vercel/analytics": "^1.6.1",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
-    "astro": "^5.16.6",
+    "astro": "^6.1.6",
     "botid": "^1.5.0",
     "canvas-confetti": "^1.9.4"
   },
@@ -43,7 +43,7 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "storybook": "^8.6.15",
-    "vite": "^6.4.1",
+    "vite": "^6.4.2",
     "vitest": "^4.0.16"
   }
 }
