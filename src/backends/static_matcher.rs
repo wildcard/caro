@@ -929,6 +929,356 @@ impl StaticMatcher {
                 description: "Compress directory with maximum compression".to_string(),
             },
 
+            // Heredoc <<EOF
+            PatternEntry {
+                required_keywords: vec!["heredoc".to_string()],
+                optional_keywords: vec!["eof".to_string(), "multiline".to_string(), "block".to_string(), "text".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(create|write|use|make).*(heredoc|<<|multiple.?lines)").unwrap()),
+                gnu_command: "cat <<EOF > output.txt\ncontent here\nEOF".to_string(),
+                bsd_command: Some("cat <<EOF > output.txt\ncontent here\nEOF".to_string()),
+                description: "Create heredoc text block".to_string(),
+            },
+
+            // Here-string <<<
+            PatternEntry {
+                required_keywords: vec!["here".to_string(), "string".to_string()],
+                optional_keywords: vec!["<<<".to_string(), "pipe".to_string(), "input".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(here.?string|<<<|pass.*string).*input").unwrap()),
+                gnu_command: "grep pattern <<< 'input string'".to_string(),
+                bsd_command: Some("grep pattern <<< 'input string'".to_string()),
+                description: "Use here-string input".to_string(),
+            },
+
+            // Suppress stderr 2>/dev/null
+            PatternEntry {
+                required_keywords: vec!["suppress".to_string(), "error".to_string()],
+                optional_keywords: vec!["stderr".to_string(), "silent".to_string(), "quiet".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(suppress|hide|discard|silent|quiet).*(error|stderr|output)").unwrap()),
+                gnu_command: "command 2>/dev/null".to_string(),
+                bsd_command: Some("command 2>/dev/null".to_string()),
+                description: "Suppress error output to /dev/null".to_string(),
+            },
+
+            // Redirect stderr to stdout 2>&1
+            PatternEntry {
+                required_keywords: vec!["redirect".to_string(), "stderr".to_string()],
+                optional_keywords: vec!["combine".to_string(), "merge".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(redirect|combine|merge).*(stderr|stdout)|2>&1").unwrap()),
+                gnu_command: "command > output.log 2>&1".to_string(),
+                bsd_command: Some("command > output.log 2>&1".to_string()),
+                description: "Redirect stderr to stdout".to_string(),
+            },
+
+            // XZ compression
+            PatternEntry {
+                required_keywords: vec!["xz".to_string()],
+                optional_keywords: vec!["compress".to_string(), "decompress".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(compress|extract|decompress).*(xz|\.xz)").unwrap()),
+                gnu_command: "xz -k file.txt".to_string(),
+                bsd_command: Some("xz -k file.txt".to_string()),
+                description: "Compress with xz".to_string(),
+            },
+
+            // Zstd compression
+            PatternEntry {
+                required_keywords: vec!["zstd".to_string(), "compress".to_string()],
+                optional_keywords: vec!["fast".to_string(), "level".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(compress|archive).*(zstd|zstandard)").unwrap()),
+                gnu_command: "zstd file.tar".to_string(),
+                bsd_command: Some("zstd file.tar".to_string()),
+                description: "Compress with zstd".to_string(),
+            },
+
+            // ZIP archive
+            PatternEntry {
+                required_keywords: vec!["zip".to_string()],
+                optional_keywords: vec!["compress".to_string(), "archive".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(zip|compress).*(archive|folder|directory)").unwrap()),
+                gnu_command: "zip -r archive.zip directory/".to_string(),
+                bsd_command: Some("zip -r archive.zip directory/".to_string()),
+                description: "Create ZIP archive".to_string(),
+            },
+
+            // Unzip extract
+            PatternEntry {
+                required_keywords: vec!["unzip".to_string()],
+                optional_keywords: vec!["extract".to_string(), "decompress".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(unzip|extract).*(zip)").unwrap()),
+                gnu_command: "unzip archive.zip".to_string(),
+                bsd_command: Some("unzip archive.zip".to_string()),
+                description: "Extract ZIP archive".to_string(),
+            },
+
+            // Tar extract
+            PatternEntry {
+                required_keywords: vec!["extract".to_string(), "tar".to_string()],
+                optional_keywords: vec!["untar".to_string(), "decompress".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(extract|untar|decompress).*tar").unwrap()),
+                gnu_command: "tar -xzf archive.tar.gz".to_string(),
+                bsd_command: Some("tar -xzf archive.tar.gz".to_string()),
+                description: "Extract tar.gz archive".to_string(),
+            },
+
+            // Tar list contents
+            PatternEntry {
+                required_keywords: vec!["tar".to_string(), "list".to_string()],
+                optional_keywords: vec!["contents".to_string(), "inside".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(list|show|contents).*tar").unwrap()),
+                gnu_command: "tar -tzf archive.tar.gz".to_string(),
+                bsd_command: Some("tar -tzf archive.tar.gz".to_string()),
+                description: "List tar archive contents".to_string(),
+            },
+
+            // Tar bz2 extract
+            PatternEntry {
+                required_keywords: vec!["bz2".to_string()],
+                optional_keywords: vec!["tar".to_string(), "bzip2".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(extract|compress).*(bz2|bzip2|tar\.bz2)").unwrap()),
+                gnu_command: "tar -xjf archive.tar.bz2".to_string(),
+                bsd_command: Some("tar -xjf archive.tar.bz2".to_string()),
+                description: "Extract tar.bz2 archive".to_string(),
+            },
+
+            // Gunzip decompress
+            PatternEntry {
+                required_keywords: vec!["gunzip".to_string()],
+                optional_keywords: vec!["decompress".to_string(), "uncompress".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(gunzip|decompress).*gz").unwrap()),
+                gnu_command: "gunzip file.gz".to_string(),
+                bsd_command: Some("gunzip file.gz".to_string()),
+                description: "Decompress gzip file".to_string(),
+            },
+
+            // Zcat view compressed
+            PatternEntry {
+                required_keywords: vec!["zcat".to_string()],
+                optional_keywords: vec!["view".to_string(), "read".to_string(), "show".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(zcat|view|read).*(gz|gzip)").unwrap()),
+                gnu_command: "zcat file.gz".to_string(),
+                bsd_command: Some("zcat file.gz".to_string()),
+                description: "View gzipped file contents".to_string(),
+            },
+
+            // Xattr macOS extended attributes
+            PatternEntry {
+                required_keywords: vec!["xattr".to_string()],
+                optional_keywords: vec!["attribute".to_string(), "metadata".to_string(), "extended".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(xattr|extended.?attribute|remove.?quarantine)").unwrap()),
+                gnu_command: "xattr -l file.txt".to_string(),
+                bsd_command: Some("xattr -l file.txt".to_string()),
+                description: "Show extended file attributes (macOS)".to_string(),
+            },
+
+            // Stat file size bytes (GNU vs BSD)
+            PatternEntry {
+                required_keywords: vec!["file".to_string(), "size".to_string()],
+                optional_keywords: vec!["bytes".to_string(), "stat".to_string(), "information".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(get|show|file.?size|stat).*bytes").unwrap()),
+                gnu_command: "stat -c '%s' filename".to_string(),
+                bsd_command: Some("stat -f '%z' filename".to_string()),
+                description: "Get file size in bytes (GNU/BSD)".to_string(),
+            },
+
+            // Rsync synchronization
+            PatternEntry {
+                required_keywords: vec!["rsync".to_string()],
+                optional_keywords: vec!["sync".to_string(), "mirror".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(rsync|mirror|sync|synchronize).*files").unwrap()),
+                gnu_command: "rsync -avz src/ dest/".to_string(),
+                bsd_command: Some("rsync -avz src/ dest/".to_string()),
+                description: "Synchronize files with rsync".to_string(),
+            },
+
+            // Crontab list scheduled jobs
+            PatternEntry {
+                required_keywords: vec!["cron".to_string(), "schedule".to_string()],
+                optional_keywords: vec!["job".to_string(), "list".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(cron|crontab|schedule).*jobs").unwrap()),
+                gnu_command: "crontab -l".to_string(),
+                bsd_command: Some("crontab -l".to_string()),
+                description: "List crontab scheduled jobs".to_string(),
+            },
+
+            // Kill process by PID
+            PatternEntry {
+                required_keywords: vec!["kill".to_string(), "pid".to_string()],
+                optional_keywords: vec!["process".to_string(), "signal".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(kill|stop|term).*pid").unwrap()),
+                gnu_command: "kill -9 PID".to_string(),
+                bsd_command: Some("kill -9 PID".to_string()),
+                description: "Kill process by PID".to_string(),
+            },
+
+            // Pkill/killall by name
+            PatternEntry {
+                required_keywords: vec!["kill".to_string(), "name".to_string()],
+                optional_keywords: vec!["process".to_string(), "pkill".to_string(), "killall".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(kill|pkill|killall).*by.?name").unwrap()),
+                gnu_command: "pkill process_name".to_string(),
+                bsd_command: Some("killall process_name".to_string()),
+                description: "Kill all processes by name".to_string(),
+            },
+
+            // Kill process general
+            PatternEntry {
+                required_keywords: vec!["kill".to_string(), "process".to_string()],
+                optional_keywords: vec!["stop".to_string(), "signal".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(kill|stop|terminate).*process").unwrap()),
+                gnu_command: "kill PID".to_string(),
+                bsd_command: Some("kill PID".to_string()),
+                description: "Kill a process".to_string(),
+            },
+
+            // Nmap port scan
+            PatternEntry {
+                required_keywords: vec!["scan".to_string(), "port".to_string()],
+                optional_keywords: vec!["nmap".to_string(), "open".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(nmap|scan).*port").unwrap()),
+                gnu_command: "nmap -sS target".to_string(),
+                bsd_command: Some("nmap -sS target".to_string()),
+                description: "Scan open ports with nmap".to_string(),
+            },
+
+            // SSH connection
+            PatternEntry {
+                required_keywords: vec!["ssh".to_string()],
+                optional_keywords: vec!["connect".to_string(), "remote".to_string(), "server".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)ssh.*@(host|server)|connect.*ssh").unwrap()),
+                gnu_command: "ssh user@host".to_string(),
+                bsd_command: Some("ssh user@host".to_string()),
+                description: "SSH to remote server".to_string(),
+            },
+
+            // Lsof open files
+            PatternEntry {
+                required_keywords: vec!["lsof".to_string()],
+                optional_keywords: vec!["open".to_string(), "files".to_string(), "port".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(lsof|list).*open.*(files|port)").unwrap()),
+                gnu_command: "lsof -i :PORT".to_string(),
+                bsd_command: Some("lsof -i :PORT".to_string()),
+                description: "List open files/ports with lsof".to_string(),
+            },
+
+            // Docker exec in container
+            PatternEntry {
+                required_keywords: vec!["docker".to_string(), "exec".to_string()],
+                optional_keywords: vec!["run".to_string(), "shell".to_string(), "bash".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(docker.*exec|run.*shell.*container|exec.*bash|execute.*container)").unwrap()),
+                gnu_command: "docker exec -it container_name /bin/bash".to_string(),
+                bsd_command: Some("docker exec -it container_name /bin/bash".to_string()),
+                description: "Execute command in Docker container".to_string(),
+            },
+
+            // Docker logs follow
+            PatternEntry {
+                required_keywords: vec!["docker".to_string(), "logs".to_string()],
+                optional_keywords: vec!["follow".to_string(), "tail".to_string(), "stream".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(docker|log|tail|follow|stream).*container").unwrap()),
+                gnu_command: "docker logs -f container_name".to_string(),
+                bsd_command: Some("docker logs -f container_name".to_string()),
+                description: "Tail Docker container logs".to_string(),
+            },
+
+            // Netstat/SS listening ports
+            PatternEntry {
+                required_keywords: vec!["netstat".to_string()],
+                optional_keywords: vec!["listening".to_string(), "port".to_string(), "connection".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(netstat|ss|listen|port).*(port|listen)").unwrap()),
+                gnu_command: "ss -tlnp".to_string(),
+                bsd_command: Some("netstat -an | grep LISTEN".to_string()),
+                description: "Show listening ports".to_string(),
+            },
+
+            // File type identification
+            PatternEntry {
+                required_keywords: vec!["file".to_string(), "type".to_string()],
+                optional_keywords: vec!["identify".to_string(), "mime".to_string(), "format".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(file|identify|mime.*type|what.?type).*file").unwrap()),
+                gnu_command: "file filename".to_string(),
+                bsd_command: Some("file filename".to_string()),
+                description: "Identify file type".to_string(),
+            },
+
+            // Xxd hex dump
+            PatternEntry {
+                required_keywords: vec!["xxd".to_string()],
+                optional_keywords: vec!["hex".to_string(), "dump".to_string(), "binary".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(xxd|hex|binary).*dump").unwrap()),
+                gnu_command: "xxd file.bin".to_string(),
+                bsd_command: Some("xxd file.bin".to_string()),
+                description: "Hex dump file".to_string(),
+            },
+
+            // Strings extract
+            PatternEntry {
+                required_keywords: vec!["strings".to_string()],
+                optional_keywords: vec!["extract".to_string(), "text".to_string(), "readable".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(strings|extract.*text|readable).*file").unwrap()),
+                gnu_command: "strings file.bin".to_string(),
+                bsd_command: Some("strings file.bin".to_string()),
+                description: "Extract readable strings from binary".to_string(),
+            },
+
+            // Tee pipe output to file
+            PatternEntry {
+                required_keywords: vec!["tee".to_string()],
+                optional_keywords: vec!["pipe".to_string(), "both".to_string(), "file".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(tee|pipe.*both|output).*file").unwrap()),
+                gnu_command: "command | tee output.log".to_string(),
+                bsd_command: Some("command | tee output.log".to_string()),
+                description: "Pipe output to file and terminal".to_string(),
+            },
+
+            // Split file into chunks
+            PatternEntry {
+                required_keywords: vec!["split".to_string()],
+                optional_keywords: vec!["file".to_string(), "chunks".to_string(), "divide".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(split|divide|chunk).*file").unwrap()),
+                gnu_command: "split -b 10M largefile.txt chunk_".to_string(),
+                bsd_command: Some("split -b 10M largefile.txt chunk_".to_string()),
+                description: "Split file into chunks".to_string(),
+            },
+
+            // BC arithmetic computation
+            PatternEntry {
+                required_keywords: vec!["bc".to_string()],
+                optional_keywords: vec!["calculate".to_string(), "math".to_string(), "arithmetic".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(bc|calculate|compute|arithmetic).*expression").unwrap()),
+                gnu_command: "echo '3.14 * 2.5' | bc".to_string(),
+                bsd_command: Some("echo '3.14 * 2.5' | bc".to_string()),
+                description: "Compute math expression with bc".to_string(),
+            },
+
+            // Od octal dump
+            PatternEntry {
+                required_keywords: vec!["od".to_string()],
+                optional_keywords: vec!["octal".to_string(), "dump".to_string(), "hex".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(od|octal|hex)?dump").unwrap()),
+                gnu_command: "od -x file.bin".to_string(),
+                bsd_command: Some("od -x file.bin".to_string()),
+                description: "Octal/hex dump file".to_string(),
+            },
+
+            // Sudo elevated privileges
+            PatternEntry {
+                required_keywords: vec!["sudo".to_string()],
+                optional_keywords: vec!["root".to_string(), "admin".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(sudo|elevated|as.?root|run.*root).*command").unwrap()),
+                gnu_command: "sudo command".to_string(),
+                bsd_command: Some("sudo command".to_string()),
+                description: "Run command with elevated privileges".to_string(),
+            },
+
+            // Strace/ltrace/dtruss trace system calls
+            PatternEntry {
+                required_keywords: vec!["trace".to_string(), "system".to_string()],
+                optional_keywords: vec!["call".to_string(), "strace".to_string(), "ltrace".to_string(), "debug".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(strace|ltrace|dtruss|trace).*system.*call").unwrap()),
+                gnu_command: "strace -e trace=open,read,write command".to_string(),
+                bsd_command: Some("dtruss -t open,read,write command".to_string()),
+                description: "Trace system calls".to_string(),
+            },
+
         ];
 
         // Sort patterns by specificity (number of required keywords) in descending order.
