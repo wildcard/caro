@@ -106,7 +106,7 @@
 }
 
 :global(.dark) .panel {
-  background: var(--color-bg, #1e1e1e);
+  background: var(--color-bg, #3a3a3a);
   border-color: var(--color-border, #333);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }

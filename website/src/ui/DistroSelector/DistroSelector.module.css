@@ -71,7 +71,7 @@
 }
 
 :global(.dark) .trigger {
-  background: var(--color-surface-dark, #1e1e2e);
+  background: var(--color-surface-dark, #3a3a3a);
   border-color: var(--color-border-dark, #3a3a4a);
   color: var(--color-text-dark, #f5f5f5);
 }
@@ -168,7 +168,7 @@
 }
 
 :global(.dark) .panel {
-  background: var(--color-surface-dark, #1e1e2e);
+  background: var(--color-surface-dark, #3a3a3a);
   border-color: var(--color-border-dark, #3a3a4a);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
@@ -228,7 +228,7 @@
 }
 
 :global(.dark) .tabs {
-  background: var(--color-surface-secondary-dark, #16161e);
+  background: var(--color-surface-secondary-dark, #3a3a3a);
   border-color: var(--color-border-dark, #3a3a4a);
 }
 
@@ -266,12 +266,12 @@
 }
 
 :global(.dark) .tab:hover:not(:disabled) {
-  background: var(--color-surface-dark, #1e1e2e);
+  background: var(--color-surface-dark, #3a3a3a);
   color: var(--color-text-dark, #f5f5f5);
 }
 
 :global(.dark) .tabActive {
-  background: var(--color-surface-dark, #1e1e2e);
+  background: var(--color-surface-dark, #3a3a3a);
   color: var(--color-primary, #ef3333);
 }
 
@@ -324,7 +324,7 @@
 :global(.dark) .osCard,
 :global(.dark) .distroCard,
 :global(.dark) .shellCard {
-  background: var(--color-surface-dark, #1e1e2e);
+  background: var(--color-surface-dark, #3a3a3a);
   border-color: var(--color-border-dark, #3a3a4a);
 }
 
@@ -409,7 +409,7 @@
 }
 
 :global(.dark) .searchInput {
-  background: var(--color-surface-dark, #1e1e2e);
+  background: var(--color-surface-dark, #3a3a3a);
   border-color: var(--color-border-dark, #3a3a4a);
   color: var(--color-text-dark, #f5f5f5);
 }
@@ -528,7 +528,7 @@
 }
 
 :global(.dark) .footer {
-  background: var(--color-surface-secondary-dark, #16161e);
+  background: var(--color-surface-secondary-dark, #3a3a3a);
   border-color: var(--color-border-dark, #3a3a4a);
 }
 

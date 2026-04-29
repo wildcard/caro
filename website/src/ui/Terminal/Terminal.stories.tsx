@@ -225,7 +225,7 @@ export const MobileViewport: Story = {
 
 export const OnDarkBackground: Story = {
   render: () => (
-    <div style={{ padding: '40px', background: '#1a1a2e', borderRadius: '12px' }}>
+    <div style={{ padding: '40px', background: '#3a3a3a', borderRadius: '12px' }}>
       <Terminal title="caro — shell companion">
         <TerminalLine type="command">caro "find large files"</TerminalLine>
         <TerminalLine type="caro">find . -type f -size +100M</TerminalLine>

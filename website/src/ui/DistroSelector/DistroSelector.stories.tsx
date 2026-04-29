@@ -231,7 +231,7 @@ export const DocumentationExample: Story = {
         <div
           style={{
             padding: '16px',
-            background: '#1e1e2e',
+            background: '#3a3a3a',
             borderRadius: '12px',
             fontFamily: 'monospace',
           }}
