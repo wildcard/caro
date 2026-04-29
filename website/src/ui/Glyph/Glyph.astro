@@ -1,0 +1,75 @@
+---
+/**
+ * Glyph - Caro pixel-icon wrapper (v2.1)
+ *
+ * Inlines a 16×16 pixel-grid SVG from the v2.1 icon pack so it inherits
+ * currentColor (recolor via parent `color:` token, dark-mode safe) and
+ * scales crisply at 16/24/32/48 px (shape-rendering: crispEdges).
+ *
+ * Source manifest: `src/data/icon-manifest.json`
+ * Source SVGs:    `public/icons/<name>.svg`
+ *
+ * @example
+ * <Glyph name="rocket" size={20} class="trust-icon" />
+ */
+import manifest from '../../data/icon-manifest.json';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export type GlyphName = keyof typeof manifest.icons;
+
+interface Props {
+  name: GlyphName;
+  size?: number;
+  class?: string;
+  ['aria-label']?: string;
+}
+
+const { name, size = 24, class: className, 'aria-label': ariaLabel } = Astro.props;
+
+// Read the SVG body once per build. The manifest path is relative to the
+// website public/ root, so resolve from this component's directory.
+// Cache across renders within the same build.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const svgRelPath = manifest.icons[name].path; // e.g. "icons/home.svg"
+const svgAbsPath = path.resolve(__dirname, '../../../public/', svgRelPath);
+
+let rawSvg = '';
+try {
+  rawSvg = fs.readFileSync(svgAbsPath, 'utf-8');
+} catch (e) {
+  // Fail loudly in dev; render an empty wrapper rather than crashing the page.
+  console.warn(`[Glyph] failed to read icon "${name}" at ${svgAbsPath}`, e);
+}
+
+// Strip the <svg ...> wrapper so we can re-emit with our size + class.
+// Capture inner content between the opening <svg ...> tag and closing </svg>.
+const innerMatch = rawSvg.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+const innerSvg = innerMatch ? innerMatch[1] : '';
+
+const role = ariaLabel ? 'img' : undefined;
+const ariaHidden = ariaLabel ? undefined : 'true';
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 16 16"
+  width={size}
+  height={size}
+  fill="currentColor"
+  shape-rendering="crispEdges"
+  class:list={['glyph', className]}
+  role={role}
+  aria-label={ariaLabel}
+  aria-hidden={ariaHidden}
+  set:html={innerSvg}
+></svg>
+
+<style>
+  .glyph {
+    display: inline-block;
+    vertical-align: -0.125em;
+    flex-shrink: 0;
+  }
+</style>

@@ -1,0 +1,24 @@
+{
+  "version": "0.1.0",
+  "released": "2026-04-28",
+  "grid": 16,
+  "stroke": "integer-pixel",
+  "color": "monochrome via currentColor",
+  "rendering": "shape-rendering: crispEdges; recommended at 16/24/32/48 px",
+  "usage": "Inline <svg> via <Glyph name=\"home\"/> or direct file include. Color via the parent's color: token (e.g. color: var(--fg-strong)).",
+  "icons": {
+    "home":       { "path": "icons/home.svg",       "category": "navigation",    "replaces_emoji": "🏠 / 🏡", "tier": "primary" },
+    "location":   { "path": "icons/location.svg",   "category": "navigation",    "replaces_emoji": "📍",                "tier": "primary" },
+    "teams":      { "path": "icons/teams.svg",      "category": "personas",      "replaces_emoji": "👥",                "tier": "primary" },
+    "tools":      { "path": "icons/tools.svg",      "category": "personas",      "replaces_emoji": "🛠️ / 🔧", "tier": "primary" },
+    "rocket":     { "path": "icons/rocket.svg",     "category": "trust-badge",   "replaces_emoji": "🚀",                "tier": "secondary" },
+    "shield":     { "path": "icons/shield.svg",     "category": "trust-badge",   "replaces_emoji": "🛡️",          "tier": "secondary" },
+    "lightning":  { "path": "icons/lightning.svg",  "category": "trust-badge",   "replaces_emoji": "⚡",                      "tier": "secondary" },
+    "brain":      { "path": "icons/brain.svg",      "category": "feature",       "replaces_emoji": "🧠",                "tier": "secondary" },
+    "kyaro-mark": { "path": "icons/kyaro-mark.svg", "category": "brand",         "replaces_emoji": "🐕",                "tier": "brand" }
+  },
+  "deferred_v3": [
+    "git", "terminal", "package", "model", "gear", "doc", "search", "spinner", "check", "cross",
+    "If you find yourself reaching for a Lucide icon repeatedly, file a v3 ticket — don't import Lucide back in."
+  ]
+}
