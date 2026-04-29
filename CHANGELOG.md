@@ -15,6 +15,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **BSD-family safety patterns**: Added 10 new `DangerPattern` entries covering
+  destructive utilities specific to FreeBSD/OpenBSD/NetBSD/macOS that the
+  original GNU/Linux-flavored set did not catch:
+  - `gpart destroy/delete` — partition table destruction (Critical)
+  - `zfs destroy -r/-R/-f` — recursive/forced ZFS dataset wipe (Critical)
+  - `dd`/`mkfs.*`/`newfs`/`>` redirects targeting `/dev/da*`, `/dev/ada*`,
+    `/dev/nvd*`, `/dev/md*` — BSD device naming (Critical)
+  - `pkg delete -f` — forced package removal bypassing dependency checks (High)
+  - `bsdinstall` invoked at start-of-statement — destructive outside install
+    media; anchored so `man bsdinstall` and `which bsdinstall` are not flagged
+    (High)
+  - `chflags noschg` on `/etc`, `/bin`, `/sbin`, `/boot`, `/usr/bin`,
+    `/usr/sbin` — immutability bypass / security regression (High)
+  - `jail -r <name>` — running-jail removal (Moderate)
+  - New TDD-driven contract tests in `tests/safety_validator_contract.rs`
+    cover positive matches and false-positive prevention for read-only
+    variants (`gpart show`, `zfs list`, `pkg info`, etc.). Pattern total
+    grows from 52 → 62.
+
 ## [1.3.0] - 2026-04-20
 
 ### Added
