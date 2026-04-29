@@ -13,9 +13,21 @@
  * <Glyph name="rocket" size={20} class="trust-icon" />
  */
 import manifest from '../../data/icon-manifest.json';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+
+// Eager-load all 9 SVGs as raw strings at build time. Vite resolves these
+// at build, so paths work regardless of where the bundle gets hoisted.
+const svgModules = import.meta.glob<string>('/public/icons/*.svg', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
+// Build a name→raw-SVG map keyed by the manifest names ("home", "kyaro-mark", ...).
+const svgByName: Record<string, string> = {};
+for (const [path, raw] of Object.entries(svgModules)) {
+  const m = path.match(/\/([a-z0-9-]+)\.svg$/i);
+  if (m) svgByName[m[1]] = raw;
+}
 
 export type GlyphName = keyof typeof manifest.icons;
 
@@ -28,23 +40,12 @@ interface Props {
 
 const { name, size = 24, class: className, 'aria-label': ariaLabel } = Astro.props;
 
-// Read the SVG body once per build. The manifest path is relative to the
-// website public/ root, so resolve from this component's directory.
-// Cache across renders within the same build.
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const svgRelPath = manifest.icons[name].path; // e.g. "icons/home.svg"
-const svgAbsPath = path.resolve(__dirname, '../../../public/', svgRelPath);
-
-let rawSvg = '';
-try {
-  rawSvg = fs.readFileSync(svgAbsPath, 'utf-8');
-} catch (e) {
-  // Fail loudly in dev; render an empty wrapper rather than crashing the page.
-  console.warn(`[Glyph] failed to read icon "${name}" at ${svgAbsPath}`, e);
+const rawSvg = svgByName[name] ?? '';
+if (!rawSvg) {
+  console.warn(`[Glyph] no SVG found for "${name}"`);
 }
 
 // Strip the <svg ...> wrapper so we can re-emit with our size + class.
-// Capture inner content between the opening <svg ...> tag and closing </svg>.
 const innerMatch = rawSvg.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
 const innerSvg = innerMatch ? innerMatch[1] : '';
 
