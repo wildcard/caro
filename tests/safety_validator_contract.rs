@@ -747,8 +747,7 @@ async fn test_bsd_specific_dangerous_commands() {
         assert!(
             !result.allowed,
             "BSD command '{}' should be blocked under strict config (got allowed=true, risk={:?})",
-            cmd,
-            result.risk_level
+            cmd, result.risk_level
         );
     }
 }

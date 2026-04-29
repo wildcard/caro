@@ -189,25 +189,45 @@ impl PlatformContext {
         if let Some(flavor) = self.bsd_flavor {
             match flavor {
                 BsdFlavor::FreeBsd => {
-                    notes.push("FreeBSD: package manager is `pkg` (pkg install/info/delete)".to_string());
-                    notes.push("FreeBSD: containers via `jail` / `jls` (not Docker by default)".to_string());
-                    notes.push("FreeBSD: filesystem ops use `gpart`/`newfs`; ZFS is first-class".to_string());
+                    notes.push(
+                        "FreeBSD: package manager is `pkg` (pkg install/info/delete)".to_string(),
+                    );
+                    notes.push(
+                        "FreeBSD: containers via `jail` / `jls` (not Docker by default)"
+                            .to_string(),
+                    );
+                    notes.push(
+                        "FreeBSD: filesystem ops use `gpart`/`newfs`; ZFS is first-class"
+                            .to_string(),
+                    );
                 }
                 BsdFlavor::OpenBsd => {
                     notes.push("OpenBSD: package manager is `pkg_add`/`pkg_delete`".to_string());
-                    notes.push("OpenBSD: firewall is `pf` (not iptables); config in /etc/pf.conf".to_string());
-                    notes.push("OpenBSD: prefer `doas` over `sudo` (not installed by default)".to_string());
+                    notes.push(
+                        "OpenBSD: firewall is `pf` (not iptables); config in /etc/pf.conf"
+                            .to_string(),
+                    );
+                    notes.push(
+                        "OpenBSD: prefer `doas` over `sudo` (not installed by default)".to_string(),
+                    );
                 }
                 BsdFlavor::NetBsd => {
-                    notes.push("NetBSD: package manager is `pkgsrc` (pkg_add/pkg_info/pkg_delete)".to_string());
-                    notes.push("NetBSD: rc.d service management via /etc/rc.d/<service>".to_string());
+                    notes.push(
+                        "NetBSD: package manager is `pkgsrc` (pkg_add/pkg_info/pkg_delete)"
+                            .to_string(),
+                    );
+                    notes.push(
+                        "NetBSD: rc.d service management via /etc/rc.d/<service>".to_string(),
+                    );
                 }
                 BsdFlavor::MacOs => {
                     // macOS-specific notes already covered above by the
                     // `os == "macos"` branch; nothing extra to add here.
                 }
                 BsdFlavor::DragonFlyBsd => {
-                    notes.push("DragonFly BSD: HAMMER2 filesystem; package manager is `pkg`".to_string());
+                    notes.push(
+                        "DragonFly BSD: HAMMER2 filesystem; package manager is `pkg`".to_string(),
+                    );
                 }
                 BsdFlavor::Unknown => {
                     notes.push("BSD-family OS detected but flavor unrecognized".to_string());

@@ -401,7 +401,10 @@ fn test_bsd_flavor_macos_via_builder() {
         .expect("Should build macOS context");
 
     assert_eq!(ctx.bsd_flavor(), Some(BsdFlavor::MacOs));
-    assert!(ctx.is_bsd_family(), "macOS (Darwin) should be in BSD family");
+    assert!(
+        ctx.is_bsd_family(),
+        "macOS (Darwin) should be in BSD family"
+    );
 }
 
 #[test]
@@ -420,7 +423,10 @@ fn test_bsd_flavor_macos_with_gnu_coreutils() {
         .expect("Should build hybrid macOS context");
 
     assert_eq!(ctx.bsd_flavor(), Some(BsdFlavor::MacOs));
-    assert!(ctx.is_bsd_family(), "Family is OS-derived, not userland-derived");
+    assert!(
+        ctx.is_bsd_family(),
+        "Family is OS-derived, not userland-derived"
+    );
     // But the userland is still classified as GNU
     assert_eq!(ctx.utility_type(), UtilityType::Gnu);
 }

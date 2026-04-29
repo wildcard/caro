@@ -382,16 +382,14 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         },
         // CRITICAL: dd to BSD-named disk devices (forward arg order)
         DangerPattern {
-            pattern: r"dd\s+.*if=/dev/(zero|random|urandom).*of=/dev/(da|ada|nvd|md)\d"
-                .to_string(),
+            pattern: r"dd\s+.*if=/dev/(zero|random|urandom).*of=/dev/(da|ada|nvd|md)\d".to_string(),
             risk_level: RiskLevel::Critical,
             description: "Overwrite BSD disk device with random/zero data".to_string(),
             shell_specific: None,
         },
         // CRITICAL: dd to BSD-named disk devices (reverse arg order)
         DangerPattern {
-            pattern: r"dd\s+.*of=/dev/(da|ada|nvd|md)\d.*if=/dev/(zero|random|urandom)"
-                .to_string(),
+            pattern: r"dd\s+.*of=/dev/(da|ada|nvd|md)\d.*if=/dev/(zero|random|urandom)".to_string(),
             risk_level: RiskLevel::Critical,
             description: "Overwrite BSD disk device with random/zero data (reverse args)"
                 .to_string(),
@@ -419,8 +417,9 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r"pkg\s+delete\s+-[a-zA-Z]*f[a-zA-Z]*".to_string(),
             risk_level: RiskLevel::High,
-            description: "FreeBSD forced package removal (pkg delete -f) bypasses dependency checks"
-                .to_string(),
+            description:
+                "FreeBSD forced package removal (pkg delete -f) bypasses dependency checks"
+                    .to_string(),
             shell_specific: None,
         },
         // HIGH: FreeBSD automated installer invoked outside install media
@@ -428,8 +427,9 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r"(^|[;&|]\s*)(sudo\s+)?bsdinstall\b".to_string(),
             risk_level: RiskLevel::High,
-            description: "FreeBSD automated installer (bsdinstall) — destructive outside install media"
-                .to_string(),
+            description:
+                "FreeBSD automated installer (bsdinstall) — destructive outside install media"
+                    .to_string(),
             shell_specific: None,
         },
         // HIGH: chflags removing immutability on system files (security regression).
