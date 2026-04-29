@@ -397,9 +397,13 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
                 .to_string(),
             shell_specific: None,
         },
-        // CRITICAL: mkfs/newfs targeting BSD-named devices
+        // CRITICAL: mkfs/newfs targeting BSD-named devices.
+        // The `(?:\S+\s+)*?` allows flags AND flag-values between the command
+        // and the device path (e.g. `newfs -U /dev/ada0p1`,
+        // `newfs -L mylabel /dev/da0`). Lazy quantifier prevents the
+        // `\S+\s+` group from greedily consuming the device path itself.
         DangerPattern {
-            pattern: r"(mkfs\.\w+|newfs)\s+/dev/(da|ada|nvd|md)\d".to_string(),
+            pattern: r"(mkfs\.\w+|newfs)\s+(?:\S+\s+)*?/dev/(da|ada|nvd|md)\d".to_string(),
             risk_level: RiskLevel::Critical,
             description: "Format BSD disk device destroying all data".to_string(),
             shell_specific: None,
@@ -428,11 +432,13 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
                 .to_string(),
             shell_specific: None,
         },
-        // HIGH: chflags removing immutability on system files (security regression)
+        // HIGH: chflags removing immutability on system files (security regression).
+        // Only `noschg` is matched — `chflags schg /etc/...` is legitimate hardening
+        // (sets the system-immutable flag) and must not be blocked.
         DangerPattern {
-            pattern: r"chflags\s+(no)?schg\s+/(etc|bin|sbin|boot|usr/bin|usr/sbin)\b".to_string(),
+            pattern: r"chflags\s+noschg\s+/(etc|bin|sbin|boot|usr/bin|usr/sbin)\b".to_string(),
             risk_level: RiskLevel::High,
-            description: "BSD chflags toggling immutability on system files — security regression"
+            description: "BSD chflags removing immutability on system files — security regression"
                 .to_string(),
             shell_specific: None,
         },

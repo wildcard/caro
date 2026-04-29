@@ -709,6 +709,9 @@ async fn test_bsd_specific_dangerous_commands() {
         ("dd if=/dev/random of=/dev/nvd0", RiskLevel::Critical),
         ("mkfs.ufs /dev/da0", RiskLevel::Critical),
         ("newfs /dev/ada0p1", RiskLevel::Critical),
+        // Flags between command and device — common BSD usage.
+        ("newfs -U /dev/ada0p1", RiskLevel::Critical),
+        ("newfs -L mylabel /dev/da0", RiskLevel::Critical),
         // 4. Forced package removal
         ("pkg delete -f bash", RiskLevel::High),
         ("pkg delete -fy openssl", RiskLevel::High),
@@ -763,10 +766,11 @@ async fn test_bsd_safe_commands_no_false_positives() {
         // gpart introspection
         "gpart show",
         "gpart list ada0",
-        // zfs introspection
+        // zfs introspection (read-only).
+        // NOTE: `zfs destroy <dataset>` *without* -r is still destructive and is
+        // intentionally omitted from this safe corpus — see cubic review on PR #1005.
         "zfs list",
         "zfs get all tank",
-        "zfs destroy snapshot1", // no recursive flag — not flagged by new pattern
         // pkg introspection / non-forced ops
         "pkg info openssl",
         "pkg search bash",
@@ -774,8 +778,12 @@ async fn test_bsd_safe_commands_no_false_positives() {
         // jail introspection
         "jls",
         "jail -h",
-        // chflags on non-system path
+        // chflags hardening — *setting* immutability is a security-positive
+        // operation and must not be blocked, even on system paths.
+        "chflags schg /etc/master.passwd",
+        "chflags schg /boot/loader.conf",
         "chflags schg /tmp/myfile",
+        // chflags on non-system path (either direction)
         "chflags noschg /home/user/myfile",
         // BSD device introspection (read-only)
         "ls /dev/da0",

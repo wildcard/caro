@@ -696,7 +696,20 @@ mod tests {
     #[tokio::test]
     async fn test_detect_os() {
         let os = detect_os();
-        assert!(["macos", "linux", "windows"].contains(&os.as_str()));
+        assert!(
+            [
+                "macos",
+                "linux",
+                "windows",
+                "freebsd",
+                "openbsd",
+                "netbsd",
+                "dragonfly",
+            ]
+            .contains(&os.as_str()),
+            "Unrecognized OS string from detect_os(): {}",
+            os
+        );
     }
 
     #[tokio::test]

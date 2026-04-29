@@ -49,8 +49,9 @@ a leak. We hold the same line on caro's hot paths:
 
 When you add a new backend or cache layer, the contract is: if you grab a
 lock, you give it back; if you open a model, you close it; if you start a
-loop, you bound it. The audit at `~/.claude/plans/what-can-we-learn-buzzing-bubble.md`
-walks the current state.
+loop, you bound it. The current state of resource discipline is enforced
+by the contract tests in `tests/cache_contract.rs`,
+`tests/embedded_backend_contract.rs`, and `tests/cache_lru_property_tests.rs`.
 
 ### 3. Defense in depth, not perimeter security
 
