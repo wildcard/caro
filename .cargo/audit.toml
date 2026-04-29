@@ -18,4 +18,18 @@ ignore = [
     # - We pin time-core=0.1.7 to maintain MSRV; time security fix deferred until
     #   time-core publishes an edition-2021-compatible 0.1.8 or MSRV is raised
     "RUSTSEC-2026-0009",
+
+    # rustls-webpki 0.101.7 - RUSTSEC-2026-0098 / 0099 / 0104
+    # - 3 vulnerabilities surface on the LEGACY rustls 0.21.x path:
+    #     reqwest 0.11.27 → rustls 0.21.12 → rustls-webpki 0.101.7
+    # - rustls 0.21.12 is terminal (last release on the 0.21 line); no patch
+    #   upgrade exists. Fix versions (>=0.103.12) are SemVer-incompatible
+    #   with the 0.101 line.
+    # - The MODERN path (rustls 0.23 → rustls-webpki 0.103.13) is patched
+    #   via cargo update -p rustls-webpki@0.103.10.
+    # - Legacy path full fix tracked in the reqwest 0.11 → 0.12 migration
+    #   epic (separate beads issue).
+    "RUSTSEC-2026-0098",
+    "RUSTSEC-2026-0099",
+    "RUSTSEC-2026-0104",
 ]
