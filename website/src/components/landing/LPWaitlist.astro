@@ -1,6 +1,10 @@
 ---
-// LPWaitlist.astro - Email capture for Org Visibility feature
-// TODO: Connect to your email service (ConvertKit, Mailchimp, etc.)
+// LPWaitlist.astro — Email capture for "Org Visibility for Teams" feature.
+// Submissions POST to /api/waitlist and persist to Upstash Redis. See
+// website/api/waitlist.ts for the safeguard chain (BotID, rate-limit, honeypot,
+// time-trap, email validation, dedupe). The hidden `ts` input is stamped at
+// page load by the script below — NOT in this frontmatter — because Astro is
+// statically generated and frontmatter Date.now() would be the build time.
 ---
 
 <section class="waitlist" id="waitlist">
