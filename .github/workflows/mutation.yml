@@ -26,6 +26,9 @@ env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
 
+permissions:
+  contents: read
+
 jobs:
   mutation-test:
     name: cargo-mutants on src/safety/
@@ -56,7 +59,7 @@ jobs:
         run: |
           cargo mutants \
             --no-shuffle \
-            --timeout "${{ inputs.timeout || 300 }}" \
+            --timeout "${{ github.event.inputs.timeout || '300' }}" \
             --file 'src/safety/**/*.rs' \
             --output mutants.out \
             || true  # don't fail the job on survivors — we want the report

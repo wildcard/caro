@@ -226,7 +226,7 @@ export interface HolidayEvent {
 
   /**
    * Rules for when to auto-select this theme as default.
-   * If no rules match, theme is available but not pre-selected.
+   * If no rules match, theme is available but not preselected.
    */
   defaultFor?: DefaultRule[];
 

@@ -113,9 +113,9 @@ You MUST run, and your verdict MUST cite the actual output of:
   2. `cargo clippy --all-targets --all-features -- -D warnings`
   3. `cargo test`
   4. Constitution check: any change under `src/safety/` MUST have a
-     corresponding test added in the same diff (see
-     `.claude/rules/constitution.md` Tier-1 / `safety-pattern-developer`
-     skill).
+     corresponding test added in the same diff (see the
+     `safety-pattern-developer` skill for the source-of-truth
+     requirement).
   5. Good-boy-scout check: the diff does not introduce obvious
      nearby brokenness left unfixed.
 
@@ -126,12 +126,23 @@ Be terse. No PR is opened on `block` — instead the loop sends your
 reasons back to the coder for a fix pass.
 ```
 
-Capture the verdict:
+Capture the verdict (concrete extraction):
 
 ```bash
-# Reviewer JSON is on the last line of the agent reply.
-# If verdict == block, do NOT open a PR. Append reasons to the
-# kraken/spark prompt and re-delegate (max 2 retries before bailing).
+# 1. Pipe the agent reply (stdout) to a file: $REVIEW_OUT
+# 2. Grab the LAST non-empty line — that's the verdict JSON
+LAST_LINE=$(grep -v '^$' "$REVIEW_OUT" | tail -1)
+
+# 3. Validate it parses as JSON; if not, treat as block (defensive default)
+if ! echo "$LAST_LINE" | jq -e . >/dev/null 2>&1; then
+  VERDICT="block"
+  REASONS="reviewer did not return valid JSON on last line: $LAST_LINE"
+else
+  VERDICT=$(echo "$LAST_LINE" | jq -r '.verdict // "block"')
+  REASONS=$(echo "$LAST_LINE" | jq -r '.reasons // [] | join("; ")')
+fi
+
+# 4. Branch on verdict
 if [ "$VERDICT" = "block" ]; then
   bin/notify reviewer "block $NEXT: $REASONS"
   # re-delegate to coder with $REASONS appended; on third block, mark blocked.
