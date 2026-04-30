@@ -51,12 +51,43 @@ pub fn command_equivalence(cmd1: &str, cmd2: &str) -> bool {
         return true;
     }
 
+    // Handle find command equivalence: -type f is an optional filter
+    // that doesn't change the semantic meaning of basic find operations
+    if tokens1.first().is_some_and(|s| s == "find") && tokens2.first().is_some_and(|s| s == "find")
+    {
+        let args_a: Vec<_> = tokens1.iter().skip(1).collect();
+        let args_b: Vec<_> = tokens2.iter().skip(1).collect();
+        let pure_a = remove_type_arg(&args_a);
+        let pure_b = remove_type_arg(&args_b);
+        if pure_a == pure_b {
+            return true;
+        }
+    }
+
     // TODO: Add more sophisticated equivalence checks as needed:
     // - Implicit defaults (e.g., "find ." vs "find . -type f")
     // - Flag synonyms (e.g., "-a" vs "--all")
     // - Command aliases (e.g., "ll" vs "ls -l")
 
     false
+}
+
+/// Remove `-type <value>` arguments for find command equivalence comparison
+fn remove_type_arg(args: &[&String]) -> Vec<String> {
+    let mut result = Vec::new();
+    let mut skip_next = false;
+    for arg in args {
+        if skip_next {
+            skip_next = false;
+            continue;
+        }
+        if arg.as_str() == "-type" {
+            skip_next = true;
+            continue;
+        }
+        result.push(arg.to_string());
+    }
+    result
 }
 
 /// Checks if a command matches a regex pattern

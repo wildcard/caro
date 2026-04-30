@@ -395,7 +395,11 @@ async fn test_context_awareness() {
 
     let result = cli.run_with_args(args).await;
 
-    assert!(result.is_ok(), "Context-aware command should work");
+    assert!(
+        result.is_ok(),
+        "Context-aware command should work: {:?}",
+        result.map(|_| ())
+    );
     let cli_result = result.unwrap();
 
     // Should generate commands appropriate to current context

@@ -31,14 +31,14 @@
         "zeroTelemetry": "Walang Telemetry",
         "validation": "52+ Mga Pattern ng Kaligtasan",
         "local": "100% Lokal",
-        "openSource": "Open Source"
+        "openSource": "Libre ang Source Code"
       }
     },
     "features": {
       "title": "Bakit Caro?",
       "subtitle": "Companion agent na built para sa safety, empathy, at expertise",
       "alphaNotice": "Aktibo kaming bumubuo kasama ang aming community. Sumali sa amin para tumulong sa paghubog ng kinabukasan ng Caro!",
-      "alphaLabel": "Soft Launch Alpha",
+      "alphaLabel": "Malambot na Launch Alpha",
       "ctaText": "Tingnan kung ano exactly ang bina-block ng Caro at bakit",
       "ctaLink": "Tingnan ang safety patterns",
       "items": [
@@ -112,36 +112,36 @@
       "subtitle": "Built para sa DevOps engineers at SREs na ayaw mag-sacrifice ng privacy para sa productivity",
       "summary": {
         "privacy": {
-          "stat": "Privacy",
+          "stat": "Privacy (Pribado)",
           "label": "Unang Disenyo*"
         },
         "safety": {
-          "stat": "52+",
+          "stat": "52+ na pattern",
           "label": "Mga Pattern ng Kaligtasan"
         },
         "offline": {
-          "stat": "100%",
+          "stat": "100% offline",
           "label": "Kaya Offline"
         },
         "speed": {
-          "stat": "Rust",
+          "stat": "Rust (mabilis)",
           "label": "Ginawa para sa Bilis"
         }
       },
       "competitors": {
-        "caro": "Caro",
+        "caro": "Caro (kami)",
         "copilotCli": "GitHub Copilot CLI",
         "warp": "Warp AI",
         "kiro": "Kiro CLI",
         "opencode": "OpenCode"
       },
       "table": {
-        "feature": "Feature",
+        "feature": "Tampok",
         "youreHere": "Nandito ka"
       },
       "categories": {
         "privacyData": {
-          "title": "Privacy & Data",
+          "title": "Privacy at Data",
           "features": {
             "worksOffline": {
               "name": "100% offline na gumagana",
@@ -156,7 +156,7 @@
               "tooltip": "Pwedeng tumakbo sa isolated environments"
             },
             "openSource": {
-              "name": "Open source",
+              "name": "Bukas na source code",
               "tooltip": "Available ang full source code"
             }
           }
@@ -205,7 +205,7 @@
           }
         },
         "modelBackend": {
-          "title": "Model & Backend",
+          "title": "Model at Backend",
           "features": {
             "localInference": {
               "name": "Panglokal na inferensya",
@@ -320,13 +320,13 @@
         "startButton": "MAGSIMULA",
         "playAgainButton": "MAGLARO ULIT",
         "highScore": "Mataas na Puntos:",
-        "leaderboardTitle": "🏆 TOP SCORES 🏆",
+        "leaderboardTitle": "🏆 MGA NANALO 🏆",
         "gameOver": "TAPÓS NA ANG LARO",
         "newHighScore": "🎉 BAGONG MATAAS NA PUNTOS!",
-        "rank": "RANK #{{rank}}!",
+        "rank": "RANGGO #{{rank}}!",
         "finalScore": "Umabot ka sa Antas {{level}} na may {{score}} puntos!"
       },
-      "streak": "🔥 Streak:",
+      "streak": "🔥 Sunod-sunod na panalo:",
       "messages": {
         "correct": [
           "Great job! 🎉",
@@ -384,30 +384,30 @@
           "features": "Mga Feature",
           "howItWorks": "Paano Gumagana",
           "explore": "Galugarin",
-          "download": "Download",
-          "roadmap": "Roadmap"
+          "download": "I-download",
+          "roadmap": "Roadmap (Balangkas)"
         },
         "compare": {
           "title": "Ihambing",
           "overview": "Pangkalahatan",
-          "warp": "vs Warp",
-          "copilotCli": "vs GitHub Copilot CLI",
-          "kiro": "vs Kiro CLI",
-          "opencode": "vs OpenCode"
+          "warp": "Laban sa Warp",
+          "copilotCli": "Laban sa GitHub Copilot CLI",
+          "kiro": "Laban sa Kiro CLI",
+          "opencode": "Laban sa OpenCode"
         },
         "resources": {
           "title": "Mga Resources",
           "blog": "Blog",
-          "faq": "FAQ",
-          "glossary": "Glossary",
+          "faq": "FAQ (Mga Katanungan)",
+          "glossary": "Glosaryo",
           "github": "GitHub",
-          "issues": "Issues",
+          "issues": "Mga Isyu",
           "contributing": "Pag-ambag",
           "credits": "Mga Kredito"
         },
         "support": {
           "title": "Suporta",
-          "sponsor": "♥ Sponsor",
+          "sponsor": "♥ Sponsor (Suportahan)",
           "license": "AGPL-3.0 License"
         }
       },
@@ -420,7 +420,7 @@
         "brandName": "caro.sh",
         "heart": "🧡",
         "inspiration": "Inspirado ni Caroline mula sa Portal",
-        "heritagePre": "Proudly built on the foundations laid by",
+        "heritagePre": "Ipinagmamalaki na itinayo sa mga pundasyon ng",
         "gnu": "GNU",
         "fsf": "FSF",
         "freebsd": "FreeBSD"

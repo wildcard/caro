@@ -38,5 +38,15 @@
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
       "description": "Caro akan menghasilkan perintah dan menjaga Anda tetap aman. Skrip pengaturan menangani semua prasyarat termasuk kompilasi Rust."
     }
+  },
+  "installCommand": "bash <(curl --proto \"=https\" --tlsv1.2 -sSfL https://setup.caro.sh)",
+  "platforms": {
+    "macAppleSilicon": "macOS (Apple Silicon)",
+    "macIntel": "macOS (Intel)",
+    "linuxX64": "Linux (x86_64)",
+    "windows": "Windows"
+  },
+  "quickStart": {
+    "exampleCommand": "caro \"cari semua file python yang diubah dalam 7 hari terakhir\""
   }
 }

@@ -38,7 +38,7 @@
       "title": "Kenapa Caro?",
       "subtitle": "Companion agent yang dibangun untuk keamanan, empati, dan keahlian",
       "alphaNotice": "Kami aktif membangun bersama komunitas. Gabung dan bantu bentuk masa depan Caro!",
-      "alphaLabel": "Soft Launch Alpha",
+      "alphaLabel": "Peluncuran Alpha Lembut",
       "ctaText": "Lihat apa saja yang diblokir Caro dan alasannya",
       "ctaLink": "Lihat pola keamanan",
       "items": [
@@ -104,20 +104,20 @@
           "label": "Desain Utama*"
         },
         "safety": {
-          "stat": "52+",
+          "stat": "52+ pola",
           "label": "Pola Keamanan"
         },
         "offline": {
-          "stat": "100%",
+          "stat": "100% offline",
           "label": "Bisa Offline"
         },
         "speed": {
-          "stat": "Rust",
+          "stat": "Rust (cepat)",
           "label": "Dibangun untuk Kecepatan"
         }
       },
       "competitors": {
-        "caro": "Caro",
+        "caro": "Caro (kami)",
         "copilotCli": "GitHub Copilot CLI",
         "warp": "Warp AI",
         "kiro": "Kiro CLI",
@@ -144,7 +144,7 @@
               "tooltip": "Bisa jalan di lingkungan terisolasi"
             },
             "openSource": {
-              "name": "Open source",
+              "name": "Sumber terbuka",
               "tooltip": "Source code lengkap tersedia"
             }
           }
@@ -178,7 +178,7 @@
               "tooltip": "Perintah portabel yang jalan di mana aja"
             },
             "crossPlatform": {
-              "name": "Cross-platform (macOS/Linux/BSD)",
+              "name": "Lintas platform (macOS/Linux/BSD)",
               "tooltip": "Jalan di sistem Unix-like"
             },
             "existingTerminal": {
@@ -192,7 +192,7 @@
           }
         },
         "modelBackend": {
-          "title": "Model & Backend",
+          "title": "Model dan Backend",
           "features": {
             "localInference": {
               "name": "Inferensi lokal",
@@ -313,7 +313,7 @@
         "rank": "PERINGKAT #{{rank}}!",
         "finalScore": "Anda mencapai Level {{level}} dengan {{score}} poin!"
       },
-      "streak": "🔥 Streak:",
+      "streak": "🔥 Beruntun:",
       "messages": {
         "correct": [
           "Keren! 🎉",
@@ -371,8 +371,8 @@
           "features": "Fitur",
           "howItWorks": "Cara Kerja",
           "explore": "Jelajahi",
-          "download": "Download",
-          "roadmap": "Roadmap"
+          "download": "Unduh",
+          "roadmap": "Roadmap (Peta)"
         },
         "compare": {
           "title": "Bandingkan",
@@ -383,18 +383,18 @@
           "opencode": "vs OpenCode"
         },
         "resources": {
-          "title": "Resources",
+          "title": "Sumber Daya",
           "blog": "Blog",
-          "faq": "FAQ",
+          "faq": "FAQ (Pertanyaan Umum)",
           "glossary": "Glosarium",
           "github": "GitHub",
-          "issues": "Issues",
+          "issues": "Masalah",
           "contributing": "Kontribusi",
           "credits": "Kredit"
         },
         "support": {
           "title": "Dukungan",
-          "sponsor": "♥ Sponsor",
+          "sponsor": "♥ Sponsor (Dukung)",
           "license": "Lisensi AGPL-3.0"
         }
       },

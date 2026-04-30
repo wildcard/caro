@@ -1279,6 +1279,256 @@ impl StaticMatcher {
                 description: "Trace system calls".to_string(),
             },
 
+            // POSIX: show current date in ISO format
+            PatternEntry {
+                required_keywords: vec!["date".to_string(), "iso".to_string()],
+                optional_keywords: vec!["show".to_string(), "current".to_string(), "format".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|get|print)?.*(current|today|now)?.*date.*(iso|iso.?8601|YYYY.?MM.?DD|format)").unwrap()),
+                gnu_command: "date +%Y-%m-%d".to_string(),
+                bsd_command: Some("date +%Y-%m-%d".to_string()),
+                description: "Show current date in ISO format".to_string(),
+            },
+
+            // POSIX: find files modified in last 24 hours
+            PatternEntry {
+                required_keywords: vec!["find".to_string(), "modified".to_string(), "last".to_string()],
+                optional_keywords: vec!["24".to_string(), "hours".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)find.*files?.*(modified|changed|updated).*(last|last|within|during|during).*(24.*(hours?|hours?|hrs?|hrs?)|last|recent|today|yesterday)").unwrap()),
+                gnu_command: "find . -mtime 0".to_string(),
+                bsd_command: Some("find . -mtime 0".to_string()),
+                description: "Find files modified in last 24 hours".to_string(),
+            },
+
+            // POSIX: count words in a file
+            PatternEntry {
+                required_keywords: vec!["count".to_string(), "words".to_string()],
+                optional_keywords: vec!["file".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(count|how.?many|number).*(words|word).*(file|text)?").unwrap()),
+                gnu_command: "wc -w file.txt".to_string(),
+                bsd_command: Some("wc -w file.txt".to_string()),
+                description: "Count words in a file".to_string(),
+            },
+
+            // POSIX: show file information
+            PatternEntry {
+                required_keywords: vec!["file".to_string(), "information".to_string()],
+                optional_keywords: vec!["show".to_string(), "details".to_string(), "info".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|get).*(file|item).*information").unwrap()),
+                gnu_command: "ls -l file.txt".to_string(),
+                bsd_command: Some("ls -l file.txt".to_string()),
+                description: "Show file information".to_string(),
+            },
+
+            // POSIX: search for pattern case-insensitively
+            PatternEntry {
+                required_keywords: vec!["search".to_string(), "case".to_string()],
+                optional_keywords: vec!["pattern".to_string(), "insensitive".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(search|find|look).*(case.?.insensitive|ignore.case)").unwrap()),
+                gnu_command: "grep -i 'pattern' file.txt".to_string(),
+                bsd_command: Some("grep -i 'pattern' file.txt".to_string()),
+                description: "Search for pattern case-insensitively".to_string(),
+            },
+
+            // POSIX: create directory with parents
+            PatternEntry {
+                required_keywords: vec!["directory".to_string(), "parents".to_string()],
+                optional_keywords: vec!["create".to_string(), "make".to_string(), "nested".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(create|make|new).*(directory|dir|folder).*parents").unwrap()),
+                gnu_command: "mkdir -p path/to/dir".to_string(),
+                bsd_command: Some("mkdir -p path/to/dir".to_string()),
+                description: "Create directory with parents".to_string(),
+            },
+
+            // POSIX: copy file preserving attributes
+            PatternEntry {
+                required_keywords: vec!["copy".to_string(), "preserving".to_string()],
+                optional_keywords: vec!["file".to_string(), "attributes".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(copy|cp).*(preserv|maintain|keep).*(attributes?|permissions)").unwrap()),
+                gnu_command: "cp -p source.txt dest.txt".to_string(),
+                bsd_command: Some("cp -p source.txt dest.txt".to_string()),
+                description: "Copy file preserving attributes".to_string(),
+            },
+
+            // POSIX: list processes for current user
+            PatternEntry {
+                required_keywords: vec!["processes".to_string()],
+                optional_keywords: vec!["list".to_string(), "user".to_string(), "running".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(list|show|display).*(running.)?processes.*(user)?").unwrap()),
+                gnu_command: "ps -u $(whoami)".to_string(),
+                bsd_command: Some("ps -u $(whoami)".to_string()),
+                description: "List processes for current user".to_string(),
+            },
+
+            // POSIX: show disk free space
+            PatternEntry {
+                required_keywords: vec!["disk".to_string(), "free".to_string()],
+                optional_keywords: vec!["show".to_string(), "space".to_string(), "usage".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|check).*(free)?.*disk.*(space|usage|available)").unwrap()),
+                gnu_command: "df -h".to_string(),
+                bsd_command: Some("df -h".to_string()),
+                description: "Show disk free space".to_string(),
+            },
+
+            // POSIX: print lines containing pattern
+            PatternEntry {
+                required_keywords: vec!["lines".to_string(), "containing".to_string()],
+                optional_keywords: vec!["print".to_string(), "show".to_string(), "pattern".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(print|show|find).*(lines?).*(contain|match)").unwrap()),
+                gnu_command: "grep 'pattern' file.txt".to_string(),
+                bsd_command: Some("grep 'pattern' file.txt".to_string()),
+                description: "Print lines containing pattern".to_string(),
+            },
+
+            // POSIX: change file permissions to read-only
+            PatternEntry {
+                required_keywords: vec!["permissions".to_string()],
+                optional_keywords: vec!["read.only".to_string(), "chmod".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(change|modify|set|make).*(file.)?permissions.*(read.?-?only|readonly|444|0444)").unwrap()),
+                gnu_command: "chmod 444 file.txt".to_string(),
+                bsd_command: Some("chmod 444 file.txt".to_string()),
+                description: "Change file permissions to read-only".to_string(),
+            },
+
+            // POSIX: concatenate files
+            PatternEntry {
+                required_keywords: vec!["concatenate".to_string()],
+                optional_keywords: vec!["join".to_string(), "merge".to_string(), "files".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(concatenate|join|merge).*(files|files|content|text)").unwrap()),
+                gnu_command: "cat file1.txt file2.txt".to_string(),
+                bsd_command: Some("cat file1.txt file2.txt".to_string()),
+                description: "Concatenate files".to_string(),
+            },
+
+            // POSIX: sort file contents alphabetically
+            PatternEntry {
+                required_keywords: vec!["sort".to_string()],
+                optional_keywords: vec!["alphabetically".to_string(), "alphabetical".to_string(), "ordered".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(sort|order).*(file.*|text.*).*(alphabetically|alphabetical|sort)").unwrap()),
+                gnu_command: "sort file.txt".to_string(),
+                bsd_command: Some("sort file.txt".to_string()),
+                description: "Sort file contents alphabetically".to_string(),
+            },
+
+            // POSIX: remove duplicate lines
+            PatternEntry {
+                required_keywords: vec!["remove".to_string(), "duplicate".to_string()],
+                optional_keywords: vec!["lines".to_string(), "deduplicate".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(remove|delete|deduplicate|eliminate).*(duplicate).*(lines?)?").unwrap()),
+                gnu_command: "sort file.txt | uniq".to_string(),
+                bsd_command: Some("sort file.txt | uniq".to_string()),
+                description: "Remove duplicate lines".to_string(),
+            },
+
+            // POSIX: show first 10 lines of file
+            PatternEntry {
+                required_keywords: vec!["first".to_string(), "lines".to_string()],
+                optional_keywords: vec!["show".to_string(), "head".to_string(), "top".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(first|top|show).*(10|ten|head|beginning|first).*(lines?)").unwrap()),
+                gnu_command: "head -10 file.txt".to_string(),
+                bsd_command: Some("head -10 file.txt".to_string()),
+                description: "Show first 10 lines of file".to_string(),
+            },
+
+            // POSIX: compare two files
+            PatternEntry {
+                required_keywords: vec!["compare".to_string()],
+                optional_keywords: vec!["diff".to_string(), "difference".to_string(), "files".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(compare|diff|difference).*(files?|content)").unwrap()),
+                gnu_command: "diff file1.txt file2.txt".to_string(),
+                bsd_command: Some("diff file1.txt file2.txt".to_string()),
+                description: "Compare two files".to_string(),
+            },
+
+            // POSIX: extract fields from text
+            PatternEntry {
+                required_keywords: vec!["fields".to_string()],
+                optional_keywords: vec!["extract".to_string(), "columns".to_string(), "text".to_string(), "file".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(extract|get|print|show).*(fields?|columns).*(text|file)").unwrap()),
+                gnu_command: "cut -f1,3 -d' ' file.txt".to_string(),
+                bsd_command: Some("cut -f1,3 -d' ' file.txt".to_string()),
+                description: "Extract fields from text".to_string(),
+            },
+
+            // POSIX: print working directory
+            PatternEntry {
+                required_keywords: vec!["working".to_string(), "directory".to_string()],
+                optional_keywords: vec!["print".to_string(), "show".to_string(), "current".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(print|show|display|get|what|current).*(working|current|present).*(directory|path)").unwrap()),
+                gnu_command: "pwd".to_string(),
+                bsd_command: Some("pwd".to_string()),
+                description: "Print working directory".to_string(),
+            },
+
+            // POSIX: move file to new location
+            PatternEntry {
+                required_keywords: vec!["move".to_string()],
+                optional_keywords: vec!["file".to_string(), "location".to_string(), "destination".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(move|mv|relocate).*(file|directory|item).*(new|location|destination)?").unwrap()),
+                gnu_command: "mv source.txt /path/to/dest.txt".to_string(),
+                bsd_command: Some("mv source.txt /path/to/dest.txt".to_string()),
+                description: "Move file to new location".to_string(),
+            },
+
+            // POSIX: archive directory without compression
+            PatternEntry {
+                required_keywords: vec!["archive".to_string(), "without".to_string(), "compression".to_string()],
+                optional_keywords: vec!["directory".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(archive|package).*(without|no).*(compression|compress)").unwrap()),
+                gnu_command: "tar -cf archive.tar directory/".to_string(),
+                bsd_command: Some("tar -cf archive.tar directory/".to_string()),
+                description: "Archive directory without compression".to_string(),
+            },
+
+            // POSIX: show environment variables
+            PatternEntry {
+                required_keywords: vec!["environment".to_string()],
+                optional_keywords: vec!["variables".to_string(), "show".to_string(), "list".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|list|print).*(environment|env).*(variables)?").unwrap()),
+                gnu_command: "env".to_string(),
+                bsd_command: Some("env".to_string()),
+                description: "Show environment variables".to_string(),
+            },
+
+            // POSIX: find executable files
+            PatternEntry {
+                required_keywords: vec!["find".to_string(), "executable".to_string()],
+                optional_keywords: vec!["files".to_string(), "scripts".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|list|search).*(executable|script|program).*(files?|directory)?").unwrap()),
+                gnu_command: "find . -type f -perm -111".to_string(),
+                bsd_command: Some("find . -type f -perm -111".to_string()),
+                description: "Find executable files".to_string(),
+            },
+
+            // POSIX: create empty file
+            PatternEntry {
+                required_keywords: vec!["create".to_string(), "file".to_string()],
+                optional_keywords: vec!["empty".to_string(), "blank".to_string(), "new".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(create|make).*(empty|blank|new).*(file|document)").unwrap()),
+                gnu_command: "touch newfile.txt".to_string(),
+                bsd_command: Some("touch newfile.txt".to_string()),
+                description: "Create empty file".to_string(),
+            },
+
+            // POSIX: show file type
+            PatternEntry {
+                required_keywords: vec!["type".to_string(), "file".to_string()],
+                optional_keywords: vec!["show".to_string(), "kind".to_string(), "identify".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|what|identify|get|check).*(file).*(type|kind|format)").unwrap()),
+                gnu_command: "file document.pdf".to_string(),
+                bsd_command: Some("file document.pdf".to_string()),
+                description: "Show file type".to_string(),
+            },
+
+            // POSIX: print specific columns from file
+            PatternEntry {
+                required_keywords: vec!["specific".to_string(), "columns".to_string()],
+                optional_keywords: vec!["print".to_string(), "file".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(print|show|extract).*(specific|certain|selected).*(columns|fields).*(file)?").unwrap()),
+                gnu_command: "awk '{print $1, $3}' file.txt".to_string(),
+                bsd_command: Some("awk '{print $1, $3}' file.txt".to_string()),
+                description: "Print specific columns from file".to_string(),
+            },
+
         ];
 
         // Sort patterns by specificity (number of required keywords) in descending order.

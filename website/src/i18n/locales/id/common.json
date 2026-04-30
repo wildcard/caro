@@ -65,5 +65,15 @@
         "backToHome": "Kembali ke Beranda"
       }
     }
+  },
+  "nav": {
+    "dropdown": {
+      "vsWarp": "vs Warp",
+      "vsGitHubCopilot": "vs GitHub Copilot CLI",
+      "vsKiro": "vs Kiro CLI",
+      "blog": "Artikel",
+      "faq": "FAQ (Pertanyaan)",
+      "github": "GitHub"
+    }
   }
 }

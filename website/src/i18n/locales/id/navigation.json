@@ -44,5 +44,14 @@
     },
     "inspiration": "Terinspirasi oleh Caroline dari Portal—kesetiaan yang berubah menjadi kawan digital",
     "elevatorCredit": "Efek gulir oleh"
+  },
+  "links": {
+    "blog": "Artikel",
+    "github": "GitHub"
+  },
+  "holidayTheme": {
+    "options": {
+      "hanukkah": "Hanukkah"
+    }
   }
 }
