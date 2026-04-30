@@ -41,6 +41,15 @@ Expected behavior:
 - Reports findings in structured format
 ```
 
+Notify the shared log on profile start/end so other parallel sessions see
+this loop running:
+
+```bash
+bin/notify qa "spawn profile=$PROFILE"
+# ... profile run ...
+bin/notify qa "complete profile=$PROFILE findings=$N"
+```
+
 ### 3. Collect Results
 
 Each profile returns findings in format:
@@ -75,6 +84,7 @@ gh issue create \
   --title "[QA] ${title}" \
   --label "qa,${severity},${type}" \
   --body "${body}"
+bin/notify qa "issue opened severity=$severity title=\"$title\""
 ```
 
 Issue body template:

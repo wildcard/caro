@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Cross-session agent notification log.
+#
+# Inspired by swarm-forge's notify-agent.sh — gives parallel Claude sessions
+# (and humans) a single tail-able stream of who-did-what-when across all
+# agents, loops, and worktrees. Tail with:
+#
+#   tail -f .claude/notifications.log
+#
+# Usage:
+#   bin/notify <role> <message...>
+#
+# Examples:
+#   bin/notify coder "claim caro-xk0.1"
+#   bin/notify reviewer "block: clippy warning in src/safety/patterns.rs"
+#   bin/notify pr-mgmt "rebased PR #602"
+#
+# Environment:
+#   CARO_NOTIFY_LOG  override log path (default: <repo-root>/.claude/notifications.log)
+
+set -euo pipefail
+
+if [ "$#" -lt 1 ]; then
+  echo "usage: $0 <role> <message...>" >&2
+  exit 2
+fi
+
+ROLE="$1"; shift
+MSG="${*:-}"
+
+if LOG="${CARO_NOTIFY_LOG:-}"; [ -z "$LOG" ]; then
+  ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+  LOG="$ROOT/.claude/notifications.log"
+fi
+
+mkdir -p "$(dirname "$LOG")"
+printf '%s | %-16s | %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$ROLE" "$MSG" >> "$LOG"

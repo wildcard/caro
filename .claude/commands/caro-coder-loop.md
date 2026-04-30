@@ -26,6 +26,7 @@ NEXT=$(bd ready --json 2>/dev/null | jq -r '.[] | select(.labels[]? == "v1.2.0")
 [ -z "$NEXT" ] && { echo "no ready v1.2.0 work"; exit 0; }
 bd claim "$NEXT"
 bd show "$NEXT"
+bin/notify coder "claim $NEXT"
 ```
 
 Capture:
@@ -90,6 +91,56 @@ When done:
 2. Report: files changed, tests added, clippy status, test pass count
 ```
 
+### 4.5. Reviewer gate (swarm-forge pattern)
+
+Before validating or opening a PR, spawn an independent **Reviewer** sub-agent
+via the Task tool. Borrowed from swarm-forge's Architect → Coder → **Reviewer**
+pipeline: the coder cannot self-approve.
+
+**Subagent**: `qa-testing-expert` (model: opus)
+
+**Reviewer prompt template:**
+
+```
+You are the REVIEWER gate for caro v1.2.0 task $NEXT (PR not yet opened).
+
+Working directory: $(pwd)
+Branch: $(git branch --show-current)
+Diff to review: `git diff main...HEAD`
+
+You MUST run, and your verdict MUST cite the actual output of:
+  1. `cargo fmt --all -- --check`
+  2. `cargo clippy --all-targets --all-features -- -D warnings`
+  3. `cargo test`
+  4. Constitution check: any change under `src/safety/` MUST have a
+     corresponding test added in the same diff (see
+     `.claude/rules/constitution.md` Tier-1 / `safety-pattern-developer`
+     skill).
+  5. Good-boy-scout check: the diff does not introduce obvious
+     nearby brokenness left unfixed.
+
+Return JSON on the LAST line of your reply:
+  {"verdict":"pass"} | {"verdict":"block","reasons":["...","..."]}
+
+Be terse. No PR is opened on `block` — instead the loop sends your
+reasons back to the coder for a fix pass.
+```
+
+Capture the verdict:
+
+```bash
+# Reviewer JSON is on the last line of the agent reply.
+# If verdict == block, do NOT open a PR. Append reasons to the
+# kraken/spark prompt and re-delegate (max 2 retries before bailing).
+if [ "$VERDICT" = "block" ]; then
+  bin/notify reviewer "block $NEXT: $REASONS"
+  # re-delegate to coder with $REASONS appended; on third block, mark blocked.
+  bd update "$NEXT" --status blocked --notes "reviewer blocked: $REASONS"
+  exit 1
+fi
+bin/notify reviewer "pass $NEXT"
+```
+
 ### 5. Validate locally
 
 ```bash
@@ -128,6 +179,7 @@ EOF
 )" --json url --jq .url)
 
 bd close "$NEXT" --notes "PR: $PR_URL"
+bin/notify coder "pr opened $PR_URL ($NEXT)"
 echo "✓ closed $NEXT → $PR_URL"
 ```
 
