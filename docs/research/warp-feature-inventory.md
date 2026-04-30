@@ -51,7 +51,7 @@ Complexity tiers: **S** = small (1–3 days), **M** = medium (1–2 weeks), **L*
 | 4 | `asset_macro` | (utility) | Rust | S | AGPL | — | Compile-time asset embedding macro. Tauri's `include_dir!` is sufficient. |
 | 5 | `channel_versions` | (release) | Rust | S | AGPL | — | Stable/beta/dev channel version handling. Caro releases via crates.io; not needed. |
 | 6 | `command` | (utility) | Rust | S | AGPL | ✅ | Wraps `std::process::Command` to suppress Windows console flash. **Adapt verbatim** — same problem on Windows for our PTY child processes. |
-| 7 | `command-signatures-v2` | 1. Block UX / shell-integration | Rust | M | AGPL | ✅ | Likely the OSC 133 / shell-integration parser side. **Read deeply** for our block parser ([#1015](https://github.com/wildcard/caro/issues/1015)). |
+| 7 | `command-signatures-v2` | 4. Cmd palette / 5. Editor input | Rust + JS | M | AGPL | maybe | **Pass 2 correction:** NOT the OSC 133 parser. It's a `rust-embed` of a JS bundle (`js/build/`) used for command-line syntax analysis (powering `warp_completer` and inline AI suggestions). v0.2+. |
 | 8 | `computer_use` | 2. AI integration | Rust | L | AGPL | — | Anthropic-style "computer use" tool. Defer to v0.3+; not a v0.1 caro feature. |
 | 9 | `editor` (`warp_editor`) | 5. Editor input | Rust | XL | AGPL | ⚠️ partial | Their full code-editor (multi-cursor, LSP, syntax tree). For v0.1 we want only the *input line* — a thin React `<input>` with multi-line + history is enough. |
 | 10 | `field_mask` | (utility) | Rust | S | AGPL | — | Probably gRPC-style FieldMask helper. Not needed. |
@@ -100,7 +100,7 @@ Complexity tiers: **S** = small (1–3 days), **M** = medium (1–2 weeks), **L*
 | 53 | `warp_logging` | (utility) | Rust | S | AGPL | — | Logging wrapper. — |
 | 54 | `warp_ripgrep` | 4. Search | Rust | M | AGPL | maybe | Ripgrep-as-a-library wrapper. **Adapt** if we add "search inside blocks" in v0.2. |
 | 55 | `warp_server_client` | (network) | Rust | M | AGPL | — | Backend RPC client. — |
-| 56 | `warp_terminal` | **1. Block UX + VT** | Rust | XL | AGPL | ✅ | **Their VT engine + block model.** This is the deepest read of the inventory: we need to understand how they emit/group blocks. Map *their concepts* onto our libghostty-vt + OSC 133 implementation. **Do not** copy the VT — we use libghostty-vt. |
+| 56 | `warp_terminal` | **1. Block UX + terminal model** | Rust | XL | AGPL | ✅ | **Pass 2 done.** Builds on the **`vte` crate** (external, mature) + their own `model::grid::*` cell/row types + block model (`BlockId`, `BlockIndex`). OSC 133 parser at `model/ansi/control_sequence_parameters.rs:637`. Block IDs come from shell precmd, not from the terminal. **See "Pass 2 deep-read" section below for full details.** |
 | 57 | `warp_util` | (utility) | Rust | M | AGPL | — | Generic utilities. Cherry-pick as needed. |
 | 58 | `warp_web_event_bus` | (network) | Rust | M | AGPL | — | Event bus to web. — |
 | 59 | `warpui` | 7. UI framework | Rust | XL | **MIT** | — | Warp's UI framework. **MIT-licensed, more permissive.** We use React/Tauri; not directly applicable, but read for component patterns. |
@@ -114,8 +114,8 @@ Complexity tiers: **S** = small (1–3 days), **M** = medium (1–2 weeks), **L*
 
 In priority order, these are the crates we should read end-to-end (vs glance):
 
-1. **`warp_terminal`** — block model + VT integration patterns. Inform [#1015](https://github.com/wildcard/caro/issues/1015) (block parser).
-2. **`command-signatures-v2`** — likely their shell-integration / OSC 133 parser. Direct precedent for [#1015](https://github.com/wildcard/caro/issues/1015) and [#1016](https://github.com/wildcard/caro/issues/1016).
+1. **`warp_terminal`** ✅ done in pass 2 — block model + VT integration patterns. Inform [#1015](https://github.com/wildcard/caro/issues/1015) (block parser).
+2. ~~`command-signatures-v2`~~ — *demoted by pass 2: it's a JS bundle for command-line syntax, not the OSC 133 parser.* The OSC 133 parser is inside `warp_terminal`.
 3. **`fuzzy_match`** — algorithm + UX for command palette. Inform [#1019](https://github.com/wildcard/caro/issues/1019).
 4. **`persistence`** — schema for command history + session persistence. Inform [#1019](https://github.com/wildcard/caro/issues/1019) (history) and [#1020](https://github.com/wildcard/caro/issues/1020) (tab restore).
 5. **`ipc` + `jsonrpc`** — wire format for caro-terminal ↔ Turi. Inform [#1022](https://github.com/wildcard/caro/issues/1022).
@@ -150,5 +150,118 @@ License note: AGPL-3.0 in caro means we can vendor or depend on AGPL-3.0 crates 
 | Pass | Date | Crates inventoried | Notes |
 |---|---|---|---|
 | 1 | 2026-04-28 | All 65 crates classified at metadata-level | First pass — descriptions inferred from name + brief `lib.rs` doc-comment. Deep reads pending in passes 2–9. |
+| 2 | 2026-04-30 | `warp_terminal` deep-read + bootstrap scripts + correction to `command-signatures-v2` | See "Pass 2 deep-read" section below. |
 
-Subsequent passes (one per "deep-read" crate above) will append rows here and refine the table.
+---
+
+## Pass 2 deep-read — `warp_terminal` + shell bootstrap
+
+### Architectural correction to pass 1
+
+| Pass-1 guess | Pass-2 reality |
+|---|---|
+| `command-signatures-v2` is the OSC 133 parser | **Wrong.** It's a `rust-embed` of a JS bundle (`js/build/`) used for command-line syntax analysis (likely powering inline AI completions / `warp_completer`). The OSC 133 parser lives in `warp_terminal/src/model/ansi/control_sequence_parameters.rs:637`. |
+| Warp wrote its own VT parser from scratch | **Wrong.** They depend on the well-known **`vte`** crate (same crate alacritty/wezterm use) and build their *terminal model* on top of `vte`'s parser callbacks. |
+| Block boundaries come from OSC 133 alone | **Partially wrong.** Warp uses a **two-channel protocol**: standard OSC 133 (interoperable) + their own OSC 9278/9277/9279 (Warp-private, JSON-over-DCS-or-OSC). |
+
+### How Warp actually does block-based UX
+
+```
+                    PTY bytes
+                       │
+                       ▼
+                ┌──────────────┐
+                │  vte parser  │  (Rust crate, mature)
+                └──────┬───────┘
+                       │ callbacks
+                       ▼
+        ┌──────────────────────────────┐
+        │  warp_terminal terminal model│
+        │  - grid (cells, rows)        │
+        │  - block list (BlockId, idx) │
+        │  - escape_seq dispatch       │
+        └──────────────┬───────────────┘
+                       │
+       ┌───────────────┼────────────────┐
+       │               │                │
+       ▼               ▼                ▼
+  OSC 133            OSC 9278         OSC 9277
+  prompt             warp JSON        in-band cmd
+  markers            messages         output
+  (interop)          (warp-only)      (warp-only)
+```
+
+**OSC 133 (interoperable, public spec):**
+- `\e]133;A\a` — prompt start (`PromptKind::Initial`)
+- `\e]133;B\a` — prompt end / command-input start
+- `\e]133;P;k=r\a` — right-side prompt (Warp extension; spec-compatible)
+- **NOT used by Warp:** `OSC 133 ; C` (command-start), `OSC 133 ; D ; exit` (output-end + exit). Warp uses OSC 9278 JSON instead.
+
+**OSC 9278 (Warp-private, JSON-encoded):**
+- Carries `{"hook": "CommandFinished", "value": {"exit_code": N, "next_block_id": "precmd-$SESSION-$N"}}` and similar.
+- Encoded as either `\e]9278;<hex-encoded JSON>\a` (OSC) or `\eP$d<hex>\x9c` (DCS). DCS is preferred but can't be used on Windows ConPTY.
+
+**OSC 9277 (Warp-private, in-band command output):**
+- Wraps stdout of "in-band commands" — commands the *terminal* sends *to* the shell to execute (think AI side-quests). Bracketed by `\e]9277;A\a` ... `\e]9277;B\a`.
+
+**OSC 9279 (Warp-private, grid reset):**
+- `\e]9279\a` — clears the rendering grid at block boundaries.
+
+### Block ID generation
+
+Block IDs come from the **shell precmd hook**, not from the terminal:
+
+- **Format:** `precmd-{WARP_SESSION_ID}-{monotonic counter}` (cheap)
+- **Or:** `manual-{UUID}` for blocks created in-app (e.g. AI-generated)
+- **Why not UUIDs in the precmd?** Quote: *"It is expensive to create a UUID in the bootstrap script."* (from `block_id.rs`). Bootstrap script overhead matters because it runs on every prompt cycle.
+
+### Bootstrap scripts (`app/assets/bundled/bootstrap/`)
+
+| Shell | File | LoC | Hook framework |
+|---|---|---|---|
+| Bash | `bash_body.sh` | 700+ | `bash-preexec` (vendored) |
+| Zsh | `zsh_body.sh` | 600+ | Native `preexec_functions` / `precmd_functions` |
+| Fish | `fish.sh` | 700+ | Native `--on-event fish_preexec` / `fish_prompt` |
+
+**Critical compatibility patterns we should adopt:**
+1. **p10k coexistence:** Zsh script specifically detects powerlevel10k and preserves its precmd functions. Without this, p10k breaks.
+2. **`HISTCONTROL=ignorespace`** trick: prefix internal commands with a space so they don't pollute history. Unset after bootstrap.
+3. **Generator commands:** Mechanism for the terminal to ask the shell to run a side command (`OSC 9277`). Ours can skip this for v0.1.
+4. **Windows ConPTY transport switch:** Detect `WARP_USING_WINDOWS_CON_PTY` and use OSC instead of DCS — DCS gets mangled.
+5. **bash-preexec dependency:** Bash has no native preexec, so they vendor `bash-preexec`. Apache-2.0 licensed. AGPL-compatible.
+
+### Decisions for caro-terminal v0.1
+
+These are concrete updates to the existing issues based on pass-2 findings:
+
+| Issue | Decision | Reason |
+|---|---|---|
+| **Architecture** | **Use `vte` crate instead of (or alongside) libghostty-vt** | `vte` is mature, pure-Rust, well-tested by alacritty/wezterm. libghostty-vt is newer and Zig-based. **Spike (#1010) should benchmark both.** |
+| **#1015 block parser** | Support standard **OSC 133 A/B/C/D** (interoperable with iTerm2/wezterm/ghostty users) | Warp's narrower set is fine for warp-only, but caro-terminal benefits from working with any user's existing OSC-133-emitting shell. |
+| **#1016 shell snippets** | Emit standard OSC 133 (A/B/C/D + exit code in D), **NOT** Warp's OSC 9278 | Keeps our snippets ~50 lines each instead of 700, and interoperable. Caro doesn't need warp's RPC — for AI side-commands we'll PTY-spawn a sub-shell. |
+| **#1016 shell snippets** | **Must coexist with p10k, starship, oh-my-zsh** | Wrap user's existing precmd/PROMPT_COMMAND chain instead of overwriting. Detect known frameworks and preserve their hooks. |
+| **#1015 block parser** | Block ID = monotonic `$SESSION-$N` from shell, OR `manual-{uuid}` | Same scheme as Warp. Avoid UUIDs in the precmd hot path. |
+| **#1010 spike** | **Compare `vte` (Rust) vs `libghostty-vt` (Zig FFI)** as alternatives | Pass-1 assumed libghostty-vt is the only option. `vte` may be simpler. Spike should produce a one-page comparison with: build complexity, parsing throughput, screen-state API, license, maintainer activity. |
+| **#1018 AI prompt bar** | Don't try to reimplement OSC 9278 / generator-commands | Warp uses these for tight terminal↔AI loop. Caro's NL→cmd is "type, generate, insert" — no in-band feedback. v0.3+ if ever. |
+
+### Open questions (updated)
+
+Closed by pass 2:
+- ~~Is `command-signatures-v2` the OSC 133 parser?~~ **No, it's an embedded JS bundle for command-line syntax.**
+- ~~Where is the VT engine?~~ **It's `vte` crate (external) + `warp_terminal` model (their own).**
+- ~~Block-emit fallback for un-instrumented shells?~~ **No fallback — Warp's bootstrap runs on shell init; if not present, no blocks. Caro should match this behavior in v0.1.**
+
+Still open for later passes:
+- [ ] `input_classifier` — what classifier is it? ML model embedded in the binary? Heuristic regex?
+- [ ] AI agent loop — what's the prompt template + tool schema in `crates/ai/`?
+- [ ] Are *all* UI subcrates MIT, or just `warpui` + `warpui_core`?
+- [ ] How does `command-signatures-v2`'s JS module get invoked? V8? Deno? Lazy WASM?
+- [ ] Does `persistence` use diesel (we saw `diesel.toml`) — schema migration story?
+
+### Next pass
+
+Priority shifts after pass 2 findings:
+1. **`vte` vs `libghostty-vt` spike** ([#1010](https://github.com/wildcard/caro/issues/1010)) **moves up to highest priority** — affects foundation [#1014](https://github.com/wildcard/caro/issues/1014) directly.
+2. `fuzzy_match` (palette ranking — small, focused read).
+3. `persistence` (history schema — diesel-based, schema migrations).
+4. `ipc` + `jsonrpc` (Turi RPC contract).
