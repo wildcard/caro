@@ -1,0 +1,8 @@
+[package]
+name = "vt-spike"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+vte = "0.13"
