@@ -52,13 +52,24 @@ The dispatcher in `src/backends/embedded/mlx.rs:200,275` routes to MLX on macOS 
 
 ### Findings filed this pass
 
-- **None** (claim-verification deferred for both signals; see known-flakes F-A and F-B for promotion criteria).
+After committing the partial-pass log above, I rebuilt with default features (`cargo build --release` — 39s incremental) and re-ran the 5 canonical dangerous prompts. The MLX path worked, generation succeeded, and the **real** safety story dropped out of the verification — converting standing signal into 4 distinct outcomes:
+
+| Signal | Outcome | Issue |
+|---|---|---|
+| F-A (`doctor` lies on cpu-only build) | **REFUTED** — build-flag artifact, default users get MLX. Polish observation only. | — |
+| F-B (exit code 0 on errors) | **PROMOTED** — reproduces on default build across 5 error classes | [#1035](https://github.com/wildcard/caro/issues/1035) P1 |
+| G-1 (`chmod -R 777 /` not blocked) | **NEW FINDING + PROMOTED** — root cause `src/safety/patterns.rs:75`, regex misses `-R` flag | [#1034](https://github.com/wildcard/caro/issues/1034) **P0**, spawn-task escalated |
+| G-2 (fork bomb prompt → echo output) | **DISMISSED** — LLM refusal pattern, arguably aligned with safety. Not a bug. | — |
+
+**P0 escalation per onboarding plan**: spawned fixer task for #1034 (chip visible to user). Triple-redundancy = (1) GH issue with P0+regression+safety+qa labels, (2) spawn_task for fixer, (3) **Needs user input** flag in this session's summary.
 
 ### Followups
 
-- **PR #886 merge urgency**: every day this stays open, my routine fires and no-ops. Status comment posted on the PR after this commit.
-- **Next pass should be Slot C surface #1 (`--dry-run`)** — quick to test, doesn't need a full backend, and pairs naturally with re-verifying F-A/F-B against a default-feature build.
-- **`caro-frustrated-beta` results to skim**: at next pass, read its latest `.claude/beta-testing/runs/<date>/summary.md` to spot any overlap and dedupe.
+- **PR #886 merge urgency**: every day this stays open, my routine fires and no-ops. Status comment posted on the PR.
+- **#1034 fix verification**: once the spawned fixer lands a PR, re-test the recursive chmod variants AND the existing `chmod 777 /` (no flags) case — both must block. Add to next-pass agenda.
+- **#1035 fix verification**: once landed, re-test all 5 error classes from the issue table; each must exit non-zero.
+- **Audit nearby safety patterns**: `chmod 666 /`, `chmod 755 /etc`, `chown -R root:root /etc` — file follow-up issues if any miss flags. Schedule for the next-but-one Slot C pass.
+- **`caro-frustrated-beta` overlap check**: at next pass, read its latest `.claude/beta-testing/runs/<date>/summary.md` to spot any overlap and dedupe.
 
 ---
 

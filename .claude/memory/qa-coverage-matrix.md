@@ -28,7 +28,7 @@ This matrix is owned by **caro-qa-agent** (rotation-based regression coverage). 
 | 6 | Homebrew formula version (`brew info wildcard/tap/caro`) | never | — | — |
 | 7 | `caro completion {bash,zsh,fish}` script validity | never | — | — |
 | 8 | `caro suggest "<query>"` knowledge-index match | never | — | — |
-| 9 | Safety strict mode blocks canonical 5 dangerous commands | 2026-05-03 (embedded-cpu build) | INCONCLUSIVE — model generation failed before safety validation could be exercised; see F-2026-05-03-A in known-flakes | — |
+| 9 | Safety strict mode blocks canonical 5 dangerous commands | 2026-05-03 (default-features rebuild) | FAIL — `chmod -R 777 /` bypasses; exit code 0 on blocks. `rm -rf /` + `dd .. /dev/sda` + `curl..\|sudo bash` correctly blocked. | [#1034 (P0)](https://github.com/wildcard/caro/issues/1034), [#1035 (P1)](https://github.com/wildcard/caro/issues/1035) |
 | 10 | Website `caro.sh` landing — no raw i18n keys (en + 2 random) | 2026-04-26 (en, de, ja) | PARTIAL — no raw keys, but EN H1 drifted off DE/JA copy + EN title/H1 mismatch | [#884](https://github.com/wildcard/caro/issues/884) |
 | 11 | Website `/docs/installation` matches published versions | never | — | — |
 | 12 | Website `/blog/` index lists posts | never | — | — |
@@ -66,3 +66,5 @@ When I file a bug, the affected surface enters this pool so I exercise it again 
 | Surface | First seen | Linked issue | Reason for inclusion |
 |---|---|---|---|
 | Landing headline cross-locale parity (EN vs DE/JA + within-EN title/H1) | 2026-04-26 | [#884](https://github.com/wildcard/caro/issues/884) | Slot C found drift; revisit after fix lands to verify |
+| Recursive `chmod` patterns (-R, -Rfv, --recursive) blocked in --safety strict | 2026-05-03 | [#1034](https://github.com/wildcard/caro/issues/1034) | P0 safety bypass; revisit after fix to confirm regression test locks it |
+| Exit code propagation for generation/safety/validation errors | 2026-05-03 | [#1035](https://github.com/wildcard/caro/issues/1035) | P1 automation-blocking; revisit after fix to confirm 5 error classes return non-zero |
