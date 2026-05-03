@@ -1,9 +1,64 @@
 # caro-qa-agent — Session Log
 
-**Last updated**: 2026-04-26 by caro-qa-agent
+**Last updated**: 2026-05-03 by caro-qa-agent
 **Reading order**: most recent first.
 
 This is the append-only chronicle of every QA pass. Each entry records the rotation slots run, what was tested, what was found, and where findings were filed. Other agents reading this file: scroll to the top for the latest state; the headline tells you whether the project is in a clean or known-flaky state right now.
+
+---
+
+## 2026-05-03 — Session resume + Slot A + Slot C #9 (safety strict mode)
+
+**Trigger**: Manual resume by user after ~7-day quiet period. Daily remote routine [trig_01Tk7DxyXV7LeYcFjgmTG1mZ](https://claude.ai/code/routines/trig_01Tk7DxyXV7LeYcFjgmTG1mZ) has been firing daily but exiting clean — bootstrap PR [#886](https://github.com/wildcard/caro/pull/886) has not yet merged, so the routine cannot find these memory files on `main`. ~7 no-op runs lost.
+**Rotation**: A (smoke) + C (random past feature, surface #9 = safety strict mode).
+**Local CLI under test**: rebuilt from latest `main` (29c3ce9, 2026-04-30) into `target/release/caro` v1.3.0. Build flags: `--no-default-features --features embedded-cpu` per `release-version-alignment.md` example.
+
+### Project state changes since 2026-04-26 (gap-fill)
+
+| Change | Detail |
+|---|---|
+| **caroml shipped (#893, merged 2026-04-29)** | New `caro check` subcommand visible in `--help`. Validates `.caro` task files (parser + AST + lock format). Added to coverage matrix as surface #15. |
+| **caro-terminal proposed (#1009-#1023, 2026-04-30)** | 15 issues for a Ghostty-backed desktop GUI. Planning/foundation only — no shipped binary. Marked out-of-scope until first user-facing release. |
+| **Sibling QA routine: `caro-frustrated-beta` (PR #910, merged 2026-04-27)** | Daily 5 AM cron, single frustrated-power-user persona, tests website-advertised queries against the binary. Files findings under `.claude/beta-testing/runs/<date>/`, labels `qa-routine` + `frustrated-beta` + `bug-intent-dropped` + `website-broken-promise`. Issue [#947](https://github.com/wildcard/caro/issues/947) is its first P0 finding. **Coordination plan** added to coverage-matrix header — my rotation no longer picks website-promise tests since frustrated-beta covers them. |
+| **i18n eval coverage closed (#1027, 2026-04-29)** | Locale parity around the original PR #874 regression class is being actively exercised by an eval suite now. |
+| **Pull-request #886 status** | OPEN, MERGEABLE, mergeStateStatus UNSTABLE. 50 checks ran; 2 failures (`ChromaDB Integration Tests`, `Security Audit`) are repo-wide on main, not specific to this docs-only PR. **Action**: rebased on origin/main (1 commit ahead), refreshed memory, will push and add a status comment asking for merge so the daily routine can start doing real work. |
+
+### Slot A — Smoke
+
+| Check | Outcome | Detail |
+|---|---|---|
+| `cargo build --release --no-default-features --features embedded-cpu` | PASS | 49.8s incremental rebuild on top of warm target/. 4.7 MB binary. |
+| `caro --version` | PASS | `caro 1.3.0 (29c3ce9 2026-04-30)`. Same advertised version as v1.3.0 ship. |
+| `caro --help` | PASS | 11 subcommands (was 9 on 2026-04-26). New: `check` (caroml). Existing: `doctor`, `integration`, `init`, `config`, `test`, `completion`, `suggest`, `ai`, `shell-init`, `help`. |
+| `caro doctor` | PASS-with-caveat | "✓ All systems operational" — but see Slot C finding F-A, doctor's "Embedded (ready)" line is unreliable on `--no-default-features` builds. |
+
+### Slot C — Surface #9: Safety strict mode blocks canonical 5
+
+**Method**: ran `caro --safety strict --dry-run -p "<dangerous prompt>"` for the canonical 5 — `rm -rf /`, fork bomb, `dd if=/dev/zero of=/dev/sda`, `curl … | sudo bash`, `chmod -R 777 /`. Each prompt was phrased as a natural-language request so the LLM had to first generate the dangerous command and then safety would block it.
+
+**Result**: **INCONCLUSIVE** — all 5 prompts errored before safety could be reached:
+
+```
+Error: Command generation failed: Model generation failed: Failed to load model:
+Configuration error: MLX backend not enabled. Rebuild with --features embedded-mlx
+```
+
+The dispatcher in `src/backends/embedded/mlx.rs:200,275` routes to MLX on macOS aarch64 even when the binary was compiled with only `embedded-cpu`. Two real findings dropped out of this:
+
+1. **F-2026-05-03-A** — `caro doctor` reports "Embedded (ready)" while the runtime path it actually dispatches to is missing. `src/cli/doctor.rs:139` only checks `backend_status.embedded_available` (model-file presence), not feature-flag-vs-dispatch alignment. Both findings logged in `qa-known-flakes.md` with promotion criteria — they're real but build-flag-coupled, so I'm doing claim-verification rebuild before filing GH issues.
+2. **F-2026-05-03-B** — Generation-failure exit code is 0, not non-zero. Automation cannot distinguish success from failure. Same disposition (logged, not yet filed, needs default-feature repro).
+
+**Why I didn't rebuild with default features in this pass**: full default build pulls in `cxx` + `llama_cpp` (~10+ min cold). Slot C is meant to be a 5–10 min focused pass; an unbounded rebuild would crowd out the rest of the rotation. Defer to next QA pass with a fresh build budget.
+
+### Findings filed this pass
+
+- **None** (claim-verification deferred for both signals; see known-flakes F-A and F-B for promotion criteria).
+
+### Followups
+
+- **PR #886 merge urgency**: every day this stays open, my routine fires and no-ops. Status comment posted on the PR after this commit.
+- **Next pass should be Slot C surface #1 (`--dry-run`)** — quick to test, doesn't need a full backend, and pairs naturally with re-verifying F-A/F-B against a default-feature build.
+- **`caro-frustrated-beta` results to skim**: at next pass, read its latest `.claude/beta-testing/runs/<date>/summary.md` to spot any overlap and dedupe.
 
 ---
 
