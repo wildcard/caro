@@ -24,24 +24,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
+
+    - name: Setup Rust
+      uses: ./.github/actions/setup-rust
       with:
-        toolchain: stable
-        components: rustfmt, clippy
-    
-    - name: Cache cargo
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-lint-${{ hashFiles('**/Cargo.lock') }}
-    
-    - name: Install protobuf
-      run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+        components: rustfmt,clippy
+        cache-key-suffix: lint
+        install-protobuf: "true"
 
     - name: Check formatting
       run: cargo fmt --all -- --check
@@ -70,23 +59,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
+
+    - name: Setup Rust
+      uses: ./.github/actions/setup-rust
       with:
-        toolchain: stable
-    
-    - name: Cache cargo
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-smoke-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-smoke-cargo-
-    
+        cache-key-suffix: smoke
+        cache-restore-keys: |
+          ${{ runner.os }}-cargo-smoke-
+
     - name: Cache model files
       uses: actions/cache@v5
       with:
@@ -94,14 +74,14 @@ jobs:
         key: model-${{ matrix.model.id }}-${{ hashFiles('src/model_catalog.rs') }}
         restore-keys: |
           model-${{ matrix.model.id }}-
-    
+
     - name: Set deterministic environment
       run: |
         echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
         echo "OPENBLAS_NUM_THREADS=1" >> $GITHUB_ENV
         echo "MKL_NUM_THREADS=1" >> $GITHUB_ENV
         echo "CARO_MODEL=${{ matrix.model.id }}" >> $GITHUB_ENV
-    
+
     - name: Display test configuration
       run: |
         echo "==================== Smoke Test Configuration ===================="
@@ -110,7 +90,7 @@ jobs:
         echo "Model ID: ${{ matrix.model.id }}"
         echo "Deterministic: OMP_NUM_THREADS=1"
         echo "=================================================================="
-    
+
     - name: Run smoke tests
       run: |
         echo "Running Tier A smoke tests with ${{ matrix.model.name }}"
@@ -118,11 +98,11 @@ jobs:
       env:
         RUST_BACKTRACE: 1
         RUST_LOG: info
-    
+
     - name: Verify cache usage
       if: steps.cache-model.outputs.cache-hit == 'true'
       run: echo "✅ Model cache hit - no download needed"
-    
+
     - name: Upload logs on failure
       if: failure()
       uses: actions/upload-artifact@v7
@@ -148,21 +128,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
+
+    - name: Setup Rust
+      uses: ./.github/actions/setup-rust
       with:
-        toolchain: stable
-    
-    - name: Cache cargo
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-unit-${{ hashFiles('**/Cargo.lock') }}
-    
+        cache-key-suffix: unit
+
     - name: Run contract tests
       run: |
         cargo test --test backend_trait_contract --verbose
@@ -189,29 +160,13 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
+    - name: Setup Rust
+      uses: ./.github/actions/setup-rust
       with:
-        toolchain: stable
-
-    - name: Cache cargo
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-knowledge-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-knowledge-cargo-
-
-    - name: Install protobuf
-      if: runner.os == 'Linux'
-      run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
-
-    - name: Install protobuf (macOS)
-      if: runner.os == 'macOS'
-      run: brew install protobuf
+        cache-key-suffix: knowledge
+        cache-restore-keys: |
+          ${{ runner.os }}-cargo-knowledge-
+        install-protobuf: "true"
 
     - name: Run knowledge integration tests
       run: cargo test --features knowledge --test knowledge_integration --verbose
@@ -244,24 +199,13 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
+    - name: Setup Rust
+      uses: ./.github/actions/setup-rust
       with:
-        toolchain: stable
-
-    - name: Cache cargo
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-chromadb-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-chromadb-cargo-
-
-    - name: Install protobuf
-      run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+        cache-key-suffix: chromadb
+        cache-restore-keys: |
+          ${{ runner.os }}-cargo-chromadb-
+        install-protobuf: "true"
 
     - name: Wait for ChromaDB to be healthy
       run: |
@@ -321,21 +265,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
+
+    - name: Setup Rust
+      uses: ./.github/actions/setup-rust
       with:
-        toolchain: stable
-    
-    - name: Cache cargo
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: macos-extended-${{ matrix.model.id }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    
+        cache-key-suffix: extended-${{ matrix.model.id }}
+        cache-key-prefix: macos
+
     - name: Cache model files
       uses: actions/cache@v5
       with:
@@ -343,7 +279,7 @@ jobs:
         key: model-${{ matrix.model.id }}-${{ hashFiles('src/model_catalog.rs') }}
         restore-keys: |
           model-${{ matrix.model.id }}-
-    
+
     - name: Display model info
       run: |
         echo "=========================================="
@@ -351,7 +287,7 @@ jobs:
         echo "Model ID: ${{ matrix.model.id }}"
         echo "Size: ${{ matrix.model.size_mb }}MB"
         echo "=========================================="
-    
+
     - name: Run comprehensive E2E tests
       run: |
         echo "Running comprehensive tests with ${{ matrix.model.name }}"
@@ -361,7 +297,7 @@ jobs:
       env:
         RUST_BACKTRACE: 1
         CARO_MODEL: ${{ matrix.model.id }}
-    
+
     - name: Upload logs on failure
       if: failure()
       uses: actions/upload-artifact@v7
@@ -383,19 +319,11 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
-    - name: Install Rust 1.83
-      uses: dtolnay/rust-toolchain@v1
+    - name: Setup Rust
+      uses: ./.github/actions/setup-rust
       with:
-        toolchain: 1.83
-
-    - name: Cache cargo
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-msrv-cargo-${{ hashFiles('**/Cargo.lock') }}
+        toolchain: "1.83"
+        cache-key-suffix: msrv
 
     # Note: We use --no-default-features to exclude the 'knowledge' feature
     # because its dependencies (fastembed -> image -> aligned) require Rust 2024 edition
@@ -416,15 +344,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
+
+    - name: Setup Rust
+      uses: ./.github/actions/setup-rust
       with:
-        toolchain: stable
-    
+        cache-key-suffix: security
+
     - name: Install cargo-audit
       run: cargo install cargo-audit
-    
+
     - name: Run security audit
       run: cargo audit
 
@@ -447,25 +375,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
+
+    - name: Setup Rust
+      uses: ./.github/actions/setup-rust
       with:
-        toolchain: stable
         targets: ${{ matrix.target }}
-    
-    - name: Cache cargo
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-build-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
-    
+        cache-key-suffix: build-${{ matrix.target }}
+
     - name: Build release binary
       run: cargo build --release --target ${{ matrix.target }} --features ${{ matrix.features }}
-    
+
     - name: Check binary size
       shell: bash
       run: |
@@ -474,11 +393,11 @@ jobs:
         else
           BINARY="target/${{ matrix.target }}/release/caro"
         fi
-        
+
         if [ -f "$BINARY" ]; then
           SIZE=$(stat -f%z "$BINARY" 2>/dev/null || stat -c%s "$BINARY")
           echo "Binary size: $SIZE bytes"
-          
+
           # Fail if binary is larger than 50MB (52,428,800 bytes)
           if [ $SIZE -gt 52428800 ]; then
             echo "❌ Binary size ($SIZE bytes) exceeds 50MB limit"
