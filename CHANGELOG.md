@@ -39,6 +39,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **BSD-family safety patterns — round 2**: Added 4 more `DangerPattern`
+  entries surfaced by a post-fix `safety-pattern-auditor` pass on the
+  initial 10. Pattern total grows 62 → 66.
+  - `zpool destroy` / `zpool labelclear` (Critical) — closes the pool-level
+    destruction gap left by the dataset-only `zfs destroy -r/-R/-f` pattern
+  - `bectl destroy` (High) — FreeBSD Boot Environment removal forecloses
+    rollback recovery
+  - `gmirror destroy` / `gmirror clear` (Critical) — GEOM mirror destruction
+    or metadata wipe
+  - `bsdlabel -w` / `disklabel -w` (Critical) — destroys partition table on
+    FreeBSD/OpenBSD; the `(?:\S+\s+)*?` shape allows interleaved flags
+- **`bsdinstall` anchor robustness**: changed
+  `(^|[;&|]\s*)(sudo\s+)?bsdinstall\b` to
+  `(^\s*|[;&|]+\s*)(sudo\s+)?bsdinstall\b` to close two bypasses caught
+  by the auditor — leading whitespace (`   bsdinstall`) and `&&`/`||`
+  chaining (`cd /tmp && bsdinstall`). `man bsdinstall` and
+  `which bsdinstall` remain unflagged.
 - **BSD-family safety patterns**: Added 10 new `DangerPattern` entries covering
   destructive utilities specific to FreeBSD/OpenBSD/NetBSD/macOS that the
   original GNU/Linux-flavored set did not catch:

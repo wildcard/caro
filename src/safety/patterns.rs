@@ -422,10 +422,12 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
                     .to_string(),
             shell_specific: None,
         },
-        // HIGH: FreeBSD automated installer invoked outside install media
-        // Anchored to start-of-statement so `man bsdinstall` / `which bsdinstall` are safe.
+        // HIGH: FreeBSD automated installer invoked outside install media.
+        // Anchored to start-of-statement so `man bsdinstall` / `which bsdinstall`
+        // are safe. The `^\s*` prefix accepts leading whitespace; `[;&|]+` accepts
+        // `&&` and `||` separators (post-fix from safety-pattern-auditor).
         DangerPattern {
-            pattern: r"(^|[;&|]\s*)(sudo\s+)?bsdinstall\b".to_string(),
+            pattern: r"(^\s*|[;&|]+\s*)(sudo\s+)?bsdinstall\b".to_string(),
             risk_level: RiskLevel::High,
             description:
                 "FreeBSD automated installer (bsdinstall) — destructive outside install media"
@@ -447,6 +449,47 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             pattern: r"jail\s+-r\s+\w+".to_string(),
             risk_level: RiskLevel::Moderate,
             description: "FreeBSD jail removal (jail -r) terminates running container".to_string(),
+            shell_specific: None,
+        },
+        // ──────────────────────────────────────────────────────────────────
+        // BSD-family destructive commands — round 2.
+        // Surfaced by the post-fix safety-pattern-auditor pass on PR #1005.
+        // The first round caught dataset-level destruction (`zfs destroy -r`)
+        // but missed pool-level, boot-environment, GEOM-mirror, and
+        // disklabel-rewrite destruction. These add the missing breadth.
+        // ──────────────────────────────────────────────────────────────────
+
+        // CRITICAL: ZFS pool destruction or label clearing.
+        // Worse than `zfs destroy <dataset>` — wipes the entire pool.
+        DangerPattern {
+            pattern: r"zpool\s+(destroy|labelclear)\s+\S+".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "ZFS pool destruction or label clearing — wipes entire pool".to_string(),
+            shell_specific: None,
+        },
+        // HIGH: FreeBSD Boot Environment destruction.
+        // Removes a snapshot-based boot env, foreclosing rollback recovery.
+        DangerPattern {
+            pattern: r"bectl\s+destroy\s+\S+".to_string(),
+            risk_level: RiskLevel::High,
+            description: "FreeBSD Boot Environment destruction (bectl destroy)".to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: GEOM mirror destruction or metadata clearing.
+        DangerPattern {
+            pattern: r"gmirror\s+(destroy|clear)\s+\w+".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "FreeBSD GEOM mirror destruction or metadata wipe".to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: Disklabel rewrite (FreeBSD bsdlabel + OpenBSD disklabel).
+        // The `(?:\S+\s+)*?` allows flags AND device path between the
+        // command and the `-w` rewrite flag (e.g. `bsdlabel -B -w -r /dev/da0`).
+        DangerPattern {
+            pattern: r"(bsdlabel|disklabel)\s+(?:\S+\s+)*?-w\b".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "BSD disklabel rewrite (bsdlabel/disklabel -w) destroys partition table"
+                .to_string(),
             shell_specific: None,
         },
     ]

@@ -723,6 +723,23 @@ async fn test_bsd_specific_dangerous_commands() {
         ("chflags noschg /sbin/init", RiskLevel::High),
         // 7. Jail removal
         ("jail -r webjail", RiskLevel::Moderate),
+        // 8. ZFS pool destruction (the nuclear option above zfs destroy <dataset>).
+        //    Surfaced by the post-fix safety-pattern-auditor pass.
+        ("zpool destroy tank", RiskLevel::Critical),
+        ("zpool labelclear /dev/da0", RiskLevel::Critical),
+        // 9. FreeBSD Boot Environment destruction
+        ("bectl destroy old-be", RiskLevel::High),
+        // 10. GEOM mirror destruction
+        ("gmirror destroy gm0", RiskLevel::Critical),
+        ("gmirror clear da0", RiskLevel::Critical),
+        // 11. Disklabel rewrite (FreeBSD bsdlabel + OpenBSD disklabel).
+        //     Common usage interleaves flags before -w.
+        ("bsdlabel -w da0 auto", RiskLevel::Critical),
+        ("disklabel -w sd0 auto", RiskLevel::Critical),
+        ("bsdlabel -B -w -r /dev/da0", RiskLevel::Critical),
+        // 12. bsdinstall anchor robustness — leading whitespace and `&&` separator
+        ("   bsdinstall", RiskLevel::High),
+        ("cd /tmp && bsdinstall", RiskLevel::High),
     ];
 
     for &(cmd, min_risk) in bsd_dangerous {
@@ -790,6 +807,18 @@ async fn test_bsd_safe_commands_no_false_positives() {
         // bsdinstall as an argument to another tool (e.g., docs lookup)
         "man bsdinstall",
         "which bsdinstall",
+        // zpool / bectl / gmirror introspection — must not trigger the new patterns.
+        "zpool list",
+        "zpool status tank",
+        "zpool import",
+        "bectl list",
+        "bectl create newbe",
+        "gmirror status",
+        "gmirror list",
+        // bsdlabel / disklabel read-only (no -w) — must not trigger.
+        "bsdlabel /dev/da0",
+        "disklabel /dev/sd0a",
+        "bsdlabel -B /dev/da0", // bootcode install (no -w) — out of scope for this pattern
     ];
 
     for &cmd in bsd_safe {
