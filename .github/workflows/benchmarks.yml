@@ -124,7 +124,7 @@ jobs:
       # 7. Post PR comment with results (PR only)
       - name: Comment on PR with regression report
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
