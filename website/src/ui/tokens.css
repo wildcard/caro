@@ -1,17 +1,68 @@
 /**
  * Caro Design System - Design Tokens
  *
- * These tokens define the visual language of the Caro brand.
- * Import this file in components and Storybook preview.
+ * Single source of truth for visual language. The paper-and-ink palette
+ * (retro-console grey + retro-console beige + signal red + highlighter yellow)
+ * comes from the official Caro Brand Guideline. The previous orange gradient
+ * is deprecated; new code must consume `--accent` (signal red `#ef3333`).
+ *
+ * Imported by Layout.astro (and any component that needs tokens directly).
+ * Do NOT redefine these tokens elsewhere — that creates two-source drift.
+ *
+ * NOTE on Figtree: the persona spec calls for self-hosted Figtree under
+ * `website/public/fonts/`. Those files have not yet been bundled, so the
+ * `--font-display` / `--font-body` stacks fall through to system fonts.
+ * Tracked as a follow-up: bundle Figtree locally before removing the
+ * system-font fallback.
  */
+
+/* Azeret Mono — display / monospace face. Loaded from Google Fonts; the
+   system-font chain falls through gracefully if the CDN is unreachable.
+   Self-hosting is tracked as a follow-up. */
+@import url('https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* ============================================
-     BRAND COLORS
+     CARO BRAND PRIMITIVES — paper-and-ink palette
+     Source of truth: Caro Brand Guideline (signal red, retro grey,
+     retro beige, highlighter yellow). Use these via the semantic layer
+     below; only reach for primitives when no semantic alias fits.
      ============================================ */
-  --color-primary: #ff8c42;
-  --color-primary-dark: #ff6b35;
-  --color-primary-light: #ffa76c;
+  --caro-grey-950: #1a1a1a;
+  --caro-grey-900: #2b2b2b;
+  --caro-grey-800: #3a3a3a;
+  --caro-grey-700: #4f4f4f; /* PRIMARY — retro console grey */
+  --caro-grey-500: #7a7a7a;
+  --caro-grey-400: #a0a0a0; /* eyebrow / FOUNDER label grey */
+  --caro-grey-300: #c9c7c1;
+  --caro-grey-200: #d1cfc9; /* business-card back */
+  --caro-grey-100: #e7e4d5;
+
+  --caro-beige-50:  #faf8ec;
+  --caro-beige-100: #f4f1df; /* PRIMARY — retro console beige (paper) */
+  --caro-beige-200: #e9e4c8;
+  --caro-beige-300: #ddd6ab;
+
+  --caro-red-500: #ef3333;   /* SECONDARY — signal red, replaces orange gradient */
+  --caro-red-600: #e63636;
+  --caro-red-700: #c02020;
+
+  --caro-yellow-400: #fcfc62; /* SECONDARY — highlighter yellow */
+  --caro-yellow-500: #f0ed3b;
+
+  --caro-black: #000000;
+  --caro-white: #ffffff;
+
+  /* ============================================
+     BRAND COLORS — backwards-compatible token names
+     The legacy `--color-primary` family is retained as a deprecated alias
+     of `var(--accent)` so existing components keep resolving. New code
+     should consume `--accent` directly. A site-wide rename is tracked as
+     a separate follow-up PR.
+     ============================================ */
+  --color-primary: var(--accent);
+  --color-primary-dark: var(--accent-press);
+  --color-primary-light: #f56565;
   --color-support: #ea4aaa;
   --color-support-dark: #d63d99;
   --color-success: #22c55e;
@@ -54,6 +105,44 @@
   --color-link-visited: #ff8c42;
 
   /* ============================================
+     CARO SEMANTIC TOKENS — brand-aligned aliases for new components
+     Use these in NEW code; legacy --color-* aliases stay for the
+     migration window. Components currently consuming via fallback
+     (e.g. var(--accent, #ef3333)) will resolve to these definitions.
+     ============================================ */
+  --bg:            var(--caro-beige-100);   /* paper background */
+  --bg-subtle:     var(--caro-beige-50);
+  --bg-raised:     var(--caro-white);       /* cards on paper */
+  --bg-inverse:    var(--caro-grey-700);    /* dark terminal panel */
+  --bg-stage:      var(--caro-grey-200);
+
+  --fg:            var(--caro-grey-700);
+  --fg-strong:     var(--caro-grey-900);
+  --fg-muted:      var(--caro-grey-500);
+  --fg-subtle:     var(--caro-grey-400);    /* eyebrow / meta labels */
+  --fg-inverse:    var(--caro-beige-100);
+
+  --accent:        var(--caro-red-500);
+  --accent-hover:  var(--caro-red-600);
+  --accent-press:  var(--caro-red-700);
+  --highlight:     var(--caro-yellow-400);
+
+  --border:        var(--caro-grey-300);
+  --border-strong: var(--caro-grey-700);
+
+  /* Status / command-risk levels (mirrored in the Rust CLI palette) */
+  --status-safe:     #3fa34d;
+  --status-warn:     var(--caro-yellow-400);
+  --status-danger:   var(--caro-red-500);
+  --status-critical: var(--caro-red-700);
+
+  /* Terminal-window semantic colors */
+  --term-bg:     var(--caro-grey-700);
+  --term-fg:     var(--caro-beige-100);
+  --term-prompt: var(--caro-yellow-400);
+  --term-dim:    var(--caro-grey-400);
+
+  /* ============================================
      SPACING SCALE
      ============================================ */
   --space-xs: 4px;
@@ -65,11 +154,20 @@
   --space-3xl: 64px;
 
   /* ============================================
-     TYPOGRAPHY
+     TYPOGRAPHY — Figtree (body) + Azeret Mono (display/code)
+     Figtree is not yet bundled locally; the system-font fallback in
+     --font-family-base / --font-body keeps rendering identical until
+     the font files land under website/public/fonts/.
      ============================================ */
-  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+  --font-family-base: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, sans-serif;
-  --font-family-code: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  --font-family-code: 'Azeret Mono', ui-monospace, SFMono-Regular, 'Monaco', 'Menlo',
+    'Ubuntu Mono', monospace;
+
+  /* Semantic font tokens used by Caro brand components */
+  --font-display: 'Azeret Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-body:    var(--font-family-base);
+  --font-mono:    var(--font-family-code);
 
   --font-size-xs: 11px;
   --font-size-sm: 13px;
@@ -87,6 +185,13 @@
   --line-height-tight: 1.2;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.75;
+
+  /* Brand uses WIDE tracking on caps labels (200-300 per mille) */
+  --track-tight:  -0.01em;
+  --track-normal:  0;
+  --track-wide:    0.1em;
+  --track-wider:   0.2em;
+  --track-widest:  0.3em;
 
   /* ============================================
      BORDER RADIUS
@@ -199,6 +304,38 @@
   --color-text-dark: #f5f5f5;
   --color-text-muted: #9ca3af;
   --color-text-muted-dark: #9ca3af;
+
+  /* ============================================
+     CARO SEMANTIC TOKENS — dark-mode parity
+     Mirror the light-mode semantic layer with dark surfaces and inverse
+     foregrounds so any component built on --bg / --fg / --accent etc.
+     responds correctly to the .dark class switch.
+     ============================================ */
+  --bg:            var(--caro-grey-900);    /* dark-paper background */
+  --bg-subtle:     var(--caro-grey-950);
+  --bg-raised:     var(--caro-grey-800);    /* cards on dark paper */
+  --bg-inverse:    var(--caro-beige-100);   /* paper panel on dark page */
+  --bg-stage:      var(--caro-grey-800);
+
+  --fg:            var(--caro-beige-100);   /* primary copy */
+  --fg-strong:     var(--caro-white);
+  --fg-muted:      var(--caro-grey-400);
+  --fg-subtle:     var(--caro-grey-500);    /* eyebrow / meta labels */
+  --fg-inverse:    var(--caro-grey-900);    /* dark text on paper panels */
+
+  --accent:        #ff6464;                 /* lighter brand red for dark-mode contrast */
+  --accent-hover:  var(--caro-red-500);
+  --accent-press:  var(--caro-red-600);
+  --highlight:     var(--caro-yellow-400);
+
+  --border:        var(--caro-grey-800);
+  --border-strong: var(--caro-grey-300);
+
+  /* Status colours: keep semantic meaning but lift luminance for contrast */
+  --status-safe:     #7cd389;
+  --status-warn:     var(--caro-yellow-400);
+  --status-danger:   #ff6464;
+  --status-critical: var(--caro-red-500);
 }
 
 /* ============================================
