@@ -178,10 +178,8 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
   .brand-name {
     font-size: 26px;
     font-weight: 700;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--color-footer-text);
+    /* TODO(claude-design): brand-mark gradient pending --accent token ratification */
   }
 
   .brand-tagline {
@@ -193,7 +191,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
 
   .brand-description {
     font-size: 14px;
-    color: var(--color-text-secondary);
+    color: var(--color-footer-text-muted);
     line-height: 1.6;
     margin-bottom: 20px;
   }
@@ -216,7 +214,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
   }
 
   .social-link:hover {
-    background: #ff8c42;
+    background: var(--accent, #ef3333);
     color: white;
     transform: translateY(-2px);
   }
@@ -234,7 +232,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
   .column-title {
     font-size: 14px;
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--color-footer-text);
     margin-bottom: 16px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -252,13 +250,13 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
 
   .column-links a {
     font-size: 14px;
-    color: var(--color-text-secondary);
+    color: var(--color-footer-text-muted);
     text-decoration: none;
     transition: color 0.2s;
   }
 
   .column-links a:hover {
-    color: #ff8c42;
+    color: var(--accent, #ef3333);
   }
 
   .support-link {
@@ -298,18 +296,18 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
   .kyaro-title {
     font-size: 15px;
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--color-footer-text);
     margin-bottom: 4px;
   }
 
   .kyaro-text {
     font-size: 13px;
-    color: var(--color-text-secondary);
+    color: var(--color-footer-text-muted);
     line-height: 1.4;
   }
 
   .kyaro-text a {
-    color: #ff8c42;
+    color: var(--accent, #ef3333);
     text-decoration: none;
     font-weight: 500;
   }
@@ -337,40 +335,40 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
 
   .copyright {
     font-size: 14px;
-    color: var(--color-text-secondary);
+    color: var(--color-footer-text-muted);
   }
 
   .copyright strong {
-    color: var(--color-text);
+    color: var(--color-footer-text);
   }
 
   .inspiration {
     font-size: 13px;
-    color: var(--color-text-secondary);
+    color: var(--color-footer-text-muted);
     font-style: italic;
     opacity: 0.8;
   }
 
   .heritage-tribute {
     font-size: 12px;
-    color: var(--color-text-secondary);
+    color: var(--color-footer-text-muted);
     opacity: 0.7;
     margin-top: 4px;
   }
 
   .heritage-tribute a {
-    color: var(--color-text-secondary);
+    color: var(--color-footer-text-muted);
     text-decoration: none;
     transition: color 0.2s;
   }
 
   .heritage-tribute a:hover {
-    color: #ff8c42;
+    color: var(--accent, #ef3333);
   }
 
   .version {
     font-size: 13px;
-    color: var(--color-text-secondary);
+    color: var(--color-footer-text-muted);
     font-family: 'Monaco', 'Menlo', monospace;
     background: var(--color-bg-secondary);
     padding: 4px 10px;

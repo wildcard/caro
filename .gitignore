@@ -229,3 +229,6 @@ RESUME.md
 kitty-specs/**/.kittify/dossiers/
 .kittify/derived/
 .kittify/.migration-backup/
+
+# Playwright MCP runtime artifacts
+.playwright-mcp/
