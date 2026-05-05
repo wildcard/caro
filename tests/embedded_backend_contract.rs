@@ -9,6 +9,7 @@ use std::time::{Duration, Instant};
 use caro::backends::embedded::{EmbeddedConfig, EmbeddedModelBackend, ModelVariant};
 use caro::backends::{CommandGenerator, GeneratorError};
 use caro::models::{CommandRequest, SafetyLevel, ShellType};
+use caro::safety::SafetyConfig;
 
 // Helper function to get test model path
 fn test_model_path() -> PathBuf {
@@ -308,4 +309,46 @@ fn test_embedded_config_builder() {
     assert_eq!(config.temperature, 0.5);
     assert_eq!(config.max_tokens, 200);
     assert_eq!(config.top_p, 0.95);
+}
+
+/// Graceful degradation on malformed safety config.
+///
+/// `EmbeddedModelBackend::with_safety_config` previously panicked via
+/// `.expect()` when the supplied `SafetyConfig` was invalid. After the
+/// FDD-book ch. 31 refactor, the contract is: return
+/// `GeneratorError::ConfigError` and leave the backend untouched, so the
+/// caller can fall back to a different backend or surface a clear error
+/// to the user instead of taking down the process.
+#[tokio::test]
+async fn test_with_safety_config_returns_err_on_invalid_config() {
+    let backend = create_test_backend().expect("Failed to create test backend");
+
+    // max_command_length == 0 is rejected by SafetyValidator::new — see
+    // src/safety/mod.rs:95. Using it triggers the error path we want to
+    // verify is now graceful.
+    let invalid_config = SafetyConfig {
+        safety_level: SafetyLevel::Moderate,
+        max_command_length: 0,
+        custom_patterns: Vec::new(),
+        allowlist_patterns: Vec::new(),
+    };
+
+    let result = backend.with_safety_config(invalid_config);
+
+    assert!(
+        result.is_err(),
+        "with_safety_config must return Err for invalid SafetyConfig, not panic"
+    );
+    match result {
+        Err(GeneratorError::ConfigError { message }) => {
+            assert!(
+                message.to_lowercase().contains("safetyvalidator")
+                    || message.contains("max_command_length"),
+                "ConfigError message should explain the issue, got: {}",
+                message
+            );
+        }
+        Err(other) => panic!("Expected GeneratorError::ConfigError, got: {:?}", other),
+        Ok(_) => unreachable!(),
+    }
 }

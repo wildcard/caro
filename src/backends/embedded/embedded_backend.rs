@@ -75,11 +75,16 @@ impl EmbeddedModelBackend {
             message: format!("Failed to initialize model loader: {}", e),
         })?;
 
-        // Initialize safety validator with moderate config
-        let safety_validator = Arc::new(
-            SafetyValidator::new(SafetyConfig::moderate())
-                .expect("Failed to initialize SafetyValidator with default config"),
-        );
+        // Initialize safety validator with moderate config.
+        // SafetyConfig::moderate() is a known-good config, but propagating
+        // any future Err here gives the caller a chance to recover instead
+        // of panicking — kernel-driver discipline (FDD-book ch. 31).
+        let safety_validator =
+            Arc::new(SafetyValidator::new(SafetyConfig::moderate()).map_err(|e| {
+                GeneratorError::ConfigError {
+                    message: format!("Failed to initialize default SafetyValidator: {}", e),
+                }
+            })?);
 
         Ok(Self {
             model_variant: variant,
@@ -97,12 +102,24 @@ impl EmbeddedModelBackend {
         self
     }
 
-    /// Update the safety configuration
-    pub fn with_safety_config(mut self, safety_config: SafetyConfig) -> Self {
-        self.safety_validator = Arc::new(
-            SafetyValidator::new(safety_config).expect("Failed to initialize SafetyValidator"),
-        );
-        self
+    /// Update the safety configuration.
+    ///
+    /// Returns `Err(GeneratorError::ConfigError)` if the supplied
+    /// `SafetyConfig` is malformed (e.g. `max_command_length == 0` or a
+    /// custom pattern that fails to compile). Previously this would panic
+    /// via `.expect()`; per FDD-book ch. 31 (Security Best Practices) the
+    /// boundary into a privileged subsystem must propagate errors rather
+    /// than terminate the process.
+    pub fn with_safety_config(
+        mut self,
+        safety_config: SafetyConfig,
+    ) -> Result<Self, GeneratorError> {
+        self.safety_validator = Arc::new(SafetyValidator::new(safety_config).map_err(|e| {
+            GeneratorError::ConfigError {
+                message: format!("Failed to initialize SafetyValidator: {}", e),
+            }
+        })?);
+        Ok(self)
     }
 
     /// Get the model variant this backend uses
@@ -512,12 +529,6 @@ impl CommandGenerator for EmbeddedModelBackend {
 
         tracing::debug!("Embedded model backend shutdown complete");
         Ok(())
-    }
-}
-
-impl Default for EmbeddedModelBackend {
-    fn default() -> Self {
-        Self::new().expect("Failed to create default embedded model backend")
     }
 }
 

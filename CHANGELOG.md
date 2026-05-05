@@ -34,6 +34,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   those platforms despite the cross-platform CI matrix building for them).
 - **`is_posix_compliant()`** extended to mark FreeBSD/OpenBSD/NetBSD/
   DragonFly as POSIX-compliant.
+- **`EmbeddedModelBackend::with_safety_config`** now returns
+  `Result<Self, GeneratorError>` instead of `Self`. **Breaking API
+  change**: callers must propagate the error. Previously the method
+  panicked via `.expect()` if the supplied `SafetyConfig` was malformed
+  (e.g. `max_command_length == 0`); now it returns
+  `GeneratorError::ConfigError`, allowing the CLI to surface a clear
+  error or fall back to a different backend. The single in-tree caller
+  in `src/cli/mod.rs:301` is updated. Aligns with FDD-book ch. 31
+  (Security Best Practices) — never panic at a privilege boundary.
+- **`EmbeddedModelBackend::new` / `with_variant_and_path`** internal
+  initialization of the default `SafetyValidator` now propagates errors
+  via `?` instead of panicking via `.expect()`. No public API change
+  (the constructor already returned `Result`).
+
+### Removed
+
+- **`impl Default for EmbeddedModelBackend`**: the `default()` impl
+  previously called `Self::new().expect(...)` and was unused
+  (`git grep` finds no callers in the workspace). Removed rather than
+  kept as a hidden panic surface.
 
 ### Fixed
 

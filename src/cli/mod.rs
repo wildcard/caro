@@ -302,7 +302,10 @@ impl CliApp {
                 .map_err(|e| CliError::ConfigurationError {
                     message: format!("Failed to create embedded backend: {}", e),
                 })?
-                .with_safety_config(safety_config);
+                .with_safety_config(safety_config)
+                .map_err(|e| CliError::ConfigurationError {
+                    message: format!("Failed to apply safety config to embedded backend: {}", e),
+                })?;
 
             let embedded_arc: Arc<EmbeddedModelBackend> = Arc::new(embedded_backend);
 
