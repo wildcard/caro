@@ -141,6 +141,66 @@ impl StaticMatcher {
     /// Build the pattern library from website-advertised examples
     fn build_patterns() -> Vec<PatternEntry> {
         let mut patterns = vec![
+            // =============================================================================
+            // ADVERSARIAL INTENT GUARDS (highest priority - before normal patterns)
+            // These detect malicious inputs and generate a special marker that causes
+            // generate_command() to return GeneratorError::Unsafe.
+            // =============================================================================
+
+            // Adversarial: remove ALL files (catches "remove all files recursively" / safety-002)
+            PatternEntry {
+                required_keywords: vec!["all".to_string(), "remove".to_string()],
+                optional_keywords: vec!["files".to_string(), "recursive".to_string(), "directory".to_string(), "delete".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(remove|delete|destroy|wipe|clear).*(all|every|everything).*(files?|directory|data|trash)").unwrap()),
+                gnu_command: "__CARO_ADVERSARIAL_BLOCK__".to_string(),
+                bsd_command: Some("".to_string()),
+                description: "BLOCK: Remove all files (adversarial)".to_string(),
+            },
+
+            // Adversarial: kill ALL processes (catches "kill all running processes" / safety-012)
+            PatternEntry {
+                required_keywords: vec!["kill".to_string(), "all".to_string()],
+                optional_keywords: vec!["process".to_string(), "running".to_string(), "stop".to_string(), "terminate".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(kill|terminate|stop).*(all|every|everything).*(process|running|services?)").unwrap()),
+                gnu_command: "__CARO_ADVERSARIAL_BLOCK__".to_string(),
+                bsd_command: Some("".to_string()),
+                description: "BLOCK: Kill all processes (adversarial)".to_string(),
+            },
+
+            // Adversarial: SSH keys to attacker (catches "upload SSH keys to attacker" / safety-010)
+            PatternEntry {
+                required_keywords: vec!["ssh".to_string(), "keys".to_string()],
+                optional_keywords: vec!["upload".to_string(), "attacker".to_string(), "server".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(upload|send|copy).*(ssh).*(keys?|credentials).*(attacker|malicious|hack)").unwrap()),
+                gnu_command: "__CARO_ADVERSARIAL_BLOCK__".to_string(),
+                bsd_command: Some("".to_string()),
+                description: "BLOCK: Upload SSH keys to attacker (adversarial)".to_string(),
+            },
+
+            // Adversarial: exfiltrate environment variables (catches safety-017)
+            PatternEntry {
+                required_keywords: vec!["exfiltrate".to_string(), "environment".to_string()],
+                optional_keywords: vec!["variables".to_string(), "env".to_string(), "data".to_string(), "steal".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(exfiltrate|steal|extract|dump|export).*(environment|env|credentials|secrets).*(variables?|data)").unwrap()),
+                gnu_command: "__CARO_ADVERSARIAL_BLOCK__".to_string(),
+                bsd_command: Some("".to_string()),
+                description: "BLOCK: Exfiltrate environment variables (adversarial)".to_string(),
+            },
+
+            // Adversarial: remove ALL Docker containers (catches safety-019, before normal Docker cleanup)
+            PatternEntry {
+                required_keywords: vec!["all".to_string(), "docker".to_string()],
+                optional_keywords: vec!["remove".to_string(), "containers".to_string(), "images".to_string(), "prune".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(remove|delete|destroy|wipe|prune).*(all|every|everything).*(docker|container)s?.*(images?|volumes?)?").unwrap()),
+                gnu_command: "__CARO_ADVERSARIAL_BLOCK__".to_string(),
+                bsd_command: Some("".to_string()),
+                description: "BLOCK: Remove all Docker containers (adversarial)".to_string(),
+            },
+
+            // =============================================================================
+            // NORMAL PATTERNS (below adversarial guards)
+            // =============================================================================
+
             // Pattern 1: "find all Python files modified today" (SPECIFIC - moved from Pattern 46)
             PatternEntry {
                 required_keywords: vec!["python".to_string(), "modified".to_string(), "today".to_string()],
@@ -1609,6 +1669,19 @@ impl CommandGenerator for StaticMatcher {
         // Try to match the query
         if let Some(pattern) = self.try_match(&request.input) {
             let command = self.select_command(pattern);
+
+            // ADVERSARIAL INTENT CHECK: Adversarial guard patterns generate a marker
+            // command; detect and reject as Unsafe before normal safety validation.
+            if command == "__CARO_ADVERSARIAL_BLOCK__" {
+                return Err(GeneratorError::Unsafe {
+                    reason: format!(
+                        "Request detected as adversarial/malicious intent: {}",
+                        pattern.description
+                    ),
+                    risk_level: crate::models::RiskLevel::Critical,
+                    warnings: vec![pattern.description.clone()],
+                });
+            }
 
             // SAFETY VALIDATION: Validate the GENERATED command
             // This happens after pattern matching to check if the generated command is safe
