@@ -1,0 +1,183 @@
+name: Slash Command Router
+
+# Inspired by warpdotdev/oz-for-oss's `/oz-verify` pattern.
+# Listens on issue and PR comments for `/caro <command> [args]` and dispatches
+# to per-command handlers. Initially supports help/echo/version as a routing
+# scaffold; future PRs wire up handlers for /caro review, /caro qa,
+# /caro spec, /caro tune-prompt, /caro release-acceptance — each maps to an
+# existing skill in .claude/skills/ or agent in .claude/agents/.
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  # Serialize per-issue/PR so two simultaneous /caro commands don't collide.
+  group: slash-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  parse:
+    name: Parse /caro command
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.comment.body, '/caro ') || github.event.comment.body == '/caro'
+    outputs:
+      command: ${{ steps.parse.outputs.command }}
+      args: ${{ steps.parse.outputs.args }}
+      is_pr: ${{ steps.parse.outputs.is_pr }}
+    steps:
+      - name: Add 'eyes' reaction (acknowledgement)
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'eyes'
+            });
+
+      - name: Parse command and args
+        id: parse
+        env:
+          BODY: ${{ github.event.comment.body }}
+        run: |
+          # Strip leading "/caro " (or just "/caro"); take first token as command,
+          # remainder as args. Defaults command to "help" when no token.
+          line="${BODY#/caro}"
+          line="${line# }"
+          command="${line%% *}"
+          if [ -z "$command" ]; then
+            command="help"
+            args=""
+          else
+            args="${line#"$command"}"
+            args="${args# }"
+          fi
+          # Whitelist allowed commands -- unknown commands fall through to help
+          # with an "unknown command" hint.
+          case "$command" in
+            help|echo|version) ;;
+            *) args="$command $args"; command="help-unknown" ;;
+          esac
+          echo "command=$command" >> "$GITHUB_OUTPUT"
+          # Multi-line-safe arg passing
+          {
+            echo "args<<EOF"
+            echo "$args"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          # Detect PR vs issue (issue_comment fires for both; PRs have pull_request key)
+          if [ -n "${{ github.event.issue.pull_request.url }}" ]; then
+            echo "is_pr=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_pr=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  help:
+    name: /caro help
+    needs: parse
+    if: needs.parse.outputs.command == 'help' || needs.parse.outputs.command == 'help-unknown'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reply with command list
+        uses: actions/github-script@v8
+        env:
+          UNKNOWN_HINT: ${{ needs.parse.outputs.command == 'help-unknown' && needs.parse.outputs.args || '' }}
+        with:
+          script: |
+            const unknown = process.env.UNKNOWN_HINT.trim();
+            const prefix = unknown
+              ? `Unknown command: \`/caro ${unknown.split(' ')[0]}\`. Available commands:\n\n`
+              : `Available **/caro** commands:\n\n`;
+            const body = prefix + [
+              '| Command | Description | Status |',
+              '|---|---|---|',
+              '| `/caro help` | Show this help text | ✅ available |',
+              '| `/caro echo <text>` | Echo `<text>` back as a comment | ✅ available |',
+              '| `/caro version` | Show caro version from Cargo.toml | ✅ available |',
+              '| `/caro review` | Run a multi-agent code review | 🛠 planned |',
+              '| `/caro qa` | Run QA investigation against this PR | 🛠 planned |',
+              '| `/caro spec` | Generate a spec from the linked issue | 🛠 planned |',
+              '| `/caro tune-prompt` | Run prompt-tuner against test failures | 🛠 planned |',
+              '| `/caro release-acceptance` | Audit release readiness | 🛠 planned |',
+              '',
+              '_Inspired by [oz-for-oss](https://github.com/warpdotdev/oz-for-oss)._'
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: '+1'
+            });
+
+  echo:
+    name: /caro echo
+    needs: parse
+    if: needs.parse.outputs.command == 'echo'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo args back
+        uses: actions/github-script@v8
+        env:
+          ARGS: ${{ needs.parse.outputs.args }}
+        with:
+          script: |
+            const args = process.env.ARGS || '(no args)';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🔊 \`${args}\``
+            });
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: '+1'
+            });
+
+  version:
+    name: /caro version
+    needs: parse
+    if: needs.parse.outputs.command == 'version'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Read Cargo.toml version
+        id: ver
+        run: |
+          v=$(grep -m1 '^version *= *"' Cargo.toml | sed -E 's/.*"([^"]+)".*/\1/')
+          echo "value=$v" >> "$GITHUB_OUTPUT"
+      - name: Reply with version
+        uses: actions/github-script@v8
+        env:
+          VERSION: ${{ steps.ver.outputs.value }}
+          SHA: ${{ github.sha }}
+        with:
+          script: |
+            const v = process.env.VERSION;
+            const sha = process.env.SHA.slice(0, 7);
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `📦 caro **v${v}** (default branch \`${sha}\`)`
+            });
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: '+1'
+            });
