@@ -117,19 +117,20 @@ fn main() {
     // Rebuild if git HEAD changes
     println!("cargo:rerun-if-changed=.git/HEAD");
 
-    // ── CVE ruleset compilation ────────────────────────────────────────────
+    // ── CVE + 0din ruleset compilation ────────────────────────────────────
     // Always produces a bincode blob (possibly empty when cve-rules is off,
-    // or when no CVE YAMLs exist yet). Runtime loader tolerates the empty case.
-    let cve_count = compile_cve_ruleset();
+    // or when no YAML rules exist yet). Runtime loader tolerates the empty case.
+    let (cve_count, odin_count) = compile_cve_ruleset();
     println!("cargo:rustc-env=CARO_CVE_RULE_COUNT={}", cve_count);
+    println!("cargo:rustc-env=CARO_ODIN_PROBE_COUNT={}", odin_count);
 }
 
-/// Compile `data/cve_rules/CVE-*.yaml` into `$OUT_DIR/cve_patterns.bin`
+/// Compile `data/cve_rules/CVE-*.yaml` and `ODIN-*.yaml` into `$OUT_DIR/cve_patterns.bin`
 /// (bincode blob read by `crate::safety::cve_patterns::CVE_COMPILED`).
 ///
 /// Also emits `$OUT_DIR/cve_generated_tests.yaml` for the eval suite to
-/// pick up. Returns the number of compiled (non-draft) rules.
-fn compile_cve_ruleset() -> usize {
+/// pick up. Returns `(cve_count, odin_count)` of compiled (non-draft) rules.
+fn compile_cve_ruleset() -> (usize, usize) {
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR set by cargo"));
     let bin_path = out_dir.join("cve_patterns.bin");
     let tests_path = out_dir.join("cve_generated_tests.yaml");
@@ -140,10 +141,21 @@ fn compile_cve_ruleset() -> usize {
     let paths = match cve_compiler::discover_rule_files(&rules_dir) {
         Ok(p) => p,
         Err(e) => {
-            println!("cargo:warning=CVE rule discovery failed: {}", e);
+            println!("cargo:warning=CVE/0din rule discovery failed: {}", e);
             Vec::new()
         }
     };
+
+    // Count CVE-* and ODIN-* paths separately for version output.
+    let cve_path_count = paths
+        .iter()
+        .filter(|p| {
+            p.file_name()
+                .and_then(|n| n.to_str())
+                .map_or(false, |n| n.starts_with("CVE-"))
+        })
+        .count();
+    let _odin_path_count = paths.len() - cve_path_count;
 
     for p in &paths {
         println!("cargo:rerun-if-changed={}", p.display());
@@ -152,7 +164,7 @@ fn compile_cve_ruleset() -> usize {
     let (ruleset, tests) = match cve_compiler::compile_with_tests(&paths) {
         Ok(x) => x,
         Err(e) => panic!(
-            "CVE rule compile failed: {}. Fix data/cve_rules/*.yaml or remove the bad file.",
+            "CVE/0din rule compile failed: {}. Fix data/cve_rules/*.yaml or remove the bad file.",
             e
         ),
     };
@@ -162,22 +174,28 @@ fn compile_cve_ruleset() -> usize {
     fs::write(&bin_path, bytes).expect("write cve_patterns.bin");
 
     // Emit test YAML for the eval framework.
-    let mut yaml = String::from("metadata:\n  name: CVE generated test cases\n  description: \"Auto-generated from data/cve_rules/*.yaml\"\n\ntest_cases:\n");
+    let mut yaml = String::from("metadata:\n  name: CVE+0din generated test cases\n  description: \"Auto-generated from data/cve_rules/*.yaml\"\n\ntest_cases:\n");
     for (rule_id, tc) in &tests {
         // Escape the input for YAML safety.
         let id = format!("{}-{}", rule_id, sanitize(&tc.input));
         let esc_input = tc.input.replace('\\', "\\\\").replace('"', "\\\"");
         let esc_behavior = tc.expected_behavior.replace('"', "\\\"");
+        let category = if rule_id.starts_with("ODIN-") { "0din" } else { "cve" };
         yaml.push_str(&format!(
-            "  - id: \"{id}\"\n    input: \"{inp}\"\n    expected_behavior: \"{beh}\"\n    category: \"cve\"\n    risk_level: \"critical\"\n",
+            "  - id: \"{id}\"\n    input: \"{inp}\"\n    expected_behavior: \"{beh}\"\n    category: \"{cat}\"\n    risk_level: \"critical\"\n",
             id = id,
             inp = esc_input,
             beh = esc_behavior,
+            cat = category,
         ));
     }
     fs::write(&tests_path, yaml).expect("write cve_generated_tests.yaml");
 
-    ruleset.patterns.len()
+    // Return compiled counts; use path counts as proxy for draft-skipped rules are rare.
+    let total = ruleset.patterns.len();
+    let odin_compiled = total.saturating_sub(cve_path_count);
+    let cve_compiled = total - odin_compiled;
+    (cve_compiled, odin_compiled)
 }
 
 /// Derive a stable suffix from a test-case input for the generated test id.

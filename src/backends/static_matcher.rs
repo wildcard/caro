@@ -197,6 +197,51 @@ impl StaticMatcher {
                 description: "BLOCK: Remove all Docker containers (adversarial)".to_string(),
             },
 
+            // ─── 0din-sourced adversarial guards (ODIN-2024-001..007 coverage) ──────────
+            // These guards catch NL intents that map to 0din-documented attack vectors.
+            // Complements the ODIN-*.yaml YAML rules which catch the shell-command form;
+            // these fire pre-LLM on the natural-language query itself.
+
+            // 0din:encoding-bypass — "decode this base64 and run it" / "execute encoded payload"
+            PatternEntry {
+                required_keywords: vec!["base64".to_string()],
+                optional_keywords: vec!["decode".to_string(), "execute".to_string(), "run".to_string(), "pipe".to_string(), "shell".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(decode|run|execute|pipe).{0,60}base64.{0,60}(bash|sh|shell|execute)|base64.{0,60}(decode|pipe).{0,60}(bash|sh|run)").unwrap()),
+                gnu_command: "__CARO_ADVERSARIAL_BLOCK__".to_string(),
+                bsd_command: Some("".to_string()),
+                description: "BLOCK: [0din:encoding-bypass] Base64 decode and execute (adversarial)".to_string(),
+            },
+
+            // 0din:data-exfiltration — "tar/zip ssh keys / dotfiles and upload/send/curl"
+            PatternEntry {
+                required_keywords: vec!["send".to_string()],
+                optional_keywords: vec!["ssh".to_string(), "keys".to_string(), "credentials".to_string(), "dotfiles".to_string(), "config".to_string(), "upload".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(zip|tar|pack|archive|compress).{0,80}(ssh|\.aws|dotfiles?|credentials?|\.kube|\.gnupg|config).{0,80}(send|upload|curl|transfer|exfil)|(send|upload|exfil).{0,80}(ssh|dotfiles?|credentials?|\.aws)").unwrap()),
+                gnu_command: "__CARO_ADVERSARIAL_BLOCK__".to_string(),
+                bsd_command: Some("".to_string()),
+                description: "BLOCK: [0din:data-exfiltration] Pack-and-send dotfiles/credentials (adversarial)".to_string(),
+            },
+
+            // 0din:data-exfiltration — "create reverse shell / connect back / call home"
+            PatternEntry {
+                required_keywords: vec!["reverse".to_string(), "shell".to_string()],
+                optional_keywords: vec!["create".to_string(), "connect".to_string(), "back".to_string(), "attacker".to_string(), "listener".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(create|open|start|establish).{0,60}reverse.{0,30}shell|(call.?home|connect.?back).{0,60}(shell|bash|attacker|listener)").unwrap()),
+                gnu_command: "__CARO_ADVERSARIAL_BLOCK__".to_string(),
+                bsd_command: Some("".to_string()),
+                description: "BLOCK: [0din:data-exfiltration] Reverse shell / call-home request (adversarial)".to_string(),
+            },
+
+            // 0din:prompt-injection — "set PROMPT_COMMAND to log / send my commands"
+            PatternEntry {
+                required_keywords: vec!["prompt_command".to_string()],
+                optional_keywords: vec!["log".to_string(), "send".to_string(), "hook".to_string(), "curl".to_string(), "history".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)prompt_command.{0,80}(curl|wget|nc|send|log|upload|history)|(log|send|capture).{0,60}commands?.{0,60}prompt_command").unwrap()),
+                gnu_command: "__CARO_ADVERSARIAL_BLOCK__".to_string(),
+                bsd_command: Some("".to_string()),
+                description: "BLOCK: [0din:prompt-injection] PROMPT_COMMAND exfiltration hook (adversarial)".to_string(),
+            },
+
             // =============================================================================
             // NORMAL PATTERNS (below adversarial guards)
             // =============================================================================

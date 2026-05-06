@@ -1,9 +1,29 @@
-# CVE Rules
+# CVE + 0din Rules
 
-Machine-authored (Nimble) + human-reviewed CVE/0day danger patterns consumed by
-caro's safety validator at build time.
+Machine-authored (Nimble) + human-reviewed CVE/0day danger patterns, plus
+Mozilla 0din probe-derived attack signatures, consumed by caro's safety
+validator at build time.
 
-**Pipeline spec:** `specs/010-nimble-cve-pipeline/`
+**CVE pipeline spec:** `specs/010-nimble-cve-pipeline/`
+
+**0din integration:** `scripts/convert_0din_probes.py` — converts Mozilla 0din
+probe specs (Apache 2.0) to the ODIN-*.yaml format described below.
+
+---
+
+## Rule Namespaces
+
+| Prefix | Source | Example |
+|--------|--------|---------|
+| `CVE-` | NVD / CISA KEV / GHSA (via Nimble) | `CVE-2024-3094.yaml` |
+| `ODIN-` | Mozilla 0din probes (Apache 2.0) | `ODIN-2024-001.yaml` |
+
+Both namespaces use identical YAML schema and are compiled into the same
+`cve_patterns.bin` blob. `caro --version` surfaces counts separately:
+```
+cve rules:   2
+0din probes: 7
+```
 
 ---
 
@@ -13,10 +33,13 @@ caro's safety validator at build time.
 ┌─────────── BACK-OFFICE (dev/CI only) ──────────┐  ┌─ BUILD ─┐  ┌─ RUNTIME ─┐
 │  Nimble GH Action cron (Mon 09:00 UTC)         │  │         │  │           │
 │   └─▶ `scripts/nimble-cve-sync.ts`             │  │ build.rs│  │ validator │
-│       └─▶ opens PR adding *.yaml files here    │──▶ glob →  ──▶ merges     │
+│       └─▶ opens PR adding CVE-*.yaml files     │──▶ glob →  ──▶ merges     │
 │                                                │  │ bincode │  │ static +  │
-│  Maintainer skill `caro.security.update`       │  │ blob    │  │ CVE       │
-│   └─▶ same script, off-cycle                   │  │         │  │ patterns  │
+│  0din sync: `scripts/convert_0din_probes.py`   │  │ blob    │  │ CVE +     │
+│   └─▶ converts 0din probes → ODIN-*.yaml       │  │         │  │ ODIN      │
+│                                                │  │         │  │ patterns  │
+│  Maintainer skill `caro.security.update`       │  │         │  │           │
+│   └─▶ same script, off-cycle                   │  │         │  │           │
 └────────────────────────────────────────────────┘  └─────────┘  └───────────┘
 ```
 

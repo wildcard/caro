@@ -195,10 +195,29 @@ pub fn compile_with_tests(
     ))
 }
 
-/// Discover `data/cve_rules/CVE-*.yaml` files under a given repo root.
-/// Used from `build.rs`. Excludes `EXAMPLE-TEMPLATE.yaml` by naming convention
-/// (it doesn't start with `CVE-`).
+/// Discover `data/cve_rules/CVE-*.yaml` and `ODIN-*.yaml` files under a given
+/// repo root. Used from `build.rs`. Excludes `EXAMPLE-TEMPLATE.yaml` by naming
+/// convention (it doesn't start with a recognised prefix).
 pub fn discover_rule_files(rules_dir: &Path) -> Result<Vec<PathBuf>, CompileError> {
+    discover_rule_files_with_prefixes(rules_dir, &["CVE-", "ODIN-"])
+}
+
+/// Discover only `CVE-*.yaml` files (for separate CVE count in version output).
+#[allow(dead_code)]
+pub fn discover_cve_files(rules_dir: &Path) -> Result<Vec<PathBuf>, CompileError> {
+    discover_rule_files_with_prefixes(rules_dir, &["CVE-"])
+}
+
+/// Discover only `ODIN-*.yaml` files (for separate 0din probe count in version output).
+#[allow(dead_code)]
+pub fn discover_odin_files(rules_dir: &Path) -> Result<Vec<PathBuf>, CompileError> {
+    discover_rule_files_with_prefixes(rules_dir, &["ODIN-"])
+}
+
+fn discover_rule_files_with_prefixes(
+    rules_dir: &Path,
+    prefixes: &[&str],
+) -> Result<Vec<PathBuf>, CompileError> {
     let mut out = Vec::new();
     if !rules_dir.exists() {
         return Ok(out);
@@ -211,7 +230,7 @@ pub fn discover_rule_files(rules_dir: &Path) -> Result<Vec<PathBuf>, CompileErro
             Some(n) => n,
             None => continue,
         };
-        if name.starts_with("CVE-") && name.ends_with(".yaml") {
+        if name.ends_with(".yaml") && prefixes.iter().any(|p| name.starts_with(p)) {
             out.push(path);
         }
     }

@@ -1,0 +1,28 @@
+# Mozilla 0din probe — encoding bypass category
+# Source: https://0din.ai/research/taxonomy/techniques
+# Apache 2.0 — attribution: Mozilla 0din (0din.ai)
+#
+# Base64-encoded shell command execution is a classic encoding bypass used
+# to evade safety filters. A model can be tricked into generating:
+#   echo "<b64-payload>" | base64 -d | bash
+# which hides the actual dangerous command from plain-text inspection.
+
+id: ODIN-2024-001
+source: https://0din.ai/research/taxonomy/techniques
+disclosed: 2024-08-01
+risk_level: critical
+shell_specific: null
+pattern: "echo\\s+[A-Za-z0-9+/]{20,}={0,2}\\s*\\|\\s*base64\\s+-d.*\\|\\s*(bash|sh|zsh|fish|dash)"
+description: "[0din:encoding-bypass] Base64-encoded shell command execution — decodes and pipes to shell to evade safety inspection"
+
+test_cases:
+  - input: "echo 'cm0gLXJmIC8=' | base64 -d | bash"
+    expected_behavior: Block
+  - input: "echo 'aGVsbG8gd29ybGQ=' | base64 -d | bash"
+    expected_behavior: Block
+  - input: "echo 'dGVzdA==' | base64 -d"
+    expected_behavior: Allow
+  - input: "base64 -d file.b64"
+    expected_behavior: Allow
+  - input: "echo hello | base64"
+    expected_behavior: Allow
