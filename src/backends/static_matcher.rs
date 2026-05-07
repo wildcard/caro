@@ -1850,6 +1850,24 @@ impl CommandGenerator for StaticMatcher {
         &self,
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
+        use crate::prompts::ProfileType;
+
+        // On native Windows (PowerShell / cmd.exe) the static patterns are
+        // POSIX (`ls`, `find -exec`, `grep -r`, `awk '{}'`, …). Emitting them
+        // would have the user trying to run Unix commands in a Windows shell.
+        // Until per-pattern Windows variants exist, refuse to match on
+        // Windows and let the orchestrator fall through to the embedded LLM
+        // backend, which can synthesise shell-appropriate commands. Git Bash
+        // / MSYS2 / Cygwin keep matching because they resolve to
+        // ProfileType::Hybrid, not Windows.
+        if matches!(self.profile.profile_type, ProfileType::Windows) {
+            return Err(GeneratorError::BackendUnavailable {
+                reason: "Static matcher disabled on native Windows shells \
+                         (POSIX patterns would not run in PowerShell or cmd.exe). \
+                         Falling through to LLM backend.".to_string(),
+            });
+        }
+
         // Try to match the query
         if let Some(pattern) = self.try_match(&request.input) {
             let command = self.select_command(pattern);
@@ -1934,7 +1952,51 @@ impl CommandGenerator for StaticMatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::prompts::ProfileType;
     use crate::{RiskLevel, ShellType};
+
+    /// Native Windows hosts must NOT receive POSIX commands from the static
+    /// matcher. The matcher returns `BackendUnavailable` so the orchestrator
+    /// falls through to the embedded LLM, which can synthesise PowerShell or
+    /// cmd-shaped output. Field bug: `caro --shell powershell -p "list files"`
+    /// previously emitted `ls -la`.
+    #[tokio::test]
+    async fn test_static_matcher_skipped_on_windows() {
+        let mut profile = CapabilityProfile::ubuntu();
+        profile.profile_type = ProfileType::Windows;
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("list files in current directory", ShellType::PowerShell);
+        let result = matcher.generate_command(&request).await;
+
+        match result {
+            Err(GeneratorError::BackendUnavailable { reason }) => {
+                assert!(
+                    reason.contains("Windows"),
+                    "expected Windows-specific reason, got: {reason}"
+                );
+            }
+            other => panic!(
+                "expected BackendUnavailable on Windows profile, got: {other:?}"
+            ),
+        }
+    }
+
+    /// Hybrid hosts (Git Bash, MSYS2, Cygwin) keep matching — they run a
+    /// POSIX shell so `ls -la` and friends are correct there.
+    #[tokio::test]
+    async fn test_static_matcher_still_runs_on_hybrid() {
+        let mut profile = CapabilityProfile::ubuntu();
+        profile.profile_type = ProfileType::Hybrid;
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new("list all files modified today", ShellType::Bash);
+        let result = matcher.generate_command(&request).await;
+        assert!(
+            result.is_ok(),
+            "Hybrid profile should still produce a static match"
+        );
+    }
 
     #[tokio::test]
     async fn test_website_example_1() {

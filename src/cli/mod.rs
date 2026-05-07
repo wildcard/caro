@@ -761,8 +761,27 @@ EXAMPLES:
 
 impl Default for CliConfig {
     fn default() -> Self {
+        // Auto-detect the host shell so Windows users get PowerShell/Cmd
+        // and Unix users still get Bash/Zsh/Fish. Falling back to a hard
+        // POSIX default (`Bash`) caused caro to mis-label its own host on
+        // Windows and to feed the wrong shell into `--dry-run` summaries
+        // when no `--shell` flag was given. `ShellType::detect` returns
+        // PowerShell or Cmd on Windows targets, falling back to Bash on
+        // Unix only if no SHELL env var is set.
+        let detected = ShellType::detect();
+        let default_shell = if matches!(detected, ShellType::Unknown) {
+            // Conservative fallback for the rare case where neither
+            // SHELL nor PSModulePath is set: pick the OS's canonical shell.
+            if cfg!(target_os = "windows") {
+                ShellType::Cmd
+            } else {
+                ShellType::Bash
+            }
+        } else {
+            detected
+        };
         Self {
-            default_shell: ShellType::Bash,
+            default_shell,
             safety_level: SafetyLevel::Moderate,
             output_format: OutputFormat::Plain,
             auto_confirm: false,
@@ -946,6 +965,38 @@ mod tests {
         assert!(
             msg.contains("caro --backend embedded"),
             "suggests the embedded alternative"
+        );
+    }
+
+    /// `CliConfig::default()` previously hardcoded `default_shell:
+    /// ShellType::Bash`, causing Windows users to see "shell: Bash" in
+    /// `--dry-run` summaries on a host where Bash isn't even installed.
+    /// On Windows the default must resolve to a Windows shell
+    /// (PowerShell or Cmd), never Bash/Zsh/Fish/Sh.
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn test_default_shell_is_windows_native_on_windows() {
+        let config = CliConfig::default();
+        assert!(
+            matches!(config.default_shell, ShellType::PowerShell | ShellType::Cmd),
+            "Windows default must be PowerShell or Cmd, got {:?}",
+            config.default_shell
+        );
+    }
+
+    /// Sanity check on Unix hosts: the default must remain a POSIX shell so
+    /// existing Linux/macOS users see no behaviour change.
+    #[cfg(not(target_os = "windows"))]
+    #[test]
+    fn test_default_shell_is_posix_on_unix() {
+        let config = CliConfig::default();
+        assert!(
+            matches!(
+                config.default_shell,
+                ShellType::Bash | ShellType::Zsh | ShellType::Fish | ShellType::Sh
+            ),
+            "Unix default must be a POSIX shell, got {:?}",
+            config.default_shell
         );
     }
 }

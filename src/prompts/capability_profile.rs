@@ -45,6 +45,10 @@ pub enum ProfileType {
     Busybox,
     /// Mixed/hybrid environments (Git Bash, MSYS2, Cygwin)
     Hybrid,
+    /// Native Windows (PowerShell or cmd.exe). Static POSIX patterns are
+    /// not applicable; the embedded LLM backend should generate
+    /// shell-appropriate commands instead.
+    Windows,
     /// Unknown profile
     Unknown,
 }
@@ -56,6 +60,7 @@ impl std::fmt::Display for ProfileType {
             ProfileType::Bsd => write!(f, "bsd"),
             ProfileType::Busybox => write!(f, "busybox"),
             ProfileType::Hybrid => write!(f, "hybrid"),
+            ProfileType::Windows => write!(f, "windows"),
             ProfileType::Unknown => write!(f, "unknown"),
         }
     }
@@ -637,6 +642,23 @@ impl CapabilityProfile {
     }
 
     async fn determine_profile_type(&mut self) {
+        // Native Windows (PowerShell / cmd.exe) check first. Note that
+        // Git Bash, MSYS2 and Cygwin set MSYSTEM/CYGWIN env vars and are
+        // handled by the Hybrid branch below — we deliberately do NOT
+        // short-circuit them here, so they keep generating POSIX commands
+        // that their POSIX-emulating shells understand.
+        #[cfg(target_os = "windows")]
+        {
+            let in_hybrid_shell = std::env::var("MSYSTEM").is_ok()
+                || std::env::var("CYGWIN").is_ok()
+                || self.uname.to_lowercase().contains("mingw")
+                || self.uname.to_lowercase().contains("cygwin");
+            if !in_hybrid_shell {
+                self.profile_type = ProfileType::Windows;
+                return;
+            }
+        }
+
         // Check for BusyBox first
         if tool_exists("busybox").await {
             // Check if core tools are symlinks to busybox
@@ -746,6 +768,13 @@ impl CapabilityProfile {
             }
             ProfileType::Hybrid => {
                 notes.push("Hybrid environment - verify command availability".to_string());
+            }
+            ProfileType::Windows => {
+                notes.push(
+                    "Native Windows shell - generate PowerShell or cmd.exe \
+                     commands; do NOT use POSIX utilities like find/grep/awk"
+                        .to_string(),
+                );
             }
             ProfileType::Unknown => {
                 notes.push("Unknown environment - use POSIX-compliant commands".to_string());
