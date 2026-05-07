@@ -3298,8 +3298,7 @@ async fn main() {
     // Skip stdin read entirely if any other prompt source is present, or if
     // the invocation does not need a prompt at all (e.g. --show-config).
     // See `should_consult_stdin` for the Windows-hang context.
-    let stdin_content = if !cli.show_config
-        && should_consult_stdin(&cli.prompt, &cli.trailing_args)
+    let stdin_content = if !cli.show_config && should_consult_stdin(&cli.prompt, &cli.trailing_args)
     {
         match read_stdin() {
             Ok(content) if !content.is_empty() => Some(content),

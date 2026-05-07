@@ -1864,7 +1864,8 @@ impl CommandGenerator for StaticMatcher {
             return Err(GeneratorError::BackendUnavailable {
                 reason: "Static matcher disabled on native Windows shells \
                          (POSIX patterns would not run in PowerShell or cmd.exe). \
-                         Falling through to LLM backend.".to_string(),
+                         Falling through to LLM backend."
+                    .to_string(),
             });
         }
 
@@ -1976,9 +1977,7 @@ mod tests {
                     "expected Windows-specific reason, got: {reason}"
                 );
             }
-            other => panic!(
-                "expected BackendUnavailable on Windows profile, got: {other:?}"
-            ),
+            other => panic!("expected BackendUnavailable on Windows profile, got: {other:?}"),
         }
     }
 
