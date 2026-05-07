@@ -488,6 +488,36 @@ Why: Protects against spaces in filenames
 "#,
                 );
             }
+            ProfileType::Windows => {
+                section.push_str(
+                    r#"❌ BAD (POSIX command on Windows): {"cmd": "ls -la"}
+✅ GOOD (PowerShell cmdlet): {"cmd": "Get-ChildItem -Force"}
+Why: ls/-la don't exist in cmd.exe; PowerShell's `ls` alias drops most flags
+
+❌ BAD (POSIX find on Windows): {"cmd": "find . -name '*.log' -type f"}
+✅ GOOD (PowerShell): {"cmd": "Get-ChildItem -Recurse -Filter *.log -File"}
+Why: GNU find is unavailable on Windows; use Get-ChildItem -Recurse
+
+❌ BAD (POSIX grep on Windows): {"cmd": "grep -r 'TODO' ."}
+✅ GOOD (PowerShell): {"cmd": "Get-ChildItem -Recurse | Select-String 'TODO'"}
+✅ GOOD (cmd.exe alternative): {"cmd": "findstr /S /N \"TODO\" *.*"}
+Why: grep is not on PATH; use Select-String (PS) or findstr (cmd)
+
+❌ BAD (POSIX rm on Windows): {"cmd": "rm -rf build/"}
+✅ GOOD (PowerShell): {"cmd": "Remove-Item -Recurse -Force build/"}
+Why: rm exists as alias in PS but the -rf flags don't map; in cmd.exe use `rmdir /S /Q`
+
+❌ BAD (POSIX awk/sed on Windows): {"cmd": "awk '{print $2}' file.txt"}
+✅ GOOD (PowerShell): {"cmd": "Get-Content file.txt | ForEach-Object { ($_ -split ' ')[1] }"}
+Why: awk and GNU sed are not bundled with Windows
+
+Note: This host is native Windows (cmd.exe or PowerShell). Generate
+PowerShell cmdlets by default; only emit `cmd /c ...` syntax if the
+prompt explicitly requests cmd.exe.
+
+"#,
+                );
+            }
             _ => {
                 section.push_str(
                     r#"❌ BAD (non-portable flags): {"cmd": "ls --color=auto -lah"}

@@ -33,13 +33,24 @@ pub struct ResolvedPrompt {
     pub source: PromptSource,
 }
 
-/// Resolve prompt from multiple input sources following priority order
+/// Resolve prompt from multiple input sources following priority order.
 ///
-/// Priority: -p/--prompt flag > stdin > trailing arguments
+/// **Within `resolve_prompt`** the priority is: `-p/--prompt flag > stdin >
+/// trailing arguments`. So if `stdin` is `Some(_)`, it beats trailing args.
+///
+/// **However, the call sites no longer always read stdin.** See
+/// [`should_consult_stdin`]: stdin is only read when neither `-p` nor
+/// trailing args were supplied. As a deliberate consequence, when a user
+/// pipes content AND passes trailing args, trailing args win and stdin is
+/// not consumed at all. This trade-off was made to repair a
+/// Windows-specific `read_to_string` hang where `IsTerminal` lies for
+/// inherited stdin handles; the alternative — read stdin first and risk
+/// hanging on every Windows invocation — was untenable.
 ///
 /// # Arguments
 /// * `flag` - Optional prompt from -p/--prompt flag
-/// * `stdin` - Optional prompt from piped stdin
+/// * `stdin` - Optional prompt from piped stdin (`None` when caller chose
+///   not to read stdin per `should_consult_stdin`'s gate)
 /// * `trailing_args` - Prompt from command-line trailing words
 ///
 /// # Returns
@@ -3294,12 +3305,27 @@ async fn main() {
     // Truncate trailing args at shell operators (handles edge cases)
     cli.trailing_args = truncate_at_shell_operator(cli.trailing_args);
 
+    // Handle --show-config BEFORE any stdin read. show_configuration() only
+    // needs `cli.config_file`, never `cli.prompt`, so resolving the prompt
+    // (and potentially blocking on stdin) for a flag-only invocation is
+    // wasted work and was a contributing factor to the Windows-hang bug.
+    if cli.show_config {
+        match show_configuration(&cli).await {
+            Ok(config_info) => {
+                println!("{}", config_info);
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error showing configuration: {}", e);
+                process::exit(1);
+            }
+        }
+    }
+
     // Resolve prompt from multiple sources (flag > stdin > trailing args).
-    // Skip stdin read entirely if any other prompt source is present, or if
-    // the invocation does not need a prompt at all (e.g. --show-config).
-    // See `should_consult_stdin` for the Windows-hang context.
-    let stdin_content = if !cli.show_config && should_consult_stdin(&cli.prompt, &cli.trailing_args)
-    {
+    // Skip stdin read entirely if any other prompt source is present —
+    // see `should_consult_stdin` for the Windows-hang context.
+    let stdin_content = if should_consult_stdin(&cli.prompt, &cli.trailing_args) {
         match read_stdin() {
             Ok(content) if !content.is_empty() => Some(content),
             _ => None,
@@ -3496,19 +3522,9 @@ async fn main() {
         }
     }
 
-    // Handle --show-config
-    if cli.show_config {
-        match show_configuration(&cli).await {
-            Ok(config_info) => {
-                println!("{}", config_info);
-                process::exit(0);
-            }
-            Err(e) => {
-                eprintln!("Error showing configuration: {}", e);
-                process::exit(1);
-            }
-        }
-    }
+    // Note: --show-config is handled earlier (before stdin resolution) so
+    // that flag-only invocations don't pay the cost of a stdin read or
+    // risk the Windows-hang scenario.
 
     // Validate prompt and show help/warnings/hints as needed
     let prompt_text = cli.prompt.as_deref().unwrap_or("");

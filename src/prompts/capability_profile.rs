@@ -465,6 +465,15 @@ impl CapabilityProfile {
                 profile.ls_sort = false;
                 profile.awk_type = AwkType::BusyboxAwk;
             }
+            ProfileType::Windows => {
+                // Native Windows shells (PowerShell / cmd.exe). The
+                // POSIX-utility capability flags don't really apply here —
+                // the static matcher returns NoMatch on this profile and
+                // the LLM backend handles command synthesis. We populate
+                // os_name so downstream code that displays the profile
+                // never shows an empty string for Windows users.
+                profile.os_name = "Windows".to_string();
+            }
             _ => {}
         }
 

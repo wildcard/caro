@@ -770,10 +770,13 @@ impl Default for CliConfig {
         // Unix only if no SHELL env var is set.
         let detected = ShellType::detect();
         let default_shell = if matches!(detected, ShellType::Unknown) {
-            // Conservative fallback for the rare case where neither
-            // SHELL nor PSModulePath is set: pick the OS's canonical shell.
+            // Fallback for the rare case where neither SHELL nor
+            // PSModulePath is set. Modern Windows (Win7+) ships PowerShell
+            // by default and `pwsh` is the recommended user shell, so
+            // prefer it over cmd.exe — generated commands and the
+            // dry-run summary are more useful that way.
             if cfg!(target_os = "windows") {
-                ShellType::Cmd
+                ShellType::PowerShell
             } else {
                 ShellType::Bash
             }

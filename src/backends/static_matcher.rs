@@ -1982,7 +1982,9 @@ mod tests {
     }
 
     /// Hybrid hosts (Git Bash, MSYS2, Cygwin) keep matching — they run a
-    /// POSIX shell so `ls -la` and friends are correct there.
+    /// POSIX shell so `ls -la` and friends are correct there. Asserts the
+    /// exact emitted command so a future regression that returns a
+    /// *different* `Ok(...)` (e.g. wrong pattern selected) still fails.
     #[tokio::test]
     async fn test_static_matcher_still_runs_on_hybrid() {
         let mut profile = CapabilityProfile::ubuntu();
@@ -1990,10 +1992,13 @@ mod tests {
         let matcher = StaticMatcher::new(profile);
 
         let request = CommandRequest::new("list all files modified today", ShellType::Bash);
-        let result = matcher.generate_command(&request).await;
-        assert!(
-            result.is_ok(),
-            "Hybrid profile should still produce a static match"
+        let result = matcher
+            .generate_command(&request)
+            .await
+            .expect("Hybrid profile should still produce a static match");
+        assert_eq!(
+            result.command, "find . -type f -mtime 0",
+            "Hybrid hosts must keep getting the standard POSIX match"
         );
     }
 
