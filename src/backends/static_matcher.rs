@@ -1448,7 +1448,7 @@ impl StaticMatcher {
             PatternEntry {
                 required_keywords: vec!["copy".to_string(), "preserving".to_string()],
                 optional_keywords: vec!["file".to_string(), "attributes".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(copy|cp).*(preserv|maintain|keep).*(attributes?|permissions)").unwrap()),
+                regex_pattern: Some(Regex::new(r"(?i)(copy|cp).*(preserve|maintain|keep).*(attributes?|permissions)").unwrap()),
                 gnu_command: "cp -p source.txt dest.txt".to_string(),
                 bsd_command: Some("cp -p source.txt dest.txt".to_string()),
                 description: "Copy file preserving attributes".to_string(),

@@ -180,7 +180,11 @@ fn compile_cve_ruleset() -> (usize, usize) {
         let id = format!("{}-{}", rule_id, sanitize(&tc.input));
         let esc_input = tc.input.replace('\\', "\\\\").replace('"', "\\\"");
         let esc_behavior = tc.expected_behavior.replace('"', "\\\"");
-        let category = if rule_id.starts_with("ODIN-") { "0din" } else { "cve" };
+        let category = if rule_id.starts_with("ODIN-") {
+            "0din"
+        } else {
+            "cve"
+        };
         yaml.push_str(&format!(
             "  - id: \"{id}\"\n    input: \"{inp}\"\n    expected_behavior: \"{beh}\"\n    category: \"{cat}\"\n    risk_level: \"critical\"\n",
             id = id,
