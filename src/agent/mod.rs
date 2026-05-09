@@ -234,8 +234,13 @@ impl AgentLoop {
 
                     return Ok(command);
                 }
+                Err(GeneratorError::BackendUnavailable { .. }) => {
+                    debug!("Static matcher: no match, falling back to LLM");
+                }
                 Err(e) => {
-                    debug!("Static matcher: no match ({}), falling back to LLM", e);
+                    // Security rejections (Unsafe, ValidationFailed) must not fall through
+                    // to the LLM — the LLM might generate the same dangerous command.
+                    return Err(e);
                 }
             }
         }

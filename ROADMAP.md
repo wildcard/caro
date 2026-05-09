@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: April 20, 2026
+**Last Updated**: May 9, 2026
 
 > **Recent Update**: Integrated 104 PRs (#557-660) into roadmap with milestone assignments and tracking issues.
 
@@ -297,6 +297,7 @@ gantt
 
 | Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
 |-----------|----------|---------------------|----------|----------|---------|
+| **v1.3.1** | May 9, 2026 | P0/P1 safety patch | 4 | 100% | ✅ **RELEASED** |
 | **v1.3.0** | Apr 20, 2026 | `caro ai` + `caro shell-init` | 1 | 100% | ✅ **RELEASED** |
 | **v1.2.0** | Mar 26, 2026 | Docs & website launch | — | 100% | ✅ **RELEASED** |
 | **v1.1.2** | Jan 15, 2026 | 5 | 5 | 100% | ✅ **RELEASED** |
