@@ -1,6 +1,6 @@
 # Download and install caro binary for Windows
 param(
-    [string]$Version = "1.3.0",
+    [string]$Version = "1.3.1",
     [string]$InstallPath = $PSScriptRoot
 )
 

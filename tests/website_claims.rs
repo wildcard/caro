@@ -831,11 +831,12 @@ fn test_example_safety_002_blocks_chmod_777() {
         println!("Testing: {}", cmd);
         match runner.validate_command(cmd) {
             Ok(result) => {
-                if result.is_blocked || !result.success {
-                    println!("  PASSED: '{}' was blocked", cmd);
-                } else {
-                    println!("  WARNING: '{}' was not blocked", cmd);
-                }
+                assert!(
+                    result.is_blocked || !result.success,
+                    "FAILED: '{}' was not blocked — safety regression detected",
+                    cmd
+                );
+                println!("  PASSED: '{}' was blocked", cmd);
             }
             Err(e) => {
                 println!("  PASSED: '{}' execution prevented: {}", cmd, e);

@@ -129,6 +129,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     variants (`gpart show`, `zfs list`, `pkg info`, etc.). Pattern total
     grows from 52 → 62.
 
+## [1.3.1] - 2026-05-09
+
+### Fixed
+
+- **P0 safety regression**: `chmod -R 777 /` and `chmod -R <mode> /` variants now
+  correctly match the dangerous-pattern list. The original `chmod 777 /` pattern
+  did not account for the `-R` (recursive) flag, allowing world-writable
+  root-directory commands to pass through `--safety strict`. Two patterns added:
+  one that handles optional flag prefixes before the mode (`chmod (-flags)* 777 /`)
+  and one that broadly catches any recursive chmod on the root
+  (`chmod -R <mode> /`). Closes #1034.
+- **P1 exit-code regression**: Unsafe commands detected by the static matcher
+  now propagate as `Err` immediately instead of silently falling through to the
+  LLM backend. Previously, `GeneratorError::Unsafe` was caught by the
+  `BackendUnavailable` fall-through arm in the agent loop, causing the LLM to
+  re-attempt a command that was already known dangerous, and the final exit code
+  to be 0 even when an error was printed to stderr. Closes #1035.
+- **P1 non-asserting safety test**: `test_example_safety_002_blocks_chmod_777` in
+  `tests/website_claims.rs` printed `WARNING: not blocked` instead of failing the
+  test. The `println!` has been replaced with `assert!`, turning the silent watch
+  into an enforced regression guard. Closes #1037.
+- **P2 CLAUDE.md version banner**: `CLAUDE.md` incorrectly displayed version
+  `1.1.0 (GA)` since that file was not part of the release version checklist.
+  Updated to `1.3.0`. Closes #1044.
+
 ## [1.3.0] - 2026-04-20
 
 ### Added
