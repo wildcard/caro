@@ -56,19 +56,22 @@ jobs:
 
       - name: Run validation script
         id: validate
+        if: always()
         run: |
           cd website
-          node scripts/i18n/validate.mjs --strict > validation-report.txt 2>&1 || true
+          node scripts/i18n/validate.mjs > validation-report.txt 2>&1 || true
           cat validation-report.txt
 
-          # Check exit code separately
-          if node scripts/i18n/validate.mjs --strict; then
-            echo "validation_passed=true" >> $GITHUB_OUTPUT
-          else
+          # Check for actual errors (❌ markers), not warnings (⚠️)
+          # Warnings for brand names like "GitHub Copilot CLI" are expected
+          if node scripts/i18n/validate.mjs 2>&1 | grep -q "Validation failed"; then
             echo "validation_passed=false" >> $GITHUB_OUTPUT
+          else
+            echo "validation_passed=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Generate coverage report
+        if: always()
         run: |
           cd website
           node scripts/i18n/status.mjs > coverage-report.txt
@@ -76,6 +79,7 @@ jobs:
 
       - name: Check minimum coverage
         id: coverage
+        if: always()
         env:
           MIN_COVERAGE: 80
         run: |

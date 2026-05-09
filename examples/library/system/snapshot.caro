@@ -1,0 +1,17 @@
+REM A starter task for capturing a system snapshot. Curated example.
+REM Copy this to ~/.caro/library/system/snapshot.caro for personal use.
+
+TASK Capture a quick system snapshot
+WHY  Trace a moment in time before/after risky operations; doubles as a sanity probe.
+
+ON   macos PREFER bsd-tools
+ON   linux PREFER gnu-tools
+
+LET  out = /tmp/caro-snapshot.txt
+
+NOTE keep it terse; one line per fact, no shell loops
+DO   record current date and hostname to {out}
+DO   append uname -a output
+DO   append disk usage of the user's home directory
+DO   append the top 5 processes by RSS
+DO   echo where the snapshot was written

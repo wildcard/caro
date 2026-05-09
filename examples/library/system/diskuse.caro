@@ -1,0 +1,13 @@
+REM Curated example: report top-K disk usage.
+
+TASK Report top disk-usage paths under a directory
+WHY  Quick triage when a partition is filling up.
+
+ON   macos PREFER bsd-tools
+ON   linux PREFER gnu-tools
+
+LET  path = /var
+LET  topk = 10
+
+DO   list the {topk} largest top-level subdirectories under {path}, sorted by size descending
+DO   include human-readable sizes in the output

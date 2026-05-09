@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "generated": "2026-04-21T19:04:41.474Z",
+  "generated": "2026-04-29T01:58:06.370Z",
   "totalPages": 44,
   "pages": [
     {
@@ -6921,12 +6921,12 @@
         "anything",
         "type",
         "validated",
-        "coming",
-        "soon",
-        "wasm",
-        "build",
-        "pending",
-        "runs"
+        "runs",
+        "entirely",
+        "compiled",
+        "showcasing",
+        "technology",
+        "powers"
       ],
       "icon": "📄",
       "content": {
@@ -6945,7 +6945,6 @@
         ],
         "paragraphs": [
           "Experience the safety-first shell companion without installing anything. Type natural language, get validated shell commands.",
-          "Demo coming soon! Ratzilla WASM build pending.",
           "This demo runs entirely in your browser using Rust compiled to WebAssembly, showcasing the same technology that powers Caro's blazing-fast command generation.",
           "Memory-safe, blazing fast",
           "Near-native performance",
@@ -6957,13 +6956,13 @@
         ],
         "listItems": []
       },
-      "fullText": "Try Caro - Interactive Shell Companion Demo Experience Caro's AI-powered shell command generation in your browser. Try the safety-first terminal companion that converts natural language to POSIX commands. try caro online caro demo shell command generator demo Experience Caro's safety-first shell companion in your browser Try Caro in Your Browser Try these prompts: Powered by Ratzilla Rust WebAssembly Ratzilla 52+ Safety Patterns Ready for the Real Thing? Quick Install With Cargo About Ratzilla Experience the safety-first shell companion without installing anything. Type natural language, get validated shell commands. Demo coming soon! Ratzilla WASM build pending. This demo runs entirely in your browser using Rust compiled to WebAssembly, showcasing the same technology that powers Caro's blazing-fast command generation. Memory-safe, blazing fast Near-native performance Terminal UI for the web Dangerous command detection The demo shows a fraction of Caro's capabilities. Install the full CLI for local LLM inference, platform detection, and enterprise-grade safety. This interactive demo is powered by Ratzilla , an open-source framework by orhun that brings terminal user interfaces to the web using Rust and WebAssembly. Ratzilla is built on Ratatui , the beloved Rust TUI library, making it possible to write authentic terminal experiences that run directly in the browser. 📁 find large files 📄 list PDFs 💾 disk usage 📦 compress logs ⚠️ delete temps 🚫 rm -rf (blocked!) Copy Copy Get Caro View on GitHub Ratzilla orhun Ratatui Learn more about Ratzilla → Try Caro - Interactive Shell Companion Demo | Caro Interactive Demo Try Caro in Your Browser Experience the safety-first shell companion without installing anything. Type natural language, get validated shell commands. Demo coming soon! Ratzilla WASM build pending. Try these prompts: 📁 find large files 📄 list PDFs 💾 disk usage 📦 compress logs ⚠️ delete temps 🚫 rm -rf (blocked!) Powered by Ratzilla This demo runs entirely in your browser using Rust compiled to WebAssembly, showcasing the same technology that powers Caro's blazing-fast command generation. 🦀 Rust Memory-safe, blazing fast 🌐 WebAssembly Near-native performance 🐀 Ratzilla Terminal UI for the web 🛡️ 52+ Safety Patterns Dangerous command detection Ready for the Real Thing? The demo shows a fraction of Caro's capabilities. Install the full CLI for local LLM inference, platform detection, and enterprise-grade safety. Quick Install Copy With Cargo Copy Get Caro View on GitHub 🐀 About Ratzilla This interactive demo is powered by Ratzilla , an open-source framework by orhun that brings terminal user interfaces to the web using Rust and WebAssembly. Ratzilla is built on Ratatui , the beloved Rust TUI library, making it possible to write authentic terminal experiences that run directly in the browser. Learn more about Ratzilla →",
-      "_searchText": "try caro - interactive shell companion demo experience caro's ai-powered shell command generation in your browser. try the safety-first terminal companion that converts natural language to posix commands. /try-caro caro ratzilla demo shell try browser safety rust terminal companion command your webassembly interactive powered experience first install about get using blazing fast web detection copy generation natural language commands orhun ratatui prompts patterns ready real thing quick cargo without installing anything type validated coming soon wasm build pending runs try caro in your browser try these prompts: powered by ratzilla rust webassembly ratzilla 52+ safety patterns ready for the real thing? quick install with cargo about ratzilla experience the safety-first shell companion without installing anything. type natural language, get validated shell commands. demo coming soon! ratzilla wasm build pending. this demo runs entirely in your browser using rust compiled to webassembly, showcasing the same technology that powers caro's blazing-fast command generation. memory-safe, blazing fast near-native performance terminal ui for the web dangerous command detection the demo shows a fraction of caro's capabilities. install the full cli for local llm inference, platform detection, and enterprise-grade safety. this interactive demo is powered by ratzilla , an open-source framework by orhun that brings terminal user interfaces to the web using rust and webassembly. ratzilla is built on ratatui , the beloved rust tui library, making it possible to write authentic terminal experiences that run directly in the browser. try caro - interactive shell companion demo experience caro's ai-powered shell command generation in your browser. try the safety-first terminal companion that converts natural language to posix commands. try caro online caro demo shell command generator demo experience caro's safety-first shell companion in your browser try caro in your browser try these prompts: powered by ratzilla rust webassembly ratzilla 52+ safety patterns ready for the real thing? quick install with cargo about ratzilla experience the safety-first shell companion without installing anything. type natural language, get validated shell commands. demo coming soon! ratzilla wasm build pending. this demo runs entirely in your browser using rust compiled to webassembly, showcasing the same technology that powers caro's blazing-fast command generation. memory-safe, blazing fast near-native performance terminal ui for the web dangerous command detection the demo shows a fraction of caro's capabilities. install the full cli for local llm inference, platform detection, and enterprise-grade safety. this interactive demo is powered by ratzilla , an open-source framework by orhun that brings terminal user interfaces to the web using rust and webassembly. ratzilla is built on ratatui , the beloved rust tui library, making it possible to write authentic terminal experiences that run directly in the browser. 📁 find large files 📄 list pdfs 💾 disk usage 📦 compress logs ⚠️ delete temps 🚫 rm -rf (blocked!) copy copy get caro view on github ratzilla orhun ratatui learn more about ratzilla → try caro - interactive shell companion demo | caro interactive demo try caro in your browser experience the safety-first shell companion without installing anything. type natural language, get validated shell commands. demo coming soon! ratzilla wasm build pending. try these prompts: 📁 find large files 📄 list pdfs 💾 disk usage 📦 compress logs ⚠️ delete temps 🚫 rm -rf (blocked!) powered by ratzilla this demo runs entirely in your browser using rust compiled to webassembly, showcasing the same technology that powers caro's blazing-fast command generation. 🦀 rust memory-safe, blazing fast 🌐 webassembly near-native performance 🐀 ratzilla terminal ui for the web 🛡️ 52+ safety patterns dangerous command detection ready for the real thing? the demo shows a fraction of caro's capabilities. install the full cli for local llm inference, platform detection, and enterprise-grade safety. quick install copy with cargo copy get caro view on github 🐀 about ratzilla this interactive demo is powered by ratzilla , an open-source framework by orhun that brings terminal user interfaces to the web using rust and webassembly. ratzilla is built on ratatui , the beloved rust tui library, making it possible to write authentic terminal experiences that run directly in the browser. learn more about ratzilla →",
+      "fullText": "Try Caro - Interactive Shell Companion Demo Experience Caro's AI-powered shell command generation in your browser. Try the safety-first terminal companion that converts natural language to POSIX commands. try caro online caro demo shell command generator demo Experience Caro's safety-first shell companion in your browser Try Caro in Your Browser Try these prompts: Powered by Ratzilla Rust WebAssembly Ratzilla 52+ Safety Patterns Ready for the Real Thing? Quick Install With Cargo About Ratzilla Experience the safety-first shell companion without installing anything. Type natural language, get validated shell commands. This demo runs entirely in your browser using Rust compiled to WebAssembly, showcasing the same technology that powers Caro's blazing-fast command generation. Memory-safe, blazing fast Near-native performance Terminal UI for the web Dangerous command detection The demo shows a fraction of Caro's capabilities. Install the full CLI for local LLM inference, platform detection, and enterprise-grade safety. This interactive demo is powered by Ratzilla , an open-source framework by orhun that brings terminal user interfaces to the web using Rust and WebAssembly. Ratzilla is built on Ratatui , the beloved Rust TUI library, making it possible to write authentic terminal experiences that run directly in the browser. 📁 find large files 📄 list PDFs 💾 disk usage 📦 compress logs ⚠️ delete temps 🚫 rm -rf (blocked!) Copy Copy Get Caro View on GitHub Ratzilla orhun Ratatui Learn more about Ratzilla → Try Caro - Interactive Shell Companion Demo | Caro Interactive Demo Try Caro in Your Browser Experience the safety-first shell companion without installing anything. Type natural language, get validated shell commands. Try these prompts: 📁 find large files 📄 list PDFs 💾 disk usage 📦 compress logs ⚠️ delete temps 🚫 rm -rf (blocked!) Powered by Ratzilla This demo runs entirely in your browser using Rust compiled to WebAssembly, showcasing the same technology that powers Caro's blazing-fast command generation. 🦀 Rust Memory-safe, blazing fast 🌐 WebAssembly Near-native performance 🐀 Ratzilla Terminal UI for the web 🛡️ 52+ Safety Patterns Dangerous command detection Ready for the Real Thing? The demo shows a fraction of Caro's capabilities. Install the full CLI for local LLM inference, platform detection, and enterprise-grade safety. Quick Install Copy With Cargo Copy Get Caro View on GitHub 🐀 About Ratzilla This interactive demo is powered by Ratzilla , an open-source framework by orhun that brings terminal user interfaces to the web using Rust and WebAssembly. Ratzilla is built on Ratatui , the beloved Rust TUI library, making it possible to write authentic terminal experiences that run directly in the browser. Learn more about Ratzilla →",
+      "_searchText": "try caro - interactive shell companion demo experience caro's ai-powered shell command generation in your browser. try the safety-first terminal companion that converts natural language to posix commands. /try-caro caro ratzilla demo shell try browser safety rust terminal companion command your webassembly interactive powered experience first install about get using blazing fast web detection copy generation natural language commands orhun ratatui prompts patterns ready real thing quick cargo without installing anything type validated runs entirely compiled showcasing technology powers try caro in your browser try these prompts: powered by ratzilla rust webassembly ratzilla 52+ safety patterns ready for the real thing? quick install with cargo about ratzilla experience the safety-first shell companion without installing anything. type natural language, get validated shell commands. this demo runs entirely in your browser using rust compiled to webassembly, showcasing the same technology that powers caro's blazing-fast command generation. memory-safe, blazing fast near-native performance terminal ui for the web dangerous command detection the demo shows a fraction of caro's capabilities. install the full cli for local llm inference, platform detection, and enterprise-grade safety. this interactive demo is powered by ratzilla , an open-source framework by orhun that brings terminal user interfaces to the web using rust and webassembly. ratzilla is built on ratatui , the beloved rust tui library, making it possible to write authentic terminal experiences that run directly in the browser. try caro - interactive shell companion demo experience caro's ai-powered shell command generation in your browser. try the safety-first terminal companion that converts natural language to posix commands. try caro online caro demo shell command generator demo experience caro's safety-first shell companion in your browser try caro in your browser try these prompts: powered by ratzilla rust webassembly ratzilla 52+ safety patterns ready for the real thing? quick install with cargo about ratzilla experience the safety-first shell companion without installing anything. type natural language, get validated shell commands. this demo runs entirely in your browser using rust compiled to webassembly, showcasing the same technology that powers caro's blazing-fast command generation. memory-safe, blazing fast near-native performance terminal ui for the web dangerous command detection the demo shows a fraction of caro's capabilities. install the full cli for local llm inference, platform detection, and enterprise-grade safety. this interactive demo is powered by ratzilla , an open-source framework by orhun that brings terminal user interfaces to the web using rust and webassembly. ratzilla is built on ratatui , the beloved rust tui library, making it possible to write authentic terminal experiences that run directly in the browser. 📁 find large files 📄 list pdfs 💾 disk usage 📦 compress logs ⚠️ delete temps 🚫 rm -rf (blocked!) copy copy get caro view on github ratzilla orhun ratatui learn more about ratzilla → try caro - interactive shell companion demo | caro interactive demo try caro in your browser experience the safety-first shell companion without installing anything. type natural language, get validated shell commands. try these prompts: 📁 find large files 📄 list pdfs 💾 disk usage 📦 compress logs ⚠️ delete temps 🚫 rm -rf (blocked!) powered by ratzilla this demo runs entirely in your browser using rust compiled to webassembly, showcasing the same technology that powers caro's blazing-fast command generation. 🦀 rust memory-safe, blazing fast 🌐 webassembly near-native performance 🐀 ratzilla terminal ui for the web 🛡️ 52+ safety patterns dangerous command detection ready for the real thing? the demo shows a fraction of caro's capabilities. install the full cli for local llm inference, platform detection, and enterprise-grade safety. quick install copy with cargo copy get caro view on github 🐀 about ratzilla this interactive demo is powered by ratzilla , an open-source framework by orhun that brings terminal user interfaces to the web using rust and webassembly. ratzilla is built on ratatui , the beloved rust tui library, making it possible to write authentic terminal experiences that run directly in the browser. learn more about ratzilla →",
       "_words": [
         "caro",
         "ratzilla",
-        "demo",
         "try",
+        "demo",
         "shell",
         "browser",
         "safety",
@@ -7004,19 +7003,14 @@
         "anything",
         "type",
         "validated",
-        "coming",
-        "soon",
-        "wasm",
-        "build",
-        "pending",
         "runs",
-        "converts",
-        "posix",
         "entirely",
         "compiled",
         "showcasing",
         "technology",
         "powers",
+        "converts",
+        "posix",
         "memory",
         "safe",
         "near",
@@ -7059,7 +7053,12 @@
         "disk",
         "usage",
         "compress",
-        "logs"
+        "logs",
+        "delete",
+        "temps",
+        "blocked",
+        "view",
+        "github"
       ]
     },
     {

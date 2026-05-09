@@ -6,6 +6,8 @@
 
 > ✨ **Now Generally Available!** - Published on crates.io with all core features working. Visit [caro.sh](https://caro.sh) for more info.
 
+> 🆕 **CaroML preview** — Caro now interprets `.caro` task files: an eight-keyword line-keyword DSL that lets you commit *intent* and have Caro generate the script. Per-platform variants, A/B challengers, runbook drift detection, and the bundled `caro-scaffold` skill for any skill-aware coder agent. See [`docs/caroml/intro.md`](docs/caroml/intro.md) and [`examples/library/system/`](examples/library/system/).
+
 **caro** (formerly **cmdai**) converts natural language descriptions into safe POSIX shell commands using local LLMs. Built with Rust for blazing-fast performance, single-binary distribution, and safety-first design with intelligent platform detection.
 
 ```bash
@@ -679,6 +681,29 @@ level = "moderate"  # strict, moderate, or permissive
 require_confirmation = true
 custom_patterns = ["additional", "dangerous", "patterns"]
 ```
+
+### CVE Rule Pipeline (Maintainers)
+
+Caro's safety layer is kept current against newly-disclosed CVEs and 0day
+attack signatures by a **back-office authoring pipeline** (spec 010). It runs
+only during development/CI — end users make **zero** network calls to any CVE
+source at runtime.
+
+- **Weekly cron** ([`.github/workflows/cve-rule-sync.yml`](.github/workflows/cve-rule-sync.yml))
+  — queries NVD + CISA KEV + GHSA for new shell-invocation CVEs (CVSS ≥ 7.0)
+  and opens a PR adding a draft `data/cve_rules/CVE-*.yaml` file.
+- **Off-cycle manual trigger** (`caro.security.update` maintainer skill) —
+  invoke via `claude --skill caro.security.update --arg CVE-<id>` when a 0day
+  lands between cron runs; same authoring flow, runs on demand.
+- **Build embedding** — `build.rs` compiles `data/cve_rules/*.yaml` into a
+  bincode blob included in the binary via `include_bytes!`. The `caro
+  --version` output lists the embedded rule count as `cve rules: N`.
+
+Runtime behaviour is unchanged: CVE patterns run through the same regex
+validation loop as the built-in patterns (`src/safety/mod.rs`) against
+locally-embedded rules — no network, no added latency, no telemetry. See
+[specs/010-nimble-cve-pipeline/](specs/010-nimble-cve-pipeline/) for the full
+design.
 
 ## 📊 Telemetry & Privacy
 

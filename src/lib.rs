@@ -32,6 +32,7 @@ pub mod ai;
 pub mod assessment;
 pub mod backends;
 pub mod cache;
+pub mod caroml;
 pub mod cli;
 pub mod completion;
 pub mod config;

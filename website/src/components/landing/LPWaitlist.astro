@@ -1,6 +1,10 @@
 ---
-// LPWaitlist.astro - Email capture for Org Visibility feature
-// TODO: Connect to your email service (ConvertKit, Mailchimp, etc.)
+// LPWaitlist.astro — Email capture for "Org Visibility for Teams" feature.
+// Submissions POST to /api/waitlist and persist to Upstash Redis. See
+// website/api/waitlist.ts for the safeguard chain (BotID, rate-limit, honeypot,
+// time-trap, email validation, dedupe). The hidden `ts` input is stamped at
+// page load by the script below — NOT in this frontmatter — because Astro is
+// statically generated and frontmatter Date.now() would be the build time.
 ---
 
 <section class="waitlist" id="waitlist">
@@ -43,6 +47,20 @@
               class="email-input"
             />
           </div>
+          <!-- Honeypot: bots fill every field; real users never see this -->
+          <input
+            type="text"
+            name="website"
+            tabindex="-1"
+            autocomplete="off"
+            class="hp-field"
+            aria-hidden="true"
+          />
+          <!-- Time-trap: client-side render time. The site is statically built,
+               so we cannot fill this in the template — the value would be the
+               build timestamp, which is potentially hours old by the time a
+               visitor submits. The script (below) populates it on page load. -->
+          <input type="hidden" name="ts" value="" />
           <button type="submit" class="submit-button">
             <span class="button-text">Get Early Access</span>
             <span class="button-icon">→</span>
@@ -57,57 +75,90 @@
 </section>
 
 <script>
+  import '../../lib/botid-init';
   import { track } from '@vercel/analytics';
 
   const form = document.getElementById('waitlist-form') as HTMLFormElement;
+
+  // Stamp the time-trap input on page load (the SSG'd template has `value=""`
+  // because Date.now() in the .astro frontmatter would be a frozen build-time
+  // value — hours stale for any visitor after deploy).
+  const tsInputAtLoad = form?.querySelector('input[name="ts"]') as HTMLInputElement | null;
+  if (tsInputAtLoad) {
+    tsInputAtLoad.value = String(Date.now());
+  }
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const emailInput = form.querySelector('input[type="email"]') as HTMLInputElement;
+    const hpInput = form.querySelector('input[name="website"]') as HTMLInputElement;
+    const tsInput = form.querySelector('input[name="ts"]') as HTMLInputElement;
     const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
     const buttonText = submitButton.querySelector('.button-text') as HTMLSpanElement;
 
     const email = emailInput.value;
 
-    // Track waitlist signup attempt
     track('waitlist_signup', { action: 'submit' });
 
-    // Update button state
     submitButton.disabled = true;
     buttonText.textContent = 'Joining...';
 
+    let outcome:
+      | 'success'
+      | 'duplicate'
+      | 'invalid'
+      | 'rate_limited'
+      | 'forbidden'
+      | 'error' = 'error';
+
     try {
-      // TODO: Replace with your actual email service endpoint
-      // Example: await fetch('https://api.convertkit.com/v3/forms/YOUR_FORM_ID/subscribe', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ api_key: 'YOUR_API_KEY', email })
-      // });
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          hp: hpInput?.value ?? '',
+          ts: Number(tsInput?.value ?? 0),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        alreadySubscribed?: boolean;
+      };
 
-      // For now, simulate success
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Track successful signup
-      track('waitlist_signup', { action: 'success' });
-
-      // Success state
-      buttonText.textContent = 'You\'re on the list! ✓';
-      submitButton.classList.add('success');
-      emailInput.value = '';
-
-      // Reset after 3 seconds
-      setTimeout(() => {
-        buttonText.textContent = 'Get Early Access';
-        submitButton.disabled = false;
-        submitButton.classList.remove('success');
-      }, 3000);
-
-    } catch (error) {
-      // Error state
+      if (res.status === 200 && data.ok) {
+        outcome = data.alreadySubscribed ? 'duplicate' : 'success';
+        buttonText.textContent = data.alreadySubscribed
+          ? "You're already on the list ✓"
+          : "You're on the list! ✓";
+        submitButton.classList.add('success');
+        emailInput.value = '';
+      } else if (res.status === 429) {
+        outcome = 'rate_limited';
+        buttonText.textContent = 'Too many tries — slow down';
+      } else if (res.status === 403) {
+        outcome = 'forbidden';
+        buttonText.textContent = 'Try again';
+      } else if (res.status === 400) {
+        outcome = 'invalid';
+        buttonText.textContent = 'Check your email and try again';
+      } else {
+        outcome = 'error';
+        buttonText.textContent = 'Try again';
+      }
+    } catch {
+      outcome = 'error';
       buttonText.textContent = 'Try again';
-      submitButton.disabled = false;
     }
+
+    track('waitlist_signup', { action: outcome });
+
+    setTimeout(() => {
+      buttonText.textContent = 'Get Early Access';
+      submitButton.disabled = false;
+      submitButton.classList.remove('success');
+    }, 3000);
   });
 </script>
 
@@ -218,6 +269,17 @@
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     border: 0;
+  }
+
+  /* Honeypot — off-screen positioning rather than display:none so bots that
+     skip hidden fields still fill it; humans never see or tab into it. */
+  .hp-field {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
   }
 
   .email-input {

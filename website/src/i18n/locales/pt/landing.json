@@ -14,14 +14,31 @@
       "installLabel": "Disponível como Claude Skill:",
       "cta": {
         "getStarted": "Começar",
-        "watchDemo": "Ver Demo"
+        "watchDemo": "Ver Demo",
+        "primary": "Instalar Caro",
+        "secondary": "See Demo"
+      },
+      "headline": {
+        "line1": "Nunca execute",
+        "line2": "por acidente de novo",
+        "dangerCmd": "rm -rf /"
+      },
+      "socialProof": {
+        "quote": "Finalmente, um assistente de IA que não derruba a produção",
+        "attribution": "— Equipes de Engenharia em Todo Lugar"
+      },
+      "trustBadges": {
+        "zeroTelemetry": "Sem Telemetria",
+        "validation": "52+ Padrões de Segurança",
+        "openSource": "Código Aberto",
+        "local": "100% Local"
       }
     },
     "features": {
       "title": "Por que Caro?",
       "subtitle": "Um agente companheiro construído para segurança, empatia e expertise",
       "alphaNotice": "Estamos construindo ativamente com nossa comunidade. Junte-se a nós para ajudar a moldar o futuro do Caro!",
-      "alphaLabel": "Soft Launch Alpha",
+      "alphaLabel": "Lançamento Alfa",
       "ctaText": "Veja exatamente o que o Caro bloqueia e por quê",
       "ctaLink": "Ver padrões de segurança",
       "items": [
@@ -103,8 +120,8 @@
         "caro": "Caro",
         "copilotCli": "GitHub Copilot CLI",
         "warp": "Warp AI",
-        "kiro": "Kiro CLI",
-        "opencode": "OpenCode"
+        "kiro": "vs Kiro CLI",
+        "opencode": "vs OpenCode"
       },
       "table": {
         "feature": "Recurso",

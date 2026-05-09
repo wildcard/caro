@@ -655,6 +655,22 @@ impl CommandValidator {
             "sh",
             "bash",
             "zsh",
+            // Shell builtins and navigation
+            "cd",
+            // Build and project tools
+            "make",
+            "cmake",
+            "cargo",
+            "go",
+            "npm",
+            "pnpm",
+            "yarn",
+            "npx",
+            "node",
+            "python",
+            "python3",
+            "rsync",
+            "strip",
             // Container and orchestration tools
             "docker",
             "docker-compose",

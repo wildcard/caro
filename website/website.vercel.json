@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "_comment": "This file documents the Vercel dashboard configuration for the main website. Vercel ignores this file - configure manually on the dashboard.",
+  "_comment": "This file documents the Vercel dashboard configuration for the main website. Vercel ignores this file - configure manually on the dashboard. Note: the real vercel.json (sibling file) IS read by Vercel and contains the BotID proxy rewrites required by 'botid' for the /api/waitlist endpoint.",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",

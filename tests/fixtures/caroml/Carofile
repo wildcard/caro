@@ -1,0 +1,17 @@
+REM Test fixture: a well-formed Carofile demonstrating USE / JOB / RUN.
+
+TASK Project orchestration
+WHY  Single front door for repeatable tasks; augments Makefile and package.json scripts.
+
+USE  tasks/cleanup-logs.caro       AS cleanup-logs
+USE  "npm test"                     AS test
+USE  "make build"                   AS build
+USE  "cargo clippy --workspace"     AS lint
+
+JOB ci
+  RUN lint
+  RUN test
+  RUN build
+
+JOB nightly
+  RUN cleanup-logs

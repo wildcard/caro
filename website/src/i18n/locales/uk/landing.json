@@ -14,7 +14,24 @@
       "installLabel": "Доступний як навичка Claude:",
       "cta": {
         "getStarted": "Почати",
-        "watchDemo": "Дивитись демо"
+        "watchDemo": "Дивитись демо",
+        "primary": "Install Caro",
+        "secondary": "See Demo"
+      },
+      "headline": {
+        "line1": "Never run",
+        "line2": "by accident again",
+        "dangerCmd": "rm -rf /"
+      },
+      "socialProof": {
+        "quote": "Finally, an AI assistant that won't crash production",
+        "attribution": "— Engineering Teams Everywhere"
+      },
+      "trustBadges": {
+        "zeroTelemetry": "Zero Telemetry",
+        "validation": "52+ Safety Patterns",
+        "local": "100% Local",
+        "openSource": "Open Source"
       }
     },
     "features": {

@@ -1,0 +1,5 @@
+REM Test fixture: a malformed task referencing an undeclared param.
+REM `caro check` should emit a structured error pointing to line 5.
+
+TASK Demo
+DO list {nope}

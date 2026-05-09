@@ -367,6 +367,15 @@ enum KnowledgeCommands {
     },
 }
 
+/// `caro skill` subcommands.
+#[derive(Parser, Clone)]
+enum SkillSubcommand {
+    /// Install the bundled `caro-scaffold` skill into `~/.claude/skills/`.
+    Install,
+    /// Remove the installed `caro-scaffold` skill.
+    Uninstall,
+}
+
 /// Subcommands for caro
 #[derive(Parser, Clone)]
 enum Commands {
@@ -492,6 +501,171 @@ enum Commands {
         /// Skip the `?` AI keybinding even if `ai.enabled` is true in config.
         #[arg(long)]
         disable_ai: bool,
+    },
+
+    /// Validate a CaroML (`.caro`) task file: parse, lint, report errors with line numbers.
+    ///
+    /// No LLM calls, no execution, no regen. Suitable for editor integration and CI.
+    Check {
+        /// Path to a `.caro` file.
+        file: std::path::PathBuf,
+    },
+
+    /// List CaroML tasks discovered in `./tasks/` and `~/.caro/library/`.
+    ///
+    /// By default lists both project and global tasks (project shadows global by name).
+    List {
+        /// Show only global library tasks (`~/.caro/library/`).
+        #[arg(long)]
+        global: bool,
+    },
+
+    /// List jobs declared in the project's Carofile, if present.
+    ///
+    /// Carofile recognized at `./Carofile` or `./Carofile.caro`. No execution.
+    Jobs,
+
+    /// Scaffold a starter `.caro` task file from a template.
+    ///
+    /// Writes to `./tasks/<name>.caro`. Creates `./tasks/` if missing.
+    /// Refuses to overwrite an existing file. No LLM in v0.1 — just a
+    /// fill-in-the-blanks template; LLM-assisted scaffolding lands in PR 4.
+    New {
+        /// Task name (becomes `tasks/<name>.caro`); may include `/` for subdirectories.
+        name: String,
+    },
+
+    /// Generate or refresh a `.caro.lock` from a `.caro` task file.
+    ///
+    /// Calls the configured backend per step, runs the validator chain,
+    /// and produces per-platform variants. Writes `tasks/<name>.caro.lock`
+    /// atomically. With `--platform`, generates only that platform; without,
+    /// uses the platforms declared by the task's `ON` pragmas (or the
+    /// current platform as fallback).
+    Generate {
+        /// Task name (resolved via `tasks/<name>.caro` or `~/.caro/library/<name>.caro`).
+        name: String,
+
+        /// Restrict generation to one platform: `macos` / `linux` / `windows` / `posix`.
+        #[arg(long)]
+        platform: Option<String>,
+
+        /// Override the backend (e.g. `mock`); defaults to the configured backend.
+        #[arg(long)]
+        backend: Option<String>,
+    },
+
+    /// Execute a CaroML task on the current platform.
+    ///
+    /// Reads the lock, picks the active variant for the current platform,
+    /// prints the plan, asks for confirmation (unless `-y`), then executes.
+    /// Stops on first non-zero exit.
+    Run {
+        /// Task name to run.
+        name: String,
+
+        /// Skip the confirmation prompt.
+        #[arg(short = 'y', long)]
+        yes: bool,
+
+        /// Override platform.
+        #[arg(long)]
+        platform: Option<String>,
+
+        /// Print the plan and exit without executing.
+        #[arg(long)]
+        dry_run: bool,
+    },
+
+    /// Write the per-platform `.<platform>.sh` runbook from the active
+    /// variant in the lock. The committed runbook lets non-Caro users run
+    /// the task with plain `bash`.
+    Export {
+        /// Task name.
+        name: String,
+
+        /// Platform to export (default: current).
+        #[arg(long)]
+        platform: Option<String>,
+
+        /// Output path. If unset, writes to `tasks/<name>.<platform>.sh`.
+        #[arg(short = 'o', long)]
+        output: Option<std::path::PathBuf>,
+    },
+
+    /// Generate an A/B challenger variant alongside the existing active.
+    ///
+    /// The challenger is added with `active = false`. Use `caro adopt` to
+    /// promote it once you've reviewed it.
+    Experiment {
+        /// Task name.
+        name: String,
+
+        /// Platform to experiment on (default: current).
+        #[arg(long)]
+        platform: Option<String>,
+
+        /// Backend to use for the new variant (default: `mock` in v0.1).
+        #[arg(long)]
+        backend: Option<String>,
+    },
+
+    /// Promote a challenger variant to active for its platform.
+    ///
+    /// The previously-active variant for that platform is retired
+    /// (set to `active = false`, `retired_at = now`) but kept in the lock
+    /// for reference.
+    Adopt {
+        /// Task name.
+        name: String,
+
+        /// Variant generation_id to promote (e.g. `gen_2026-04-26_macos_b`).
+        #[arg(long)]
+        variant: String,
+    },
+
+    /// Show the generation lineage from the lock plus a per-variant
+    /// run-summary derived from the local journal.
+    History {
+        /// Task name.
+        name: String,
+    },
+
+    /// Explain the RegenEvaluator's decision for the next `caro run`.
+    Why {
+        /// Task name.
+        name: String,
+    },
+
+    /// Run a Carofile JOB, an external-alias, or a bare task.
+    ///
+    /// Resolution order:
+    /// 1. JOB matching `<name>` in `./Carofile` / `./Carofile.caro`
+    /// 2. USE alias matching `<name>` (external command or native task)
+    /// 3. Fallback: `caro run <name>` (treats `<name>` as a bare task name)
+    Do {
+        /// Job, alias, or task name.
+        name: String,
+
+        /// Print the resolved dispatch plan and exit.
+        #[arg(long)]
+        dry_run: bool,
+    },
+
+    /// Render a CaroML task as Markdown documentation.
+    Render {
+        /// Task name.
+        name: String,
+
+        /// Output path. If unset, prints to stdout.
+        #[arg(short = 'o', long)]
+        output: Option<std::path::PathBuf>,
+    },
+
+    /// Manage Caro's bundled coder-agent skill.
+    Skill {
+        #[command(subcommand)]
+        command: SkillSubcommand,
     },
     // /// Manage telemetry data and settings
     // Telemetry {
@@ -1041,6 +1215,773 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
 
     println!("{}", outcome.command);
     Ok(())
+}
+
+// =============================================================================
+// CaroML CLI handlers
+// =============================================================================
+
+/// Print the discovered tasks. Default lists project + global with project
+/// shadowing global by name; `--global` filters to global only.
+fn run_caroml_list(global_only: bool) {
+    use caro::caroml::discovery::{list_all, list_global_tasks, list_project_tasks, TaskSource};
+
+    let entries = if global_only {
+        list_global_tasks()
+    } else {
+        list_all()
+    };
+
+    if entries.is_empty() {
+        if global_only {
+            println!("(no tasks in ~/.caro/library/)");
+        } else {
+            println!("(no tasks in ./tasks/ or ~/.caro/library/)");
+        }
+        return;
+    }
+
+    let max_name = entries.iter().map(|e| e.name.len()).max().unwrap_or(0);
+    for entry in entries {
+        let source = match entry.source {
+            TaskSource::Project => "project",
+            TaskSource::Global => "global",
+        };
+        println!(
+            "{:<width$}  {}  {}",
+            entry.name,
+            source,
+            entry.path.display(),
+            width = max_name
+        );
+    }
+
+    if !global_only && !list_project_tasks().is_empty() {
+        // Project tasks take precedence; list_all already applied that.
+        // No-op; the layout above is sufficient.
+    }
+}
+
+/// Print the JOBs declared in the project's Carofile, if present.
+fn run_caroml_jobs() -> Result<(), String> {
+    use caro::caroml::{carofile, discovery};
+
+    let path = match discovery::find_carofile() {
+        Some(p) => p,
+        None => {
+            println!("(no Carofile in current directory; create one to define jobs)");
+            return Ok(());
+        }
+    };
+
+    let src = std::fs::read_to_string(&path).map_err(|e| format!("{}: {}", path.display(), e))?;
+    let cf = carofile::parse_with_path(&src, Some(path.clone()))
+        .map_err(|e| format!("{}: {}", path.display(), e))?;
+
+    println!("{}: {}", path.display(), cf.title);
+    if cf.jobs.is_empty() {
+        println!("(no JOBs declared)");
+        return Ok(());
+    }
+
+    let max_name = cf.jobs.iter().map(|j| j.name.len()).max().unwrap_or(0);
+    for job in &cf.jobs {
+        println!(
+            "{:<width$}  runs: {}",
+            job.name,
+            job.runs.join(", "),
+            width = max_name
+        );
+    }
+    Ok(())
+}
+
+/// Scaffold a starter `.caro` from a template at `tasks/<name>.caro`.
+///
+/// v0.1 is template-only — no LLM. PR 4 adds `caro new <name> "<description>"`
+/// for LLM-assisted scaffolding.
+fn run_caroml_new(name: &str) -> Result<std::path::PathBuf, String> {
+    use caro::caroml::discovery::project_tasks_dir;
+
+    if name.trim().is_empty() {
+        return Err("task name cannot be empty".to_string());
+    }
+    if name.contains("..") {
+        return Err("task name cannot contain `..`".to_string());
+    }
+
+    let mut path = project_tasks_dir();
+    for segment in name.split('/') {
+        path = path.join(segment);
+    }
+    let final_path = path.with_extension("caro");
+
+    if final_path.exists() {
+        return Err(format!(
+            "{} already exists; refusing to overwrite",
+            final_path.display()
+        ));
+    }
+
+    if let Some(parent) = final_path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("creating {}: {}", parent.display(), e))?;
+    }
+
+    let template = format!(
+        "REM Scaffolded by `caro new {}` — fill in the blanks below.\n\
+         REM Run `caro check tasks/{}.caro` to validate as you edit.\n\
+         \n\
+         TASK <one-line title for this task>\n\
+         WHY  <why this task exists; runs when?>\n\
+         \n\
+         REM Optional: declare prerequisites\n\
+         REM NEED sudo\n\
+         REM ON   macos PREFER bsd-tools\n\
+         REM ON   linux PREFER gnu-tools\n\
+         \n\
+         REM Optional: declare authoring-time parameters; reference as {{name}} in DO lines.\n\
+         REM LET path = /var/log\n\
+         \n\
+         REM Steps — one natural-language intent per DO line.\n\
+         DO   <first thing to do>\n\
+         DO   <second thing to do>\n",
+        name, name,
+    );
+
+    std::fs::write(&final_path, template)
+        .map_err(|e| format!("writing {}: {}", final_path.display(), e))?;
+
+    Ok(final_path)
+}
+
+/// Run `caro generate <name>` — call the configured backend per step,
+/// validate, and write `tasks/<name>.caro.lock`.
+async fn run_caroml_generate(
+    name: &str,
+    platform_override: Option<&str>,
+    backend_override: Option<&str>,
+) -> Result<std::path::PathBuf, String> {
+    use caro::caroml::{check_file, discovery, interpreter, platform as caro_platform, validators};
+
+    let path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+
+    let task = check_file(&path).map_err(|e| format!("{}: {}", path.display(), e))?;
+
+    // Resolve target platform.
+    let target_platform = match platform_override {
+        Some(p) if caro_platform::is_known(p) => p.to_string(),
+        Some(p) => return Err(format!("unknown platform `{}`", p)),
+        None => caro_platform::current().to_string(),
+    };
+
+    // Resolve backend. v0.1: only `mock` is wired through here (deterministic);
+    // other backends arrive in PR 5+ when execution is needed.
+    let backend =
+        build_caroml_backend(backend_override).map_err(|e| format!("backend setup: {}", e))?;
+    let backend_ref: &dyn caro::backends::CommandGenerator = &*backend;
+
+    let chain = validators::default_chain();
+    let cfg = interpreter::GenerateConfig::for_intent(path.to_string_lossy().into_owned());
+
+    let lock = if platform_override.is_some() {
+        interpreter::generate_lock_for_platform(&task, &target_platform, backend_ref, &chain, &cfg)
+            .await
+            .map_err(|e| format!("generation failed: {}", e))?
+    } else {
+        interpreter::generate_lock_for_all_platforms(
+            &task,
+            &target_platform,
+            backend_ref,
+            &chain,
+            &cfg,
+        )
+        .await
+        .map_err(|e| format!("generation failed: {}", e))?
+    };
+
+    let lock_path = path.with_extension("caro.lock");
+    lock.write_path(&lock_path)
+        .map_err(|e| format!("writing {}: {}", lock_path.display(), e))?;
+    Ok(lock_path)
+}
+
+/// Build the backend used by `caro generate`. v0.1 supports only `mock`
+/// (an inline echo-style backend) for deterministic CLI tests; the real
+/// `embedded`/`ollama` etc. backends arrive in PR 5 when execution lands.
+fn build_caroml_backend(
+    name: Option<&str>,
+) -> Result<Box<dyn caro::backends::CommandGenerator>, String> {
+    match name.unwrap_or("mock") {
+        "mock" => Ok(Box::new(InlineMockBackend)),
+        other => Err(format!(
+            "backend `{}` not yet wired into `caro generate` in v0.1; \
+             only `mock` is supported until PR 5",
+            other
+        )),
+    }
+}
+
+/// Status of the on-disk runbook relative to the lock's stamped hash.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum RunbookStatus {
+    Missing,
+    Clean,
+    Drift,
+    NoStamp,
+}
+
+fn runbook_status_for_active(
+    lock: &caro::caroml::lock::Lock,
+    platform: &str,
+    runbook_path: &std::path::Path,
+) -> RunbookStatus {
+    if !runbook_path.exists() {
+        return RunbookStatus::Missing;
+    }
+    let stamp = lock
+        .steps
+        .iter()
+        .find_map(|s| s.active_variant(platform).map(|v| v.runbook_hash.clone()))
+        .unwrap_or_default();
+    if stamp.is_empty() {
+        return RunbookStatus::NoStamp;
+    }
+    match caro::caroml::runbook::read_and_hash(runbook_path) {
+        Ok(actual) if actual == stamp => RunbookStatus::Clean,
+        Ok(_) => RunbookStatus::Drift,
+        Err(_) => RunbookStatus::Missing,
+    }
+}
+
+/// Run `caro run <name>` — read lock, build plan, confirm, execute.
+fn run_caroml_run(
+    name: &str,
+    platform_override: Option<&str>,
+    yes: bool,
+    dry_run: bool,
+) -> Result<(), String> {
+    use caro::caroml::{discovery, lock::Lock, platform as caro_platform, runner};
+    use std::io::{self, Write};
+
+    let task_path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let lock_path = task_path.with_extension("caro.lock");
+    if !lock_path.exists() {
+        return Err(format!(
+            "{}: no lock found; run `caro generate {}` first",
+            lock_path.display(),
+            name
+        ));
+    }
+    let lock =
+        Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+
+    let target_platform = match platform_override {
+        Some(p) if caro_platform::is_known(p) => p.to_string(),
+        Some(p) => return Err(format!("unknown platform `{}`", p)),
+        None => caro_platform::current().to_string(),
+    };
+
+    let plan = runner::plan_run(&lock, &target_platform)
+        .map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+
+    // Runbook-first execution: if the per-platform `.sh` runbook exists and
+    // is hash-clean, prefer running it directly (matches what a non-Caro
+    // user would `bash`). Falls back to step-by-step otherwise.
+    use caro::caroml::runbook;
+    let runbook_path = runbook::runbook_path(&task_path, &target_platform);
+    let runbook_status = runbook_status_for_active(&lock, &target_platform, &runbook_path);
+
+    println!("{}", runner::render_plan(&plan));
+    match &runbook_status {
+        RunbookStatus::Missing => {
+            println!("(no runbook on disk; will execute step-by-step from the lock)")
+        }
+        RunbookStatus::Clean => {
+            println!(
+                "(runbook clean — will run `bash {}`)",
+                runbook_path.display()
+            )
+        }
+        RunbookStatus::Drift => {
+            eprintln!(
+                "warning: {} has been edited since `caro export` last ran.\n\
+                 Step-by-step execution from the lock will be used instead.\n\
+                 Run `caro export {}` to refresh the runbook from the lock.",
+                runbook_path.display(),
+                name
+            );
+        }
+        RunbookStatus::NoStamp => {
+            eprintln!(
+                "note: lock has no runbook_hash stamp yet. Run `caro export {}` after\n\
+                 successful runs to enable drift detection.",
+                name
+            );
+        }
+    }
+
+    if dry_run {
+        return Ok(());
+    }
+
+    if !yes {
+        print!("Proceed? [y/N] ");
+        io::stdout().flush().ok();
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).ok();
+        if !matches!(input.trim().to_lowercase().as_str(), "y" | "yes") {
+            println!("Aborted.");
+            return Ok(());
+        }
+    }
+
+    use caro::caroml::history;
+    use std::time::Instant;
+    let started = Instant::now();
+    // Prefer runbook execution when it's hash-clean; fall back to per-step.
+    let result = match runbook_status {
+        RunbookStatus::Clean => match runner::execute_runbook(&runbook_path) {
+            Ok(0) => Ok(vec![]),
+            Ok(other) => Err(runner::RunError::StepFailed {
+                line: 0,
+                intent: format!("bash {}", runbook_path.display()),
+                exit_code: other,
+                stderr: String::new(),
+            }),
+            Err(e) => Err(e),
+        },
+        _ => runner::execute_plan(&plan),
+    };
+    let elapsed_ms = started.elapsed().as_millis() as u64;
+
+    // Journal the outcome (best-effort; don't fail the run if journal write fails).
+    let (exit_code, note, stderr) = match &result {
+        Ok(_) => (0i32, None, String::new()),
+        Err(runner::RunError::StepFailed {
+            line,
+            intent,
+            exit_code,
+            stderr,
+        }) => (
+            *exit_code,
+            Some(format!("step on line {}: {}", line, intent)),
+            stderr.clone(),
+        ),
+        Err(other) => (255, Some(format!("{}", other)), String::new()),
+    };
+    let variant_id = plan
+        .steps
+        .first()
+        .map(|s| s.generation_id.clone())
+        .unwrap_or_default();
+    let entry = history::JournalEntry {
+        timestamp: chrono::Utc::now(),
+        intent_hash: lock.meta.intent_hash.clone(),
+        variant_id,
+        platform: target_platform,
+        exit_code,
+        duration_ms: elapsed_ms,
+        stderr_digest: history::stderr_digest(&stderr),
+        note,
+    };
+    if let Err(e) = history::append(&entry) {
+        eprintln!("warning: could not write run journal: {}", e);
+    }
+
+    let results = result.map_err(|e| e.to_string())?;
+    println!(
+        "All {} steps completed in {} ms.",
+        results.len(),
+        elapsed_ms
+    );
+    Ok(())
+}
+
+/// `caro experiment <name>` — generate a fresh challenger variant.
+async fn run_caroml_experiment(
+    name: &str,
+    platform_override: Option<&str>,
+    backend_override: Option<&str>,
+) -> Result<(std::path::PathBuf, String), String> {
+    use caro::caroml::{
+        check_file, discovery, interpreter, lock::Lock, platform as caro_platform, validators,
+        variants as variant_helpers,
+    };
+
+    let task_path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let task = check_file(&task_path).map_err(|e| format!("{}: {}", task_path.display(), e))?;
+
+    let lock_path = task_path.with_extension("caro.lock");
+    if !lock_path.exists() {
+        return Err(format!(
+            "{}: no lock found; run `caro generate {}` first",
+            lock_path.display(),
+            name
+        ));
+    }
+    let mut lock =
+        Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+
+    let target_platform = match platform_override {
+        Some(p) if caro_platform::is_known(p) => p.to_string(),
+        Some(p) => return Err(format!("unknown platform `{}`", p)),
+        None => caro_platform::current().to_string(),
+    };
+
+    let backend = build_caroml_backend(backend_override).map_err(|e| format!("backend: {}", e))?;
+    let chain = validators::default_chain();
+    let cfg = interpreter::GenerateConfig::for_intent(task_path.to_string_lossy().into_owned());
+
+    let fresh =
+        interpreter::generate_lock_for_platform(&task, &target_platform, &*backend, &chain, &cfg)
+            .await
+            .map_err(|e| format!("generation failed: {}", e))?;
+
+    // Append the new variants to the existing lock as challengers.
+    // Bump the generation_id suffix so we don't clash with existing IDs.
+    let existing_count = variant_helpers::all_challengers_for(&lock, &target_platform).count()
+        + variant_helpers::active_count_for(&lock, &target_platform);
+    let new_gen_id =
+        variant_helpers::generation_id(chrono::Utc::now(), &target_platform, existing_count);
+
+    let mut adopted_id = String::new();
+    for (i, fresh_step) in fresh.steps.into_iter().enumerate() {
+        if let Some(existing_step) = lock.steps.get_mut(i) {
+            for mut variant in fresh_step.variants {
+                variant.active = false;
+                variant.generation_id = format!("{}_step{}", new_gen_id, i);
+                adopted_id = variant.generation_id.clone();
+                existing_step.variants.push(variant);
+            }
+        }
+    }
+    // Rewrite the imported history entries' generation_id to match this
+    // experiment's id, and tag them as challenger entries so `caro history`
+    // can distinguish initial-gen rows from challenger-add rows.
+    for mut h in fresh.history {
+        h.generation_id = new_gen_id.clone();
+        h.trigger = "experiment".into();
+        h.notes = Some(format!(
+            "Challenger added by `caro experiment` on platform `{}`.",
+            target_platform
+        ));
+        lock.history.push(h);
+    }
+
+    lock.write_path(&lock_path)
+        .map_err(|e| format!("writing {}: {}", lock_path.display(), e))?;
+
+    Ok((lock_path, adopted_id))
+}
+
+/// `caro adopt <name> --variant <id>`.
+fn run_caroml_adopt(name: &str, variant_id: &str) -> Result<(), String> {
+    use caro::caroml::{adopt as adopt_mod, discovery, lock::Lock};
+
+    let task_path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let lock_path = task_path.with_extension("caro.lock");
+    let mut lock =
+        Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+    adopt_mod::adopt(&mut lock, variant_id).map_err(|e| e.to_string())?;
+    lock.write_path(&lock_path)
+        .map_err(|e| format!("writing {}: {}", lock_path.display(), e))?;
+    Ok(())
+}
+
+/// `caro history <name>`.
+fn run_caroml_history(name: &str) -> Result<(), String> {
+    use caro::caroml::{discovery, history, lock::Lock};
+
+    let task_path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let lock_path = task_path.with_extension("caro.lock");
+    let lock =
+        Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+
+    println!("Lock history for {}:", lock_path.display());
+    if lock.history.is_empty() {
+        println!("(no entries)");
+    } else {
+        for h in &lock.history {
+            println!(
+                "  {} [{}] {} on {} (model: {}, trigger: {})",
+                h.generation_id,
+                h.generated_at.format("%Y-%m-%d %H:%M:%SZ"),
+                h.platform,
+                h.backend,
+                h.model,
+                h.trigger
+            );
+        }
+    }
+
+    let entries = history::read_all(&lock.meta.intent_hash).unwrap_or_default();
+    println!("\nLocal run journal ({} entries):", entries.len());
+    let recent: Vec<_> = entries.iter().rev().take(10).collect();
+    for e in recent {
+        println!(
+            "  {} variant={} platform={} exit={} ({} ms)",
+            e.timestamp.format("%Y-%m-%d %H:%M:%SZ"),
+            e.variant_id,
+            e.platform,
+            e.exit_code,
+            e.duration_ms
+        );
+    }
+    Ok(())
+}
+
+/// `caro render <name>` — write Markdown docs from a `.caro` task.
+fn run_caroml_render(name: &str, output: Option<&std::path::Path>) -> Result<(), String> {
+    use caro::caroml::{check_file, discovery, render};
+
+    let path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let task = check_file(&path).map_err(|e| format!("{}: {}", path.display(), e))?;
+    let md = render::render_markdown(&task);
+    match output {
+        Some(out) => {
+            if let Some(parent) = out.parent() {
+                if !parent.as_os_str().is_empty() {
+                    std::fs::create_dir_all(parent)
+                        .map_err(|e| format!("creating {}: {}", parent.display(), e))?;
+                }
+            }
+            std::fs::write(out, md).map_err(|e| format!("writing {}: {}", out.display(), e))?;
+            println!("{}: rendered", out.display());
+        }
+        None => print!("{}", md),
+    }
+    Ok(())
+}
+
+/// `caro skill install|uninstall` — manage the bundled coder-agent skill.
+fn run_caroml_skill(command: &SkillSubcommand) -> Result<(), String> {
+    use caro::caroml::skill;
+
+    let dest = skill::default_install_dir().map_err(|e| e.to_string())?;
+    match command {
+        SkillSubcommand::Install => {
+            let source = skill::bundled_source_dir();
+            let installed = skill::install(&source, &dest).map_err(|e| e.to_string())?;
+            println!("Installed `caro-scaffold` skill to {}", installed.display());
+            Ok(())
+        }
+        SkillSubcommand::Uninstall => {
+            let removed = skill::uninstall(&dest).map_err(|e| e.to_string())?;
+            if removed {
+                println!("Removed {}", dest.display());
+            } else {
+                println!("No skill installed at {}", dest.display());
+            }
+            Ok(())
+        }
+    }
+}
+
+/// `caro do <name>` — Carofile JOB / external-alias / native-alias / fallback.
+fn run_caroml_do(name: &str, dry_run: bool) -> Result<(), String> {
+    use caro::caroml::{carofile, discovery, jobs, platform as caro_platform};
+
+    // Try to load the Carofile (optional).
+    let carofile_path = discovery::find_carofile();
+    let carofile = if let Some(path) = carofile_path.as_ref() {
+        let src = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
+        Some(
+            carofile::parse_with_path(&src, Some(path.clone()))
+                .map_err(|e| format!("{}: {}", path.display(), e))?,
+        )
+    } else {
+        None
+    };
+
+    let resolution = jobs::resolve(name, carofile.as_ref());
+    print!(
+        "{}",
+        jobs::render_plan(name, &resolution, carofile.as_ref())
+    );
+
+    if dry_run {
+        return Ok(());
+    }
+
+    let platform = caro_platform::current().to_string();
+    let results = jobs::dispatch(name, carofile.as_ref(), |alias_or_name, task_path_opt| {
+        // Native task or bare-task: load the lock and execute it.
+        let task_path = match task_path_opt {
+            Some(p) => p.to_path_buf(),
+            None => discovery::resolve_task_path(alias_or_name).ok_or_else(|| {
+                jobs::DoError::Other(format!("could not find task `{}`", alias_or_name))
+            })?,
+        };
+        jobs::run_native_task(&task_path, &platform)
+    })
+    .map_err(|e| e.to_string())?;
+
+    println!("Completed {} step(s) in caro do {}.", results.len(), name);
+    Ok(())
+}
+
+/// `caro why <name>` — explain the RegenEvaluator decision.
+fn run_caroml_why(name: &str) -> Result<(), String> {
+    use caro::caroml::{
+        check_file, discovery, lock::Lock, platform as caro_platform, regen_evaluator,
+    };
+
+    let task_path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let task = check_file(&task_path).map_err(|e| format!("{}: {}", task_path.display(), e))?;
+
+    let lock_path = task_path.with_extension("caro.lock");
+    let lock = if lock_path.exists() {
+        Some(Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?)
+    } else {
+        None
+    };
+
+    let platform = caro_platform::current().to_string();
+    let input = regen_evaluator::EvalInput {
+        task: &task,
+        lock: lock.as_ref(),
+        platform: &platform,
+        current_caro_version: env!("CARGO_PKG_VERSION"),
+        current_model: "mock-inline",
+        current_backend: "mock",
+        mode: regen_evaluator::Mode::default(),
+    };
+    let decision = regen_evaluator::decide(&input);
+
+    println!("Task:     {}", name);
+    println!("Path:     {}", task_path.display());
+    println!("Platform: {}", platform);
+    println!(
+        "Decision: {:?}",
+        match &decision {
+            regen_evaluator::Decision::UseCache => "UseCache",
+            regen_evaluator::Decision::HardRegen { .. } => "HardRegen",
+            regen_evaluator::Decision::SoftExplore { .. } => "SoftExplore",
+        }
+    );
+    let reasons = decision.reasons();
+    if reasons.is_empty() {
+        println!("(no reasons; cache is fresh)");
+    } else {
+        println!("Reasons:");
+        for r in reasons {
+            println!("  - {}", r);
+        }
+    }
+    Ok(())
+}
+
+/// Run `caro export <name>` — write `tasks/<name>.<platform>.sh` from the lock.
+fn run_caroml_export(
+    name: &str,
+    platform_override: Option<&str>,
+    output: Option<&std::path::Path>,
+) -> Result<std::path::PathBuf, String> {
+    use caro::caroml::{discovery, lock::Lock, platform as caro_platform, runbook};
+
+    let task_path = discovery::resolve_task_path(name)
+        .ok_or_else(|| format!("could not find task `{}`", name))?;
+    let lock_path = task_path.with_extension("caro.lock");
+    if !lock_path.exists() {
+        return Err(format!(
+            "{}: no lock found; run `caro generate {}` first",
+            lock_path.display(),
+            name
+        ));
+    }
+    let lock =
+        Lock::read_path(&lock_path).map_err(|e| format!("{}: {}", lock_path.display(), e))?;
+
+    let platform = match platform_override {
+        Some(p) if caro_platform::is_known(p) => p.to_string(),
+        Some(p) => return Err(format!("unknown platform `{}`", p)),
+        None => caro_platform::current().to_string(),
+    };
+
+    let body = runbook::build_runbook(&lock, &platform).map_err(|e| e.to_string())?;
+    let body_hash = runbook::compute_runbook_hash(&body);
+
+    let path = if let Some(out) = output {
+        if let Some(parent) = out.parent() {
+            if !parent.as_os_str().is_empty() {
+                std::fs::create_dir_all(parent)
+                    .map_err(|e| format!("creating {}: {}", parent.display(), e))?;
+            }
+        }
+        std::fs::write(out, &body).map_err(|e| format!("writing {}: {}", out.display(), e))?;
+        out.to_path_buf()
+    } else {
+        runbook::write_runbook(&lock, &platform, &task_path).map_err(|e| e.to_string())?
+    };
+
+    // Stamp the runbook_hash onto every active variant for this platform.
+    // This is what `caro run` later compares against the on-disk runbook to
+    // detect manual edits.
+    let mut updated = lock;
+    for step in updated.steps.iter_mut() {
+        for v in step.variants.iter_mut() {
+            if v.active && v.platform == platform {
+                v.runbook_hash = body_hash.clone();
+            }
+        }
+    }
+    updated
+        .write_path(&lock_path)
+        .map_err(|e| format!("updating {}: {}", lock_path.display(), e))?;
+
+    Ok(path)
+}
+
+/// Inline echo-style deterministic backend for `caro generate --backend mock`.
+/// Always emits `echo "<intent>"`. Used by tests and demos in v0.1.
+struct InlineMockBackend;
+
+#[async_trait::async_trait]
+impl caro::backends::CommandGenerator for InlineMockBackend {
+    async fn generate_command(
+        &self,
+        request: &caro::models::CommandRequest,
+    ) -> Result<caro::models::GeneratedCommand, caro::backends::GeneratorError> {
+        let safe_intent = request.input.replace('"', "\\\"");
+        Ok(caro::models::GeneratedCommand {
+            command: format!("echo \"{}\"", safe_intent),
+            explanation: format!("Mock echo of the intent: {}", request.input),
+            safety_level: caro::models::RiskLevel::Safe,
+            estimated_impact: "writes the intent text to stdout (no side effects)".into(),
+            alternatives: vec![],
+            backend_used: "mock-inline".into(),
+            generation_time_ms: 1,
+            confidence_score: 0.5,
+        })
+    }
+
+    async fn is_available(&self) -> bool {
+        true
+    }
+
+    fn backend_info(&self) -> caro::backends::BackendInfo {
+        caro::backends::BackendInfo {
+            backend_type: caro::models::BackendType::Mock,
+            model_name: "mock-inline".into(),
+            supports_streaming: false,
+            max_tokens: 256,
+            typical_latency_ms: 1,
+            memory_usage_mb: 0,
+            version: env!("CARGO_PKG_VERSION").into(),
+        }
+    }
+
+    async fn shutdown(&self) -> Result<(), caro::backends::GeneratorError> {
+        Ok(())
+    }
 }
 
 // =============================================================================
@@ -2154,6 +3095,152 @@ async fn main() {
                 }
             }
         }
+        Some(Commands::Check { ref file }) => match caro::caroml::check_file(file) {
+            Ok(task) => {
+                println!(
+                    "{}: ok ({} steps, {} pragmas, {} params)",
+                    file.display(),
+                    task.steps.len(),
+                    task.platform_pragmas.len(),
+                    task.params.len()
+                );
+                process::exit(0);
+            }
+            Err(caro::caroml::CheckError::Io(e)) => {
+                eprintln!("{}: {}", file.display(), e);
+                process::exit(1);
+            }
+            Err(caro::caroml::CheckError::Parse(e)) => {
+                eprintln!("{}: {}", file.display(), e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::List { global }) => {
+            run_caroml_list(global);
+            process::exit(0);
+        }
+        Some(Commands::Jobs) => match run_caroml_jobs() {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::New { ref name }) => match run_caroml_new(name) {
+            Ok(path) => {
+                println!("{}: created", path.display());
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Generate {
+            ref name,
+            ref platform,
+            ref backend,
+        }) => match run_caroml_generate(name, platform.as_deref(), backend.as_deref()).await {
+            Ok(lock_path) => {
+                println!("{}: generated", lock_path.display());
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Run {
+            ref name,
+            yes,
+            ref platform,
+            dry_run,
+        }) => match run_caroml_run(name, platform.as_deref(), yes, dry_run) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Export {
+            ref name,
+            ref platform,
+            ref output,
+        }) => match run_caroml_export(name, platform.as_deref(), output.as_deref()) {
+            Ok(path) => {
+                println!("{}: written", path.display());
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Experiment {
+            ref name,
+            ref platform,
+            ref backend,
+        }) => match run_caroml_experiment(name, platform.as_deref(), backend.as_deref()).await {
+            Ok((path, gen_id)) => {
+                println!("{}: challenger {} added", path.display(), gen_id);
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Adopt {
+            ref name,
+            ref variant,
+        }) => match run_caroml_adopt(name, variant) {
+            Ok(()) => {
+                println!("Adopted {} as active.", variant);
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::History { ref name }) => match run_caroml_history(name) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Why { ref name }) => match run_caroml_why(name) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Do { ref name, dry_run }) => match run_caroml_do(name, dry_run) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Render {
+            ref name,
+            ref output,
+        }) => match run_caroml_render(name, output.as_deref()) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
+        Some(Commands::Skill { ref command }) => match run_caroml_skill(command) {
+            Ok(()) => process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        },
         Some(Commands::Ai {
             new_session,
             continue_session: _,

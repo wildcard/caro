@@ -35,7 +35,7 @@
     "quickStart": {
       "title": "त्वरित शुरुआत",
       "intro": "ऊपर दिए गए सेटअप स्क्रिप्ट को चलाने के बाद, बस Caro का उपयोग करें:",
-      "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
+      "exampleCommand": "caro \"पिछले 7 दिनों में संशोधित सभी Python फाइलें ढूंढें\"",
       "description": "Caro कमांड जेनरेट करेगा और आपको सुरक्षित रखेगा। सेटअप स्क्रिप्ट सभी पूर्वापेक्षाओं को संभालती है जिसमें Rust संकलन भी शामिल है।"
     }
   }

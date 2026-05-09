@@ -1,0 +1,26 @@
+REM Curated Carofile demo. Drop alongside a `tasks/` folder to wire up
+REM `caro do <job>` and `caro do <alias>` orchestration.
+
+TASK Project orchestration
+WHY  Single front door for repeatable tasks; augments Makefile / package.json scripts.
+
+USE  examples/library/system/snapshot.caro       AS snapshot
+USE  examples/library/system/cleanup-logs.caro   AS cleanup-logs
+USE  examples/library/system/diskuse.caro        AS diskuse
+
+REM External-script aliases. Caro is aware of these and will invoke them
+REM via the same safety pipeline that scans generated commands.
+USE  "true"                  AS noop
+USE  "echo $(date)"          AS now
+
+JOB nightly
+  RUN snapshot
+  RUN diskuse
+
+JOB cleanup
+  RUN snapshot
+  RUN cleanup-logs
+
+JOB ci
+  RUN noop
+  RUN now
