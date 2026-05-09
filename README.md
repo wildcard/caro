@@ -29,7 +29,7 @@ Have questions or want to discuss caro with other users? Join the community!
   - - **[Documentation](https://caro.sh)** - Check out our comprehensive docs
 ## 📋 Project Status
 
-**Current Version:** 1.3.2 (General Availability)
+**Current Version:** 1.4.0 (General Availability)
 
 This project is **generally available** with all core features implemented, tested, and working. The CLI achieves 93.1% pass rate on comprehensive test suite with zero false positives in safety validation.
 
@@ -57,6 +57,7 @@ This project is **generally available** with all core features implemented, test
 - 🖥️ Cross-platform detection and validation (macOS, Linux, Windows)
 - 🌐 **Official website** at [caro.sh](https://caro.sh)
 - 🎥 **Professional demos** with asciinema recordings
+- 📋 **CaroML task runner** (`caro do <job>`) — commit intent in `.caro` files, generate per-platform runbooks, track drift, run A/B experiments
 
 ### 🚧 In Progress
 - 📊 **Telemetry infrastructure** - Privacy-first usage analytics (opt-in)

@@ -49,6 +49,20 @@ gantt
 
 ## Release Milestones
 
+### 🎉 v1.4.0 - CaroML Meta-Language Preview
+**Released**: May 9, 2026 ✅
+**Status**: 100% Complete - **RELEASED**
+**Focus**: CaroML — commit intent in `.caro` task files, generate per-platform runbooks, A/B experiments, adversarial safety improvements
+
+#### Key Deliverables
+- **CaroML DSL** ✅ — Eight-keyword line-keyword language (TASK/WHY/NEED/ON/LET/DO/NOTE/REM), parser, AST, schema_version=2 lock format ([#893](https://github.com/wildcard/caro/pull/893))
+- **`caro check / generate / run / export / list / new / jobs`** ✅ — Full CLI verb surface ([#904](https://github.com/wildcard/caro/pull/904)-[#913](https://github.com/wildcard/caro/pull/913))
+- **`caro do <job>`** ✅ — Carofile orchestration indexing CaroML tasks alongside external commands ([#909](https://github.com/wildcard/caro/pull/909))
+- **Validator chain** ✅ — safety + platform + secrets + side_effects multi-angle validation with per-step repair loop ([#905](https://github.com/wildcard/caro/pull/905))
+- **Project memory** ✅ — per-user run journal, A/B challenger lifecycle via `caro experiment` / `caro adopt` ([#908](https://github.com/wildcard/caro/pull/908))
+- **Adversarial intent guard** ✅ — static matcher blocks bypass-phrased queries
+- **BSD flavor detection** ✅ — platform-aware safety patterns and `SAFETY_PHILOSOPHY.md` ([#1005](https://github.com/wildcard/caro/pull/1005))
+
 ### 🎉 v1.3.2 - Static Matcher Coverage Gaps
 **Released**: May 9, 2026 ✅
 **Status**: 100% Complete - **RELEASED**
@@ -313,6 +327,7 @@ gantt
 
 | Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
 |-----------|----------|---------------------|----------|----------|---------|
+| **v1.4.0** | May 9, 2026 | CaroML preview + safety hardening | 12 | 100% | ✅ **RELEASED** |
 | **v1.3.2** | May 9, 2026 | Static matcher coverage gaps | 7 | 100% | ✅ **RELEASED** |
 | **v1.3.1** | May 9, 2026 | P0/P1 safety patch | 4 | 100% | ✅ **RELEASED** |
 | **v1.3.0** | Apr 20, 2026 | `caro ai` + `caro shell-init` | 1 | 100% | ✅ **RELEASED** |
