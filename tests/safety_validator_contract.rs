@@ -670,3 +670,172 @@ async fn test_custom_safety_patterns() {
         "Regular git push should be allowed with moderate safety"
     );
 }
+
+/// BSD-specific dangerous commands.
+///
+/// FreeBSD/OpenBSD/NetBSD ship destructive utilities that have no GNU/Linux
+/// counterpart and were not covered by the original 52-pattern set:
+///
+///   * `gpart destroy/delete -F`     — partition table destruction
+///   * `zfs destroy -r/-R/-f`        — recursive ZFS dataset wipe
+///   * disk redirects to `/dev/da*`,
+///     `/dev/ada*`, `/dev/nvd*`,
+///     `/dev/md*`                    — BSD device naming convention
+///   * `pkg delete -f`               — forced package removal (FreeBSD)
+///   * `bsdinstall`                  — automated installer in wrong context
+///   * `chflags noschg` on system
+///     dirs                          — immutability bypass / security regression
+///   * `jail -r`                     — jail removal (moderate risk)
+///
+/// These additions follow the FreeBSD Device Driver Book's "Security Best
+/// Practices" chapter (ch. 31): every command crossing a privilege boundary
+/// must be assumed hostile, and the safety net should catch BSD-flavored
+/// destructive ops just as tightly as GNU ones.
+#[tokio::test]
+async fn test_bsd_specific_dangerous_commands() {
+    let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+
+    // (command, minimum risk level expected)
+    let bsd_dangerous: &[(&str, RiskLevel)] = &[
+        // 1. gpart destruction
+        ("gpart destroy -F ada0", RiskLevel::Critical),
+        ("gpart delete -i 1 ada0", RiskLevel::Critical),
+        // 2. ZFS recursive destroy
+        ("zfs destroy -r tank/home", RiskLevel::Critical),
+        ("zfs destroy -rRf tank", RiskLevel::Critical),
+        // 3. BSD device-name disk writes
+        ("dd if=/dev/zero of=/dev/da0", RiskLevel::Critical),
+        ("dd if=/dev/zero of=/dev/ada1", RiskLevel::Critical),
+        ("dd if=/dev/random of=/dev/nvd0", RiskLevel::Critical),
+        ("mkfs.ufs /dev/da0", RiskLevel::Critical),
+        ("newfs /dev/ada0p1", RiskLevel::Critical),
+        // Flags between command and device — common BSD usage.
+        ("newfs -U /dev/ada0p1", RiskLevel::Critical),
+        ("newfs -L mylabel /dev/da0", RiskLevel::Critical),
+        // 4. Forced package removal
+        ("pkg delete -f bash", RiskLevel::High),
+        ("pkg delete -fy openssl", RiskLevel::High),
+        // 5. Automated installer
+        ("bsdinstall", RiskLevel::High),
+        // 6. Immutability bypass on system files
+        ("chflags noschg /etc/master.passwd", RiskLevel::High),
+        ("chflags noschg /boot/loader.conf", RiskLevel::High),
+        ("chflags noschg /sbin/init", RiskLevel::High),
+        // 7. Jail removal
+        ("jail -r webjail", RiskLevel::Moderate),
+        // 8. ZFS pool destruction (the nuclear option above zfs destroy <dataset>).
+        //    Surfaced by the post-fix safety-pattern-auditor pass.
+        ("zpool destroy tank", RiskLevel::Critical),
+        ("zpool labelclear /dev/da0", RiskLevel::Critical),
+        // 9. FreeBSD Boot Environment destruction
+        ("bectl destroy old-be", RiskLevel::High),
+        // 10. GEOM mirror destruction
+        ("gmirror destroy gm0", RiskLevel::Critical),
+        ("gmirror clear da0", RiskLevel::Critical),
+        // 11. Disklabel rewrite (FreeBSD bsdlabel + OpenBSD disklabel).
+        //     Common usage interleaves flags before -w.
+        ("bsdlabel -w da0 auto", RiskLevel::Critical),
+        ("disklabel -w sd0 auto", RiskLevel::Critical),
+        ("bsdlabel -B -w -r /dev/da0", RiskLevel::Critical),
+        // 12. bsdinstall anchor robustness — leading whitespace and `&&` separator
+        ("   bsdinstall", RiskLevel::High),
+        ("cd /tmp && bsdinstall", RiskLevel::High),
+    ];
+
+    for &(cmd, min_risk) in bsd_dangerous {
+        let result = validator
+            .validate_command(cmd, ShellType::Bash)
+            .await
+            .unwrap_or_else(|e| panic!("Validation errored for '{}': {:?}", cmd, e));
+
+        assert!(
+            result.risk_level >= min_risk,
+            "BSD command '{}' should be at least {:?} risk, got: {:?} (warnings: {:?})",
+            cmd,
+            min_risk,
+            result.risk_level,
+            result.warnings
+        );
+        assert!(
+            !result.matched_patterns.is_empty(),
+            "BSD command '{}' should match at least one pattern",
+            cmd
+        );
+        assert!(
+            !result.allowed,
+            "BSD command '{}' should be blocked under strict config (got allowed=true, risk={:?})",
+            cmd, result.risk_level
+        );
+    }
+}
+
+/// BSD safe-command false-positive prevention.
+///
+/// Read-only and informational variants of the dangerous BSD utilities must
+/// never trigger the new patterns. This is the "no false positives" contract
+/// caro promises in CLAUDE.md.
+#[tokio::test]
+async fn test_bsd_safe_commands_no_false_positives() {
+    let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
+
+    let bsd_safe = &[
+        // gpart introspection
+        "gpart show",
+        "gpart list ada0",
+        // zfs introspection (read-only).
+        // NOTE: `zfs destroy <dataset>` *without* -r is still destructive and is
+        // intentionally omitted from this safe corpus — see cubic review on PR #1005.
+        "zfs list",
+        "zfs get all tank",
+        // pkg introspection / non-forced ops
+        "pkg info openssl",
+        "pkg search bash",
+        "pkg delete bash", // no -f — not flagged by new pattern
+        // jail introspection
+        "jls",
+        "jail -h",
+        // chflags hardening — *setting* immutability is a security-positive
+        // operation and must not be blocked, even on system paths.
+        "chflags schg /etc/master.passwd",
+        "chflags schg /boot/loader.conf",
+        "chflags schg /tmp/myfile",
+        // chflags on non-system path (either direction)
+        "chflags noschg /home/user/myfile",
+        // BSD device introspection (read-only)
+        "ls /dev/da0",
+        "stat /dev/ada0",
+        // bsdinstall as an argument to another tool (e.g., docs lookup)
+        "man bsdinstall",
+        "which bsdinstall",
+        // zpool / bectl / gmirror introspection — must not trigger the new patterns.
+        "zpool list",
+        "zpool status tank",
+        "zpool import",
+        "bectl list",
+        "bectl create newbe",
+        "gmirror status",
+        "gmirror list",
+        // bsdlabel / disklabel read-only (no -w) — must not trigger.
+        "bsdlabel /dev/da0",
+        "disklabel /dev/sd0a",
+        "bsdlabel -B /dev/da0", // bootcode install (no -w) — out of scope for this pattern
+    ];
+
+    for &cmd in bsd_safe {
+        let result = validator
+            .validate_command(cmd, ShellType::Bash)
+            .await
+            .unwrap_or_else(|e| panic!("Validation errored for '{}': {:?}", cmd, e));
+
+        // We allow Moderate (existing patterns may still warn — e.g. `which` is fine,
+        // but `chflags` could trip a future generic chmod-like rule). What we
+        // forbid is the new BSD-specific patterns flagging these as High/Critical.
+        assert!(
+            result.risk_level < RiskLevel::High,
+            "Safe BSD command '{}' should be below High risk, got: {:?} (warnings: {:?})",
+            cmd,
+            result.risk_level,
+            result.warnings
+        );
+    }
+}

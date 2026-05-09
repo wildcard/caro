@@ -3,7 +3,7 @@
 //! Tests the platform detection enhancements required for command validation.
 //! Following TDD: These tests define the contract before implementation.
 
-use caro::platform::{PlatformContext, UtilityType};
+use caro::platform::{BsdFlavor, PlatformContext, UtilityType};
 
 /// Test that PlatformContext can be detected from the current environment
 #[tokio::test]
@@ -328,4 +328,174 @@ fn test_platform_context_builder_validation() {
         .build();
 
     assert!(result.is_err(), "Should fail with empty shell");
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// BSD flavor sub-classification (FDD-book ch. 29: Portability)
+//
+// The 4-profile capability model (Gnu/Bsd/Busybox/Hybrid) classifies the
+// USERLAND tools in use. `BsdFlavor` is orthogonal: it identifies the
+// underlying OS family within the BSD lineage, regardless of which
+// userland is installed (e.g. macOS with Homebrew GNU coreutils stays
+// `BsdFlavor::MacOs` even though `UtilityType::Gnu`).
+//
+// This unlocks flavor-specific guidance in the LLM prompt — jails on
+// FreeBSD, pf on OpenBSD, pkgsrc on NetBSD — without disturbing the
+// established capability profile contract.
+// ──────────────────────────────────────────────────────────────────────
+
+#[test]
+fn test_bsd_flavor_freebsd_via_builder() {
+    let ctx = PlatformContext::builder()
+        .os("freebsd")
+        .arch("x86_64")
+        .shell("sh")
+        .has_bsd_utils(true)
+        .bsd_flavor(BsdFlavor::FreeBsd)
+        .build()
+        .expect("Should build FreeBSD context");
+
+    assert_eq!(ctx.bsd_flavor(), Some(BsdFlavor::FreeBsd));
+    assert!(ctx.is_bsd_family(), "FreeBSD should be in BSD family");
+}
+
+#[test]
+fn test_bsd_flavor_openbsd_via_builder() {
+    let ctx = PlatformContext::builder()
+        .os("openbsd")
+        .arch("x86_64")
+        .shell("ksh")
+        .has_bsd_utils(true)
+        .bsd_flavor(BsdFlavor::OpenBsd)
+        .build()
+        .expect("Should build OpenBSD context");
+
+    assert_eq!(ctx.bsd_flavor(), Some(BsdFlavor::OpenBsd));
+    assert!(ctx.is_bsd_family());
+}
+
+#[test]
+fn test_bsd_flavor_netbsd_via_builder() {
+    let ctx = PlatformContext::builder()
+        .os("netbsd")
+        .arch("x86_64")
+        .shell("sh")
+        .has_bsd_utils(true)
+        .bsd_flavor(BsdFlavor::NetBsd)
+        .build()
+        .expect("Should build NetBSD context");
+
+    assert_eq!(ctx.bsd_flavor(), Some(BsdFlavor::NetBsd));
+    assert!(ctx.is_bsd_family());
+}
+
+#[test]
+fn test_bsd_flavor_macos_via_builder() {
+    let ctx = PlatformContext::builder()
+        .os("macos")
+        .arch("aarch64")
+        .shell("zsh")
+        .has_bsd_utils(true)
+        .bsd_flavor(BsdFlavor::MacOs)
+        .build()
+        .expect("Should build macOS context");
+
+    assert_eq!(ctx.bsd_flavor(), Some(BsdFlavor::MacOs));
+    assert!(
+        ctx.is_bsd_family(),
+        "macOS (Darwin) should be in BSD family"
+    );
+}
+
+#[test]
+fn test_bsd_flavor_macos_with_gnu_coreutils() {
+    // macOS user has Homebrew GNU coreutils on PATH. The flavor still
+    // correctly identifies the kernel family even though the userland
+    // capability profile is GNU.
+    let ctx = PlatformContext::builder()
+        .os("macos")
+        .arch("aarch64")
+        .shell("bash")
+        .has_gnu_coreutils(true)
+        .has_bsd_utils(false)
+        .bsd_flavor(BsdFlavor::MacOs)
+        .build()
+        .expect("Should build hybrid macOS context");
+
+    assert_eq!(ctx.bsd_flavor(), Some(BsdFlavor::MacOs));
+    assert!(
+        ctx.is_bsd_family(),
+        "Family is OS-derived, not userland-derived"
+    );
+    // But the userland is still classified as GNU
+    assert_eq!(ctx.utility_type(), UtilityType::Gnu);
+}
+
+#[test]
+fn test_bsd_flavor_linux_is_none() {
+    let ctx = PlatformContext::builder()
+        .os("linux")
+        .arch("x86_64")
+        .shell("bash")
+        .has_gnu_coreutils(true)
+        .build()
+        .expect("Should build Linux context");
+
+    assert_eq!(ctx.bsd_flavor(), None, "Linux is not a BSD flavor");
+    assert!(!ctx.is_bsd_family(), "Linux should not be BSD family");
+}
+
+#[test]
+fn test_bsd_flavor_windows_is_none() {
+    let ctx = PlatformContext::builder()
+        .os("windows")
+        .arch("x86_64")
+        .shell("powershell")
+        .build()
+        .expect("Should build Windows context");
+
+    assert_eq!(ctx.bsd_flavor(), None);
+    assert!(!ctx.is_bsd_family());
+}
+
+#[test]
+fn test_bsd_flavor_surfaces_in_prompt_string() {
+    let ctx = PlatformContext::builder()
+        .os("freebsd")
+        .arch("x86_64")
+        .shell("sh")
+        .has_bsd_utils(true)
+        .bsd_flavor(BsdFlavor::FreeBsd)
+        .build()
+        .expect("Should build FreeBSD context");
+
+    let prompt = ctx.to_prompt_string();
+    let lower = prompt.to_lowercase();
+    assert!(
+        lower.contains("freebsd") || lower.contains("bsd flavor"),
+        "Prompt should mention FreeBSD flavor, got:\n{}",
+        prompt
+    );
+}
+
+#[test]
+fn test_bsd_flavor_specific_notes_for_freebsd() {
+    let ctx = PlatformContext::builder()
+        .os("freebsd")
+        .arch("x86_64")
+        .shell("sh")
+        .has_bsd_utils(true)
+        .bsd_flavor(BsdFlavor::FreeBsd)
+        .build()
+        .expect("Should build FreeBSD context");
+
+    let notes = ctx.platform_notes();
+    let joined = notes.join("\n").to_lowercase();
+    // FreeBSD should at least mention pkg or jail to give the LLM useful
+    // flavor-specific context.
+    assert!(
+        joined.contains("pkg") || joined.contains("jail") || joined.contains("freebsd"),
+        "FreeBSD notes should mention pkg/jail/freebsd, got: {:?}",
+        notes
+    );
 }

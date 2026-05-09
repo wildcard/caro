@@ -25,6 +25,33 @@ pub enum UtilityType {
     Unknown,
 }
 
+/// BSD-family OS flavor.
+///
+/// Identifies the underlying OS lineage independently of `UtilityType`.
+/// macOS with Homebrew GNU coreutils stays `BsdFlavor::MacOs` even though
+/// its capability profile flips to `UtilityType::Gnu` — the kernel family
+/// is still Darwin and BSD-derived utilities (chflags, newfs, sysctl)
+/// remain available.
+///
+/// Inspired by the FDD-book ch. 29 (Portability and Driver Abstraction):
+/// portability decisions hinge on the kernel family, not the userland
+/// veneer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BsdFlavor {
+    /// FreeBSD (kern.ostype = "FreeBSD")
+    FreeBsd,
+    /// OpenBSD
+    OpenBsd,
+    /// NetBSD
+    NetBsd,
+    /// macOS / Darwin
+    MacOs,
+    /// DragonFly BSD
+    DragonFlyBsd,
+    /// Detected as BSD-family but the specific flavor was not recognized
+    Unknown,
+}
+
 /// Enhanced platform context for command validation
 #[derive(Debug, Clone)]
 pub struct PlatformContext {
@@ -38,6 +65,9 @@ pub struct PlatformContext {
     has_bsd_utils: bool,
     available_tools: HashMap<String, String>,
     utility_type: UtilityType,
+    /// BSD-family flavor (None for non-BSD operating systems).
+    /// Orthogonal to `utility_type` — see `BsdFlavor` docs.
+    bsd_flavor: Option<BsdFlavor>,
 }
 
 impl PlatformContext {
@@ -58,6 +88,7 @@ impl PlatformContext {
         );
 
         let utility_type = determine_utility_type(has_gnu, has_bsd);
+        let bsd_flavor = detect_bsd_flavor(&os).await;
 
         Ok(Self {
             os,
@@ -70,6 +101,7 @@ impl PlatformContext {
             has_bsd_utils: has_bsd,
             available_tools,
             utility_type,
+            bsd_flavor,
         })
     }
 
@@ -119,6 +151,18 @@ impl PlatformContext {
         self.utility_type
     }
 
+    /// BSD-family flavor (FreeBSD/OpenBSD/NetBSD/macOS/DragonFly).
+    /// Returns `None` for non-BSD operating systems (Linux, Windows, etc.).
+    pub fn bsd_flavor(&self) -> Option<BsdFlavor> {
+        self.bsd_flavor
+    }
+
+    /// True if the OS is in the BSD lineage. Decoupled from userland —
+    /// macOS with Homebrew GNU coreutils still reports `true` here.
+    pub fn is_bsd_family(&self) -> bool {
+        self.bsd_flavor.is_some()
+    }
+
     /// Generate platform-specific notes for LLM prompt
     pub fn platform_notes(&self) -> Vec<String> {
         let mut notes = Vec::new();
@@ -139,6 +183,58 @@ impl PlatformContext {
             notes.push("Using Busybox utilities (limited feature set)".to_string());
         }
 
+        // BSD-flavor-specific guidance for the LLM. These notes are scoped
+        // to features that exist only on the named flavor — they do not
+        // duplicate the generic BSD-utility notes above.
+        if let Some(flavor) = self.bsd_flavor {
+            match flavor {
+                BsdFlavor::FreeBsd => {
+                    notes.push(
+                        "FreeBSD: package manager is `pkg` (pkg install/info/delete)".to_string(),
+                    );
+                    notes.push(
+                        "FreeBSD: containers via `jail` / `jls` (not Docker by default)"
+                            .to_string(),
+                    );
+                    notes.push(
+                        "FreeBSD: filesystem ops use `gpart`/`newfs`; ZFS is first-class"
+                            .to_string(),
+                    );
+                }
+                BsdFlavor::OpenBsd => {
+                    notes.push("OpenBSD: package manager is `pkg_add`/`pkg_delete`".to_string());
+                    notes.push(
+                        "OpenBSD: firewall is `pf` (not iptables); config in /etc/pf.conf"
+                            .to_string(),
+                    );
+                    notes.push(
+                        "OpenBSD: prefer `doas` over `sudo` (not installed by default)".to_string(),
+                    );
+                }
+                BsdFlavor::NetBsd => {
+                    notes.push(
+                        "NetBSD: package manager is `pkgsrc` (pkg_add/pkg_info/pkg_delete)"
+                            .to_string(),
+                    );
+                    notes.push(
+                        "NetBSD: rc.d service management via /etc/rc.d/<service>".to_string(),
+                    );
+                }
+                BsdFlavor::MacOs => {
+                    // macOS-specific notes already covered above by the
+                    // `os == "macos"` branch; nothing extra to add here.
+                }
+                BsdFlavor::DragonFlyBsd => {
+                    notes.push(
+                        "DragonFly BSD: HAMMER2 filesystem; package manager is `pkg`".to_string(),
+                    );
+                }
+                BsdFlavor::Unknown => {
+                    notes.push("BSD-family OS detected but flavor unrecognized".to_string());
+                }
+            }
+        }
+
         notes
     }
 
@@ -154,6 +250,10 @@ impl PlatformContext {
         }
 
         prompt.push_str(&format!("\nUtilities: {:?}", self.utility_type));
+
+        if let Some(flavor) = self.bsd_flavor {
+            prompt.push_str(&format!("\nBSD flavor: {:?}", flavor));
+        }
 
         if !self.platform_notes().is_empty() {
             prompt.push_str("\n\nPlatform-specific notes:\n");
@@ -177,6 +277,7 @@ pub struct PlatformContextBuilder {
     has_gnu_coreutils: Option<bool>,
     has_bsd_utils: Option<bool>,
     available_tools: Option<HashMap<String, String>>,
+    bsd_flavor: Option<BsdFlavor>,
 }
 
 impl PlatformContextBuilder {
@@ -191,6 +292,7 @@ impl PlatformContextBuilder {
             has_gnu_coreutils: None,
             has_bsd_utils: None,
             available_tools: None,
+            bsd_flavor: None,
         }
     }
 
@@ -239,6 +341,13 @@ impl PlatformContextBuilder {
         self
     }
 
+    /// Set the BSD-family flavor explicitly. Useful in tests and in
+    /// non-async code paths where uname-based detection is not available.
+    pub fn bsd_flavor(mut self, flavor: BsdFlavor) -> Self {
+        self.bsd_flavor = Some(flavor);
+        self
+    }
+
     pub fn build(self) -> Result<PlatformContext, PlatformContextError> {
         let os = self
             .os
@@ -267,6 +376,11 @@ impl PlatformContextBuilder {
             .posix_compliant
             .unwrap_or_else(|| is_posix_compliant(&os));
 
+        // If the caller didn't set bsd_flavor explicitly, infer it from the
+        // OS string for known BSD-family identifiers. This keeps existing
+        // callers working without forcing every test to set the flavor.
+        let bsd_flavor = self.bsd_flavor.or_else(|| infer_bsd_flavor_from_os(&os));
+
         Ok(PlatformContext {
             os,
             os_version: self.os_version.unwrap_or_default(),
@@ -278,6 +392,7 @@ impl PlatformContextBuilder {
             has_bsd_utils: has_bsd,
             available_tools: self.available_tools.unwrap_or_default(),
             utility_type,
+            bsd_flavor,
         })
     }
 }
@@ -316,6 +431,14 @@ fn detect_os() -> String {
         "linux".to_string()
     } else if cfg!(target_os = "windows") {
         "windows".to_string()
+    } else if cfg!(target_os = "freebsd") {
+        "freebsd".to_string()
+    } else if cfg!(target_os = "openbsd") {
+        "openbsd".to_string()
+    } else if cfg!(target_os = "netbsd") {
+        "netbsd".to_string()
+    } else if cfg!(target_os = "dragonfly") {
+        "dragonfly".to_string()
     } else {
         "unknown".to_string()
     }
@@ -440,7 +563,10 @@ async fn detect_shell_version(shell: &str) -> String {
 }
 
 fn is_posix_compliant(os: &str) -> bool {
-    matches!(os, "macos" | "linux")
+    matches!(
+        os,
+        "macos" | "linux" | "freebsd" | "openbsd" | "netbsd" | "dragonfly"
+    )
 }
 
 async fn detect_gnu_coreutils() -> bool {
@@ -525,6 +651,33 @@ fn determine_utility_type(has_gnu: bool, has_bsd: bool) -> UtilityType {
     }
 }
 
+/// Map the canonical OS string (`os`) to a `BsdFlavor`. Returns `None` for
+/// non-BSD operating systems. Used by the builder when no flavor is
+/// explicitly supplied.
+fn infer_bsd_flavor_from_os(os: &str) -> Option<BsdFlavor> {
+    match os {
+        "macos" | "darwin" => Some(BsdFlavor::MacOs),
+        "freebsd" => Some(BsdFlavor::FreeBsd),
+        "openbsd" => Some(BsdFlavor::OpenBsd),
+        "netbsd" => Some(BsdFlavor::NetBsd),
+        "dragonfly" | "dragonflybsd" => Some(BsdFlavor::DragonFlyBsd),
+        _ => None,
+    }
+}
+
+/// Detect the BSD flavor for the current host.
+///
+/// On non-BSD targets (`linux`, `windows`, `unknown`) returns `None`
+/// without touching the filesystem or running any commands. On BSD-family
+/// targets (`macos` and the BSD compile-target gate) returns a flavor
+/// derived from the OS string. We deliberately avoid shelling out to
+/// `uname -s` on hot paths: the compile-time `cfg!` answer is already
+/// authoritative for binaries built on that target, and `os` here is
+/// driven by the same `cfg!` checks.
+async fn detect_bsd_flavor(os: &str) -> Option<BsdFlavor> {
+    infer_bsd_flavor_from_os(os)
+}
+
 async fn run_command_with_timeout(
     cmd: &str,
     args: &[&str],
@@ -563,7 +716,20 @@ mod tests {
     #[tokio::test]
     async fn test_detect_os() {
         let os = detect_os();
-        assert!(["macos", "linux", "windows"].contains(&os.as_str()));
+        assert!(
+            [
+                "macos",
+                "linux",
+                "windows",
+                "freebsd",
+                "openbsd",
+                "netbsd",
+                "dragonfly",
+            ]
+            .contains(&os.as_str()),
+            "Unrecognized OS string from detect_os(): {}",
+            os
+        );
     }
 
     #[tokio::test]

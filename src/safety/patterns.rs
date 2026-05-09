@@ -353,6 +353,145 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             description: "Force kill specific process by PID".to_string(),
             shell_specific: None,
         },
+        // ──────────────────────────────────────────────────────────────────
+        // BSD-family destructive commands (FreeBSD/OpenBSD/NetBSD/macOS)
+        //
+        // The original 52-pattern set targeted GNU/Linux conventions. The BSD
+        // userland ships destructive utilities with no Linux counterpart and
+        // BSD-flavored device names (/dev/da*, /dev/ada*, /dev/nvd*, /dev/md*)
+        // that the existing /dev/(sd|hd|nvme) patterns do not cover.
+        //
+        // Inspired by the FreeBSD Device Driver Book ch. 31 (Security Best
+        // Practices): every command crossing a privilege boundary must be
+        // assumed hostile, regardless of its UNIX dialect.
+        // ──────────────────────────────────────────────────────────────────
+
+        // CRITICAL: FreeBSD partition table destruction
+        DangerPattern {
+            pattern: r"gpart\s+(destroy|delete)\b".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "FreeBSD partition table destruction (gpart destroy/delete)".to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: ZFS recursive/forced dataset destruction
+        DangerPattern {
+            pattern: r"zfs\s+destroy\s+-[a-zA-Z]*[rRf][a-zA-Z]*".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "Recursive or forced ZFS dataset destruction".to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: dd to BSD-named disk devices (forward arg order)
+        DangerPattern {
+            pattern: r"dd\s+.*if=/dev/(zero|random|urandom).*of=/dev/(da|ada|nvd|md)\d".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "Overwrite BSD disk device with random/zero data".to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: dd to BSD-named disk devices (reverse arg order)
+        DangerPattern {
+            pattern: r"dd\s+.*of=/dev/(da|ada|nvd|md)\d.*if=/dev/(zero|random|urandom)".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "Overwrite BSD disk device with random/zero data (reverse args)"
+                .to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: mkfs/newfs targeting BSD-named devices.
+        // The `(?:\S+\s+)*?` allows flags AND flag-values between the command
+        // and the device path (e.g. `newfs -U /dev/ada0p1`,
+        // `newfs -L mylabel /dev/da0`). Lazy quantifier prevents the
+        // `\S+\s+` group from greedily consuming the device path itself.
+        DangerPattern {
+            pattern: r"(mkfs\.\w+|newfs)\s+(?:\S+\s+)*?/dev/(da|ada|nvd|md)\d".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "Format BSD disk device destroying all data".to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: Direct write redirect to BSD-named disk devices
+        DangerPattern {
+            pattern: r">\s*/dev/(da|ada|nvd|md)\d".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "Direct write to BSD disk device".to_string(),
+            shell_specific: None,
+        },
+        // HIGH: FreeBSD forced package removal
+        DangerPattern {
+            pattern: r"pkg\s+delete\s+-[a-zA-Z]*f[a-zA-Z]*".to_string(),
+            risk_level: RiskLevel::High,
+            description:
+                "FreeBSD forced package removal (pkg delete -f) bypasses dependency checks"
+                    .to_string(),
+            shell_specific: None,
+        },
+        // HIGH: FreeBSD automated installer invoked outside install media.
+        // Anchored to start-of-statement so `man bsdinstall` / `which bsdinstall`
+        // are safe. The `^\s*` prefix accepts leading whitespace; `[;&|]+` accepts
+        // `&&` and `||` separators (post-fix from safety-pattern-auditor).
+        DangerPattern {
+            pattern: r"(^\s*|[;&|]+\s*)(sudo\s+)?bsdinstall\b".to_string(),
+            risk_level: RiskLevel::High,
+            description:
+                "FreeBSD automated installer (bsdinstall) — destructive outside install media"
+                    .to_string(),
+            shell_specific: None,
+        },
+        // HIGH: chflags removing immutability on system files (security regression).
+        // Only `noschg` is matched — `chflags schg /etc/...` is legitimate hardening
+        // (sets the system-immutable flag) and must not be blocked.
+        DangerPattern {
+            pattern: r"chflags\s+noschg\s+/(etc|bin|sbin|boot|usr/bin|usr/sbin)\b".to_string(),
+            risk_level: RiskLevel::High,
+            description: "BSD chflags removing immutability on system files — security regression"
+                .to_string(),
+            shell_specific: None,
+        },
+        // MODERATE: FreeBSD jail removal
+        DangerPattern {
+            pattern: r"jail\s+-r\s+\w+".to_string(),
+            risk_level: RiskLevel::Moderate,
+            description: "FreeBSD jail removal (jail -r) terminates running container".to_string(),
+            shell_specific: None,
+        },
+        // ──────────────────────────────────────────────────────────────────
+        // BSD-family destructive commands — round 2.
+        // Surfaced by the post-fix safety-pattern-auditor pass on PR #1005.
+        // The first round caught dataset-level destruction (`zfs destroy -r`)
+        // but missed pool-level, boot-environment, GEOM-mirror, and
+        // disklabel-rewrite destruction. These add the missing breadth.
+        // ──────────────────────────────────────────────────────────────────
+
+        // CRITICAL: ZFS pool destruction or label clearing.
+        // Worse than `zfs destroy <dataset>` — wipes the entire pool.
+        DangerPattern {
+            pattern: r"zpool\s+(destroy|labelclear)\s+\S+".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "ZFS pool destruction or label clearing — wipes entire pool".to_string(),
+            shell_specific: None,
+        },
+        // HIGH: FreeBSD Boot Environment destruction.
+        // Removes a snapshot-based boot env, foreclosing rollback recovery.
+        DangerPattern {
+            pattern: r"bectl\s+destroy\s+\S+".to_string(),
+            risk_level: RiskLevel::High,
+            description: "FreeBSD Boot Environment destruction (bectl destroy)".to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: GEOM mirror destruction or metadata clearing.
+        DangerPattern {
+            pattern: r"gmirror\s+(destroy|clear)\s+\w+".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "FreeBSD GEOM mirror destruction or metadata wipe".to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: Disklabel rewrite (FreeBSD bsdlabel + OpenBSD disklabel).
+        // The `(?:\S+\s+)*?` allows flags AND device path between the
+        // command and the `-w` rewrite flag (e.g. `bsdlabel -B -w -r /dev/da0`).
+        DangerPattern {
+            pattern: r"(bsdlabel|disklabel)\s+(?:\S+\s+)*?-w\b".to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "BSD disklabel rewrite (bsdlabel/disklabel -w) destroys partition table"
+                .to_string(),
+            shell_specific: None,
+        },
     ]
 });
 

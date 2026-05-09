@@ -43,12 +43,91 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `docs/caroml/voice.md`.
 - **CaroML examples library** at `examples/library/system/` plus a sample
   `Carofile`. Walk-through documentation under `docs/caroml/`.
+- **`BsdFlavor` sub-classification** in `src/platform/mod.rs`: identifies the
+  underlying BSD-family OS (`FreeBsd`, `OpenBsd`, `NetBsd`, `MacOs`,
+  `DragonFlyBsd`, `Unknown`) independently of the userland `UtilityType`. A
+  macOS host with Homebrew GNU coreutils now correctly reports
+  `bsd_flavor() == Some(MacOs)` while `utility_type() == Gnu`. Surfaces
+  through `to_prompt_string()` and adds flavor-specific notes in
+  `platform_notes()` (pkg/jail/gpart for FreeBSD, pf/doas for OpenBSD,
+  pkgsrc for NetBSD).
+- **`PlatformContext::is_bsd_family()`** convenience getter on the public
+  API.
+- **`PlatformContextBuilder::bsd_flavor()`** for explicit builder
+  configuration in tests and non-async contexts.
+- **`docs/SAFETY_PHILOSOPHY.md`**: new doctrine document explaining the
+  kernel-driver mindset behind caro's defense-in-depth layering, citing
+  the FreeBSD Device Driver Book's Ch 29 (Portability), Ch 31 (Security
+  Best Practices), and Ch 37 (Submitting to FreeBSD). Linked from
+  `SECURITY.md` and `CONTRIBUTING.md`.
 
 ### Changed
+
+- **`detect_os()`** now recognizes `freebsd`, `openbsd`, `netbsd`, and
+  `dragonfly` build targets (previously fell through to `"unknown"` on
+  those platforms despite the cross-platform CI matrix building for them).
+- **`is_posix_compliant()`** extended to mark FreeBSD/OpenBSD/NetBSD/
+  DragonFly as POSIX-compliant.
+- **`EmbeddedModelBackend::with_safety_config`** now returns
+  `Result<Self, GeneratorError>` instead of `Self`. **Breaking API
+  change**: callers must propagate the error. Previously the method
+  panicked via `.expect()` if the supplied `SafetyConfig` was malformed
+  (e.g. `max_command_length == 0`); now it returns
+  `GeneratorError::ConfigError`, allowing the CLI to surface a clear
+  error or fall back to a different backend. The single in-tree caller
+  in `src/cli/mod.rs:301` is updated. Aligns with FDD-book ch. 31
+  (Security Best Practices) — never panic at a privilege boundary.
+- **`EmbeddedModelBackend::new` / `with_variant_and_path`** internal
+  initialization of the default `SafetyValidator` now propagates errors
+  via `?` instead of panicking via `.expect()`. No public API change
+  (the constructor already returned `Result`).
+
+### Removed
+
+- **`impl Default for EmbeddedModelBackend`**: the `default()` impl
+  previously called `Self::new().expect(...)` and was unused
+  (`git grep` finds no callers in the workspace). Removed rather than
+  kept as a hidden panic surface.
 
 ### Fixed
 
 ### Security
+
+- **BSD-family safety patterns — round 2**: Added 4 more `DangerPattern`
+  entries surfaced by a post-fix `safety-pattern-auditor` pass on the
+  initial 10. Pattern total grows 62 → 66.
+  - `zpool destroy` / `zpool labelclear` (Critical) — closes the pool-level
+    destruction gap left by the dataset-only `zfs destroy -r/-R/-f` pattern
+  - `bectl destroy` (High) — FreeBSD Boot Environment removal forecloses
+    rollback recovery
+  - `gmirror destroy` / `gmirror clear` (Critical) — GEOM mirror destruction
+    or metadata wipe
+  - `bsdlabel -w` / `disklabel -w` (Critical) — destroys partition table on
+    FreeBSD/OpenBSD; the `(?:\S+\s+)*?` shape allows interleaved flags
+- **`bsdinstall` anchor robustness**: changed
+  `(^|[;&|]\s*)(sudo\s+)?bsdinstall\b` to
+  `(^\s*|[;&|]+\s*)(sudo\s+)?bsdinstall\b` to close two bypasses caught
+  by the auditor — leading whitespace (`   bsdinstall`) and `&&`/`||`
+  chaining (`cd /tmp && bsdinstall`). `man bsdinstall` and
+  `which bsdinstall` remain unflagged.
+- **BSD-family safety patterns**: Added 10 new `DangerPattern` entries covering
+  destructive utilities specific to FreeBSD/OpenBSD/NetBSD/macOS that the
+  original GNU/Linux-flavored set did not catch:
+  - `gpart destroy/delete` — partition table destruction (Critical)
+  - `zfs destroy -r/-R/-f` — recursive/forced ZFS dataset wipe (Critical)
+  - `dd`/`mkfs.*`/`newfs`/`>` redirects targeting `/dev/da*`, `/dev/ada*`,
+    `/dev/nvd*`, `/dev/md*` — BSD device naming (Critical)
+  - `pkg delete -f` — forced package removal bypassing dependency checks (High)
+  - `bsdinstall` invoked at start-of-statement — destructive outside install
+    media; anchored so `man bsdinstall` and `which bsdinstall` are not flagged
+    (High)
+  - `chflags noschg` on `/etc`, `/bin`, `/sbin`, `/boot`, `/usr/bin`,
+    `/usr/sbin` — immutability bypass / security regression (High)
+  - `jail -r <name>` — running-jail removal (Moderate)
+  - New TDD-driven contract tests in `tests/safety_validator_contract.rs`
+    cover positive matches and false-positive prevention for read-only
+    variants (`gpart show`, `zfs list`, `pkg info`, etc.). Pattern total
+    grows from 52 → 62.
 
 ## [1.3.0] - 2026-04-20
 

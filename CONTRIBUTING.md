@@ -229,6 +229,11 @@ Not sure where to start? Here are contribution pathways for different interests 
 
 caro follows security-first development practices inspired by BSD and GNU projects. All contributors must adhere to these practices.
 
+> **Read first**: [`docs/SAFETY_PHILOSOPHY.md`](docs/SAFETY_PHILOSOPHY.md)
+> documents the kernel‑driver mindset behind caro's defense‑in‑depth
+> layering — the *why* behind the principles below. New contributors to
+> `src/safety/` or `src/platform/` should skim it before opening a PR.
+
 ### Security Principles
 
 1. **Defense in Depth**
