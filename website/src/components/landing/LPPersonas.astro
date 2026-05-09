@@ -203,7 +203,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
 <style>
   .personas {
     padding: 100px 20px;
-    background: #0f0f14;
+    background: var(--bg);
   }
 
   .container {
@@ -215,13 +215,13 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
     font-size: 2.5rem;
     font-weight: 700;
     text-align: center;
-    color: #ffffff;
+    color: var(--fg-strong);
     margin-bottom: 16px;
   }
 
   .section-subtitle {
     font-size: 1.125rem;
-    color: #888;
+    color: var(--fg-muted);
     text-align: center;
     max-width: 600px;
     margin: 0 auto 60px;
@@ -235,11 +235,12 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
   }
 
   .persona-card {
-    background: #16161f;
-    border-radius: 16px;
+    background: var(--bg);
+    border-radius: var(--radius-md);
     padding: 32px;
-    border: 1px solid #222;
-    transition: all 0.3s ease;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     position: relative;
     overflow: hidden;
     display: flex;
@@ -257,21 +258,16 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
     transition: opacity 0.3s ease;
   }
 
-  .persona-card.accelerator::before {
-    background: linear-gradient(90deg, #ff6b35, #ff8c42);
-  }
-
-  .persona-card.guardian::before {
-    background: linear-gradient(90deg, #50fa7b, #69ff94);
-  }
-
+  .persona-card.accelerator::before,
+  .persona-card.guardian::before,
   .persona-card.operator::before {
-    background: linear-gradient(90deg, #8be9fd, #a4ffff);
+    background: var(--accent);
   }
 
   .persona-card:hover {
-    border-color: #333;
+    border-color: var(--accent);
     transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
   }
 
   .persona-card:hover::before {
@@ -279,7 +275,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
   }
 
   .persona-card.is-expanded {
-    border-color: #ff6b35;
+    border-color: var(--accent);
   }
 
   .persona-card.is-expanded::before {
@@ -289,25 +285,26 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
   .persona-icon {
     width: 56px;
     height: 56px;
-    background: #1f1f2a;
-    border-radius: 12px;
+    background: var(--bg-stage);
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 28px;
     margin-bottom: 20px;
+    color: var(--accent);
   }
 
   .persona-title {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--fg-strong);
     margin-bottom: 4px;
   }
 
   .persona-role {
     font-size: 0.875rem;
-    color: #666;
+    color: var(--fg-muted);
     margin-bottom: 24px;
   }
 
@@ -327,18 +324,18 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
   }
 
   .label.problem {
-    background: rgba(255, 85, 85, 0.15);
-    color: #ff5555;
+    background: rgba(239, 51, 51, 0.12);
+    color: var(--accent);
   }
 
   .label.solution {
-    background: rgba(80, 250, 123, 0.15);
-    color: #50fa7b;
+    background: rgba(34, 197, 94, 0.15);
+    color: #15803d;
   }
 
   .persona-problem p, .persona-solution p {
     font-size: 0.95rem;
-    color: #a0a0a0;
+    color: var(--fg);
     line-height: 1.6;
   }
 
@@ -346,13 +343,13 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
     list-style: none;
     padding: 0;
     margin: 0;
-    border-top: 1px solid #222;
+    border-top: 1px solid var(--border);
     padding-top: 20px;
   }
 
   .persona-benefits li {
     font-size: 0.875rem;
-    color: #888;
+    color: var(--fg);
     padding: 8px 0;
     padding-left: 24px;
     position: relative;
@@ -362,7 +359,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
     content: '✓';
     position: absolute;
     left: 0;
-    color: #ff6b35;
+    color: var(--accent);
     font-weight: bold;
   }
 
@@ -380,16 +377,16 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
   }
 
   .expanded-content {
-    background: #0a0a0f;
-    border-radius: 12px;
+    background: var(--bg-stage);
+    border-radius: var(--radius-md);
     padding: 20px;
-    border: 1px solid #1e1e24;
+    border: 1px solid var(--border);
   }
 
   .expanded-content h4 {
     font-size: 0.875rem;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--fg-strong);
     margin-bottom: 16px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -417,26 +414,27 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
   }
 
   .use-case code.input {
-    background: #1e1e24;
-    color: #888;
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
   }
 
   .use-case code.output {
-    background: rgba(34, 197, 94, 0.1);
-    color: #22c55e;
+    background: rgba(34, 197, 94, 0.12);
+    color: #15803d;
   }
 
   .use-case code.blocked {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    background: rgba(239, 51, 51, 0.1);
+    color: var(--accent);
     text-decoration: line-through;
   }
 
   .blocked-badge {
     font-size: 0.6875rem;
     font-weight: 700;
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+    color: var(--accent);
+    background: rgba(239, 51, 51, 0.1);
     padding: 4px 8px;
     border-radius: 4px;
     white-space: nowrap;
@@ -458,22 +456,22 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
   .platform-name {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #888;
+    color: var(--fg-muted);
     min-width: 60px;
   }
 
   .platform-item code {
     font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
     font-size: 0.75rem;
-    color: #22c55e;
-    background: rgba(34, 197, 94, 0.1);
+    color: #15803d;
+    background: rgba(34, 197, 94, 0.12);
     padding: 4px 8px;
     border-radius: 4px;
   }
 
   .expanded-note {
     font-size: 0.8125rem;
-    color: #666;
+    color: var(--fg-muted);
     line-height: 1.5;
     margin: 12px 0 0;
   }
@@ -491,21 +489,21 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
     margin-top: 20px;
     font-size: 0.875rem;
     font-weight: 600;
-    color: #ff6b35;
+    color: var(--accent);
     background: transparent;
-    border: 1px solid #ff6b35;
-    border-radius: 8px;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.2s ease;
   }
 
   .persona-cta:hover {
-    background: rgba(255, 107, 53, 0.1);
+    background: rgba(239, 51, 51, 0.08);
   }
 
   .persona-cta[aria-expanded="true"] {
-    background: #ff6b35;
-    color: #ffffff;
+    background: var(--accent);
+    color: var(--fg-inverse);
   }
 
   .cta-icon {
