@@ -98,7 +98,7 @@
 <style>
   .moments {
     padding: 100px 20px;
-    background: linear-gradient(180deg, #0a0a0f 0%, #0f0f14 100%);
+    background: var(--bg-inverse);
   }
 
   .container {
@@ -130,21 +130,23 @@
   }
 
   .moment-card {
-    background: #12121a;
-    border-radius: 16px;
+    background: var(--bg-inverse);
+    border-radius: var(--radius-md);
     overflow: hidden;
-    border: 1px solid #1f1f2a;
-    transition: all 0.3s ease;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
 
   .moment-card:hover {
-    border-color: #333;
+    border-color: var(--accent);
     transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
   }
 
   .moment-before {
     padding: 28px;
-    background: linear-gradient(180deg, #1a1a24 0%, #12121a 100%);
+    background: var(--bg-inverse);
   }
 
   .moment-icon {
@@ -202,8 +204,8 @@
   }
 
   .with-caro {
-    background: #0f0f14;
-    color: #ff6b35;
+    background: var(--bg-inverse);
+    color: var(--accent);
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -214,7 +216,7 @@
 
   .moment-after {
     padding: 28px;
-    background: #0f0f14;
+    background: var(--bg-inverse);
   }
 
   .moment-example.good,

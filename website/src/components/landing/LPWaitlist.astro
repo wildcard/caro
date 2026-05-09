@@ -165,7 +165,7 @@
 <style>
   .waitlist {
     padding: 80px 20px;
-    background: #0a0a0f;
+    background: var(--bg-inverse);
   }
 
   .container {
@@ -174,16 +174,24 @@
   }
 
   .waitlist-card {
-    background: linear-gradient(135deg, #111116 0%, #16161c 100%);
-    border: 1px solid #ff6b35;
-    border-radius: 24px;
+    background: var(--bg-inverse);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-md);
     padding: 48px;
+    box-shadow: var(--shadow-sm);
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 48px;
     align-items: center;
     position: relative;
     overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .waitlist-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
   }
 
   .waitlist-card::before {
@@ -193,7 +201,7 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, #ff6b35, transparent);
+    background: var(--accent);
   }
 
   .badge {
@@ -202,8 +210,8 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #ff6b35;
-    background: rgba(255, 107, 53, 0.15);
+    color: var(--accent);
+    background: rgba(239, 51, 51, 0.18);
     padding: 6px 12px;
     border-radius: 100px;
     margin-bottom: 16px;
@@ -212,14 +220,14 @@
   .waitlist-title {
     font-size: 2rem;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--fg-inverse);
     margin-bottom: 16px;
     line-height: 1.2;
   }
 
   .waitlist-description {
     font-size: 1rem;
-    color: #888;
+    color: var(--caro-grey-300, #cccccc);
     line-height: 1.7;
     margin-bottom: 24px;
   }
@@ -238,12 +246,12 @@
     align-items: flex-start;
     gap: 10px;
     font-size: 0.9375rem;
-    color: #ccc;
+    color: var(--caro-grey-300, #cccccc);
     line-height: 1.5;
   }
 
   .check {
-    color: #22c55e;
+    color: #4ade80;
     font-weight: 600;
     flex-shrink: 0;
   }
@@ -286,21 +294,21 @@
     width: 100%;
     padding: 16px 20px;
     font-size: 1rem;
-    color: #ffffff;
-    background: #0a0a0f;
-    border: 1px solid #2a2a30;
-    border-radius: 12px;
+    color: var(--fg-inverse);
+    background: var(--bg-inverse);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
     outline: none;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .email-input::placeholder {
-    color: #555;
+    color: var(--fg-muted);
   }
 
   .email-input:focus {
-    border-color: #ff6b35;
-    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(239, 51, 51, 0.15);
   }
 
   .submit-button {
@@ -312,17 +320,18 @@
     padding: 16px 24px;
     font-size: 1rem;
     font-weight: 600;
-    color: #ffffff;
-    background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+    color: var(--fg-inverse);
+    background: var(--accent);
     border: none;
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .submit-button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
+    background: var(--accent-hover);
+    box-shadow: var(--shadow-lg);
   }
 
   .submit-button:disabled {
@@ -331,7 +340,7 @@
   }
 
   .submit-button.success {
-    background: linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
+    background: #15803d;
   }
 
   .button-icon {
@@ -344,7 +353,7 @@
 
   .form-note {
     font-size: 0.8125rem;
-    color: #666;
+    color: var(--caro-grey-400, #999);
     text-align: center;
   }
 
