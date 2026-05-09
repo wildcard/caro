@@ -74,7 +74,8 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r"chmod\s+(-[rRfvn]+\s+)*777\s+/".to_string(),
             risk_level: RiskLevel::High,
-            description: "Permission change making root world-writable (recursive or direct)".to_string(),
+            description: "Permission change making root world-writable (recursive or direct)"
+                .to_string(),
             shell_specific: None,
         },
         DangerPattern {
