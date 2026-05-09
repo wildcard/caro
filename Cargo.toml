@@ -2,7 +2,7 @@
 name = "caro"
 version = "1.4.0"
 edition = "2021"
-rust-version = "1.83"
+rust-version = "1.85"
 description = "Convert natural language to shell commands using local LLMs"
 license = "AGPL-3.0"
 authors = ["Wildcard <kobi@caro.sh>", "Claude Code <noreply@anthropic.com>"]
@@ -133,7 +133,7 @@ regex = "1.10"
 tempfile = "3.10"
 serial_test = "3"
 proptest = "1"
-criterion = { version = "=0.7.0", features = ["html_reports"] }  # Pin: 0.8+ requires rustc 1.86, above MSRV 1.83
+criterion = { version = "=0.7.0", features = ["html_reports"] }  # Pin: 0.8+ requires rustc 1.86, above MSRV 1.85
 futures = "0.3"
 serde_yaml = "0.9"
 env_logger = "0.11"

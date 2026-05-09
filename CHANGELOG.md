@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **MSRV bumped from 1.83 → 1.85** to fix CI breakage caused by transitive
+  dependencies (`lance-geo` → `i_tree`, etc.) requiring `edition2024`,
+  which Cargo only stabilized in 1.85. With MSRV 1.83, `cargo build
+  --locked` failed during dep-graph parsing even when the offending crates
+  were excluded by feature flag (e.g. the embedded-cpu MSRV CI build):
+  `--locked` parses every entry in `Cargo.lock`, including
+  feature-gated ones. Rust 1.85 was stabilized 2025-02-20, ~14 months
+  before this bump.
+
 ## [1.4.0] - 2026-05-09
 
 ### Added
