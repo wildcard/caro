@@ -5,6 +5,8 @@
  */
 import { SITE_CONFIG } from '../config/site';
 import { t } from '../i18n/config';
+// NOTE(caro-bsi): kyaro-mark Glyph reverted pending v2.1.1 — current rendering reads
+// as a horned demon / pointy-eared cat rather than a Shiba. Manifest entry retained.
 
 interface Props {
   lang: string;
@@ -22,7 +24,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
       <!-- Brand Column -->
       <div class="footer-brand">
         <a href="/" class="brand-link">
-          <span class="brand-icon">🐕</span>
+          <span class="brand-icon" aria-label="Caro brand">🐕</span>
           <span class="brand-name">Caro</span>
         </a>
         <p class="brand-tagline">{t(lang, 'landing.footer.brand.tagline')}</p>
@@ -104,7 +106,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     <!-- Kyaro Mascot Section -->
     <div class="kyaro-banner">
       <div class="kyaro-content">
-        <span class="kyaro-emoji">🐕</span>
+        <span class="kyaro-emoji" aria-label="Kyaro mascot">🐕</span>
         <div class="kyaro-info">
           <p class="kyaro-title">{t(lang, 'landing.footer.kyaro.title')}</p>
           <p class="kyaro-text">

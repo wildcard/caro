@@ -1,0 +1,76 @@
+---
+/**
+ * Glyph - Caro pixel-icon wrapper (v2.1)
+ *
+ * Inlines a 16×16 pixel-grid SVG from the v2.1 icon pack so it inherits
+ * currentColor (recolor via parent `color:` token, dark-mode safe) and
+ * scales crisply at 16/24/32/48 px (shape-rendering: crispEdges).
+ *
+ * Source manifest: `src/data/icon-manifest.json`
+ * Source SVGs:    `public/icons/<name>.svg`
+ *
+ * @example
+ * <Glyph name="rocket" size={20} class="trust-icon" />
+ */
+import manifest from '../../data/icon-manifest.json';
+
+// Eager-load all 9 SVGs as raw strings at build time. Vite resolves these
+// at build, so paths work regardless of where the bundle gets hoisted.
+const svgModules = import.meta.glob<string>('/public/icons/*.svg', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
+// Build a name→raw-SVG map keyed by the manifest names ("home", "kyaro-mark", ...).
+const svgByName: Record<string, string> = {};
+for (const [path, raw] of Object.entries(svgModules)) {
+  const m = path.match(/\/([a-z0-9-]+)\.svg$/i);
+  if (m) svgByName[m[1]] = raw;
+}
+
+export type GlyphName = keyof typeof manifest.icons;
+
+interface Props {
+  name: GlyphName;
+  size?: number;
+  class?: string;
+  ['aria-label']?: string;
+}
+
+const { name, size = 24, class: className, 'aria-label': ariaLabel } = Astro.props;
+
+const rawSvg = svgByName[name] ?? '';
+if (!rawSvg) {
+  console.warn(`[Glyph] no SVG found for "${name}"`);
+}
+
+// Strip the <svg ...> wrapper so we can re-emit with our size + class.
+const innerMatch = rawSvg.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+const innerSvg = innerMatch ? innerMatch[1] : '';
+
+const role = ariaLabel ? 'img' : undefined;
+const ariaHidden = ariaLabel ? undefined : 'true';
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 16 16"
+  width={size}
+  height={size}
+  fill="currentColor"
+  shape-rendering="crispEdges"
+  class:list={['glyph', className]}
+  role={role}
+  aria-label={ariaLabel}
+  aria-hidden={ariaHidden}
+  set:html={innerSvg}
+></svg>
+
+<style>
+  .glyph {
+    display: inline-block;
+    vertical-align: -0.125em;
+    flex-shrink: 0;
+  }
+</style>
