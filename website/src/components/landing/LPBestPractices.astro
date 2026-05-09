@@ -159,17 +159,26 @@ const realIncidents = [
   }
 
   .incident-card {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.03) 100%);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    border-radius: 12px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--accent);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
     padding: 24px;
     text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .incident-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
   }
 
   .incident-badge {
     display: inline-block;
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
+    background: rgba(239, 51, 51, 0.15);
+    color: var(--accent);
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
@@ -201,7 +210,7 @@ const realIncidents = [
   .incidents-takeaway {
     text-align: center;
     font-size: 16px;
-    color: #ef4444;
+    color: var(--accent);
     margin-bottom: 50px;
   }
 
@@ -227,16 +236,18 @@ const realIncidents = [
   }
 
   .practice-card {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
     padding: 28px;
-    transition: border-color 0.2s, transform 0.2s;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
   }
 
   .practice-card:hover {
-    border-color: #ff8c42;
-    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
   }
 
   .practice-header {
@@ -290,14 +301,15 @@ const realIncidents = [
 
   .caro-badge {
     flex-shrink: 0;
-    color: #ff8c42;
+    color: var(--accent);
     font-weight: 600;
   }
 
   .defense-layers {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
     padding: 40px;
     text-align: center;
   }
@@ -377,9 +389,11 @@ const realIncidents = [
   }
 
   .enterprise-scale {
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.04) 100%);
-    border: 1px solid rgba(255, 140, 66, 0.2);
-    border-radius: 12px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--accent);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
     padding: 40px;
     margin-top: 40px;
     text-align: center;
@@ -405,8 +419,8 @@ const realIncidents = [
   }
 
   .scale-stat.highlight {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(239, 51, 51, 0.1);
+    border: 1px solid rgba(239, 51, 51, 0.3);
     border-radius: 8px;
     padding: 16px 24px;
   }
@@ -415,11 +429,11 @@ const realIncidents = [
     display: block;
     font-size: 32px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .scale-stat.highlight .scale-number {
-    color: #ef4444;
+    color: var(--accent);
   }
 
   .scale-label {
@@ -444,7 +458,7 @@ const realIncidents = [
   }
 
   .scale-note strong {
-    color: #ef4444;
+    color: var(--accent);
   }
 
   @media (max-width: 768px) {

@@ -92,22 +92,25 @@ const differentiators = [
   .differentiator {
     display: flex;
     gap: 20px;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
     padding: 28px;
-    transition: border-color 0.2s;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   }
 
   .differentiator:hover {
-    border-color: #ff8c42;
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
   }
 
   .diff-number {
     flex-shrink: 0;
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -155,7 +158,7 @@ const differentiators = [
   }
 
   .diff-caro .diff-label {
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .diff-detail {
@@ -173,7 +176,7 @@ const differentiators = [
   }
 
   .cta-link {
-    color: #ff8c42;
+    color: var(--accent);
     font-weight: 600;
     text-decoration: none;
     font-size: 16px;

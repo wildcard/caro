@@ -214,13 +214,13 @@ const roles = [
   }
 
   .role-btn:hover {
-    border-color: #ff8c42;
+    border-color: var(--accent);
   }
 
   .role-btn.active {
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
-    border-color: #ff8c42;
-    color: #ff8c42;
+    background: rgba(239, 51, 51, 0.08);
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
   .role-icon {
@@ -240,17 +240,25 @@ const roles = [
   .scenario-card {
     display: flex;
     gap: 20px;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
     padding: 24px;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .scenario-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
   }
 
   .scenario-number {
     flex-shrink: 0;
     width: 36px;
     height: 36px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -284,13 +292,13 @@ const roles = [
 
   .dangerous-command {
     display: inline-block;
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    background: rgba(239, 51, 51, 0.1);
+    color: var(--accent);
     padding: 8px 14px;
     border-radius: 6px;
     font-family: 'SF Mono', 'Monaco', monospace;
     font-size: 13px;
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 51, 51, 0.2);
   }
 
   .scenario-problem {
@@ -317,12 +325,12 @@ const roles = [
     padding: 14px;
     background: rgba(34, 197, 94, 0.08);
     border-radius: 6px;
-    border-left: 3px solid #22c55e;
+    border-top: 3px solid #22c55e;
   }
 
   .caro-label {
     font-weight: 600;
-    color: #ff8c42;
+    color: var(--accent);
     margin-right: 8px;
   }
 
