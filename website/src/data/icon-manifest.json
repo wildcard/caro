@@ -1,6 +1,7 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "released": "2026-04-28",
+  "lastUpdated": "2026-05-09",
   "grid": 16,
   "stroke": "integer-pixel",
   "color": "monochrome via currentColor",
@@ -15,7 +16,7 @@
     "shield":     { "path": "icons/shield.svg",     "category": "trust-badge",   "replaces_emoji": "🛡️",          "tier": "secondary" },
     "lightning":  { "path": "icons/lightning.svg",  "category": "trust-badge",   "replaces_emoji": "⚡",                      "tier": "secondary" },
     "brain":      { "path": "icons/brain.svg",      "category": "feature",       "replaces_emoji": "🧠",                "tier": "secondary" },
-    "kyaro-mark": { "path": "icons/kyaro-mark.svg", "category": "brand",         "replaces_emoji": "🐕",                "tier": "brand" }
+    "kyaro-mark": { "path": "icons/kyaro-mark.svg", "category": "brand",         "replaces_emoji": "🐕",                "tier": "brand", "version": "2.1.1", "notes": "Redrawn 2026-05-09 to fix horned-demon read at 16-32 px (caro-bsi)" }
   },
   "deferred_v3": [
     "git", "terminal", "package", "model", "gear", "doc", "search", "spinner", "check", "cross",
