@@ -8,10 +8,11 @@
    ============================================ */
 
 .card {
-  background: var(--color-bg, #ffffff);
-  border-radius: 12px;
+  background: var(--bg-raised);
+  border-radius: var(--radius-md);
   padding: 30px;
-  border: 1px solid var(--color-border, #e5e7eb);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
   transition:
     transform 0.2s,
     box-shadow 0.2s,
@@ -28,16 +29,12 @@
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(255, 140, 66, 0.1);
-  border-color: var(--color-primary, #ff8c42);
-}
-
-:global(.dark) .card:hover {
-  box-shadow: 0 10px 30px rgba(255, 140, 66, 0.2);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent);
 }
 
 .card:focus-visible {
-  outline: 2px solid var(--color-primary, #ff8c42);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -128,7 +125,7 @@
   position: absolute;
   top: 15px;
   left: 15px;
-  background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+  background: var(--accent);
   color: white;
   padding: 4px 12px;
   border-radius: 12px;
@@ -157,7 +154,7 @@
 }
 
 .readMore {
-  color: var(--color-primary, #ff8c42);
+  color: var(--accent);
   text-decoration: none;
   font-weight: 600;
   display: inline-flex;
@@ -203,7 +200,7 @@
 }
 
 .titleLink:hover {
-  color: var(--color-primary, #ff8c42);
+  color: var(--accent);
 }
 
 :global(.dark) .title,
@@ -212,7 +209,7 @@
 }
 
 :global(.dark) .titleLink:hover {
-  color: var(--color-primary, #ff8c42);
+  color: var(--accent);
 }
 
 .description {

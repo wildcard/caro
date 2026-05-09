@@ -116,20 +116,18 @@ const incidentStats = [
   }
 
   .voice-card {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
     padding: 28px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   }
 
   .voice-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  }
-
-  :global(.dark) .voice-card:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
   }
 
   .voice-icon {
@@ -161,16 +159,17 @@ const incidentStats = [
   }
 
   .voice-insight strong {
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .stats-bar {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.04) 100%);
-    border: 1px solid rgba(255, 140, 66, 0.2);
-    border-radius: 12px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
     padding: 32px;
     margin-bottom: 50px;
   }
@@ -182,7 +181,7 @@ const incidentStats = [
   .stat-number {
     font-size: 36px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent);
     margin-bottom: 8px;
   }
 
@@ -193,10 +192,11 @@ const incidentStats = [
   }
 
   .caro-response {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-left: 4px solid #ff8c42;
-    border-radius: 8px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--accent);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
     padding: 28px 32px;
     text-align: center;
   }
