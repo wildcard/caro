@@ -1,40 +1,61 @@
 # CODEOWNERS - Define who reviews code changes
 # Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Granular human reviewers. The companion file `.github/STAKEHOLDERS.yml`
+# extends this with per-area AGENT routing (used by caro-coder-loop and
+# caro-backlog-groom). When editing this file, mirror critical changes to
+# STAKEHOLDERS.yml so the two stay in sync.
 
 # Default owners for everything in the repo
 * @wildcard
 
-# Backend implementations require extra review
-/src/backends/ @wildcard
-
-# Safety module is critical - require explicit review
+# ─── Safety-critical (every Caro command flows through this) ──────────
 /src/safety/ @wildcard
-
-# Configuration changes
-/src/config/ @wildcard
-
-# CI/CD changes
-/.github/workflows/ @wildcard
-
-# Documentation
-*.md @wildcard
-/docs/ @wildcard
-/specs/ @wildcard
-
-# Security-sensitive files
-/src/safety/ @wildcard
+/src/safety/patterns.rs @wildcard
+/tests/safety_*.rs @wildcard
 SECURITY.md @wildcard
 
-# Build and dependency configuration
+# ─── Backends / inference ─────────────────────────────────────────────
+/src/backends/ @wildcard
+/src/prompts/ @wildcard
+
+# ─── ML / evaluation ──────────────────────────────────────────────────
+/src/ai/ @wildcard
+/src/eval/ @wildcard
+/src/evaluation/ @wildcard
+/src/assessment/ @wildcard
+
+# ─── Core CLI ─────────────────────────────────────────────────────────
+/src/cli/ @wildcard
+/src/main.rs @wildcard
+/src/lib.rs @wildcard
+/src/agent/ @wildcard
+/src/config/ @wildcard
+/src/platform/ @wildcard
+/src/execution/ @wildcard
+/src/caroml/ @wildcard
+
+# ─── Build / dependency configuration ─────────────────────────────────
 Cargo.toml @wildcard
 Cargo.lock @wildcard
 
-# Development environment
-/.devcontainer/ @wildcard
-
-# Website changes
-/website/ @wildcard
-
-# Release configuration
+# ─── CI / release ─────────────────────────────────────────────────────
+/.github/workflows/ @wildcard
 /.github/workflows/release.yml @wildcard
 /.github/workflows/publish.yml @wildcard
+/.github/CODEOWNERS @wildcard
+/.github/STAKEHOLDERS.yml @wildcard
+
+# ─── Install distribution ─────────────────────────────────────────────
+/scripts/install.sh @wildcard
+/homebrew-tap/ @wildcard
+/nuget/ @wildcard
+
+# ─── Documentation / website / specs ──────────────────────────────────
+*.md @wildcard
+/docs/ @wildcard
+/specs/ @wildcard
+/website/ @wildcard
+
+# ─── Development environment ──────────────────────────────────────────
+/.devcontainer/ @wildcard

@@ -1,0 +1,223 @@
+# STAKEHOLDERS — Granular ownership map for Caro
+#
+# Inspired by warpdotdev/oz-for-oss `.github/STAKEHOLDERS`. Maps each area of
+# the codebase to the humans who must approve changes AND the specialist
+# agents (defined in .claude/agents/ and referenced in .claude/agent-profiles.yaml)
+# that should be auto-selected by `caro-coder-loop` and `caro-backlog-groom`
+# when picking up work in that area.
+#
+# Conventions:
+#   - `humans`: GitHub handles, mirrored into .github/CODEOWNERS for
+#     enforcement on safety/release-critical paths.
+#   - `agents`: filenames in .claude/agents/ (without .md extension), or
+#     skill names in .claude/skills/. Used by caro-coder-loop to pick the
+#     right specialist instead of always defaulting to a generic coder.
+#   - `review_label`: optional GitHub label auto-applied to PRs touching
+#     this area, so reviewers can filter their queue.
+#
+# Adding a new area: append below in alphabetical glob order. Avoid
+# overlapping globs where possible; when they overlap, MORE SPECIFIC paths
+# win (the consumer is responsible for last-match-wins resolution).
+
+version: 1
+
+areas:
+  # ─── Safety-critical ──────────────────────────────────────────────────
+  "src/safety/**":
+    humans: ["@wildcard"]
+    agents:
+      - safety-pattern-developer
+      - safety-pattern-auditor
+    review_label: "area:safety"
+    description: >
+      Dangerous-command pattern matching. Changes here gate every command
+      Caro generates. TDD required (see safety-pattern-developer skill).
+
+  "tests/safety_*":
+    humans: ["@wildcard"]
+    agents: [safety-pattern-developer, qa-testing-expert]
+    review_label: "area:safety"
+
+  "src/safety/patterns.rs":
+    humans: ["@wildcard"]
+    agents: [safety-pattern-developer]
+    review_label: "area:safety"
+    description: >
+      Single source of truth for the 52+ dangerous patterns. Every edit
+      MUST come with a test in tests/ that fails before, passes after.
+
+  # ─── LLM / inference backends ─────────────────────────────────────────
+  "src/backends/**":
+    humans: ["@wildcard"]
+    agents:
+      - llm-integration-expert
+      - rust-cli-expert
+    review_label: "area:backend"
+    description: >
+      InferenceBackend implementations: static, embedded (MLX/CPU),
+      ollama, vllm. Trait surface lives in src/backends/mod.rs.
+
+  "src/backends/embedded_backend.rs":
+    humans: ["@wildcard"]
+    agents:
+      - llm-integration-expert
+      - prompt-tuner
+      - macos-unix-systems-expert
+    review_label: "area:backend"
+
+  "src/prompts/**":
+    humans: ["@wildcard"]
+    agents: [prompt-tuner, llm-integration-expert]
+    review_label: "area:prompts"
+
+  # ─── ML / fine-tune / evaluation ──────────────────────────────────────
+  "src/ai/**":
+    humans: ["@wildcard"]
+    agents: [ml-ds-engineer, llm-integration-expert]
+    review_label: "area:ml"
+
+  "src/eval/**":
+    humans: ["@wildcard"]
+    agents: [ml-ds-engineer, qa-testing-expert]
+    review_label: "area:ml"
+
+  "src/evaluation/**":
+    humans: ["@wildcard"]
+    agents: [ml-ds-engineer, qa-testing-expert]
+    review_label: "area:ml"
+
+  "src/assessment/**":
+    humans: ["@wildcard"]
+    agents: [ml-ds-engineer]
+    review_label: "area:ml"
+
+  # ─── Core CLI / Rust architecture ─────────────────────────────────────
+  "src/cli/**":
+    humans: ["@wildcard"]
+    agents: [rust-cli-expert, dx-product-manager]
+    review_label: "area:cli"
+
+  "src/main.rs":
+    humans: ["@wildcard"]
+    agents: [rust-cli-expert]
+    review_label: "area:cli"
+
+  "src/lib.rs":
+    humans: ["@wildcard"]
+    agents: [rust-cli-expert, rust-refactor-expert]
+    review_label: "area:cli"
+
+  "src/agent/**":
+    humans: ["@wildcard"]
+    agents: [rust-cli-expert, llm-integration-expert]
+    review_label: "area:agent"
+
+  "src/cache/**":
+    humans: ["@wildcard"]
+    agents: [rust-cli-expert, rust-refactor-expert]
+    review_label: "area:core"
+
+  "src/config/**":
+    humans: ["@wildcard"]
+    agents: [rust-cli-expert]
+    review_label: "area:config"
+
+  "src/platform/**":
+    humans: ["@wildcard"]
+    agents: [macos-unix-systems-expert, unix-systems-engineer]
+    review_label: "area:platform"
+
+  "src/execution/**":
+    humans: ["@wildcard"]
+    agents: [unix-systems-engineer, rust-cli-expert]
+    review_label: "area:core"
+
+  "src/caroml/**":
+    humans: ["@wildcard"]
+    agents: [rust-cli-expert, dx-product-manager]
+    review_label: "area:caroml"
+
+  # ─── Build / release / CI ─────────────────────────────────────────────
+  "Cargo.toml":
+    humans: ["@wildcard"]
+    agents: [caro-release-expert, oss-legal-advisor]
+    review_label: "area:build"
+
+  "Cargo.lock":
+    humans: ["@wildcard"]
+    agents: [caro-release-expert]
+    review_label: "area:build"
+
+  ".github/workflows/release.yml":
+    humans: ["@wildcard"]
+    agents: [caro-release-expert]
+    review_label: "area:release"
+
+  ".github/workflows/publish.yml":
+    humans: ["@wildcard"]
+    agents: [caro-release-expert]
+    review_label: "area:release"
+
+  ".github/workflows/**":
+    humans: ["@wildcard"]
+    agents: [caro-release-expert]
+    review_label: "area:ci"
+
+  "scripts/install.sh":
+    humans: ["@wildcard"]
+    agents: [caro-release-expert]
+    review_label: "area:install"
+
+  "homebrew-tap/**":
+    humans: ["@wildcard"]
+    agents: [caro-release-expert]
+    review_label: "area:install"
+
+  "nuget/**":
+    humans: ["@wildcard"]
+    agents: [caro-release-expert]
+    review_label: "area:install"
+
+  # ─── Website / docs / i18n ────────────────────────────────────────────
+  "website/**":
+    humans: ["@wildcard"]
+    agents: [technical-writer, dx-product-manager]
+    review_label: "area:website"
+
+  "website/src/i18n/**":
+    humans: ["@wildcard"]
+    agents: [technical-writer, cultural-heritage-expert]
+    review_label: "area:i18n"
+
+  "docs/**":
+    humans: ["@wildcard"]
+    agents: [technical-writer, docs-release-manager]
+    review_label: "area:docs"
+
+  "*.md":
+    humans: ["@wildcard"]
+    agents: [technical-writer, docs-release-manager]
+    review_label: "area:docs"
+
+  # ─── Specs / planning ─────────────────────────────────────────────────
+  "specs/**":
+    humans: ["@wildcard"]
+    agents: [spec-driven-dev-guide, dev-team-coordinator]
+    review_label: "area:spec"
+
+  # ─── Legal / compliance ───────────────────────────────────────────────
+  "LICENSE*":
+    humans: ["@wildcard"]
+    agents: [oss-legal-advisor]
+    review_label: "area:legal"
+
+  "SECURITY.md":
+    humans: ["@wildcard"]
+    agents: [safety-pattern-auditor]
+    review_label: "area:security"
+
+# Default fallback when no glob matches.
+default:
+  humans: ["@wildcard"]
+  agents: [rust-cli-expert]
+  review_label: "area:misc"

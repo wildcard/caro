@@ -1,0 +1,83 @@
+name: Setup Rust
+description: >
+  Composite action that installs the Rust toolchain, restores the cargo
+  cache, and (optionally) installs protobuf-compiler. Replaces ~12 duplicated
+  lines per job across .github/workflows/.
+
+  Inspired by warpdotdev/oz-for-oss's composite-action pattern. Single
+  source of truth: editing this file changes every job that uses it.
+
+inputs:
+  toolchain:
+    description: "Rust toolchain (stable, beta, nightly, or a specific version like 1.83)"
+    required: false
+    default: stable
+  components:
+    description: "Comma-separated rustup components (e.g. 'rustfmt,clippy')"
+    required: false
+    default: ""
+  targets:
+    description: "Comma-separated rustup targets (e.g. 'aarch64-apple-darwin')"
+    required: false
+    default: ""
+  cache-key-suffix:
+    description: >
+      Suffix appended to the cache key. Use a per-job string (e.g. "lint",
+      "smoke", "unit", "build-x86_64-unknown-linux-gnu") so jobs do not
+      overwrite each other's caches.
+    required: true
+  cache-key-prefix:
+    description: >
+      Prefix for the cache key. Defaults to the runner OS (Linux, macOS,
+      Windows); override only when preserving a legacy key (e.g. "macos"
+      for the extended-model-tests job).
+    required: false
+    default: ""
+  install-protobuf:
+    description: "If 'true', install protobuf-compiler (Linux apt or macOS brew). 'false' on Windows."
+    required: false
+    default: "false"
+  cache-restore-keys:
+    description: "Optional newline-separated restore-keys for the cargo cache (multi-line string)."
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Install Rust toolchain (${{ inputs.toolchain }})
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: ${{ inputs.toolchain }}
+        components: ${{ inputs.components }}
+        targets: ${{ inputs.targets }}
+
+    - name: Resolve cache key prefix
+      id: prefix
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.cache-key-prefix }}" ]; then
+          echo "value=${{ inputs.cache-key-prefix }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "value=${{ runner.os }}" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Cache cargo
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ steps.prefix.outputs.value }}-cargo-${{ inputs.cache-key-suffix }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ inputs.cache-restore-keys }}
+
+    - name: Install protobuf (Linux)
+      if: inputs.install-protobuf == 'true' && runner.os == 'Linux'
+      shell: bash
+      run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
+    - name: Install protobuf (macOS)
+      if: inputs.install-protobuf == 'true' && runner.os == 'macOS'
+      shell: bash
+      run: brew install protobuf
