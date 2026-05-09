@@ -129,6 +129,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     variants (`gpart show`, `zfs list`, `pkg info`, etc.). Pattern total
     grows from 52 → 62.
 
+
+## [1.3.2] - 2026-05-09
+
+### Added
+
+- **Static matcher: date arithmetic** — added patterns for future date (`date -v+Nd`
+  / `date -d '+N days'`) and past date (`date -v-Nd`) that correctly distinguish
+  future from past queries; also added Unix timestamp → human-readable conversion
+  (`date -r <epoch>` BSD / `date -d @<epoch>` GNU). Closes #955.
+- **Static matcher: `nc -zv` port check** — added pattern for "check if port is open"
+  queries that produces `nc -zv host 80`, which is more widely available than `nmap`
+  and doesn't require elevated privileges. Closes #1003.
+- **Static matcher: wget patterns** — added basic download (`wget <url>`), save-as
+  (`wget -O file url`), and recursive download (`wget -r --no-parent url`). Closes #952.
+- **Static matcher: `basename` / `dirname` / `head`** — added path-manipulation helpers
+  and a first-N-lines pattern. Closes #983.
+- **Static matcher: `zcat`** — added pattern for viewing compressed files without
+  extracting. Closes #998 (partial).
+- **Static matcher: `docker network ls` / `docker network inspect`** — added two
+  Docker network subcommand patterns. Closes #999 (partial).
+
+### Fixed
+
+- **LLM prompt BSD date hint** — the system prompt previously showed only
+  `date -v-7d` (past) to the embedded LLM, causing it to copy the minus sign even for
+  future-date queries. Now both signs and the `date -r` timestamp form are shown. Closes #955.
+
 ## [1.3.1] - 2026-05-09
 
 ### Fixed
@@ -153,7 +180,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **P2 CLAUDE.md version banner**: `CLAUDE.md` incorrectly displayed version
   `1.1.0 (GA)` since that file was not part of the release version checklist.
   Updated to `1.3.0`. Closes #1044.
-
 ## [1.3.0] - 2026-04-20
 
 ### Added

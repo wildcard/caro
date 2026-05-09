@@ -87,7 +87,7 @@ When releasing a new version of caro:
 
 ```bash
 # Download and compute checksums for a release
-VERSION=1.3.1
+VERSION=1.3.2
 for platform in macos-silicon macos-intel linux-amd64 linux-arm64; do
   curl -sL "https://github.com/wildcard/caro/releases/download/v${VERSION}/caro-${VERSION}-${platform}" | sha256sum
 done

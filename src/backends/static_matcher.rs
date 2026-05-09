@@ -1589,6 +1589,136 @@ impl StaticMatcher {
                 description: "Print specific columns from file".to_string(),
             },
 
+            // #955 fix: BSD date arithmetic — future date (most specific: "from now")
+            PatternEntry {
+                required_keywords: vec!["date".to_string(), "from".to_string(), "now".to_string()],
+                optional_keywords: vec!["days".to_string(), "weeks".to_string(), "hours".to_string(), "macos".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(date|show).*((\d+)\s*(days?|weeks?|hours?|months?)).*(from now|ahead|future|in the future)").unwrap()),
+                gnu_command: "date -d '+30 days'".to_string(),
+                bsd_command: Some("date -v+30d".to_string()),
+                description: "Show a future date N days from now".to_string(),
+            },
+
+            // #955 fix: BSD date arithmetic — past date ("N days ago")
+            PatternEntry {
+                required_keywords: vec!["date".to_string(), "days".to_string(), "ago".to_string()],
+                optional_keywords: vec!["show".to_string(), "get".to_string(), "macos".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(date|show|get).*((\d+)\s*(days?|weeks?|hours?)).*(ago|back|before|past)").unwrap()),
+                gnu_command: "date -d '-30 days'".to_string(),
+                bsd_command: Some("date -v-30d".to_string()),
+                description: "Show a past date N days ago".to_string(),
+            },
+
+            // #955 fix: Unix timestamp to human-readable date (more specific — must not shadow arithmetic)
+            PatternEntry {
+                required_keywords: vec!["timestamp".to_string(), "readable".to_string()],
+                optional_keywords: vec!["unix".to_string(), "epoch".to_string(), "convert".to_string(), "macos".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(convert|show|format).*(unix|epoch|timestamp).*(human.?readable|date|readable)").unwrap()),
+                gnu_command: "date -d @1700000000".to_string(),
+                bsd_command: Some("date -r 1700000000".to_string()),
+                description: "Convert Unix timestamp to human-readable date".to_string(),
+            },
+
+            // #1003 fix: nc -z port check (before generic port-scan pattern)
+            PatternEntry {
+                required_keywords: vec!["port".to_string(), "open".to_string()],
+                optional_keywords: vec!["check".to_string(), "nc".to_string(), "netcat".to_string(), "host".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(check|test|verify|is).*(port|tcp).*(open|available|reachable|accessible|listening)").unwrap()),
+                gnu_command: "nc -zv host 80".to_string(),
+                bsd_command: Some("nc -zv host 80".to_string()),
+                description: "Check if a TCP port is open using nc".to_string(),
+            },
+
+            // #952 fix: wget basic download
+            PatternEntry {
+                required_keywords: vec!["wget".to_string()],
+                optional_keywords: vec!["download".to_string(), "url".to_string(), "file".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(wget|download).*(url|http|file)").unwrap()),
+                gnu_command: "wget https://example.com/file.tar.gz".to_string(),
+                bsd_command: Some("wget https://example.com/file.tar.gz".to_string()),
+                description: "Download a file with wget".to_string(),
+            },
+
+            // #952 fix: wget save to specific file
+            PatternEntry {
+                required_keywords: vec!["wget".to_string(), "save".to_string()],
+                optional_keywords: vec!["output".to_string(), "name".to_string(), "as".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(wget|download).*(save|output|name|as|rename).*(file)?").unwrap()),
+                gnu_command: "wget -O output.tar.gz https://example.com/file.tar.gz".to_string(),
+                bsd_command: Some("wget -O output.tar.gz https://example.com/file.tar.gz".to_string()),
+                description: "Download and save as specific filename".to_string(),
+            },
+
+            // #952 fix: wget recursive download
+            PatternEntry {
+                required_keywords: vec!["wget".to_string(), "recursive".to_string()],
+                optional_keywords: vec!["mirror".to_string(), "site".to_string(), "website".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(wget|download).*(recursive|mirror|entire|whole|site|website)").unwrap()),
+                gnu_command: "wget -r --no-parent https://example.com/".to_string(),
+                bsd_command: Some("wget -r --no-parent https://example.com/".to_string()),
+                description: "Recursively download a website with wget".to_string(),
+            },
+
+            // #983 fix: basename — extract filename from path
+            PatternEntry {
+                required_keywords: vec!["basename".to_string()],
+                optional_keywords: vec!["path".to_string(), "filename".to_string(), "name".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(basename|filename|file name).*(path|from)").unwrap()),
+                gnu_command: "basename /path/to/file.txt".to_string(),
+                bsd_command: Some("basename /path/to/file.txt".to_string()),
+                description: "Extract filename from a path with basename".to_string(),
+            },
+
+            // #983 fix: dirname — extract directory part of path
+            PatternEntry {
+                required_keywords: vec!["dirname".to_string()],
+                optional_keywords: vec!["path".to_string(), "directory".to_string(), "parent".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(dirname|directory.*part|parent.*dir).*(path|from)").unwrap()),
+                gnu_command: "dirname /path/to/file.txt".to_string(),
+                bsd_command: Some("dirname /path/to/file.txt".to_string()),
+                description: "Extract directory part from a path with dirname".to_string(),
+            },
+
+            // #983 fix: head — show first N lines of a file
+            PatternEntry {
+                required_keywords: vec!["head".to_string(), "lines".to_string()],
+                optional_keywords: vec!["first".to_string(), "show".to_string(), "file".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(head|first).*((\d+).*(lines?)|lines?.*(first|\d+))").unwrap()),
+                gnu_command: "head -n 10 file.txt".to_string(),
+                bsd_command: Some("head -n 10 file.txt".to_string()),
+                description: "Show first N lines of a file".to_string(),
+            },
+
+            // #998 fix: zcat — decompress and view gzip file
+            PatternEntry {
+                required_keywords: vec!["zcat".to_string()],
+                optional_keywords: vec!["view".to_string(), "read".to_string(), "decompress".to_string(), "gz".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(zcat|view|read|decompress).*(gz|gzip|compressed).*(without|view)").unwrap()),
+                gnu_command: "zcat file.gz".to_string(),
+                bsd_command: Some("zcat file.gz".to_string()),
+                description: "View compressed gzip file without extracting".to_string(),
+            },
+
+            // #999 fix: docker network list
+            PatternEntry {
+                required_keywords: vec!["docker".to_string(), "network".to_string()],
+                optional_keywords: vec!["list".to_string(), "show".to_string(), "networks".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(list|show|display).*(docker).*(networks?)|docker.*(networks?).*(list|show)").unwrap()),
+                gnu_command: "docker network ls".to_string(),
+                bsd_command: Some("docker network ls".to_string()),
+                description: "List Docker networks".to_string(),
+            },
+
+            // #999 fix: docker network inspect
+            PatternEntry {
+                required_keywords: vec!["docker".to_string(), "network".to_string(), "inspect".to_string()],
+                optional_keywords: vec!["details".to_string(), "info".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(inspect|detail|info).*(docker).*(network)").unwrap()),
+                gnu_command: "docker network inspect network_name".to_string(),
+                bsd_command: Some("docker network inspect network_name".to_string()),
+                description: "Inspect Docker network details".to_string(),
+            },
+
         ];
 
         // Sort patterns by specificity (number of required keywords) in descending order.

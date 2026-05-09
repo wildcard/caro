@@ -49,6 +49,22 @@ gantt
 
 ## Release Milestones
 
+### 🎉 v1.3.2 - Static Matcher Coverage Gaps
+**Released**: May 9, 2026 ✅
+**Status**: 100% Complete - **RELEASED**
+**Focus**: Static matcher coverage gaps — BSD date arithmetic, nc -z port check, wget, basename/dirname, zcat, docker network
+
+### 🎉 v1.3.1 - P0/P1 Safety Patch
+**Released**: May 9, 2026 ✅
+**Status**: 100% Complete - **RELEASED**
+**Focus**: P0 chmod -R 777 / safety bypass, exit-code propagation, non-asserting test fix
+
+#### Key Deliverables
+- **P0 chmod -R bypass** ✅ — Recursive chmod to world-writable root now blocked; closes #1034
+- **P1 exit-code propagation** ✅ — Unsafe errors no longer fall through to LLM backend; closes #1035
+- **P1 non-asserting test** ✅ — test_example_safety_002_blocks_chmod_777 now asserts instead of warns; closes #1037
+- **P2 CLAUDE.md version** ✅ — Version banner updated to 1.3.0; closes #1044
+
 ### 🎉 v1.3.0 - Conversational AI Command Generation
 **Released**: April 20, 2026 ✅
 **Status**: 100% Complete - **RELEASED**
@@ -297,6 +313,7 @@ gantt
 
 | Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
 |-----------|----------|---------------------|----------|----------|---------|
+| **v1.3.2** | May 9, 2026 | Static matcher coverage gaps | 7 | 100% | ✅ **RELEASED** |
 | **v1.3.1** | May 9, 2026 | P0/P1 safety patch | 4 | 100% | ✅ **RELEASED** |
 | **v1.3.0** | Apr 20, 2026 | `caro ai` + `caro shell-init` | 1 | 100% | ✅ **RELEASED** |
 | **v1.2.0** | Mar 26, 2026 | Docs & website launch | — | 100% | ✅ **RELEASED** |
