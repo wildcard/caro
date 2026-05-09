@@ -415,10 +415,12 @@ Working Directory: {}
 
     fn date_description(&self) -> String {
         if self.profile.date_gnu_format {
-            "date: past='date --date=\"7 days ago\"' future='date --date=\"+7 days\"' (GNU)".to_string()
+            "date: past='date --date=\"7 days ago\"' future='date --date=\"+7 days\"' (GNU)"
+                .to_string()
         } else {
             // #955: show both +/- so LLM picks correct sign for future vs past dates
-            "date: past='date -v-7d' future='date -v+7d' timestamp='date -r <epoch>' (BSD)".to_string()
+            "date: past='date -v-7d' future='date -v+7d' timestamp='date -r <epoch>' (BSD)"
+                .to_string()
         }
     }
 
