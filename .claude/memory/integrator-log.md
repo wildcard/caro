@@ -5,7 +5,17 @@
 
 ---
 
-## 2026-05-09 — first scheduled cron pass (bootstrap-night fix)
+## 2026-05-09 (23:00 PT fire) — codespell unblock on PR #939
+
+- **Validated:** none — bootstrap-check still says PLAYBOOK_NOT_MERGED, so no integration-row validation runs. Per the protocol, this fire's job is to make PR #939 mergeable.
+- **Shipped:** `.codespellignore` now lists `preserv` so codespell stops flagging the deliberate regex word-stem at `src/backends/static_matcher.rs:1406` (`(preserv|maintain|keep)` matches `preserve`/`preserves`/`preserved`/`preserving`). Verified locally with `uvx codespell` — exit 65 → exit 0 after the one-line addition. The `preserv` token is intentionally never spelled out as the full word in this regex; mangling it to `preserve` would silently break the safety pattern. Pre-existing condition on `main` (codespell job there only passes by virtue of GHA docker-image cache divergence; locally on 2.4.2 it fails identically). Defensive — fixes both surfaces.
+- **Filed:** none. The other PR #939 CI failures — `ChromaDB Integration Tests` (known shared-collection flake), `MSRV Check (Rust 1.83)` (pre-existing on `main`, not introduced by #939), `Vercel – cmdai` (vestigial pre-rename project) — remain out of scope per the one-PR-per-night budget. They will re-roll on the fresh push.
+- **Discovered:** `MSRV Check` failing on PR #939 is interesting because PR #939 adds zero Rust code. That means MSRV on `main` is also red — file as a follow-up next pass after dedup against `gh issue list --label ci --search "MSRV"`.
+- **Next pass should:** if PR #939 has merged, run the full Step 1–9 loop against the topmost queue row (likely "validate the 6 native backends"). If still unmerged, re-check CI and triage the next gating failure — but do NOT bundle multiple fixes into one PR; one tight commit per night.
+
+---
+
+## 2026-05-09 (00:00 PT fire) — first scheduled cron pass (bootstrap-night fix)
 
 - **Validated:** none — first scheduled fire on a not-yet-merged scaffolding PR. Per the bootstrap-check protocol in the scheduled-task header, no integration-row validation runs until PR #939 is on `main`.
 - **Shipped:** this log entry. Diagnosis: PR #939's CI history shows 2 failures (ChromaDB Integration Tests + Security Audit) from the 2026-04-27 run, but the branch was rebased onto current `main` (`f8028edb`) on 2026-05-06. The rebase already includes the RUSTSEC-{0098,0099,0104} fix from PR #1026 (`rustls-webpki 0.103.13` in `Cargo.lock`, legacy 0.101.7 path covered by `.cargo/audit.toml` ignores). ChromaDB failures (`expected 10, got 14`; `expected 1, got 15`) are pre-existing flake from shared-collection state pollution — observed intermittently on `main` too. Pushing this commit triggers a fresh CI run on the rebased HEAD, which should clear Security Audit and re-roll the ChromaDB flake. Vercel `cmdai` failure is a vestigial pre-rename project deploy — out of scope.
