@@ -32,7 +32,7 @@ jobs:
       is_pr: ${{ steps.parse.outputs.is_pr }}
     steps:
       - name: Add 'eyes' reaction (acknowledgement)
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.reactions.createForIssueComment({
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Reply with command list
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           UNKNOWN_HINT: ${{ needs.parse.outputs.command == 'help-unknown' && needs.parse.outputs.args || '' }}
         with:
@@ -129,7 +129,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Echo args back
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           ARGS: ${{ needs.parse.outputs.args }}
         with:
@@ -161,7 +161,7 @@ jobs:
           v=$(grep -m1 '^version *= *"' Cargo.toml | sed -E 's/.*"([^"]+)".*/\1/')
           echo "value=$v" >> "$GITHUB_OUTPUT"
       - name: Reply with version
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           VERSION: ${{ steps.ver.outputs.value }}
           SHA: ${{ github.sha }}
