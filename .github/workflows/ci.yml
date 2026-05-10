@@ -313,7 +313,7 @@ jobs:
   # ============================================================================
 
   msrv:
-    name: MSRV Check (Rust 1.83)
+    name: MSRV Check (Rust 1.85)
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     steps:
@@ -322,15 +322,16 @@ jobs:
     - name: Setup Rust
       uses: ./.github/actions/setup-rust
       with:
-        toolchain: "1.83"
+        toolchain: "1.85"
         cache-key-suffix: msrv
 
     # Note: We use --no-default-features to exclude the 'knowledge' feature
-    # because its dependencies (fastembed -> image -> aligned) require Rust 2024 edition
-    - name: Build with Rust 1.83
+    # because its dependencies (fastembed -> image -> aligned) require Rust 2024
+    # edition, only stabilized in 1.85.
+    - name: Build with Rust 1.85
       run: cargo build --release --locked --no-default-features --features embedded-cpu
 
-    - name: Run tests with Rust 1.83
+    - name: Run tests with Rust 1.85
       run: cargo test --lib --locked --no-default-features --features embedded-cpu
       env:
         RUST_BACKTRACE: 1

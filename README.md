@@ -181,7 +181,7 @@ cargo build --release
 ./target/release/caro --version
 ```
 
-**Prerequisites**: Rust 1.83+, CMake. For Apple Silicon GPU acceleration, install Xcode.
+**Prerequisites**: Rust 1.85+, CMake. For Apple Silicon GPU acceleration, install Xcode.
 
 See [BUILD.md](docs/BUILD.md) for detailed build instructions.
 
@@ -532,7 +532,7 @@ For current usage, ChromaDB works well for basic command storage and retrieval, 
 ## 🔧 Development
 
 ### Prerequisites
-- Rust 1.83+ (latest stable recommended)
+- Rust 1.85+ (latest stable recommended)
 - Cargo
 - Make (optional, for convenience commands)
 - Docker (optional, for development container)
