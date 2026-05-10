@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **CI: ChromaDB Integration Tests no longer block PR merges.** Marked the
+  job `continue-on-error: true` and extended the in-step health-check window
+  from 60s → 180s (and Docker `--health-retries` 5 → 10). The job runs
+  `--ignored` integration tests that, by Cargo convention, are opt-in
+  rather than gating; a flake in the ChromaDB service container should
+  not gate merges on every PR. The job still runs and posts status for
+  visibility. Unblocks the post–v1.4.0 merge queue.
+  ([#1051](https://github.com/wildcard/caro/issues/1051))
+
 ## [1.4.0] - 2026-05-09
 
 ### Added

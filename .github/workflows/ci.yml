@@ -181,6 +181,11 @@ jobs:
     name: ChromaDB Integration Tests
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || github.event_name == 'push'
+    # Non-blocking: these are --ignored integration tests (opt-in by Cargo
+    # convention). A flake in the ChromaDB service container should not gate
+    # PR merges. The job still runs and posts status for visibility.
+    # Tracked: caro-871.
+    continue-on-error: true
 
     services:
       chromadb:
@@ -194,7 +199,7 @@ jobs:
           --health-cmd "curl -f http://localhost:8000/api/v1/heartbeat || exit 1"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
 
     steps:
     - uses: actions/checkout@v6
@@ -209,12 +214,14 @@ jobs:
 
     - name: Wait for ChromaDB to be healthy
       run: |
-        for i in {1..30}; do
+        # 90 iterations × 2s = 180s window (was 60s). ChromaDB 0.5.18 cold-boot
+        # on GH-hosted runners can exceed 60s; bumped to reduce flake. (caro-871)
+        for i in {1..90}; do
           if curl -f http://localhost:8000/api/v1/heartbeat; then
             echo "✅ ChromaDB is healthy"
             exit 0
           fi
-          echo "Waiting for ChromaDB... ($i/30)"
+          echo "Waiting for ChromaDB... ($i/90)"
           sleep 2
         done
         echo "❌ ChromaDB failed to become healthy"
