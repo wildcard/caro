@@ -190,6 +190,7 @@ tests/evaluation/results/*.md
 .claude/credentials/
 .claude/.env
 .claude/cache/
+.claude/notifications.log
 
 # Codex CLI
 .codex/sessions/

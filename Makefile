@@ -1,4 +1,4 @@
-.PHONY: help build test clean fmt lint audit check bench install
+.PHONY: help build test clean fmt lint audit check bench install test-mutants-safety
 
 # Default target
 help:
@@ -17,6 +17,7 @@ help:
 	@echo "  test-contract  - Run contract tests only"
 	@echo "  test-integration - Run integration tests only"
 	@echo "  test-property  - Run property-based tests only"
+	@echo "  test-mutants-safety - Mutation testing scoped to src/safety/ (slow, weekly)"
 	@echo "Quality Checks:"
 	@echo "  fmt       - Format code with rustfmt"
 	@echo "  lint      - Run clippy lints"
@@ -87,6 +88,15 @@ test-watch:
 	} || { \
 		echo "cargo-watch not found. Install with: cargo install cargo-watch"; \
 	}
+
+# Mutation testing — scoped to src/safety/ (52+ regex patterns where
+# a flipped boundary or loosened character class is silent under green
+# tests). Inspired by swarm-forge's "Mutation Hunter" role; runs weekly
+# on CI, not per-PR. Requires: cargo install cargo-mutants
+test-mutants-safety:
+	@command -v cargo-mutants >/dev/null 2>&1 || { \
+		echo "cargo-mutants not installed. Install with: cargo install cargo-mutants"; exit 1; }
+	cargo mutants --no-shuffle --timeout 300 --file 'src/safety/**/*.rs'
 
 # Code quality
 fmt:

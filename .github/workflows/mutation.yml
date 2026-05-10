@@ -1,0 +1,111 @@
+name: Safety Mutation Testing
+
+# Weekly mutation testing scoped to src/safety/.
+#
+# Inspired by swarm-forge's "Mutation Hunter" role: 52+ regex patterns
+# in src/safety/ are exactly the kind of code where a flipped boundary
+# or loosened character class is silent under green tests but lets a
+# dangerous command through in production. cargo-mutants runs each
+# mutation against the test suite and reports survivors — code paths
+# the tests do not actually pin down.
+#
+# Schedule: Monday 04:00 UTC (off-peak). Manually dispatchable.
+# Not per-PR — full mutation runs are too slow for the inner loop.
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      timeout:
+        description: 'Per-mutant timeout in seconds'
+        required: false
+        default: '300'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+permissions:
+  contents: read
+
+jobs:
+  mutation-test:
+    name: cargo-mutants on src/safety/
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-mutants-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install cargo-mutants
+        run: cargo install cargo-mutants --locked
+
+      - name: Run mutation tests on src/safety/
+        run: |
+          cargo mutants \
+            --no-shuffle \
+            --timeout "${{ github.event.inputs.timeout || '300' }}" \
+            --file 'src/safety/**/*.rs' \
+            --output mutants.out \
+            || true  # don't fail the job on survivors — we want the report
+
+      - name: Summarize results
+        id: summary
+        run: |
+          if [ -f mutants.out/outcomes.json ]; then
+            CAUGHT=$(jq '[.outcomes[] | select(.summary == "CAUGHT")] | length' mutants.out/outcomes.json)
+            MISSED=$(jq '[.outcomes[] | select(.summary == "MISSED")] | length' mutants.out/outcomes.json)
+            TIMEOUT=$(jq '[.outcomes[] | select(.summary == "TIMEOUT")] | length' mutants.out/outcomes.json)
+            UNVIABLE=$(jq '[.outcomes[] | select(.summary == "UNVIABLE")] | length' mutants.out/outcomes.json)
+            TOTAL=$((CAUGHT + MISSED + TIMEOUT + UNVIABLE))
+            echo "caught=$CAUGHT" >> "$GITHUB_OUTPUT"
+            echo "missed=$MISSED" >> "$GITHUB_OUTPUT"
+            echo "timeout=$TIMEOUT" >> "$GITHUB_OUTPUT"
+            echo "unviable=$UNVIABLE" >> "$GITHUB_OUTPUT"
+            echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Safety Mutation Testing Results"
+              echo ""
+              echo "| Outcome | Count |"
+              echo "|---------|-------|"
+              echo "| Caught (test killed mutant) | $CAUGHT |"
+              echo "| Missed (mutant survived — gap in tests) | $MISSED |"
+              echo "| Timeout | $TIMEOUT |"
+              echo "| Unviable | $UNVIABLE |"
+              echo "| **Total** | **$TOTAL** |"
+              echo ""
+              if [ "$MISSED" -gt 0 ]; then
+                echo "### Surviving mutants (action required)"
+                echo ""
+                echo '```'
+                jq -r '.outcomes[] | select(.summary == "MISSED") | "\(.scenario.mutant.file):\(.scenario.mutant.line) — \(.scenario.mutant.description)"' mutants.out/outcomes.json | head -50
+                echo '```'
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No outcomes.json produced — likely cargo-mutants failure" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Upload mutants.out artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutants-out-${{ github.run_id }}
+          path: mutants.out/
+          retention-days: 30

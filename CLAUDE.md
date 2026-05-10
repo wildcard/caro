@@ -128,11 +128,13 @@ Check `.claude/memory/current-tasks.md` for active work items.
 
 ## Important Files to Know
 
+- `.claude/rules/constitution.md` - **Precedence index for all `.claude/rules/` files (read first)**
 - `src/safety/patterns.rs` - All dangerous command patterns
 - `src/prompts/command_templates.rs` - LLM prompt templates
 - `.claude/skills/` - Domain expertise (load on-demand)
 - `.claude/commands/` - Workflow commands
 - `.claude/beta-testing/` - Test infrastructure
+- `bin/notify` - Cross-session agent notification log helper
 
 ## Exploration Pattern
 

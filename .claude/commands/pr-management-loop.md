@@ -60,6 +60,7 @@ git push --force-with-lease
 
 # Comment
 gh pr comment <number> --body "🔄 Rebased with main"
+bin/notify pr-mgmt "rebased PR #<number>"
 ```
 
 **CI Failing:**
@@ -92,6 +93,7 @@ gh pr comment <number> --body "Applied Kubic suggestion..."
 ```bash
 # If auto-merge enabled
 gh pr merge <number> --squash --auto
+bin/notify pr-mgmt "auto-merge queued PR #<number>"
 ```
 
 ## Example Session
