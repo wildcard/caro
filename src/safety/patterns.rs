@@ -46,7 +46,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             shell_specific: None,
         },
         DangerPattern {
-            pattern: r"mkfs\.\w+\s+/dev/(sd|hd|nvme)".to_string(),
+            pattern: r"mkfs\.\w+\s+(?:\S+\s+)*?/dev/(sd|hd|nvme)".to_string(),
             risk_level: RiskLevel::Critical,
             description: "Format disk destroying all data".to_string(),
             shell_specific: None,
