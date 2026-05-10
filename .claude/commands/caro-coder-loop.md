@@ -56,11 +56,48 @@ gh issue view "${GH_ISSUE#gh-}" > /tmp/issue-body.md
 ls specs/v1.2-delivering-on-the-promise/ 2>/dev/null && cat specs/v1.2-delivering-on-the-promise/tech-spec.md
 ```
 
-### 4. Delegate to kraken (or spark for docs)
+### 4. Pick the right specialist agent
 
-**Agent selection:**
+**Consult `.github/STAKEHOLDERS.yml` first.** The map pairs codebase paths
+with the specialist agents that should own changes there. Pick the most
+specific glob match for the paths the task is likely to touch — derived
+from the issue body, beads labels (`area:safety`, `area:ml`, …), or the
+title.
+
+```bash
+# Heuristic: extract candidate paths from the issue body
+PATHS=$(grep -oE '(src/[a-z_/]+|tests/[a-z_]+|website/[^ ]+|\.github/[^ ]+|Cargo\.[a-z]+)' /tmp/issue-body.md | sort -u)
+
+# Look up agents per path; the first concrete glob match wins
+yq -r --arg p "$PATHS" '
+  .areas | to_entries[] | select(.key as $k | $p | test($k))
+  | "\(.key) -> \(.value.agents | join(\",\"))"
+' .github/STAKEHOLDERS.yml | head -3
+```
+
+The agent named on the most-specific match becomes the **primary** specialist
+for the task. Examples:
+
+| Path touched | Primary specialist |
+|---|---|
+| `src/safety/patterns.rs` | `safety-pattern-developer` (TDD discipline required) |
+| `src/safety/**` | `safety-pattern-developer`, fall back to `safety-pattern-auditor` |
+| `src/backends/embedded_backend.rs` | `llm-integration-expert` |
+| `src/ai/**`, `src/eval/**` | `ml-ds-engineer` |
+| `src/cli/**`, `src/main.rs` | `rust-cli-expert` |
+| `Cargo.toml`, `.github/workflows/release.yml` | `caro-release-expert` |
+| `website/**` | `technical-writer` |
+| `website/src/i18n/**` | `technical-writer` + `cultural-heritage-expert` |
+| `specs/**` | `spec-driven-dev-guide` |
+
+**Fallback rules** (when STAKEHOLDERS.yml has no match):
 - `labels` contains `documentation` → use **spark** (Sonnet, fast)
 - Otherwise → use **kraken** (Opus, TDD for Rust safety-critical code)
+
+**Critical**: never bypass `safety-pattern-developer` for `src/safety/**`
+changes — that path requires the TDD-first workflow encoded in the skill.
+
+### 5. Delegate to the specialist
 
 Spawn via Task tool with this prompt template:
 
@@ -76,7 +113,7 @@ You are implementing beads task $NEXT (GitHub #${GH_ISSUE#gh-}) for caro v1.2.0.
 **Acceptance criteria**: see the task description and the v1.2.0 tech spec at specs/v1.2-delivering-on-the-promise/tech-spec.md.
 
 **Conventions** (from /Users/kobik-private/workspace/caro/CLAUDE.md):
-- Rust edition 2021, MSRV 1.83
+- Rust edition 2021, MSRV 1.85
 - Use `thiserror` for error types, `anyhow::Result` for application errors
 - TDD: write failing test FIRST, then make it pass
 - All commit messages conventional: `<type>(<scope>): <subject>` + Co-Authored-By
@@ -91,7 +128,7 @@ When done:
 2. Report: files changed, tests added, clippy status, test pass count
 ```
 
-### 4.5. Reviewer gate (swarm-forge pattern)
+### 6. Reviewer gate (swarm-forge pattern)
 
 Before validating or opening a PR, spawn an independent **Reviewer** sub-agent
 via the Task tool. Borrowed from swarm-forge's Architect → Coder → **Reviewer**
@@ -152,7 +189,7 @@ fi
 bin/notify reviewer "pass $NEXT"
 ```
 
-### 5. Validate locally
+### 7. Validate locally
 
 ```bash
 cargo fmt --check
@@ -162,7 +199,7 @@ cargo test
 
 If any fail: `bd update "$NEXT" --status blocked --notes "validation failed: <err>"`, push branch for debugging, exit loop.
 
-### 6. Open PR + close beads task
+### 8. Open PR + close beads task
 
 ```bash
 BRANCH=$(git branch --show-current)
@@ -194,7 +231,7 @@ bin/notify coder "pr opened $PR_URL ($NEXT)"
 echo "✓ closed $NEXT → $PR_URL"
 ```
 
-### 7. Loop
+### 9. Loop
 
 Return to step 1 until `bd ready` has no v1.2.0 entries OR user interrupts.
 
