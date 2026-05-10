@@ -75,6 +75,9 @@ for issue in groom_issues.json:
     existing = bd_find_by_external_ref(f"gh-{issue.number}")
     priority = derive_priority(issue.labels)  # P0→0, security→0, P1→1, docs→3
     phase = derive_phase_from_milestone_or_labels(issue)
+    # Compute STAKEHOLDERS.yml suggestions up-front so the coder-loop
+    # doesn't have to re-derive them on every claim.
+    suggested_agents = stakeholders_lookup(issue.body, issue.title)
 
     if not existing:
         bd create <issue.title> \
@@ -83,12 +86,39 @@ for issue in groom_issues.json:
           --parent caro-xk0 \
           --external-ref gh-$issue.number \
           --labels "v1.2.0,$phase,auto-groomed" \
+          --metadata "suggested_agents=$suggested_agents" \
           --description "GH: https://github.com/wildcard/caro/issues/$issue.number"
         log_create(issue.number, beads_id)
     elif existing.title != issue.title or existing.priority != priority:
-        bd update $existing.id --title "$issue.title" --priority $priority
+        bd update $existing.id --title "$issue.title" --priority $priority \
+          --metadata "suggested_agents=$suggested_agents"
         log_update(issue.number, existing.id)
 ```
+
+**`stakeholders_lookup` reference implementation**:
+
+```bash
+stakeholders_lookup() {
+  local body="$1" title="$2"
+  # Extract candidate paths from the issue body + title
+  local paths=$(printf '%s\n%s' "$body" "$title" \
+    | grep -oE '(src/[a-z_/]+|tests/[a-z_]+|website/[^ ]+|\.github/[^ ]+|Cargo\.[a-z]+)' \
+    | sort -u)
+  # For each path, find the longest STAKEHOLDERS glob match. Emit a
+  # comma-separated agent list, deduped, longest-prefix-wins.
+  for p in $paths; do
+    yq -r --arg p "$p" '
+      .areas | to_entries[]
+      | select(.key as $k | $p | test($k))
+      | (.key | length) as $score
+      | "\($score)|\(.value.agents | join(\",\"))"
+    ' .github/STAKEHOLDERS.yml
+  done | sort -rn | head -1 | cut -d'|' -f2
+}
+```
+
+If no path match is found, fall back to the legacy label heuristic
+(`documentation` → `spark`; otherwise `kraken`).
 
 ### B2. Pushed branches without PR → WIP beads task
 
