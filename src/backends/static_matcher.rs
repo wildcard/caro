@@ -1159,6 +1159,45 @@ impl StaticMatcher {
                 description: "List crontab scheduled jobs".to_string(),
             },
 
+            // Kill the top CPU-consuming process — matches the website's
+            // "find and kill the runaway process eating CPU" promise
+            // (see website/src/data/gtm-use-cases.ts; tracked as #947).
+            //
+            // Specificity = 3 (kill+process+cpu) → wins the specificity-sort
+            // over the general "Kill a process" pattern (specificity = 2),
+            // preventing the bare `kill PID` placeholder from firing on
+            // queries that include CPU-process context.
+            PatternEntry {
+                required_keywords: vec![
+                    "kill".to_string(),
+                    "process".to_string(),
+                    "cpu".to_string(),
+                ],
+                optional_keywords: vec![
+                    "runaway".to_string(),
+                    "top".to_string(),
+                    "find".to_string(),
+                    "eating".to_string(),
+                    "consuming".to_string(),
+                    "hogging".to_string(),
+                    "highest".to_string(),
+                    "most".to_string(),
+                    "using".to_string(),
+                ],
+                regex_pattern: Some(
+                    Regex::new(
+                        r"(?i)(kill|terminate|stop).*(?:(process|runaway).*(cpu|processor|eating|hogging|consuming|hog)|(cpu|top).*process)",
+                    )
+                    .unwrap(),
+                ),
+                gnu_command: "ps aux | sort -nrk 3,3 | head -1 | awk '{print $2}' | xargs kill"
+                    .to_string(),
+                bsd_command: Some(
+                    "ps aux | sort -nrk 3,3 | head -1 | awk '{print $2}' | xargs kill".to_string(),
+                ),
+                description: "Kill the top CPU-consuming process".to_string(),
+            },
+
             // Kill process by PID
             PatternEntry {
                 required_keywords: vec!["kill".to_string(), "pid".to_string()],
@@ -1952,6 +1991,72 @@ mod tests {
 
         let result = matcher.generate_command(&request).await;
         assert!(result.is_ok());
+    }
+
+    /// Website-promised use case at `website/src/data/gtm-use-cases.ts:9`:
+    /// "find and kill the runaway process eating CPU" must emit the full
+    /// pipeline that actually performs the kill, not the bare `kill PID`
+    /// placeholder. Regression caught by `.claude/beta-testing/runs/
+    /// 2026-04-26-smoketest/findings/01-website-broken-promise-find-and-kill.md`
+    /// and the v1.4.0 release-acceptance audit (#947).
+    #[tokio::test]
+    async fn test_website_example_5_find_and_kill_runaway_cpu_process() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let request = CommandRequest::new(
+            "find and kill the runaway process eating CPU",
+            ShellType::Bash,
+        );
+
+        let result = matcher.generate_command(&request).await;
+        assert!(
+            result.is_ok(),
+            "Expected static-matcher to produce a command, got {:?}",
+            result
+        );
+
+        let cmd = result.unwrap();
+        assert_eq!(
+            cmd.command,
+            "ps aux | sort -nrk 3,3 | head -1 | awk '{print $2}' | xargs kill",
+            "Tracking #947: caro must emit the full kill pipeline (per website \
+             gtm-use-cases.ts:9), not the bare `kill PID` placeholder. \
+             v1.3.0 emitted only `ps aux | sort -nrk 3,3` (half-pipeline); \
+             v1.4.0 regressed to `kill PID` (literal placeholder)."
+        );
+    }
+
+    /// Sibling phrasings of the v1.4.0 #947 case — once the CPU-kill
+    /// pattern lands, the same pipeline should serve common rewordings.
+    #[tokio::test]
+    async fn test_kill_cpu_process_variant_phrasings() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let expected =
+            "ps aux | sort -nrk 3,3 | head -1 | awk '{print $2}' | xargs kill";
+
+        for query in [
+            "kill the process using the most CPU",
+            "kill the top CPU process",
+            "kill the runaway process hogging CPU",
+        ] {
+            let request = CommandRequest::new(query, ShellType::Bash);
+            let result = matcher.generate_command(&request).await;
+            assert!(
+                result.is_ok(),
+                "Query {:?} expected to match CPU-kill pattern, got {:?}",
+                query,
+                result
+            );
+            assert_eq!(
+                result.unwrap().command,
+                expected,
+                "Query {:?} should resolve to the full CPU-kill pipeline (#947)",
+                query
+            );
+        }
     }
 
     #[tokio::test]
