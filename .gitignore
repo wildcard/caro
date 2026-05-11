@@ -215,6 +215,7 @@ tests/evaluation/results/*.md
 
 # Git worktrees (local development, not shared)
 .worktrees/
+.claude/worktrees/
 
 # Continuous-Claude session continuity
 # Ledgers are OPTIONAL to track (uncomment if you want to share session state)
