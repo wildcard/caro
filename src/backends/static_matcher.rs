@@ -2018,8 +2018,7 @@ mod tests {
 
         let cmd = result.unwrap();
         assert_eq!(
-            cmd.command,
-            "ps aux | sort -nrk 3,3 | head -1 | awk '{print $2}' | xargs kill",
+            cmd.command, "ps aux | sort -nrk 3,3 | head -1 | awk '{print $2}' | xargs kill",
             "Tracking #947: caro must emit the full kill pipeline (per website \
              gtm-use-cases.ts:9), not the bare `kill PID` placeholder. \
              v1.3.0 emitted only `ps aux | sort -nrk 3,3` (half-pipeline); \
@@ -2034,8 +2033,7 @@ mod tests {
         let profile = CapabilityProfile::ubuntu();
         let matcher = StaticMatcher::new(profile);
 
-        let expected =
-            "ps aux | sort -nrk 3,3 | head -1 | awk '{print $2}' | xargs kill";
+        let expected = "ps aux | sort -nrk 3,3 | head -1 | awk '{print $2}' | xargs kill";
 
         for query in [
             "kill the process using the most CPU",
