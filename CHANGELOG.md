@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **MSRV bumped from 1.83 to 1.85** — The CaroML stack (PRs #904–#914) added
+  `lancedb` as an optional dependency (behind the `knowledge` feature).
+  `lancedb 0.23` transitively pulls in `geodatafusion → i_tree`, whose
+  `Cargo.toml` uses `feature = 'edition2024'`, only stabilised in Cargo 1.85.
+  Because `cargo build --locked` parses every entry in `Cargo.lock` regardless
+  of feature flags, the MSRV CI job (which uses `--locked`) failed even with
+  `--no-default-features`. No version of `lancedb 0.23.x` avoids this chain,
+  making a feature-gate insufficient. Rust 1.85 was stabilised 2025-02-20;
+  current stable is 1.86+. Anyone building from source on 1.83/1.84 can pin to
+  v1.3.x. Closes #1049.
+
 ### Added
 
 - **CaroML preview** — a meta-language for intent-tracked shell tasks. A
