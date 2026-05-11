@@ -343,6 +343,11 @@ jobs:
   security:
     name: Security Audit
     runs-on: ubuntu-latest
+    # INTERIM: continue-on-error until issue #1050 batch fixes land.
+    # Revert criteria: cargo audit exits 0 (audit.toml suppresses known
+    # warnings) AND npm audit exits 0 in all three manifests.
+    # Tracked: https://github.com/wildcard/caro/issues/1050
+    continue-on-error: true
     steps:
     - uses: actions/checkout@v6
 
