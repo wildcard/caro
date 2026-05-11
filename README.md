@@ -260,6 +260,28 @@ caro --backend embedded --force-llm "list files"
 caro --verbose "show disk usage"
 ```
 
+### Use Caro from your agent
+
+Caro is built to be called by other coder agents and agentic IDEs. Pick the
+surface that matches your stack:
+
+| Tool | How | Status |
+|---|---|---|
+| **Claude Code** | Auto-discovered skill at `.claude/skills/caro-shell/SKILL.md` (bundled with this repo). Triggers when the user asks for shell-command synthesis. | ✅ Working |
+| **Claude Code (MCP)** | `caro mcp serve` — exposes `generate_command` / `validate_command` / `explain_safety` over the Model Context Protocol. | 🚧 In progress |
+| **Codex / Cursor / Continue / Aider / Tabby** | Point at `caro serve --openai` (an OpenAI Chat Completions endpoint backed by caro's safety validator). | 🚧 In progress |
+| **opencode / crush / droid / Sourcegraph Amp / Letta** | Via the upcoming `caro mcp serve` MCP server. | ⏳ Planned |
+| **Gemini CLI / Jules** | Native Gemini backend. | 🚧 In progress (PR #782) |
+| **OpenRouter** (incl. `auto`) | Native backend wrapping `openrouter.ai/api/v1`. | ⏳ Planned |
+
+Full matrix with copy-paste configs and live status:
+**[caro.sh/integrations](https://caro.sh/integrations)** — maintained by the
+caro-integrator nightly agent (validates each surface against the published
+binary every night at 23:00 local time and updates the matrix).
+
+Want caro to integrate with a tool not listed?
+[File an integration request](https://github.com/wildcard/caro/issues/new?labels=integration,nightly-discovery).
+
 ### Shell Integration (Optional)
 
 For the best experience, add caro's shell integration to your shell configuration. This enables the **Edit** feature, which lets you modify generated commands directly in your shell before executing them.

@@ -1,0 +1,330 @@
+---
+/**
+ * /integrations — landing page for "use caro from your agent / IDE / CLI".
+ *
+ * Maintained alongside `.claude/memory/integrations-status.md` by the
+ * caro-integrator nightly agent. Status badges and `lastValidated` dates
+ * here mirror the matrix the integrator updates each night.
+ */
+import Layout from '../../layouts/Layout.astro';
+import Navigation from '../../components/Navigation.astro';
+import Footer from '../../components/Footer.astro';
+import {
+  outboundIntegrations,
+  inboundBackends,
+  statusLabel,
+  surfaceLabel,
+  type Integration,
+} from '../../data/integrations';
+
+const grouped = (rows: Integration[]) => ({
+  working: rows.filter((r) => r.status === 'working'),
+  inProgress: rows.filter((r) => r.status === 'in-progress'),
+  planned: rows.filter((r) => r.status === 'not-yet'),
+});
+
+const out = grouped(outboundIntegrations);
+const inb = grouped(inboundBackends);
+---
+
+<Layout
+  title="Integrations — Caro"
+  description="Use Caro from Claude Code, Codex, Cursor, Continue, Aider, Tabby, opencode, crush, and more. Caro speaks Claude Code skills, MCP, and the OpenAI Chat Completions API."
+>
+  <Navigation />
+
+  <main class="integrations-page">
+    <section class="hero">
+      <div class="container">
+        <div class="badge">For Agents & IDEs</div>
+        <h1>Use Caro from your agent</h1>
+        <p class="subtitle">
+          Caro is a safety-validated shell-command generator that other coder agents and
+          agentic IDEs can call as a tool. Pick the integration surface that matches your
+          stack — copy-paste configs below.
+        </p>
+      </div>
+    </section>
+
+    <section class="surfaces">
+      <div class="container">
+        <h2>Integration surfaces</h2>
+        <div class="surface-grid">
+          <div class="surface-card">
+            <h3>Claude Code skill</h3>
+            <p>Bundled at <code>.claude/skills/caro-shell/SKILL.md</code>. Auto-discovered by Claude Code.</p>
+          </div>
+          <div class="surface-card">
+            <h3>MCP server</h3>
+            <p><code>caro mcp serve</code> — exposes shell-command tools over the Model Context Protocol. Coming soon.</p>
+          </div>
+          <div class="surface-card">
+            <h3>OpenAI-compat HTTP</h3>
+            <p><code>caro serve --openai</code> — OpenAI Chat Completions endpoint. Unlocks Codex, Cursor, Continue, Aider, Tabby in one shot. Coming soon.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="matrix">
+      <div class="container">
+        <h2>Caro-as-a-tool — outward integrations</h2>
+
+        {out.working.length > 0 && (
+          <>
+            <h3>Working today</h3>
+            <ul class="integration-list">
+              {out.working.map((row) => (
+                <li class="integration-row" data-status={row.status}>
+                  <div class="row-head">
+                    <span class="row-name">{row.name}</span>
+                    <span class="row-badge">{statusLabel[row.status]}</span>
+                    <span class="row-surface">{surfaceLabel[row.surface]}</span>
+                    {row.lastValidated && (
+                      <span class="row-validated">validated {row.lastValidated}</span>
+                    )}
+                  </div>
+                  <p class="row-desc">{row.description}</p>
+                  {row.snippet && (
+                    <pre class="row-snippet"><code>{row.snippet}</code></pre>
+                  )}
+                  {row.homepage && (
+                    <p class="row-link"><a href={row.homepage}>{row.homepage}</a></p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {out.inProgress.length > 0 && (
+          <>
+            <h3>In progress</h3>
+            <ul class="integration-list">
+              {out.inProgress.map((row) => (
+                <li class="integration-row" data-status={row.status}>
+                  <div class="row-head">
+                    <span class="row-name">{row.name}</span>
+                    <span class="row-badge">{statusLabel[row.status]}</span>
+                    <span class="row-surface">{surfaceLabel[row.surface]}</span>
+                  </div>
+                  <p class="row-desc">{row.description}</p>
+                  {row.tracking && <p class="row-tracking">Tracking: {row.tracking}</p>}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {out.planned.length > 0 && (
+          <>
+            <h3>Planned</h3>
+            <ul class="integration-list">
+              {out.planned.map((row) => (
+                <li class="integration-row" data-status={row.status}>
+                  <div class="row-head">
+                    <span class="row-name">{row.name}</span>
+                    <span class="row-badge">{statusLabel[row.status]}</span>
+                    <span class="row-surface">{surfaceLabel[row.surface]}</span>
+                  </div>
+                  <p class="row-desc">{row.description}</p>
+                  {row.homepage && (
+                    <p class="row-link"><a href={row.homepage}>{row.homepage}</a></p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+    </section>
+
+    <section class="matrix">
+      <div class="container">
+        <h2>Backends Caro can drive</h2>
+        <p class="lede">
+          Caro itself is a multi-backend client. Use any of these for inference; safety
+          validation runs the same regardless of backend.
+        </p>
+
+        <ul class="integration-list">
+          {[...inb.working, ...inb.inProgress, ...inb.planned].map((row) => (
+            <li class="integration-row" data-status={row.status}>
+              <div class="row-head">
+                <span class="row-name">{row.name}</span>
+                <span class="row-badge">{statusLabel[row.status]}</span>
+              </div>
+              <p class="row-desc">{row.description}</p>
+              {row.snippet && (
+                <pre class="row-snippet"><code>{row.snippet}</code></pre>
+              )}
+              {row.homepage && (
+                <p class="row-link"><a href={row.homepage}>{row.homepage}</a></p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="cta-strip">
+      <div class="container">
+        <p>
+          Want caro to integrate with a tool not listed?
+          <a href="https://github.com/wildcard/caro/issues/new?labels=integration,nightly-discovery">
+            File an integration request
+          </a>
+          — the caro-integrator agent reviews these every night.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .integrations-page {
+    color: var(--text, #e5e7eb);
+  }
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .hero {
+    padding: 4rem 0 2rem;
+    text-align: center;
+  }
+  .hero .badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-size: 2.5rem;
+    margin: 0.5rem 0;
+  }
+  .hero .subtitle {
+    font-size: 1.1rem;
+    max-width: 640px;
+    margin: 1rem auto;
+    opacity: 0.85;
+  }
+  .surfaces {
+    padding: 2rem 0;
+  }
+  .surface-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .surface-card {
+    padding: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .surface-card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+  }
+  .surface-card p {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.85;
+  }
+  .matrix {
+    padding: 2rem 0;
+  }
+  .matrix h2 {
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+  }
+  .matrix h3 {
+    font-size: 1.15rem;
+    margin: 1.5rem 0 0.75rem;
+    opacity: 0.85;
+  }
+  .integration-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .integration-row {
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .row-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .row-name {
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+  .row-badge,
+  .row-surface,
+  .row-validated {
+    font-size: 0.8rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .row-validated {
+    opacity: 0.7;
+  }
+  .row-desc {
+    margin: 0.5rem 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+  }
+  .row-snippet {
+    margin: 0.75rem 0 0;
+    padding: 0.75rem 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+  }
+  .row-link a,
+  .cta-strip a {
+    color: #a5b4fc;
+  }
+  .row-tracking {
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
+    opacity: 0.75;
+  }
+  .cta-strip {
+    padding: 3rem 0;
+    text-align: center;
+    opacity: 0.85;
+  }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.9em;
+    padding: 0.1em 0.3em;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+  }
+</style>
