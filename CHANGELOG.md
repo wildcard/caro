@@ -18,6 +18,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   feature-gated ones. Rust 1.85 was stabilized 2025-02-20, ~14 months
   before this bump.
 
+### Fixed
+
+- **Static matcher: signal-management queries get specific `kill -SIG`
+  commands** instead of the `kill PID` placeholder or `ps aux` catch-all:
+  - `pause a process using SIGSTOP` (and `halt`/`suspend a process`) →
+    `kill -STOP PID`
+  - `resume a stopped process using SIGCONT` (and `continue`/`unpause`) →
+    `kill -CONT PID`
+  - `list all available signals` (and `show`/`enumerate signals`) →
+    `kill -l`
+
+  Three new patterns added before the general "Kill a process" entry in
+  `src/backends/static_matcher.rs`. Word-boundary anchoring on the Pause
+  regex prevents `unpause` from partially matching `pause`. Brings the
+  signals-family cluster pass-rate above #979's 50% acceptance threshold.
+  ([#979](https://github.com/wildcard/caro/issues/979))
+
 ## [1.4.0] - 2026-05-09
 
 ### Added

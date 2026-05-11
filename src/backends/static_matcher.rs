@@ -1159,6 +1159,81 @@ impl StaticMatcher {
                 description: "List crontab scheduled jobs".to_string(),
             },
 
+            // ============================================================
+            // Signal handling — match BEFORE the general "Kill a process"
+            // pattern so signal-related queries get specific commands.
+            // Tracked as #979 (cluster: signals-ps-catchall/wrong-command).
+            //
+            // The general "Kill a process" regex `(?i)(kill|stop|terminate)
+            // .*process` mis-fires on `stopped process` (the `stop`
+            // substring inside `stopped`), returning the `kill PID`
+            // placeholder for any query containing "stopped process".
+            // These specific patterns intercept signal-management intent
+            // and emit `kill -<SIG> PID` instead.
+            // ============================================================
+
+            // Pause a process (SIGSTOP)
+            //
+            // Word-boundary `\b` on `pause` is critical so this pattern
+            // does NOT fire on `unpause the process` (where `pause` is a
+            // substring of `unpause`) — that query belongs to the
+            // SIGCONT pattern below.
+            PatternEntry {
+                required_keywords: vec!["pause".to_string(), "process".to_string()],
+                optional_keywords: vec![
+                    "sigstop".to_string(),
+                    "halt".to_string(),
+                    "suspend".to_string(),
+                    "signal".to_string(),
+                ],
+                regex_pattern: Some(
+                    Regex::new(r"(?i)\b(pause|halt|suspend)\s+(a\s+|the\s+)?(process|task)")
+                        .unwrap(),
+                ),
+                gnu_command: "kill -STOP PID".to_string(),
+                bsd_command: Some("kill -STOP PID".to_string()),
+                description: "Pause a process (SIGSTOP)".to_string(),
+            },
+
+            // Resume a stopped process (SIGCONT)
+            PatternEntry {
+                required_keywords: vec!["resume".to_string(), "process".to_string()],
+                optional_keywords: vec![
+                    "sigcont".to_string(),
+                    "continue".to_string(),
+                    "unpause".to_string(),
+                    "signal".to_string(),
+                    "stopped".to_string(),
+                ],
+                regex_pattern: Some(
+                    Regex::new(
+                        r"(?i)(resume|continue|unpause)\s+(a\s+|the\s+)?(stopped\s+)?(process|task)",
+                    )
+                    .unwrap(),
+                ),
+                gnu_command: "kill -CONT PID".to_string(),
+                bsd_command: Some("kill -CONT PID".to_string()),
+                description: "Resume a stopped process (SIGCONT)".to_string(),
+            },
+
+            // List all available signals (kill -l)
+            PatternEntry {
+                required_keywords: vec!["list".to_string(), "signals".to_string()],
+                optional_keywords: vec![
+                    "all".to_string(),
+                    "available".to_string(),
+                    "show".to_string(),
+                    "display".to_string(),
+                    "enumerate".to_string(),
+                ],
+                regex_pattern: Some(
+                    Regex::new(r"(?i)(list|show|display|enumerate)\s+(all\s+)?(available\s+)?signals?\b").unwrap(),
+                ),
+                gnu_command: "kill -l".to_string(),
+                bsd_command: Some("kill -l".to_string()),
+                description: "List all available signals (kill -l)".to_string(),
+            },
+
             // Kill process by PID
             PatternEntry {
                 required_keywords: vec!["kill".to_string(), "pid".to_string()],
@@ -1952,6 +2027,98 @@ mod tests {
 
         let result = matcher.generate_command(&request).await;
         assert!(result.is_ok());
+    }
+
+    /// #979 acceptance criterion 1: "pause a process using SIGSTOP" must
+    /// emit `kill -STOP PID`, not the bare `kill PID` placeholder nor the
+    /// `ps aux` catch-all.
+    #[tokio::test]
+    async fn test_signal_pause_emits_kill_stop() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        for query in [
+            "pause a process using SIGSTOP",
+            "halt a process",
+            "suspend a process",
+        ] {
+            let request = CommandRequest::new(query, ShellType::Bash);
+            let result = matcher.generate_command(&request).await;
+            assert!(
+                result.is_ok(),
+                "Query {:?} expected to match SIGSTOP pattern, got {:?}",
+                query,
+                result
+            );
+            assert_eq!(
+                result.unwrap().command,
+                "kill -STOP PID",
+                "Query {:?} should map to SIGSTOP semantics (#979 acceptance #1)",
+                query
+            );
+        }
+    }
+
+    /// #979 acceptance criterion 2: "resume a stopped process using SIGCONT"
+    /// must emit `kill -CONT PID`. The v1.3.0 / v1.4.0 bug was that the
+    /// general "Kill a process" regex `(?i)(kill|stop|terminate).*process`
+    /// fires on `stopped process` (the `stop` substring inside `stopped`),
+    /// returning `kill PID` placeholder.
+    #[tokio::test]
+    async fn test_signal_resume_emits_kill_cont() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        for query in [
+            "resume a stopped process using SIGCONT",
+            "continue a stopped process",
+            "unpause the process",
+        ] {
+            let request = CommandRequest::new(query, ShellType::Bash);
+            let result = matcher.generate_command(&request).await;
+            assert!(
+                result.is_ok(),
+                "Query {:?} expected to match SIGCONT pattern, got {:?}",
+                query,
+                result
+            );
+            assert_eq!(
+                result.unwrap().command,
+                "kill -CONT PID",
+                "Query {:?} should map to SIGCONT semantics (#979 acceptance #2)",
+                query
+            );
+        }
+    }
+
+    /// #979 acceptance criterion 3: "list all available signals on this
+    /// system" must emit `kill -l`, not the `ls` catch-all (matched on the
+    /// `list` keyword pre-fix).
+    #[tokio::test]
+    async fn test_signal_list_emits_kill_l() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        for query in [
+            "list all available signals on this system",
+            "show all signals",
+            "enumerate signals",
+        ] {
+            let request = CommandRequest::new(query, ShellType::Bash);
+            let result = matcher.generate_command(&request).await;
+            assert!(
+                result.is_ok(),
+                "Query {:?} expected to match list-signals pattern, got {:?}",
+                query,
+                result
+            );
+            assert_eq!(
+                result.unwrap().command,
+                "kill -l",
+                "Query {:?} should resolve to `kill -l` (#979 acceptance #3)",
+                query
+            );
+        }
     }
 
     #[tokio::test]
