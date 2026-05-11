@@ -184,7 +184,7 @@ jobs:
 
     services:
       chromadb:
-        image: chromadb/chroma:0.5.18
+        image: chromadb/chroma:1.0.0
         ports:
           - 8000:8000
         env:
