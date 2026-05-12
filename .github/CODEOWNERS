@@ -45,6 +45,8 @@ Cargo.lock @wildcard
 /.github/workflows/publish.yml @wildcard
 /.github/CODEOWNERS @wildcard
 /.github/STAKEHOLDERS.yml @wildcard
+/.github/caro/ @wildcard
+/.github/CARO_BOT.md @wildcard
 
 # ─── Install distribution ─────────────────────────────────────────────
 /scripts/install.sh @wildcard

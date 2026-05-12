@@ -163,6 +163,20 @@ areas:
     agents: [caro-release-expert]
     review_label: "area:ci"
 
+  ".github/caro/**":
+    humans: ["@wildcard"]
+    agents: [caro-release-expert, dev-team-coordinator]
+    review_label: "area:automation"
+    description: >
+      Caro automation defaults (config-as-code). Changes here ripple
+      through every consumer; review carefully. See
+      `.github/CARO_BOT.md` for the related GitHub App setup.
+
+  ".github/CARO_BOT.md":
+    humans: ["@wildcard"]
+    agents: [caro-release-expert]
+    review_label: "area:automation"
+
   "scripts/install.sh":
     humans: ["@wildcard"]
     agents: [caro-release-expert]

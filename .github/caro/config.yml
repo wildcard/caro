@@ -1,0 +1,107 @@
+# Caro automation defaults
+#
+# Inspired by warpdotdev/oz-for-oss's `.github/oz/config.yml`. This file
+# centralises automation knobs that would otherwise be hard-coded across
+# .github/workflows/, .claude/skills/, and .claude/commands/.
+#
+# Consumers are wired up incrementally; the data file ships first so
+# downstream workflows can adopt it one at a time without coordination.
+#
+# Resolution rules (when a future consumer reads a key):
+#   1. Look up the most-specific key under the consumer's section
+#   2. Fall back to `defaults`
+#   3. Fall back to a hard-coded sane value in the consumer
+#
+# Editing this file requires CODEOWNERS review (see .github/CODEOWNERS:
+# /.github/caro/ rule, mirrored from .github/STAKEHOLDERS.yml).
+
+version: 1
+
+# ─── Repository-wide defaults ─────────────────────────────────────────
+defaults:
+  # Branch new PRs target. `auto` = detect the repository's default branch
+  # via GitHub's API; explicit `main` would override.
+  base_branch: auto
+
+  # Default reviewers requested on every PR not already covered by
+  # CODEOWNERS or STAKEHOLDERS.yml.
+  reviewers: ["@wildcard"]
+
+  # Default human owner cited in change-management messages.
+  primary_human: "@wildcard"
+
+  # Bot identity. Today this is `github-actions[bot]` (the default
+  # workflow token). When the Caro Bot GitHub App is registered (see
+  # `.github/CARO_BOT.md`) and `CARO_BOT_APP_KEY` is populated, the
+  # slash router and spec/impl pipelines will switch to attribute their
+  # comments to this identity.
+  bot_identity: "caro-bot"
+
+# ─── Issue triage automation ──────────────────────────────────────────
+triage:
+  # Label that issue-triage.yml applies after a successful initial pass.
+  # Consumers downstream (e.g. spec pipeline) gate on this label.
+  triaged_label: "triaged"
+
+  # Labels that, when present on an issue, indicate it should not be
+  # auto-processed any further. Useful for human-flagged escapes.
+  do_not_touch_labels: ["needs-human", "blocked", "wontfix"]
+
+  # Default priority when nothing else matches (mirrors the table in
+  # `.claude/commands/caro-backlog-groom.md::Phase C`).
+  default_priority: 2
+
+# ─── Spec / implementation pipeline (Pattern 4, queued) ───────────────
+# Wired up when the issue → spec → implementation workflow lands.
+spec_pipeline:
+  # Issue label that triggers spec generation.
+  spec_label: "ready-for-spec"
+
+  # PR label that triggers implementation scaffolding once the spec PR
+  # has merged.
+  impl_label: "ready-for-impl"
+
+  # Where generated specs live, relative to repo root.
+  specs_dir: "specs/GH"
+
+  # Reviewers auto-requested on every generated spec PR.
+  reviewers: ["@wildcard"]
+
+# ─── Slash command router (Pattern 3, partial) ────────────────────────
+slash_router:
+  # Commands the router knows about. The list mirrors the case statement
+  # in `.github/workflows/slash-router.yml` -- update both when adding a
+  # command. Status: `available` runs today; `planned` is documented in
+  # `.github/SLASH_COMMANDS.md` but not yet handled.
+  commands:
+    help:               { status: available }
+    echo:               { status: available }
+    version:            { status: available }
+    review:             { status: planned, handler: ultrareview }
+    qa:                 { status: planned, handler: "caro.qa" }
+    spec:               { status: planned, handler: speckit-specify }
+    tune-prompt:        { status: planned, handler: prompt-tuner }
+    release-acceptance: { status: planned, handler: "caro.release.acceptance" }
+
+# ─── Release pipeline ─────────────────────────────────────────────────
+release:
+  # Secret name that the Publish workflow uses to upload to crates.io.
+  # Document the rotation procedure in `.claude/rules/release-version-alignment.md`.
+  publish_token_secret: CARGO_REGISTRY_TOKEN
+
+  # CHANGELOG header to mark a release entry as the cut version.
+  changelog_header_format: "## [{version}] - {date}"
+
+  # MSRV displayed in release notes and README. Bumps require all four
+  # files updated atomically -- see .claude/rules/release-version-alignment.md.
+  msrv: "1.85"
+
+# ─── Coder loop (Pattern 2, wired in #1068) ───────────────────────────
+coder_loop:
+  # Hard cap on consecutive Reviewer-block iterations before a beads
+  # task is marked blocked. Per swarm-forge pattern.
+  max_reviewer_retries: 3
+
+  # Default specialist when STAKEHOLDERS.yml has no path match.
+  fallback_specialist: "kraken"
+  documentation_specialist: "spark"
