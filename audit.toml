@@ -1,0 +1,98 @@
+# cargo audit configuration for caro
+# Generated during security triage — 2026-05-11
+# Issue: https://github.com/wildcard/caro/issues/1050
+#
+# This file suppresses cargo audit warnings for dependencies where:
+# (a) no fix is available from the crate author or upstream,
+# (b) the advisory is unmaintained-only with no demonstrated exploit, or
+# (c) the affected code path is not reachable in caro's runtime context.
+#
+# Revert criteria for each entry are documented inline.
+# Rule: remove an entry when the parent crate updates to drop the advisory,
+# or when a true vulnerability (CVE) is assigned to the crate.
+
+[advisories]
+ignore = [
+    # -------------------------------------------------------------------------
+    # DIRECT DEPENDENCIES — migration tracked separately
+    # -------------------------------------------------------------------------
+
+    # RUSTSEC-2025-0141: bincode 1.3.3 is unmaintained.
+    # In Cargo.toml as direct dep (CVE rule serialization in src/dogma/).
+    # Migration to bincode2/bitcode is a separate PR (requires format compat check).
+    # Revert: When Cargo.toml is updated to a maintained bincode successor.
+    # Tracked: https://github.com/wildcard/caro/issues/1050
+    { id = "RUSTSEC-2025-0141", reason = "direct dep migration tracked in #1050; no exploitability" },
+
+    # RUSTSEC-2025-0119: number_prefix 0.4.0 is unmaintained.
+    # Transitive via indicatif 0.17 (direct dep in Cargo.toml).
+    # indicatif upstream has not yet released a version dropping number_prefix.
+    # Revert: When indicatif releases a version without number_prefix.
+    # Tracked: https://github.com/wildcard/caro/issues/1050
+    { id = "RUSTSEC-2025-0119", reason = "transitive via indicatif; no fix available upstream" },
+
+    # -------------------------------------------------------------------------
+    # TRANSITIVE — reqwest 0.11 chain (reqwest 0.12 upgrade resolves)
+    # -------------------------------------------------------------------------
+
+    # RUSTSEC-2025-0134: rustls-pemfile is unmaintained (1.0.4 and 2.2.0).
+    # 1.0.4 via reqwest 0.11.27 chain; 2.2.0 via reqwest 0.12 / hf-hub.
+    # reqwest 0.12 upgrade is a separate PR (API changes required).
+    # Revert: When reqwest 0.11 dep is removed and hf-hub updates.
+    # Tracked: https://github.com/wildcard/caro/issues/1050
+    { id = "RUSTSEC-2025-0134", reason = "transitive via reqwest 0.11; reqwest upgrade in progress" },
+
+    # -------------------------------------------------------------------------
+    # TRANSITIVE — LanceDB / fastembed / knowledge optional feature
+    # -------------------------------------------------------------------------
+
+    # RUSTSEC-2026-0105: core2 0.4.0 yanked and unmaintained.
+    # Via fastembed -> image -> ravif -> rav1e -> bitstream-io.
+    # No control without updating fastembed. Image codec path; not hot path.
+    # Revert: When fastembed releases a version transitively dropping core2.
+    # Tracked: https://github.com/wildcard/caro/issues/1050
+    { id = "RUSTSEC-2026-0105", reason = "transitive via fastembed image codec; no direct fix" },
+
+    # RUSTSEC-2024-0436: paste 1.0.15 is unmaintained.
+    # proc-macro crate; zero runtime impact. Pulled in by tokenizers, lancedb,
+    # mlx-rs, parquet — no single upstream to update.
+    # Revert: When all upstream crates stop using paste.
+    # Tracked: https://github.com/wildcard/caro/issues/1050
+    { id = "RUSTSEC-2024-0436", reason = "proc-macro only; no runtime exposure; many upstream owners" },
+
+    # RUSTSEC-2026-0002: lru 0.12.5 IterMut unsound (Stacked Borrows).
+    # Theoretical unsoundness under Stacked Borrows model; no demonstrated
+    # exploit in safe code. Pulled in by lancedb and lance-* subcrates.
+    # Revert: When lancedb updates to an lru version with the fix.
+    # Tracked: https://github.com/wildcard/caro/issues/1050
+    { id = "RUSTSEC-2026-0002", reason = "theoretical Stacked Borrows; no exploit; transitive via lancedb" },
+
+    # -------------------------------------------------------------------------
+    # TRANSITIVE — wiremock dev-dependency only (not in release binaries)
+    # -------------------------------------------------------------------------
+
+    # RUSTSEC-2024-0384: instant 0.1.13 is unmaintained.
+    # Dev-dep only: wiremock -> http-types -> futures-lite -> fastrand.
+    # Not present in release binaries.
+    # Revert: When wiremock updates and drops instant transitively.
+    # Tracked: https://github.com/wildcard/caro/issues/1050
+    { id = "RUSTSEC-2024-0384", reason = "dev-dep only via wiremock; not in release binaries" },
+
+    # RUSTSEC-2026-0097: rand (all versions) unsound with custom global logger.
+    # Requires a custom Rust global logger that itself calls rand during
+    # initialization — not applicable to caro. Affects rand 0.7.3 (wiremock
+    # dev chain), 0.8.5 (fastembed/lancedb), 0.9.2 (ring/crypto paths).
+    # Revert: When rand releases a fixed version and upstreams update.
+    # Tracked: https://github.com/wildcard/caro/issues/1050
+    { id = "RUSTSEC-2026-0097", reason = "requires custom global logger calling rand; not applicable" },
+
+    # -------------------------------------------------------------------------
+    # ALREADY IN deny.toml — mirrored here for cargo audit compatibility
+    # -------------------------------------------------------------------------
+
+    # RUSTSEC-2023-0071: rsa Marvin Attack — no fix available from RustCrypto.
+    # Via reqsign -> opendal -> lance-io (LanceDB knowledge feature).
+    # Risk accepted as upstream dependency with no available fix.
+    # Also in deny.toml [advisories] ignore list.
+    { id = "RUSTSEC-2023-0071", reason = "no fix available; LanceDB transitive dep; also in deny.toml" },
+]
