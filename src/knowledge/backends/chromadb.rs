@@ -360,20 +360,27 @@ impl VectorBackend for ChromaDbBackend {
     }
 
     async fn clear(&self) -> Result<()> {
-        let mut coll_guard = self.collections.write().await;
+        // List all collections directly from the server so that collections
+        // created in a previous run (or by another backend instance) are also
+        // removed, not just the ones tracked in the local HashMap.
+        let server_collections = self
+            .client
+            .list_collections()
+            .await
+            .map_err(|e| KnowledgeError::Database(e.to_string()))?;
 
-        // Delete all collections
-        let collection_names: Vec<String> =
-            coll_guard.keys().map(|ct| ct.name().to_string()).collect();
-
-        for collection_name in collection_names {
-            self.client
-                .delete_collection(&collection_name)
-                .await
-                .map_err(|e| KnowledgeError::Database(e.to_string()))?;
+        for collection in server_collections {
+            // Only delete collections that belong to this application.
+            if collection.name().starts_with("caro_") {
+                self.client
+                    .delete_collection(collection.name())
+                    .await
+                    .map_err(|e| KnowledgeError::Database(e.to_string()))?;
+            }
         }
 
-        // Clear the HashMap
+        // Invalidate the local cache so the next operation re-creates lazily.
+        let mut coll_guard = self.collections.write().await;
         coll_guard.clear();
         Ok(())
     }
