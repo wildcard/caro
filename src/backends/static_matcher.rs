@@ -323,7 +323,7 @@ impl StaticMatcher {
             PatternEntry {
                 required_keywords: vec!["file".to_string(), "1".to_string(), "gb".to_string()],
                 optional_keywords: vec!["find".to_string(), "larger".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list|show).*(files?).*(larger|bigger|over|above|greater).*(1gb|1g)\b").unwrap()),
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list|show).*(files?).*(larger|bigger|over|above|greater).*(1|1gb|1g)").unwrap()),
                 gnu_command: "find . -type f -size +1G".to_string(),
                 bsd_command: Some("find . -type f -size +1G".to_string()),
                 description: "Find files larger than 1GB".to_string(),
@@ -789,8 +789,8 @@ impl StaticMatcher {
 
             // Pattern 51: "show current directory path" / "pwd"
             PatternEntry {
-                required_keywords: vec!["current".to_string(), "directory".to_string(), "path".to_string()],
-                optional_keywords: vec!["show".to_string(), "print".to_string(), "working".to_string()],
+                required_keywords: vec!["current".to_string(), "directory".to_string()],
+                optional_keywords: vec!["show".to_string(), "path".to_string(), "print".to_string(), "working".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(show|print|display|get).*(current|working).*(directory|dir|folder).*(path)|^pwd$").unwrap()),
                 gnu_command: "pwd".to_string(),
                 bsd_command: Some("pwd".to_string()),
