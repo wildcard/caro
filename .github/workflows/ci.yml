@@ -184,17 +184,19 @@ jobs:
 
     services:
       chromadb:
-        image: chromadb/chroma:1.0.0
+        image: chromadb/chroma:0.6.3
         ports:
           - 8000:8000
         env:
           IS_PERSISTENT: "TRUE"
           ALLOW_RESET: "true"
+          ANONYMIZED_TELEMETRY: "false"
         options: >-
-          --health-cmd "curl -f http://localhost:8000/api/v1/heartbeat || exit 1"
+          --health-cmd "curl -f http://localhost:8000/api/v2/heartbeat || exit 1"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
+          --health-start-period 20s
 
     steps:
     - uses: actions/checkout@v6
@@ -210,14 +212,14 @@ jobs:
     - name: Wait for ChromaDB to be healthy
       run: |
         for i in {1..30}; do
-          if curl -f http://localhost:8000/api/v1/heartbeat; then
-            echo "✅ ChromaDB is healthy"
+          if curl -f http://localhost:8000/api/v2/heartbeat; then
+            echo "ChromaDB is healthy"
             exit 0
           fi
           echo "Waiting for ChromaDB... ($i/30)"
           sleep 2
         done
-        echo "❌ ChromaDB failed to become healthy"
+        echo "ChromaDB failed to become healthy"
         exit 1
 
     - name: Run ChromaDB integration tests
