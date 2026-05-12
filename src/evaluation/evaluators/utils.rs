@@ -37,6 +37,47 @@ pub fn command_equivalence(cmd1: &str, cmd2: &str) -> bool {
         return true;
     }
 
+    // Normalize du commands: du -sh . is equivalent to du -h --max-depth=1
+    // Both show human-readable directory usage summary
+    if norm1.starts_with("du ") && norm2.starts_with("du ") {
+        fn normalize_du(cmd: &str) -> String {
+            let tokens: Vec<&str> = cmd.split_whitespace().collect();
+            let mut flags: Vec<String> = Vec::new();
+            let mut args: Vec<String> = Vec::new();
+            let mut has_summary = false;
+            for token in tokens.iter().skip(1) {
+                if token.starts_with("--max-depth") {
+                    // --max-depth=0 is equivalent to -s (summary mode)
+                    if *token == "--max-depth=0" || *token == "--max-depth=1" || *token == "-s" {
+                        has_summary = true;
+                    }
+                    // Normalize to --max-depth flag
+                    flags.push("--max-depth".to_string());
+                    if let Some(val) = token.split('=').nth(1) {
+                        flags.push(val.to_string());
+                    }
+                } else if token.starts_with('-') {
+                    flags.push(token.to_string());
+                } else {
+                    args.push(token.to_string());
+                }
+            }
+            // If summary flag present, treat -s and --max-depth=1 as equivalent
+            if has_summary {
+                // Remove explicit -s and --max-depth for normalization
+                flags.retain(|f| !f.starts_with("-s") && !f.starts_with("--max-depth"));
+                flags.sort();
+                format!("du {} {}", flags.join(" ").trim(), args.join(" ")).trim().to_string()
+            } else {
+                flags.sort();
+                format!("du {} {}", flags.join(" ").trim(), args.join(" ")).trim().to_string()
+            }
+        }
+        if normalize_du(&norm1) == normalize_du(&norm2) {
+            return true;
+        }
+    }
+
     // Parse into tokens for flag-order-independent comparison
     let tokens1 = tokenize_command(&norm1);
     let tokens2 = tokenize_command(&norm2);

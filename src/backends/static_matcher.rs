@@ -789,8 +789,8 @@ impl StaticMatcher {
 
             // Pattern 51: "show current directory path" / "pwd"
             PatternEntry {
-                required_keywords: vec!["current".to_string(), "directory".to_string()],
-                optional_keywords: vec!["show".to_string(), "path".to_string(), "print".to_string(), "working".to_string()],
+                required_keywords: vec!["current".to_string(), "directory".to_string(), "path".to_string()],
+                optional_keywords: vec!["show".to_string(), "print".to_string(), "working".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(show|print|display|get).*(current|working)?.*(directory|dir|folder).*(path)?|^pwd$").unwrap()),
                 gnu_command: "pwd".to_string(),
                 bsd_command: Some("pwd".to_string()),
@@ -1551,8 +1551,8 @@ impl StaticMatcher {
 
             // POSIX: find executable files
             PatternEntry {
-                required_keywords: vec!["find".to_string(), "executable".to_string()],
-                optional_keywords: vec!["files".to_string(), "scripts".to_string()],
+                required_keywords: vec!["find".to_string(), "executable".to_string(), "files".to_string()],
+                optional_keywords: vec!["scripts".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(find|list|search).*(executable|script|program).*(files?|directory)?").unwrap()),
                 gnu_command: "find . -type f -perm -111".to_string(),
                 bsd_command: Some("find . -type f -perm -111".to_string()),
