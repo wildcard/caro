@@ -260,7 +260,7 @@ impl StaticMatcher {
             PatternEntry {
                 required_keywords: vec!["disk".to_string(), "space".to_string(), "directory".to_string()],
                 optional_keywords: vec!["show".to_string(), "by".to_string(), "usage".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(show|display|list|get).*(disk|storage).*(space|usage).*(by)?.*(directory|directories|dir)").unwrap()),
+                regex_pattern: Some(Regex::new(r"(?i)(show|display|list|get).*(disk|storage).*(space|usage).*(by|per).*(directory|directories|dir)").unwrap()),
                 gnu_command: "du -h --max-depth=1".to_string(),
                 bsd_command: Some("du -h -d 1".to_string()),
                 description: "Show disk space by directory".to_string(),
@@ -321,8 +321,8 @@ impl StaticMatcher {
 
             // Pattern 7: "find files larger than 1GB" (GENERAL - was Pattern 6)
             PatternEntry {
-                required_keywords: vec!["file".to_string(), "1".to_string()],
-                optional_keywords: vec!["find".to_string(), "larger".to_string(), "gb".to_string()],
+                required_keywords: vec!["file".to_string(), "1".to_string(), "gb".to_string()],
+                optional_keywords: vec!["find".to_string(), "larger".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(find|locate|list|show).*(files?).*(larger|bigger|over|above|greater).*(1|1gb|1g)").unwrap()),
                 gnu_command: "find . -type f -size +1G".to_string(),
                 bsd_command: Some("find . -type f -size +1G".to_string()),
@@ -703,7 +703,7 @@ impl StaticMatcher {
             PatternEntry {
                 required_keywords: vec!["todo".to_string()],
                 optional_keywords: vec!["search".to_string(), "find".to_string(), "code".to_string(), "for".to_string(), "fixme".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(search|find|look|grep).*(for)?.*(TODO|FIXME|HACK|XXX|NOTE).*(in)?.*(code|files?)").unwrap()),
+                regex_pattern: Some(Regex::new(r"(?i)(search|find|look|grep).*?(for.*?)?(TODO|FIXME|HACK|XXX|NOTE).*?(in.*?)?(code|files?|javascript|js)").unwrap()),
                 gnu_command: "grep -rn 'TODO' .".to_string(),
                 bsd_command: Some("grep -rn 'TODO' .".to_string()),
                 description: "Search for TODO/FIXME comments in code".to_string(),
@@ -789,9 +789,9 @@ impl StaticMatcher {
 
             // Pattern 51: "show current directory path" / "pwd"
             PatternEntry {
-                required_keywords: vec!["current".to_string(), "directory".to_string(), "path".to_string()],
-                optional_keywords: vec!["show".to_string(), "print".to_string(), "working".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(show|print|display|get).*(current|working)?.*(directory|dir|folder).*(path)?|^pwd$").unwrap()),
+                required_keywords: vec!["current".to_string(), "directory".to_string()],
+                optional_keywords: vec!["show".to_string(), "path".to_string(), "print".to_string(), "working".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(show|print|display|get).*(current|working).*(directory|dir|folder).*(path)|^pwd$").unwrap()),
                 gnu_command: "pwd".to_string(),
                 bsd_command: Some("pwd".to_string()),
                 description: "Show current directory path".to_string(),
@@ -984,8 +984,8 @@ impl StaticMatcher {
                 required_keywords: vec!["compress".to_string(), "directory".to_string(), "maximum".to_string()],
                 optional_keywords: vec!["with".to_string(), "best".to_string(), "compression".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(compress|archive).*(directory|dir|folder).*(with)?.*(maximum|max|best|highest).*(compression)?").unwrap()),
-                gnu_command: "tar --use-compress-program='gzip -9' -cf archive.tar.gz directory/".to_string(),
-                bsd_command: Some("tar -czf archive.tar.gz directory/".to_string()),
+                gnu_command: "tar -czvf archive.tar.gz --best directory/".to_string(),
+                bsd_command: Some("tar -czvf archive.tar.gz --best directory/".to_string()),
                 description: "Compress directory with maximum compression".to_string(),
             },
 
@@ -1551,8 +1551,8 @@ impl StaticMatcher {
 
             // POSIX: find executable files
             PatternEntry {
-                required_keywords: vec!["find".to_string(), "executable".to_string(), "files".to_string()],
-                optional_keywords: vec!["scripts".to_string()],
+                required_keywords: vec!["find".to_string(), "executable".to_string()],
+                optional_keywords: vec!["files".to_string(), "scripts".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(find|list|search).*(executable|script|program).*(files?|directory)?").unwrap()),
                 gnu_command: "find . -type f -perm -111".to_string(),
                 bsd_command: Some("find . -type f -perm -111".to_string()),
