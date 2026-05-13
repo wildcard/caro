@@ -61,6 +61,28 @@ git log --all --since="6 hours ago" \
 bd list --status open --json > /tmp/groom-beads.json
 ```
 
+### A6. Hermes strategic messages
+```bash
+# Pick up structured action items from Hermes (strategic intelligence agent)
+# These are triage digests and routing recommendations.
+if ls .hermes/messages/*.md 2>/dev/null >/dev/null; then
+  cat .hermes/messages/*.md > /tmp/groom-hermes-messages.txt
+  echo "Hermes messages found: $(wc -l < /tmp/groom-hermes-messages.txt) lines"
+else
+  echo "" > /tmp/groom-hermes-messages.txt
+fi
+```
+
+Hermes messages are advisory — they recommend actions but don't execute them.
+The grooming loop should evaluate each recommendation against current state
+(e.g., if Hermes says "rebase PR #1036" but the PR was already merged, skip).
+
+After digesting, move processed messages to `.hermes/messages/processed/`:
+```bash
+mkdir -p .hermes/messages/processed
+mv .hermes/messages/*.md .hermes/messages/processed/ 2>/dev/null
+```
+
 ## Phase B — Reconcile (create / update / dedup)
 
 For each scanned item, decide: `CREATE`, `UPDATE`, `SKIP`, or `DEDUP`.

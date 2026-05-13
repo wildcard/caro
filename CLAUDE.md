@@ -135,6 +135,34 @@ Check `.claude/memory/current-tasks.md` for active work items.
 - `.claude/commands/` - Workflow commands
 - `.claude/beta-testing/` - Test infrastructure
 - `bin/notify` - Cross-session agent notification log helper
+- `.hermes/` - Hermes strategic intelligence agent (see below)
+
+## Agent Ecosystem
+
+### Hermes — Strategic Intelligence & Coordination
+
+Hermes is the always-on strategic layer. It does NOT write code. It watches,
+synthesizes, triages, and routes — so coding agents can focus on execution.
+
+**What Hermes does:**
+- Daily PR triage and digest (`.hermes/digests/`)
+- Competitive intelligence (weekly market scans)
+- Cross-agent coordination and conflict detection
+- Integration health monitoring
+- Release readiness assessments
+- Executive briefings
+
+**How to communicate with Hermes:**
+- `bin/notify hermes "<msg>"` — real-time event stream
+- `.hermes/messages/<topic>.md` — structured inter-agent messages
+- `gh pr comment <N>` tagged `[agent]` — PR-specific feedback (from Hermes)
+- `.hermes/digests/` — daily digests for human consumption
+
+**Hermes does NOT:** write Rust code, merge PRs, run QA tests, or manage
+the beads backlog. Those are owned by Claude Code, Crush, and specialist agents.
+
+Full definition: `.hermes/AGENT.md`
+Communication protocol: `.hermes/PROTOCOL.md`
 
 ## Exploration Pattern
 
