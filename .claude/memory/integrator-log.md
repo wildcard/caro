@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-05-12 (23:00 PT fire) — loud-error fix for `--backend {ollama,exo,vllm}` in non-remote-backends builds (#1081 option c)
+
+- **Validated:** locally-built `target/debug/caro` from the `integrator/20260512` branch (rebased onto PR #1082's `integrator/20260511`).
+  - **Default features (no `remote-backends`)** — `caro --backend ollama --dry-run -p "list pdf files"` → `Error: Configuration error: Backend 'ollama' requires the 'remote-backends' feature, which is not compiled into this build of caro.` exit=1. Same for `vllm` and `exo`. `caro --backend embedded --dry-run -p "list pdf files"` → `ls *.pdf` exit=0 (unchanged). ✓ VERIFIED.
+  - **`--features remote-backends`** — `caro --backend ollama --dry-run -p "list pdf files"` with no Ollama server running → `WARN  caro::cli: Ollama backend not available, falling back to embedded` then `ls *.pdf` exit=0 (unchanged from previous behavior). ✓ VERIFIED — fix is scoped to the feature-off path only.
+  - Cargo test: `cargo test --lib cli::` → 9 passed, 0 failed (incl. new `test_remote_backend_not_compiled_error`). Clippy `--lib --tests -- -D warnings` clean.
+
+- **Shipped:** the loud-error fix at `src/cli/mod.rs:395-400`. Replaces `tracing::warn!` + silent-fallthrough with `return Err(Self::remote_backend_not_compiled_error(model))`. New helper `remote_backend_not_compiled_error` is `#[cfg(not(feature = "remote-backends"))]`-gated and emits a `CliError::ConfigurationError` with: feature name, the exact `cargo install caro --features remote-backends --force --locked` command, the `--backend embedded` workaround, and a link to #1081. Total diff: +44 / -3 in `src/cli/mod.rs` (counts helper + new test). One PR, scoped tight, exactly the next-pass directive from the 2026-05-11 log.
+
+- **Filed:** none. #1081 already tracks options (a) (default-feature flip) and (b) (release-workflow `--features` arg) which remain pending — both are maintainer policy calls about binary-size posture; not the integrator's lane to unilaterally land. Updated the status-matrix queue item #1 to record option (c) as done.
+
+- **Discovered:**
+  - The `cfg(feature = "remote-backends")` branch in `create_backend()` still uses a silent fallback when a remote backend is requested but unreachable (`tracing::warn!("Ollama backend not available, falling back to embedded")` at `src/cli/mod.rs:344-346`, and parallel arms for exo/vllm). That's a *different* silent-fallback pathway than the one I fixed tonight — it triggers when the feature IS compiled in but the server is down. UX-wise this is debatable: a reachable embedded backend on localhost is a sensible fail-soft, but a user who explicitly typed `--backend ollama` may still want a loud failure. Out of scope for tonight per the one-PR rule; file as a polish issue next pass after dedup against `gh issue list --label backend --search "fallback"`.
+  - PR #1082 hasn't been reviewed/merged yet (mergeable, no blockers). Tonight's PR is based on its branch (`integrator/20260511`); merge order matters. The PR body explicitly notes the dependency.
+  - `caro` Cargo workspace is now at v1.4.0 in `Cargo.toml` — post-1.3.0 release cycle is active.
+
+- **Next pass should:** with tonight's loud-error fix shipped, the remaining #1081 work is the maintainer-policy half: (a) `default = [..., "remote-backends"]` and/or (b) release-workflow `--features remote-backends`. Neither is a one-night-agent call. Better next-night picks: (1) wire `BackendType::Claude` into the CLI (the matrix's `Anthropic Claude API` row is still ❌ "Unknown backend 'claude'" — well-scoped ~30 LOC + tests, fixes the third half of #1081's evidence); or (2) file the in-feature unreachable-server silent fallback as a polish issue. If (1) goes first, the matrix gets a clean ✅ row for Claude on the next pass.
+
+---
+
 ## 2026-05-11 (23:00 PT fire) — first real validation pass; remote-backend packaging gap surfaced
 
 - **Validated:** native backends top-three priority row.

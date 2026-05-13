@@ -3,7 +3,7 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-05-11 — first real validation pass after PR #939 infrastructure landed; remote-backend gap discovered (see log).
+> **Last updated:** 2026-05-12 — silent-fallback fix shipped for `--backend {ollama,exo,vllm}` in non-remote-backends builds (option (c) from #1081); upstream packaging fix still pending.
 
 ## Legend
 
@@ -76,7 +76,7 @@
 
 Topmost unblocked row drives the next nightly PR.
 
-1. **Release binaries lack `remote-backends` feature** ([#1081](https://github.com/wildcard/caro/issues/1081)) — `default` features in `Cargo.toml` omit `remote-backends`; `cargo install caro` and the GitHub-Release workflow (`.github/workflows/release.yml:245`) both build without it. Three landing options: (a) add `"remote-backends"` to `default`; (b) pass `--features remote-backends` in release/publish workflows; (c) demote the silent fallback to a loud error. Tonight's PR documented the gap on the website matrix + skill description; the upstream code fix is the next nightly's likely PR.
+1. **Release binaries lack `remote-backends` feature** ([#1081](https://github.com/wildcard/caro/issues/1081)) — `default` features in `Cargo.toml` omit `remote-backends`; `cargo install caro` and the GitHub-Release workflow (`.github/workflows/release.yml:245`) both build without it. Three landing options were on the table: (a) add `"remote-backends"` to `default`; (b) pass `--features remote-backends` in release/publish workflows; (c) demote the silent fallback to a loud error. **Option (c) shipped 2026-05-12** — `--backend {ollama,exo,vllm}` in a default build now returns `CliError::ConfigurationError` with install hint instead of silently falling through. Remaining: options (a)/(b) still pending — both are maintainer policy calls about binary-size posture vs. default-on remote backends.
 2. **Anthropic Claude backend not wired into CLI** (tracked under [#1081](https://github.com/wildcard/caro/issues/1081)) — `ClaudeBackend` exists at `src/backends/remote/claude.rs` but `src/cli/mod.rs:468` hardcodes the valid-backend list and `create_backend()` never instantiates it. ~30 LOC of wiring + a new arm in `validate_backend_name`. Good fit for a single-night PR once #1081 is triaged.
 3. **Claude Code MCP server** (`caro mcp serve`) — spec already drafted (`.github/first-time-issues/06-mcp-claude-code-integration.md`, #928); coordinate with #789.
 4. **OpenAI-compat HTTP shim** (`caro serve --openai`, #929) — single highest-leverage surface; unlocks ~6 long-tail tools at once.
