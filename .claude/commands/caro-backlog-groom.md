@@ -189,6 +189,62 @@ bd dep $dup1 --blocks $dup2   # or use bd relate
 # Close the auto-groomed one, keep the manually-curated one
 ```
 
+### B6. Repair stranded canonical beads (post-dedup)
+
+When a prior dedup event closed a duplicate bead, the dupe **retains its
+`external_ref`** while the canonical (open) bead has none. The canonical
+becomes structurally invisible to ref-keyed scans, so B2 won't find it
+and will either silently miss work or fail to create a fresh WIP bead
+with `UNIQUE constraint failed: issues.external_ref`.
+
+**Detection** (run as part of every cycle, not just on `UNIQUE` failures):
+
+```sql
+-- Closed beads holding a branch-* ref where the branch is still on origin
+SELECT
+  closed.id        AS closed_dupe_id,
+  closed.external_ref AS stranded_ref,
+  closed.close_reason
+FROM issues closed
+WHERE closed.status = 'closed'
+  AND closed.external_ref LIKE 'branch-%'
+  AND closed.close_reason LIKE '%dedup%';
+```
+
+For each row, the `close_reason` typically names the canonical
+(e.g. `"dedup: caro-ai5 is canonical WIP for docs/adr-008"`). Parse it
+to identify the open canonical.
+
+**Repair** (atomic SQL batch — required because of upstream bug
+[gastownhall/beads#3902](https://github.com/gastownhall/beads/issues/3902)):
+
+```bash
+# Step 1 — clear ALL stranded refs in one transaction.
+# Why SQL: `bd update --external-ref ""` writes empty string (not NULL),
+# and UNIQUE applies to ''. Second CLI clear fails. SQL NULL bypasses this.
+sqlite3 .beads/beads.db <<'SQL'
+BEGIN;
+UPDATE issues SET external_ref = NULL
+WHERE id IN ('caro-u7j','caro-6bh','caro-avr');  -- list closed dupes here
+COMMIT;
+SQL
+
+# Step 2 — attach refs to canonicals via CLI (preserves audit trail).
+bd update caro-ai5 --external-ref branch-docs/adr-008-self-update
+bd update caro-4w3 --external-ref branch-feature/vercel-slidev-deployment
+bd update caro-226 --external-ref branch-fix/vercel-root-directory-conflict
+
+# Step 3 — flush JSONL.
+bd sync
+```
+
+**Idempotent**: if no stranded refs are detected, this phase is a no-op.
+
+**Future**: when [gastownhall/beads#3902](https://github.com/gastownhall/beads/issues/3902)
+is fixed (CLI maps `--external-ref ""` to SQL NULL), step 1 can be
+rewritten as `bd update <dupe> --external-ref ""` per row, and the
+SQL fallback drops out.
+
 ## Phase C — Re-compute priorities
 
 Priority drift is common (issue labels change, milestones shift). Re-apply the rule:
@@ -273,3 +329,11 @@ gh issue comment 792 --body-file /tmp/groom-delta.md
 ## Scheduled invocation
 
 Runs via `scheduled-tasks::create_scheduled_task` with cron `0 */6 * * *`. See task id `caro-backlog-grooming`.
+
+## Known schema gaps (upstream)
+
+- **[gastownhall/beads#3902](https://github.com/gastownhall/beads/issues/3902)** —
+  `bd update --external-ref ""` writes empty string, not SQL NULL, and the
+  UNIQUE constraint treats `''` as a value. Repair workflow in **B6** uses a
+  SQL fallback to clear stranded refs in batch. Drop the SQL fallback when
+  fixed upstream.
