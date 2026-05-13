@@ -44,19 +44,23 @@ Use cases:
 Example file: `.hermes/messages/pr-triage-2026-05-12.md`
 
 ```markdown
-# PR Triage — 2026-05-12
+# PR Triage — 2026-05-12 (Hermes)
 
-## Needs Immediate Action
-- PR #1065 (external: Quillenar-dev) — safety fix, needs security review
-  → Route to: safety-pattern-developer agent
+> Drop file for Claude Code / Crush / pr-management-loop.
+> Pick up during your next grooming cycle (Phase A6).
 
-## Stale (>3 days)
-- PR #1043 (Anastasia) — Windows fix, needs-human label
-  → Route to: Kobi for manual review
+## IMMEDIATE ACTION ITEMS
 
-## Ready to Merge
-- PR #1071 — static-matcher fix, CI passing
-  → Route to: pr-management-loop
+### 1. External PR #1065 — Route to safety review
+- **What:** Fix mkfs regex bypass
+- **Who:** Quillenar-dev (first-time contributor)
+- **Action:** Review via safety-pattern-developer agent. Merge if CI passes.
+
+### 2. Rebase PR #1036 — Safety fix stuck in conflict
+- **Action:** `gh pr checkout 1036 && git rebase origin/main && git push --force-with-lease`
+
+## NO ACTION NEEDED
+PRs #1078, #1074, #1071, #1069, #1067, #1042, #1028 are active and mergeable.
 ```
 
 ### 3. GitHub Issue/PR Comments (public, async)
@@ -64,12 +68,14 @@ Example file: `.hermes/messages/pr-triage-2026-05-12.md`
 **Tool**: `gh issue comment`, `gh pr comment`
 **Pattern**: Structured comments with agent attribution
 
-All Hermes comments on GitHub follow this format:
+All Hermes comments on GitHub follow the canonical `[agent]` tag format
+(from `~/.claude/rules/pr-comment-agent-tag.md` and
+`~/.claude/rules/pr-comment-agent-identity.md`):
 
 ```
-`[hermes]`
+`[agent]`
 
-**Agent:** Hermes (strategic-intelligence)
+**Agent:** Hermes (`strategic-intelligence`)
 **Run:** <context — e.g. "daily PR triage">
 
 ---
@@ -116,11 +122,14 @@ Daily PR digests include:
 
 1. **Hermes never edits code directly.** All repo changes go through PRs.
 2. **Hermes never merges PRs.** That's pr-management-loop's job.
-3. **Hermes comments are structured.** Always use the `[hermes]` attribution.
+3. **Hermes comments are structured.** Always use the canonical `[agent]` tag.
 4. **Hermes respects agent boundaries.** Don't tell Claude Code *how* to code.
    Tell it *what* needs attention and *why*.
-5. **All inter-agent messages are ephemeral or dated.** Don't create
-   permanent state in `.hermes/messages/` — clean up after digest.
+5. **Message cleanup is Hermes' responsibility.** After Claude Code's
+   grooming loop processes `.hermes/messages/` (via Phase A6 of
+   `caro-backlog-groom.md`), the loop moves them to
+   `.hermes/messages/processed/`. Hermes may prune `processed/` files
+   older than 30 days via a housekeeping PR.
 6. **bin/notify is the real-time channel.** Use it for anything
    time-sensitive. Use `.hermes/messages/` for structured, actionable data.
 
@@ -129,5 +138,5 @@ Daily PR digests include:
 Agents discover Hermes' presence via:
 - This file (`.hermes/PROTOCOL.md`)
 - The `hermes` role in `bin/notify` output
-- GitHub comments tagged `[hermes]`
+- GitHub comments tagged `[agent]` (from Hermes)
 - CLAUDE.md reference (added via PR)

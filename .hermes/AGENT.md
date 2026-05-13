@@ -4,7 +4,7 @@
 > **Runtime**: Hermes Agent gateway (always-on, cron-capable)
 > **Reports to**: Kobi (direct)
 > **Branch convention**: `feat/hermes-*`, `fix/hermes-*`, `chore/hermes-*`
-> **First appeared**: PR #TBD (feat/hermes-strategic-intelligence)
+> **First appeared**: PR #1079 (feat/hermes-strategic-intelligence)
 
 ## Mission
 
@@ -20,6 +20,9 @@ agents (Crush, Claude Code, specialist sub-agents) can focus on execution.
 - Pre-review external contributor PRs for quality and safety
 - Route PRs to the right specialist agent via comments
 - Produce daily PR digest
+- **Consume, don't re-scan**: If pr-management-loop has already classified
+  PRs, Hermes reads its output rather than re-querying GitHub independently.
+  Hermes adds narrative synthesis and routing recommendations on top.
 
 ### 2. Competitive Intelligence (weekly)
 - Scan AI agent ecosystem for threats/opportunities
@@ -34,10 +37,11 @@ agents (Crush, Claude Code, specialist sub-agents) can focus on execution.
 - Alert when agents step on each other
 
 ### 4. Integration Health Monitoring (nightly)
-- Validate native backends via smoke tests
-- Track which integrations work vs. broken
+- Consume output from caro-integrator-nightly (runs at 23:00)
+- Add narrative synthesis and regression alerts
+- Track which integrations work vs. broken across the matrix
 - File issues when regressions detected
-- Update integrations-status.md
+- Update integrations-status.md with findings
 
 ### 5. Release Readiness Assessment (on-demand)
 - Audit open issues against release milestone

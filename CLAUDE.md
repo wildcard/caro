@@ -155,7 +155,7 @@ synthesizes, triages, and routes — so coding agents can focus on execution.
 **How to communicate with Hermes:**
 - `bin/notify hermes "<msg>"` — real-time event stream
 - `.hermes/messages/<topic>.md` — structured inter-agent messages
-- `gh pr comment <N>` tagged `[hermes]` — PR-specific feedback
+- `gh pr comment <N>` tagged `[agent]` — PR-specific feedback (from Hermes)
 - `.hermes/digests/` — daily digests for human consumption
 
 **Hermes does NOT:** write Rust code, merge PRs, run QA tests, or manage
