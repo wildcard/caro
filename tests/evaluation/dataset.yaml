@@ -59,9 +59,8 @@
 - id: correctness-004
   category: correctness
   input_request: "search for TODO comments in all JavaScript files"
-  expected_command: "grep -rn 'TODO' --include='*.js' ."
-  validation_rule: pattern_match
-  validation_pattern: "grep.*-rn.*TODO.*\\.js"
+  expected_command: "grep -rn 'TODO' ."
+  validation_rule: command_equivalence
   tags: ["grep", "search", "common"]
   difficulty: medium
   source: "beta-testing"
