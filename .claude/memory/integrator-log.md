@@ -25,6 +25,26 @@
 
 ---
 
+## 2026-05-11 (23:00 PT fire) — first real validation pass; remote-backend packaging gap surfaced
+
+- **Validated:** native backends top-three priority row.
+  - **MLX / Candle CPU (embedded)** — ✓ VERIFIED PASS. `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls *.pdf`. Default `caro --dry-run -p "show disk usage"` → `du -sh /Users/kobik-private/workspace/caro/.worktrees/integrator-20260511 | sort -rh | head -10`. Both work in the default `cargo install caro` build.
+  - **Ollama / vLLM / Exo** — ⚠️ PARTIAL. CLI accepts the flag but the published v1.3.0 binary logs `WARN  caro::cli: Remote backends not compiled in. Build with --features remote-backends` and silently falls back to the static matcher. Reproduced for all three flags identically. Root cause: `default = ["embedded-mlx", "embedded-cpu", "cve-rules"]` in `Cargo.toml`; neither `cargo install caro` nor the release workflow (`.github/workflows/release.yml:245`) passes `--features remote-backends`.
+  - **Anthropic Claude API** — ❌ FAIL. `caro --backend claude --dry-run -p "list pdf files"` → `Error: Invalid argument: Unknown backend 'claude'`. Root cause: `validate_backend_name()` at `src/cli/mod.rs:468` hardcodes `VALID_BACKENDS = ["embedded","ollama","exo","vllm"]`; the `BackendType::Claude` variant + `ClaudeBackend` struct exist but `create_backend()` never instantiates them. Broken in every build, not feature-gated.
+
+- **Shipped:** doc-accuracy PR — `website/src/data/integrations.ts` re-statuses the 6 backend rows from `'working'` with `lastValidated: null` to honest `'working' / 'partial' / 'in-progress'` with `lastValidated: '2026-05-11'`; `.claude/skills/caro-shell/SKILL.md` qualifies the "remote providers" claim; `.claude/memory/integrations-status.md` rows + priority queue refreshed.
+
+- **Filed:** [#1081](https://github.com/wildcard/caro/issues/1081) `integration: published caro binary omits remote-backends feature; Claude backend unreachable` — P1, labels `integration` + `backend` + `bug` + `P1` + `regression` + `nightly-discovery`. Documented 5 remediation options ranging from doc-only (this PR) to a 1-LOC default-feature flip to Claude CLI wiring; recommendation noted on the issue is "loud error + release-workflow `--features remote-backends` + separate Claude wiring PR". Deduped against #790 (broad v1.1.3 gap analysis), #791 (website gap analysis), #792 (credibility-gap epic), #809 (website copy fixes), #843 (provider-neutral messages, blocked on this being reachable first) — none of those were the right home for a v1.3.0 packaging-shaped finding.
+
+- **Discovered:**
+  - Two adjacent rules-of-the-road are worth noting for future passes. (a) The skill description `caro-shell/SKILL.md` referenced "remote providers (Anthropic, Ollama, vLLM, Exo)" but none of those are reachable from a default install — corrected in tonight's PR. (b) The website matrix entry `IntegrationStatus = 'working'` is defined as "✅ Validated end-to-end against published caro binary" yet had 6 backend rows marked `'working'` with `lastValidated: null` — a contradiction that the first-night seed didn't catch. The next nightly should add a `null`-lastValidated invariant check to either the matrix linter or the integrator playbook itself.
+  - OpenRouter is now 290+/400+ models (May 2026 — `openrouter.ai/docs/guides/routing/routers/auto-router`) so issue #931 becomes higher leverage than the initial seed estimated.
+  - Anthropic-skills marketplace published a "delegates coding tasks to Codex, Claude Code, or Pi agents" skill on 2026-05-11 — Pi shows up as a downstream target again. Adds weight to keeping Pi on the long-tail integration list.
+
+- **Next pass should:** pick up [#1081](https://github.com/wildcard/caro/issues/1081) directly. The most defensible single-PR scope from the remediation menu is option **2 (loud error instead of silent fallback)** — ~10 LOC at `src/cli/mod.rs:402`, no policy ambiguity, restores the contract. Defer option 3 (default-feature flip) until the user weighs in on binary-size posture. Defer option 5 (Claude CLI wiring) to a separate night so the two changes don't bundle.
+
+---
+
 ## 2026-05-10 (23:00 PT fire) — third bootstrap-blocked night, awaiting merge action
 
 - **Validated:** none — bootstrap-check still says PLAYBOOK_NOT_MERGED. PR #939 remains OPEN. Per the scheduled-task header protocol, no integration-row validation runs until the playbook lands on `main`.

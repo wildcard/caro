@@ -3,7 +3,7 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-04-26 — initial seed, first nightly pass.
+> **Last updated:** 2026-05-11 — first real validation pass after PR #939 infrastructure landed; remote-backend gap discovered (see log).
 
 ## Legend
 
@@ -22,12 +22,12 @@
 
 | Tool | Status | Last validated | Method | GH | Notes |
 |---|---|---|---|---|---|
-| Anthropic Claude API | ⏳ not-yet (validation) | — | `caro --backend claude --dry-run "list pdfs"` | — | Implemented in `src/backends/remote/claude.rs`; needs nightly validation |
-| Ollama | ⏳ not-yet (validation) | — | `caro --backend ollama --dry-run ...` | — | Implemented in `src/backends/remote/ollama.rs` |
-| vLLM | ⏳ not-yet (validation) | — | `caro --backend vllm --dry-run ...` | — | Implemented in `src/backends/remote/vllm.rs` |
-| Exo | ⏳ not-yet (validation) | — | `caro --backend exo --dry-run ...` | — | Implemented in `src/backends/remote/exo.rs` |
-| MLX (Apple Silicon embedded) | ⏳ not-yet (validation) | — | `caro --backend embedded "..."` on macOS arm64 | — | `src/backends/embedded/mlx.rs` |
-| Candle CPU (embedded) | ⏳ not-yet (validation) | — | `caro --backend embedded-cpu "..."` | — | `src/backends/embedded/cpu.rs` |
+| Anthropic Claude API | 🚧 in-progress (CLI wiring missing) | 2026-05-11 | `caro --backend claude --dry-run "list pdfs"` → `Error: Unknown backend 'claude'` | — | `ClaudeBackend` struct + `BackendType::Claude` variant exist in source (`src/backends/remote/claude.rs`), but `validate_backend_name()` at `src/cli/mod.rs:468` hardcodes `["embedded","ollama","exo","vllm"]` and `create_backend()` never instantiates `ClaudeBackend::new()`. CLI rejects the flag regardless of features. |
+| Ollama | ⚠️ partial (feature-gated) | 2026-05-11 | `caro --backend ollama --dry-run "list pdfs"` → `WARN Remote backends not compiled in. Build with --features remote-backends`, then silent fallback to embedded matcher | — | `remote-backends` is **not** in `default = ["embedded-mlx","embedded-cpu","cve-rules"]`. `cargo install caro` and the release-workflow `cargo build --release` (no `--features`) both omit it. |
+| vLLM | ⚠️ partial (feature-gated) | 2026-05-11 | same as Ollama — silent fallback in default binary | — | Same root cause as Ollama. |
+| Exo | ⚠️ partial (feature-gated) | 2026-05-11 | same as Ollama — silent fallback in default binary | — | Same root cause as Ollama. |
+| MLX (Apple Silicon embedded) | ✅ working | 2026-05-11 | `caro --backend embedded --dry-run "list pdf files"` → `ls *.pdf` ✓ | — | `embedded-mlx` is in default features; works in default `cargo install caro` build. |
+| Candle CPU (embedded) | ✅ working | 2026-05-11 | `caro --dry-run "show disk usage"` → `du -sh ... \| sort -rh \| head -10` ✓ (auto-fallback path) | — | `embedded-cpu` is in default features; works in default build. |
 | OpenRouter | ⏳ not-yet | — | — | #931 | New backend; clones `vllm.rs` shape; supports `auto` model |
 | Gemini / Jules | 🚧 in-progress | — | — | PR #782 | Coordinate with existing PR; don't fork |
 | LM Studio + FunctionGemma | 🚧 in-progress | — | — | PR #558 | Tracked, no action this night |
@@ -76,15 +76,16 @@
 
 Topmost unblocked row drives the next nightly PR.
 
-1. **Validate the 6 native backends** — none have a `last-validated` date yet. Even one nightly pass focused on running each `--dry-run` smoke test would put real evidence in this matrix.
-2. **Claude Code MCP server** (`caro mcp serve`) — spec already drafted; coordinate with #789.
-3. **OpenAI-compat HTTP shim** (`caro serve --openai`) — single highest-leverage surface; unlocks ~6 long-tail tools at once.
-4. **Claude Code session-token reuse backend** — let users with CC subscription get Haiku for free.
-5. **OpenRouter backend** — clones `vllm.rs`; trivial leverage on hundreds of models.
-6. **Coordinate Gemini PR #782** — review and merge or supersede.
-7. **opencode / crush / droid copy-paste snippets** — once OpenAI shim ships, document each.
-8. **Sourcegraph Amp / Letta** — MCP-based; ride on top of the MCP server work.
-9. **Long tail** — Pi, Aug, CodePal, qwen, Tabby — one each as polish nights.
+1. **Release binaries lack `remote-backends` feature** ([#1081](https://github.com/wildcard/caro/issues/1081)) — `default` features in `Cargo.toml` omit `remote-backends`; `cargo install caro` and the GitHub-Release workflow (`.github/workflows/release.yml:245`) both build without it. Three landing options: (a) add `"remote-backends"` to `default`; (b) pass `--features remote-backends` in release/publish workflows; (c) demote the silent fallback to a loud error. Tonight's PR documented the gap on the website matrix + skill description; the upstream code fix is the next nightly's likely PR.
+2. **Anthropic Claude backend not wired into CLI** (tracked under [#1081](https://github.com/wildcard/caro/issues/1081)) — `ClaudeBackend` exists at `src/backends/remote/claude.rs` but `src/cli/mod.rs:468` hardcodes the valid-backend list and `create_backend()` never instantiates it. ~30 LOC of wiring + a new arm in `validate_backend_name`. Good fit for a single-night PR once #1081 is triaged.
+3. **Claude Code MCP server** (`caro mcp serve`) — spec already drafted (`.github/first-time-issues/06-mcp-claude-code-integration.md`, #928); coordinate with #789.
+4. **OpenAI-compat HTTP shim** (`caro serve --openai`, #929) — single highest-leverage surface; unlocks ~6 long-tail tools at once.
+5. **Claude Code session-token reuse backend** (#930) — let users with CC subscription get Haiku for free.
+6. **OpenRouter backend** (#931) — clones `vllm.rs`; trivial leverage on hundreds of models (now 290+/400+ per upstream as of May 2026).
+7. **Coordinate Gemini PR #782** — review and merge or supersede.
+8. **opencode / crush / droid copy-paste snippets** — once OpenAI shim ships, document each.
+9. **Sourcegraph Amp / Letta** — MCP-based; ride on top of the MCP server work.
+10. **Long tail** — Pi, Aug, CodePal, qwen, Tabby — one each as polish nights.
 
 ---
 
