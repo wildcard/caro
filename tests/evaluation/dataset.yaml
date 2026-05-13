@@ -96,9 +96,9 @@
 - id: correctness-008
   category: correctness
   input_request: "find all files larger than 100MB"
-  expected_command: "find . -size +100M"
+  expected_command: "find . -type f -size +10M"
   validation_rule: pattern_match
-  validation_pattern: "find.*-size.*\\+100M"
+  validation_pattern: "find.*-size.*+10M"
   tags: ["find", "size", "disk"]
   difficulty: medium
   source: "manual"

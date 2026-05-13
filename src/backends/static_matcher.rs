@@ -301,8 +301,8 @@ impl StaticMatcher {
 
             // Pattern 6: "find files larger than 10MB" (GENERAL - was Pattern 5)
             PatternEntry {
-                required_keywords: vec!["file".to_string(), "10".to_string()],
-                optional_keywords: vec!["find".to_string(), "larger".to_string(), "bigger".to_string(), "mb".to_string()],
+                required_keywords: vec!["file".to_string(), "10".to_string(), "larger".to_string()],
+                optional_keywords: vec!["find".to_string(), "bigger".to_string(), "mb".to_string()],
                 regex_pattern: Some(Regex::new(r"(?i)(find|locate|list|show).*(files?).*(larger|bigger|over|above|greater).*(10|10mb|10m)").unwrap()),
                 gnu_command: "find . -type f -size +10M".to_string(),
                 bsd_command: Some("find . -type f -size +10M".to_string()),
