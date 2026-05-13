@@ -68,20 +68,36 @@ PRs #1078, #1074, #1071, #1069, #1067, #1042, #1028 are active and mergeable.
 **Tool**: `gh issue comment`, `gh pr comment`
 **Pattern**: Structured comments with agent attribution
 
-All Hermes comments on GitHub follow the canonical `[agent]` tag format
-(from `~/.claude/rules/pr-comment-agent-tag.md` and
-`~/.claude/rules/pr-comment-agent-identity.md`):
+All Hermes comments on GitHub follow the canonical structure from
+`~/.claude/rules/pr-comment-structure.md`:
 
 ```
 `[agent]`
 
 **Agent:** Hermes (`strategic-intelligence`)
-**Run:** <context — e.g. "daily PR triage">
 
 ---
 
 <content>
+
+---
+
+<details>
+<summary>Prompt used to generate this comment</summary>
+
 ```
+<hermes command or context that generated this>
+```
+
+</details>
+```
+
+Notes:
+- `` `[agent]` `` is always the first line (backtick-wrapped)
+- Identity line immediately follows the tag
+- Body is bracketed by two `---` separators
+- `<details>` footer is required when generated from a named prompt/skill
+- The `**Run:**` field is optional — use it for context when helpful
 
 ### 4. Digest Files (daily/weekly summaries)
 
