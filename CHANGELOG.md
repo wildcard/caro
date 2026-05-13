@@ -18,6 +18,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   feature-gated ones. Rust 1.85 was stabilized 2025-02-20, ~14 months
   before this bump.
 
+### Fixed
+
+- **Static matcher: "find and kill the runaway process eating CPU" now emits
+  the full website-promised pipeline** (`ps aux | sort -nrk 3,3 | head -1 |
+  awk '{print $2}' | xargs kill`) instead of the bare `kill PID` placeholder.
+  Added a 3-keyword pattern (`kill` + `process` + `cpu`) that wins the
+  static matcher's specificity-sort over the general 2-keyword "Kill a
+  process" pattern, so queries that include CPU-process context resolve to
+  a runnable command. Covers `find and kill the runaway process eating CPU`,
+  `kill the process using the most CPU`, `kill the top CPU process`, and
+  `kill the runaway process hogging CPU`. Closes the v1.4.0 release-
+  acceptance P0 carry-forward.
+  ([#947](https://github.com/wildcard/caro/issues/947))
+
 ## [1.4.0] - 2026-05-09
 
 ### Added
