@@ -235,10 +235,23 @@ impl StaticMatcher {
             PatternEntry {
                 required_keywords: vec!["file".to_string(), "100".to_string()],
                 optional_keywords: vec!["find".to_string(), "over".to_string(), "mb".to_string(), "large".to_string(), "big".to_string(), "bigger".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|locate|show|list).*(large|big|bigger).*(files?).*(over|above|bigger|greater|than).*(100|100mb|100m|megabyte)").unwrap()),
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|show|list).*(large|big|bigger).*(files?).*(over|above|bigger|greater|than).*\b100\s*(?:mb|m|megabyte)\b").unwrap()),
                 gnu_command: "find . -type f -size +100M".to_string(),
                 bsd_command: Some("find . -type f -size +100M".to_string()),
                 description: "Find large files over 100MB".to_string(),
+            },
+
+            // Pattern 2b: "find files larger than 100MB" (files-before-larger
+            // word order, mirrors Pattern 6's structure for the 10MB bucket).
+            // Word-boundary on the size value prevents accidental matches on
+            // "1000MB". Added after PR #1079 review identified the latent bug.
+            PatternEntry {
+                required_keywords: vec!["file".to_string(), "100".to_string(), "larger".to_string()],
+                optional_keywords: vec!["find".to_string(), "bigger".to_string(), "mb".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list|show).*(files?).*(larger|bigger|over|above|greater).*\b100\s*(?:mb|m)\b").unwrap()),
+                gnu_command: "find . -type f -size +100M".to_string(),
+                bsd_command: Some("find . -type f -size +100M".to_string()),
+                description: "Find files larger than 100MB".to_string(),
             },
 
             // Pattern 3: "show me disk usage/space by directory, sorted" (SPECIFIC - moved from Pattern 48)
@@ -300,10 +313,12 @@ impl StaticMatcher {
             },
 
             // Pattern 6: "find files larger than 10MB" (GENERAL - was Pattern 5)
+            // The size alternation is word-boundary-anchored so a 10MB query
+            // is not accidentally satisfied by the "10" inside "100MB" / "1000MB".
             PatternEntry {
                 required_keywords: vec!["file".to_string(), "10".to_string(), "larger".to_string()],
                 optional_keywords: vec!["find".to_string(), "bigger".to_string(), "mb".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list|show).*(files?).*(larger|bigger|over|above|greater).*(10|10mb|10m)").unwrap()),
+                regex_pattern: Some(Regex::new(r"(?i)(find|locate|list|show).*(files?).*(larger|bigger|over|above|greater).*\b10\s*(?:mb|m)\b").unwrap()),
                 gnu_command: "find . -type f -size +10M".to_string(),
                 bsd_command: Some("find . -type f -size +10M".to_string()),
                 description: "Find files larger than 10MB".to_string(),
@@ -2066,6 +2081,43 @@ mod tests {
 
         let result = matcher.generate_command(&request).await;
         assert!(result.is_err());
+    }
+
+    // Regression: PR #1079 review surfaced that the 10MB pattern's size
+    // alternation `(10|10mb|10m)` would substring-match the "10" inside
+    // "100MB" / "1000MB", returning `+10M` for a query asking about 100MB.
+    // After the word-boundary fix, the 10MB pattern only fires on a real
+    // 10MB query and the new Pattern 2b handles 100MB explicitly.
+    #[tokio::test]
+    async fn test_size_pattern_word_boundary_10mb_vs_100mb() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let r10 = matcher
+            .generate_command(&CommandRequest::new(
+                "find all files larger than 10MB",
+                ShellType::Bash,
+            ))
+            .await
+            .expect("10MB query should match");
+        assert!(
+            r10.command.contains("+10M") && !r10.command.contains("+100M"),
+            "10MB query should produce +10M, got: {}",
+            r10.command
+        );
+
+        let r100 = matcher
+            .generate_command(&CommandRequest::new(
+                "find all files larger than 100MB",
+                ShellType::Bash,
+            ))
+            .await
+            .expect("100MB query should match (Pattern 2b)");
+        assert!(
+            r100.command.contains("+100M"),
+            "100MB query should produce +100M, got: {}",
+            r100.command
+        );
     }
 
     #[tokio::test]
