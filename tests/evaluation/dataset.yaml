@@ -98,10 +98,23 @@
   input_request: "find all files larger than 10MB"
   expected_command: "find . -type f -size +10M"
   validation_rule: pattern_match
-  validation_pattern: "find.*-size.*+10M"
+  validation_pattern: "find.*-size.*\\+10M"
   tags: ["find", "size", "disk"]
   difficulty: medium
   source: "manual"
+
+# Regression test for pattern-6 substring-match bug: a "100MB" query
+# must not be satisfied by the 10MB pattern (whose alternation contained a
+# bare "10" that matched inside "100"). See fix/pattern6-word-boundary.
+- id: correctness-008b
+  category: correctness
+  input_request: "find all files larger than 100MB"
+  expected_command: "find . -type f -size +100M"
+  validation_rule: pattern_match
+  validation_pattern: "find.*-size.*\\+100M"
+  tags: ["find", "size", "disk", "regression"]
+  difficulty: medium
+  source: "review-1079"
 
 - id: correctness-009
   category: correctness
