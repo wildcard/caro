@@ -10,7 +10,7 @@
     "predev": "node scripts/extract-version.mjs",
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "astro build --remote",
     "preview": "astro preview",
     "astro": "astro",
     "test": "vitest run",
