@@ -839,3 +839,49 @@ async fn test_bsd_safe_commands_no_false_positives() {
         );
     }
 }
+
+/// Regression: GNU long-flag form (--recursive) must be caught at High risk.
+/// The original pattern only matched short flags (-R, -r, -Rfv).
+#[tokio::test]
+async fn test_chmod_long_flag_recursive_bypass() {
+    let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+    let result = validator
+        .validate_command("chmod --recursive 777 /", ShellType::Bash)
+        .await
+        .unwrap();
+    assert!(
+        result.risk_level >= RiskLevel::High,
+        "chmod --recursive 777 / should be High risk, got {:?}",
+        result.risk_level
+    );
+}
+
+/// Regression: 4-digit octal (0777) must be caught at High risk.
+#[tokio::test]
+async fn test_chmod_4digit_octal_bypass() {
+    let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+    let result = validator
+        .validate_command("chmod 0777 /", ShellType::Bash)
+        .await
+        .unwrap();
+    assert!(
+        result.risk_level >= RiskLevel::High,
+        "chmod 0777 / should be High risk, got {:?}",
+        result.risk_level
+    );
+}
+
+/// Regression: combined long flag + 4-digit octal must be caught.
+#[tokio::test]
+async fn test_chmod_long_flag_4digit_octal_bypass() {
+    let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+    let result = validator
+        .validate_command("chmod --recursive 0777 /", ShellType::Bash)
+        .await
+        .unwrap();
+    assert!(
+        result.risk_level >= RiskLevel::High,
+        "chmod --recursive 0777 / should be High risk, got {:?}",
+        result.risk_level
+    );
+}
