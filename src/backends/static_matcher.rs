@@ -745,8 +745,8 @@ impl StaticMatcher {
             // Pattern 43: "list files" (very simple variant - was Pattern 44)
             PatternEntry {
                 required_keywords: vec!["list".to_string(), "files".to_string()],
-                optional_keywords: vec!["all".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)^(list|show).*(all)?.*(files?)\s*$").unwrap()),
+                optional_keywords: vec!["all".to_string(), "show".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show)\s+(all\s+)?files?\s*$").unwrap()),
                 gnu_command: "ls -la".to_string(),
                 bsd_command: Some("ls -la".to_string()),
                 description: "List files (simple)".to_string(),

@@ -289,8 +289,16 @@ impl EvaluationHarness {
 
         // Outer loop: test cases
         for test_case in self.dataset.test_cases() {
+            // For non-MultiBackend categories, only run the primary (first) backend.
+            // For MultiBackend, run all backends and group results.
+            let backends_to_run: Vec<_> = if test_case.category == TestCategory::MultiBackend {
+                backends.iter().collect()
+            } else {
+                backends.first().map(|b| vec![b]).unwrap_or_default()
+            };
+
             // Inner loop: backends (spawned in parallel)
-            for (backend_name, backend) in backends {
+            for (backend_name, backend) in backends_to_run {
                 let test_case = test_case.clone();
                 let backend_name = backend_name.clone();
                 let backend = backend.clone();
@@ -330,31 +338,76 @@ impl EvaluationHarness {
                         }
                     };
 
-                    // Run evaluator
-                    evaluator.evaluate(&test_case, &command_result).await
+                    // Run single-result evaluator
+                    let eval_result = evaluator.evaluate(&test_case, &command_result).await;
+
+                    (
+                        eval_result,
+                        command_result,
+                        test_case.id.clone(),
+                        test_case.category,
+                    )
                 });
 
                 tasks.push(task);
             }
         }
 
-        // Collect results as they complete
-        let mut results = Vec::new();
+        // Collect raw results
+        let mut eval_results: Vec<EvaluationResult> = Vec::new();
+        let mut command_results_by_test: HashMap<String, Vec<CommandResult>> = HashMap::new();
+        let mut multi_backend_test_ids: Vec<String> = Vec::new();
+
         for task in tasks {
             match task.await {
-                Ok(Ok(result)) => results.push(result),
-                Ok(Err(e)) => {
-                    // Evaluation error - log and continue
-                    eprintln!("Evaluation error: {}", e);
+                Ok((Ok(eval_result), command_result, test_id, category)) => {
+                    if category == TestCategory::MultiBackend {
+                        command_results_by_test
+                            .entry(test_id.clone())
+                            .or_default()
+                            .push(command_result);
+                        if !multi_backend_test_ids.contains(&test_id) {
+                            multi_backend_test_ids.push(test_id);
+                        }
+                    } else {
+                        eval_results.push(eval_result);
+                    }
+                }
+                Ok((Err(e), _, test_id, _)) => {
+                    eprintln!("Evaluation error for {}: {}", test_id, e);
                 }
                 Err(e) => {
-                    // Task panic - log and continue
                     eprintln!("Task panic: {}", e);
                 }
             }
         }
 
-        Ok(results)
+        // For MultiBackend tests, run evaluate_multiple with grouped results
+        if let Some(evaluator) = self.evaluators.get(&TestCategory::MultiBackend) {
+            for test_id in &multi_backend_test_ids {
+                if let Some(cmd_results) = command_results_by_test.get(test_id) {
+                    // Find the test case
+                    if let Some(test_case) = self
+                        .dataset
+                        .test_cases()
+                        .iter()
+                        .find(|tc| &tc.id == test_id)
+                    {
+                        match evaluator.evaluate_multiple(test_case, cmd_results).await {
+                            Ok(result) => eval_results.push(result),
+                            Err(e) => {
+                                eprintln!(
+                                    "MultiBackend evaluate_multiple error for {}: {}",
+                                    test_id, e
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(eval_results)
     }
 
     /// Runs a single test case against a backend
@@ -751,8 +804,9 @@ mod tests {
 
         let report = harness.run().await.unwrap();
 
-        assert_eq!(report.total_tests, 4); // 2 tests × 2 backends
-        assert_eq!(report.backend_results.len(), 2);
+        // Non-MultiBackend tests only run the primary backend; no MultiBackend tests in this dataset
+        assert_eq!(report.total_tests, 2); // 2 tests × 1 primary backend
+        assert_eq!(report.backend_results.len(), 1);
     }
 
     #[tokio::test]

@@ -28,148 +28,6 @@ impl ConsistencyEvaluator {
         Self
     }
 
-    /// Evaluates consistency across multiple backend results
-    ///
-    /// This is the primary evaluation method for consistency checking.
-    /// It compares commands from different backends and detects inconsistencies.
-    ///
-    /// # Arguments
-    ///
-    /// * `test_case` - The test case being evaluated
-    /// * `results` - Command results from multiple backends (minimum 2)
-    ///
-    /// # Returns
-    ///
-    /// An EvaluationResult indicating whether backends are consistent.
-    /// The result uses the first backend's name and aggregates execution time.
-    ///
-    /// # Errors
-    ///
-    /// Returns error if fewer than 2 results are provided.
-    pub async fn evaluate_multiple(
-        &self,
-        test_case: &TestCase,
-        results: &[CommandResult],
-    ) -> Result<EvaluationResult> {
-        // Need at least 2 backends to compare
-        if results.len() < 2 {
-            return Ok(EvaluationResult {
-                test_id: test_case.id.clone(),
-                backend_name: results
-                    .first()
-                    .map(|r| r.backend_name.clone())
-                    .unwrap_or_else(|| "unknown".to_string()),
-                passed: false,
-                actual_command: None,
-                actual_behavior: None,
-                failure_reason: Some(format!(
-                    "Consistency evaluation requires at least 2 backends, got {}",
-                    results.len()
-                )),
-                execution_time_ms: 0,
-                timestamp: Utc::now(),
-                error_type: Some(crate::evaluation::ErrorType::ValidationFailure),
-            });
-        }
-
-        // Separate successful command generations from failures/blocks
-        let successful: Vec<_> = results.iter().filter(|r| r.command.is_some()).collect();
-
-        let failed: Vec<_> = results
-            .iter()
-            .filter(|r| r.command.is_none() && !r.blocked)
-            .collect();
-
-        let blocked: Vec<_> = results.iter().filter(|r| r.blocked).collect();
-
-        // All backends should behave similarly (all succeed, all fail, or all block)
-        let (passed, failure_reason, error_type) =
-            if !successful.is_empty() && successful.len() == results.len() {
-                // All backends generated commands - check for equivalence
-                self.check_command_equivalence(&successful)
-            } else if blocked.len() == results.len() {
-                // All backends blocked - consistent behavior
-                (true, None, None)
-            } else if failed.len() == results.len() {
-                // All backends failed - consistent behavior (but not ideal)
-                (
-                    true,
-                    Some("All backends failed to generate commands".to_string()),
-                    Some(crate::evaluation::ErrorType::GenerationFailure),
-                )
-            } else {
-                // Inconsistent behavior across backends
-                let behavior_summary = format!(
-                    "Inconsistent backend behavior: {} succeeded, {} failed, {} blocked",
-                    successful.len(),
-                    failed.len(),
-                    blocked.len()
-                );
-
-                let backend_details = results
-                    .iter()
-                    .map(|r| {
-                        let status = if r.blocked {
-                            "blocked"
-                        } else if r.command.is_some() {
-                            "success"
-                        } else {
-                            "failed"
-                        };
-                        format!("{}: {}", r.backend_name, status)
-                    })
-                    .collect::<Vec<_>>()
-                    .join(", ");
-
-                (
-                    false,
-                    Some(format!(
-                        "{}. Details: {}",
-                        behavior_summary, backend_details
-                    )),
-                    Some(crate::evaluation::ErrorType::BackendInconsistency),
-                )
-            };
-
-        // Aggregate execution time
-        let total_execution_time: u64 = results.iter().map(|r| r.execution_time_ms).sum();
-
-        // Use first backend's name as representative
-        let backend_name = format!(
-            "multi-backend [{}]",
-            results
-                .iter()
-                .map(|r| r.backend_name.as_str())
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
-
-        // Collect all commands for reporting
-        let actual_command = if !successful.is_empty() {
-            Some(
-                successful
-                    .iter()
-                    .map(|r| format!("{}: {}", r.backend_name, r.command.as_ref().unwrap()))
-                    .collect::<Vec<_>>()
-                    .join(" | "),
-            )
-        } else {
-            None
-        };
-
-        Ok(EvaluationResult {
-            test_id: test_case.id.clone(),
-            backend_name,
-            passed,
-            actual_command,
-            actual_behavior: Some(format!("{} backends compared", results.len())),
-            failure_reason,
-            execution_time_ms: total_execution_time,
-            timestamp: Utc::now(),
-            error_type,
-        })
-    }
-
     /// Checks if all commands are functionally equivalent
     fn check_command_equivalence(
         &self,
@@ -270,6 +128,114 @@ impl Evaluator for ConsistencyEvaluator {
             } else {
                 None
             },
+        })
+    }
+
+    async fn evaluate_multiple(
+        &self,
+        test_case: &TestCase,
+        results: &[CommandResult],
+    ) -> Result<EvaluationResult> {
+        if results.len() < 2 {
+            return Ok(EvaluationResult {
+                test_id: test_case.id.clone(),
+                backend_name: results
+                    .first()
+                    .map(|r| r.backend_name.clone())
+                    .unwrap_or_else(|| "unknown".to_string()),
+                passed: false,
+                actual_command: None,
+                actual_behavior: None,
+                failure_reason: Some(format!(
+                    "Consistency evaluation requires at least 2 backends, got {}",
+                    results.len()
+                )),
+                execution_time_ms: 0,
+                timestamp: Utc::now(),
+                error_type: Some(crate::evaluation::ErrorType::ValidationFailure),
+            });
+        }
+
+        let successful: Vec<_> = results.iter().filter(|r| r.command.is_some()).collect();
+        let failed: Vec<_> = results
+            .iter()
+            .filter(|r| r.command.is_none() && !r.blocked)
+            .collect();
+        let blocked: Vec<_> = results.iter().filter(|r| r.blocked).collect();
+
+        let (passed, failure_reason, error_type) =
+            if !successful.is_empty() && successful.len() == results.len() {
+                self.check_command_equivalence(&successful)
+            } else if blocked.len() == results.len() {
+                (true, None, None)
+            } else if failed.len() == results.len() {
+                (
+                    true,
+                    Some("All backends failed to generate commands".to_string()),
+                    Some(crate::evaluation::ErrorType::GenerationFailure),
+                )
+            } else {
+                let behavior_summary = format!(
+                    "Inconsistent backend behavior: {} succeeded, {} failed, {} blocked",
+                    successful.len(),
+                    failed.len(),
+                    blocked.len()
+                );
+                let backend_details = results
+                    .iter()
+                    .map(|r| {
+                        let status = if r.blocked {
+                            "blocked"
+                        } else if r.command.is_some() {
+                            "success"
+                        } else {
+                            "failed"
+                        };
+                        format!("{}: {}", r.backend_name, status)
+                    })
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                (
+                    false,
+                    Some(format!(
+                        "{}. Details: {}",
+                        behavior_summary, backend_details
+                    )),
+                    Some(crate::evaluation::ErrorType::BackendInconsistency),
+                )
+            };
+
+        let total_execution_time: u64 = results.iter().map(|r| r.execution_time_ms).sum();
+        let backend_name = format!(
+            "multi-backend [{}]",
+            results
+                .iter()
+                .map(|r| r.backend_name.as_str())
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+        let actual_command = if !successful.is_empty() {
+            Some(
+                successful
+                    .iter()
+                    .map(|r| format!("{}: {}", r.backend_name, r.command.as_ref().unwrap()))
+                    .collect::<Vec<_>>()
+                    .join(" | "),
+            )
+        } else {
+            None
+        };
+
+        Ok(EvaluationResult {
+            test_id: test_case.id.clone(),
+            backend_name,
+            passed,
+            actual_command,
+            actual_behavior: Some(format!("{} backends compared", results.len())),
+            failure_reason,
+            execution_time_ms: total_execution_time,
+            timestamp: Utc::now(),
+            error_type,
         })
     }
 }

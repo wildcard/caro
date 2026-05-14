@@ -91,6 +91,23 @@ pub trait Evaluator: Send + Sync {
         test_case: &TestCase,
         result: &CommandResult,
     ) -> Result<EvaluationResult>;
+
+    /// Evaluates a test case with results from multiple backends.
+    ///
+    /// Default implementation evaluates using only the first result.
+    /// Override in evaluators that need cross-backend comparison (e.g., ConsistencyEvaluator).
+    async fn evaluate_multiple(
+        &self,
+        test_case: &TestCase,
+        results: &[CommandResult],
+    ) -> Result<EvaluationResult> {
+        let first = results.first().ok_or_else(|| {
+            crate::evaluation::EvaluationError::config(
+                "evaluate_multiple requires at least 1 result".to_string(),
+            )
+        })?;
+        self.evaluate(test_case, first).await
+    }
 }
 
 // Sub-modules for specific evaluator implementations

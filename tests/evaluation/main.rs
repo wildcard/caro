@@ -181,16 +181,11 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
     ));
     harness.add_backend("static_matcher".to_string(), static_matcher);
 
-    // TODO: Register second backend for MultiBackend consistency evaluation
-    // The ConsistencyEvaluator.evaluate_multiple() requires ≥2 backends with
-    // grouped results. Current harness runs backends independently.
-    // To enable: modify Harness.run_all_tests() to group results by test_id
-    // before calling evaluator, or register a second backend like:
-    //
-    //   let static_matcher_bsd = Arc::new(caro::backends::StaticMatcher::new(
-    //       caro::prompts::CapabilityProfile::for_platform(caro::ProfileType::Bsd),
-    //   ));
-    //   harness.add_backend("static_matcher_bsd".to_string(), static_matcher_bsd);
+    // Register BSD static matcher for MultiBackend consistency evaluation
+    let static_matcher_bsd = Arc::new(caro::backends::StaticMatcher::new(
+        caro::prompts::CapabilityProfile::for_platform(caro::prompts::ProfileType::Bsd),
+    ));
+    harness.add_backend("static_matcher_bsd".to_string(), static_matcher_bsd);
 
     // TODO: Add other backends (MLX, Ollama, etc.) when available
     // This will be implemented in a future work package
