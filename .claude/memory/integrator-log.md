@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-05-13 (23:00 PT fire) — option 2 loud-error code fix for #1081
+
+- **Validated:** re-confirmed [#1081](https://github.com/wildcard/caro/issues/1081) reproduces on the newly-published `caro 1.4.0` from crates.io (the prior validation was on 1.3.0). `caro --backend ollama --dry-run -p "list pdf files"` still emits `WARN  caro::cli: Remote backends not compiled in` and silently falls through to `ls -la` via the static matcher. Identical reproduction for `vllm` and `exo`. `--backend claude` still returns `Error: Invalid argument: Unknown backend 'claude'`. `--backend embedded` works (control). Evidence: claim-verification step before touching code, per the project rule that says "code premised on a stale evidence base is a wasted PR."
+
+- **Shipped:** code fix at `src/cli/mod.rs` — replaces the `tracing::warn!` silent-fallback arm (lines 395–400) with `return Err(Self::remote_backend_unavailable_error(model))`. Extracted a tiny `remote_backend_unavailable_error(backend: &str) -> CliError` helper (gated `#[cfg_attr(feature = "remote-backends", allow(dead_code))]`) so the error message can be unit-tested in isolation. Message names the requested backend, the missing feature, the exact `cargo install caro --features remote-backends --locked` invocation that fixes it, and the no-setup-required embedded alternative. Added `test_remote_backend_unavailable_error_message` in `cli::tests` covering all four message assertions. Smoke-tested against the branch binary: `caro --backend ollama` → exit 1 with the new error; `caro --backend vllm` and `caro --backend exo` produce equivalent errors; `caro --backend embedded` exit 0 (no regression). Both feature configurations (`embedded-cpu` and `embedded-cpu remote-backends`) clippy-clean with `-D warnings`; `cargo fmt --all -- --check` clean.
+
+- **Filed:** none. Tonight's PR closes the loop on the existing P1 ([#1081](https://github.com/wildcard/caro/issues/1081)) for option **2** of its remediation menu; the issue itself stays open until the related options ship (option 3: default-feature flip, or release-workflow `--features` injection; option 5: Claude CLI wiring). Dedup-checked `gh issue list --label integration --state all --search "remote-backends OR loud-error OR silent fallback"` — no other matches.
+
+- **Discovered:**
+  - **PR #1082** (last night's integrator's docs re-statusing PR) is still **open**, with `Lint & Format` and `MSRV Check (Rust 1.85)` CI failures. Both failures originate in pre-existing main code (`src/evaluation/evaluators/utils.rs` fmt — already removed on main by [#1084](https://github.com/wildcard/caro/pull/1084), and `backends::static_matcher::tests::test_website_example_2` — also fixed by #1084). A rebase of PR #1082 onto current `main` (HEAD `fcfa844a`) will clear both. Out of scope for tonight's one-PR-per-night budget — flagged for next pass or for a maintainer's hand on the original branch.
+  - `caro 1.4.0` shipped to crates.io between the last fire and tonight (`max: 1.4.0 newest: 1.4.0` from `crates.io/api/v1/crates/caro`). New top-level subcommands include `caro skill`, `caro do`, `caro run`, `caro generate`, `caro adopt`, `caro experiment`, `caro history`, `caro why`, `caro check`, `caro list`, `caro jobs`, `caro new`, `caro export`, `caro render`, `caro ai`, `caro suggest` — the CaroML task language has clearly landed. `caro mcp serve` and `caro serve --openai` are **not** yet in the help output, so the matrix queue ordering is unchanged. No new `--backend` options either.
+  - `caro skill` subcommand exists — useful next-pass surface for surfacing the bundled `caro-shell` skill from the CLI itself. File this as a research item rather than a regression.
+
+- **Next pass should:**
+  - (a) Rebase PR #1082 onto current `main` if it's still open and unmerged, so the previous integrator's matrix-row re-statusing can finally land. Trivial rebase; the only conflict will be on the date-banner line in `integrations-status.md` which intentionally was not edited tonight.
+  - (b) Pursue [#1081](https://github.com/wildcard/caro/issues/1081) option **5** (Claude CLI wiring) — `validate_backend_name` arm for `"claude"`, a new `create_backend` match arm wiring `ClaudeBackend::new(api_key)`, and a config-error path for the missing `ANTHROPIC_API_KEY`. ~30 LOC, fits a single-night PR. The existing `src/backends/remote/claude.rs` already does the heavy lifting; only CLI glue is missing.
+  - (c) If both (a) and (b) are unblocked, prioritize (a) — keeping last night's PR alive is higher value than starting a new code fix.
+
+---
+
 ## 2026-05-10 (23:00 PT fire) — third bootstrap-blocked night, awaiting merge action
 
 - **Validated:** none — bootstrap-check still says PLAYBOOK_NOT_MERGED. PR #939 remains OPEN. Per the scheduled-task header protocol, no integration-row validation runs until the playbook lands on `main`.
