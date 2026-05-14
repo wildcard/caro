@@ -67,6 +67,8 @@ This directory contains the infrastructure for automated development workflows t
 ├── README.md              # This file
 ├── config/                # Configuration files
 │   ├── schedule.yaml      # Loop schedules
+│   ├── policy.yaml        # Per-path auto_dispatch / auto_rebase policy
+│   │                      # (loaded by caro-merge-review-integrate)
 │   ├── qa_profiles.yaml   # QA tester profiles
 │   ├── idea_sources.yaml  # Idea sourcing config
 │   └── social_queue.yaml  # Social posting config

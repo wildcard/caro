@@ -22,7 +22,17 @@ If `Ready to Work` == 0 on v1.2.0 tasks, exit gracefully with: `"No ready v1.2.0
 
 ```bash
 # Get next ready v1.2.0 task (highest priority, Phase-1 first by dependency order)
-NEXT=$(bd ready --json 2>/dev/null | jq -r '.[] | select(.labels[]? == "v1.2.0") | .id' | head -1)
+# Skip beads claimed by named delivery agents (`claim_policy:manual_only`) — e.g.
+# the caro-waitlist-engineer's path:deep beads filed by caro-merge-review-integrate.
+# Skip beads in the rebase queue (`loop:rebase`) — those are drained by the
+# rebase loop (follow-up; see policy.yaml + dispatcher SKILL for the contract).
+NEXT=$(bd ready --json 2>/dev/null | jq -r '
+  .[]
+  | select(.labels[]? == "v1.2.0")
+  | select((.labels // []) | index("claim_policy:manual_only") | not)
+  | select((.labels // []) | index("loop:rebase") | not)
+  | .id
+' | head -1)
 [ -z "$NEXT" ] && { echo "no ready v1.2.0 work"; exit 0; }
 bd claim "$NEXT"
 bd show "$NEXT"
@@ -242,6 +252,7 @@ Return to step 1 until `bd ready` has no v1.2.0 entries OR user interrupts.
 - **Never work on main** — enforced by `.claude/rules/git-workflow.md` hook.
 - **Atomic claim** — `bd claim` is atomic across processes, so scheduled tasks and live sessions won't collide.
 - **Exit on first failure** — don't cascade broken state into the next task.
+- **Respect policy.yaml** — before touching any file in step 5, consult `.claude/automation/config/policy.yaml`. If a touched glob has `auto_dispatch: false`, do not proceed; mark `bd update "$NEXT" --status blocked --notes "policy.yaml: <glob> requires named delivery agent"` and exit. If `auto_rebase: false` and you are about to rebase, escalate the same way with `escalate:deep — auto_rebase blocked on <glob>`.
 
 ## Invocation
 
