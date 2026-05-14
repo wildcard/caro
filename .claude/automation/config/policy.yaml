@@ -1,0 +1,126 @@
+# policy.yaml — refuse-list and auto-merge policy for caro-merge-review-integrate
+#
+# Schema v1. Loaded by ~/.claude/scheduled-tasks/caro-merge-review-integrate/SKILL.md
+# at the top of Phase 2 (per-PR forward-path classification).
+#
+# Per-path policy:
+#   auto_dispatch : may the dispatcher file a [rebase-pr-N] bead and let
+#                   /caro-coder-loop claim it? false ⇒ path:refuse-list
+#                   (post [agent] decision comment, no bead).
+#   auto_rebase   : may the coder-loop *rebase* (merge main into the branch)
+#                   on this path? false ⇒ even a rebase attempt escalates
+#                   to path:deep for human / delivery-agent handling.
+#   constraint    : optional sub-rule. Recognized values:
+#                     "deps_only"   — bumps/adds/removes refuse; version
+#                                     bumps without dep changes pass
+#                     "no_new_flags"— additive CLI flags refuse; refactors
+#                                     of existing flags pass
+#   rationale     : human-readable justification — cite an incident,
+#                   STAKEHOLDERS entry, or a rule file. Required.
+#
+# Edits to this file SHOULD be small (one path per PR). The schema itself
+# is owned by the dispatcher routine; refuse-list expansions are not.
+#
+# References:
+#   - .github/STAKEHOLDERS.yml — ownership truth
+#   - .claude/rules/constitution.md — Tier 1/2 governance
+#   - .claude/commands/caro-coder-loop.md:241 — safety doctrine pin
+#   - ~/.claude/rules/release-version-alignment.md — distribution surface
+
+schema_version: 1
+
+paths:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Tier 1 — Hard refuse (must not auto-merge, must not auto-rebase)
+  # ─────────────────────────────────────────────────────────────────────────
+  - glob: "src/safety/patterns.rs"
+    auto_dispatch: false
+    auto_rebase: false
+    rationale: |
+      Doctrine — every safety change requires a paired test (TDD).
+      .claude/commands/caro-coder-loop.md:241 pins this:
+      "Never touch src/safety/patterns.rs without TDD."
+      Specialist: safety-pattern-developer.
+
+  - glob: ".github/workflows/**"
+    auto_dispatch: false
+    auto_rebase: false
+    rationale: |
+      CI mutation has cross-branch blast radius. STAKEHOLDERS assigns
+      @wildcard human-only. release.yml + publish.yml carry release secrets.
+
+  - glob: "src/execution/**"
+    auto_dispatch: false
+    auto_rebase: false
+    rationale: |
+      Shell command executor. A broken executor can silently run unsafe
+      commands. STAKEHOLDERS: unix-systems-engineer + @wildcard.
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Tier 2 — Refuse dispatch, allow rebase under constraint
+  # (coder-loop may merge main into PR branch but may not edit these paths)
+  # ─────────────────────────────────────────────────────────────────────────
+  - glob: "Cargo.toml"
+    auto_dispatch: false
+    auto_rebase: true
+    constraint: "deps_only"
+    rationale: |
+      Supply-chain surface. PR #1056 (MSRV bump CI break), PR #1072
+      (182 dependabot vulns processed). Version-only bumps pass; dep
+      additions/removals refuse.
+
+  - glob: "src/main.rs"
+    auto_dispatch: false
+    auto_rebase: true
+    constraint: "no_new_flags"
+    rationale: |
+      Doctrine — STAKEHOLDERS rust-cli-expert + @wildcard. UX review
+      required for new CLI flags. Refactors of existing flags acceptable.
+
+  - glob: "src/agent/**"
+    auto_dispatch: false
+    auto_rebase: true
+    rationale: |
+      Agentic context loop. STAKEHOLDERS: rust-cli-expert +
+      llm-integration-expert + @wildcard. Behaviour drift is hard to
+      detect; specialist hand-off required for substantive edits.
+
+  - glob: "src/backends/**"
+    auto_dispatch: false
+    auto_rebase: true
+    rationale: |
+      Backend regression risk; @wildcard human-required. Each backend
+      (embedded, ollama, vllm) has cross-cutting impact on inference
+      quality.
+
+  - glob: "src/caroml/**"
+    auto_dispatch: false
+    auto_rebase: true
+    rationale: |
+      Evolving subsystem; PRs 1–8 each touched it. Contract still
+      stabilizing. rust-cli-expert + @wildcard.
+
+  - glob: "src/prompts/**"
+    auto_dispatch: false
+    auto_rebase: true
+    rationale: |
+      Cumulative prompt drift is hard to detect; prompt-tuner gates
+      changes. Per-commit impact is small, cumulative impact is large.
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Tier 3 — Distribution surface (refuse dispatch, allow rebase)
+  # release-version-alignment.md governs these as a 6-file checklist
+  # ─────────────────────────────────────────────────────────────────────────
+  - glob:
+      - "install.sh"
+      - "install.ps1"
+      - "scripts/install.sh"
+      - "nuget/tools/install.ps1"
+      - "homebrew-tap/**"
+    auto_dispatch: false
+    auto_rebase: true
+    rationale: |
+      Distribution-surface artefacts. release-version-alignment.md
+      treats these as part of the 6-file release checklist. A user's
+      first touchpoint — wrong version numbers erode trust on day one.
+      caro-release-expert + @wildcard.
