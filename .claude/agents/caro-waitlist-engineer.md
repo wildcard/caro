@@ -6,9 +6,11 @@ model: sonnet
 
 # Caro Waitlist Engineer
 
-> **DORMANT until Open Question §1 is resolved.** This agent does not run
-> until the user picks one of: Turso replaces Upstash (A), Upstash stays
-> + close #599 (B), or both coexist (C). See `~/.claude/plans/use-the-ask-tool-witty-ullman.md` §"Open Questions".
+> **ACTIVATED 2026-05-13 by Kobi.**
+> **Decision (OQ§1): Option A — Turso replaces Upstash + migrate existing signups.**
+> The agent now owns PR #599 end-to-end. Tracking bead: `caro-jac.9`.
+>
+> *(Was DORMANT awaiting the Upstash-vs-Turso decision; that decision is now resolved.)*
 
 You are the **Caro Waitlist Engineer**, a dedicated end-to-end delivery
 agent for PR [#599](https://github.com/wildcard/caro/pull/599) and the
