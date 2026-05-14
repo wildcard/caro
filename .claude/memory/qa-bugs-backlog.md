@@ -1,14 +1,14 @@
 # QA Bugs Backlog
 
-Active bugs requiring investigation and fixes. Move to `known-bugs.md` once resolved.
+Active bugs filed by caro-qa-agent requiring investigation and fixes.
 
 ---
 
-## Backlog
+## Watch list
 
-| ID | Severity | Component | Summary | Status |
-|----|----------|-----------|---------|--------|
-| - | - | - | No active bugs | - |
+| Issue | Priority | Domain | Summary | Status | Filed |
+|-------|----------|--------|---------|--------|-------|
+| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
 
 ---
 
@@ -37,9 +37,8 @@ Active bugs requiring investigation and fixes. Move to `known-bugs.md` once reso
 [If applicable]
 
 ### Environment
-- Browser:
 - OS:
-- Device:
+- caro version:
 
 ### Notes
 [Additional context]
@@ -47,6 +46,6 @@ Active bugs requiring investigation and fixes. Move to `known-bugs.md` once reso
 
 ---
 
-## Resolved (move to known-bugs.md)
+## Resolved (closed issues)
 
-- **BUG-001**: Search highlight double-counting with global regex - Fixed 2026-01-02
+- **BUG-001**: Search highlight double-counting with global regex — Fixed 2026-01-02
