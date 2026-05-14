@@ -839,3 +839,61 @@ async fn test_bsd_safe_commands_no_false_positives() {
         );
     }
 }
+
+// --- filesystem-permission bypass tests (TDD RED phase) ---
+// Three variants that bypass the line-75 pattern. Each must be High/Critical
+// and blocked. They are expected to FAIL until the pattern is updated.
+
+#[tokio::test]
+async fn test_chmod_long_flag_recursive_bypass() {
+    // GNU long-option form: (-[rRfvn]+\s+)* iterates zero times, so
+    // "--recursive " stands between "chmod " and "777", breaking the match.
+    let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+    let cmd = "chmod --recursive 777 /";
+    let result = validator
+        .validate_command(cmd, ShellType::Bash)
+        .await
+        .unwrap();
+    assert!(
+        matches!(result.risk_level, RiskLevel::High | RiskLevel::Critical),
+        "chmod --recursive 777 / must be High/Critical, got {:?}",
+        result.risk_level
+    );
+    assert!(!result.allowed, "chmod --recursive 777 / must be blocked");
+}
+
+#[tokio::test]
+async fn test_chmod_4digit_octal_bypass() {
+    // 4-digit octal: line-75 matches literal "777"; the leading zero in "0777"
+    // shifts the digit sequence so the pattern never anchors correctly.
+    let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+    let cmd = "chmod -R 0777 /";
+    let result = validator
+        .validate_command(cmd, ShellType::Bash)
+        .await
+        .unwrap();
+    assert!(
+        matches!(result.risk_level, RiskLevel::High | RiskLevel::Critical),
+        "chmod -R 0777 / must be High/Critical, got {:?}",
+        result.risk_level
+    );
+    assert!(!result.allowed, "chmod -R 0777 / must be blocked");
+}
+
+#[tokio::test]
+async fn test_chmod_long_flag_4digit_octal_bypass() {
+    // Combined: GNU long flag + 4-digit octal. Neither existing pattern covers
+    // this combination.
+    let validator = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+    let cmd = "chmod --recursive 0777 /";
+    let result = validator
+        .validate_command(cmd, ShellType::Bash)
+        .await
+        .unwrap();
+    assert!(
+        matches!(result.risk_level, RiskLevel::High | RiskLevel::Critical),
+        "chmod --recursive 0777 / must be High/Critical, got {:?}",
+        result.risk_level
+    );
+    assert!(!result.allowed, "chmod --recursive 0777 / must be blocked");
+}
