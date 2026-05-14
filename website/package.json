@@ -22,6 +22,7 @@
   "dependencies": {
     "@astrojs/db": "^0.14.1",
     "@astrojs/react": "^4.4.2",
+    "@astrojs/vercel": "^9.0.5",
     "@vercel/analytics": "^1.6.1",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
