@@ -67,10 +67,14 @@ pub fn command_equivalence(cmd1: &str, cmd2: &str) -> bool {
                 // Remove explicit -s and --max-depth for normalization
                 flags.retain(|f| !f.starts_with("-s") && !f.starts_with("--max-depth"));
                 flags.sort();
-                format!("du {} {}", flags.join(" ").trim(), args.join(" ")).trim().to_string()
+                format!("du {} {}", flags.join(" ").trim(), args.join(" "))
+                    .trim()
+                    .to_string()
             } else {
                 flags.sort();
-                format!("du {} {}", flags.join(" ").trim(), args.join(" ")).trim().to_string()
+                format!("du {} {}", flags.join(" ").trim(), args.join(" "))
+                    .trim()
+                    .to_string()
             }
         }
         if normalize_du(&norm1) == normalize_du(&norm2) {
