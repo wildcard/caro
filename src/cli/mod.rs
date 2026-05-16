@@ -394,9 +394,7 @@ impl CliApp {
                     }
                     #[cfg(not(feature = "remote-backends"))]
                     "ollama" | "exo" | "vllm" => {
-                        tracing::warn!(
-                            "Remote backends not compiled in. Build with --features remote-backends"
-                        );
+                        return Err(Self::remote_backend_unavailable_error(model));
                     }
                     _ => {
                         tracing::warn!("Unknown backend '{}', using auto-detect", model);
@@ -490,6 +488,29 @@ impl CliApp {
                 backend, suggestion
             ),
         })
+    }
+
+    /// Build the error returned when the user requests a remote backend
+    /// in a binary that was compiled without the `remote-backends` feature.
+    ///
+    /// Returning a hard `CliError::ConfigurationError` (instead of a silent
+    /// `tracing::warn!` and fallback to the embedded backend) preserves the
+    /// contract a user expects when they pass `--backend <name>`. Tracked by
+    /// [#1081](https://github.com/wildcard/caro/issues/1081).
+    #[cfg_attr(feature = "remote-backends", allow(dead_code))]
+    fn remote_backend_unavailable_error(backend: &str) -> CliError {
+        CliError::ConfigurationError {
+            message: format!(
+                "Backend '{}' requires the 'remote-backends' feature, \
+                 which is not compiled into this build.\n\n\
+                 The default `cargo install caro` binary ships without remote \
+                 backends. To use {}, build from source with:\n  \
+                 cargo install caro --features remote-backends --locked\n\n\
+                 Alternatively, use the embedded backend (no setup required):\n  \
+                 caro --backend embedded \"<your prompt>\"",
+                backend, backend
+            ),
+        }
     }
 
     /// Get list of available backend names
@@ -898,5 +919,26 @@ mod tests {
         assert!(backends.contains(&"ollama"));
         assert!(backends.contains(&"exo"));
         assert!(backends.contains(&"vllm"));
+    }
+
+    #[test]
+    fn test_remote_backend_unavailable_error_message() {
+        // Verifies the loud-error contract for issue #1081 — when a user
+        // requests a remote backend but the binary lacks the feature, the
+        // error message must (a) name the backend, (b) point to the fix
+        // (build with --features remote-backends), and (c) suggest the
+        // no-setup-required embedded alternative.
+        let err = CliApp::remote_backend_unavailable_error("ollama");
+        let msg = err.to_string();
+        assert!(msg.contains("ollama"), "names the requested backend");
+        assert!(msg.contains("remote-backends"), "names the missing feature");
+        assert!(
+            msg.contains("cargo install caro --features remote-backends"),
+            "tells the user exactly how to rebuild"
+        );
+        assert!(
+            msg.contains("caro --backend embedded"),
+            "suggests the embedded alternative"
+        );
     }
 }
