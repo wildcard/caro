@@ -31,7 +31,7 @@ mod patterns;
 
 use serde::{Deserialize, Serialize};
 
-use crate::models::{RiskLevel, SafetyLevel, ShellType};
+use crate::models::{RiskLevel, SafetyLevel, ShellType, SuggestedRouting};
 
 pub use cve_patterns::{get_cve_compiled_patterns_for_shell, CVE_COMPILED};
 pub use patterns::{
@@ -68,6 +68,71 @@ pub struct ValidationResult {
     pub warnings: Vec<String>,
     pub matched_patterns: Vec<String>,
     pub confidence_score: f32,
+}
+
+/// Structured risk payload for agent approval workflows.
+///
+/// Returns richer context than `ValidationResult` — includes routing
+/// suggestion and confidence for tiered approval integration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SafetyDecision {
+    pub risk_level: RiskLevel,
+    pub reason: String,
+    pub suggested_routing: SuggestedRouting,
+    pub matched_patterns: Vec<String>,
+    pub confidence: f64,
+}
+
+impl SafetyDecision {
+    /// Create a safe decision (auto-approve).
+    pub fn safe() -> Self {
+        Self {
+            risk_level: RiskLevel::Safe,
+            reason: "No dangerous patterns detected".to_string(),
+            suggested_routing: SuggestedRouting::AutoApprove,
+            matched_patterns: Vec::new(),
+            confidence: 1.0,
+        }
+    }
+
+    /// Whether this decision allows execution without human approval.
+    pub fn is_safe(&self) -> bool {
+        !self.suggested_routing.requires_human() && self.suggested_routing.is_executable()
+    }
+
+    /// Whether this decision requires human approval.
+    pub fn requires_human_approval(&self) -> bool {
+        self.suggested_routing.requires_human()
+    }
+
+    /// Whether this decision blocks execution entirely.
+    pub fn is_blocked(&self) -> bool {
+        self.suggested_routing == SuggestedRouting::Block
+    }
+
+    /// Lift a legacy `ValidationResult` into a structured `SafetyDecision`.
+    pub fn from_validation_result(result: &ValidationResult, safety: SafetyLevel) -> Self {
+        Self {
+            risk_level: result.risk_level,
+            reason: result.explanation.clone(),
+            suggested_routing: SuggestedRouting::from_risk_and_safety(result.risk_level, safety),
+            matched_patterns: result.matched_patterns.clone(),
+            confidence: result.confidence_score as f64,
+        }
+    }
+}
+
+impl std::fmt::Display for SafetyDecision {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[{:?}] {} — routing: {} (confidence: {:.0}%)",
+            self.risk_level,
+            self.reason,
+            self.suggested_routing,
+            self.confidence * 100.0
+        )
+    }
 }
 
 /// Pattern definition for dangerous command detection
