@@ -1,22 +1,28 @@
 //! Hydrators — populate [`CandidateFeatures`] from candidate text.
 //!
-//! Phase 2 ships two:
+//! Each hydrator owns one feature so the upstream filter has something
+//! cheap to read. Doing the work here means [`super::SafetyFilter`] and
+//! [`super::ValidationFilter`] never duplicate the (potentially expensive)
+//! regex sweeps the validators perform.
+//!
+//! Shipped hydrators:
 //!
 //! - [`PlatformFitHydrator`] reuses the BSD/GNU heuristics from
-//!   [`crate::agent::AgentLoop::should_refine`] (`src/agent/mod.rs:720`) and
-//!   maps a hit to a [0, 1] `platform_fit` score. The logic is intentionally
+//!   [`crate::agent::AgentLoop`]'s `should_refine`. The logic is intentionally
 //!   identical so behavior is preserved when the pipeline is wired in.
-//! - [`SafetyHydrator`] calls [`crate::safety::SafetyValidator::validate_command`]
-//!   and writes `safety_confidence` + `risk_level` onto the candidate. The
-//!   [`super::SafetyFilter`] later consumes `risk_level` to drop Critical
-//!   candidates — keeping the validator call here means the network of
-//!   filters never duplicates a (potentially expensive) regex sweep.
+//! - [`SafetyHydrator`] calls
+//!   [`crate::safety::SafetyValidator::validate_command`] and writes
+//!   `safety_confidence` + `risk_level`.
+//! - [`ValidationHydrator`] calls the existing
+//!   [`crate::prompts::CommandValidator`] and writes `validation_passed`
+//!   + `validation_error`.
 
 use async_trait::async_trait;
 use std::sync::Arc;
 
 use super::{Candidate, Hydrator};
 use crate::models::ShellType;
+use crate::prompts::CommandValidator;
 use crate::safety::SafetyValidator;
 
 /// Platform-fit heuristic — penalizes BSD/GNU flag mismatches. Mirrors the
@@ -100,6 +106,39 @@ impl Hydrator for SafetyHydrator {
 
     fn name(&self) -> &str {
         "safety"
+    }
+}
+
+/// Runs the existing structural [`CommandValidator`] and stamps
+/// `validation_passed` + `validation_error` onto the candidate. A separate
+/// [`super::ValidationFilter`] consumes those fields to reject.
+///
+/// `CommandValidator::validate` is sync so this hydrator's async body
+/// doesn't await — it's async only to satisfy the trait shape.
+pub struct ValidationHydrator {
+    validator: Arc<CommandValidator>,
+}
+
+impl ValidationHydrator {
+    pub fn new(validator: Arc<CommandValidator>) -> Self {
+        Self { validator }
+    }
+}
+
+#[async_trait]
+impl Hydrator for ValidationHydrator {
+    async fn hydrate(&self, c: &mut Candidate) {
+        let result = self.validator.validate(&c.command);
+        c.features.validation_passed = result.is_valid();
+        c.features.validation_error = if result.is_valid() {
+            None
+        } else {
+            Some(result.error_message())
+        };
+    }
+
+    fn name(&self) -> &str {
+        "validation"
     }
 }
 

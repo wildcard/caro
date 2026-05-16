@@ -1,15 +1,14 @@
+/// Multi-stage candidate pipeline (x-algorithm-inspired). Scaffolding +
+/// adapters around the existing primitives. Wiring into [`AgentLoop`] is
+/// scheduled for a follow-up commit; see PR #1108.
+#[cfg(feature = "candidate-ranking")]
+pub mod pipeline;
+
 use crate::backends::{CommandGenerator, GeneratorError, StaticMatcher};
 use crate::context::{DirectoryContext, ExecutionContext};
 use crate::models::{CommandRequest, GeneratedCommand, SafetyLevel, ShellType};
 use crate::prompts::{CapabilityProfile, CommandValidator, ValidationResult};
 use anyhow::Result;
-
-/// Multi-stage candidate pipeline (x-algorithm-inspired). Phase 1: scaffolding
-/// + traits + linear scorer + argmax selector. Not yet wired into the agent
-/// loop — that's Phase 2. See the plan at
-/// `/root/.claude/plans/how-we-can-improve-polymorphic-stearns.md`.
-#[cfg(feature = "candidate-ranking")]
-pub mod pipeline;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::process::Command;

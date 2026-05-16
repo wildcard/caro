@@ -1,21 +1,21 @@
-//! Multi-stage candidate pipeline (Phase 1 scaffolding).
+//! Multi-stage candidate pipeline.
 //!
 //! Inspired by [`xai-org/x-algorithm`][1]'s feed pipeline pattern:
-//! `sources -> hydrators -> filters -> scorer -> selector`. The existing caro
-//! primitives map onto these stages without re-invention:
+//! `sources -> hydrators -> filters -> scorer -> selector`. The existing
+//! caro primitives map onto these stages without re-invention:
 //!
-//! - **Sources** wrap [`crate::backends::CommandGenerator`] impls plus the
-//!   knowledge index k-NN retrieval (Phase 2).
-//! - **Hydrators** add features such as platform-fit and safety-confidence.
-//! - **Filters** drop unsafe / invalid candidates using the existing
-//!   [`crate::safety::SafetyValidator`] and `CommandValidator`.
+//! - **Sources** wrap [`crate::backends::CommandGenerator`] impls (a
+//!   knowledge-retrieval source lands in a follow-up).
+//! - **Hydrators** populate [`CandidateFeatures`] — platform-fit, safety
+//!   confidence, structural validation.
+//! - **Filters** consume hydrated features to drop unsafe / invalid
+//!   candidates.
 //! - **Scorer** computes a weighted multi-signal score (see [`weights`]).
 //! - **Selector** picks the top candidate.
 //!
-//! Phase 1 (this module) provides the types, traits, a [`LinearScorer`], an
-//! [`ArgmaxSelector`], and a [`Pipeline`] orchestrator with unit tests.
-//! Phase 2 will plumb real sources / hydrators / filters and wire the
-//! pipeline into [`crate::agent::AgentLoop`] behind this feature flag.
+//! Note: this module is currently *additive*. The pipeline is not wired
+//! into [`crate::agent::AgentLoop`] yet — that change ships in a separate
+//! commit so reviewers can vet the abstraction in isolation.
 //!
 //! [1]: https://github.com/xai-org/x-algorithm
 
@@ -27,7 +27,7 @@ pub mod sources;
 pub mod weights;
 
 pub use filters::{SafetyFilter, ValidationFilter};
-pub use hydrators::{PlatformFitHydrator, SafetyHydrator};
+pub use hydrators::{PlatformFitHydrator, SafetyHydrator, ValidationHydrator};
 pub use scorer::{LinearScorer, Scorer};
 pub use selector::{ArgmaxSelector, Selector};
 pub use sources::BackendSource;
@@ -57,8 +57,14 @@ pub struct CandidateFeatures {
     pub knowledge_similarity: Option<f32>,
     /// Wall-clock time the source took to produce this candidate.
     pub latency_ms: u64,
-    /// Whether the structural / syntactic validator passed.
+    /// Whether the structural / syntactic validator passed. `false` is the
+    /// safe default — [`ValidationFilter`] rejects unhydrated candidates the
+    /// same way [`SafetyFilter`] does, so a misconfigured pipeline fails
+    /// loudly instead of silently passing everything.
     pub validation_passed: bool,
+    /// Error message from the structural validator, when it rejected.
+    /// Populated by [`ValidationHydrator`]; read by [`ValidationFilter`].
+    pub validation_error: Option<String>,
 }
 
 /// A single candidate command produced by a source.
