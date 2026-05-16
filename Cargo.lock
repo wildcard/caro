@@ -1423,7 +1423,7 @@ dependencies = [
  "rand_distr 0.5.1",
  "rayon",
  "safetensors 0.7.0",
- "thiserror 2.0.17",
+ "thiserror 2.0.18",
  "yoke",
  "zip",
 ]
@@ -1446,7 +1446,7 @@ dependencies = [
  "rand_distr 0.5.1",
  "rayon",
  "safetensors 0.7.0",
- "thiserror 2.0.17",
+ "thiserror 2.0.18",
  "tokenizers 0.22.2",
  "yoke",
  "zip",
@@ -4203,7 +4203,7 @@ dependencies = [
  "reqwest 0.12.28",
  "serde",
  "serde_json",
- "thiserror 2.0.17",
+ "thiserror 2.0.18",
  "ureq",
  "windows-sys 0.60.2",
 ]
