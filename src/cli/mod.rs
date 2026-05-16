@@ -44,6 +44,24 @@ impl CliApp {
     pub fn backend_arc(&self) -> Arc<dyn CommandGenerator> {
         Arc::clone(&self.backend)
     }
+
+    /// Apply a directory-context aggression level to the inner `AgentLoop`.
+    ///
+    /// Accepts the string forms `minimal` / `normal` / `aggressive` (or their
+    /// aliases — see [`crate::context::ContextLevel::parse`]). Unknown values
+    /// are returned as an error and the existing level is left unchanged.
+    pub fn set_context_level(&mut self, level: &str) -> Result<(), CliError> {
+        let parsed = crate::context::ContextLevel::parse(level).ok_or_else(|| {
+            CliError::ConfigurationError {
+                message: format!(
+                    "Unknown context level '{}': expected minimal|normal|aggressive",
+                    level
+                ),
+            }
+        })?;
+        self.agent_loop.set_context_level(parsed);
+        Ok(())
+    }
 }
 
 impl std::fmt::Debug for CliApp {
@@ -166,6 +184,12 @@ pub trait IntoCliArgs {
     /// Default implementation returns `false` for backward compatibility.
     fn backend_info(&self) -> bool {
         false
+    }
+    /// Override the directory-context aggression level (`--context-level`).
+    /// Returns one of `minimal`, `normal`, `aggressive`. Default
+    /// implementation returns `None` (use compiled default = `normal`).
+    fn context_level(&self) -> Option<String> {
+        None
     }
 }
 

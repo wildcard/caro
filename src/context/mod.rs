@@ -1,6 +1,6 @@
 mod directory;
 
-pub use directory::{DirectoryContext, ProjectType};
+pub use directory::{ContextLevel, DirectoryContext, ProjectType};
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

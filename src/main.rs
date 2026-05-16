@@ -823,6 +823,19 @@ struct Cli {
     )]
     backend_info: bool,
 
+    /// Aggression level for directory context gathering
+    ///
+    /// `minimal` cuts prompt tokens (project type + git only).
+    /// `normal` is the default (full inventory of build tools, scripts, etc.).
+    /// `aggressive` adds a bounded code-signature scan on top of `normal`.
+    ///
+    /// Pattern idea-borrowed from rtk-ai/rtk's `rtk read -l <level>`.
+    #[arg(
+        long = "context-level",
+        help = "Directory context aggression: minimal|normal|aggressive (default: normal)"
+    )]
+    context_level: Option<String>,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
@@ -896,6 +909,10 @@ impl IntoCliArgs for Cli {
 
     fn backend_info(&self) -> bool {
         self.backend_info
+    }
+
+    fn context_level(&self) -> Option<String> {
+        self.context_level.clone()
     }
 }
 
@@ -1107,7 +1124,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     }
 
     // Build a backend via the normal CLI path so the feature respects --backend, env var, config.
-    let cli_app = caro::cli::CliApp::with_overrides(
+    let mut cli_app = caro::cli::CliApp::with_overrides(
         caro::cli::CliConfig::default(),
         cli.backend.clone(),
         cli.model_name.clone(),
@@ -1115,6 +1132,11 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     )
     .await
     .map_err(|e| format!("initializing backend: {}", e))?;
+    if let Some(ref lvl) = cli.context_level {
+        cli_app
+            .set_context_level(lvl)
+            .map_err(|e| format!("context-level: {}", e))?;
+    }
     let backend: Arc<dyn CommandGenerator> = cli_app.backend_arc();
     // Derive the backend name from the *actually constructed* backend so the
     // off-host privacy warning is accurate even when auto-detection picks a
@@ -3607,13 +3629,18 @@ fn print_usage() {
 
 async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
     // Create CLI application with optional backend and model overrides
-    let app = CliApp::with_overrides(
+    let mut app = CliApp::with_overrides(
         caro::cli::CliConfig::default(),
         cli.backend.clone(),
         cli.model_name.clone(),
         cli.force_llm,
     )
     .await?;
+
+    // Apply --context-level if user supplied one.
+    if let Some(ref lvl) = cli.context_level {
+        app.set_context_level(lvl)?;
+    }
 
     // Run command generation
     let mut result = app.run_with_args(cli.clone()).await?;

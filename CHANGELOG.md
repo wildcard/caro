@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`--context-level` CLI flag** (`minimal`|`normal`|`aggressive`) tunes
+  directory-context aggression when caro builds prompts. `minimal` cuts
+  prompt tokens (project type + git only); `normal` is the default
+  (unchanged behavior); `aggressive` adds a bounded code-signature scan
+  (capped at 8 files / 24 signatures). Useful when caro runs under an
+  outer agent that already supplies project context — pattern
+  idea-borrowed from [rtk-ai/rtk](https://github.com/rtk-ai/rtk)'s
+  `rtk read -l aggressive` aggression levels. See
+  [docs/integrations/rtk-credits.md](docs/integrations/rtk-credits.md)
+  for full attribution.
+- **Output redaction post-filter** (`src/execution/redaction.rs`) strips
+  well-known secret patterns (AWS access keys, GitHub PATs, JWTs, Bearer
+  tokens, PEM private-key blocks, `*_TOKEN`/`*_KEY`/`*_SECRET`/`*_PASSWORD`
+  env-var assignments) from a command's captured stdout/stderr before
+  caro displays it. Generic `OutputRedactor` trait + built-in
+  `PatternRedactor`; replacement marker is `[REDACTED:<kind>]` so the
+  user knows *what* was redacted. Applies to *output* only — never to
+  the generated command. Pattern idea-borrowed from rtk.
+- **`CommandExecutor::apply_filter()`** — canonical entry point for any
+  post-execution rewrite (redaction, compression, etc.). Wraps the
+  filter callback in `catch_unwind`; if the filter panics or returns
+  `None`, the raw `ExecutionResult` is returned untouched and a warning
+  is logged. Invariant: a bug in any post-filter cannot drop the user's
+  command output. Pattern idea-borrowed from rtk's `ARCHITECTURE.md`
+  Design Principles section.
+
+### Changed
+
+- **Executor preserves signal exit codes** — a process terminated by a
+  signal now reports `128 + signal_number` on Unix (matches shell
+  convention: SIGINT → 130, SIGKILL → 137, SIGTERM → 143) instead of
+  collapsing to `-1`. New `resolve_exit_code()` helper covers both
+  normal and signal exits.
+
 ### Changed
 
 - **MSRV bumped from 1.83 → 1.85** to fix CI breakage caused by transitive

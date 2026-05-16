@@ -1,5 +1,5 @@
 use crate::backends::{CommandGenerator, GeneratorError, StaticMatcher};
-use crate::context::{DirectoryContext, ExecutionContext};
+use crate::context::{ContextLevel, DirectoryContext, ExecutionContext};
 use crate::models::{CommandRequest, GeneratedCommand, SafetyLevel, ShellType};
 use crate::prompts::{CapabilityProfile, CommandValidator, ValidationResult};
 use anyhow::Result;
@@ -20,6 +20,7 @@ pub struct AgentLoop {
     validator: CommandValidator,
     context: ExecutionContext,
     directory_context: DirectoryContext,
+    context_level: ContextLevel,
     _max_iterations: usize,
     timeout: Duration,
     confidence_threshold: f64,
@@ -56,8 +57,10 @@ impl AgentLoop {
         let static_matcher = Some(StaticMatcher::new(profile.clone()));
         let validator = CommandValidator::new(profile);
 
-        // Scan current directory for project context
-        let directory_context = DirectoryContext::scan(context.cwd.as_path());
+        // Scan current directory for project context at default level
+        let context_level = ContextLevel::default();
+        let directory_context =
+            DirectoryContext::scan_with_level(context.cwd.as_path(), context_level);
 
         Self {
             backend,
@@ -65,6 +68,7 @@ impl AgentLoop {
             validator,
             context,
             directory_context,
+            context_level,
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
             confidence_threshold: 0.8,        // Default: refine if confidence < 80%
@@ -84,6 +88,31 @@ impl AgentLoop {
             self.static_matcher = None;
         }
         self
+    }
+
+    /// Override the [`ContextLevel`] used for directory scanning.
+    ///
+    /// When set, the loop re-scans the current directory at the new level so
+    /// the prompt context reflects the chosen aggression. See
+    /// [`ContextLevel`] for the trade-offs between levels.
+    ///
+    /// Pattern idea-borrowed from rtk-ai/rtk's `rtk read -l <aggressive>`.
+    pub fn with_context_level(mut self, level: ContextLevel) -> Self {
+        self.set_context_level(level);
+        self
+    }
+
+    /// In-place variant of [`Self::with_context_level`] for `&mut self`
+    /// callers (e.g. when the AgentLoop is already owned by another struct).
+    pub fn set_context_level(&mut self, level: ContextLevel) {
+        self.context_level = level;
+        self.directory_context =
+            DirectoryContext::scan_with_level(self.context.cwd.as_path(), level);
+    }
+
+    /// Returns the currently configured context level.
+    pub fn context_level(&self) -> ContextLevel {
+        self.context_level
     }
 
     /// Enable the knowledge index for learning from past commands
@@ -384,7 +413,11 @@ impl AgentLoop {
 
         // Add directory context if available
         let dir_context_str = if self.directory_context.has_context() {
-            format!("\n\n{}", self.directory_context.to_context_string())
+            format!(
+                "\n\n{}",
+                self.directory_context
+                    .to_context_string_with_level(self.context_level)
+            )
         } else {
             String::new()
         };
@@ -459,7 +492,11 @@ impl AgentLoop {
 
         // Add directory context if available
         let dir_context_str = if self.directory_context.has_context() {
-            format!("\n\n{}", self.directory_context.to_context_string())
+            format!(
+                "\n\n{}",
+                self.directory_context
+                    .to_context_string_with_level(self.context_level)
+            )
         } else {
             String::new()
         };

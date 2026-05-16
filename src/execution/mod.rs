@@ -6,10 +6,12 @@ use crate::models::{ExecutionContext as ExecutionContextModel, Platform, ShellTy
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-mod executor;
+pub mod executor;
+pub mod redaction;
 mod shell;
 
 pub use executor::{CommandExecutor, ExecutionResult, ExecutorError};
+pub use redaction::{redact_result, OutputRedactor, PatternRedactor};
 pub use shell::{PlatformDetector, ShellDetector};
 
 /// Execution-related errors
