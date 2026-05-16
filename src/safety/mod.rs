@@ -71,9 +71,6 @@ pub struct ValidationResult {
 }
 
 /// Structured risk payload for agent approval workflows.
-///
-/// Returns richer context than `ValidationResult` — includes routing
-/// suggestion and confidence for tiered approval integration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SafetyDecision {
     pub risk_level: RiskLevel,
@@ -84,7 +81,6 @@ pub struct SafetyDecision {
 }
 
 impl SafetyDecision {
-    /// Create a safe decision (auto-approve).
     pub fn safe() -> Self {
         Self {
             risk_level: RiskLevel::Safe,
@@ -94,23 +90,15 @@ impl SafetyDecision {
             confidence: 1.0,
         }
     }
-
-    /// Whether this decision allows execution without human approval.
     pub fn is_safe(&self) -> bool {
         !self.suggested_routing.requires_human() && self.suggested_routing.is_executable()
     }
-
-    /// Whether this decision requires human approval.
     pub fn requires_human_approval(&self) -> bool {
         self.suggested_routing.requires_human()
     }
-
-    /// Whether this decision blocks execution entirely.
     pub fn is_blocked(&self) -> bool {
         self.suggested_routing == SuggestedRouting::Block
     }
-
-    /// Lift a legacy `ValidationResult` into a structured `SafetyDecision`.
     pub fn from_validation_result(result: &ValidationResult, safety: SafetyLevel) -> Self {
         Self {
             risk_level: result.risk_level,
@@ -126,7 +114,7 @@ impl std::fmt::Display for SafetyDecision {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "[{:?}] {} — routing: {} (confidence: {:.0}%)",
+            "[{:?}] {} — {} ({:.0}%)",
             self.risk_level,
             self.reason,
             self.suggested_routing,
@@ -421,6 +409,32 @@ impl SafetyValidator {
         })
     }
 
+    /// Validate a command and return a structured SafetyDecision.
+    pub async fn validate_command_structured(
+        &self,
+        command: &str,
+        shell: ShellType,
+    ) -> Result<SafetyDecision, ValidationError> {
+        let result = self.validate_command(command, shell).await?;
+        Ok(SafetyDecision::from_validation_result(
+            &result,
+            self.config.safety_level,
+        ))
+    }
+
+    /// Validate multiple commands and return structured decisions.
+    pub async fn validate_batch_structured(
+        &self,
+        commands: &[String],
+        shell: ShellType,
+    ) -> Result<Vec<SafetyDecision>, ValidationError> {
+        let mut decisions = Vec::with_capacity(commands.len());
+        for command in commands {
+            decisions.push(self.validate_command_structured(command, shell).await?);
+        }
+        Ok(decisions)
+    }
+
     /// Validate multiple commands efficiently
     pub async fn validate_batch(
         &self,
@@ -563,3 +577,95 @@ pub enum ValidationError {
 }
 
 // Types are already public, no re-export needed
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_suggested_routing_mapping() {
+        assert_eq!(
+            SuggestedRouting::from_risk_and_safety(RiskLevel::Safe, SafetyLevel::Strict),
+            SuggestedRouting::AutoApprove
+        );
+        assert_eq!(
+            SuggestedRouting::from_risk_and_safety(RiskLevel::Moderate, SafetyLevel::Permissive),
+            SuggestedRouting::AutoApprove
+        );
+        assert_eq!(
+            SuggestedRouting::from_risk_and_safety(RiskLevel::Moderate, SafetyLevel::Moderate),
+            SuggestedRouting::AsyncLog
+        );
+        assert_eq!(
+            SuggestedRouting::from_risk_and_safety(RiskLevel::Moderate, SafetyLevel::Strict),
+            SuggestedRouting::HumanGate
+        );
+        assert_eq!(
+            SuggestedRouting::from_risk_and_safety(RiskLevel::High, SafetyLevel::Moderate),
+            SuggestedRouting::HumanGate
+        );
+        assert_eq!(
+            SuggestedRouting::from_risk_and_safety(RiskLevel::Critical, SafetyLevel::Moderate),
+            SuggestedRouting::Block
+        );
+        assert_eq!(
+            SuggestedRouting::from_risk_and_safety(RiskLevel::Critical, SafetyLevel::Strict),
+            SuggestedRouting::Block
+        );
+    }
+
+    #[test]
+    fn test_suggested_routing_helpers() {
+        assert!(!SuggestedRouting::AutoApprove.requires_human());
+        assert!(SuggestedRouting::HumanGate.requires_human());
+        assert!(!SuggestedRouting::Block.requires_human());
+        assert!(SuggestedRouting::AutoApprove.is_executable());
+        assert!(SuggestedRouting::AsyncLog.is_executable());
+        assert!(SuggestedRouting::HumanGate.is_executable());
+        assert!(!SuggestedRouting::Block.is_executable());
+    }
+
+    #[test]
+    fn test_safety_decision_safe() {
+        let d = SafetyDecision::safe();
+        assert_eq!(d.risk_level, RiskLevel::Safe);
+        assert!(d.is_safe());
+        assert!(!d.requires_human_approval());
+        assert!(!d.is_blocked());
+    }
+
+    #[test]
+    fn test_safety_decision_from_result() {
+        let r = ValidationResult {
+            allowed: false,
+            risk_level: RiskLevel::High,
+            explanation: "test".to_string(),
+            warnings: vec![],
+            matched_patterns: vec!["p1".to_string()],
+            confidence_score: 0.9,
+        };
+        let d = SafetyDecision::from_validation_result(&r, SafetyLevel::Moderate);
+        assert_eq!(d.suggested_routing, SuggestedRouting::HumanGate);
+        assert_eq!(d.matched_patterns, vec!["p1"]);
+    }
+
+    #[tokio::test]
+    async fn test_validate_structured_safe() {
+        let v = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+        let d = v
+            .validate_command_structured("ls -la", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(d.is_safe());
+    }
+
+    #[tokio::test]
+    async fn test_validate_structured_dangerous() {
+        let v = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+        let d = v
+            .validate_command_structured("rm -rf /", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(d.is_blocked());
+    }
+}
