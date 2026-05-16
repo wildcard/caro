@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Runtime-loadable custom safety patterns** via TOML config. Users can now
+  add organization-specific dangerous-command patterns (e.g. `kubectl delete
+  -n prod`, `terraform destroy`, `aws s3 rb s3://prod-…`) without
+  recompiling. Two delivery surfaces, both additive on top of the built-in
+  pattern database:
+  - Inline `[[safety.custom_patterns]]` in `config.toml`.
+  - Sibling `~/.config/caro/patterns.toml` (preferred for team-shared rule sets).
+  Hardened: `risk_level` capped at `High` (Critical reserved for built-ins),
+  pattern source ≤ 512 chars (ReDoS bound), description required, malformed
+  regex fails loudly, and user allowlists cannot bypass Critical built-ins
+  (`rm -rf /` is blocked regardless of allowlist contents). See
+  [examples/patterns.example.toml](examples/patterns.example.toml) for the
+  full schema. Idea sourced from
+  [adolfousier/opencrabs](https://github.com/adolfousier/opencrabs)'s
+  `tools.toml` ergonomic; re-implemented from scratch in caro.
+
 ### Changed
 
 - **MSRV bumped from 1.83 → 1.85** to fix CI breakage caused by transitive

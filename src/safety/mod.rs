@@ -29,7 +29,9 @@
 pub mod cve_patterns;
 mod patterns;
 
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 
 use crate::models::{RiskLevel, SafetyLevel, ShellType, SuggestedRouting};
 
@@ -38,6 +40,115 @@ pub use patterns::{
     get_compiled_patterns_for_shell, get_patterns_by_risk, get_patterns_for_shell,
     validate_patterns,
 };
+
+/// Maximum length of a user-supplied regex pattern source (ReDoS bound).
+///
+/// User patterns longer than this are rejected by [`validate_user_pattern`].
+/// Built-in patterns are not subject to this cap.
+pub const MAX_USER_PATTERN_LENGTH: usize = 512;
+
+/// Maximum length of a user-supplied pattern description.
+pub const MAX_USER_PATTERN_DESCRIPTION_LENGTH: usize = 200;
+
+/// Validate metadata on a user-supplied [`DangerPattern`].
+///
+/// Enforces the hardening invariants documented for runtime-loadable
+/// safety patterns:
+///
+/// - `risk_level` is capped at `High` — `Critical` is reserved for
+///   built-ins so that user config cannot create commands that would
+///   block under permissive safety mode but go undetected by the
+///   built-in scanner.
+/// - `pattern` length ≤ [`MAX_USER_PATTERN_LENGTH`] characters (ReDoS bound).
+/// - `description` is non-empty and ≤ [`MAX_USER_PATTERN_DESCRIPTION_LENGTH`]
+///   characters.
+///
+/// Regex *compilation* is **not** checked here — that is left to
+/// [`SafetyValidator::new`], which will surface compile failures as a
+/// loud `ValidationError::PatternError`.
+///
+/// Returns a human-readable error string suitable for logging or
+/// surfacing to the user. Loaders may choose to either drop invalid
+/// user patterns (with a stderr warning) or fail startup; the current
+/// loader in [`SafetyConfig::from_user_config`] drops with a warning.
+pub fn validate_user_pattern(pattern: &DangerPattern) -> Result<(), String> {
+    if pattern.risk_level == RiskLevel::Critical {
+        return Err(format!(
+            "User pattern '{}' may not use risk_level Critical — \
+             Critical is reserved for built-in patterns. Use High instead.",
+            truncate_for_error(&pattern.description, 60)
+        ));
+    }
+
+    if pattern.pattern.len() > MAX_USER_PATTERN_LENGTH {
+        return Err(format!(
+            "User pattern '{}' exceeds maximum length of {} characters (got {})",
+            truncate_for_error(&pattern.description, 60),
+            MAX_USER_PATTERN_LENGTH,
+            pattern.pattern.len()
+        ));
+    }
+
+    if pattern.description.trim().is_empty() {
+        return Err("User pattern is missing a description (required for audit \
+                    trails and operator UX)"
+            .to_string());
+    }
+
+    if pattern.description.len() > MAX_USER_PATTERN_DESCRIPTION_LENGTH {
+        return Err(format!(
+            "User pattern description exceeds {} characters (got {}). \
+             Keep descriptions concise.",
+            MAX_USER_PATTERN_DESCRIPTION_LENGTH,
+            pattern.description.len()
+        ));
+    }
+
+    Ok(())
+}
+
+fn truncate_for_error(s: &str, max: usize) -> String {
+    if s.len() <= max {
+        s.to_string()
+    } else {
+        format!("{}…", &s[..max])
+    }
+}
+
+/// User-extensible safety section parsed from `config.toml`.
+///
+/// Maps directly onto the `[safety]` TOML table:
+///
+/// ```toml
+/// [[safety.custom_patterns]]
+/// pattern = 'kubectl\s+delete\s+-n\s+prod'
+/// risk_level = "High"
+/// description = "Delete in prod namespace"
+///
+/// [safety]
+/// allowlist_patterns = ['^echo\s+', '^ls(\s+-[a-zA-Z]+)*\s*$']
+/// ```
+///
+/// All fields default to empty so existing configs that lack a `[safety]`
+/// section continue to work unchanged.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SafetySection {
+    #[serde(default)]
+    pub custom_patterns: Vec<DangerPattern>,
+    #[serde(default)]
+    pub allowlist_patterns: Vec<String>,
+}
+
+/// Sibling `patterns.toml` schema. The top-level array uses `[[pattern]]`
+/// (not `[[safety.custom_patterns]]`) so the file reads cleanly as a
+/// dedicated patterns file rather than a config fragment.
+#[derive(Debug, Clone, Default, Deserialize)]
+struct PatternsFile {
+    #[serde(default, rename = "pattern")]
+    patterns: Vec<DangerPattern>,
+    #[serde(default)]
+    allowlist: Vec<String>,
+}
 
 /// Main safety validator for analyzing command safety
 #[derive(Debug)]
@@ -136,11 +247,12 @@ impl std::fmt::Display for SafetyDecision {
 }
 
 /// Pattern definition for dangerous command detection
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct DangerPattern {
     pub pattern: String,
     pub risk_level: RiskLevel,
     pub description: String,
+    #[serde(default)]
     pub shell_specific: Option<ShellType>,
 }
 
@@ -285,24 +397,37 @@ impl SafetyValidator {
             });
         }
 
-        // Check allowlist patterns first
-        for allow_pattern in &self.config.allowlist_patterns {
-            if let Ok(regex) = regex::Regex::new(allow_pattern) {
-                if regex.is_match(command) {
-                    return Ok(ValidationResult {
-                        allowed: true,
-                        risk_level: RiskLevel::Safe,
-                        explanation: "Command matches allowlist pattern".to_string(),
-                        warnings: vec![],
-                        matched_patterns: vec![allow_pattern.clone()],
-                        confidence_score: 1.0,
-                    });
+        // First pass: detect whether the command matches a built-in or CVE
+        // pattern at Critical risk. Critical built-ins are NEVER bypassed by
+        // user-supplied allowlists — `rm -rf /` is dangerous regardless of
+        // what's in patterns.toml. Without this guard a permissive
+        // `allowlist_patterns = ["^rm"]` would silently re-enable disaster.
+        let built_in_patterns = patterns::get_compiled_patterns_for_shell(shell);
+        let cve_compiled = cve_patterns::get_cve_compiled_patterns_for_shell(shell);
+        let has_critical_builtin_or_cve_match = built_in_patterns
+            .iter()
+            .chain(cve_compiled.iter())
+            .any(|(regex, level, _desc, _)| {
+                *level == RiskLevel::Critical && Self::is_dangerous_in_context(command, regex)
+            });
+
+        // Check allowlist patterns only if no Critical built-in/CVE match.
+        if !has_critical_builtin_or_cve_match {
+            for allow_pattern in &self.config.allowlist_patterns {
+                if let Ok(regex) = regex::Regex::new(allow_pattern) {
+                    if regex.is_match(command) {
+                        return Ok(ValidationResult {
+                            allowed: true,
+                            risk_level: RiskLevel::Safe,
+                            explanation: "Command matches allowlist pattern".to_string(),
+                            warnings: vec![],
+                            matched_patterns: vec![allow_pattern.clone()],
+                            confidence_score: 1.0,
+                        });
+                    }
                 }
             }
         }
-
-        // Get pre-compiled patterns for this shell type
-        let built_in_patterns = patterns::get_compiled_patterns_for_shell(shell);
         let mut matched = Vec::new();
         let mut highest_risk = RiskLevel::Safe;
         let mut warnings = Vec::new();
@@ -323,9 +448,8 @@ impl SafetyValidator {
         // Check against CVE-derived patterns compiled from data/cve_rules/*.yaml.
         // These use the same tuple shape as built-in patterns so the loop is
         // identical; descriptions carry the CVE ID prefix for provenance.
-        for (regex, risk_level, description, _) in
-            cve_patterns::get_cve_compiled_patterns_for_shell(shell)
-        {
+        // Reuses `cve_compiled` from the Critical pre-scan above.
+        for (regex, risk_level, description, _) in cve_compiled {
             if Self::is_dangerous_in_context(command, regex) {
                 matched.push(description.to_lowercase());
                 if *risk_level > highest_risk {
@@ -478,6 +602,88 @@ impl SafetyConfig {
             SafetyLevel::Moderate => Self::moderate(),
             SafetyLevel::Permissive => Self::permissive(),
         }
+    }
+
+    /// Build a [`SafetyConfig`] from a loaded [`crate::models::UserConfiguration`]
+    /// plus optional sibling `patterns.toml` file at the same path as the
+    /// user's `config.toml`.
+    ///
+    /// Merge order (later wins for allowlist; patterns are simply concatenated):
+    ///
+    /// 1. Base level (`strict` / `moderate` / `permissive`) from `safety_level`.
+    /// 2. Inline `[[safety.custom_patterns]]` and `safety.allowlist_patterns`
+    ///    from `config.toml`.
+    /// 3. Sibling `patterns.toml` (if present) — `[[pattern]]` entries are
+    ///    appended; `allowlist` entries are appended.
+    ///
+    /// Each user pattern is validated via [`validate_user_pattern`]. Patterns
+    /// that fail validation are **dropped with a stderr warning**, not fatal —
+    /// this matches the project's "loud failure" rule for malformed regex
+    /// (handled by [`SafetyValidator::new`]) while keeping startup resilient
+    /// to a single bad pattern in a longer user file.
+    ///
+    /// Regex compilation errors flow through to [`SafetyValidator::new`] and
+    /// surface as `ValidationError::PatternError`.
+    pub fn from_user_config(
+        user_config: &crate::models::UserConfiguration,
+        config_path: &Path,
+    ) -> Self {
+        let mut cfg = Self::from_level(user_config.safety_level);
+
+        // Inline patterns from config.toml
+        for pat in &user_config.safety.custom_patterns {
+            if let Err(e) = validate_user_pattern(pat) {
+                eprintln!(
+                    "WARN: Dropping invalid custom safety pattern from config.toml: {}",
+                    e
+                );
+                continue;
+            }
+            cfg.custom_patterns.push(pat.clone());
+        }
+        cfg.allowlist_patterns
+            .extend(user_config.safety.allowlist_patterns.iter().cloned());
+
+        // Optional sibling patterns.toml in the same directory as config.toml.
+        if let Some(dir) = config_path.parent() {
+            let patterns_path = dir.join("patterns.toml");
+            if patterns_path.exists() {
+                match std::fs::read_to_string(&patterns_path) {
+                    Ok(content) => match toml::from_str::<PatternsFile>(&content) {
+                        Ok(parsed) => {
+                            for pat in parsed.patterns {
+                                if let Err(e) = validate_user_pattern(&pat) {
+                                    eprintln!(
+                                        "WARN: Dropping invalid pattern from {}: {}",
+                                        patterns_path.display(),
+                                        e
+                                    );
+                                    continue;
+                                }
+                                cfg.custom_patterns.push(pat);
+                            }
+                            cfg.allowlist_patterns.extend(parsed.allowlist);
+                        }
+                        Err(e) => {
+                            eprintln!(
+                                "WARN: Could not parse {}: {} — ignoring file",
+                                patterns_path.display(),
+                                e
+                            );
+                        }
+                    },
+                    Err(e) => {
+                        eprintln!(
+                            "WARN: Could not read {}: {} — ignoring file",
+                            patterns_path.display(),
+                            e
+                        );
+                    }
+                }
+            }
+        }
+
+        cfg
     }
 
     /// Add custom dangerous pattern with deferred validation

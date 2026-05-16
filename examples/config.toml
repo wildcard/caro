@@ -58,3 +58,27 @@ endpoint = "https://telemetry.caro.sh/api/events"
 
 # First run flag (managed automatically)
 first_run = true
+
+# ============================================================================
+# Custom safety patterns (optional)
+# ============================================================================
+# User-defined dangerous-command patterns are ADDITIVE on top of caro's
+# built-in pattern database. They cannot disable built-ins, and Critical
+# severity is reserved for built-ins — user patterns are capped at "High".
+#
+# For a longer set of patterns, prefer the sibling `patterns.toml` file
+# (see examples/patterns.example.toml). The two forms can be combined.
+#
+# [[safety.custom_patterns]]
+# pattern = 'kubectl\s+delete\s+(-n\s+prod|--namespace\s+prod)'
+# risk_level = "high"             # "high" or "moderate"; "critical" is rejected
+# description = "Delete in prod namespace"
+# # Optional: shell_specific = "bash"
+#
+# Allowlist regexes — commands matching here skip pattern matching, EXCEPT
+# when a built-in Critical pattern matches (those always block).
+# [safety]
+# allowlist_patterns = [
+#   '^echo\s+',
+#   '^ls(\s+-[a-zA-Z]+)*\s*$',
+# ]
