@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "comment": "Tripwire manifest for the caro-demo landing-page video. Each entry records the SHA-256 of a source file the video depends on at the moment of the last shipped render. scripts/check-drift.sh compares the working tree to this manifest. When drift is detected the skill at .claude/skills/caro-demo-video/SKILL.md takes over. DO NOT EDIT BY HAND — regenerate with `scripts/render-and-ship.sh` (it rewrites this file on a successful render).",
+  "rendered_at": "2026-04-26T02:07:00Z",
+  "rendered_commit": "4c45fc56",
+  "caro_version_at_render": "1.3.0",
+  "video_output": {
+    "path": "website/public/caro-demo.mp4",
+    "poster": "website/public/caro-demo-poster.png",
+    "duration_seconds": 30.06,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "claims_baked_into_video": {
+    "pattern_count": 52,
+    "pattern_count_claim_text": "52+ patterns. Blocked before damage.",
+    "install_command": "cargo install caro",
+    "block_message": "✗ command blocked by safety validator (Critical)",
+    "block_reason_text": "Recursive deletion of root, home, current, or parent directory",
+    "scene_2_queries": [
+      {
+        "input": "find all PDF files larger than 10MB in Downloads",
+        "expected_output": "find ~/Downloads -name \"*.pdf\" -size +10M -ls"
+      },
+      {
+        "input": "find python files modified last week",
+        "expected_output": "find . -name \"*.py\" -type f -mtime -7"
+      },
+      {
+        "input": "find all errors in application logs",
+        "expected_output": "grep ERROR logs/app.log"
+      }
+    ],
+    "scene_3_query": {
+      "input": "delete everything in the current directory",
+      "expected_output": "rm -rf ./*"
+    }
+  },
+  "watched_files": [
+    {
+      "path": "website/src/ui/tokens.css",
+      "sha256": "c7f38e748a8cda98adb2d29443aed333d266eb0322cd8a78c594b904085934a5",
+      "purpose": "Brand colors. Mirrored verbatim into demos/remotion-video/src/tokens.ts. A drift here is the most common trigger — any palette change requires re-render."
+    },
+    {
+      "path": "website/src/components/landing/LPDemo.astro",
+      "sha256": "1d3108ab1c3849599cf72145f6d22c0d48a0e972e16a6e537726a7bd141e9e8d",
+      "purpose": "macOS terminal chrome design (traffic-light dots, title bar). The Remotion TerminalWindow component copies this look. If the website's terminal styling changes, the video must follow."
+    },
+    {
+      "path": "src/main.rs",
+      "sha256": "6f47a8e154c6198176836d903bb6e462f646c895887400c3799199e7fa38fd31",
+      "purpose": "CLI output strings. Scene 3 quotes the block-message literal from around line 1016. If the CLI's user-facing strings change, the video lies."
+    },
+    {
+      "path": ".claude/beta-testing/test-cases.yaml",
+      "sha256": "f528f884024a43d9d238015303705791ca4f65ebbe599d46243b3daccdf13270",
+      "purpose": "Source of truth for Scene 2's three queries. If a test case shifts (e.g. a flag changes for BSD-vs-GNU compat), the video must follow."
+    },
+    {
+      "path": "src/safety/patterns.rs",
+      "sha256": "30d29615cb61cc728ef37fe0c4c0518a3af8ce5450f6af1e2347237f94be82b0",
+      "purpose": "Safety pattern definitions. Pattern count drives the Scene 3 caption '52+ patterns'. Drift here may bump the claim text."
+    },
+    {
+      "path": "homebrew-tap/README.md",
+      "sha256": "8d85e785e55c0d16ceaa568791141fee22a59aeecb7a02a1d2bbe71aad994803",
+      "purpose": "Homebrew install instructions. Scene 4's install line should match the canonical install command."
+    },
+    {
+      "path": "install.sh",
+      "sha256": "fb9f92c3ea7a4971a48cbb83d6ae9d5dc1e7e9f44e457f4789490f32860bd9f7",
+      "purpose": "Curl-pipe install script. Same rationale as the homebrew tap — Scene 4 should reference a current, working install path."
+    }
+  ]
+}
