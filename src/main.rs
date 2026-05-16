@@ -787,6 +787,20 @@ struct Cli {
     )]
     interactive: bool,
 
+    /// Open the generated command in an editable prompt before executing
+    ///
+    /// When shell integration is installed (`eval "$(caro init zsh)"`), the
+    /// command is pushed into your real shell prompt buffer. Without shell
+    /// integration, an in-process rustyline prompt is shown with the
+    /// command pre-filled — press Enter to execute, Ctrl+C to cancel.
+    /// Inspired by simonw/llm-cmd.
+    #[arg(
+        short = 'e',
+        long,
+        help = "Edit the generated command before executing (rustyline pre-fill)"
+    )]
+    edit: bool,
+
     /// Force LLM inference (bypass static pattern matcher)
     #[arg(
         long,
@@ -905,55 +919,6 @@ impl IntoCliArgs for Cli {
 
 /// Exit code indicating edit mode - shell wrapper should capture command
 pub const EXIT_CODE_EDIT: i32 = 201;
-
-/// Copy text to system clipboard
-/// Returns true if successful, false if clipboard is unavailable
-fn copy_to_clipboard(text: &str) -> bool {
-    use std::process::{Command, Stdio};
-
-    #[cfg(target_os = "macos")]
-    {
-        if let Ok(mut child) = Command::new("pbcopy").stdin(Stdio::piped()).spawn() {
-            if let Some(stdin) = child.stdin.as_mut() {
-                use std::io::Write;
-                if stdin.write_all(text.as_bytes()).is_ok() {
-                    return child.wait().map(|s| s.success()).unwrap_or(false);
-                }
-            }
-        }
-        false
-    }
-
-    #[cfg(target_os = "linux")]
-    {
-        // Try xclip first, then xsel
-        for cmd in &["xclip", "xsel"] {
-            let args: &[&str] = if *cmd == "xclip" {
-                &["-selection", "clipboard"]
-            } else {
-                &["--clipboard", "--input"]
-            };
-
-            if let Ok(mut child) = Command::new(cmd).args(args).stdin(Stdio::piped()).spawn() {
-                if let Some(stdin) = child.stdin.as_mut() {
-                    use std::io::Write;
-                    if stdin.write_all(text.as_bytes()).is_ok()
-                        && child.wait().map(|s| s.success()).unwrap_or(false)
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-        false
-    }
-
-    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-    {
-        let _ = text;
-        false
-    }
-}
 
 /// Print shell integration script for the specified shell
 fn print_shell_init_script(shell: &str) {
@@ -3800,7 +3765,75 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     }
     // If command wasn't executed yet and passes safety checks, ask user if they want to execute
     else if result.exit_code.is_none() && result.executed && !cli.execute && !cli.interactive {
+        use caro::cli::edit_prompt::{prompt_for_edit, EditOutcome};
         use dialoguer::Select;
+
+        // Local helper: execute a command and write the outcome onto `result`.
+        // Used by the "Yes" branch, the in-process edit fallback, and the
+        // `--edit` short-circuit below. Borrows `result` mutably each time;
+        // a closure would tangle the borrow checker, hence a free fn.
+        fn execute_and_capture(result: &mut caro::cli::CliResult, command: &str) {
+            use caro::execution::CommandExecutor;
+            let executor = CommandExecutor::new(result.shell_used);
+            match executor.execute(command) {
+                Ok(exec_result) => {
+                    result.exit_code = Some(exec_result.exit_code);
+                    result.stdout = Some(exec_result.stdout);
+                    result.stderr = Some(exec_result.stderr);
+                    result.execution_error = if !exec_result.success {
+                        Some(format!(
+                            "Command exited with code {}",
+                            exec_result.exit_code
+                        ))
+                    } else {
+                        None
+                    };
+                    result.timing_info.execution_time_ms = exec_result.execution_time_ms;
+                }
+                Err(e) => {
+                    result.execution_error = Some(format!("Execution failed: {}", e));
+                }
+            }
+        }
+
+        // Local helper: in-process rustyline edit-then-execute. Used when the
+        // user passed --edit (or chose Edit in the menu) but no shell wrapper
+        // is active. Inspired by simonw/llm-cmd.
+        fn edit_then_execute(result: &mut caro::cli::CliResult) -> Result<(), CliError> {
+            match prompt_for_edit(&result.generated_command).map_err(|e| CliError::Internal {
+                message: format!("Edit prompt failed: {}", e),
+            })? {
+                EditOutcome::Execute(cmd) => {
+                    use colored::Colorize;
+                    eprintln!();
+                    eprintln!("{}", "Executing command...".dimmed());
+                    execute_and_capture(result, &cmd);
+                    eprintln!();
+                }
+                EditOutcome::Cancelled => {
+                    use colored::Colorize;
+                    eprintln!("{}", "Execution cancelled.".yellow());
+                    eprintln!();
+                }
+            }
+            Ok(())
+        }
+
+        // --edit short-circuit: skip the Yes/No/Edit menu entirely.
+        if cli.edit {
+            if in_wrapper {
+                // Shell wrapper installed → push command into the real shell buffer
+                println!("{}", result.generated_command);
+                std::process::exit(EXIT_CODE_EDIT);
+            } else if std::io::stdin().is_terminal() {
+                edit_then_execute(result)?;
+                return Ok(());
+            } else {
+                // Non-TTY with --edit: emit the command and let the caller handle it
+                display!("{}", result.generated_command);
+                return Ok(());
+            }
+        }
 
         // Check if we're in a terminal environment
         if std::io::stdin().is_terminal() {
@@ -3819,31 +3852,7 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                     // Yes - execute
                     display!("");
                     display!("{}", "Executing command...".dimmed());
-
-                    // Execute the command
-                    use caro::execution::CommandExecutor;
-
-                    let executor = CommandExecutor::new(result.shell_used);
-
-                    match executor.execute(&result.generated_command) {
-                        Ok(exec_result) => {
-                            result.exit_code = Some(exec_result.exit_code);
-                            result.stdout = Some(exec_result.stdout);
-                            result.stderr = Some(exec_result.stderr);
-                            result.execution_error = if !exec_result.success {
-                                Some(format!(
-                                    "Command exited with code {}",
-                                    exec_result.exit_code
-                                ))
-                            } else {
-                                None
-                            };
-                            result.timing_info.execution_time_ms = exec_result.execution_time_ms;
-                        }
-                        Err(e) => {
-                            result.execution_error = Some(format!("Execution failed: {}", e));
-                        }
-                    }
+                    execute_and_capture(result, &result.generated_command.clone());
                     display!("");
                 }
                 2 => {
@@ -3854,30 +3863,8 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                         println!("{}", result.generated_command);
                         std::process::exit(EXIT_CODE_EDIT);
                     } else {
-                        // Not running through wrapper - copy to clipboard as fallback
-                        let cmd = &result.generated_command;
-                        if copy_to_clipboard(cmd) {
-                            println!(
-                                "{} Command copied to clipboard. Paste with {} to edit.",
-                                "✓".green(),
-                                if cfg!(target_os = "macos") {
-                                    "Cmd+V"
-                                } else {
-                                    "Ctrl+V"
-                                }
-                            );
-                        } else {
-                            // Clipboard copy failed - just print the command
-                            println!("{}", "Command (copy manually):".yellow());
-                            println!("  {}", cmd);
-                        }
-                        println!();
-                        println!(
-                            "{}",
-                            "Tip: Add shell integration for seamless editing:".dimmed()
-                        );
-                        println!("  {}", "eval \"$(caro init zsh)\"  # or bash/fish".dimmed());
-                        println!();
+                        // No wrapper → in-process rustyline fallback (was: clipboard copy)
+                        edit_then_execute(result)?;
                     }
                 }
                 _ => {
