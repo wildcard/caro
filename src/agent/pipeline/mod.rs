@@ -19,16 +19,24 @@
 //!
 //! [1]: https://github.com/xai-org/x-algorithm
 
+pub mod filters;
+pub mod hydrators;
 pub mod scorer;
 pub mod selector;
+pub mod sources;
 pub mod weights;
 
+pub use filters::{SafetyFilter, ValidationFilter};
+pub use hydrators::{PlatformFitHydrator, SafetyHydrator};
 pub use scorer::{LinearScorer, Scorer};
 pub use selector::{ArgmaxSelector, Selector};
+pub use sources::BackendSource;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+
+use crate::models::RiskLevel;
 
 /// Feature vector hydrated onto each candidate before scoring.
 ///
@@ -41,6 +49,8 @@ pub struct CandidateFeatures {
     pub llm_confidence: f32,
     /// Confidence from [`crate::safety::SafetyValidator`] — higher = safer.
     pub safety_confidence: f32,
+    /// Risk level from the safety validator. `None` until [`SafetyHydrator`] runs.
+    pub risk_level: Option<RiskLevel>,
     /// 1.0 if no platform-specific issues detected, else lower.
     pub platform_fit: f32,
     /// Cosine similarity to the closest known successful command, if any.
@@ -88,15 +98,21 @@ pub trait CandidateSource: Send + Sync {
     fn name(&self) -> &str;
 }
 
-/// Adds features to a candidate. Hydrators are pure: they never reject.
+/// Adds features to a candidate. Hydrators are pure: they never reject. The
+/// trait is async so impls can call out to async machinery (e.g.
+/// [`crate::safety::SafetyValidator::validate_command`]).
+#[async_trait]
 pub trait Hydrator: Send + Sync {
-    fn hydrate(&self, candidate: &mut Candidate);
+    async fn hydrate(&self, candidate: &mut Candidate);
     fn name(&self) -> &str;
 }
 
 /// Inspects a candidate; returns `Some(reason)` to reject, `None` to keep.
+/// Async-trait friendly even when individual impls don't await — keeps the
+/// trait composable with async hydration upstream.
+#[async_trait]
 pub trait Filter: Send + Sync {
-    fn filter(&self, candidate: &Candidate) -> Option<String>;
+    async fn filter(&self, candidate: &Candidate) -> Option<String>;
     fn name(&self) -> &str;
 }
 
@@ -129,13 +145,13 @@ impl Pipeline {
 
         for c in candidates.iter_mut() {
             for h in &self.hydrators {
-                h.hydrate(c);
+                h.hydrate(c).await;
             }
         }
 
         for c in candidates.iter_mut() {
             for f in &self.filters {
-                if let Some(reason) = f.filter(c) {
+                if let Some(reason) = f.filter(c).await {
                     c.rejection_reason = Some(format!("{}: {}", f.name(), reason));
                     break;
                 }
@@ -174,8 +190,9 @@ mod tests {
     }
 
     struct FlatHydrator;
+    #[async_trait]
     impl Hydrator for FlatHydrator {
-        fn hydrate(&self, c: &mut Candidate) {
+        async fn hydrate(&self, c: &mut Candidate) {
             c.features.safety_confidence = 1.0;
             c.features.platform_fit = 1.0;
             c.features.validation_passed = true;
@@ -186,8 +203,9 @@ mod tests {
     }
 
     struct RejectByName(&'static str);
+    #[async_trait]
     impl Filter for RejectByName {
-        fn filter(&self, c: &Candidate) -> Option<String> {
+        async fn filter(&self, c: &Candidate) -> Option<String> {
             (c.source == self.0).then(|| format!("rejected source {}", self.0))
         }
         fn name(&self) -> &str {

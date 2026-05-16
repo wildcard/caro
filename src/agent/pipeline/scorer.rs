@@ -75,6 +75,7 @@ mod tests {
             knowledge_similarity: Some(1.0),
             latency_ms: 0,
             validation_passed: true,
+            ..Default::default()
         });
         assert!((s.score(&c) - 1.0).abs() < 1e-5);
     }
