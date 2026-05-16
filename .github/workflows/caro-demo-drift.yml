@@ -55,7 +55,7 @@ jobs:
 
       - name: Comment on PR (drift detected)
         if: steps.drift.outputs.drift_detected == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           REPORT_PATH: /tmp/drift-report.json
         with:
