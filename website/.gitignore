@@ -39,3 +39,4 @@ public/test-morph.html
 
 # Translation cache
 .translation-cache.json
+.env*.local

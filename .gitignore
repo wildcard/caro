@@ -234,3 +234,5 @@ kitty-specs/**/.kittify/dossiers/
 
 # Playwright MCP runtime artifacts
 .playwright-mcp/
+.vercel
+.env*.local
