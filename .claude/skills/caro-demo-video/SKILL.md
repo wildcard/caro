@@ -1,12 +1,14 @@
 ---
 name: caro-demo-video
-description: Build, render, and ship the caro landing-page demo video using Remotion (React-based programmatic video). Use when creating, updating, re-rendering, or extending the project demo MP4 that lives in website/public/caro-demo.mp4 and feeds the LPVideoDemo slot on the English landing page.
+description: Build, render, ship, AND MAINTAIN the caro landing-page demo video using Remotion. Use when creating, updating, re-rendering, extending the project demo MP4 at website/public/caro-demo.mp4 — or when responding to a drift alert from the caro-demo-drift CI workflow or a beads task with label `caro-demo-video`.
 ---
 
 # Caro Demo Video
 
 Reproducible, on-brand product demo video for the caro website, rendered
-from React code via [Remotion](https://www.remotion.dev/).
+from React code via [Remotion](https://www.remotion.dev/). This skill
+covers the full lifecycle: **build → render → ship → detect drift →
+re-render**.
 
 ## When to Use
 
@@ -15,6 +17,8 @@ from React code via [Remotion](https://www.remotion.dev/).
 - "update the landing page video"
 - "add a new scene to the demo"
 - "the demo on the website is missing / outdated"
+- "the caro-demo-drift workflow flagged my PR — what now?"
+- A beads task with label `caro-demo-video` is in your `bd ready` queue
 
 ## What This Skill Owns
 
@@ -195,6 +199,107 @@ explicitly extending scope.
 3. Re-render and re-ship per the Build Workflow above.
 4. Bump the version number in the demo's title bar (e.g.
    `caro v1.4.0 — demo`) only if a major release dropped.
+
+## Drift Detection
+
+The video bakes in mutable facts: brand colors, terminal chrome design,
+real CLI output strings, the "52+" pattern count, install commands.
+These come from 7 specific files. Drift between those files and the
+shipped MP4 means the video is lying about the product.
+
+### Baseline manifest
+
+[`demos/remotion-video/.baseline-manifest.json`](../../demos/remotion-video/.baseline-manifest.json)
+is the source of truth. It records:
+
+1. **Tripwire SHAs** — SHA-256 of each watched file at the last
+   successful render. Mechanical, cheap to check.
+2. **Semantic claims** — the actual scene-text strings baked into the
+   video: pattern count, install command, block message, the three
+   Scene 2 query/output pairs, the Scene 3 query. So the next agent
+   reading the manifest can see at a glance what the video *says*,
+   without having to re-derive it from the source code.
+
+### Watched files (7)
+
+| File | Why it matters | Affects |
+|---|---|---|
+| `website/src/ui/tokens.css` | Brand palette | All scenes |
+| `website/src/components/landing/LPDemo.astro` | Terminal chrome design | All scenes |
+| `src/main.rs` (lines ~1014–1023) | CLI block-message string | Scene 3 |
+| `.claude/beta-testing/test-cases.yaml` | Verified caro queries + outputs | Scene 2 |
+| `src/safety/patterns.rs` | Pattern count (currently 52) | Scene 3 caption |
+| `homebrew-tap/README.md` | Install command | Scene 4 |
+| `install.sh` | Curl-pipe install | Scene 4 |
+
+### Run the check
+
+```bash
+demos/remotion-video/scripts/check-drift.sh --human
+```
+
+Exit codes: `0` no drift, `1` drift detected, `2` tooling error.
+Default output is JSON; `--human` is for terminals.
+
+### Triggers (how an agent gets here)
+
+Three independent channels — at least one will catch drift:
+
+1. **CI watcher (path-filtered)** —
+   [`.github/workflows/caro-demo-drift.yml`](../../.github/workflows/caro-demo-drift.yml)
+   runs `check-drift.sh` on every PR that touches a watched file. If
+   drift is detected, the workflow comments on the PR with the specific
+   files that changed and links here.
+2. **Monthly cron** — a scheduled beads task (label `caro-demo-video`)
+   forces a fresh check even when no PR touched a watched path. Catches
+   slow brand drift over many small commits.
+3. **Manual / human-triggered** — anyone can run the check script and
+   file a beads task tagged `caro-demo-video`.
+
+## Trust Model — when can an agent ship without human review?
+
+The re-rendered MP4 is a public-facing marketing asset. Two paths:
+
+| Drift type | Examples | Required action |
+|---|---|---|
+| **Output-equivalent** | tokens.css color literal renames (e.g. variable rename, same hex value); whitespace-only changes in LPDemo.astro; install.sh comment edits | Agent re-renders and ships directly. Visual diff against the prior poster.png must be within ±5% pixel delta. |
+| **Cosmetic but visible** | Hex color value changes; LPDemo chrome restyle; new pattern count claim ("52+" → "60+") | Agent renders, opens a PR with the new MP4 + poster, requests human review. |
+| **Semantic** | Scene 2 query strings drift; block message changes; install command changes | Agent renders, opens a PR with side-by-side commentary (old vs new strings), requests human review. **Do not auto-ship.** |
+
+The agent decides which bucket applies by reading the
+`claims_baked_into_video` section of the manifest against the current
+working tree. If a query string in `test-cases.yaml` changed, that's
+semantic → PR. If only a hex value changed in `tokens.css`, that's
+cosmetic-but-visible → PR. If nothing semantic changed and the render
+is byte-identical, the agent may push directly to main.
+
+## Claiming a Maintenance Task
+
+This skill is **agent-claimable**. A Claude Code session reaching this
+section should:
+
+1. **Check the trigger**.
+   - Beads task in `bd ready` with label `caro-demo-video` → read
+     `bd show <id>` for the trigger note.
+   - PR comment from `caro-demo-drift workflow` → read the comment
+     for the drifted-files list.
+   - Manual invocation → run `check-drift.sh --human` for the report.
+2. **Decide the trust bucket** from the table above.
+3. **Re-render** with
+   `demos/remotion-video/scripts/render-and-ship.sh` — this also
+   refreshes the baseline manifest, so subsequent drift checks anchor
+   to this render.
+4. **Ship per trust bucket**:
+   - *Output-equivalent*: commit + merge directly.
+   - *Cosmetic / Semantic*: open a PR with the rendered MP4 + poster +
+     refreshed manifest, request human review.
+5. **Close the beads task** with `bd close <id> --reason="re-rendered
+   <reason>; commit <sha>"`.
+
+If unable to complete (e.g. queries failed when verified against the
+current `caro` binary, terminal chrome rebuild needed), keep the task
+`in_progress` and add a comment explaining what's blocking, so the next
+agent (or a human) can pick up.
 
 ## Out of Scope (track separately if requested)
 

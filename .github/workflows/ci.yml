@@ -345,11 +345,10 @@ jobs:
   security:
     name: Security Audit
     runs-on: ubuntu-latest
-    # INTERIM: continue-on-error until issue #1050 batch fixes land.
-    # Revert criteria: cargo audit exits 0 (audit.toml suppresses known
-    # warnings) AND npm audit exits 0 in all three manifests.
-    # Tracked: https://github.com/wildcard/caro/issues/1050
-    continue-on-error: true
+    # continue-on-error removed: #1050 revert criteria met — cargo audit
+    # exits 0 with all known warnings suppressed in audit.toml. See PR that
+    # resolved RUSTSEC-2026-0104 for full documentation of the reqwest 0.11
+    # legacy path rationale.
     steps:
     - uses: actions/checkout@v6
 

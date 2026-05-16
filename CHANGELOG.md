@@ -32,6 +32,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   acceptance P0 carry-forward.
   ([#947](https://github.com/wildcard/caro/issues/947))
 
+### Security
+
+- Bump `rustls-webpki` modern path (`0.103.10` → `0.103.13`) to resolve
+  RUSTSEC-2026-0098, RUSTSEC-2026-0099, and RUSTSEC-2026-0104
+  (CRL parsing panics and name-constraint flaws). The legacy
+  `reqwest 0.11` → `rustls 0.21` → `rustls-webpki 0.101.7` path is
+  terminal (no upstream patch available); suppressed in `audit.toml` and
+  `.cargo/audit.toml` with documented rationale pending the reqwest 0.12
+  migration. `cargo audit` exits 0 with no unacknowledged vulnerabilities.
+  Reverts `continue-on-error: true` guard on the CI Security Audit job
+  (originally added in [#1072](https://github.com/wildcard/caro/pull/1072);
+  revert criteria from that PR are now met).
+  ([#1026](https://github.com/wildcard/caro/pull/1026))
+
 ## [1.4.0] - 2026-05-09
 
 ### Added

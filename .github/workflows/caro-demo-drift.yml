@@ -1,0 +1,106 @@
+name: caro-demo drift check
+
+# Runs the drift checker for the landing-page demo video whenever a PR
+# touches one of the files baked into the rendered MP4. If drift is
+# detected, posts a comment on the PR with the specific files that
+# changed and links to the maintenance skill.
+#
+# Security: no untrusted input is interpolated into run: commands. The
+# only ${{ ... }} usages reference our own step outputs and event-context
+# fields (issue.number, repo.owner) that are not attacker-controlled.
+# The drift report body is loaded from a file we generate in this job
+# and is composed in github-script via a JS string assembly (no shell).
+
+on:
+  pull_request:
+    paths:
+      - 'website/src/ui/tokens.css'
+      - 'website/src/components/landing/LPDemo.astro'
+      - 'src/main.rs'
+      - '.claude/beta-testing/test-cases.yaml'
+      - 'src/safety/patterns.rs'
+      - 'homebrew-tap/README.md'
+      - 'install.sh'
+      - 'demos/remotion-video/.baseline-manifest.json'
+      - '.github/workflows/caro-demo-drift.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-drift:
+    name: Check video drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Sanity-check jq availability
+        run: jq --version
+
+      - name: Run drift check
+        id: drift
+        run: |
+          set +e
+          REPORT=$(demos/remotion-video/scripts/check-drift.sh)
+          EXIT=$?
+          set -e
+          printf '%s\n' "$REPORT" > /tmp/drift-report.json
+          echo "exit_code=$EXIT" >> "$GITHUB_OUTPUT"
+          if [ "$EXIT" -eq 1 ]; then
+            echo "drift_detected=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "drift_detected=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment on PR (drift detected)
+        if: steps.drift.outputs.drift_detected == 'true'
+        uses: actions/github-script@v9
+        env:
+          REPORT_PATH: /tmp/drift-report.json
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync(process.env.REPORT_PATH, 'utf8'));
+            const drifted = report.files.filter(f => f.status !== 'OK');
+            const lines = drifted.map(f =>
+              `- \`${f.path}\` — ${f.status}\n   _${f.purpose}_`
+            ).join('\n');
+            const body = [
+              '`[agent]`',
+              '',
+              '**Agent:** caro-demo-drift workflow (`github-actions`)',
+              '',
+              '---',
+              '',
+              '### caro-demo landing video drift detected',
+              '',
+              `This PR changes ${drifted.length} file(s) that the landing-page demo video at \`website/public/caro-demo.mp4\` is rendered from. The video may no longer match the product.`,
+              '',
+              `**Last rendered:** ${report.last_rendered_at} (commit \`${report.last_rendered_commit}\`)`,
+              '',
+              '**Drifted sources:**',
+              lines,
+              '',
+              '#### What to do',
+              '1. If the change is purely cosmetic (no scene text affected), no action needed — the monthly cron task will refresh.',
+              '2. If the change affects what the video says (scene queries, block messages, install commands, pattern count), please trigger a re-render either by checking out this PR and running `demos/remotion-video/scripts/render-and-ship.sh`, or by filing a beads task referencing this PR.',
+              '3. See `.claude/skills/caro-demo-video/SKILL.md` (Drift Detection → Triggers → Trust Model) for the full workflow.',
+              '',
+              '---',
+              '',
+              '<details>',
+              '<summary>Full drift report (JSON)</summary>',
+              '',
+              '```json',
+              JSON.stringify(report, null, 2),
+              '```',
+              '',
+              '</details>'
+            ].join('\n');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });

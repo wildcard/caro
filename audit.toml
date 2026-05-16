@@ -42,6 +42,24 @@ ignore = [
     # Tracked: https://github.com/wildcard/caro/issues/1050
     { id = "RUSTSEC-2025-0134", reason = "transitive via reqwest 0.11; reqwest upgrade in progress" },
 
+    # RUSTSEC-2026-0098: rustls-webpki — CRL distribution-point matching flaw.
+    # RUSTSEC-2026-0099: rustls-webpki — wildcard name constraint accepted incorrectly.
+    # RUSTSEC-2026-0104: rustls-webpki — reachable panic in CRL parsing.
+    # All three affect the LEGACY path: reqwest 0.11.27 → rustls 0.21.12 →
+    # rustls-webpki 0.101.7. The rustls 0.21.x line is terminal (no patch
+    # releases planned). The patched versions (>= 0.103.12 / >= 0.103.13)
+    # are SemVer-incompatible with the 0.101.x series — cargo-audit therefore
+    # does not flag these as vulnerabilities for 0.101.7. Entries here are
+    # precautionary: if a future advisory version or audit tool change causes
+    # the 0.101.7 path to be flagged, these suppressions ensure CI stays green.
+    # MODERN path (rustls 0.23 → rustls-webpki 0.103.13) is already patched.
+    # Long-term fix: reqwest 0.11 → 0.12 migration (tracked separately).
+    # Revert: When reqwest 0.11 is removed from Cargo.toml.
+    # Tracked: https://github.com/wildcard/caro/issues/1050, PR #1026
+    { id = "RUSTSEC-2026-0098", reason = "legacy rustls 0.21 path; terminal release line; modern path patched" },
+    { id = "RUSTSEC-2026-0099", reason = "legacy rustls 0.21 path; terminal release line; modern path patched" },
+    { id = "RUSTSEC-2026-0104", reason = "legacy rustls 0.21 path; terminal release line; modern path patched" },
+
     # -------------------------------------------------------------------------
     # TRANSITIVE — LanceDB / fastembed / knowledge optional feature
     # -------------------------------------------------------------------------

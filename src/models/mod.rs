@@ -174,6 +174,60 @@ impl RiskLevel {
     }
 }
 
+/// Routing suggestion for agent approval workflows.
+///
+/// Maps risk level + safety level to a concrete action recommendation.
+/// Agent builders use this to implement tiered approval:
+/// - `AutoApprove`: execute without human intervention
+/// - `AsyncLog`: execute but log for post-hoc review
+/// - `HumanGate`: pause for human approval before execution
+/// - `Block`: refuse execution entirely
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum SuggestedRouting {
+    AutoApprove,
+    AsyncLog,
+    HumanGate,
+    Block,
+}
+
+impl SuggestedRouting {
+    /// Canonical mapping from risk level + safety level to routing.
+    pub fn from_risk_and_safety(risk: RiskLevel, safety: SafetyLevel) -> Self {
+        match (risk, safety) {
+            (RiskLevel::Safe, _) => Self::AutoApprove,
+            (RiskLevel::Moderate, SafetyLevel::Permissive) => Self::AutoApprove,
+            (RiskLevel::Moderate, SafetyLevel::Moderate) => Self::AsyncLog,
+            (RiskLevel::Moderate, SafetyLevel::Strict) => Self::HumanGate,
+            (RiskLevel::High, SafetyLevel::Permissive) => Self::AsyncLog,
+            (RiskLevel::High, _) => Self::HumanGate,
+            (RiskLevel::Critical, SafetyLevel::Permissive) => Self::HumanGate,
+            (RiskLevel::Critical, _) => Self::Block,
+        }
+    }
+
+    /// Whether this routing requires human approval before execution.
+    pub fn requires_human(&self) -> bool {
+        matches!(self, Self::HumanGate)
+    }
+
+    /// Whether commands under this routing can be executed.
+    pub fn is_executable(&self) -> bool {
+        matches!(self, Self::AutoApprove | Self::AsyncLog | Self::HumanGate)
+    }
+}
+
+impl std::fmt::Display for SuggestedRouting {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::AutoApprove => write!(f, "auto_approve"),
+            Self::AsyncLog => write!(f, "async_log"),
+            Self::HumanGate => write!(f, "human_gate"),
+            Self::Block => write!(f, "block"),
+        }
+    }
+}
+
 impl std::fmt::Display for RiskLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use colored::Colorize;
@@ -241,6 +295,8 @@ pub enum BackendType {
     Exo,
     /// Claude API backend (Anthropic)
     Claude,
+    /// OpenRouter unified API backend (100+ cloud LLMs)
+    OpenRouter,
 }
 
 impl std::str::FromStr for BackendType {
@@ -255,6 +311,7 @@ impl std::str::FromStr for BackendType {
             "mlx" => Ok(Self::Mlx),
             "exo" => Ok(Self::Exo),
             "claude" | "anthropic" => Ok(Self::Claude),
+            "openrouter" => Ok(Self::OpenRouter),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -270,6 +327,7 @@ impl std::fmt::Display for BackendType {
             Self::Mlx => write!(f, "mlx"),
             Self::Exo => write!(f, "exo"),
             Self::Claude => write!(f, "claude"),
+            Self::OpenRouter => write!(f, "openrouter"),
         }
     }
 }

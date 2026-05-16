@@ -46,7 +46,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             shell_specific: None,
         },
         DangerPattern {
-            pattern: r"mkfs\.\w+\s+/dev/(sd|hd|nvme)".to_string(),
+            pattern: r"mkfs\.\w+\s+(?:\S+\s+)*?/dev/(sd|hd|nvme)".to_string(),
             risk_level: RiskLevel::Critical,
             description: "Format disk destroying all data".to_string(),
             shell_specific: None,
@@ -72,7 +72,12 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             shell_specific: None,
         },
         DangerPattern {
-            pattern: r"chmod\s+((-[rRfvn]+|--recursive)\s+)*0?777\s+/".to_string(),
+            // Match `chmod 777 /` with any combination of intervening flag
+            // tokens (e.g. `-R`, `-Rfv`, `--recursive`). The optional
+            // `(?:\s+-{1,2}\S+)*` group is what closes caro#1034: the prior
+            // pattern only matched the bare `chmod 777 /` form and silently
+            // let the recursive variant pass under --safety strict.
+            pattern: r"chmod(?:\s+-{1,2}\S+)*\s+0?777\s+/".to_string(),
             risk_level: RiskLevel::High,
             description: "Permission change making root world-writable (recursive or direct)"
                 .to_string(),
@@ -609,5 +614,41 @@ mod tests {
     fn test_critical_patterns_exist() {
         let critical = get_patterns_by_risk(RiskLevel::Critical);
         assert!(!critical.is_empty(), "Should have critical risk patterns");
+    }
+
+    /// Returns true when at least one built-in pattern of risk High or
+    /// Critical matches `command`. Strict safety mode blocks anything at
+    /// or above High, so this mirrors the gate that user-facing strict
+    /// mode applies.
+    fn matches_high_or_critical(command: &str) -> bool {
+        DANGEROUS_PATTERNS.iter().any(|p| {
+            p.risk_level >= RiskLevel::High
+                && regex::Regex::new(&p.pattern)
+                    .map(|r| r.is_match(command))
+                    .unwrap_or(false)
+        })
+    }
+
+    /// Regression test for caro#1034: `chmod -R 777 /` and recursive
+    /// variants must be blocked under strict mode (High or Critical risk).
+    /// Prior to the fix, the pattern at line 75 only matched literal
+    /// `chmod 777 /` with no flags, so the recursive form silently passed.
+    #[test]
+    fn test_chmod_recursive_root_blocked_strict() {
+        let must_block = [
+            "chmod 777 /",             // existing behavior (regression-protect)
+            "chmod -R 777 /",          // canonical bypass from #1034
+            "chmod -Rfv 777 /",        // combined short flags
+            "chmod --recursive 777 /", // GNU long flag
+            "chmod -R 0777 /",         // 4-digit octal, recursive
+        ];
+
+        for cmd in must_block {
+            assert!(
+                matches_high_or_critical(cmd),
+                "command {cmd:?} must match at least one High-or-Critical pattern \
+                 (would be blocked by --safety strict)"
+            );
+        }
     }
 }
