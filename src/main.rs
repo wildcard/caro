@@ -449,6 +449,11 @@ enum Commands {
         /// Filter tests by profile ID (e.g., bt_001)
         #[arg(long)]
         profile: Option<String>,
+
+        /// System-prompt variant for embedded backend: "default" (full) or "minimal"
+        /// (llm-cmd-style terse prompt). Has no effect on the static backend.
+        #[arg(long, default_value = "default")]
+        prompt_style: String,
     },
 
     /// Generate shell completion scripts
@@ -2854,8 +2859,15 @@ async fn run_evaluation_tests(
     _verbose: bool,
     suite_path: Option<&str>,
     profile_id: Option<&str>,
+    prompt_style_str: &str,
 ) -> Result<(), String> {
+    use caro::prompts::PromptStyle;
+    let prompt_style: PromptStyle = prompt_style_str.parse().map_err(|e: String| e)?;
+
     println!("Running evaluation tests with backend: {}", backend_name);
+    if backend_name == "embedded" {
+        println!("Prompt style: {}", prompt_style);
+    }
     println!();
 
     // Create backend (boxed to allow different types)
@@ -2866,7 +2878,8 @@ async fn run_evaluation_tests(
         }
         "embedded" => Box::new(
             EmbeddedModelBackend::new()
-                .map_err(|e| format!("Failed to create embedded backend: {}", e))?,
+                .map_err(|e| format!("Failed to create embedded backend: {}", e))?
+                .with_prompt_style(prompt_style),
         ),
         _ => {
             return Err(format!(
@@ -3056,9 +3069,16 @@ async fn main() {
             verbose,
             suite,
             profile,
+            prompt_style,
         }) => {
-            match run_evaluation_tests(&backend, verbose, suite.as_deref(), profile.as_deref())
-                .await
+            match run_evaluation_tests(
+                &backend,
+                verbose,
+                suite.as_deref(),
+                profile.as_deref(),
+                &prompt_style,
+            )
+            .await
             {
                 Ok(()) => process::exit(0),
                 Err(e) => {

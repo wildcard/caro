@@ -83,9 +83,48 @@
 pub mod capability_profile;
 pub mod command_templates;
 pub mod explainer_prompt;
+pub mod minimal;
 pub mod profiles;
 pub mod smollm_prompt;
 pub mod validation;
+
+/// Selects which system-prompt variant the embedded backend uses.
+///
+/// `Default` is the production prompt with detailed rules and examples.
+/// `Minimal` is the llm-cmd-style terse variant (one instruction + one example).
+/// Use `--prompt-style minimal` on `caro test` to A/B evaluate the two variants.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum PromptStyle {
+    /// Full-featured prompt with numbered rules, Docker/K8s tables, mtime semantics.
+    #[default]
+    Default,
+    /// Minimal llm-cmd-style prompt: one instruction + one example pair.
+    Minimal,
+}
+
+impl std::str::FromStr for PromptStyle {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "default" | "standard" | "full" => Ok(Self::Default),
+            "minimal" | "min" | "terse" => Ok(Self::Minimal),
+            _ => Err(format!(
+                "Unknown prompt style '{}'. Valid values: default, minimal",
+                s
+            )),
+        }
+    }
+}
+
+impl std::fmt::Display for PromptStyle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Default => write!(f, "default"),
+            Self::Minimal => write!(f, "minimal"),
+        }
+    }
+}
 
 // Re-export main types for convenient access
 pub use capability_profile::{AwkType, CapabilityProfile, DetectedShell, ProfileType, StatFormat};
@@ -95,6 +134,7 @@ pub use profiles::{
     AlternativeCommand, CommandExplanation, GenerationProfile, OptionExplanation, ProfileConfig,
     UsageExample,
 };
+pub use minimal::build_minimal_prompt;
 pub use smollm_prompt::{CommandOutput, PromptResponse, RepairPromptBuilder, SmolLMPromptBuilder};
 pub use validation::{
     CommandValidator, RiskLevel, ValidationError, ValidationErrorCode, ValidationResult,
