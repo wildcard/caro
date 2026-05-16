@@ -170,6 +170,11 @@ embedded-mlx = ["cxx", "llama_cpp"]
 embedded-cpu = ["candle-core", "candle-transformers"]
 knowledge = ["lancedb", "fastembed", "arrow-array", "arrow-schema"]
 chromadb = ["knowledge", "dep:chromadb"]  # ChromaDB backend (requires knowledge base features)
+# Multi-stage candidate pipeline inspired by x-algorithm
+# (sources -> hydrators -> filters -> scorer -> selector). Phase 1: scaffolding only,
+# no behavior change. Phase 2 wires it into AgentLoop. See
+# /root/.claude/plans/how-we-can-improve-polymorphic-stearns.md.
+candidate-ranking = []
 # Compile CVE rules from data/cve_rules/*.yaml into the binary at build time.
 # Disable for minimal-binary targets where CVE coverage is not needed.
 cve-rules = []
