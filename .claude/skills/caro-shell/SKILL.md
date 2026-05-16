@@ -22,7 +22,7 @@ Don't use this skill for:
 
 ## What caro provides
 
-[`caro`](https://crates.io/crates/caro) is a Rust CLI that converts natural language → POSIX shell commands using local LLMs (MLX on Apple Silicon, Candle CPU elsewhere) or remote providers (Anthropic, Ollama, vLLM, Exo). Every generated command goes through 52+ dangerous-pattern safety regexes before being shown to the user. Risk levels: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`.
+[`caro`](https://crates.io/crates/caro) is a Rust CLI that converts natural language → POSIX shell commands using local LLMs (MLX on Apple Silicon, Candle CPU elsewhere). The default `cargo install caro` build ships with embedded backends only; remote providers (Ollama, vLLM, Exo) require a custom build with `--features remote-backends`, and the Anthropic Claude backend is not yet wired into the CLI. Every generated command goes through 52+ dangerous-pattern safety regexes before being shown to the user. Risk levels: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`.
 
 ## How to invoke
 
