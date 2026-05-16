@@ -114,7 +114,7 @@ mlx-rs = { version = "0.25", optional = true }
 llama_cpp = { version = "0.3", features = ["metal"], optional = true }
 
 # Embedded model inference - Candle for CPU (cross-platform)
-candle-core = { version = "0.9", optional = true }
+candle-core = { version = "0.10", optional = true }
 candle-transformers = { version = "0.9", optional = true }
 tokenizers = { version = "0.22", default-features = false, features = ["http", "rustls-tls", "onig"] }
 
