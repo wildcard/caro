@@ -70,7 +70,7 @@ home = "=0.5.12"  # Pin to avoid edition2024 requirement in 0.5.11+
 time-core = "=0.1.7"  # Pin to avoid MSRV incompatibility in 0.1.8+
 
 # Model integration (Hugging Face Hub)
-hf-hub = { version = "0.4", default-features = false, features = ["tokio", "rustls-tls"] }
+hf-hub = { version = "0.5", default-features = false, features = ["tokio", "rustls-tls"] }
 url = "2.5"
 
 # Date/time handling
