@@ -156,7 +156,7 @@ jobs:
 
       - name: Create Release
         if: steps.check_release.outputs.exists != 'true'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.prepare-release.outputs.tag }}
           name: caro v${{ needs.prepare-release.outputs.version }}
@@ -273,7 +273,7 @@ jobs:
         shell: bash
 
       - name: Upload Release Assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.prepare-release.outputs.tag }}
           files: |
