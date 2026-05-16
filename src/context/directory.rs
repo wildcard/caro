@@ -195,8 +195,7 @@ impl DirectoryContext {
             if path.join("Dockerfile").exists() {
                 ctx.has_docker = true;
             }
-            if path.join("docker-compose.yml").exists()
-                || path.join("docker-compose.yaml").exists()
+            if path.join("docker-compose.yml").exists() || path.join("docker-compose.yaml").exists()
             {
                 ctx.has_docker_compose = true;
             }
@@ -233,18 +232,14 @@ impl DirectoryContext {
         let candidate_dirs = [path.to_path_buf(), path.join("src")];
 
         for dir in candidate_dirs.iter() {
-            if files_scanned >= AGGRESSIVE_MAX_FILES
-                || out.len() >= AGGRESSIVE_MAX_SIGNATURES
-            {
+            if files_scanned >= AGGRESSIVE_MAX_FILES || out.len() >= AGGRESSIVE_MAX_SIGNATURES {
                 break;
             }
             let Ok(entries) = fs::read_dir(dir) else {
                 continue;
             };
             for entry in entries.flatten() {
-                if files_scanned >= AGGRESSIVE_MAX_FILES
-                    || out.len() >= AGGRESSIVE_MAX_SIGNATURES
-                {
+                if files_scanned >= AGGRESSIVE_MAX_FILES || out.len() >= AGGRESSIVE_MAX_SIGNATURES {
                     break;
                 }
                 let p = entry.path();

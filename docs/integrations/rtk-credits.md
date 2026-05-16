@@ -45,7 +45,7 @@ This means there is no direct feature overlap to worry about; only
 ## Out of scope (intentionally NOT borrowed)
 
 - **Per-command output filters** (`src/cmds/git*`, `src/cmds/aws*`). rtk's
-  entire raison d'être; orthogonal to caro's generation pipeline.
+  entire core mission; orthogonal to caro's generation pipeline.
 - **`rusqlite` analytics backend**. Adds C build deps and ~1MB; caro keeps
   telemetry JSONL-light.
 - **Generic command wrappers** (`rtk err`, `rtk test`). rtk-specific UX

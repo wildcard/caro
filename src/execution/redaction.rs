@@ -33,7 +33,7 @@ use std::borrow::Cow;
 
 use crate::execution::executor::{CommandExecutor, ExecutionResult};
 
-/// A post-execution redactor. Implementors transform `text` and return the
+/// A post-execution redactor. Implementers transform `text` and return the
 /// possibly-modified result.
 pub trait OutputRedactor: Send + Sync {
     /// Redact `text`. Implementations should return `Cow::Borrowed(text)`
@@ -64,10 +64,7 @@ static BUILTIN_PATTERNS: Lazy<Vec<PatternEntry>> = Lazy::new(|| {
             r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b",
         ),
         // HTTP Authorization Bearer tokens.
-        (
-            "bearer-token",
-            r"(?i)\bbearer\s+[A-Za-z0-9._\-+/=]{20,}",
-        ),
+        ("bearer-token", r"(?i)\bbearer\s+[A-Za-z0-9._\-+/=]{20,}"),
         // PEM private key blocks (multi-line, anchored on both ends).
         (
             "pem-private-key",
@@ -128,10 +125,7 @@ impl OutputRedactor for PatternRedactor {
 /// `success`, and `execution_time_ms` are always preserved. If the redactor
 /// panics, the raw result passes through with a warning (see
 /// `CommandExecutor::apply_filter` for the invariant).
-pub fn redact_result<R: OutputRedactor>(
-    result: ExecutionResult,
-    redactor: &R,
-) -> ExecutionResult {
+pub fn redact_result<R: OutputRedactor>(result: ExecutionResult, redactor: &R) -> ExecutionResult {
     CommandExecutor::apply_filter(result, |r| {
         let new_stdout = redactor.redact(&r.stdout).into_owned();
         let new_stderr = redactor.redact(&r.stderr).into_owned();
