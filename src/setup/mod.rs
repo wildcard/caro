@@ -191,6 +191,7 @@ impl SetupWizard {
             telemetry: crate::telemetry::TelemetryConfig::default(),
             generation_profile: crate::prompts::profiles::GenerationProfile::default(),
             ai: crate::models::AiConfig::default(),
+            safety: crate::safety::SafetySection::default(),
         };
 
         self.print_summary(&configuration, theme);

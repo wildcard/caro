@@ -145,7 +145,7 @@ impl std::fmt::Display for GeneratedCommand {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "lowercase")]
 pub enum RiskLevel {
     Safe,
@@ -758,19 +758,42 @@ impl AiConfig {
     }
 }
 
+fn default_safety_level() -> SafetyLevel {
+    SafetyLevel::Moderate
+}
+
+fn default_log_level() -> LogLevel {
+    LogLevel::Info
+}
+
+fn default_cache_max_size_gb() -> u64 {
+    10
+}
+
+fn default_log_rotation_days() -> u32 {
+    7
+}
+
 /// User configuration with preferences
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UserConfiguration {
+    #[serde(default)]
     pub default_shell: Option<ShellType>,
+    #[serde(default = "default_safety_level")]
     pub safety_level: SafetyLevel,
     /// Default backend type (embedded, ollama, exo, vllm)
+    #[serde(default)]
     pub default_model: Option<String>,
     /// Model name for the backend (e.g., codellama:7b for ollama)
     #[serde(default)]
     pub model_name: Option<String>,
+    #[serde(default = "default_log_level")]
     pub log_level: LogLevel,
+    #[serde(default = "default_cache_max_size_gb")]
     pub cache_max_size_gb: u64,
+    #[serde(default = "default_log_rotation_days")]
     pub log_rotation_days: u32,
+    #[serde(default)]
     pub telemetry: crate::telemetry::TelemetryConfig,
     /// Default generation profile (generator or explainer)
     #[serde(default)]
@@ -778,6 +801,11 @@ pub struct UserConfiguration {
     /// Interactive AI feature (`caro ai`, `?` keybinding) configuration.
     #[serde(default)]
     pub ai: AiConfig,
+    /// User-defined safety patterns and allowlist, parsed from the `[safety]`
+    /// TOML section. Defaults to empty; user patterns are *additive* on top
+    /// of the built-in pattern database.
+    #[serde(default)]
+    pub safety: crate::safety::SafetySection,
 }
 
 impl Default for UserConfiguration {
@@ -793,6 +821,7 @@ impl Default for UserConfiguration {
             telemetry: crate::telemetry::TelemetryConfig::default(),
             generation_profile: crate::prompts::profiles::GenerationProfile::default(),
             ai: AiConfig::default(),
+            safety: crate::safety::SafetySection::default(),
         }
     }
 }
@@ -834,6 +863,7 @@ pub struct UserConfigurationBuilder {
     telemetry: crate::telemetry::TelemetryConfig,
     generation_profile: crate::prompts::profiles::GenerationProfile,
     ai: AiConfig,
+    safety: crate::safety::SafetySection,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -856,6 +886,7 @@ impl UserConfigurationBuilder {
             telemetry: defaults.telemetry,
             generation_profile: defaults.generation_profile,
             ai: defaults.ai,
+            safety: defaults.safety,
         }
     }
 
@@ -924,6 +955,7 @@ impl UserConfigurationBuilder {
             telemetry: self.telemetry,
             generation_profile: self.generation_profile,
             ai: self.ai,
+            safety: self.safety,
         };
         config.validate()?;
         Ok(config)

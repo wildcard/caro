@@ -243,11 +243,17 @@ impl CliApp {
         let backend = Self::create_backend(&user_config).await?;
         let backend_arc: Arc<dyn CommandGenerator> = Arc::from(backend);
 
+        // Build a safety validator that honors both the user's safety level
+        // AND their custom patterns / allowlist from config.toml + sibling
+        // patterns.toml. Critical built-ins still take precedence over any
+        // user allowlist (see `SafetyValidator::validate_command`).
+        let safety_config = crate::safety::SafetyConfig::from_user_config(
+            &user_config,
+            config_manager.config_path(),
+        );
         let validator =
-            SafetyValidator::new(crate::safety::SafetyConfig::default()).map_err(|e| {
-                CliError::ConfigurationError {
-                    message: format!("Failed to initialize safety validator: {}", e),
-                }
+            SafetyValidator::new(safety_config).map_err(|e| CliError::ConfigurationError {
+                message: format!("Failed to initialize safety validator: {}", e),
             })?;
 
         // Detect execution context
