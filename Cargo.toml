@@ -109,6 +109,12 @@ chromadb = { version = "2.3", optional = true }
 cxx = { version = "1.0", optional = true }
 rustyline = "14"
 
+# Microsoft Agent Governance Toolkit (AGT) — Rust SDK.
+# Gated behind the `governance` feature so default builds stay lean.
+# Pure-Rust transitive deps (cedar-policy, regorus, ed25519-dalek, sha2).
+# License: MIT — compatible absorption into caro's AGPL-3.0.
+agentmesh = { version = "3.6", optional = true }
+
 # Embedded model inference - MLX for Apple Silicon via llama.cpp
 [target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
 mlx-rs = { version = "0.25", optional = true }
@@ -179,6 +185,11 @@ candidate-ranking = []
 # Compile CVE rules from data/cve_rules/*.yaml into the binary at build time.
 # Disable for minimal-binary targets where CVE coverage is not needed.
 cve-rules = []
+# Microsoft Agent Governance Toolkit integration. Phase 0 — build-spike only.
+# When enabled, links the `agentmesh` crate so we can verify MSRV / transitive
+# deps resolve against caro's workspace. Not yet wired into the safety or agent
+# loops; that arrives in Phase 1+. Not in `default` until Phase 0 ships green.
+governance = ["dep:agentmesh"]
 
 [profile.release]
 # Optimize for binary size (<50MB target)
