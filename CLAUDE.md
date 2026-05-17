@@ -6,7 +6,7 @@ A Rust CLI that converts natural language descriptions into safe POSIX shell com
 
 - **Language**: Rust (edition 2021, MSRV 1.83)
 - **License**: AGPL-3.0
-- **Version**: 1.3.0 (GA)
+- **Version**: 1.4.0 (GA)
 - **Crate**: [crates.io/crates/caro](https://crates.io/crates/caro)
 
 ## Key Architecture
