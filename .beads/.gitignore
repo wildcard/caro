@@ -1,0 +1,24 @@
+# Runtime / per-clone state — never commit.
+# `bd` rewrites these on every command, so tracking them caused cross-session
+# merge conflicts and contributed to the divergent-branches deadlock that
+# wedged the daemon on 2026-05-16.
+#
+# Source of truth lives in `issues.jsonl` (committed). Everything below is
+# derived state that gets rebuilt by `bd init` + `bd import`.
+
+beads.db
+beads.db-shm
+beads.db-wal
+beads.db-journal
+.local_version
+.sync.lock
+sync-state.json
+last-touched
+daemon.pid
+daemon.log
+bd.sock
+interactions.jsonl
+
+# Post-mortem artifacts from DB-corruption recoveries — keep on disk for
+# forensics, never commit.
+*.corrupt-*
