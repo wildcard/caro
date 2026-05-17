@@ -1,5 +1,6 @@
 // CLI module - Command-line interface and user interaction
 
+pub mod edit_prompt;
 pub mod telemetry;
 
 use serde::{Deserialize, Serialize};
