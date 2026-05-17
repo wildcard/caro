@@ -1,0 +1,10 @@
+# All generated artifacts — never commit model weights or training data
+.venv/
+system_prompt.txt
+data/
+qwen-mlx/
+adapters/
+qwen-caro-fused/
+*.gguf
+*.safetensors
+__pycache__/
