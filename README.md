@@ -85,6 +85,25 @@ This project is **generally available** with all core features implemented, test
 - 🌐 **Cross-platform** - Full support for macOS (including Apple Silicon), Linux, and Windows
 - 🎬 **Safe execution** - Optional command execution with shell-aware handling
 
+
+## How Caro fits in the guardian agent architecture
+
+In 2026, Gartner named **Guardian Agents** as a formal market category: autonomous oversight layers that monitor, constrain, and govern AI agent behavior in production. Microsoft's Agent Governance Toolkit (OWASP + EU AI Act compliance) and Orchid Security's zero-trust identity layer are two early category leaders.
+
+Most guardian agent products focus on **policy, identity, and observability** — *who* is the agent, *what* permissions does it have, *what did it do*. Caro occupies a complementary but distinct layer: **execution safety for shell and tool calls**. It sits at the exact point where a prompt becomes a command, applying deterministic validation before anything reaches the OS.
+
+| Guardian concern | Caro's contribution |
+|---|---|
+| Prompt injection → RCE | Deterministic regex + CVE rule validation breaks the injection→execution chain (see CVE-2026-25592, CVE-2026-26030) |
+| Tool-call governance | Every shell command passes through `SafetyValidator` regardless of which agent or backend produced it |
+| Risk-tiered approval | CRITICAL / HIGH / MEDIUM / LOW risk levels map directly onto tiered human-in-the-loop approval patterns |
+| Auditability | Structured JSON output and telemetry hooks give guardian orchestrators a machine-readable safety signal |
+| Defense in depth | 5-layer validation pipeline (allowlist → built-in patterns → CVE rules → custom patterns → user confirmation) — no single bypass produces execution |
+
+**In short:** if your guardian agent stack needs a safety primitive that sits between "the LLM decided to run a command" and "the command hits the shell", Caro is that layer.
+
+See [`docs/GUARDIAN_AGENT.md`](docs/GUARDIAN_AGENT.md) for the full explainer.
+
 ## Installation
 
 ### macOS
