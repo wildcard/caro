@@ -65,7 +65,7 @@ Each row simulates what the skill would do faithfully against the v1.4.0 binary.
 |---|---|---|
 | caro returns | `echo 'Unable to generate command'` (shell-executable refusal, see [B3](./audit.md#p0--must-fix-or-formally-waive)) | `Error: Unknown backend 'claude'` |
 | Skill's fallback rule | "If caro fails or returns empty, fall back" — but this output is *neither* empty *nor* a non-zero exit | broken |
-| **Critical gap** | skill must treat `echo 'Unable to generate command'` as a failure sentinel until [caro-bnr6](../../../.beads/issues.jsonl) lands | — |
+| **Critical gap** | skill must treat `echo 'Unable to generate command'` as a failure sentinel until [#1116](https://github.com/wildcard/caro/issues/1116) lands | — |
 
 ### Scenario 5 — dangerous rm (the gold path)
 *Prompt: "rm -rf /"*
@@ -120,8 +120,8 @@ Driven by the data above:
 1. **caro-shell-helper → deprecation pointer.** It teaches wrong facts (paid-backend default, wrong macOS config path, fictional risk-emoji output) and is 4× the size of the working alternative. The "POSIX education" section is generic; it can live in a doc, not a skill.
 2. **caro-shell needs three new guards before being shippable in autonomous loops:**
    a. **Placeholder-output tripwire**: after running caro, scan the returned command for unsubstituted placeholders (`PID`, `directory/`, `output.tar.gz`, `archive.tar.gz`, empty string, `echo 'Unable to generate command'`). If any of these, surface as **caro could not synthesize** — do not present the placeholder as a command.
-   b. **Risk-tier presence check**: until [caro-b45s](../../../.beads/issues.jsonl) lands, caro doesn't print a risk tier on non-blocked commands. The skill must say so explicitly (don't fabricate a tier) and recommend the user run `caro --explain` for context.
-   c. **Backend default for agents**: do NOT recommend `--backend claude` (rejected at v1.4.0 per [caro-zh41](../../../.beads/issues.jsonl)). Leave `--backend` unset so caro picks its actual default (embedded). Document this and link the beads issue so future-skill-readers know why.
+   b. **Risk-tier presence check**: until [#1118](https://github.com/wildcard/caro/issues/1118) lands, caro doesn't print a risk tier on non-blocked commands. The skill must say so explicitly (don't fabricate a tier) and recommend the user run `caro --explain` for context.
+   c. **Backend default for agents**: do NOT recommend `--backend claude` (rejected at v1.4.0 per [#1115](https://github.com/wildcard/caro/issues/1115)). Leave `--backend` unset so caro picks its actual default (embedded). Document this and link the tracking issue so future-skill-readers know why.
 3. **Self-correction note**: the current caro-shell line 25 contradicts itself ("Anthropic Claude backend is not yet wired into the CLI" + line 55 listing `--backend claude` as a flag option). Fix the wording.
 
 The actual edit is in Phase D.

@@ -10,7 +10,7 @@ license: "AGPL-3.0"
 
 > **Status: Deprecated 2026-05-16.** Use [caro-shell](../caro-shell/SKILL.md) instead.
 >
-> **Why:** This skill recommends `caro --backend claude` (rejected by the v1.4.0 binary's `--backend` validator; tracking issue caro-zh41), claims the config path is `~/.config/caro/config.toml` (actual macOS path: `~/Library/Application Support/caro/config.toml`), and shows risk-emoji output that caro does not actually emit on the success path (tracking issue caro-b45s). The 522-line body is 4× the size of caro-shell for no agent benefit — see [skill-friction.md](../../audits/2026-05-16-caro-dogfood/skill-friction.md) for the side-by-side comparison.
+> **Why:** This skill recommends `caro --backend claude` (rejected by the v1.4.0 binary's `--backend` validator; tracking issue [#1115](https://github.com/wildcard/caro/issues/1115)), claims the config path is `~/.config/caro/config.toml` (actual macOS path: `~/Library/Application Support/caro/config.toml`), and shows risk-emoji output that caro does not actually emit on the success path (tracking issue [#1118](https://github.com/wildcard/caro/issues/1118)). The 522-line body is 4× the size of caro-shell for no agent benefit — see [skill-friction.md](../../audits/2026-05-16-caro-dogfood/skill-friction.md) for the side-by-side comparison.
 >
 > **Replacement:** [.claude/skills/caro-shell/SKILL.md](../caro-shell/SKILL.md). The replacement is hardened against caro's known synthesis bugs and defaults to caro's free embedded backend (correct choice for autonomous agent loops under the no-paid-default convention).
 >

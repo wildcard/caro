@@ -58,9 +58,9 @@ Don't use this skill for:
    | `--explain` | Include a rationale — useful when the user asked WHY, not just WHAT |
    | `--shell zsh` (or `bash`/`fish`) | Target a specific shell |
 
-   **Do not** pass `--backend claude` or `--backend static` in this version: both are advertised by `caro --backend-info` but rejected by the `--backend` validator at v1.4.0. Tracking issue: caro-zh41. Do not pass `--quiet` either — it suppresses the safety information you need to surface.
+   **Do not** pass `--backend claude` or `--backend static` in this version: both are advertised by `caro --backend-info` but rejected by the `--backend` validator at v1.4.0. Tracking issue: [#1115](https://github.com/wildcard/caro/issues/1115). Do not pass `--quiet` either — it suppresses the safety information you need to surface.
 
-3. **Detect synthesis failures before presenting** — caro's output today has three known failure modes that look like success ([audit 2026-05-16](../../audits/2026-05-16-caro-dogfood/audit.md), tracking issue caro-bnr6). Before presenting any command from caro, run these tripwires:
+3. **Detect synthesis failures before presenting** — caro's output today has three known failure modes that look like success ([audit 2026-05-16](../../audits/2026-05-16-caro-dogfood/audit.md), tracking issue [#1116](https://github.com/wildcard/caro/issues/1116)). Before presenting any command from caro, run these tripwires:
 
    - **Empty `Command:` block** → caro produced nothing. Treat as failure.
    - **`echo 'Unable to generate command'`** → caro's refusal path wrapped in `echo`. Treat as failure.
@@ -68,7 +68,7 @@ Don't use this skill for:
 
    On any tripwire: tell the user *"caro could not fully synthesize this; here's a hand-written suggestion, please double-check"* and fall back to your own command synthesis with the BSD-vs-GNU caveats explicit.
 
-4. **Parse caro's output** — when caro successfully synthesizes, it prints the suggested command. **Risk tier is only printed when the safety gate fires (block / CRITICAL).** For commands that pass the gate, caro prints no tier today (tracking issue caro-b45s). Do not invent a tier. If the user asked for safety context, re-run with `--explain` or pattern-match the command yourself (`rm -rf`, `chmod -R`, `dd if=`, `curl ... | sh`).
+4. **Parse caro's output** — when caro successfully synthesizes, it prints the suggested command. **Risk tier is only printed when the safety gate fires (block / CRITICAL).** For commands that pass the gate, caro prints no tier today (tracking issue [#1118](https://github.com/wildcard/caro/issues/1118)). Do not invent a tier. If the user asked for safety context, re-run with `--explain` or pattern-match the command yourself (`rm -rf`, `chmod -R`, `dd if=`, `curl ... | sh`).
 
 5. **Present, do not execute** — show the user the command verbatim, the safety status from caro (or "no block; tier not surfaced" if caro stayed silent), and any caveats. Let *them* decide whether to run it. If they ask you to run it, use the regular Bash tool with explicit confirmation per the standard destructive-command rules — do not bypass that just because caro returned a non-error.
 
@@ -127,7 +127,7 @@ Caro will likely return either a refusal or a heavily caveated `find /tmp -minde
 - **No `--quiet` flag**, ever — it suppresses the safety information.
 - **No paid backends by default.** Do not pass `--backend claude` or recommend paid remote backends unless the user explicitly asks. The default (no flag) gives caro's embedded local model, which is free and deterministic — the right choice for an autonomous agent loop.
 - **One command per call.** If the user wants a multi-step pipeline that doesn't fit on one line, iterate — call caro once per step.
-- **Tripwire before trust.** Per step 3 of "How to invoke", scan caro's output for placeholder / empty / echo-refusal failure modes before presenting. These are known v1.4.0 bugs (caro-bnr6); the binary reports success even when synthesis failed, so the skill is the safety net.
+- **Tripwire before trust.** Per step 3 of "How to invoke", scan caro's output for placeholder / empty / echo-refusal failure modes before presenting. These are known v1.4.0 bugs ([#1116](https://github.com/wildcard/caro/issues/1116)); the binary reports success even when synthesis failed, so the skill is the safety net.
 
 ## Agent contract by risk tier
 

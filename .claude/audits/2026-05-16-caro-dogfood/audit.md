@@ -103,22 +103,29 @@ All run with `--dry-run --backend embedded` unless noted. Static matcher fires f
 
 ## C. Phase B — disposition of each finding
 
-| Audit ID | Beads issue | Disposition |
+> **Tracking-system note:** these findings were originally drafted as beads
+> issues (caro-zh41, caro-bnr6, caro-mt6h, caro-b45s, caro-mt47, caro-vzwc,
+> caro-2hqf) but the worktree's beads SQLite db went malformed during the
+> session (pre-existing — `bd doctor` reported bd CLI at 0.47.0 vs latest
+> 1.0.4, and "Fresh clone detected, no database"). Refiled as GitHub issues
+> below to keep the audit trail durable.
+
+| Audit ID | GitHub issue | Disposition |
 |---|---|---|
-| B1 + B5 (P0) — backend roster divergence | [caro-zh41](../../../../.beads/issues.jsonl) | Filed; root cause located at `src/cli/mod.rs:466` (`validate_backend_name` hardcodes 4-backend slice that shadows canonical `BackendType::from_str` in `src/models/mod.rs:301`). Fix shape is ~30 lines: delete the hardcoded slice, delegate to `from_str`, regenerate help string. **Not inline** (touches `--backend` acceptance behavior — wants a smoke-roster integration test first per [safety-pattern-developer](../../skills/safety-pattern-developer/) TDD discipline). |
-| B2 + B3 + B4 + B9 (P0) — placeholder / echo-refusal / empty / unrelated output | [caro-bnr6](../../../../.beads/issues.jsonl) | Filed; bundled because all three share one root cause (no structured "synthesis result" type). MLX fallback at `src/backends/embedded/mlx.rs:68` literally returns `echo 'Unable to generate command'`. **Not inline** — touches output contract used by shell-init wrappers. |
-| B6 (P1) — multi-constraint silent drop | [caro-mt6h](../../../../.beads/issues.jsonl) | Filed; routes to [prompt-tuner skill](../../skills/prompt-tuner/) and/or static-matcher template work. |
-| B7 (P1) — no risk badge in non-blocked --dry-run | [caro-b45s](../../../../.beads/issues.jsonl) | Filed; **load-bearing for the caro-shell skill** — the skill cannot reliably surface risk to user until this lands. |
-| B8 (P2) — chmod 777 reason text | [caro-mt47](../../../../.beads/issues.jsonl) | Filed; routes to [safety-pattern-auditor skill](../../skills/safety-pattern-auditor/). |
-| B10 (P2) — `--version` stray punctuation | [caro-vzwc](../../../../.beads/issues.jsonl) | Filed; cosmetic, one-liner. |
+| B1 + B5 (P0) — backend roster divergence | [#1115](https://github.com/wildcard/caro/issues/1115) | Filed; root cause located at `src/cli/mod.rs:466` (`validate_backend_name` hardcodes 4-backend slice that shadows canonical `BackendType::from_str` in `src/models/mod.rs:301`). Fix shape is ~30 lines: delete the hardcoded slice, delegate to `from_str`, regenerate help string. **Not inline** (touches `--backend` acceptance behavior — wants a smoke-roster integration test first per [safety-pattern-developer](../../skills/safety-pattern-developer/) TDD discipline). |
+| B2 + B3 + B4 + B9 (P0) — placeholder / echo-refusal / empty / unrelated output | [#1116](https://github.com/wildcard/caro/issues/1116) | Filed; bundled because all three share one root cause (no structured "synthesis result" type). MLX fallback at `src/backends/embedded/mlx.rs:68` literally returns `echo 'Unable to generate command'`. **Not inline** — touches output contract used by shell-init wrappers. |
+| B6 (P1) — multi-constraint silent drop | [#1117](https://github.com/wildcard/caro/issues/1117) | Filed; routes to [prompt-tuner skill](../../skills/prompt-tuner/) and/or static-matcher template work. |
+| B7 (P1) — no risk badge in non-blocked --dry-run | [#1118](https://github.com/wildcard/caro/issues/1118) | Filed; **load-bearing for the caro-shell skill** — the skill cannot reliably surface risk to user until this lands. |
+| B8 (P2) — chmod 777 reason text | [#1119](https://github.com/wildcard/caro/issues/1119) | Filed; routes to [safety-pattern-auditor skill](../../skills/safety-pattern-auditor/). |
+| B10 (P3) — `--version` stray punctuation | [#1120](https://github.com/wildcard/caro/issues/1120) | Filed; cosmetic, one-liner. |
 | **B11** (P2) — CLAUDE.md stale at v1.3.0 | — | **Fixed inline** in this PR: [CLAUDE.md:9](../../../CLAUDE.md#L9). Per [release-version-alignment rule](../../../../.claude/rules/release-version-alignment.md). |
-| B12 / S3 (P2) — doctor enhancements | [caro-2hqf](../../../../.beads/issues.jsonl) | Filed. |
+| B12 / S3 (P2) — doctor enhancements | [#1121](https://github.com/wildcard/caro/issues/1121) | Filed. |
 | **C1–C5** subcommand surface | — | `suggest`, `shell-init zsh`, `completion zsh` all pass. `ai --once` and `caro test` documented limitations only. No filings. |
 | **P6 + P8** safety-gate passes | — | Caught literal `rm -rf /` and `chmod 777 /etc` correctly. No action needed beyond B8's reason-text polish. |
 
 **Inline fixes this PR:** B11 only. Everything else is filed for follow-up work that needs tests.
 
-**Filed labels:** `qa-finding` + `dogfood-2026-05-16` + priority + (`safety` when relevant).
+**Filed labels:** `qa-finding` + `dogfood-2026-05-16` + priority + (`safety` when relevant). Side-effect: the project's beads state needs operator intervention separately — see `bd doctor` output recorded in skill-friction.md notes; recommended action is `bd CLI` upgrade (0.47.0 → 1.0.4) plus `bd init --prefix caro` to re-hydrate from `.beads/issues.jsonl`.
 
 ---
 
