@@ -1,0 +1,54 @@
+# Curated seed source allowlist for creative-query-generator agent.
+# The agent picks 1-2 sources by least-recently-used `last_used` per session,
+# WebFetches them, and uses the content to seed novel natural-language queries.
+#
+# To propose additions: the agent's daily PR includes free-roam search hits as
+# proposals; a maintainer cherry-picks them in.
+#
+# To remove: delete the entry. The agent will skip it.
+#
+# Field reference:
+#   url       — fetched verbatim
+#   why       — one line on what kinds of queries this source inspires
+#   last_used — YYYY-MM-DD; agent updates after each use. "never" on first add.
+
+sources:
+  - url: https://github.com/tldr-pages/tldr/tree/main/pages/common
+    why: Common Unix command examples — broad coverage, well-curated.
+    last_used: never
+
+  - url: https://github.com/tldr-pages/tldr/tree/main/pages/osx
+    why: macOS-specific commands — surfaces BSD-vs-GNU flag drift.
+    last_used: never
+
+  - url: https://github.com/tldr-pages/tldr/tree/main/pages/linux
+    why: Linux-specific commands — complement to osx page set.
+    last_used: never
+
+  - url: https://github.com/alebcay/awesome-shell
+    why: Curated shell tools list — surfaces niche utilities users may know.
+    last_used: never
+
+  - url: https://github.com/agarrharr/awesome-cli-apps
+    why: CLI apps catalogue — domain jargon and modern tools (fzf, ripgrep, fd).
+    last_used: never
+
+  - url: https://wiki.archlinux.org/title/Core_utilities
+    why: Deep-cut Unix utilities reference — adversarial flag combinations.
+    last_used: never
+
+  - url: https://www.gnu.org/software/coreutils/manual/coreutils.html
+    why: Canonical GNU coreutils reference — find/grep/awk edge cases.
+    last_used: never
+
+  - url: https://man.openbsd.org/find.1
+    why: BSD find(1) — every misalignment with GNU find is a teach-caro opportunity.
+    last_used: never
+
+  - url: https://github.com/sharkdp/fd
+    why: Modern find replacement — users often type queries assuming fd semantics.
+    last_used: never
+
+  - url: https://github.com/BurntSushi/ripgrep
+    why: Modern grep replacement — same as fd, different semantics in user heads.
+    last_used: never
