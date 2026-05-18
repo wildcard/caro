@@ -33,7 +33,7 @@ path = "src/bin/generate-schema.rs"
 
 [dependencies]
 # Core CLI and async runtime
-clap = { version = "4.5", features = ["derive", "env", "color"] }
+clap = { version = "4.6", features = ["derive", "env", "color"] }
 clap_complete = "4.6"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync", "fs"] }
 
@@ -101,7 +101,7 @@ futures = "0.3"
 # Knowledge index (local vector database)
 lancedb = { version = "0.23", optional = true }
 fastembed = { version = "5", optional = true }
-arrow-array = { version = "58.1", optional = true }
+arrow-array = { version = "58.3", optional = true }
 arrow-schema = { version = "56.2", optional = true }
 chromadb = { version = "2.3", optional = true }
 
