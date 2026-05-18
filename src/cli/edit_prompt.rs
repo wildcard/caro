@@ -66,10 +66,7 @@ mod tests {
             EditOutcome::Execute("ls".into()),
             EditOutcome::Execute("ls".into())
         );
-        assert_ne!(
-            EditOutcome::Execute("ls".into()),
-            EditOutcome::Cancelled
-        );
+        assert_ne!(EditOutcome::Execute("ls".into()), EditOutcome::Cancelled);
     }
 
     #[test]
