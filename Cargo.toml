@@ -107,7 +107,7 @@ chromadb = { version = "2.3", optional = true }
 
 # Optional MLX support for Apple Silicon (behind feature flag)
 cxx = { version = "1.0", optional = true }
-rustyline = "14"
+rustyline = "17"
 
 # Microsoft Agent Governance Toolkit (AGT) — Rust SDK.
 # Gated behind the `governance` feature so default builds stay lean.
