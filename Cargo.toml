@@ -89,7 +89,7 @@ sha2 = "0.10"
 # Telemetry
 uuid = { version = "1", features = ["v4", "serde"] }
 rusqlite = { version = "0.39", features = ["bundled"] }
-machine-uid = "0.5"
+machine-uid = "0.6"
 
 # File locking for atomic operations
 fd-lock = "4.0"
