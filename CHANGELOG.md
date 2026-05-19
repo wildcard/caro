@@ -69,10 +69,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   matching because they resolve to `ProfileType::Hybrid`.
   ([#1043](https://github.com/wildcard/caro/pull/1043))
 - **CI now runs Windows runtime smoke tests against the produced
-  `caro.exe`** — three assertions guard the published Windows binary on
-  every PR: no stdin hang, no POSIX command leak, no "shell: Bash"
-  mis-label. These three assertions would have blocked v1.1.3, v1.2.x,
-  and v1.3.0.
+  `caro.exe`** — `.github/scripts/windows-smoke.ps1` is invoked from
+  both `ci.yml` (every PR push, gating merge) and `release.yml`
+  (post-build, gating release upload), with three assertions: no stdin
+  hang, no POSIX command leak on `--shell powershell`, no `shell: Bash`
+  mis-label. Single source of truth — both workflows pick up edits to
+  the script. These three assertions would have blocked v1.1.3,
+  v1.2.x, and v1.3.0.
   ([#1043](https://github.com/wildcard/caro/pull/1043))
 - **Static matcher: "find and kill the runaway process eating CPU" now emits
   the full website-promised pipeline** (`ps aux | sort -nrk 3,3 | head -1 |
