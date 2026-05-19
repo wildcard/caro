@@ -123,9 +123,15 @@ agentmesh = { version = "3.6", optional = true }
 mlx-rs = { version = "0.25", optional = true }
 llama_cpp = { version = "0.3", features = ["metal"], optional = true }
 
-# Embedded model inference - Candle for CPU (cross-platform)
+# Embedded model inference - Candle for CPU (cross-platform).
+# `candle-core` and `candle-transformers` must share major.minor: mixing
+# 0.10 + 0.9 caused candle-nn 0.9.1 (which pins safetensors 0.4.5) and
+# candle-core 0.10/0.9.2 (which pin safetensors 0.7.0) to co-exist in one
+# build, breaking `From<SafeTensorError>` for `candle_core::Error`.
+# Surfaced as a side-effect of unblocking the bincode 3.0 tombstone — see
+# GH #1150.
 candle-core = { version = "0.10", optional = true }
-candle-transformers = { version = "0.9", optional = true }
+candle-transformers = { version = "0.10", optional = true }
 tokenizers = { version = "0.22", default-features = false, features = ["http", "rustls-tls", "onig"] }
 
 [build-dependencies]
