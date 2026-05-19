@@ -33,7 +33,7 @@ path = "src/bin/generate-schema.rs"
 
 [dependencies]
 # Core CLI and async runtime
-clap = { version = "4.5", features = ["derive", "env", "color"] }
+clap = { version = "4.6", features = ["derive", "env", "color"] }
 clap_complete = "4.6"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync", "fs"] }
 
@@ -104,7 +104,7 @@ futures = "0.3"
 # Knowledge index (local vector database)
 lancedb = { version = "0.23", optional = true }
 fastembed = { version = "5", optional = true }
-arrow-array = { version = "58.1", optional = true }
+arrow-array = { version = "58.3", optional = true }
 arrow-schema = { version = "56.2", optional = true }
 chromadb = { version = "2.3", optional = true }
 
@@ -116,7 +116,7 @@ rustyline = "14"
 # Gated behind the `governance` feature so default builds stay lean.
 # Pure-Rust transitive deps (cedar-policy, regorus, ed25519-dalek, sha2).
 # License: MIT — compatible absorption into caro's AGPL-3.0.
-agentmesh = { version = "3.6", optional = true }
+agentmesh = { version = "3.7", optional = true }
 
 # Embedded model inference - MLX for Apple Silicon via llama.cpp
 [target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
