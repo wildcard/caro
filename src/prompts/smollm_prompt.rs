@@ -490,30 +490,36 @@ Why: Protects against spaces in filenames
             }
             ProfileType::Windows => {
                 section.push_str(
-                    r#"❌ BAD (POSIX command on Windows): {"cmd": "ls -la"}
-✅ GOOD (PowerShell cmdlet): {"cmd": "Get-ChildItem -Force"}
-Why: ls/-la don't exist in cmd.exe; PowerShell's `ls` alias drops most flags
+                    r#"This host is native Windows. Pick the shell dialect based on the
+shell hint that accompanies the user request (e.g. "Shell: powershell" /
+"Shell: cmd"). When no hint is present, prefer PowerShell — it ships on
+every supported Windows (Win7+) and is the documented default — but
+honour an explicit cmd request the moment the user signals one.
 
-❌ BAD (POSIX find on Windows): {"cmd": "find . -name '*.log' -type f"}
-✅ GOOD (PowerShell): {"cmd": "Get-ChildItem -Recurse -Filter *.log -File"}
-Why: GNU find is unavailable on Windows; use Get-ChildItem -Recurse
+In either case, do NOT emit POSIX commands (`ls`, `find`, `grep`,
+`awk`, `sed`, `rm`); they are not on PATH in native Windows shells.
 
-❌ BAD (POSIX grep on Windows): {"cmd": "grep -r 'TODO' ."}
-✅ GOOD (PowerShell): {"cmd": "Get-ChildItem -Recurse | Select-String 'TODO'"}
-✅ GOOD (cmd.exe alternative): {"cmd": "findstr /S /N \"TODO\" *.*"}
-Why: grep is not on PATH; use Select-String (PS) or findstr (cmd)
+PowerShell ↔ cmd.exe equivalents for the common pitfalls:
 
-❌ BAD (POSIX rm on Windows): {"cmd": "rm -rf build/"}
-✅ GOOD (PowerShell): {"cmd": "Remove-Item -Recurse -Force build/"}
-Why: rm exists as alias in PS but the -rf flags don't map; in cmd.exe use `rmdir /S /Q`
+❌ BAD (POSIX on Windows):    {"cmd": "ls -la"}
+✅ PowerShell:                {"cmd": "Get-ChildItem -Force"}
+✅ cmd.exe:                   {"cmd": "dir /a"}
 
-❌ BAD (POSIX awk/sed on Windows): {"cmd": "awk '{print $2}' file.txt"}
-✅ GOOD (PowerShell): {"cmd": "Get-Content file.txt | ForEach-Object { ($_ -split ' ')[1] }"}
-Why: awk and GNU sed are not bundled with Windows
+❌ BAD (POSIX find):          {"cmd": "find . -name '*.log' -type f"}
+✅ PowerShell:                {"cmd": "Get-ChildItem -Recurse -Filter *.log -File"}
+✅ cmd.exe:                   {"cmd": "dir /S /B *.log"}
 
-Note: This host is native Windows (cmd.exe or PowerShell). Generate
-PowerShell cmdlets by default; only emit `cmd /c ...` syntax if the
-prompt explicitly requests cmd.exe.
+❌ BAD (POSIX grep):          {"cmd": "grep -r 'TODO' ."}
+✅ PowerShell:                {"cmd": "Get-ChildItem -Recurse | Select-String 'TODO'"}
+✅ cmd.exe:                   {"cmd": "findstr /S /N \"TODO\" *.*"}
+
+❌ BAD (POSIX rm):            {"cmd": "rm -rf build/"}
+✅ PowerShell:                {"cmd": "Remove-Item -Recurse -Force build/"}
+✅ cmd.exe:                   {"cmd": "rmdir /S /Q build"}
+
+❌ BAD (POSIX awk):           {"cmd": "awk '{print $2}' file.txt"}
+✅ PowerShell:                {"cmd": "Get-Content file.txt | ForEach-Object { ($_ -split ' ')[1] }"}
+✅ cmd.exe:                   {"cmd": "for /f \"tokens=2\" %i in (file.txt) do @echo %i"}
 
 "#,
                 );
