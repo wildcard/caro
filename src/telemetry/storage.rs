@@ -120,8 +120,12 @@ impl TelemetryStorage {
             )
             .context("Failed to prepare query")?;
 
+        // rusqlite 0.39 removed `ToSql`/`FromSql` for `usize`/`isize` because
+        // their width is platform-dependent. SQLite's integer column type is
+        // 64-bit, so cast through `i64` at the boundary.
+        let limit_i64 = i64::try_from(limit).unwrap_or(i64::MAX);
         let events = stmt
-            .query_map([limit], |row| {
+            .query_map([limit_i64], |row| {
                 let data: String = row.get(0)?;
                 Ok(data)
             })?
@@ -190,11 +194,13 @@ impl TelemetryStorage {
     pub async fn count_events(&self) -> Result<usize> {
         let conn = self.conn.lock().await;
 
-        let count: usize = conn
+        // rusqlite 0.39 dropped `FromSql for usize`; read as `i64` and cast.
+        // `COUNT(*)` is non-negative, so the cast is well-defined.
+        let count: i64 = conn
             .query_row("SELECT COUNT(*) FROM events", [], |row| row.get(0))
             .context("Failed to count events")?;
 
-        Ok(count)
+        Ok(count as usize)
     }
 
     /// Clear all events (for testing or user-requested deletion)
