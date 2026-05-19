@@ -816,6 +816,22 @@ Your PR will use the template from `.github/PULL_REQUEST_TEMPLATE.md`. Include:
 3. **Address feedback** with additional commits
 4. **Approval and merge** once all checks pass
 
+### 🚨 Merging — CI-Green Rule (Tier 1, non-negotiable)
+
+**No PR may be merged while any required CI check is failing — regardless of who is reviewing, who is merging, what the change is, or how trivial it appears.** This applies equally to Dependabot PRs, agent-authored PRs, and human-authored PRs.
+
+Before invoking `gh pr merge` (or clicking the merge button), every contributor and every agent **must**:
+
+1. Run `gh pr checks <PR>` and confirm zero `fail`/`pending` rows among required checks.
+2. Run `gh pr view <PR> --json mergeStateStatus` and confirm `CLEAN` or `HAS_HOOKS`.
+3. Read every AI-reviewer comment (`cubic-dev-ai`, `claude-review`, `coderabbitai`, `copilot`) and resolve every `P0`/`blocker`/`compile_error` callout on-thread.
+4. **For dependency PRs**: confirm a `Build Check` job has run on the PR's head SHA, OR build locally with `cargo build --release --features embedded-cpu`.
+5. **For Cargo.toml / Cargo.lock / build.rs changes**: verify every feature gate compiles (`--no-default-features`, `--features cve-rules`, `--features embedded-cpu`, default).
+
+**This rule exists because of [PR #925](https://github.com/wildcard/caro/pull/925)**: Dependabot bumped `bincode 1.3.3 → 3.0.0`, an intentional `compile_error!` tombstone release. The AI reviewer `cubic-dev-ai` posted a P0 flag before merge. The PR was merged anyway. `cargo build` was broken on `main` for 24+ hours, blocking every contributor, every CI job, and every `cargo install caro`.
+
+There is a narrow "main is already broken" exception for hotfix PRs that cannot reach green CI because of pre-existing breakage. The full rule and the exception conditions are in [`.claude/rules/dependency-upgrade-verification.md`](.claude/rules/dependency-upgrade-verification.md).
+
 ---
 
 ## Areas for Contribution

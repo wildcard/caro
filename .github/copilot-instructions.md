@@ -257,6 +257,10 @@ When reviewing PRs:
 8. Ensure path/URL formats are consistent within files
 9. Flag code duplication that should be extracted to helpers
 
+### 🚨 CI-Green Merge Rule (Tier 1 — non-negotiable)
+
+**Never approve or merge a PR with failing CI.** This applies to every PR — Dependabot, agent-authored, human-authored. If CI is red, flag it explicitly in the review and request the author resolve before re-requesting review. Do not "approve pending CI"; that phrasing has been the source of `main`-breaking merges in this repository (see PR #925 / #1150). Specifically watch for major dependency bumps where `Build Check` did not actually run on the head SHA. Full rule: [.claude/rules/dependency-upgrade-verification.md](../.claude/rules/dependency-upgrade-verification.md).
+
 ## POSIX Compliance
 
 ### Required Practices
