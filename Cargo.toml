@@ -132,7 +132,7 @@ llama_cpp = { version = "0.3", features = ["metal"], optional = true }
 # GH #1150.
 candle-core = { version = "0.10", optional = true }
 candle-transformers = { version = "0.10", optional = true }
-tokenizers = { version = "0.22", default-features = false, features = ["http", "rustls-tls", "onig"] }
+tokenizers = { version = "0.23", default-features = false, features = ["http", "rustls-tls", "onig"] }
 
 [build-dependencies]
 # Used by build.rs to compile data/cve_rules/*.yaml into $OUT_DIR/cve_patterns.bin
