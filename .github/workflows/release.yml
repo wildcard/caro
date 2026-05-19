@@ -254,10 +254,10 @@ jobs:
       # from ci.yml so the same smoke gates every PR push AND every
       # release build. Edits to the smoke logic must happen in that
       # script; both workflows pick them up automatically.
-      - name: Windows runtime smoke test
+      - name: Windows runtime smoke test (full mode — includes LLM-dependent Bug #2 assertion)
         if: matrix.target == 'x86_64-pc-windows-msvc'
         shell: pwsh
-        run: pwsh ./.github/scripts/windows-smoke.ps1 -ExePath target/x86_64-pc-windows-msvc/release/caro.exe
+        run: pwsh ./.github/scripts/windows-smoke.ps1 -ExePath target/x86_64-pc-windows-msvc/release/caro.exe -Mode full
 
       - name: Prepare release artifact
         run: |
