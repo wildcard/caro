@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-05-16 (23:00 PT fire) — `caro skill install` vs `caro-shell` skill drift
+
+- **Validated:** Claude Code marquee skill row + remote-backend status, against published `caro 1.4.0` from crates.io (`caro --version` → `caro 1.4.0 ( crates.io)`).
+  - **`caro skill install` target** — ✓ VERIFIED. `caro skill --help` enumerates `install` / `uninstall`; `caro skill install --help` explicitly says "Install the bundled `caro-scaffold` skill". So the v1.4.0 user's natural Claude-Code discovery path installs `caro-scaffold`, not the `caro-shell` skill the matrix and `website/src/data/integrations.ts` advertise as the marquee surface. The `caro-shell` SKILL.md still exists in-repo at `.claude/skills/caro-shell/SKILL.md` but is not bundled inside the published binary — users must clone the caro repo or copy SKILL.md manually for Claude Code to auto-discover it. Two distinct skills (`caro-shell` for one-shot command synthesis, `caro-scaffold` for CaroML `.caro` task scaffolding) — both valuable, only the second is installable via the CLI.
+  - **#1092 loud-error fix not in v1.4.0** — ✓ VERIFIED that `c5d7ffa4` merged 2026-05-16 is NOT an ancestor of `v1.4.0` (tagged 2026-05-09, 7 days earlier). Published binary still: `caro --backend ollama --dry-run -p "list pdfs"` → `WARN caro::cli: Remote backends not compiled in` + silent fallback to `ls *.pdf` + exit 0. The fix is on `main` only. Same situation for #1097 OpenRouter (`caro --backend openrouter` → `Error: Invalid argument: Unknown backend 'openrouter'` exit 1, with 4-backend help text listing embedded/ollama/exo/vllm only — confirms OpenRouter isn't in the published v1.4.0 enum). Both await the next release.
+  - **`--backend claude` still broken** — ✓ VERIFIED `Error: Invalid argument: Unknown backend 'claude'` exit 1. Matrix row already accurate.
+
+- **Shipped:** doc-accuracy PR. (a) `website/src/data/integrations.ts` — split `claude-code-skill` (renamed `claude-code-skill-shell`, status `partial`, lastValidated `2026-05-16`, with two install snippets — checkout-based and curl-based) from the new `claude-code-skill-scaffold` row (status `working`, lastValidated `2026-05-16`, snippet shows `caro skill install`). (b) `.claude/memory/integrations-status.md` — header `Last updated` line bumped; existing `caro-shell` row qualified to `⚠️ partial — not in caro skill install`; new `caro-scaffold` row added; priority queue re-ranked so the natural-discovery gap is row #1 and the two main-but-not-released items (#1092 loud-error, #1097 OpenRouter) are queue rows #2 and #3 waiting on the next release. (c) `.claude/memory/integrator-log.md` — this entry.
+
+- **Filed:** none. The natural follow-on — "have `caro skill install` accept `--skill caro-shell` or install both" — is now queue row #1 of the matrix and will become a code PR on a future nightly. Dedup-checked `gh issue list --state all --search "caro-scaffold OR scaffold skill"` and `--search "caro skill install OR bundled skill"`; closest matches are closed #901 (the original `caro skill install` introduction PR), open #801 (about the older `caro-shell-helper` skill — distinct from both `caro-shell` and `caro-scaffold`), and the v1.2.0 credibility-gap epic #792. None are about this specific 3-skill drift, so a future code PR will need its own tracker issue.
+
+- **Discovered:**
+  - **Three Claude Code skills coexist** in `.claude/skills/`: `caro-shell`, `caro-shell-helper`, `caro-scaffold`. Only `caro-scaffold` is bundled in the published binary. Issue #801 covers the older `caro-shell-helper` skill (config-key drift); my finding tonight is distinct. Both `caro-shell` and `caro-scaffold` are healthy skills with non-overlapping purposes — the drift is purely in user-facing distribution mechanics, not in skill quality.
+  - **`caro 1.4.0` exit codes were obscured** by the user's shell wrapper (cwd-reset hook). Running `caro` via PATH `which` resolved to a shell wrapper at `/Users/kobik-private/bin/caro` that masks the underlying binary's exit code (always reports `0`). Re-tested via the raw cargo path `/Users/kobik-private/.cargo/bin/caro` to get truthful exit codes. Worth flagging in the playbook: validation should use the raw cargo bin path, not a PATH-resolved wrapper.
+  - **Random acceptance sample** for tonight: a v1.4.0 user reading the website integrations page would naturally run `cargo install caro` then look for the "Claude Code skill" install command. The page currently says "point Claude Code at `.claude/skills/caro-shell/SKILL.md`" — confusing for someone who hasn't cloned the repo. Tonight's PR fixes that by including both an Option A (clone caro) and Option B (curl the SKILL.md into a project) for `caro-shell`, while making the bundled `caro-scaffold` row explicitly show `caro skill install`.
+
+- **Next pass should:**
+  - (a) **Prefer**: pursue queue row #1 with a code PR — extend `caro skill install` so users can opt into `caro-shell` too, e.g. `caro skill install --shell` or `caro skill install caro-shell`. ~50 LOC in `src/cli/skill.rs` plus a SKILL.md embed-or-clone choice. File the tracker GH issue first.
+  - (b) **Else**: if a v1.4.1 ships between now and the next fire, validate #1092 loud-error + #1097 OpenRouter against the new published binary and promote both matrix rows from "shipped to main, not released" to ✅ working.
+  - (c) **Defer**: queue row #4 (Anthropic Claude CLI wiring) is still a clean single-night PR if (a) and (b) are both blocked.
+
+- **Needs user input:** none. Tonight's PR is self-contained doc-accuracy work, no policy ambiguity.
+
+---
+
 ## 2026-05-13 (23:00 PT fire) — option 2 loud-error code fix for #1081
 
 - **Validated:** re-confirmed [#1081](https://github.com/wildcard/caro/issues/1081) reproduces on the newly-published `caro 1.4.0` from crates.io (the prior validation was on 1.3.0). `caro --backend ollama --dry-run -p "list pdf files"` still emits `WARN  caro::cli: Remote backends not compiled in` and silently falls through to `ls -la` via the static matcher. Identical reproduction for `vllm` and `exo`. `--backend claude` still returns `Error: Invalid argument: Unknown backend 'claude'`. `--backend embedded` works (control). Evidence: claim-verification step before touching code, per the project rule that says "code premised on a stale evidence base is a wasted PR."
