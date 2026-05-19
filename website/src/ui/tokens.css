@@ -69,8 +69,12 @@
   --color-success-dark: #16a34a;
   --color-warning: #f59e0b;
   --color-warning-dark: #d97706;
-  --color-error: #ef4444;
-  --color-error-dark: #dc2626;
+  /* --color-error shifted from #ef4444 (Tailwind red-500) to #dc2626
+     (red-600) so it is visually distinct from --accent (#ef3333, brand
+     signal red). Without this 1-step shift, error UI is indistinguishable
+     from a primary action — a long-standing token collision. */
+  --color-error: #dc2626;
+  --color-error-dark: #b91c1c;
   --color-info: #3b82f6;
   --color-info-dark: #2563eb;
 

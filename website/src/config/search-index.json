@@ -1,7 +1,7 @@
 {
   "version": "2.1.0",
-  "generated": "2026-04-29T01:58:06.370Z",
-  "totalPages": 44,
+  "generated": "2026-05-19T05:47:05.576Z",
+  "totalPages": 45,
   "pages": [
     {
       "title": "AI Agent Safety",
@@ -5457,6 +5457,189 @@
       ]
     },
     {
+      "title": "Integrations — Caro",
+      "path": "/integrations",
+      "description": "Use Caro from Claude Code, Codex, Cursor, Continue, Aider, Tabby, opencode, crush, and more. Caro speaks Claude Code skills, MCP, and the OpenAI Chat Completions API.",
+      "category": "main",
+      "keywords": [
+        "caro",
+        "claude",
+        "integration",
+        "code",
+        "tool",
+        "integrations",
+        "use",
+        "openai",
+        "your",
+        "agent",
+        "safety",
+        "shell",
+        "command",
+        "coming",
+        "soon",
+        "backend",
+        "codex",
+        "cursor",
+        "continue",
+        "aider",
+        "tabby",
+        "mcp",
+        "chat",
+        "completions",
+        "validated",
+        "agents",
+        "ides",
+        "file",
+        "request",
+        "working",
+        "progress",
+        "surfaces",
+        "skill",
+        "server",
+        "compat",
+        "http",
+        "outward",
+        "backends",
+        "drive",
+        "generator",
+        "coder",
+        "agentic",
+        "call",
+        "pick",
+        "surface",
+        "matches",
+        "stack",
+        "copy",
+        "paste",
+        "configs"
+      ],
+      "icon": "📄",
+      "content": {
+        "headings": [
+          "Use Caro from your agent",
+          "Integration surfaces",
+          "Claude Code skill",
+          "MCP server",
+          "OpenAI-compat HTTP",
+          "Caro-as-a-tool — outward integrations",
+          "Working today",
+          "In progress",
+          "Planned",
+          "Backends Caro can drive"
+        ],
+        "paragraphs": [
+          "Caro is a safety-validated shell-command generator that other coder agents and agentic IDEs can call as a tool. Pick the integration surface that matches your stack — copy-paste configs below.",
+          "Bundled at . Auto-discovered by Claude Code.",
+          "— exposes shell-command tools over the Model Context Protocol. Coming soon.",
+          "— OpenAI Chat Completions endpoint. Unlocks Codex, Cursor, Continue, Aider, Tabby in one shot. Coming soon.",
+          ")} >",
+          "Tracking:",
+          "Caro itself is a multi-backend client. Use any of these for inference; safety validation runs the same regardless of backend.",
+          ")} >",
+          "Want caro to integrate with a tool not listed? File an integration request — the caro-integrator agent reviews these every night."
+        ],
+        "listItems": [
+          ")} > )}",
+          "> )}",
+          "> )}"
+        ]
+      },
+      "fullText": "Integrations — Caro Use Caro from Claude Code, Codex, Cursor, Continue, Aider, Tabby, opencode, crush, and more. Caro speaks Claude Code skills, MCP, and the OpenAI Chat Completions API. working in-progress not-yet .claude/memory/integrations-status.md lastValidated Use Caro from your agent Integration surfaces Claude Code skill MCP server OpenAI-compat HTTP Caro-as-a-tool — outward integrations Working today In progress Planned Backends Caro can drive Caro is a safety-validated shell-command generator that other coder agents and agentic IDEs can call as a tool. Pick the integration surface that matches your stack — copy-paste configs below. Bundled at . Auto-discovered by Claude Code. — exposes shell-command tools over the Model Context Protocol. Coming soon. — OpenAI Chat Completions endpoint. Unlocks Codex, Cursor, Continue, Aider, Tabby in one shot. Coming soon. )} > Tracking: Caro itself is a multi-backend client. Use any of these for inference; safety validation runs the same regardless of backend. )} > Want caro to integrate with a tool not listed? File an integration request — the caro-integrator agent reviews these every night. )} > )} > )} > )} validated File an integration request Integrations — Caro For Agents & IDEs Use Caro from your agent Caro is a safety-validated shell-command generator that other coder agents and agentic IDEs can call as a tool. Pick the integration surface that matches your stack — copy-paste configs below. Integration surfaces Claude Code skill Bundled at . Auto-discovered by Claude Code. MCP server — exposes shell-command tools over the Model Context Protocol. Coming soon. OpenAI-compat HTTP — OpenAI Chat Completions endpoint. Unlocks Codex, Cursor, Continue, Aider, Tabby in one shot. Coming soon. Caro-as-a-tool — outward integrations > )} > )} ))} )} > } ))} )} > > )} ))} )} Backends Caro can drive Caro itself is a multi-backend client. Use any of these for inference; safety validation runs the same regardless of backend. > > )} ))} Want caro to integrate with a tool not listed? File an integration request — the caro-integrator agent reviews these every night.",
+      "_searchText": "integrations — caro use caro from claude code, codex, cursor, continue, aider, tabby, opencode, crush, and more. caro speaks claude code skills, mcp, and the openai chat completions api. /integrations caro claude integration code tool integrations use openai your agent safety shell command coming soon backend codex cursor continue aider tabby mcp chat completions validated agents ides file request working progress surfaces skill server compat http outward backends drive generator coder agentic call pick surface matches stack copy paste configs use caro from your agent integration surfaces claude code skill mcp server openai-compat http caro-as-a-tool — outward integrations working today in progress planned backends caro can drive caro is a safety-validated shell-command generator that other coder agents and agentic ides can call as a tool. pick the integration surface that matches your stack — copy-paste configs below. bundled at . auto-discovered by claude code. — exposes shell-command tools over the model context protocol. coming soon. — openai chat completions endpoint. unlocks codex, cursor, continue, aider, tabby in one shot. coming soon. )} > tracking: caro itself is a multi-backend client. use any of these for inference; safety validation runs the same regardless of backend. )} > want caro to integrate with a tool not listed? file an integration request — the caro-integrator agent reviews these every night. )} > )} > )} > )} integrations — caro use caro from claude code, codex, cursor, continue, aider, tabby, opencode, crush, and more. caro speaks claude code skills, mcp, and the openai chat completions api. working in-progress not-yet .claude/memory/integrations-status.md lastvalidated use caro from your agent integration surfaces claude code skill mcp server openai-compat http caro-as-a-tool — outward integrations working today in progress planned backends caro can drive caro is a safety-validated shell-command generator that other coder agents and agentic ides can call as a tool. pick the integration surface that matches your stack — copy-paste configs below. bundled at . auto-discovered by claude code. — exposes shell-command tools over the model context protocol. coming soon. — openai chat completions endpoint. unlocks codex, cursor, continue, aider, tabby in one shot. coming soon. )} > tracking: caro itself is a multi-backend client. use any of these for inference; safety validation runs the same regardless of backend. )} > want caro to integrate with a tool not listed? file an integration request — the caro-integrator agent reviews these every night. )} > )} > )} > )} validated file an integration request integrations — caro for agents & ides use caro from your agent caro is a safety-validated shell-command generator that other coder agents and agentic ides can call as a tool. pick the integration surface that matches your stack — copy-paste configs below. integration surfaces claude code skill bundled at . auto-discovered by claude code. mcp server — exposes shell-command tools over the model context protocol. coming soon. openai-compat http — openai chat completions endpoint. unlocks codex, cursor, continue, aider, tabby in one shot. coming soon. caro-as-a-tool — outward integrations > )} > )} ))} )} > } ))} )} > > )} ))} )} backends caro can drive caro itself is a multi-backend client. use any of these for inference; safety validation runs the same regardless of backend. > > )} ))} want caro to integrate with a tool not listed? file an integration request — the caro-integrator agent reviews these every night.",
+      "_words": [
+        "caro",
+        "claude",
+        "code",
+        "integration",
+        "integrations",
+        "use",
+        "openai",
+        "tool",
+        "mcp",
+        "your",
+        "agent",
+        "codex",
+        "cursor",
+        "continue",
+        "aider",
+        "tabby",
+        "chat",
+        "completions",
+        "safety",
+        "shell",
+        "command",
+        "coming",
+        "soon",
+        "backend",
+        "validated",
+        "agents",
+        "ides",
+        "file",
+        "request",
+        "working",
+        "progress",
+        "surfaces",
+        "skill",
+        "server",
+        "compat",
+        "http",
+        "outward",
+        "backends",
+        "drive",
+        "generator",
+        "coder",
+        "agentic",
+        "call",
+        "pick",
+        "surface",
+        "matches",
+        "stack",
+        "copy",
+        "paste",
+        "configs",
+        "opencode",
+        "crush",
+        "speaks",
+        "skills",
+        "api",
+        "today",
+        "planned",
+        "below",
+        "bundled",
+        "auto",
+        "discovered",
+        "exposes",
+        "tools",
+        "over",
+        "model",
+        "context",
+        "protocol",
+        "endpoint",
+        "unlocks",
+        "one",
+        "shot",
+        "itself",
+        "multi",
+        "client",
+        "any",
+        "inference",
+        "validation",
+        "runs",
+        "regardless",
+        "want",
+        "integrate",
+        "listed",
+        "integrator",
+        "reviews",
+        "night",
+        "yet",
+        "memory",
+        "status",
+        "lastvalidated",
+        "tracking"
+      ]
+    },
+    {
       "title": "Modern Unix Tools - Next-Gen CLI Tools in Rust & Go",
       "path": "/modern-unix-tools",
       "description": "Discover modern replacements for classic Unix commands. Faster, safer, and more ergonomic tools written in Rust and Go for the contemporary developer.",
@@ -8309,8 +8492,8 @@
       "paragraphs": [
         "@kyaroblackheart"
       ],
-      "fullText": "🐕 Caro 🐕 @kyaroblackheart , & v",
-      "_searchText": "@kyaroblackheart 🐕 caro 🐕 @kyaroblackheart , & v"
+      "fullText": "Caro @kyaroblackheart , & v",
+      "_searchText": "@kyaroblackheart caro @kyaroblackheart , & v"
     },
     {
       "source": "/GitHubStarButton.astro",
@@ -8375,8 +8558,8 @@
       "source": "/Navigation.astro",
       "headings": [],
       "paragraphs": [],
-      "fullText": "🐕 Caro > class=dropdown-item $ > ))} ) : ( 📊 ⚡ 🤖 👻 📝 🔍 ❓ 🗺️ 📖 🐙 ♥ )} 🎄 🕎 🎊 ✨ Holiday Theme 🎄 Christmas ✓ 🕎 Hanukkah ✓ 🎊 New Year ✓ 🚫 None ✓ ❄️ Snow Effect 🎆 Disable All Effects 🐕 Caro > 📋 class=drawer-link $ > ))} 🏠 ) : ( ⭐ 🎬 📊 ⚡ 🤖 👻 📝 🔍 ❓ 🗺️ 📖 🐙 💖 )} 🌓 🎄 Christmas 🎄 Hanukkah 🕎 New Year 🎊 None ❄️ 🎆",
-      "_searchText": "🐕 caro > class=dropdown-item $ > ))} ) : ( 📊 ⚡ 🤖 👻 📝 🔍 ❓ 🗺️ 📖 🐙 ♥ )} 🎄 🕎 🎊 ✨ holiday theme 🎄 christmas ✓ 🕎 hanukkah ✓ 🎊 new year ✓ 🚫 none ✓ ❄️ snow effect 🎆 disable all effects 🐕 caro > 📋 class=drawer-link $ > ))} 🏠 ) : ( ⭐ 🎬 📊 ⚡ 🤖 👻 📝 🔍 ❓ 🗺️ 📖 🐙 💖 )} 🌓 🎄 christmas 🎄 hanukkah 🕎 new year 🎊 none ❄️ 🎆"
+      "fullText": "🐕 Caro > class=dropdown-item $ > ))} ) : ( 📊 ⚡ 🤖 👻 📝 🔍 ❓ 🗺️ 📖 🐙 🐺 Community ♥ )} 🎄 🕎 🎊 ✨ Holiday Theme 🎄 Christmas ✓ 🕎 Hanukkah ✓ 🎊 New Year ✓ 🚫 None ✓ ❄️ Snow Effect 🎆 Disable All Effects 🐕 Caro > 📋 class=drawer-link $ > ))} 🏠 ) : ( ⭐ 🎬 📊 ⚡ 🤖 👻 📝 🔍 ❓ 🗺️ 📖 🐙 🐺 Join the Pack 💖 )} 🌓 🎄 Christmas 🎄 Hanukkah 🕎 New Year 🎊 None ❄️ 🎆",
+      "_searchText": "🐕 caro > class=dropdown-item $ > ))} ) : ( 📊 ⚡ 🤖 👻 📝 🔍 ❓ 🗺️ 📖 🐙 🐺 community ♥ )} 🎄 🕎 🎊 ✨ holiday theme 🎄 christmas ✓ 🕎 hanukkah ✓ 🎊 new year ✓ 🚫 none ✓ ❄️ snow effect 🎆 disable all effects 🐕 caro > 📋 class=drawer-link $ > ))} 🏠 ) : ( ⭐ 🎬 📊 ⚡ 🤖 👻 📝 🔍 ❓ 🗺️ 📖 🐙 🐺 join the pack 💖 )} 🌓 🎄 christmas 🎄 hanukkah 🕎 new year 🎊 none ❄️ 🎆"
     },
     {
       "source": "/NewYearCountdown.astro",
@@ -8434,6 +8617,27 @@
       "paragraphs": [],
       "fullText": "caro — shell companion $ caro \"list all files modified today\" 🐕 Caro: find . -type f -mtime 0 ✓ Safe to run on your system $ caro \"find large files over 100MB\" 🐕 Caro: find . -type f -size +100M ✓ Safe to run on your system $ caro \"show disk usage by folder\" 🐕 Caro: du -sh */ | sort -rh | head -10 ✓ Safe to run on your system $ caro \"find python files modified last week\" 🐕 Caro: find . -name \"*.py\" -type f -mtime -7 ✓ Safe to run on your system",
       "_searchText": "caro — shell companion $ caro \"list all files modified today\" 🐕 caro: find . -type f -mtime 0 ✓ safe to run on your system $ caro \"find large files over 100mb\" 🐕 caro: find . -type f -size +100m ✓ safe to run on your system $ caro \"show disk usage by folder\" 🐕 caro: du -sh */ | sort -rh | head -10 ✓ safe to run on your system $ caro \"find python files modified last week\" 🐕 caro: find . -name \"*.py\" -type f -mtime -7 ✓ safe to run on your system"
+    },
+    {
+      "source": "/Waitlist.astro",
+      "headings": [
+        "Join the Pack",
+        "Professional Guilds",
+        "Shared Runbooks",
+        "Privacy First",
+        "Welcome to the Pack!"
+      ],
+      "paragraphs": [
+        "Be among the first to experience Caro's community platform—a privacy-first social network built on the AT Protocol where developers share terminal expertise, build runbooks together, and help each other master the command line.",
+        "Join SRE, DevOps, AppSec, and more specialized communities",
+        "Build and fork operational workflows with your team",
+        "Auto-redaction of secrets, full control over your data",
+        "You're on the list. We'll notify you when the community platform launches.",
+        "No spam, ever. Unsubscribe anytime. Privacy Policy",
+        "developers already on the waitlist"
+      ],
+      "fullText": "Coming Soon Join the Pack Be among the first to experience Caro's community platform—a privacy-first social network built on the AT Protocol where developers share terminal expertise, build runbooks together, and help each other master the command line. 🏰 Professional Guilds Join SRE, DevOps, AppSec, and more specialized communities 📚 Shared Runbooks Build and fork operational workflows with your team 🔒 Privacy First Auto-redaction of secrets, full control over your data Welcome to the Pack! You're on the list. We'll notify you when the community platform launches. Join Waitlist No spam, ever. Unsubscribe anytime. Privacy Policy developers already on the waitlist",
+      "_searchText": "join the pack professional guilds shared runbooks privacy first welcome to the pack! be among the first to experience caro's community platform—a privacy-first social network built on the at protocol where developers share terminal expertise, build runbooks together, and help each other master the command line. join sre, devops, appsec, and more specialized communities build and fork operational workflows with your team auto-redaction of secrets, full control over your data you're on the list. we'll notify you when the community platform launches. no spam, ever. unsubscribe anytime. privacy policy developers already on the waitlist coming soon join the pack be among the first to experience caro's community platform—a privacy-first social network built on the at protocol where developers share terminal expertise, build runbooks together, and help each other master the command line. 🏰 professional guilds join sre, devops, appsec, and more specialized communities 📚 shared runbooks build and fork operational workflows with your team 🔒 privacy first auto-redaction of secrets, full control over your data welcome to the pack! you're on the list. we'll notify you when the community platform launches. join waitlist no spam, ever. unsubscribe anytime. privacy policy developers already on the waitlist"
     },
     {
       "source": "/explore/BackendOptions.astro",
@@ -8891,8 +9095,8 @@
       "source": "/landing/LPHero.astro",
       "headings": [],
       "paragraphs": [],
-      "fullText": "🔒 🛡️ ⚡ 📖",
-      "_searchText": "🔒 🛡️ ⚡ 📖"
+      "fullText": "🔒 📖",
+      "_searchText": "🔒 📖"
     },
     {
       "source": "/landing/LPMoments.astro",
@@ -8943,8 +9147,8 @@
         "52+ dangerous patterns are validated before any command runs. Your team is protected by default.",
         "SRE / DevOps Engineer"
       ],
-      "fullText": "Built for How You Work Whether you're accelerating your career, protecting your org, or living in the terminal - Caro adapts to you. 🚀 The Accelerator Individual Developer The Friction You're smart. But memorizing 500 flags and options for tools you use twice a month? That's not intelligence, it's trivia. The Unlock Express intent in English. Get validated, runnable commands. Ship faster without the Stack Overflow detour. 10x faster command discovery Learn shell idioms naturally Build career-defining skills How Accelerators Use Caro Caro teaches you the underlying command syntax as you use it, building real terminal expertise over time. See how it works → 🛡️ The Guardian Security & Platform Lead The Risk Every AI tool your team uses is a potential data leak. Cloud APIs see your infrastructure. Your secrets. Your blind spots. The Shield 100% local execution. Zero data collection. Pre-execution validation catches dangerous commands before they run. Air-gapped friendly 52+ dangerous patterns blocked Full audit capability What Caro Catches ⛔ BLOCKED ⛔ FORK BOMB 52+ dangerous patterns are validated before any command runs. Your team is protected by default. See what's blocked → ⚡ The Operator SRE / DevOps Engineer The Chaos Production is down. You're SSH'd into a box you've never seen. Is it BSD? Linux? What's the find syntax here again? The Edge Platform-aware commands. macOS vs Linux vs BSD - Caro knows the difference. You focus on the problem, not the syntax. Cross-platform intelligence Instant command generation Works in any terminal Platform Intelligence macOS Linux BSD Same intent, platform-correct syntax. Caro detects your OS and adjusts automatically. See platform support →",
-      "_searchText": "built for how you work the accelerator how accelerators use caro the guardian what caro catches the operator platform intelligence whether you're accelerating your career, protecting your org, or living in the terminal - caro adapts to you. individual developer you're smart. but memorizing 500 flags and options for tools you use twice a month? that's not intelligence, it's trivia. express intent in english. get validated, runnable commands. ship faster without the stack overflow detour. caro teaches you the underlying command syntax as you use it, building real terminal expertise over time. security & platform lead every ai tool your team uses is a potential data leak. cloud apis see your infrastructure. your secrets. your blind spots. 100% local execution. zero data collection. pre-execution validation catches dangerous commands before they run. 52+ dangerous patterns are validated before any command runs. your team is protected by default. sre / devops engineer built for how you work whether you're accelerating your career, protecting your org, or living in the terminal - caro adapts to you. 🚀 the accelerator individual developer the friction you're smart. but memorizing 500 flags and options for tools you use twice a month? that's not intelligence, it's trivia. the unlock express intent in english. get validated, runnable commands. ship faster without the stack overflow detour. 10x faster command discovery learn shell idioms naturally build career-defining skills how accelerators use caro caro teaches you the underlying command syntax as you use it, building real terminal expertise over time. see how it works → 🛡️ the guardian security & platform lead the risk every ai tool your team uses is a potential data leak. cloud apis see your infrastructure. your secrets. your blind spots. the shield 100% local execution. zero data collection. pre-execution validation catches dangerous commands before they run. air-gapped friendly 52+ dangerous patterns blocked full audit capability what caro catches ⛔ blocked ⛔ fork bomb 52+ dangerous patterns are validated before any command runs. your team is protected by default. see what's blocked → ⚡ the operator sre / devops engineer the chaos production is down. you're ssh'd into a box you've never seen. is it bsd? linux? what's the find syntax here again? the edge platform-aware commands. macos vs linux vs bsd - caro knows the difference. you focus on the problem, not the syntax. cross-platform intelligence instant command generation works in any terminal platform intelligence macos linux bsd same intent, platform-correct syntax. caro detects your os and adjusts automatically. see platform support →"
+      "fullText": "Built for How You Work Whether you're accelerating your career, protecting your org, or living in the terminal - Caro adapts to you. The Accelerator Individual Developer The Friction You're smart. But memorizing 500 flags and options for tools you use twice a month? That's not intelligence, it's trivia. The Unlock Express intent in English. Get validated, runnable commands. Ship faster without the Stack Overflow detour. 10x faster command discovery Learn shell idioms naturally Build career-defining skills How Accelerators Use Caro Caro teaches you the underlying command syntax as you use it, building real terminal expertise over time. See how it works → The Guardian Security & Platform Lead The Risk Every AI tool your team uses is a potential data leak. Cloud APIs see your infrastructure. Your secrets. Your blind spots. The Shield 100% local execution. Zero data collection. Pre-execution validation catches dangerous commands before they run. Air-gapped friendly 52+ dangerous patterns blocked Full audit capability What Caro Catches ⛔ BLOCKED ⛔ FORK BOMB 52+ dangerous patterns are validated before any command runs. Your team is protected by default. See what's blocked → The Operator SRE / DevOps Engineer The Chaos Production is down. You're SSH'd into a box you've never seen. Is it BSD? Linux? What's the find syntax here again? The Edge Platform-aware commands. macOS vs Linux vs BSD - Caro knows the difference. You focus on the problem, not the syntax. Cross-platform intelligence Instant command generation Works in any terminal Platform Intelligence macOS Linux BSD Same intent, platform-correct syntax. Caro detects your OS and adjusts automatically. See platform support →",
+      "_searchText": "built for how you work the accelerator how accelerators use caro the guardian what caro catches the operator platform intelligence whether you're accelerating your career, protecting your org, or living in the terminal - caro adapts to you. individual developer you're smart. but memorizing 500 flags and options for tools you use twice a month? that's not intelligence, it's trivia. express intent in english. get validated, runnable commands. ship faster without the stack overflow detour. caro teaches you the underlying command syntax as you use it, building real terminal expertise over time. security & platform lead every ai tool your team uses is a potential data leak. cloud apis see your infrastructure. your secrets. your blind spots. 100% local execution. zero data collection. pre-execution validation catches dangerous commands before they run. 52+ dangerous patterns are validated before any command runs. your team is protected by default. sre / devops engineer built for how you work whether you're accelerating your career, protecting your org, or living in the terminal - caro adapts to you. the accelerator individual developer the friction you're smart. but memorizing 500 flags and options for tools you use twice a month? that's not intelligence, it's trivia. the unlock express intent in english. get validated, runnable commands. ship faster without the stack overflow detour. 10x faster command discovery learn shell idioms naturally build career-defining skills how accelerators use caro caro teaches you the underlying command syntax as you use it, building real terminal expertise over time. see how it works → the guardian security & platform lead the risk every ai tool your team uses is a potential data leak. cloud apis see your infrastructure. your secrets. your blind spots. the shield 100% local execution. zero data collection. pre-execution validation catches dangerous commands before they run. air-gapped friendly 52+ dangerous patterns blocked full audit capability what caro catches ⛔ blocked ⛔ fork bomb 52+ dangerous patterns are validated before any command runs. your team is protected by default. see what's blocked → the operator sre / devops engineer the chaos production is down. you're ssh'd into a box you've never seen. is it bsd? linux? what's the find syntax here again? the edge platform-aware commands. macos vs linux vs bsd - caro knows the difference. you focus on the problem, not the syntax. cross-platform intelligence instant command generation works in any terminal platform intelligence macos linux bsd same intent, platform-correct syntax. caro detects your os and adjusts automatically. see platform support →"
     },
     {
       "source": "/landing/LPScenarios.astro",
@@ -9005,18 +9209,6 @@
       ],
       "fullText": "SEE IT IN ACTION 30 Seconds to Terminal Mastery Watch how Caro transforms natural language into safe POSIX commands > Your browser does not support the video tag. ) : ( Video coming soon In the meantime, try the interactive demo below 1 Type naturally: \"find large files over 100MB\" → 2 Caro validates for safety → 3 Get: → 4 Execute with confidence )}",
       "_searchText": "30 seconds to terminal mastery watch how caro transforms natural language into safe posix commands video coming soon in the meantime, try the interactive demo below see it in action 30 seconds to terminal mastery watch how caro transforms natural language into safe posix commands > your browser does not support the video tag. ) : ( video coming soon in the meantime, try the interactive demo below 1 type naturally: \"find large files over 100mb\" → 2 caro validates for safety → 3 get: → 4 execute with confidence )}"
-    },
-    {
-      "source": "/landing/LPWaitlist.astro",
-      "headings": [
-        "Org Visibility for Teams"
-      ],
-      "paragraphs": [
-        "See what commands your team runs. Audit shell activity across your organization. Identify training opportunities and security risks—without invading privacy.",
-        "Join 200+ engineering leaders on the waitlist. No spam, just launch updates."
-      ],
-      "fullText": "COMING SOON Org Visibility for Teams See what commands your team runs. Audit shell activity across your organization. Identify training opportunities and security risks—without invading privacy. ✓ Aggregated command analytics (no individual tracking) ✓ Pattern detection for dangerous command attempts ✓ Self-hosted dashboard—your data never leaves your network Work email Get Early Access → Join 200+ engineering leaders on the waitlist. No spam, just launch updates.",
-      "_searchText": "org visibility for teams see what commands your team runs. audit shell activity across your organization. identify training opportunities and security risks—without invading privacy. join 200+ engineering leaders on the waitlist. no spam, just launch updates. coming soon org visibility for teams see what commands your team runs. audit shell activity across your organization. identify training opportunities and security risks—without invading privacy. ✓ aggregated command analytics (no individual tracking) ✓ pattern detection for dangerous command attempts ✓ self-hosted dashboard—your data never leaves your network work email get early access → join 200+ engineering leaders on the waitlist. no spam, just launch updates."
     }
   ]
 }
