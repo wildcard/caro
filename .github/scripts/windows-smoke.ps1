@@ -25,12 +25,20 @@ if (-not (Test-Path $ExePath)) {
     throw "binary missing: $ExePath"
 }
 
+# All smoke invocations pass --no-telemetry to skip the first-run
+# telemetry consent prompt (a separate interactive stdin reader at
+# src/main.rs:3388 that would otherwise wait for y/n input and is NOT
+# what this smoke is here to test). Bug #1 is specifically about the
+# resolve_prompt stdin read, which --no-telemetry leaves untouched.
+
 Write-Host "::group::Smoke 1 — must not hang when stdin is inherited"
 # Launch caro with the parent (PowerShell) stdin handle inherited —
-# same shape as a real user typing at the prompt. Bug #1 caused this
-# to block forever. Cap at 30 s.
+# same shape as a real user typing at the prompt. Bug #1 caused
+# resolve_prompt to call read_to_string on inherited stdin and block
+# forever waiting for EOF. The new should_consult_stdin predicate must
+# now skip the read because -p sets the prompt flag. Cap at 30 s.
 $p = Start-Process -FilePath $ExePath `
-       -ArgumentList @('-p', 'list files', '--dry-run') `
+       -ArgumentList @('--no-telemetry', '-p', 'list files', '--dry-run') `
        -PassThru -NoNewWindow `
        -RedirectStandardOutput out1.txt -RedirectStandardError err1.txt
 if (-not $p.WaitForExit(30000)) {
@@ -47,9 +55,9 @@ Write-Host "::group::Smoke 2 — must not emit POSIX commands on Windows"
 # reserved for future use"). Pipe an empty string instead so the child
 # inherits a closed-on-EOF stdin without invoking the parser-reserved
 # `<` operator. Equivalent semantics for caro: stdin reads return EOF
-# immediately, the `should_consult_stdin` predicate decides whether to
+# immediately, the should_consult_stdin predicate decides whether to
 # consume it based on flag/trailing-args presence.
-$out2 = "" | & $ExePath --shell powershell -p "list files in current directory" --dry-run
+$out2 = "" | & $ExePath --no-telemetry --shell powershell -p "list files in current directory" --dry-run
 $out2 | Write-Host
 if ($out2 -match '\bls\s+-la\b' `
     -or $out2 -match 'find\s+\.\s+-exec' `
@@ -61,7 +69,7 @@ Write-Host "  ok (no POSIX leak)"
 Write-Host "::endgroup::"
 
 Write-Host "::group::Smoke 3 — must not label shell as Bash on Windows"
-$out3 = "" | & $ExePath -p "list files" --dry-run
+$out3 = "" | & $ExePath --no-telemetry -p "list files" --dry-run
 $out3 | Write-Host
 if ($out3 -match 'shell:\s*Bash') {
     throw "BUG #3 REGRESSION: shell labelled 'Bash' on Windows host"
