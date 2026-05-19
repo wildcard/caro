@@ -221,6 +221,51 @@ We do **not** consider the following as security vulnerabilities:
 
 ---
 
+## Supply Chain Security
+
+caro is distributed via `cargo install caro`, `brew install caro`, and pre-built binaries from GitHub Releases. A compromise of any direct or transitive dependency, or a deliberate-tombstone release from a maintainer, can break or actively harm every downstream user. The project treats **unverified dependency merges as a first-class supply-chain attack vector** — equivalent to a malicious commit.
+
+### Threat model
+
+The threat model includes, but is not limited to:
+
+- **Deliberate-tombstone releases** — a maintainer publishes a deliberately-broken version as commentary, protest, or burnout (see [PR #925](https://github.com/wildcard/caro/pull/925), `bincode 3.0.0` referencing [xkcd 2347](https://xkcd.com/2347/)).
+- **Account compromise** — an upstream maintainer's crates.io / npm / PyPI account is taken over and a malicious version is published (Shai-Hulud-class worms have demonstrated this on npm).
+- **Typosquatting** — a similarly-named crate is published with malicious code.
+- **Transitive breakage** — a minor or patch bump of a direct dep silently shifts the resolved version of a transitive dep, breaking the build or introducing a vulnerability.
+- **Yank-then-republish** — a yanked version is republished with malicious content under the same version string.
+
+### Mitigation: the CI-green merge rule
+
+The single most important mitigation is also the cheapest: **no PR is merged while CI is red.** A vulnerability scanner that runs *after* a merge cannot stop a tombstone release from breaking the world; a build that runs *before* the merge can.
+
+The full rule is codified in [`.claude/rules/dependency-upgrade-verification.md`](.claude/rules/dependency-upgrade-verification.md) and mirrored into [`CONTRIBUTING.md`](CONTRIBUTING.md#-merging--ci-green-rule-tier-1-non-negotiable) and the project's [PR template](.github/PULL_REQUEST_TEMPLATE.md). Summary:
+
+1. `gh pr checks` — zero `fail`, zero `pending` among required checks.
+2. `gh pr view --json mergeStateStatus` — `CLEAN` or `HAS_HOOKS` only.
+3. Every AI-reviewer P0/blocker/compile_error callout is resolved on-thread before merge.
+4. Dependency PRs: build verified on the head SHA (CI job or local `cargo build --release --features embedded-cpu`).
+5. Cargo.toml / Cargo.lock / build.rs PRs: every feature-gate compiles.
+
+### Additional layers
+
+- **`cargo audit`** — runs in CI and on every release. RUSTSEC advisories surface as build failures.
+- **`audit.toml`** — every advisory suppression is dated, attributed, and has a documented revert criterion. New suppressions require justification in PR review.
+- **`Cargo.lock` is committed** — for binaries, this is the standard; it prevents transitive drift between contributor builds.
+- **Dependabot grouping** — patch/minor bumps are grouped to reduce review fatigue, but **every group still goes through the CI-green gate**.
+- **External-SDK build-spike rule** — first PR for any new non-trivial SDK is a license/MSRV/feature-flag spike, not an integration. See [`.claude/rules/external-sdk-integration.md`](.claude/rules/external-sdk-integration.md).
+- **Branch protection (planned)** — Phase 2 of the rule's enforcement is GitHub branch protection requiring the full required-check set, with no admin bypass. Tracked separately.
+
+### Reporting a suspected supply-chain incident
+
+If you believe a published version of a caro dependency (direct or transitive) is compromised:
+
+1. **Do not** open a public issue — use the private security advisory flow described above.
+2. Include the crate name, version range, and evidence (e.g. a diff between the suspicious release and the previous one, a `cargo audit` advisory ID, or a reproduction).
+3. We will coordinate with the upstream maintainer or `RustSec/advisory-db` as appropriate.
+
+---
+
 ## Security Best Practices for Users
 
 While using caro:

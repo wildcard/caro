@@ -1,3 +1,21 @@
+<!--
+🚨 PRE-MERGE CHECKLIST — required by .claude/rules/dependency-upgrade-verification.md (Tier 1)
+DO NOT MERGE this PR until every box below is honestly tickable.
+-->
+
+## Pre-merge checklist (Tier 1 — project safety)
+
+- [ ] `gh pr checks` shows zero `fail` and zero `pending` rows among required checks
+- [ ] `gh pr view --json mergeStateStatus` is `CLEAN` or `HAS_HOOKS` (never `BEHIND`/`BLOCKED`/`DIRTY`/`UNSTABLE`)
+- [ ] Every AI-reviewer comment (`cubic-dev-ai`, `claude-review`, `coderabbitai`, `copilot`, etc.) marked `P0`/`blocker`/`compile_error` is resolved on-thread
+- [ ] **For Dependabot / dependency PRs**: the `Build Check` job has actually run on this PR's head SHA, OR `cargo build --release --features embedded-cpu` was verified locally
+- [ ] **For PRs touching `Cargo.toml` / `Cargo.lock` / `build.rs`**: every feature-gate compiles (`--no-default-features`, `--features cve-rules`, `--features embedded-cpu`, default)
+- [ ] `cargo tree --duplicates` reports no new duplicate-version entries among security-critical crates
+
+This is **non-negotiable**. PR #925 (bincode 3.0 tombstone) → 24h broken `main` is the precedent. See [.claude/rules/dependency-upgrade-verification.md](../.claude/rules/dependency-upgrade-verification.md) for the full rule and the narrow "main is already broken" exception.
+
+---
+
 ## Description
 
 <!-- Provide a clear and concise description of what this PR does -->
