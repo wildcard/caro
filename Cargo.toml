@@ -81,7 +81,10 @@ regex = "1"
 once_cell = "1.21"
 
 # CVE rule ruleset deserialization (see src/dogma/)
-bincode = "3.0"
+# Pinned to 1.x because bincode 3.0.0 is an intentional compile_error! prank
+# version (https://xkcd.com/2347/, see GH #1150). Migration to bincode 2.x
+# is a separate PR — the on-disk encode/decode call sites would need updating.
+bincode = "1.3"
 
 # Cryptography for checksums
 sha2 = "0.10"
@@ -130,7 +133,10 @@ tokenizers = { version = "0.22", default-features = false, features = ["http", "
 # See src/dogma/compiler.rs (included via #[path] from build.rs).
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"
-bincode = "3.0"
+# Keep in sync with [dependencies].bincode — must match the runtime
+# deserializer or the binary CVE ruleset will round-trip incorrectly.
+# See GH #1150 for why 3.0 is forbidden.
+bincode = "1.3"
 
 [dev-dependencies]
 assert_cmd = "2"
