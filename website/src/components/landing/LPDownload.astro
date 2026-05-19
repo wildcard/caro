@@ -56,34 +56,44 @@ const copiedLabel = t(lang, 'common.buttons.copied');
 </section>
 
 <style>
+  /* Section: paper page surface (per Claude Design May 9 ruling — LPDownload
+     is a dark stationery card on paper, not a billboard). */
   .download-section {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--bg);
+    color: var(--fg);
     text-align: center;
-    padding: 80px 20px;
+    padding: var(--space-3xl) var(--space-md);
   }
 
+  /* Container: the dark stationery card itself. */
   .container {
-    max-width: 700px;
+    max-width: 720px;
     margin: 0 auto;
+    background: var(--bg-inverse);
+    color: var(--fg-inverse);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-3xl) var(--space-xl);
   }
 
   h2 {
     font-size: 36px;
     margin-bottom: 12px;
+    color: var(--fg-inverse);
   }
 
   .section-subtitle {
     font-size: 18px;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--fg-inverse);
+    opacity: 0.8;
     margin-bottom: 40px;
   }
 
   .install-command {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.35);
     padding: 20px 24px;
-    border-radius: 8px;
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
     font-size: 14px;
     display: flex;
     align-items: center;
@@ -92,25 +102,26 @@ const copiedLabel = t(lang, 'common.buttons.copied');
   }
 
   .install-command code {
-    color: #fff;
+    color: var(--fg-inverse);
     text-align: left;
   }
 
   .copy-button {
     flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: var(--caro-white);
     padding: 8px 20px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
-    transition: background 0.2s;
+    transition: background-color 0.2s, border-color 0.2s;
   }
 
   .copy-button:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
   }
 
   .quick-start {
@@ -119,16 +130,18 @@ const copiedLabel = t(lang, 'common.buttons.copied');
 
   .then-run {
     font-size: 15px;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--fg-inverse);
+    opacity: 0.75;
     margin-bottom: 12px;
   }
 
   .example-command {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.25);
     padding: 16px 24px;
-    border-radius: 6px;
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
     font-size: 14px;
+    color: var(--fg-inverse);
   }
 
   .trust-points {
@@ -144,27 +157,29 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     align-items: center;
     gap: 8px;
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--fg-inverse);
+    opacity: 0.9;
   }
 
   .check {
-    color: #fff;
+    color: var(--accent);
     font-weight: 600;
   }
 
   .source-note {
     margin-top: 40px;
     padding-top: 30px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
   }
 
   .source-note p {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--fg-inverse);
+    opacity: 0.75;
   }
 
   .source-note a {
-    color: white;
+    color: var(--fg-inverse);
     text-decoration: underline;
     font-weight: 500;
   }

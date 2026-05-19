@@ -2,7 +2,7 @@
 
 > Your loyal shell companion - A privacy-first AI CLI assistant that converts natural language to safe shell commands
 
-**Version**: 1.3.0
+**Version**: 1.4.0
 **License**: AGPL-3.0
 **Repository**: https://github.com/wildcard/caro
 **Website**: https://caro.sh
@@ -503,6 +503,14 @@ Safety Approach
 
 ---
 
+## Integrations — Caro
+
+**URL**: https://caro.sh/integrations
+
+Use Caro from Claude Code, Codex, Cursor, Continue, Aider, Tabby, opencode, crush, and more. Caro speaks Claude Code skills, MCP, and the OpenAI Chat Completions API.
+
+---
+
 ## Open Source AI Shell Commands
 
 **URL**: https://caro.sh/open-source-shell-ai
@@ -983,4 +991,4 @@ Yes! Caro is licensed under AGPL-3.0. You can read, modify, and distribute the s
 
 ---
 
-*Generated on 2026-04-29*
+*Generated on 2026-05-19*
