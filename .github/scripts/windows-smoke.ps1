@@ -43,7 +43,13 @@ Write-Host "  ok (exit=$($p.ExitCode), $outSize bytes stdout)"
 Write-Host "::endgroup::"
 
 Write-Host "::group::Smoke 2 — must not emit POSIX commands on Windows"
-$out2 = & $ExePath --shell powershell -p "list files in current directory" --dry-run < $null
+# PowerShell 7 (runner default) rejects `< $null` ("The '<' operator is
+# reserved for future use"). Pipe an empty string instead so the child
+# inherits a closed-on-EOF stdin without invoking the parser-reserved
+# `<` operator. Equivalent semantics for caro: stdin reads return EOF
+# immediately, the `should_consult_stdin` predicate decides whether to
+# consume it based on flag/trailing-args presence.
+$out2 = "" | & $ExePath --shell powershell -p "list files in current directory" --dry-run
 $out2 | Write-Host
 if ($out2 -match '\bls\s+-la\b' `
     -or $out2 -match 'find\s+\.\s+-exec' `
@@ -55,7 +61,7 @@ Write-Host "  ok (no POSIX leak)"
 Write-Host "::endgroup::"
 
 Write-Host "::group::Smoke 3 — must not label shell as Bash on Windows"
-$out3 = & $ExePath -p "list files" --dry-run < $null
+$out3 = "" | & $ExePath -p "list files" --dry-run
 $out3 | Write-Host
 if ($out3 -match 'shell:\s*Bash') {
     throw "BUG #3 REGRESSION: shell labelled 'Bash' on Windows host"
