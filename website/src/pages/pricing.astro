@@ -1,0 +1,335 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+
+const tiers = [
+  {
+    id: 'community',
+    name: 'Community',
+    price: 'Free forever',
+    summary:
+      'The Caro CLI you install from crates.io / Homebrew / npm / NuGet / setup.caro.sh. Open source under AGPL-3.0.',
+    bullets: [
+      'Full safety validator (52+ dangerous-command patterns)',
+      'All backends — MLX, CPU, Ollama, vLLM, OpenRouter, embedded',
+      'Full CaroML task language and runbooks',
+      'Opt-in privacy-first telemetry (you control it)',
+      'Works offline once models are cached',
+      'AGPL-3.0 — you can read every line we run',
+    ],
+    cta: {
+      label: 'Get the CLI',
+      href: '/#install',
+      tone: 'secondary',
+      source: 'pricing-community',
+    },
+    note:
+      'This is the product. The community core is never crippled to upsell — see COMPANY.md for the contract.',
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: 'Preview — talk to us',
+    summary:
+      'A plugin suite on top of the community core for orgs that need centralized governance, audit-trail forwarding, and rollout integration.',
+    bullets: [
+      'CISO dashboard for fleet-wide policy + safety posture',
+      'Centralized rule distribution (custom safety patterns, allow/block lists)',
+      'Audit-trail forwarding to your SIEM',
+      'Machine-correlation for fleet-wide incident triage',
+      'IT rollout integration (MDM, package managers, JAMF / SCCM / Munki)',
+      'SOC 2 / GDPR posture for the managed surface',
+    ],
+    cta: {
+      label: 'Join the Enterprise waitlist',
+      href: '/#waitlist?source=pricing-enterprise',
+      tone: 'primary',
+      source: 'pricing-enterprise',
+    },
+    note:
+      'Plugins extend the community core; they do not gate it. Pricing finalizes with v2.0. The dual-track architecture is documented in ADR-001.',
+  },
+];
+
+const repo = 'https://github.com/wildcard/caro';
+---
+
+<Layout
+  title="Pricing (preview) — Caro"
+  description="Caro is free forever under AGPL-3.0. An Enterprise plugin suite for fleet-wide governance, audit-trail forwarding, and IT rollout is in preview — pricing finalizes with v2.0."
+>
+  <Navigation />
+
+  <main class="pricing">
+    <div class="banner">
+      <strong>Preview.</strong> Enterprise pricing finalizes with v2.0.
+      Today this page exists so you can tell us which tier you'd
+      actually use — clicking <em>Enterprise</em> below is the first
+      concrete signal we have that the dual-track architecture under
+      <a href={`${repo}/blob/main/docs/adr/ADR-001-enterprise-community-architecture.md`}>ADR-001</a>
+      has a real audience.
+    </div>
+
+    <header class="hero">
+      <p class="eyebrow">Pricing — preview</p>
+      <h1>Free forever for individuals. Premium plugins for orgs.</h1>
+      <p class="subtitle">
+        Caro the CLI is open source under AGPL-3.0. The Community
+        Edition is the product everyone installs and uses. The
+        Enterprise Edition adds plugins for fleet-wide governance,
+        audit-trail forwarding, and IT rollout — without gating
+        anything in the community core.
+      </p>
+    </header>
+
+    <section class="tiers">
+      {tiers.map((tier) => (
+        <article class={`tier tier--${tier.id}`}>
+          <header>
+            <h2>{tier.name}</h2>
+            <p class="price">{tier.price}</p>
+            <p class="summary">{tier.summary}</p>
+          </header>
+          <ul>
+            {tier.bullets.map((bullet) => (
+              <li>{bullet}</li>
+            ))}
+          </ul>
+          <a
+            class={`cta cta--${tier.cta.tone}`}
+            href={tier.cta.href}
+            data-source={tier.cta.source}
+          >
+            {tier.cta.label} →
+          </a>
+          <p class="note">{tier.note}</p>
+        </article>
+      ))}
+    </section>
+
+    <section class="contract">
+      <h2>What we will not do</h2>
+      <p>
+        The COMPANY.md contract names four things we will not do — and
+        because this is open source, you can hold us to all of them:
+      </p>
+      <ul>
+        <li>Cripple the community core to upsell Enterprise.</li>
+        <li>Turn telemetry into the business model.</li>
+        <li>Pivot into a consumer category.</li>
+        <li>Close-source the safety patterns.</li>
+      </ul>
+      <p>
+        <a href={`${repo}/blob/main/COMPANY.md`}>Read the full contract →</a>
+      </p>
+    </section>
+
+    <section class="faq">
+      <h2>Why is Caro free?</h2>
+      <p>
+        Because the category we're building only exists if the safety
+        layer is open source. If we close the 52+ dangerous-command
+        patterns, the category collapses back into vendor opinion.
+        The community core staying free is a strategic choice, not a
+        marketing pose.
+      </p>
+
+      <h2>How is Enterprise different from the CLI?</h2>
+      <p>
+        Enterprise is the same CLI with an additional plugin suite for
+        org-level concerns: centralized policy distribution, audit
+        trails, machine correlation across a fleet. Individual
+        developers get nothing extra from Enterprise. CISOs running
+        Caro across hundreds of engineers get a lot.
+      </p>
+
+      <h2>When does Enterprise ship?</h2>
+      <p>
+        With v2.0. Until then, this page is a waitlist for orgs that
+        want early access — and a market-validation signal for the
+        ADR-001 architecture. We will not promise a release date we
+        haven't gated on validation evidence (see
+        <a href={`${repo}/blob/main/.claude/rules/validation-discipline.md`}>validation-discipline.md</a>).
+      </p>
+
+      <h2>Will my prompts leave my machine?</h2>
+      <p>
+        No. Caro runs locally by default. Telemetry is opt-in,
+        privacy-first, and never includes command content, file paths,
+        env vars, or natural-language prompts — see
+        <a href="/telemetry">/telemetry</a> for the full contract.
+      </p>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .pricing {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 6rem;
+    color: var(--fg, #111);
+  }
+
+  .banner {
+    background: var(--bg-card-accent, #fff5f5);
+    border: 1px solid var(--accent, #d73a49);
+    color: var(--fg, #111);
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 2.5rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .banner a {
+    color: var(--accent, #d73a49);
+  }
+
+  .hero {
+    margin-bottom: 3rem;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.85rem;
+    color: var(--accent, #d73a49);
+    margin: 0 0 0.5rem;
+  }
+
+  .pricing h1 {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1.15;
+    margin: 0 0 1rem;
+  }
+
+  .subtitle {
+    font-size: 1.1rem;
+    line-height: 1.55;
+    max-width: 64ch;
+    color: var(--fg-soft, #444);
+  }
+
+  .tiers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin: 0 0 3rem;
+  }
+
+  .tier {
+    border: 1px solid var(--border, #e5e5e5);
+    border-radius: 10px;
+    padding: 1.5rem;
+    background: var(--bg-card, #fafafa);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tier--enterprise {
+    border-color: var(--accent, #d73a49);
+  }
+
+  .tier h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.4rem;
+  }
+
+  .tier .price {
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+    color: var(--accent, #d73a49);
+    font-weight: 500;
+  }
+
+  .tier .summary {
+    margin: 0 0 1rem;
+    color: var(--fg-soft, #444);
+    line-height: 1.5;
+  }
+
+  .tier ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+    flex: 1;
+  }
+
+  .tier li {
+    padding: 0.4rem 0;
+    padding-left: 1.25rem;
+    position: relative;
+    color: var(--fg, #222);
+    line-height: 1.45;
+  }
+
+  .tier li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent, #d73a49);
+  }
+
+  .cta {
+    display: inline-block;
+    padding: 0.75rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .cta--primary {
+    background: var(--accent, #d73a49);
+    color: white;
+  }
+
+  .cta--secondary {
+    background: transparent;
+    color: var(--accent, #d73a49);
+    border: 1px solid var(--accent, #d73a49);
+  }
+
+  .note {
+    font-size: 0.85rem;
+    color: var(--fg-soft, #666);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .contract,
+  .faq {
+    margin: 3rem 0;
+  }
+
+  .contract h2,
+  .faq h2 {
+    font-size: 1.3rem;
+    margin: 0 0 0.75rem;
+  }
+
+  .faq h2 {
+    margin-top: 1.5rem;
+  }
+
+  .contract p,
+  .faq p {
+    line-height: 1.6;
+    color: var(--fg-soft, #444);
+    max-width: 68ch;
+  }
+
+  .contract ul {
+    margin: 0.5rem 0 1.5rem;
+    padding-left: 1.5rem;
+    color: var(--fg, #222);
+    line-height: 1.6;
+  }
+
+  .contract a,
+  .faq a {
+    color: var(--accent, #d73a49);
+  }
+</style>
