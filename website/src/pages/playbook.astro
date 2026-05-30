@@ -191,7 +191,7 @@ const repo = 'https://github.com/wildcard/caro';
     max-width: 880px;
     margin: 0 auto;
     padding: 4rem 1.5rem 6rem;
-    color: var(--fg, #111);
+    color: var(--fg);
   }
 
   .hero {
@@ -203,7 +203,7 @@ const repo = 'https://github.com/wildcard/caro';
     text-transform: uppercase;
     letter-spacing: 0.12em;
     font-size: 0.85rem;
-    color: var(--accent, #d73a49);
+    color: var(--accent);
     margin-bottom: 0.75rem;
   }
 
@@ -217,7 +217,7 @@ const repo = 'https://github.com/wildcard/caro';
     font-size: 1.15rem;
     line-height: 1.55;
     max-width: 60ch;
-    color: var(--fg-soft, #444);
+    color: var(--fg-muted);
   }
 
   .playbook h2 {
@@ -235,7 +235,7 @@ const repo = 'https://github.com/wildcard/caro';
   .discipline-intro {
     font-size: 1.05rem;
     line-height: 1.6;
-    color: var(--fg-soft, #444);
+    color: var(--fg-muted);
   }
 
   .stage-grid {
@@ -245,15 +245,15 @@ const repo = 'https://github.com/wildcard/caro';
   }
 
   .stage {
-    border: 1px solid var(--border, #e5e5e5);
+    border: 1px solid var(--border);
     border-radius: 8px;
     padding: 1.25rem 1.25rem 1rem;
-    background: var(--bg-card, #fafafa);
+    background: var(--bg-raised);
   }
 
   .stage--current {
-    border-color: var(--accent, #d73a49);
-    background: var(--bg-card-accent, #fff5f5);
+    border-color: var(--accent);
+    background: var(--bg-subtle);
   }
 
   .stage-header {
@@ -270,29 +270,33 @@ const repo = 'https://github.com/wildcard/caro';
     letter-spacing: 0.08em;
     padding: 0.15rem 0.5rem;
     border-radius: 4px;
-    background: var(--bg-soft, #eee);
-    color: var(--fg-soft, #444);
+    background: var(--bg-subtle);
+    color: var(--fg-muted);
     white-space: nowrap;
   }
 
+  /* NOTE: status badge tint colors are hardcoded pending a Claude
+     Design decision on whether to add semantic --status-done-bg /
+     --status-planned-bg tokens. Tracked as P2 in the design audit
+     for PR #1174. */
   .status--done {
-    background: var(--bg-soft, #eef9ef);
-    color: var(--fg-soft, #2a6b2f);
+    background: #eef9ef;
+    color: #2a6b2f;
   }
 
   .status--current {
-    background: var(--accent, #d73a49);
-    color: white;
+    background: var(--accent);
+    color: var(--caro-white, #ffffff);
   }
 
   .status--planned {
-    background: var(--bg-soft, #f1efff);
-    color: var(--fg-soft, #4a3e8c);
+    background: #f1efff;
+    color: #4a3e8c;
   }
 
   .stage p {
     line-height: 1.55;
-    color: var(--fg-soft, #444);
+    color: var(--fg-muted);
     font-size: 0.98rem;
     margin: 0 0 0.75rem;
   }
@@ -301,9 +305,9 @@ const repo = 'https://github.com/wildcard/caro';
     list-style: none;
     padding: 0;
     margin: 0;
-    font-family: var(--font-mono, ui-monospace, monospace);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.85rem;
-    color: var(--fg-soft, #555);
+    color: var(--fg-muted);
   }
 
   .evidence li {
@@ -321,36 +325,41 @@ const repo = 'https://github.com/wildcard/caro';
 
   .gates li {
     counter-increment: gate;
-    border-left: 3px solid var(--accent, #d73a49);
+    border: 1px solid var(--border);
     padding: 0.75rem 1rem;
-    background: var(--bg-card, #fafafa);
-    border-radius: 0 6px 6px 0;
+    background: var(--bg-raised);
+    border-radius: 6px;
+    transition: border-color 0.15s ease;
+  }
+
+  .gates li:hover {
+    border-color: var(--accent);
   }
 
   .gates h3::before {
     content: 'Gate ' counter(gate) ' — ';
-    color: var(--accent, #d73a49);
+    color: var(--accent);
     font-weight: 500;
   }
 
   .gates p {
     margin: 0;
-    color: var(--fg-soft, #444);
+    color: var(--fg-muted);
     line-height: 1.55;
   }
 
   .audit em {
     font-style: normal;
-    background: var(--bg-soft, #f3f3f3);
+    background: var(--bg-subtle);
     padding: 0.05rem 0.3rem;
     border-radius: 3px;
-    font-family: var(--font-mono, ui-monospace, monospace);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.92em;
   }
 
   .audit a,
   .links a {
-    color: var(--accent, #d73a49);
+    color: var(--accent);
     text-decoration: none;
     border-bottom: 1px solid currentColor;
   }
@@ -365,22 +374,10 @@ const repo = 'https://github.com/wildcard/caro';
 
   .links li {
     padding: 0.4rem 0;
-    border-bottom: 1px solid var(--border, #eee);
+    border-bottom: 1px solid var(--border);
   }
 
-  @media (prefers-color-scheme: dark) {
-    .playbook {
-      color: var(--fg, #f5f5f5);
-    }
-    .stage {
-      background: var(--bg-card, #1a1a1a);
-      border-color: var(--border, #2a2a2a);
-    }
-    .stage--current {
-      background: var(--bg-card-accent, #2a1a1a);
-    }
-    .gates li {
-      background: var(--bg-card, #1a1a1a);
-    }
-  }
+  /* Dark mode is handled by tokens.css — all semantic tokens above
+     (--bg-raised, --bg-subtle, --fg, --fg-muted, --border, --accent)
+     resolve correctly under prefers-color-scheme: dark. */
 </style>
