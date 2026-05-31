@@ -41,7 +41,7 @@ anonymization rules documented there.
   inside a single pattern is noise, not signal.
 
 The number 20 is deliberate. 5 is anecdote; 10 is selection bias; 20
-is enough to see the pattern repeat in voices you didn't pre-select.
+is enough to see the pattern repeat in voices you didn't preselect.
 
 ### Gate 2 — No Surveys (As The Sole Evidence)
 

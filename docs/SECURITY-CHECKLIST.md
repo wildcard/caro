@@ -40,7 +40,7 @@ From the playbook's Stage-2 warnings:
   [`.claude/rules/validation-discipline.md`](../.claude/rules/validation-discipline.md);
   this checklist assumes the validation gates are already cleared.
 - **Single-provider lock-in** — playbook Stage-4 failure mode, but
-  worth pre-empting at MVP. *Specifically for Caro*: every model
+  worth preempting at MVP. *Specifically for Caro*: every model
   backend goes behind the `InferenceBackend` trait, and the
   configuration system supports runtime switching. No code path
   should hard-code a single backend identifier outside

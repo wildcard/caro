@@ -151,4 +151,4 @@ enthusiasm.
 - [`.claude/skills/caro.discovery/SKILL.md`](../../.claude/skills/caro.discovery/SKILL.md) —
   the skill that walks this template programmatically
 - [`docs/PERSONAS_JTBD.md`](../PERSONAS_JTBD.md) — existing persona
-  framing (use it to pre-select interview participants per cohort)
+  framing (use it to preselect interview participants per cohort)
