@@ -26,9 +26,14 @@ These rules govern how code is written, reviewed, and released.
    conventional commits, code style.
 3. **[release-version-alignment.md](./release-version-alignment.md)** — The
    6-file release checklist; every release PR touches all six files.
-4. **[adr-numbering.md](./adr-numbering.md)** — ADRs are sequential, no gaps;
+4. **[validation-discipline.md](./validation-discipline.md)** — Evidence
+   requirements before a new product line graduates from research to
+   implementation (20 transcripts, no surveys-only, demoware-trap gate,
+   devil's-advocate review, Sean Ellis with defended cohort). Adapted
+   from [Anthropic's Founder's Playbook](https://claude.com/blog/the-founders-playbook).
+5. **[adr-numbering.md](./adr-numbering.md)** — ADRs are sequential, no gaps;
    renumber on merge if PRs land out of order.
-5. **[external-sdk-integration.md](./external-sdk-integration.md)** —
+6. **[external-sdk-integration.md](./external-sdk-integration.md)** —
    First PR for any non-trivial external SDK is a build-spike (license,
    MSRV, optional feature flag, code-ref smoke, two verification builds);
    architecture lands only after the spike merges green.
@@ -38,11 +43,11 @@ These rules govern how code is written, reviewed, and released.
 These rules govern session ergonomics and surface-level conventions. They
 yield to anything in Tier 1 or Tier 2.
 
-6. **[good-boy-scout.md](./good-boy-scout.md)** — Leave code better than you
+7. **[good-boy-scout.md](./good-boy-scout.md)** — Leave code better than you
    found it; do not gold-plate.
-7. **[quick-actions-footer.md](./quick-actions-footer.md)** — Append a
+8. **[quick-actions-footer.md](./quick-actions-footer.md)** — Append a
    Quick-Actions footer when stopping for user input.
-8. **[astro-esbuild-shell-syntax.md](./astro-esbuild-shell-syntax.md)** —
+9. **[astro-esbuild-shell-syntax.md](./astro-esbuild-shell-syntax.md)** —
    Escape `{` in shell snippets inside `.astro` / `.jsx` / `.tsx` templates
    (esbuild treats it as a JSX expression boundary).
 
