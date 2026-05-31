@@ -22,6 +22,52 @@ claims all live here as operational artifacts.
 | [`v2.0-validation-audit.md`](./v2.0-validation-audit.md) | Retroactive audit of Karo, Dogma, voice synthesis, self-healing, local context indexing |
 | `transcripts/` | Anonymized first-hand user-interview transcripts (one file per interview) |
 
+## Candidate sourcing
+
+The validation-discipline rule requires 20 first-hand interview
+transcripts per new product line. That requires *finding* the
+participants. Caro does not yet have a Discord, an email list, or
+an in-app prompt for interview recruitment — these are all surfaces
+the founder has to assemble.
+
+**Important calibration finding (2026-05-31)**: GitHub Issues filed
+by the project's own maintainers (and especially those tagged
+"Source: Claude Code session") do **NOT** count as user-pain signal.
+They are *founder-and-model* planning notes. Re-check any "anecdotal
+user demand" before relying on it: if `@wildcard` is the issue
+author, the signal is internal, not external.
+
+The legitimate outreach surfaces below — in rough order of warm-
+lead strength — are where real first-hand transcripts come from.
+
+| Surface | Approximate cohort size | Outreach friction | Notes |
+| --- | --- | --- | --- |
+| **Waitlist** (Turso DB) | ~247 | low | Per-tier segmentation via `source` field (e.g. `pricing-enterprise` is a Stage-3 demand signal worth interviewing) |
+| **GitHub stargazers** | ~34 | medium | Smaller pool but high-intent — they bookmarked the project |
+| **Direct network DMs** | n (founder's network) | low–medium | Highest-quality transcripts but most selection-biased; mark cohort explicitly in synthesis |
+| **Issue / PR contributors** | n (external only) | medium | Filter out `@wildcard` authorship; remaining commenters are external users with real pain |
+| **Twitter / Mastodon / LinkedIn replies** | unbounded | high | Slow signal; Hermes weekly competitive-intel scan can surface candidates |
+| **Hermes competitive-intel signal-scan** | n per scan | medium | `.hermes/messages/` candidate-users output (gap in `docs/launch-os.md` — surface needs to be built) |
+
+**Drafted outreach templates** live in
+[`outreach-templates.md`](./outreach-templates.md) — one template per
+surface, calibrated to be honest about the ask ("we're validating a
+hypothesis, this is not a sales pitch") and short enough to copy-paste-
+personalize before sending.
+
+**Rules for outreach**:
+- The founder (or a delegated human maintainer) sends the message,
+  not an AI agent. Per Gate 1 of `.claude/rules/validation-discipline.md`,
+  "first-hand means *you* talked to them".
+- Each outreach is personalized — at minimum naming the specific issue,
+  star, or comment that flagged the recipient. Templates are starting
+  points, not bulk-send drafts.
+- No more than 1 outreach per recipient per quarter — these are real
+  people, not a database. The waitlist Turso DB tracks outreach
+  history (add an `outreach_log` column when this becomes >50/quarter).
+- Decline gracefully when ignored. Silence is data — it tells you the
+  cohort isn't engaged enough to be the right cohort.
+
 ## How to add a transcript
 
 1. Run the interview using the [`caro.discovery`
