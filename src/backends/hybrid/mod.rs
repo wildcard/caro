@@ -279,7 +279,11 @@ mod tests {
     #[tokio::test]
     async fn test_remote_never_sees_pii_but_result_is_restored() {
         // Remote echoes back a command referencing the placeholder it received.
-        let remote = Arc::new(StubBackend::new("remote", "rm <REDACTED_FILEPATH_1>", false));
+        let remote = Arc::new(StubBackend::new(
+            "remote",
+            "rm <REDACTED_FILEPATH_1>",
+            false,
+        ));
         let local = Arc::new(StubBackend::new("local", "noop", false));
         let hybrid = HybridBackend::new(
             local,
@@ -398,7 +402,10 @@ mod tests {
         assert!(wire_body.contains("Caro's local model"));
         assert!(wire_body.contains("filesystem path"));
         // ...but the real PII is NOT.
-        assert!(!wire_body.contains("alice"), "PII leaked on the wire: {wire_body}");
+        assert!(
+            !wire_body.contains("alice"),
+            "PII leaked on the wire: {wire_body}"
+        );
         assert!(!wire_body.contains("secret.txt"), "PII leaked on the wire");
 
         // And the command handed back to the user has the real path restored.
