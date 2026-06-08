@@ -760,6 +760,14 @@ struct Cli {
     )]
     confirm: bool,
 
+    /// Approval mode: how accept/prompt/block decisions are made
+    #[arg(
+        long,
+        value_name = "MODE",
+        help = "Approval mode: prompt (static, default), auto (auto-confirm), smart (LLM risk judge)"
+    )]
+    approval: Option<String>,
+
     /// Verbose output with debug information
     #[arg(short, long, help = "Enable verbose output with timing and debug info")]
     verbose: bool,
@@ -875,6 +883,10 @@ impl IntoCliArgs for Cli {
 
     fn confirm(&self) -> bool {
         self.confirm
+    }
+
+    fn approval(&self) -> Option<String> {
+        self.approval.clone()
     }
 
     fn verbose(&self) -> bool {

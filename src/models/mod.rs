@@ -145,7 +145,9 @@ impl std::fmt::Display for GeneratedCommand {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum RiskLevel {
     Safe,
@@ -276,6 +278,74 @@ impl std::fmt::Display for SafetyLevel {
             Self::Permissive => write!(f, "permissive"),
         }
     }
+}
+
+/// How accept / prompt / block decisions are made — an axis *orthogonal* to
+/// [`SafetyLevel`] (which sets the risk *threshold*). Modeled on goose's
+/// permission modes (`auto` / `approve` / `smart_approve`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum ApprovalMode {
+    /// Static decision only — current (and default) behavior.
+    #[default]
+    Prompt,
+    /// Auto-confirm any command the safety level would merely *confirm*
+    /// (hard blocks still apply). Equivalent to always passing `-y`.
+    Auto,
+    /// Blend the static decision with a bounded LLM "risk judge": relax benign
+    /// flagged commands, escalate static-`Safe` commands the judge finds risky.
+    /// A `Critical` static match is never relaxed.
+    Smart,
+}
+
+impl std::str::FromStr for ApprovalMode {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            // `approve` / `smart_approve` accepted as goose-compatible aliases.
+            "prompt" | "approve" => Ok(Self::Prompt),
+            "auto" => Ok(Self::Auto),
+            "smart" | "smart_approve" => Ok(Self::Smart),
+            _ => Err(format!(
+                "Invalid approval mode '{}'. Valid values: prompt, auto, smart",
+                s
+            )),
+        }
+    }
+}
+
+impl std::fmt::Display for ApprovalMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Prompt => write!(f, "prompt"),
+            Self::Auto => write!(f, "auto"),
+            Self::Smart => write!(f, "smart"),
+        }
+    }
+}
+
+/// Context handed to a backend's [`classify_risk`](crate::backends::CommandGenerator::classify_risk)
+/// judge so it can second-guess the static verdict with awareness of where the
+/// command would run.
+#[derive(Debug, Clone)]
+pub struct RiskJudgeContext {
+    pub shell: ShellType,
+    pub cwd: Option<String>,
+    /// Risk the static validator assigned (what the judge is re-examining).
+    pub static_risk: RiskLevel,
+    /// Human-readable names of static patterns that matched (may be empty).
+    pub matched_patterns: Vec<String>,
+}
+
+/// A backend's context-aware verdict on a command's risk. Verdicts below the
+/// blend confidence threshold are ignored (fail-safe → static decision stands).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+pub struct RiskJudgment {
+    pub risk: RiskLevel,
+    pub reason: String,
+    /// Confidence in the verdict, `0.0`–`1.0`.
+    pub confidence: f64,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -781,6 +851,9 @@ pub struct UserConfiguration {
     pub default_shell: Option<ShellType>,
     #[serde(default = "default_safety_level")]
     pub safety_level: SafetyLevel,
+    /// How accept/prompt/block decisions are made (`prompt`/`auto`/`smart`).
+    #[serde(default)]
+    pub approval_mode: ApprovalMode,
     /// Default backend type (embedded, ollama, exo, vllm)
     #[serde(default)]
     pub default_model: Option<String>,
@@ -813,6 +886,7 @@ impl Default for UserConfiguration {
         Self {
             default_shell: None, // Auto-detect
             safety_level: SafetyLevel::Moderate,
+            approval_mode: ApprovalMode::default(),
             default_model: None,
             model_name: None,
             log_level: LogLevel::Info,
@@ -855,6 +929,7 @@ impl UserConfiguration {
 pub struct UserConfigurationBuilder {
     default_shell: Option<ShellType>,
     safety_level: SafetyLevel,
+    approval_mode: ApprovalMode,
     default_model: Option<String>,
     model_name: Option<String>,
     log_level: LogLevel,
@@ -878,6 +953,7 @@ impl UserConfigurationBuilder {
         Self {
             default_shell: defaults.default_shell,
             safety_level: defaults.safety_level,
+            approval_mode: defaults.approval_mode,
             default_model: defaults.default_model,
             model_name: defaults.model_name,
             log_level: defaults.log_level,
@@ -902,6 +978,11 @@ impl UserConfigurationBuilder {
 
     pub fn safety_level(mut self, level: SafetyLevel) -> Self {
         self.safety_level = level;
+        self
+    }
+
+    pub fn approval_mode(mut self, mode: ApprovalMode) -> Self {
+        self.approval_mode = mode;
         self
     }
 
@@ -947,6 +1028,7 @@ impl UserConfigurationBuilder {
         let config = UserConfiguration {
             default_shell: self.default_shell,
             safety_level: self.safety_level,
+            approval_mode: self.approval_mode,
             default_model: self.default_model,
             model_name: self.model_name,
             log_level: self.log_level,
