@@ -66,7 +66,7 @@ dirs = "6"
 which = "8.0"
 os_info = "3.14"
 sysinfo = "0.33"
-home = "=0.5.12"  # Pin to avoid edition2024 requirement in 0.5.11+
+home = "=0.5.9"  # Pin: 0.5.11+ needs edition2024, 0.5.12 needs rustc 1.88 > MSRV 1.85
 time-core = "=0.1.7"  # Pin to avoid MSRV incompatibility in 0.1.8+
 
 # Model integration (Hugging Face Hub)
@@ -104,7 +104,7 @@ futures = "0.3"
 # Knowledge index (local vector database)
 lancedb = { version = "0.23", optional = true }
 fastembed = { version = "5", optional = true }
-arrow-array = { version = "58.1", optional = true }
+arrow-array = { version = "56.2", optional = true }  # must match arrow-schema + lancedb's arrow 56
 arrow-schema = { version = "56.2", optional = true }
 chromadb = { version = "2.3", optional = true }
 
