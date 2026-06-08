@@ -1100,6 +1100,8 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         caro::models::BackendType::Mlx => "mlx".to_string(),
         caro::models::BackendType::Mock => "mock".to_string(),
         caro::models::BackendType::OpenRouter => "openrouter".to_string(),
+        caro::models::BackendType::Mesh => "mesh".to_string(),
+        caro::models::BackendType::AiHorde => "ai-horde".to_string(),
     };
 
     let exec_ctx = ExecutionContext::detect();

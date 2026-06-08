@@ -316,6 +316,41 @@ impl CliApp {
 
             let embedded_arc: Arc<EmbeddedModelBackend> = Arc::new(embedded_backend);
 
+            // Resolve remote endpoint URLs from the `[backends]` config section,
+            // falling back to the built-in localhost defaults when unset.
+            #[cfg(feature = "remote-backends")]
+            let backends_cfg = &user_config.backends;
+            #[cfg(feature = "remote-backends")]
+            let mesh_url_str = backends_cfg
+                .mesh_url
+                .as_deref()
+                .unwrap_or("http://localhost:9337");
+            #[cfg(feature = "remote-backends")]
+            let ollama_url_str = backends_cfg
+                .ollama_url
+                .as_deref()
+                .unwrap_or("http://localhost:11434");
+            #[cfg(feature = "remote-backends")]
+            let exo_url_str = backends_cfg
+                .exo_url
+                .as_deref()
+                .unwrap_or("http://localhost:52415");
+            #[cfg(feature = "remote-backends")]
+            let vllm_url_str = backends_cfg
+                .vllm_url
+                .as_deref()
+                .unwrap_or("http://localhost:8000");
+            #[cfg(feature = "remote-backends")]
+            let ai_horde_url_str = backends_cfg
+                .ai_horde_url
+                .as_deref()
+                .unwrap_or(crate::backends::remote::ai_horde::AI_HORDE_DEFAULT_URL);
+            #[cfg(feature = "remote-backends")]
+            let ai_horde_key_str = backends_cfg
+                .ai_horde_key
+                .as_deref()
+                .unwrap_or(crate::backends::remote::ai_horde::AI_HORDE_ANON_KEY);
+
             // Check for user-specified model preference
             let model_preference = user_config.default_model.as_deref();
 
@@ -332,11 +367,57 @@ impl CliApp {
                         };
                     }
                     #[cfg(feature = "remote-backends")]
+                    "mesh" => {
+                        use crate::backends::remote::MeshBackend;
+                        use reqwest::Url;
+
+                        let mesh_model = user_config
+                            .model_name
+                            .clone()
+                            .unwrap_or_else(|| "mesh".to_string());
+                        if let Ok(mesh_url) = Url::parse(mesh_url_str) {
+                            let mesh_backend = MeshBackend::new(mesh_url, mesh_model)
+                                .map_err(|e| CliError::ConfigurationError {
+                                    message: format!("Failed to create Mesh-LLM backend: {}", e),
+                                })?
+                                .with_embedded_fallback(embedded_arc.clone());
+                            if mesh_backend.is_available().await {
+                                tracing::info!("Using Mesh-LLM backend (user preference)");
+                                return Ok(Box::new(mesh_backend));
+                            } else {
+                                tracing::warn!(
+                                    "Mesh-LLM backend not available, falling back to embedded"
+                                );
+                            }
+                        }
+                    }
+                    #[cfg(feature = "remote-backends")]
+                    "ai-horde" | "aihorde" | "horde" => {
+                        use crate::backends::remote::AiHordeBackend;
+
+                        let horde = AiHordeBackend::new(ai_horde_url_str, ai_horde_key_str)
+                            .map_err(|e| CliError::ConfigurationError {
+                                message: format!("Failed to create AI-Horde backend: {}", e),
+                            })?
+                            .with_embedded_fallback(embedded_arc.clone());
+                        // AI-Horde is a public volunteer cluster: never silently
+                        // probe-and-skip. Honor the explicit request and rely on
+                        // the embedded fallback if the Horde is unreachable.
+                        if horde.is_available().await {
+                            tracing::info!("Using AI-Horde backend (user preference)");
+                        } else {
+                            tracing::warn!(
+                                "AI-Horde heartbeat failed; will attempt anyway with embedded fallback"
+                            );
+                        }
+                        return Ok(Box::new(horde));
+                    }
+                    #[cfg(feature = "remote-backends")]
                     "ollama" => {
                         use crate::backends::remote::OllamaBackend;
                         use reqwest::Url;
 
-                        if let Ok(ollama_url) = Url::parse("http://localhost:11434") {
+                        if let Ok(ollama_url) = Url::parse(ollama_url_str) {
                             let ollama_backend =
                                 OllamaBackend::new(ollama_url, "codellama:7b".to_string())
                                     .map_err(|e| CliError::ConfigurationError {
@@ -359,7 +440,7 @@ impl CliApp {
                         use crate::backends::remote::ExoBackend;
                         use reqwest::Url;
 
-                        if let Ok(exo_url) = Url::parse("http://localhost:52415") {
+                        if let Ok(exo_url) = Url::parse(exo_url_str) {
                             let exo_backend = ExoBackend::new(exo_url, "llama-3.2-3b".to_string())
                                 .map_err(|e| CliError::ConfigurationError {
                                     message: format!("Failed to create Exo backend: {}", e),
@@ -381,7 +462,7 @@ impl CliApp {
                         use crate::backends::remote::VllmBackend;
                         use reqwest::Url;
 
-                        if let Ok(vllm_url) = Url::parse("http://localhost:8000") {
+                        if let Ok(vllm_url) = Url::parse(vllm_url_str) {
                             let vllm_backend =
                                 VllmBackend::new(vllm_url, "codellama/CodeLlama-7b-hf".to_string())
                                     .map_err(|e| CliError::ConfigurationError {
@@ -400,7 +481,7 @@ impl CliApp {
                         }
                     }
                     #[cfg(not(feature = "remote-backends"))]
-                    "ollama" | "exo" | "vllm" => {
+                    "mesh" | "ollama" | "exo" | "vllm" | "ai-horde" => {
                         return Err(Self::remote_backend_unavailable_error(model));
                     }
                     _ => {
@@ -412,11 +493,28 @@ impl CliApp {
             // Auto-detect: try remote backends with embedded fallback
             #[cfg(feature = "remote-backends")]
             {
-                use crate::backends::remote::{ExoBackend, OllamaBackend, VllmBackend};
+                use crate::backends::remote::{ExoBackend, MeshBackend, OllamaBackend, VllmBackend};
                 use reqwest::Url;
 
-                // Priority: Exo cluster > Ollama > vLLM > Embedded
-                if let Ok(exo_url) = Url::parse("http://localhost:52415") {
+                // Priority: Mesh-LLM > Exo cluster > Ollama > vLLM > Embedded
+                if let Ok(mesh_url) = Url::parse(mesh_url_str) {
+                    let mesh_model = user_config
+                        .model_name
+                        .clone()
+                        .unwrap_or_else(|| "mesh".to_string());
+                    let mesh_backend = MeshBackend::new(mesh_url, mesh_model)
+                        .map_err(|e| CliError::ConfigurationError {
+                            message: format!("Failed to create Mesh-LLM backend: {}", e),
+                        })?
+                        .with_embedded_fallback(embedded_arc.clone());
+
+                    if mesh_backend.is_available().await {
+                        tracing::info!("Using Mesh-LLM backend (auto-detected)");
+                        return Ok(Box::new(mesh_backend));
+                    }
+                }
+
+                if let Ok(exo_url) = Url::parse(exo_url_str) {
                     let exo_backend = ExoBackend::new(exo_url, "llama-3.2-3b".to_string())
                         .map_err(|e| CliError::ConfigurationError {
                             message: format!("Failed to create Exo backend: {}", e),
@@ -429,7 +527,7 @@ impl CliApp {
                     }
                 }
 
-                if let Ok(ollama_url) = Url::parse("http://localhost:11434") {
+                if let Ok(ollama_url) = Url::parse(ollama_url_str) {
                     let ollama_backend = OllamaBackend::new(ollama_url, "codellama:7b".to_string())
                         .map_err(|e| CliError::ConfigurationError {
                             message: format!("Failed to create Ollama backend: {}", e),
@@ -442,7 +540,7 @@ impl CliApp {
                     }
                 }
 
-                if let Ok(vllm_url) = Url::parse("http://localhost:8000") {
+                if let Ok(vllm_url) = Url::parse(vllm_url_str) {
                     let vllm_backend =
                         VllmBackend::new(vllm_url, "codellama/CodeLlama-7b-hf".to_string())
                             .map_err(|e| CliError::ConfigurationError {
@@ -470,7 +568,8 @@ impl CliApp {
     ///
     /// Returns Ok(()) if valid, or a helpful error message if not.
     fn validate_backend_name(backend: &str) -> Result<(), CliError> {
-        const VALID_BACKENDS: &[&str] = &["embedded", "ollama", "exo", "vllm"];
+        const VALID_BACKENDS: &[&str] =
+            &["embedded", "ollama", "exo", "vllm", "mesh", "ai-horde"];
 
         let normalized = backend.to_lowercase();
         if VALID_BACKENDS.contains(&normalized.as_str()) {
@@ -490,7 +589,9 @@ impl CliApp {
                  - embedded: Local Qwen model (default, no setup required)\n  \
                  - ollama: Ollama server (requires: ollama serve)\n  \
                  - exo: Exo distributed cluster (requires: exo cluster)\n  \
-                 - vllm: vLLM HTTP API (requires: vllm server)\n\n\
+                 - vllm: vLLM HTTP API (requires: vllm server)\n  \
+                 - mesh: Mesh-LLM pooled mesh (requires: mesh node on :9337)\n  \
+                 - ai-horde: AI-Horde volunteer cluster (free, no setup; public)\n\n\
                  Set via: --backend <name>, CARO_BACKEND env var, or config file",
                 backend, suggestion
             ),
