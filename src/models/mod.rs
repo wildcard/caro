@@ -367,6 +367,12 @@ pub enum BackendType {
     Claude,
     /// OpenRouter unified API backend (100+ cloud LLMs)
     OpenRouter,
+    /// Mesh-LLM P2P mesh backend (OpenAI-compatible, pooled local GPUs)
+    Mesh,
+    /// AI-Horde crowdsourced volunteer cluster (async job queue)
+    AiHorde,
+    /// Hybrid privacy gateway (local sanitizer + remote enhancer)
+    Hybrid,
 }
 
 impl std::str::FromStr for BackendType {
@@ -382,6 +388,9 @@ impl std::str::FromStr for BackendType {
             "exo" => Ok(Self::Exo),
             "claude" | "anthropic" => Ok(Self::Claude),
             "openrouter" => Ok(Self::OpenRouter),
+            "mesh" | "mesh-llm" => Ok(Self::Mesh),
+            "ai-horde" | "aihorde" | "horde" => Ok(Self::AiHorde),
+            "hybrid" => Ok(Self::Hybrid),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -398,6 +407,9 @@ impl std::fmt::Display for BackendType {
             Self::Exo => write!(f, "exo"),
             Self::Claude => write!(f, "claude"),
             Self::OpenRouter => write!(f, "openrouter"),
+            Self::Mesh => write!(f, "mesh"),
+            Self::AiHorde => write!(f, "ai-horde"),
+            Self::Hybrid => write!(f, "hybrid"),
         }
     }
 }
@@ -844,6 +856,43 @@ fn default_log_rotation_days() -> u32 {
     7
 }
 
+/// Remote backend connection settings, parsed from the `[backends]` TOML
+/// section. Every field is optional; when unset, the built-in defaults
+/// baked into the backend factory are used. This lets users point caro at a
+/// Mesh-LLM node, a self-hosted AI-Horde, or non-default Ollama/vLLM/Exo
+/// endpoints without recompiling.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+pub struct BackendsConfig {
+    /// Mesh-LLM OpenAI-compatible endpoint (default `http://localhost:9337`).
+    #[serde(default)]
+    pub mesh_url: Option<String>,
+    /// Ollama endpoint (default `http://localhost:11434`).
+    #[serde(default)]
+    pub ollama_url: Option<String>,
+    /// vLLM endpoint (default `http://localhost:8000`).
+    #[serde(default)]
+    pub vllm_url: Option<String>,
+    /// Exo cluster endpoint (default `http://localhost:52415`).
+    #[serde(default)]
+    pub exo_url: Option<String>,
+    /// AI-Horde base API URL (default `https://aihorde.net/api`).
+    #[serde(default)]
+    pub ai_horde_url: Option<String>,
+    /// AI-Horde API key (default anonymous `"0000000000"`).
+    #[serde(default)]
+    pub ai_horde_key: Option<String>,
+    /// Which remote enhancer the `hybrid` backend wraps: `"mesh"` (default) or
+    /// `"ai-horde"`.
+    #[serde(default)]
+    pub hybrid_remote: Option<String>,
+    /// Allow sending prompts to public/untrusted inference networks. When
+    /// `false` (default), the hybrid gateway sanitizes all PII before any
+    /// prompt leaves the machine. When `true`, that guarantee is relaxed to a
+    /// standard remote-privacy warning (the path Claude/OpenRouter use).
+    #[serde(default)]
+    pub allow_public: bool,
+}
+
 /// User configuration with preferences
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UserConfiguration {
@@ -879,6 +928,10 @@ pub struct UserConfiguration {
     /// of the built-in pattern database.
     #[serde(default)]
     pub safety: crate::safety::SafetySection,
+    /// Remote backend endpoints and keys, parsed from the `[backends]`
+    /// TOML section. Defaults to all-unset (factory defaults apply).
+    #[serde(default)]
+    pub backends: BackendsConfig,
 }
 
 impl Default for UserConfiguration {
@@ -896,6 +949,7 @@ impl Default for UserConfiguration {
             generation_profile: crate::prompts::profiles::GenerationProfile::default(),
             ai: AiConfig::default(),
             safety: crate::safety::SafetySection::default(),
+            backends: BackendsConfig::default(),
         }
     }
 }
@@ -939,6 +993,7 @@ pub struct UserConfigurationBuilder {
     generation_profile: crate::prompts::profiles::GenerationProfile,
     ai: AiConfig,
     safety: crate::safety::SafetySection,
+    backends: BackendsConfig,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -963,6 +1018,7 @@ impl UserConfigurationBuilder {
             generation_profile: defaults.generation_profile,
             ai: defaults.ai,
             safety: defaults.safety,
+            backends: defaults.backends,
         }
     }
 
@@ -1024,6 +1080,11 @@ impl UserConfigurationBuilder {
         self
     }
 
+    pub fn backends(mut self, backends: BackendsConfig) -> Self {
+        self.backends = backends;
+        self
+    }
+
     pub fn build(self) -> Result<UserConfiguration, String> {
         let config = UserConfiguration {
             default_shell: self.default_shell,
@@ -1038,6 +1099,7 @@ impl UserConfigurationBuilder {
             generation_profile: self.generation_profile,
             ai: self.ai,
             safety: self.safety,
+            backends: self.backends,
         };
         config.validate()?;
         Ok(config)
@@ -1074,6 +1136,14 @@ impl ConfigSchema {
         known_keys.insert("telemetry.air_gapped".to_string(), "bool".to_string());
         known_keys.insert("telemetry.endpoint".to_string(), "String".to_string());
         known_keys.insert("telemetry.first_run".to_string(), "bool".to_string());
+        known_keys.insert("backends.mesh_url".to_string(), "String".to_string());
+        known_keys.insert("backends.ollama_url".to_string(), "String".to_string());
+        known_keys.insert("backends.vllm_url".to_string(), "String".to_string());
+        known_keys.insert("backends.exo_url".to_string(), "String".to_string());
+        known_keys.insert("backends.ai_horde_url".to_string(), "String".to_string());
+        known_keys.insert("backends.ai_horde_key".to_string(), "String".to_string());
+        known_keys.insert("backends.hybrid_remote".to_string(), "String".to_string());
+        known_keys.insert("backends.allow_public".to_string(), "bool".to_string());
 
         Self {
             known_sections: vec![
@@ -1081,6 +1151,7 @@ impl ConfigSchema {
                 "logging".to_string(),
                 "cache".to_string(),
                 "telemetry".to_string(),
+                "backends".to_string(),
             ],
             known_keys,
             deprecated_keys: HashMap::new(),
