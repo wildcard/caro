@@ -12,7 +12,7 @@ use crate::{
     agent::AgentLoop,
     backends::CommandGenerator,
     context::ExecutionContext,
-    models::{CommandRequest, SafetyLevel, ShellType},
+    models::{ApprovalMode, CommandRequest, RiskJudgeContext, SafetyLevel, ShellType},
     prompts::CapabilityProfile,
     safety::SafetyValidator,
 };
@@ -65,6 +65,10 @@ pub struct CliConfig {
     pub safety_level: SafetyLevel,
     pub output_format: OutputFormat,
     pub auto_confirm: bool,
+    /// How accept/prompt/block decisions are made (resolved from config file;
+    /// overridden per-invocation by `--approval` / `CARO_APPROVAL`).
+    #[serde(default)]
+    pub approval_mode: ApprovalMode,
 }
 
 /// Result of CLI command execution
@@ -146,6 +150,11 @@ pub trait IntoCliArgs {
     fn safety(&self) -> Option<String>;
     fn output(&self) -> Option<String>;
     fn confirm(&self) -> bool;
+    /// Approval mode (`--approval prompt|auto|smart`).
+    /// Default returns `None` (resolve to config/default) for back-compat.
+    fn approval(&self) -> Option<String> {
+        None
+    }
     fn verbose(&self) -> bool;
     fn config_file(&self) -> Option<String>;
     fn execute(&self) -> bool;
@@ -187,7 +196,7 @@ impl CliApp {
     /// 3. Config file (`~/.config/caro/config.toml`)
     /// 4. Auto-detect (default: embedded)
     pub async fn with_overrides(
-        config: CliConfig,
+        mut config: CliConfig,
         backend_override: Option<String>,
         model_name_override: Option<String>,
         force_llm: bool,
@@ -203,6 +212,11 @@ impl CliApp {
             .map_err(|e| CliError::ConfigurationError {
                 message: format!("Failed to load configuration: {}", e),
             })?;
+
+        // Carry the config-file approval mode into the runtime config; the
+        // per-invocation `--approval` flag / `CARO_APPROVAL` env override it
+        // later in `run_with_args`.
+        config.approval_mode = user_config.approval_mode;
 
         // Backend selection priority: CLI flag > env var > config file
         let env_backend = std::env::var("CARO_BACKEND").ok();
@@ -419,8 +433,7 @@ impl CliApp {
                         use reqwest::Url;
 
                         // Pick the remote enhancer (default: mesh).
-                        let remote_kind =
-                            backends_cfg.hybrid_remote.as_deref().unwrap_or("mesh");
+                        let remote_kind = backends_cfg.hybrid_remote.as_deref().unwrap_or("mesh");
                         let remote: Arc<dyn CommandGenerator> = match remote_kind {
                             "ai-horde" | "aihorde" | "horde" => Arc::new(
                                 AiHordeBackend::new(ai_horde_url_str, ai_horde_key_str).map_err(
@@ -459,16 +472,12 @@ impl CliApp {
                             .or_else(|_| std::env::var("LOGNAME"))
                             .ok();
                         let host = std::env::var("HOSTNAME").ok();
-                        let sanitizer = ContextSanitizer::new()
-                            .with_identity(user.as_deref(), host.as_deref());
+                        let sanitizer =
+                            ContextSanitizer::new().with_identity(user.as_deref(), host.as_deref());
 
                         let local: Arc<dyn CommandGenerator> = embedded_arc.clone();
-                        let hybrid = HybridBackend::new(
-                            local,
-                            remote,
-                            sanitizer,
-                            backends_cfg.allow_public,
-                        );
+                        let hybrid =
+                            HybridBackend::new(local, remote, sanitizer, backends_cfg.allow_public);
                         tracing::info!(
                             "Using Hybrid backend (local sanitizer + {} enhancer, sanitize={})",
                             remote_kind,
@@ -557,7 +566,9 @@ impl CliApp {
             // Auto-detect: try remote backends with embedded fallback
             #[cfg(feature = "remote-backends")]
             {
-                use crate::backends::remote::{ExoBackend, MeshBackend, OllamaBackend, VllmBackend};
+                use crate::backends::remote::{
+                    ExoBackend, MeshBackend, OllamaBackend, VllmBackend,
+                };
                 use reqwest::Url;
 
                 // Priority: Mesh-LLM > Exo cluster > Ollama > vLLM > Embedded
@@ -632,8 +643,9 @@ impl CliApp {
     ///
     /// Returns Ok(()) if valid, or a helpful error message if not.
     fn validate_backend_name(backend: &str) -> Result<(), CliError> {
-        const VALID_BACKENDS: &[&str] =
-            &["embedded", "ollama", "exo", "vllm", "mesh", "ai-horde", "hybrid"];
+        const VALID_BACKENDS: &[&str] = &[
+            "embedded", "ollama", "exo", "vllm", "mesh", "ai-horde", "hybrid",
+        ];
 
         let normalized = backend.to_lowercase();
         if VALID_BACKENDS.contains(&normalized.as_str()) {
@@ -763,29 +775,82 @@ impl CliApp {
                 message: format!("Safety validation failed: {}", e),
             })?;
 
-        // Check if confirmation is required
-        let requires_confirmation =
-            validation.risk_level.requires_confirmation(safety_level) && !args.confirm();
+        // Resolve approval mode: `--approval` flag > CARO_APPROVAL env > config.
+        let approval_mode = args
+            .approval()
+            .and_then(|s| ApprovalMode::from_str(&s).ok())
+            .or_else(|| {
+                std::env::var("CARO_APPROVAL")
+                    .ok()
+                    .and_then(|s| ApprovalMode::from_str(&s).ok())
+            })
+            .unwrap_or(self.config.approval_mode);
 
-        let blocked_reason = if validation.risk_level.is_blocked(safety_level) {
-            Some(format!(
+        // `auto` mode auto-confirms confirmable commands (hard blocks still apply),
+        // equivalent to always passing `-y`.
+        let auto_confirm = args.confirm() || approval_mode == ApprovalMode::Auto;
+
+        // Compute the approval decision. `prompt`/`auto` use the static matrix
+        // unchanged; `smart` blends in a bounded LLM judge (hard floor: a
+        // Critical static match is never relaxed; uncertain → static fallback).
+        let block_message = || {
+            format!(
                 "Command blocked due to {} risk: {}",
                 validation.risk_level,
                 validation.warnings.join(", ")
-            ))
-        } else {
-            None
+            )
         };
+        let (requires_confirmation, blocked_reason, smart_note) = match approval_mode {
+            ApprovalMode::Smart => {
+                let ctx = RiskJudgeContext {
+                    shell,
+                    cwd: std::env::current_dir()
+                        .ok()
+                        .map(|p| p.display().to_string()),
+                    static_risk: validation.risk_level,
+                    matched_patterns: validation.matched_patterns.clone(),
+                };
+                let judgment = self.backend.classify_risk(&generated.command, &ctx).await;
+                let decision = crate::safety::blend_smart_decision(
+                    validation.risk_level,
+                    judgment.as_ref(),
+                    safety_level,
+                    auto_confirm,
+                );
+                let blocked = decision.blocked.then(block_message);
+                (decision.requires_confirmation, blocked, decision.note)
+            }
+            ApprovalMode::Prompt | ApprovalMode::Auto => {
+                let requires_confirmation =
+                    validation.risk_level.requires_confirmation(safety_level) && !auto_confirm;
+                let blocked = validation
+                    .risk_level
+                    .is_blocked(safety_level)
+                    .then(block_message);
+                (requires_confirmation, blocked, None)
+            }
+        };
+
+        // Surface any smart-mode re-route note to the user / JSON consumers.
+        if let Some(note) = &smart_note {
+            warnings_list.push(note.clone());
+        }
 
         // Determine if command passes safety checks
         let can_execute = blocked_reason.is_none() && !requires_confirmation;
 
-        // Build confirmation prompt
+        // Build confirmation prompt (use the smart note when the judge re-routed).
         let confirmation_prompt = if requires_confirmation {
-            format!(
-                "Command '{}' requires confirmation due to {} risk. Proceed? (y/N)",
-                generated.command, validation.risk_level
-            )
+            match &smart_note {
+                Some(note) => format!(
+                    "Command '{}' requires confirmation ({}). Proceed? (y/N)",
+                    generated.command, note
+                ),
+                None => format!(
+                    "Command '{}' requires confirmation due to {} risk. Proceed? (y/N)",
+                    generated.command, validation.risk_level
+                ),
+            }
         } else {
             String::new()
         };
@@ -932,6 +997,7 @@ impl Default for CliConfig {
             safety_level: SafetyLevel::Moderate,
             output_format: OutputFormat::Plain,
             auto_confirm: false,
+            approval_mode: ApprovalMode::default(),
         }
     }
 }

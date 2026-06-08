@@ -94,7 +94,10 @@ pub struct AiHordeBackend {
 
 impl AiHordeBackend {
     /// Create a backend pointed at `base_url` using `api_key`.
-    pub fn new(base_url: impl Into<String>, api_key: impl Into<String>) -> Result<Self, GeneratorError> {
+    pub fn new(
+        base_url: impl Into<String>,
+        api_key: impl Into<String>,
+    ) -> Result<Self, GeneratorError> {
         let client = Client::builder()
             .timeout(Duration::from_secs(30))
             .build()
@@ -497,7 +500,9 @@ mod tests {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
             .and(path("/v2/generate/text/async"))
-            .respond_with(ResponseTemplate::new(202).set_body_json(serde_json::json!({ "id": "j" })))
+            .respond_with(
+                ResponseTemplate::new(202).set_body_json(serde_json::json!({ "id": "j" })),
+            )
             .mount(&server)
             .await;
         Mock::given(method("GET"))
@@ -520,7 +525,9 @@ mod tests {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
             .and(path("/v2/generate/text/async"))
-            .respond_with(ResponseTemplate::new(202).set_body_json(serde_json::json!({ "id": "j" })))
+            .respond_with(
+                ResponseTemplate::new(202).set_body_json(serde_json::json!({ "id": "j" })),
+            )
             .mount(&server)
             .await;
         Mock::given(method("GET"))

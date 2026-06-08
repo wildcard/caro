@@ -270,7 +270,10 @@ Request: {}
         &self,
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
-        match self.call_mesh_api(&self.create_system_prompt(request)).await {
+        match self
+            .call_mesh_api(&self.create_system_prompt(request))
+            .await
+        {
             Ok(response) => match self.parse_command_response(&response) {
                 Ok(command) => {
                     return Ok(GeneratedCommand {
@@ -384,7 +387,10 @@ mod tests {
         let url = Url::parse("http://localhost:9337").unwrap();
         let backend = MeshBackend::new(url, "mesh".to_string()).unwrap();
         let response = r#"{"cmd": "grep -r 'pattern' ."}"#;
-        assert_eq!(backend.parse_command_response(response).unwrap(), "grep -r 'pattern' .");
+        assert_eq!(
+            backend.parse_command_response(response).unwrap(),
+            "grep -r 'pattern' ."
+        );
     }
 
     #[test]
@@ -392,7 +398,10 @@ mod tests {
         let url = Url::parse("http://localhost:9337").unwrap();
         let backend = MeshBackend::new(url, "mesh".to_string()).unwrap();
         let response = r#"Here you go: {"cmd": "sort file.txt"} done."#;
-        assert_eq!(backend.parse_command_response(response).unwrap(), "sort file.txt");
+        assert_eq!(
+            backend.parse_command_response(response).unwrap(),
+            "sort file.txt"
+        );
     }
 
     #[test]

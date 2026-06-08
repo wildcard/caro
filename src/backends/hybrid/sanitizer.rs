@@ -311,8 +311,12 @@ mod tests {
     #[test]
     fn test_determinism() {
         let san = ContextSanitizer::new();
-        let a = san.session().sanitize("look in /var/log/app and /etc/hosts");
-        let b = san.session().sanitize("look in /var/log/app and /etc/hosts");
+        let a = san
+            .session()
+            .sanitize("look in /var/log/app and /etc/hosts");
+        let b = san
+            .session()
+            .sanitize("look in /var/log/app and /etc/hosts");
         assert_eq!(a, b, "same input must yield identical placeholders");
     }
 

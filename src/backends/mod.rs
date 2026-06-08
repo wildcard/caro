@@ -11,7 +11,9 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-use crate::models::{BackendType, CommandRequest, GeneratedCommand};
+use crate::models::{
+    BackendType, CommandRequest, GeneratedCommand, RiskJudgeContext, RiskJudgment,
+};
 
 /// Core trait that all command generation backends must implement
 #[async_trait]
@@ -21,6 +23,18 @@ pub trait CommandGenerator: Send + Sync {
         &self,
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError>;
+
+    /// Context-aware risk verdict used by `--approval smart`.
+    ///
+    /// The default is a no-op (`None`): backends that cannot reliably judge
+    /// risk opt out, and the caller falls back to the static decision
+    /// (fail-safe). Implementing this lets a backend relax benign flagged
+    /// commands or escalate static-`Safe` commands it finds dangerous —
+    /// always bounded by the hard floor in
+    /// [`blend_smart_decision`](crate::safety::blend_smart_decision).
+    async fn classify_risk(&self, _command: &str, _ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
+        None
+    }
 
     /// Check if this backend is currently available for use
     async fn is_available(&self) -> bool;

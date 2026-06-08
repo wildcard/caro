@@ -85,6 +85,7 @@ pub mod command_templates;
 pub mod explainer_prompt;
 pub mod minimal;
 pub mod profiles;
+pub mod risk_judge;
 pub mod smollm_prompt;
 pub mod validation;
 
@@ -135,6 +136,7 @@ pub use profiles::{
     AlternativeCommand, CommandExplanation, GenerationProfile, OptionExplanation, ProfileConfig,
     UsageExample,
 };
+pub use risk_judge::{build_risk_judge_prompt, parse_risk_judgment};
 pub use smollm_prompt::{CommandOutput, PromptResponse, RepairPromptBuilder, SmolLMPromptBuilder};
 pub use validation::{
     CommandValidator, RiskLevel, ValidationError, ValidationErrorCode, ValidationResult,

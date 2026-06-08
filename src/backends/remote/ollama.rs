@@ -14,7 +14,8 @@ use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError
 /// Handles cases like: {"cmd": "find . -type f -name "*.txt""}
 static CMD_EXTRACT_REGEX: Lazy<Regex> =
     Lazy::new(|| Regex::new(r#"\{\s*"cmd"\s*:\s*"(.+)"\s*\}"#).expect("Invalid regex pattern"));
-use crate::models::{CommandRequest, GeneratedCommand, RiskLevel};
+use crate::models::{CommandRequest, GeneratedCommand, RiskJudgeContext, RiskJudgment, RiskLevel};
+use crate::prompts::{build_risk_judge_prompt, parse_risk_judgment};
 
 /// Ollama API request format
 #[derive(Debug, Serialize)]
@@ -275,6 +276,14 @@ impl CommandGenerator for OllamaBackend {
         result.generation_time_ms = start_time.elapsed().as_millis() as u64;
 
         Ok(result)
+    }
+
+    async fn classify_risk(&self, command: &str, ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
+        // Reuse the existing prompt→text path; fail safe to `None` on any error
+        // so the caller falls back to the static decision.
+        let prompt = build_risk_judge_prompt(command, ctx);
+        let raw = self.call_ollama_api(&prompt).await.ok()?;
+        parse_risk_judgment(&raw)
     }
 
     async fn is_available(&self) -> bool {
