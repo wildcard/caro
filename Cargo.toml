@@ -152,7 +152,7 @@ regex = "1.12"
 tempfile = "3.27"
 serial_test = "3"
 proptest = "1"
-criterion = { version = "=0.8.2", features = ["html_reports"] }  # Pin: 0.8+ requires rustc 1.86, above MSRV 1.85
+criterion = { version = "=0.7.0", features = ["html_reports"] }  # Pin: 0.8+ requires rustc 1.86, above MSRV 1.85 (0.7.0 = rustc 1.80)
 futures = "0.3"
 serde_yaml = "0.9"
 env_logger = "0.11"
