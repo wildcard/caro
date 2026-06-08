@@ -413,6 +413,70 @@ impl CliApp {
                         return Ok(Box::new(horde));
                     }
                     #[cfg(feature = "remote-backends")]
+                    "hybrid" => {
+                        use crate::backends::hybrid::{ContextSanitizer, HybridBackend};
+                        use crate::backends::remote::{AiHordeBackend, MeshBackend};
+                        use reqwest::Url;
+
+                        // Pick the remote enhancer (default: mesh).
+                        let remote_kind =
+                            backends_cfg.hybrid_remote.as_deref().unwrap_or("mesh");
+                        let remote: Arc<dyn CommandGenerator> = match remote_kind {
+                            "ai-horde" | "aihorde" | "horde" => Arc::new(
+                                AiHordeBackend::new(ai_horde_url_str, ai_horde_key_str).map_err(
+                                    |e| CliError::ConfigurationError {
+                                        message: format!(
+                                            "Failed to create AI-Horde remote for hybrid: {}",
+                                            e
+                                        ),
+                                    },
+                                )?,
+                            ),
+                            _ => {
+                                let mesh_model = user_config
+                                    .model_name
+                                    .clone()
+                                    .unwrap_or_else(|| "mesh".to_string());
+                                let mesh_url = Url::parse(mesh_url_str).map_err(|e| {
+                                    CliError::ConfigurationError {
+                                        message: format!("Invalid mesh URL for hybrid: {}", e),
+                                    }
+                                })?;
+                                Arc::new(MeshBackend::new(mesh_url, mesh_model).map_err(|e| {
+                                    CliError::ConfigurationError {
+                                        message: format!(
+                                            "Failed to create Mesh remote for hybrid: {}",
+                                            e
+                                        ),
+                                    }
+                                })?)
+                            }
+                        };
+
+                        // Seed the sanitizer with the current identity so the
+                        // username/hostname are redacted alongside paths/IPs.
+                        let user = std::env::var("USER")
+                            .or_else(|_| std::env::var("LOGNAME"))
+                            .ok();
+                        let host = std::env::var("HOSTNAME").ok();
+                        let sanitizer = ContextSanitizer::new()
+                            .with_identity(user.as_deref(), host.as_deref());
+
+                        let local: Arc<dyn CommandGenerator> = embedded_arc.clone();
+                        let hybrid = HybridBackend::new(
+                            local,
+                            remote,
+                            sanitizer,
+                            backends_cfg.allow_public,
+                        );
+                        tracing::info!(
+                            "Using Hybrid backend (local sanitizer + {} enhancer, sanitize={})",
+                            remote_kind,
+                            !backends_cfg.allow_public
+                        );
+                        return Ok(Box::new(hybrid));
+                    }
+                    #[cfg(feature = "remote-backends")]
                     "ollama" => {
                         use crate::backends::remote::OllamaBackend;
                         use reqwest::Url;
@@ -481,7 +545,7 @@ impl CliApp {
                         }
                     }
                     #[cfg(not(feature = "remote-backends"))]
-                    "mesh" | "ollama" | "exo" | "vllm" | "ai-horde" => {
+                    "mesh" | "ollama" | "exo" | "vllm" | "ai-horde" | "hybrid" => {
                         return Err(Self::remote_backend_unavailable_error(model));
                     }
                     _ => {
@@ -569,7 +633,7 @@ impl CliApp {
     /// Returns Ok(()) if valid, or a helpful error message if not.
     fn validate_backend_name(backend: &str) -> Result<(), CliError> {
         const VALID_BACKENDS: &[&str] =
-            &["embedded", "ollama", "exo", "vllm", "mesh", "ai-horde"];
+            &["embedded", "ollama", "exo", "vllm", "mesh", "ai-horde", "hybrid"];
 
         let normalized = backend.to_lowercase();
         if VALID_BACKENDS.contains(&normalized.as_str()) {
@@ -591,7 +655,8 @@ impl CliApp {
                  - exo: Exo distributed cluster (requires: exo cluster)\n  \
                  - vllm: vLLM HTTP API (requires: vllm server)\n  \
                  - mesh: Mesh-LLM pooled mesh (requires: mesh node on :9337)\n  \
-                 - ai-horde: AI-Horde volunteer cluster (free, no setup; public)\n\n\
+                 - ai-horde: AI-Horde volunteer cluster (free, no setup; public)\n  \
+                 - hybrid: Local sanitizer + remote enhancer (PII-safe)\n\n\
                  Set via: --backend <name>, CARO_BACKEND env var, or config file",
                 backend, suggestion
             ),

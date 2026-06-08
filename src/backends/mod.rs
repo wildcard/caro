@@ -2,6 +2,7 @@
 // These are placeholder stubs - tests should fail until proper implementation
 
 pub mod embedded;
+pub mod hybrid;
 #[cfg(feature = "remote-backends")]
 pub mod remote;
 pub mod static_matcher;

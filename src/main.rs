@@ -1102,6 +1102,9 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         caro::models::BackendType::OpenRouter => "openrouter".to_string(),
         caro::models::BackendType::Mesh => "mesh".to_string(),
         caro::models::BackendType::AiHorde => "ai-horde".to_string(),
+        // The hybrid gateway sanitizes PII before remote transmission by
+        // default, so it is intentionally NOT treated as an off-host leak here.
+        caro::models::BackendType::Hybrid => "hybrid".to_string(),
     };
 
     let exec_ctx = ExecutionContext::detect();

@@ -301,6 +301,8 @@ pub enum BackendType {
     Mesh,
     /// AI-Horde crowdsourced volunteer cluster (async job queue)
     AiHorde,
+    /// Hybrid privacy gateway (local sanitizer + remote enhancer)
+    Hybrid,
 }
 
 impl std::str::FromStr for BackendType {
@@ -318,6 +320,7 @@ impl std::str::FromStr for BackendType {
             "openrouter" => Ok(Self::OpenRouter),
             "mesh" | "mesh-llm" => Ok(Self::Mesh),
             "ai-horde" | "aihorde" | "horde" => Ok(Self::AiHorde),
+            "hybrid" => Ok(Self::Hybrid),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -336,6 +339,7 @@ impl std::fmt::Display for BackendType {
             Self::OpenRouter => write!(f, "openrouter"),
             Self::Mesh => write!(f, "mesh"),
             Self::AiHorde => write!(f, "ai-horde"),
+            Self::Hybrid => write!(f, "hybrid"),
         }
     }
 }
@@ -807,6 +811,10 @@ pub struct BackendsConfig {
     /// AI-Horde API key (default anonymous `"0000000000"`).
     #[serde(default)]
     pub ai_horde_key: Option<String>,
+    /// Which remote enhancer the `hybrid` backend wraps: `"mesh"` (default) or
+    /// `"ai-horde"`.
+    #[serde(default)]
+    pub hybrid_remote: Option<String>,
     /// Allow sending prompts to public/untrusted inference networks. When
     /// `false` (default), the hybrid gateway sanitizes all PII before any
     /// prompt leaves the machine. When `true`, that guarantee is relaxed to a
@@ -1052,6 +1060,7 @@ impl ConfigSchema {
         known_keys.insert("backends.exo_url".to_string(), "String".to_string());
         known_keys.insert("backends.ai_horde_url".to_string(), "String".to_string());
         known_keys.insert("backends.ai_horde_key".to_string(), "String".to_string());
+        known_keys.insert("backends.hybrid_remote".to_string(), "String".to_string());
         known_keys.insert("backends.allow_public".to_string(), "bool".to_string());
 
         Self {
