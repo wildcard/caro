@@ -113,14 +113,24 @@ fallback) with a **remote** enhancer (Mesh-LLM or AI-Horde). Its pipeline, by
 default (`[backends].allow_public = false`):
 
 1. A deterministic `ContextSanitizer` redacts PII from the request `input` and
-   `context` into **reversible placeholders** — `/Users/alice/secret.txt` →
-   `<PATH_1>`, keeping an in-memory placeholder↔value map.
-2. The **sanitized** request is sent to the remote enhancer. The network never
-   sees the real values.
-3. Placeholders in the returned command are **restored** to real values
+   `context` into **typed, self-describing placeholders** —
+   `/Users/alice/secret.txt` → `<REDACTED_FILEPATH_1>` — keeping an in-memory
+   placeholder↔value map.
+2. A **redaction briefing** is prepended to the prompt sent to the remote. It
+   (a) states that Caro's **local model** performed the redaction on the
+   harness, (b) lists each placeholder with a **description** of the value it
+   stands for ("an absolute filesystem path", "the user's login name", …), and
+   (c) instructs the model to reproduce each placeholder **verbatim** and never
+   guess the underlying value. The remote thus reasons about command *shape*
+   without seeing private data.
+3. The **sanitized** request + briefing is sent to the remote enhancer. The
+   network never sees the real values.
+4. Placeholders in the returned command are **restored** to real values
    locally, so the executed command is correct.
-4. If the remote fails, Caro falls back to the local model on the original
-   request (which never left the device).
+5. If the remote fails, Caro falls back to the local model on the original
+   request (which never left the device). The local model is itself an **aware
+   participant**: a privacy-layer contract note is attached to its context so it
+   knows redaction is active and that it owns the redaction process.
 
 The sanitizer is **rule/regex based, not an LLM call**, guaranteeing
 determinism (same input → same placeholders → reproducible, cache-safe output).
@@ -128,6 +138,14 @@ Redaction scope ("Broad"): emails, IPv4 addresses, absolute/home paths, the
 current username and hostname, and the values of uppercase `ENV=` assignments.
 Class ordering redacts broad spans (paths) before narrow ones (usernames) so a
 username inside a path is never half-leaked.
+
+Placeholders are **typed and self-describing** (`<REDACTED_FILEPATH_1>`,
+`<REDACTED_USERNAME_1>`, …) rather than opaque symbols, and the briefing legend
+gives each a plain-language description. This is deliberate: a remote model that
+knows a slot is "an absolute filesystem path" produces a correct command
+template, whereas an opaque `<X1>` invites it to hallucinate a literal. Tokens
+stay space-free and unique so restoration (longest-token-first replacement)
+remains unambiguous.
 
 **Opt-in relaxation:** when a user sets `allow_public = true` (e.g. for a
 trusted *private* mesh where redaction is unnecessary), sanitization is skipped

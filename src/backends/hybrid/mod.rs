@@ -91,7 +91,16 @@ impl HybridBackend {
         &self,
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
-        let (sanitized_req, session) = self.sanitize_request(request);
+        let (mut sanitized_req, session) = self.sanitize_request(request);
+
+        // Prepend a briefing that tells the remote model the redaction was done
+        // by Caro's local model, describes each placeholder, and instructs it to
+        // reproduce placeholders verbatim. Injected into `input` so it reaches
+        // every backend's prompt (which all include the request input).
+        if let Some(briefing) = session.redaction_briefing() {
+            sanitized_req.input = format!("{}\n\n{}", briefing, sanitized_req.input);
+        }
+
         let mut result = self.remote.generate_command(&sanitized_req).await?;
 
         // Restore real values that the remote echoed back as placeholders.
@@ -115,7 +124,24 @@ impl HybridBackend {
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
         tracing::info!("Hybrid: remote enhancer failed, using local model");
-        let mut result = self.local.generate_command(request).await?;
+
+        // Make the local model an aware participant in the redaction pipeline by
+        // attaching the privacy-layer contract note to its context. Only when
+        // sanitizing (the note describes active redaction, which the opt-in
+        // public path disables).
+        let local_request = if self.sanitizes() {
+            let note = ContextSanitizer::local_awareness_note();
+            let mut req = request.clone();
+            req.context = Some(match req.context.take() {
+                Some(c) => format!("{}\n{}", c, note),
+                None => note.to_string(),
+            });
+            req
+        } else {
+            request.clone()
+        };
+
+        let mut result = self.local.generate_command(&local_request).await?;
         result.backend_used = format!("Hybrid[local: {}]", result.backend_used);
         Ok(result)
     }
@@ -182,6 +208,7 @@ mod tests {
         reply_command: String,
         fail: bool,
         seen: std::sync::Mutex<Option<String>>,
+        seen_context: std::sync::Mutex<Option<String>>,
     }
 
     impl StubBackend {
@@ -191,6 +218,7 @@ mod tests {
                 reply_command: reply.to_string(),
                 fail,
                 seen: std::sync::Mutex::new(None),
+                seen_context: std::sync::Mutex::new(None),
             }
         }
     }
@@ -202,6 +230,7 @@ mod tests {
             request: &CommandRequest,
         ) -> Result<GeneratedCommand, GeneratorError> {
             *self.seen.lock().unwrap() = Some(request.input.clone());
+            *self.seen_context.lock().unwrap() = request.context.clone();
             if self.fail {
                 return Err(GeneratorError::BackendUnavailable {
                     reason: "stub down".to_string(),
@@ -250,7 +279,7 @@ mod tests {
     #[tokio::test]
     async fn test_remote_never_sees_pii_but_result_is_restored() {
         // Remote echoes back a command referencing the placeholder it received.
-        let remote = Arc::new(StubBackend::new("remote", "rm <PATH_1>", false));
+        let remote = Arc::new(StubBackend::new("remote", "rm <REDACTED_FILEPATH_1>", false));
         let local = Arc::new(StubBackend::new("local", "noop", false));
         let hybrid = HybridBackend::new(
             local,
@@ -264,11 +293,15 @@ mod tests {
             .await
             .unwrap();
 
-        // The remote saw a sanitized prompt with NO PII.
+        // The remote saw a sanitized prompt with NO PII...
         let seen = remote.seen.lock().unwrap().clone().unwrap();
         assert!(!seen.contains("alice"));
         assert!(!seen.contains("secret.txt"));
-        assert!(seen.contains("<PATH_1>"));
+        assert!(seen.contains("<REDACTED_FILEPATH_1>"));
+        // ...plus a briefing attributing the redaction to Caro's local model
+        // and describing the placeholder.
+        assert!(seen.contains("Caro's local model"));
+        assert!(seen.contains("filesystem path"));
 
         // The final command has the real path restored locally.
         assert_eq!(result.command, "rm /Users/alice/secret.txt");
@@ -295,10 +328,26 @@ mod tests {
     async fn test_falls_back_to_local_when_remote_fails() {
         let remote = Arc::new(StubBackend::new("remote", "x", true)); // fails
         let local = Arc::new(StubBackend::new("local", "echo hi", false));
-        let hybrid = HybridBackend::new(local, remote, ContextSanitizer::new(), false);
+        let hybrid = HybridBackend::new(local.clone(), remote, ContextSanitizer::new(), false);
 
         let result = hybrid.generate_command(&req("greet me")).await.unwrap();
         assert_eq!(result.command, "echo hi");
         assert!(result.backend_used.contains("local"));
+
+        // The local model was made aware of the redaction pipeline via context.
+        let ctx = local.seen_context.lock().unwrap().clone().unwrap();
+        assert!(ctx.contains("caro-privacy-layer"));
+    }
+
+    #[tokio::test]
+    async fn test_public_optin_local_fallback_has_no_awareness_note() {
+        // In allow_public mode there is no active redaction, so the local
+        // fallback should NOT be told values are being rewritten.
+        let remote = Arc::new(StubBackend::new("remote", "x", true)); // fails
+        let local = Arc::new(StubBackend::new("local", "echo hi", false));
+        let hybrid = HybridBackend::new(local.clone(), remote, ContextSanitizer::new(), true);
+
+        hybrid.generate_command(&req("greet me")).await.unwrap();
+        assert!(local.seen_context.lock().unwrap().is_none());
     }
 }

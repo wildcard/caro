@@ -2,10 +2,19 @@
 //
 // Before a prompt is sent to a remote inference network (Mesh-LLM, AI-Horde),
 // the hybrid gateway runs it through this sanitizer to replace personally
-// identifying or environment-revealing tokens with reversible placeholders
-// (e.g. `/Users/alice/secret.txt` -> `<PATH_1>`). After the remote returns a
-// command, the SAME session restores the real values locally, so the network
-// never sees PII but the executed command is still correct.
+// identifying or environment-revealing tokens with TYPED, self-describing
+// placeholders (e.g. `/Users/alice/secret.txt` -> `<REDACTED_FILEPATH_1>`).
+// After the remote returns a command, the SAME session restores the real
+// values locally, so the network never sees PII but the executed command is
+// still correct.
+//
+// Crucially, the remote model is not left to guess what a placeholder means.
+// `redaction_briefing()` produces a legend describing each placeholder ("an
+// absolute filesystem path", "the user's login name", ...) plus an explicit
+// instruction stating that Caro's local model performed the redaction on the
+// user's machine and that the placeholder must be reproduced verbatim. This
+// lets the remote reason about the *shape* of the command without ever seeing
+// the private value.
 //
 // Design guarantees:
 //   * Deterministic   - the same input always yields the same placeholders, so
@@ -15,10 +24,8 @@
 //   * Class ordering  - broader classes (paths) are redacted before narrower
 //                       ones (usernames) so a username inside a path is not
 //                       half-leaked.
-//
-// Redaction scope ("Broad"): emails, IPv4 addresses, absolute/home paths,
-// the current username and hostname (exact-literal), and the values of
-// uppercase ENV-style assignments (`AWS_SECRET=...`).
+//   * Self-describing - each placeholder carries a class and a human/LLM
+//                       readable description for the briefing legend.
 
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -26,9 +33,7 @@ use regex::Regex;
 static EMAIL_RE: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}").unwrap());
 
-static IPV4_RE: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"\b(?:\d{1,3}\.){3}\d{1,3}\b").unwrap()
-});
+static IPV4_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\b(?:\d{1,3}\.){3}\d{1,3}\b").unwrap());
 
 // Absolute (`/usr/...`) or home (`~/...`) paths: a leading `/` or `~/` followed
 // by at least one path-ish character. Requires the second char so a lone `/`
@@ -41,13 +46,56 @@ static PATH_RE: Lazy<Regex> =
 static ENV_ASSIGN_RE: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"\b([A-Z][A-Z0-9_]{2,})=(\S+)").unwrap());
 
+/// A redaction class: the token stem used in placeholders and a description of
+/// what kind of value it stands for (shown to the remote model in the legend).
+#[derive(Debug, Clone, Copy)]
+struct RedactionClass {
+    /// Token stem, e.g. `REDACTED_FILEPATH` -> `<REDACTED_FILEPATH_1>`.
+    token: &'static str,
+    /// Human/LLM-readable description for the briefing legend.
+    description: &'static str,
+}
+
+const CLASS_EMAIL: RedactionClass = RedactionClass {
+    token: "REDACTED_EMAIL",
+    description: "an email address",
+};
+const CLASS_IPV4: RedactionClass = RedactionClass {
+    token: "REDACTED_IPV4",
+    description: "an IPv4 network address",
+};
+const CLASS_FILEPATH: RedactionClass = RedactionClass {
+    token: "REDACTED_FILEPATH",
+    description: "an absolute or home-directory filesystem path on the user's machine",
+};
+const CLASS_ENV_VALUE: RedactionClass = RedactionClass {
+    token: "REDACTED_ENV_VALUE",
+    description: "the value of an environment variable",
+};
+const CLASS_USERNAME: RedactionClass = RedactionClass {
+    token: "REDACTED_USERNAME",
+    description: "the user's account / login name",
+};
+const CLASS_HOSTNAME: RedactionClass = RedactionClass {
+    token: "REDACTED_HOSTNAME",
+    description: "the machine's hostname",
+};
+
+/// One redacted value and the placeholder that replaced it.
+#[derive(Debug, Clone)]
+struct Redaction {
+    placeholder: String,
+    original: String,
+    description: &'static str,
+}
+
 /// Builds sanitizing sessions seeded with known identity literals.
 #[derive(Debug, Clone, Default)]
 pub struct ContextSanitizer {
-    /// Known exact-string identifiers to redact, as `(value, class)` pairs —
-    /// e.g. `("alice", "USER")`. Only non-empty, length-3+ values are used to
-    /// avoid redacting trivially-short or empty identifiers.
-    literals: Vec<(String, &'static str)>,
+    /// Known exact-string identifiers to redact, as `(value, class)` pairs.
+    /// Only non-empty, length-3+ values are kept to avoid redacting trivially
+    /// short identifiers.
+    literals: Vec<(String, RedactionClass)>,
 }
 
 impl ContextSanitizer {
@@ -60,12 +108,12 @@ impl ContextSanitizer {
     pub fn with_identity(mut self, username: Option<&str>, hostname: Option<&str>) -> Self {
         if let Some(u) = username {
             if u.len() >= 3 {
-                self.literals.push((u.to_string(), "USER"));
+                self.literals.push((u.to_string(), CLASS_USERNAME));
             }
         }
         if let Some(h) = hostname {
             if h.len() >= 3 {
-                self.literals.push((h.to_string(), "HOST"));
+                self.literals.push((h.to_string(), CLASS_HOSTNAME));
             }
         }
         self
@@ -81,14 +129,26 @@ impl ContextSanitizer {
             counters: Vec::new(),
         }
     }
+
+    /// A standing note attached to the LOCAL model's context whenever the
+    /// hybrid gateway runs, so the on-device model is an aware participant in
+    /// the redaction process (not a bystander). The local model owns redaction;
+    /// this states the contract it operates under.
+    pub fn local_awareness_note() -> &'static str {
+        "[caro-privacy-layer] You are Caro's on-device model. A deterministic \
+local redaction layer rewrites private values (filesystem paths, usernames, \
+hostnames, IP addresses, emails, and environment-variable values) into typed \
+placeholders before any prompt is sent to a remote backend, and restores them \
+locally afterwards. Private values never leave this machine."
+    }
 }
 
 /// An in-flight sanitization with a reversible placeholder map.
 pub struct SanitizeSession<'a> {
-    literals: &'a [(String, &'static str)],
-    /// `(placeholder, original)` in allocation order.
-    entries: Vec<(String, String)>,
-    /// Per-class running counters: `(class, next_index)`.
+    literals: &'a [(String, RedactionClass)],
+    /// Redactions in allocation order.
+    entries: Vec<Redaction>,
+    /// Per-class-token running counters: `(token, next_index)`.
     counters: Vec<(&'static str, usize)>,
 }
 
@@ -97,11 +157,11 @@ impl SanitizeSession<'_> {
     pub fn sanitize(&mut self, text: &str) -> String {
         let mut out = text.to_string();
 
-        // Order matters: most-specific / broadest-span classes first so inner
-        // tokens (e.g. a username inside a path) are not separately leaked.
-        out = self.redact_regex(&out, &EMAIL_RE, "EMAIL");
-        out = self.redact_regex(&out, &IPV4_RE, "IP");
-        out = self.redact_regex(&out, &PATH_RE, "PATH");
+        // Order matters: broadest-span classes first so inner tokens (e.g. a
+        // username inside a path) are not separately leaked.
+        out = self.redact_regex(&out, &EMAIL_RE, CLASS_EMAIL);
+        out = self.redact_regex(&out, &IPV4_RE, CLASS_IPV4);
+        out = self.redact_regex(&out, &PATH_RE, CLASS_FILEPATH);
         out = self.redact_env_assignments(&out);
         out = self.redact_literals(&out);
 
@@ -110,13 +170,13 @@ impl SanitizeSession<'_> {
 
     /// Restore real values in `command` (the remote-generated output).
     pub fn restore(&self, command: &str) -> String {
-        // Replace longest placeholders first so `<PATH_1>` does not corrupt
-        // `<PATH_11>`.
-        let mut ordered: Vec<&(String, String)> = self.entries.iter().collect();
-        ordered.sort_by(|a, b| b.0.len().cmp(&a.0.len()));
+        // Replace longest placeholders first so `<REDACTED_FILEPATH_1>` does not
+        // corrupt `<REDACTED_FILEPATH_11>`.
+        let mut ordered: Vec<&Redaction> = self.entries.iter().collect();
+        ordered.sort_by(|a, b| b.placeholder.len().cmp(&a.placeholder.len()));
         let mut out = command.to_string();
-        for (placeholder, original) in ordered {
-            out = out.replace(placeholder.as_str(), original);
+        for r in ordered {
+            out = out.replace(r.placeholder.as_str(), &r.original);
         }
         out
     }
@@ -126,27 +186,57 @@ impl SanitizeSession<'_> {
         self.entries.len()
     }
 
-    /// Allocate (or reuse) a placeholder for `value` in `class`.
-    fn placeholder_for(&mut self, value: &str, class: &'static str) -> String {
-        if let Some((ph, _)) = self.entries.iter().find(|(_, v)| v == value) {
-            return ph.clone();
+    /// A briefing for the REMOTE model: states that Caro's local model performed
+    /// the redaction on the harness, lists each placeholder with a description
+    /// of the value it stands for, and instructs the model to reproduce the
+    /// placeholder verbatim. Returns `None` when nothing was redacted.
+    pub fn redaction_briefing(&self) -> Option<String> {
+        if self.entries.is_empty() {
+            return None;
         }
-        let idx = match self.counters.iter_mut().find(|(c, _)| *c == class) {
+
+        let mut legend = String::new();
+        for r in &self.entries {
+            legend.push_str(&format!("  - {}: {}\n", r.placeholder, r.description));
+        }
+
+        Some(format!(
+            "[CARO PRIVACY LAYER — read carefully]\n\
+This request was preprocessed on the user's machine by Caro's local model. \
+Sensitive values were redacted and replaced with the typed placeholders below. \
+Each placeholder stands for a real value that never left the user's device:\n\
+{legend}\
+Treat every placeholder as an opaque literal: reproduce it EXACTLY as written \
+in your generated command, and never guess or invent the underlying value. \
+Caro will substitute the real values back locally before the command runs."
+        ))
+    }
+
+    /// Allocate (or reuse) a placeholder for `value` in `class`.
+    fn placeholder_for(&mut self, value: &str, class: RedactionClass) -> String {
+        if let Some(r) = self.entries.iter().find(|r| r.original == value) {
+            return r.placeholder.clone();
+        }
+        let idx = match self.counters.iter_mut().find(|(t, _)| *t == class.token) {
             Some((_, n)) => {
                 *n += 1;
                 *n
             }
             None => {
-                self.counters.push((class, 1));
+                self.counters.push((class.token, 1));
                 1
             }
         };
-        let ph = format!("<{}_{}>", class, idx);
-        self.entries.push((ph.clone(), value.to_string()));
-        ph
+        let placeholder = format!("<{}_{}>", class.token, idx);
+        self.entries.push(Redaction {
+            placeholder: placeholder.clone(),
+            original: value.to_string(),
+            description: class.description,
+        });
+        placeholder
     }
 
-    fn redact_regex(&mut self, text: &str, re: &Regex, class: &'static str) -> String {
+    fn redact_regex(&mut self, text: &str, re: &Regex, class: RedactionClass) -> String {
         // Collect distinct matches in order of first appearance.
         let mut distinct: Vec<String> = Vec::new();
         for m in re.find_iter(text) {
@@ -173,8 +263,7 @@ impl SanitizeSession<'_> {
         }
         let mut out = text.to_string();
         for v in distinct {
-            let ph = self.placeholder_for(&v, "ENV");
-            // Only replace the value when it follows a `NAME=`, preserving name.
+            let ph = self.placeholder_for(&v, CLASS_ENV_VALUE);
             out = ENV_ASSIGN_RE
                 .replace_all(&out, |caps: &regex::Captures| {
                     if caps.get(2).map(|m| m.as_str()) == Some(v.as_str()) {
@@ -191,7 +280,7 @@ impl SanitizeSession<'_> {
     fn redact_literals(&mut self, text: &str) -> String {
         let mut out = text.to_string();
         // Snapshot to avoid borrowing self while mutating its map.
-        let literals: Vec<(String, &'static str)> = self.literals.to_vec();
+        let literals: Vec<(String, RedactionClass)> = self.literals.to_vec();
         for (value, class) in literals {
             if !value.is_empty() && out.contains(&value) {
                 let ph = self.placeholder_for(&value, class);
@@ -211,12 +300,11 @@ mod tests {
         let san = ContextSanitizer::new();
         let mut s = san.session();
         let out = s.sanitize("delete /Users/alice/secret.txt please");
-        assert!(out.contains("<PATH_1>"));
+        assert!(out.contains("<REDACTED_FILEPATH_1>"));
         assert!(!out.contains("alice"));
         assert!(!out.contains("secret.txt"));
 
-        // A remote-generated command referencing the placeholder restores fully.
-        let restored = s.restore("rm <PATH_1>");
+        let restored = s.restore("rm <REDACTED_FILEPATH_1>");
         assert_eq!(restored, "rm /Users/alice/secret.txt");
     }
 
@@ -233,9 +321,8 @@ mod tests {
         let san = ContextSanitizer::new();
         let mut s = san.session();
         let out = s.sanitize("copy /tmp/a to backup, then read /tmp/a again");
-        // Same path appears twice -> one placeholder reused.
-        assert_eq!(out.matches("<PATH_1>").count(), 2);
-        assert!(!out.contains("<PATH_2>"));
+        assert_eq!(out.matches("<REDACTED_FILEPATH_1>").count(), 2);
+        assert!(!out.contains("<REDACTED_FILEPATH_2>"));
     }
 
     #[test]
@@ -243,9 +330,8 @@ mod tests {
         let san = ContextSanitizer::new().with_identity(Some("alice"), None);
         let mut s = san.session();
         let out = s.sanitize("open /home/alice/notes and tell alice");
-        // The path is redacted wholesale; the standalone "alice" becomes <USER_1>.
-        assert!(out.contains("<PATH_1>"));
-        assert!(out.contains("<USER_1>"));
+        assert!(out.contains("<REDACTED_FILEPATH_1>"));
+        assert!(out.contains("<REDACTED_USERNAME_1>"));
         assert!(!out.contains("alice"));
     }
 
@@ -254,8 +340,8 @@ mod tests {
         let san = ContextSanitizer::new();
         let mut s = san.session();
         let out = s.sanitize("mail bob@example.com from 192.168.1.10");
-        assert!(out.contains("<EMAIL_1>"));
-        assert!(out.contains("<IP_1>"));
+        assert!(out.contains("<REDACTED_EMAIL_1>"));
+        assert!(out.contains("<REDACTED_IPV4_1>"));
         assert!(!out.contains("bob@example.com"));
         assert!(!out.contains("192.168.1.10"));
     }
@@ -265,7 +351,7 @@ mod tests {
         let san = ContextSanitizer::new();
         let mut s = san.session();
         let out = s.sanitize("run with AWS_SECRET=hunter2 set");
-        assert!(out.contains("AWS_SECRET=<ENV_1>"));
+        assert!(out.contains("AWS_SECRET=<REDACTED_ENV_VALUE_1>"));
         assert!(!out.contains("hunter2"));
     }
 
@@ -275,9 +361,8 @@ mod tests {
         let mut s = san.session();
         let i = s.sanitize("clean /tmp/cache");
         let c = s.sanitize("cwd is /tmp/cache");
-        // Same path in both fields -> identical placeholder.
-        assert!(i.contains("<PATH_1>"));
-        assert!(c.contains("<PATH_1>"));
+        assert!(i.contains("<REDACTED_FILEPATH_1>"));
+        assert!(c.contains("<REDACTED_FILEPATH_1>"));
         assert_eq!(s.redaction_count(), 1);
     }
 
@@ -288,5 +373,30 @@ mod tests {
         let out = s.sanitize("list all text files by size");
         assert_eq!(out, "list all text files by size");
         assert_eq!(s.redaction_count(), 0);
+        assert!(s.redaction_briefing().is_none());
+    }
+
+    #[test]
+    fn test_briefing_describes_each_placeholder_and_attributes_local_model() {
+        let san = ContextSanitizer::new().with_identity(Some("alice"), None);
+        let mut s = san.session();
+        s.sanitize("tar /Users/alice/photos and mail bob@example.com");
+        let briefing = s.redaction_briefing().expect("redactions present");
+
+        // Attribution + verbatim instruction.
+        assert!(briefing.contains("Caro's local model"));
+        assert!(briefing.to_lowercase().contains("exactly"));
+        // Legend entries carry descriptions, not just the bare token.
+        assert!(briefing.contains("<REDACTED_FILEPATH_1>"));
+        assert!(briefing.contains("filesystem path"));
+        assert!(briefing.contains("<REDACTED_EMAIL_1>"));
+        assert!(briefing.contains("email address"));
+    }
+
+    #[test]
+    fn test_local_awareness_note_mentions_redaction() {
+        let note = ContextSanitizer::local_awareness_note();
+        assert!(note.contains("caro-privacy-layer"));
+        assert!(note.to_lowercase().contains("redaction"));
     }
 }
