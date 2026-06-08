@@ -192,6 +192,7 @@ impl SetupWizard {
             generation_profile: crate::prompts::profiles::GenerationProfile::default(),
             ai: crate::models::AiConfig::default(),
             safety: crate::safety::SafetySection::default(),
+            backends: crate::models::BackendsConfig::default(),
         };
 
         self.print_summary(&configuration, theme);
