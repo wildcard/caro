@@ -28,10 +28,11 @@
 
 pub mod cve_patterns;
 mod patterns;
+mod safe_path;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::models::{RiskJudgment, RiskLevel, SafetyLevel, ShellType, SuggestedRouting};
 
@@ -494,16 +495,36 @@ impl SafetyValidator {
                 *level == RiskLevel::Critical && Self::is_dangerous_in_context(command, regex)
             });
 
-        // Check allowlist patterns only if no Critical built-in/CVE match.
-        if !has_critical_builtin_or_cve_match {
+        // A user allowlist may bypass a match when EITHER there is no Critical
+        // match, OR the only reason it is Critical is a recursive deletion that
+        // is provably confined to a safe path (temp dir or project dir). A
+        // `Critical` like `rm -rf /`, `mkfs`, or a traversal/symlink escape is
+        // never scoped-safe, so the hard floor still holds. See caro-qknc and
+        // `safe_path::is_scoped_safe_deletion`.
+        let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("/"));
+        let scoped_safe_deletion = has_critical_builtin_or_cve_match
+            && safe_path::is_scoped_safe_deletion(command, &safe_path::safe_roots(&cwd), &cwd);
+        let allowlist_eligible = !has_critical_builtin_or_cve_match || scoped_safe_deletion;
+
+        if allowlist_eligible {
             for allow_pattern in &self.config.allowlist_patterns {
                 if let Ok(regex) = regex::Regex::new(allow_pattern) {
                     if regex.is_match(command) {
+                        let warnings = if scoped_safe_deletion {
+                            // Agent guidance: explain why this normally-Critical
+                            // deletion was permitted, and what would NOT be.
+                            vec!["Allowed by allowlist: deletion is confined to a \
+                                  safe path (temp or project directory). The same \
+                                  command targeting a system path would be blocked."
+                                .to_string()]
+                        } else {
+                            vec![]
+                        };
                         return Ok(ValidationResult {
                             allowed: true,
                             risk_level: RiskLevel::Safe,
                             explanation: "Command matches allowlist pattern".to_string(),
-                            warnings: vec![],
+                            warnings,
                             matched_patterns: vec![allow_pattern.clone()],
                             confidence_score: 1.0,
                         });
