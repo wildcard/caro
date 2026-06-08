@@ -350,4 +350,58 @@ mod tests {
         hybrid.generate_command(&req("greet me")).await.unwrap();
         assert!(local.seen_context.lock().unwrap().is_none());
     }
+
+    /// End-to-end on-the-wire proof: drive a REAL MeshBackend (which performs an
+    /// actual reqwest POST) through the hybrid gateway against a mock server,
+    /// then inspect the exact bytes that left the machine. The briefing and the
+    /// redacted token must be present; the real PII must not.
+    #[cfg(feature = "remote-backends")]
+    #[tokio::test]
+    async fn test_redacted_briefing_appears_on_the_wire_not_pii() {
+        use crate::backends::remote::MeshBackend;
+        use reqwest::Url;
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "choices": [ {
+                    "message": {
+                        "role": "assistant",
+                        "content": "{\"cmd\": \"cat <REDACTED_FILEPATH_1>\"}"
+                    }
+                } ]
+            })))
+            .mount(&server)
+            .await;
+
+        let mesh = Arc::new(
+            MeshBackend::new(Url::parse(&server.uri()).unwrap(), "mesh".to_string()).unwrap(),
+        );
+        let local = Arc::new(StubBackend::new("local", "noop", false));
+        let hybrid = HybridBackend::new(local, mesh, ContextSanitizer::new(), false);
+
+        let result = hybrid
+            .generate_command(&req("show me /Users/alice/secret.txt"))
+            .await
+            .unwrap();
+
+        // Inspect the actual request body that crossed the network boundary.
+        let requests = server.received_requests().await.unwrap();
+        assert_eq!(requests.len(), 1);
+        let wire_body = String::from_utf8(requests[0].body.clone()).unwrap();
+
+        // The redacted token and the briefing attribution are on the wire...
+        assert!(wire_body.contains("<REDACTED_FILEPATH_1>"));
+        assert!(wire_body.contains("Caro's local model"));
+        assert!(wire_body.contains("filesystem path"));
+        // ...but the real PII is NOT.
+        assert!(!wire_body.contains("alice"), "PII leaked on the wire: {wire_body}");
+        assert!(!wire_body.contains("secret.txt"), "PII leaked on the wire");
+
+        // And the command handed back to the user has the real path restored.
+        assert_eq!(result.command, "cat /Users/alice/secret.txt");
+    }
 }
