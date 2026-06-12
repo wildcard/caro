@@ -20,13 +20,13 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@astrojs/db": "^0.14.1",
+    "@astrojs/db": "^0.21.3",
     "@astrojs/react": "^4.4.2",
-    "@astrojs/vercel": "^9.0.5",
+    "@astrojs/vercel": "^10.0.2",
     "@vercel/analytics": "^1.6.1",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
-    "astro": "^6.1.10",
+    "astro": "^6.4.6",
     "canvas-confetti": "^1.9.4"
   },
   "devDependencies": {
@@ -34,15 +34,15 @@
     "@storybook/addon-a11y": "^8.6.15",
     "@storybook/addon-essentials": "^8.6.14",
     "@storybook/react": "^8.6.15",
-    "@storybook/react-vite": "^8.6.15",
+    "@storybook/react-vite": "^10.4.4",
     "@storybook/theming": "^8.6.15",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitest/ui": "^4.0.16",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "storybook": "^8.6.15",
+    "storybook": "^8.6.18",
     "vite": "^6.4.2",
-    "vitest": "^4.0.16"
+    "vitest": "^4.1.0"
   }
 }
