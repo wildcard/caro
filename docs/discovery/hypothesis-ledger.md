@@ -37,7 +37,7 @@ A hypothesis graduates from `unvalidated` only when:
 | `voice-synthesis` | Users want Caro to speak responses aloud (mascot voice) | 0 | 0 | `unvalidated` | 2026-05-25 | none |
 | `self-healing` | Users want commands to retry/recover automatically on certain failure classes | 0 | 0 | `unvalidated` | 2026-05-25 | none |
 | `local-context-indexing` | Users want Caro to know about their repo / shell history / open files when generating commands | 0 | 0 | `unvalidated` | 2026-05-25 | none |
-| `enterprise-dashboard` | CISOs want a centralized policy + audit-trail surface for Caro deployments | 0 | 0 | `unvalidated` | 2026-05-25 | none |
+| `enterprise-dashboard` | CISOs want a centralized policy + audit-trail surface for Caro deployments | 0 | 0 | `unvalidated` (**next priority** — calibrated script at [`interview-enterprise-dashboard.md`](./interview-enterprise-dashboard.md)) | 2026-06-13 | none |
 
 The `caro-core` row is grandfathered because the rule applies forward
 from May 25, 2026. The full retroactive audit for each v2.0 hypothesis
@@ -73,7 +73,13 @@ after 5 interviews.*
 
 ### `enterprise-dashboard` synthesis
 
-*No transcripts logged yet.*
+*No transcripts logged yet. The hypothesis-specific question script
+is calibrated at [`interview-enterprise-dashboard.md`](./interview-enterprise-dashboard.md).
+First synthesis entry will appear here after 5 interviews; per
+[the audit revision in PR #1195](./v2.0-validation-audit.md#summary),
+this is the next-highest-priority discovery target because the
+pricing-enterprise waitlist CTA gives it a defined outreach
+surface.*
 
 ## Pain pattern slugs
 
