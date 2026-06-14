@@ -37,6 +37,10 @@ These rules govern how code is written, reviewed, and released.
    First PR for any non-trivial external SDK is a build-spike (license,
    MSRV, optional feature flag, code-ref smoke, two verification builds);
    architecture lands only after the spike merges green.
+6. **[verify-artifact.md](./verify-artifact.md)** — Agent-authored
+   public-facing text (PR comments, Hermes digests, release notes,
+   acceptance audits) must pass `bin/verify-artifact` grounding before
+   posting; block on exit code 1.
 
 ## Tier 3 — Workflow hygiene
 
