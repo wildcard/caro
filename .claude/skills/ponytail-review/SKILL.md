@@ -2,7 +2,7 @@
 name: "ponytail-review"
 description: "Run the pragmatic-skeptic 'ponytail' reviewer over the current diff to surface over-engineering — code, abstractions, dependencies, files, or process steps the problem does not need. Read-only and advisory; never trims safety, security, accessibility, data-loss handling, or their tests. Use before pushing a PR, when a change feels heavier than the task warranted, or when boilerplate/a new dependency crept in. Triggers: 'ponytail review', 'is this over-engineered', 'what can I delete here', 'did I over-build this'."
 version: "1.0.0"
-allowed-tools: "Bash, Read, Grep, Glob, Task"
+allowed-tools: "Bash(git diff:*), Bash(git status:*), Bash(git log:*), Read, Grep, Glob, Task"
 license: "AGPL-3.0"
 ---
 
