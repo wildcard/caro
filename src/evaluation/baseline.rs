@@ -330,6 +330,10 @@ mod tests {
                 avg_execution_time_ms: 100,
                 timeouts: 0,
                 category_breakdown: HashMap::new(),
+                total_cost_usd: 0.0,
+                cost_per_passed_task: 0.0,
+                total_tokens_in: 0,
+                total_tokens_out: 0,
             },
         );
 
@@ -344,6 +348,7 @@ mod tests {
             total_failed: ((1.0 - pass_rate) * 10.0) as usize,
             category_results,
             backend_results,
+            total_cost_usd: 0.0,
             execution_time_ms: 1000,
             regression_detected: false,
             baseline_comparison: None,

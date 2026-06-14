@@ -62,6 +62,7 @@ pub mod errors;
 pub mod evaluators;
 pub mod harness;
 pub mod models;
+pub mod pricing;
 
 // Re-exports for public API
 pub use baseline::BaselineStore;

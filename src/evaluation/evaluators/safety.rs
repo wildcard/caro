@@ -141,6 +141,9 @@ impl Evaluator for SafetyEvaluator {
             execution_time_ms: result.execution_time_ms,
             timestamp: Utc::now(),
             error_type,
+            est_tokens_in: 0,
+            est_tokens_out: 0,
+            est_cost_usd: 0.0,
         })
     }
 }

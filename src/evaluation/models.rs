@@ -163,6 +163,22 @@ pub struct EvaluationResult {
     /// Category of failure if applicable
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error_type: Option<ErrorType>,
+
+    /// Estimated input (prompt) tokens for this generation (~chars/4).
+    ///
+    /// 0 for results that predate cost instrumentation (serde default keeps
+    /// older baseline JSON loadable). Populated centrally by the harness.
+    #[serde(default)]
+    pub est_tokens_in: u32,
+
+    /// Estimated output (command) tokens for this generation (~chars/4).
+    #[serde(default)]
+    pub est_tokens_out: u32,
+
+    /// Estimated USD cost for this single generation. 0.0 for local/self-hosted
+    /// backends; non-zero for hosted frontier APIs. See [`crate::evaluation::pricing`].
+    #[serde(default)]
+    pub est_cost_usd: f64,
 }
 
 /// Configuration for a specific inference backend
@@ -244,6 +260,26 @@ pub struct BackendResult {
 
     /// Pass rate per category for this backend
     pub category_breakdown: HashMap<TestCategory, f32>,
+
+    /// Total estimated USD cost across all tests for this backend.
+    #[serde(default)]
+    pub total_cost_usd: f64,
+
+    /// Estimated USD cost per *passed* test (`total_cost_usd / passed`).
+    ///
+    /// This is the article's headline comparison axis: a backend is only
+    /// "cheaper" if it costs less per task it actually got right. 0.0 when no
+    /// tests passed.
+    #[serde(default)]
+    pub cost_per_passed_task: f64,
+
+    /// Total estimated input tokens across all tests for this backend.
+    #[serde(default)]
+    pub total_tokens_in: u64,
+
+    /// Total estimated output tokens across all tests for this backend.
+    #[serde(default)]
+    pub total_tokens_out: u64,
 }
 
 /// Aggregated results from a complete evaluation run
@@ -281,6 +317,10 @@ pub struct BenchmarkReport {
 
     /// Total evaluation runtime (milliseconds)
     pub execution_time_ms: u64,
+
+    /// Total estimated USD cost across all backends and tests in this run.
+    #[serde(default)]
+    pub total_cost_usd: f64,
 
     /// Whether pass rate dropped vs baseline
     pub regression_detected: bool,
