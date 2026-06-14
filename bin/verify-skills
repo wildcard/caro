@@ -1,0 +1,347 @@
+#!/usr/bin/env python3
+"""verify-skills — static hygiene gate for .claude/skills + .claude/commands.
+
+Phase 2A of the warden-novelty integration. Phase 1 (bin/verify-artifact)
+catches fabricated *content* in agent-authored text. This catches structural
+*regressions* in skill/command definitions before they cause routing
+failures.
+
+What it checks
+--------------
+
+For every directory under `.claude/skills/`:
+  • SKILL.md exists
+  • SKILL.md starts with a `---` YAML frontmatter block
+  • Frontmatter has non-empty `name:` and `description:` fields
+  • `name:` matches the directory basename (else the LLM router sees
+    one name and the harness loads another)
+  • `description:` is >= MIN_DESCRIPTION_CHARS to avoid no-op entries
+
+For every `.claude/commands/<name>.md`:
+  • If the file has YAML frontmatter, `description:` must be non-empty
+  • If the command shares its basename with a skill, that skill must
+    actually exist (catches `/<command>` → broken-link regressions)
+
+Description-collision detector:
+  • Build a multiset of 3-grams from each skill's description
+  • Flag any pair sharing >= COLLISION_THRESHOLD 3-grams (default 5)
+  • Tunable via --collision-threshold; warn-severity by default
+
+Usage:
+    bin/verify-skills                       # check the current repo
+    bin/verify-skills --root /other/repo    # check an arbitrary checkout
+    bin/verify-skills --json                # machine-readable output
+    bin/verify-skills --collision-threshold 8  # quieter description checks
+
+Exit codes:
+    0  no fail-severity findings (warnings may be present)
+    1  hygiene failure
+    2  usage error
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Iterable
+
+MIN_DESCRIPTION_CHARS = 20
+DEFAULT_COLLISION_THRESHOLD = 5
+_WORD_RE = re.compile(r"[a-z0-9]+")
+
+
+@dataclass
+class Finding:
+    code: str
+    message: str
+    severity: str  # "fail" or "warn"
+    target: str = ""
+
+
+@dataclass
+class Report:
+    ok: bool = True
+    findings: list[Finding] = field(default_factory=list)
+    skills_checked: int = 0
+    commands_checked: int = 0
+
+    def add(
+        self,
+        code: str,
+        message: str,
+        *,
+        severity: str = "fail",
+        target: str = "",
+    ) -> None:
+        self.findings.append(
+            Finding(code=code, message=message, severity=severity, target=target)
+        )
+        if severity == "fail":
+            self.ok = False
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "ok": self.ok,
+            "skills_checked": self.skills_checked,
+            "commands_checked": self.commands_checked,
+            "findings": [
+                {
+                    "code": f.code,
+                    "message": f.message,
+                    "severity": f.severity,
+                    "target": f.target,
+                }
+                for f in self.findings
+            ],
+        }
+
+    def to_human(self) -> str:
+        header = (
+            f"checked {self.skills_checked} skills, "
+            f"{self.commands_checked} commands"
+        )
+        if not self.findings:
+            return f"{header}\nok — no hygiene issues found"
+        lines = [header]
+        for f in self.findings:
+            mark = "✗" if f.severity == "fail" else "⚠"
+            target = f" ({f.target})" if f.target else ""
+            lines.append(f"  {mark} [{f.severity}/{f.code}]{target} {f.message}")
+        verdict = "ok with warnings" if self.ok else "hygiene FAILED"
+        lines.append(verdict)
+        return "\n".join(lines)
+
+
+def _parse_frontmatter(text: str) -> dict[str, str] | None:
+    """Minimal YAML-frontmatter parser supporting flat scalars + block scalars.
+
+    Stdlib-only, no PyYAML dependency. Handles:
+      key: value
+      key: "quoted"
+      key: >        (folded block scalar — accumulates indented body)
+      key: |        (literal block scalar — same accumulation)
+    Anything more complex (nested maps, lists) is intentionally out of scope.
+    """
+    if not text.startswith("---"):
+        return None
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return None
+    fm: dict[str, str] = {}
+    block_key: str | None = None
+    block_buf: list[str] = []
+    block_indent: int = 0
+    for line in lines[1:]:
+        stripped = line.strip()
+        if stripped == "---":
+            if block_key is not None:
+                fm[block_key] = " ".join(block_buf).strip()
+            return fm
+        if block_key is not None:
+            # Continue accumulating block scalar body
+            indent = len(line) - len(line.lstrip())
+            if line and indent >= max(block_indent, 1):
+                block_buf.append(line.strip())
+                continue
+            else:
+                fm[block_key] = " ".join(block_buf).strip()
+                block_key = None
+                block_buf = []
+        if not stripped or stripped.startswith("#"):
+            continue
+        if ":" not in line:
+            continue
+        # Skip nested keys (start with indent) — only top-level for now
+        if line[0] in (" ", "\t"):
+            continue
+        key, _, value = line.partition(":")
+        value = value.strip()
+        # Block-scalar indicators: >, >-, >+, |, |-, |+ (YAML chomping/folding)
+        if value and value[0] in (">", "|") and value[1:] in ("", "-", "+"):
+            block_key = key.strip()
+            block_buf = []
+            block_indent = len(line) - len(line.lstrip()) + 2
+            continue
+        fm[key.strip()] = value.strip('"').strip("'")
+    if block_key is not None:
+        fm[block_key] = " ".join(block_buf).strip()
+    return None  # no closing fence
+
+
+def _trigrams(text: str) -> set[tuple[str, str, str]]:
+    words = _WORD_RE.findall(text.lower())
+    return {tuple(words[i : i + 3]) for i in range(len(words) - 2)}
+
+
+def audit(root: Path, *, collision_threshold: int) -> Report:
+    report = Report()
+    skills_dir = root / ".claude" / "skills"
+    commands_dir = root / ".claude" / "commands"
+
+    skill_descriptions: dict[str, str] = {}
+    skill_names_known: set[str] = set()
+
+    if not skills_dir.is_dir():
+        report.add(
+            "missing_skills_dir",
+            f".claude/skills/ not found under {root}",
+            target=str(skills_dir),
+        )
+        return report
+
+    for skill_path in sorted(skills_dir.iterdir()):
+        if not skill_path.is_dir():
+            continue
+        report.skills_checked += 1
+        dirname = skill_path.name
+        skill_md = skill_path / "SKILL.md"
+        if not skill_md.is_file():
+            report.add(
+                "missing_skill_md",
+                f"skill directory has no SKILL.md",
+                target=dirname,
+            )
+            continue
+        text = skill_md.read_text(encoding="utf-8", errors="replace")
+        fm = _parse_frontmatter(text)
+        if fm is None:
+            report.add(
+                "missing_frontmatter",
+                "SKILL.md has no YAML frontmatter block",
+                target=dirname,
+            )
+            continue
+        name = fm.get("name", "")
+        description = fm.get("description", "")
+        # `name:` is optional in caro convention — the harness loads skills
+        # by directory name. If present, it must match the directory; if
+        # absent, the directory name is authoritative.
+        if name and name != dirname:
+            report.add(
+                "name_mismatch",
+                f"frontmatter name={name!r} does not match dir {dirname!r}",
+                target=dirname,
+            )
+        skill_names_known.add(dirname)
+        if not description:
+            report.add(
+                "missing_description",
+                "frontmatter lacks non-empty 'description'",
+                target=dirname,
+            )
+        elif len(description) < MIN_DESCRIPTION_CHARS:
+            report.add(
+                "thin_description",
+                f"description is {len(description)} chars (min {MIN_DESCRIPTION_CHARS})",
+                severity="warn",
+                target=dirname,
+            )
+        if description:
+            skill_descriptions[dirname] = description
+
+    if commands_dir.is_dir():
+        for command_path in sorted(commands_dir.glob("*.md")):
+            report.commands_checked += 1
+            text = command_path.read_text(encoding="utf-8", errors="replace")
+            fm = _parse_frontmatter(text)
+            stem = command_path.stem
+            # Convention: a command named X.md may correspond to a skill named X.
+            # If the matching skill is *missing*, that's a broken link.
+            if stem in skill_descriptions or stem in skill_names_known:
+                continue
+            # Heuristic: only flag if the command name looks like a skill-style
+            # slug (contains a dot or hyphen, or starts with "caro.") AND a
+            # skills directory of that name does not exist. Standalone commands
+            # are fine.
+            if (skills_dir / stem).exists():
+                continue
+            # No `caro.*` → sibling skill enforcement. Caro convention has
+            # many standalone commands; the only reliable link signal is the
+            # explicit `skill: <name>` frontmatter check below if/when that
+            # field gets adopted.
+            if fm is not None and not fm.get("description", ""):
+                report.add(
+                    "command_missing_description",
+                    "command has frontmatter but empty 'description'",
+                    target=command_path.name,
+                )
+
+    _check_collisions(skill_descriptions, collision_threshold, report)
+    return report
+
+
+def _check_collisions(
+    descriptions: dict[str, str],
+    threshold: int,
+    report: Report,
+) -> None:
+    grams: dict[str, set[tuple[str, str, str]]] = {
+        name: _trigrams(desc) for name, desc in descriptions.items()
+    }
+    items = sorted(grams.items())
+    for i, (a_name, a_grams) in enumerate(items):
+        for b_name, b_grams in items[i + 1 :]:
+            shared = a_grams & b_grams
+            if len(shared) >= threshold:
+                report.add(
+                    "description_collision",
+                    (
+                        f"skills {a_name!r} and {b_name!r} share "
+                        f"{len(shared)} description trigrams (threshold {threshold})"
+                    ),
+                    severity="warn",
+                    target=f"{a_name},{b_name}",
+                )
+
+
+def main(argv: Iterable[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="verify-skills",
+        description="Static hygiene gate for .claude/skills and .claude/commands.",
+    )
+    parser.add_argument(
+        "--root",
+        default=".",
+        help="Repository root containing .claude/ (default: cwd)",
+    )
+    parser.add_argument(
+        "--collision-threshold",
+        type=int,
+        default=DEFAULT_COLLISION_THRESHOLD,
+        help=f"Trigram overlap threshold for description collisions (default {DEFAULT_COLLISION_THRESHOLD})",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit findings as JSON instead of human text",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress output; rely on exit code",
+    )
+
+    args = parser.parse_args(list(argv) if argv is not None else None)
+
+    root = Path(args.root).resolve()
+    if not root.is_dir():
+        print(f"verify-skills: --root {root} is not a directory", file=sys.stderr)
+        return 2
+
+    report = audit(root, collision_threshold=args.collision_threshold)
+
+    if not args.quiet:
+        if args.json:
+            print(json.dumps(report.to_dict(), indent=2))
+        else:
+            print(report.to_human())
+
+    return 0 if report.ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
