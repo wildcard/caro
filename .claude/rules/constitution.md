@@ -26,9 +26,14 @@ These rules govern how code is written, reviewed, and released.
    conventional commits, code style.
 3. **[release-version-alignment.md](./release-version-alignment.md)** — The
    6-file release checklist; every release PR touches all six files.
-4. **[adr-numbering.md](./adr-numbering.md)** — ADRs are sequential, no gaps;
+4. **[validation-discipline.md](./validation-discipline.md)** — Evidence
+   requirements before a new product line graduates from research to
+   implementation (20 transcripts, no surveys-only, demoware-trap gate,
+   devil's-advocate review, Sean Ellis with defended cohort). Adapted
+   from [Anthropic's Founder's Playbook](https://claude.com/blog/the-founders-playbook).
+5. **[adr-numbering.md](./adr-numbering.md)** — ADRs are sequential, no gaps;
    renumber on merge if PRs land out of order.
-5. **[external-sdk-integration.md](./external-sdk-integration.md)** —
+6. **[external-sdk-integration.md](./external-sdk-integration.md)** —
    First PR for any non-trivial external SDK is a build-spike (license,
    MSRV, optional feature flag, code-ref smoke, two verification builds);
    architecture lands only after the spike merges green.

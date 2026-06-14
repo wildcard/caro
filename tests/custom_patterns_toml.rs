@@ -82,14 +82,18 @@ pattern = 'aws\s+s3\s+rb\s+s3://prod-'
 risk_level = "high"
 description = "Remove prod S3 bucket"
 "#;
-    let validator =
-        validator_from_toml("", Some(patterns)).expect("validator builds from sibling patterns.toml");
+    let validator = validator_from_toml("", Some(patterns))
+        .expect("validator builds from sibling patterns.toml");
     let result = validator
         .validate_command("aws s3 rb s3://prod-customer-data --force", ShellType::Bash)
         .await
         .expect("validate");
 
-    assert!(!result.allowed, "sibling pattern should block: {:?}", result);
+    assert!(
+        !result.allowed,
+        "sibling pattern should block: {:?}",
+        result
+    );
 }
 
 #[tokio::test]
@@ -117,7 +121,8 @@ async fn user_pattern_severity_capped_at_high() {
         description: "User pattern claiming Critical".to_string(),
         shell_specific: None,
     };
-    let err = validate_user_pattern(&pat).expect_err("Critical should be rejected for user pattern");
+    let err =
+        validate_user_pattern(&pat).expect_err("Critical should be rejected for user pattern");
     assert!(
         err.to_lowercase().contains("critical")
             || err.to_lowercase().contains("severity")

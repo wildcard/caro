@@ -141,7 +141,7 @@ consistent with caro's "pure subprocess call" constraint. No daemon is needed.
 | Existing module | What it provides |
 |----------------|-----------------|
 | `execution/executor.rs::ExecutionResult` | exit_code, stdout, stderr already captured |
-| `safety/validator.rs::SafetyValidator` | re-use directly on repair output |
+| `safety/validator.rs::SafetyValidator` | reuse directly on repair output |
 | `backends::CommandGenerator` trait | repair is a specialized `generate_command` call |
 | `context/mod.rs::ExecutionContext` | platform rules for repair prompt |
 | `prompts/command_templates.rs` | prompt building pattern to follow |
@@ -270,7 +270,7 @@ pub fn build_repair_prompt(req: &RepairRequest, platform_rules: &str) -> String;
 
 #### `src/models/` — extend `CommandRequest` (existing type)
 
-Add an optional field so the repair prompt can re-use the generation pipeline:
+Add an optional field so the repair prompt can reuse the generation pipeline:
 
 ```rust
 // In models/profile.rs or wherever CommandRequest lives:

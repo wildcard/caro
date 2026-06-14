@@ -33,7 +33,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-use crate::models::{RiskLevel, SafetyLevel, ShellType, SuggestedRouting};
+use crate::models::{RiskJudgment, RiskLevel, SafetyLevel, ShellType, SuggestedRouting};
 
 pub use cve_patterns::{get_cve_compiled_patterns_for_shell, CVE_COMPILED};
 pub use patterns::{
@@ -243,6 +243,89 @@ impl std::fmt::Display for SafetyDecision {
             self.suggested_routing,
             self.confidence * 100.0
         )
+    }
+}
+
+/// Minimum confidence for a smart-mode judge verdict to be honored. Verdicts
+/// below this fall back to the static decision (fail-safe), mirroring goose's
+/// "if you cannot decide, default conservatively".
+pub const SMART_JUDGE_MIN_CONFIDENCE: f64 = 0.7;
+
+/// Outcome of blending the static decision with a `--approval smart` judge.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SmartDecision {
+    /// Whether the user must confirm before execution.
+    pub requires_confirmation: bool,
+    /// Whether execution is blocked outright.
+    pub blocked: bool,
+    /// Plain-text note explaining a re-route (None if the judge had no effect).
+    pub note: Option<String>,
+}
+
+/// Blend a static risk decision with an optional LLM [`RiskJudgment`], bounded
+/// by two invariants ported from goose's `smart_approve`:
+///
+/// 1. **Hard floor** — a `Critical` static match is never relaxed by the judge.
+/// 2. **Fail-safe** — a missing or low-confidence verdict leaves the static
+///    decision untouched.
+///
+/// Within those bounds the judge works *both directions*: it relaxes a flagged
+/// command it finds benign-in-context (using the lower judged risk), and it
+/// escalates a static-`Safe` command it finds dangerous to a confirmation gate.
+/// The judge can never add a *hard block* — only a static `Critical` blocks —
+/// so an escalation always fails toward asking the human.
+pub fn blend_smart_decision(
+    static_risk: RiskLevel,
+    judge: Option<&RiskJudgment>,
+    safety: SafetyLevel,
+    auto_confirm: bool,
+) -> SmartDecision {
+    let legacy_block = static_risk.is_blocked(safety);
+    let legacy_confirm = static_risk.requires_confirmation(safety) && !auto_confirm;
+    let unchanged = SmartDecision {
+        requires_confirmation: legacy_confirm,
+        blocked: legacy_block,
+        note: None,
+    };
+
+    // Invariant 1: Critical static matches ignore the judge entirely.
+    if static_risk == RiskLevel::Critical {
+        return unchanged;
+    }
+
+    // Invariant 2: no verdict / low confidence → static decision stands.
+    let judgment = match judge {
+        Some(j) if j.confidence >= SMART_JUDGE_MIN_CONFIDENCE => j,
+        _ => return unchanged,
+    };
+
+    if judgment.risk <= static_risk {
+        // Reduce friction: recompute the decision from the lower judged risk.
+        let blocked = judgment.risk.is_blocked(safety);
+        let requires_confirmation = judgment.risk.requires_confirmation(safety) && !auto_confirm;
+        let note =
+            (requires_confirmation != legacy_confirm || blocked != legacy_block).then(|| {
+                format!(
+                    "smart: relaxed to {:?} — {}",
+                    judgment.risk, judgment.reason
+                )
+            });
+        SmartDecision {
+            requires_confirmation,
+            blocked,
+            note,
+        }
+    } else {
+        // Increase coverage: escalate to a confirmation gate (suppressible by
+        // an explicit auto-confirm), but never to a hard block.
+        SmartDecision {
+            requires_confirmation: !auto_confirm,
+            blocked: legacy_block,
+            note: Some(format!(
+                "smart: flagged as {:?} — {}",
+                judgment.risk, judgment.reason
+            )),
+        }
     }
 }
 
@@ -769,3 +852,84 @@ pub enum ValidationError {
 }
 
 // Types are already public, no re-export needed
+
+#[cfg(test)]
+mod smart_blend_tests {
+    use super::*;
+    use crate::models::{RiskJudgment, RiskLevel, SafetyLevel};
+
+    fn judgment(risk: RiskLevel, confidence: f64) -> RiskJudgment {
+        RiskJudgment {
+            risk,
+            reason: "test".to_string(),
+            confidence,
+        }
+    }
+
+    #[test]
+    fn no_judge_falls_back_to_static_decision() {
+        // High @ Moderate static => confirm, not blocked.
+        let d = blend_smart_decision(RiskLevel::High, None, SafetyLevel::Moderate, false);
+        assert!(d.requires_confirmation);
+        assert!(!d.blocked);
+        assert!(d.note.is_none());
+    }
+
+    #[test]
+    fn low_confidence_verdict_is_ignored() {
+        // Judge says Safe but confidence below threshold => static High stands.
+        let j = judgment(RiskLevel::Safe, SMART_JUDGE_MIN_CONFIDENCE - 0.01);
+        let d = blend_smart_decision(RiskLevel::High, Some(&j), SafetyLevel::Moderate, false);
+        assert!(d.requires_confirmation);
+        assert!(d.note.is_none());
+    }
+
+    #[test]
+    fn hard_floor_critical_never_relaxed() {
+        // Even a confident "safe" verdict cannot downgrade a Critical static match.
+        let j = judgment(RiskLevel::Safe, 0.99);
+        let d = blend_smart_decision(RiskLevel::Critical, Some(&j), SafetyLevel::Moderate, false);
+        assert!(d.blocked); // Critical @ Moderate is blocked
+        assert!(d.note.is_none());
+    }
+
+    #[test]
+    fn benign_verdict_relaxes_flagged_command() {
+        // High @ Moderate would confirm; a confident Safe verdict relaxes it.
+        let j = judgment(RiskLevel::Safe, 0.9);
+        let d = blend_smart_decision(RiskLevel::High, Some(&j), SafetyLevel::Moderate, false);
+        assert!(!d.requires_confirmation);
+        assert!(!d.blocked);
+        assert!(d.note.is_some());
+    }
+
+    #[test]
+    fn relax_can_unblock_high_at_strict() {
+        // High @ Strict is blocked statically; a confident Safe verdict unblocks
+        // it (Safe is never blocked/confirmed at any level).
+        let j = judgment(RiskLevel::Safe, 0.95);
+        let d = blend_smart_decision(RiskLevel::High, Some(&j), SafetyLevel::Strict, false);
+        assert!(!d.blocked);
+        assert!(!d.requires_confirmation);
+        assert!(d.note.is_some());
+    }
+
+    #[test]
+    fn dangerous_verdict_escalates_static_safe() {
+        // Safe @ Moderate auto-runs; a confident High verdict gates it.
+        let j = judgment(RiskLevel::High, 0.9);
+        let d = blend_smart_decision(RiskLevel::Safe, Some(&j), SafetyLevel::Moderate, false);
+        assert!(d.requires_confirmation);
+        assert!(!d.blocked); // judge can gate but never hard-block
+        assert!(d.note.is_some());
+    }
+
+    #[test]
+    fn escalation_suppressed_by_auto_confirm() {
+        // With auto_confirm, an escalation does not force a prompt.
+        let j = judgment(RiskLevel::High, 0.9);
+        let d = blend_smart_decision(RiskLevel::Safe, Some(&j), SafetyLevel::Moderate, true);
+        assert!(!d.requires_confirmation);
+        assert!(!d.blocked);
+    }
+}

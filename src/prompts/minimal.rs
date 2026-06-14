@@ -120,8 +120,7 @@ mod tests {
 
     #[test]
     fn test_minimal_prompt_with_context() {
-        let request =
-            CommandRequest::new("list files", ShellType::Bash).with_context("cwd: /tmp");
+        let request = CommandRequest::new("list files", ShellType::Bash).with_context("cwd: /tmp");
         let prompt = build_minimal_prompt(&request);
         assert!(prompt.contains("cwd: /tmp"));
     }
