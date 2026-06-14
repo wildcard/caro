@@ -177,7 +177,7 @@ class OpenAIBackend extends TranslationBackend {
       console.log(`[${locale}] [OpenAI] Translating ${fileName}...`);
 
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview',
+        model: process.env.OPENAI_MODEL || 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -562,6 +562,18 @@ async function translateAllFiles() {
   console.log(`[${targetLocale}] Translation completed!`);
   console.log(`[${targetLocale}] Summary: ${translatedCount} translated, ${skippedCount} skipped (cached), ${failedCount} failed`);
   console.log(`========================================`);
+
+  // Fail loud on total failure. Per-file errors are caught and counted above so
+  // one bad file doesn't sink the whole locale — but if EVERY attempted file
+  // failed (e.g. a dead model name 404ing on every call), the run must go red.
+  // Without this gate the workflow reports success while translating nothing,
+  // and the only artifact is package-lock drift in the auto-PR (see caro-z1rp).
+  if (translatedCount === 0 && failedCount > 0) {
+    throw new Error(
+      `[${targetLocale}] All ${failedCount} attempted file(s) failed — translated 0. ` +
+      `Treating as a fatal error so the workflow surfaces it instead of opening a no-op PR.`
+    );
+  }
 }
 
 // ============================================
