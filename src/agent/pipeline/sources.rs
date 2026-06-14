@@ -50,14 +50,12 @@ impl BackendSource {
 impl CandidateSource for BackendSource {
     async fn produce(&self, prompt: &str) -> Result<Candidate, PipelineError> {
         let request = CommandRequest::new(prompt, self.shell);
-        let generated =
-            self.backend
-                .generate_command(&request)
-                .await
-                .map_err(|e| PipelineError::SourceFailed {
-                    name: self.label.clone(),
-                    message: e.to_string(),
-                })?;
+        let generated = self.backend.generate_command(&request).await.map_err(|e| {
+            PipelineError::SourceFailed {
+                name: self.label.clone(),
+                message: e.to_string(),
+            }
+        })?;
 
         let mut candidate = Candidate::new(generated.command, self.label.clone());
         candidate.features.llm_confidence = generated.confidence_score as f32;
