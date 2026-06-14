@@ -1,0 +1,214 @@
+---
+import BlogPost from '../../layouts/BlogPost.astro';
+---
+
+<BlogPost
+  title="Caro's founder arc: adopting Anthropic's playbook with a safety-first execution layer"
+  description="We adapted Anthropic's Founder's Playbook into Caro's codebase as a stage map, a validation-discipline rule, and a retroactive audit that downgraded five v2.0 features. Here's what changed and why."
+  date="2026-05-25"
+  readTime="9 min read"
+  tags={["company", "playbook", "validation", "AI-native", "founder"]}
+>
+
+<p>
+  In May 2026, Anthropic published
+  <a href="https://claude.com/blog/the-founders-playbook" target="_blank" rel="noopener noreferrer">The Founder's Playbook: Building an AI-native startup</a>.
+  It reframes the startup arc into four stages — Idea, MVP, Launch, Scale —
+  and argues that AI has removed three historical bottlenecks
+  (capital, headcount, technical skill). The new constraint, the playbook
+  says, is <em>what a founder chooses to build</em>, and that constraint
+  makes validation discipline more important, not less.
+</p>
+
+<p>
+  We took the playbook seriously. This post is the diff: what we adopted,
+  what we deliberately did not adopt, and what changed in the codebase as
+  a result.
+</p>
+
+<h2>The premise we believed</h2>
+
+<p>
+  The playbook's central warning is "mistaking building for validating".
+  When a prototype takes an afternoon instead of a quarter, founders
+  confuse the prototype's existence with proof that anyone wants it. AI
+  amplifies this because models trained to be helpful will happily justify
+  any idea you ask them to justify — confirmation bias on demand.
+</p>
+
+<p>
+  We have lived through this. Caro is at v1.4.0 with a 94.8% Command
+  Success Rate and ~247 waitlist signups. The product works. But "the
+  product works" and "we have product-market fit" are different claims,
+  and the discipline to keep them separate is exactly what the playbook
+  is about.
+</p>
+
+<h2>Where we are on the map</h2>
+
+<p>
+  We wrote a
+  <a href="https://github.com/wildcard/caro/blob/main/playbook/STAGE_MAP.md">stage map</a>
+  and the answer is: <strong>late MVP heading into Launch</strong>. The
+  core loop ships, distribution ships across crates.io / Homebrew / npm /
+  NuGet, the public surface ships in 15 locales. The exit gate from Launch
+  is <strong>retention</strong>, not features. Until we publish a defended
+  D7 retention curve, we do not claim product-market fit. We wrote a
+  <a href="https://github.com/wildcard/caro/blob/main/docs/retention-dashboard-spec.md">spec for what that dashboard would look like</a> — designed so it can ship without expanding the
+  telemetry we collect.
+</p>
+
+<h2>The five gates we now apply to ourselves</h2>
+
+<p>
+  Adopting the playbook meant codifying its anti-confirmation-bias
+  practices as a constitution rule
+  (<a href="https://github.com/wildcard/caro/blob/main/.claude/rules/validation-discipline.md">validation-discipline.md</a>).
+  Every new product line or major feature spec must clear five gates
+  before the implementation PR can open:
+</p>
+
+<ol>
+  <li><strong>20 first-hand interview transcripts</strong>, not 20 tweets, not 20 GitHub Issues, not 20 waitlist signups. Real conversations with real users, surfacing at least three distinct pain patterns.</li>
+  <li><strong>No surveys as primary evidence.</strong> Surveys size hypotheses; they don't surface them.</li>
+  <li><strong>"What breaks at 100 real users"</strong> — every spec names the demoware-trap failure mode and the instrumentation that would catch it.</li>
+  <li><strong>Devil's-advocate review</strong> by an adversarial agent designed to interrogate AI-drafted proposals, not justify them.</li>
+  <li><strong>Sean Ellis with a defended cohort</strong>. The 40%-very-disappointed result is meaningless without a defended definition of who counts as a user.</li>
+</ol>
+
+<p>
+  The rule has teeth. After we wrote it, we audited our own v2.0 roadmap
+  against it.
+</p>
+
+<h2>What the audit changed</h2>
+
+<p>
+  We
+  <a href="https://github.com/wildcard/caro/blob/main/docs/discovery/v2.0-validation-audit.md">audited every v2.0 product line</a>
+  in research. Five product lines moved to <strong>Research (unvalidated)</strong>
+  because they had zero first-hand interview transcripts:
+</p>
+
+<ul>
+  <li><em>Karo distributed terminal intelligence</em></li>
+  <li><em>Dogma rule engine</em></li>
+  <li><em>Voice synthesis</em></li>
+  <li><em>Self-healing features</em></li>
+  <li><em>Local context indexing</em></li>
+</ul>
+
+<p>
+  The four items that <strong>extend</strong> the already-validated core
+  loop — Azure Foundry backend, vLLM Jukebox multi-model, the Skills
+  extension system, and the Handy.Computer integration — pass as
+  extensions and remain on v2.0. The audit principle is clean: extending
+  a validated core doesn't re-trigger Gate 1; proposing a <em>new</em>
+  product line does.
+</p>
+
+<p>
+  We did not delete those five product lines. They live in a "Research
+  (unvalidated)" section above the v2.0 milestone, with a discovery-debt
+  beads epic to backfill interviews. Some of them are likely to come back
+  fully validated; some, we expect, will be quietly invalidated when the
+  20 transcripts surface the real pain — and that's signal, not failure.
+  An invalidated hypothesis saves a build cycle.
+</p>
+
+<h2>What we did not adopt</h2>
+
+<p>
+  The playbook is not gospel and we are not Anthropic's median reader.
+  Three deliberate non-adoptions:
+</p>
+
+<p>
+  <strong>The nine consumer opportunities</strong> (health, careers,
+  relationships, money, parenting, legal, life sciences, plus two). These
+  are real opportunities the playbook says Anthropic explicitly won't
+  enter. They're not our category. Caro is a developer-tool guardian
+  agent — the slice between an LLM (or a human) drafting a shell command
+  and that command running on a real machine. Pivoting into consumer
+  verticals would be exactly the kind of move the validation rule is
+  supposed to catch.
+</p>
+
+<p>
+  <strong>Claude Cowork for internal knowledge management.</strong> The
+  playbook recommends Cowork for internal KM. Reviewers of the playbook
+  noted that Cowork activity is currently excluded from audit logs and
+  compliance APIs — making it structurally unsuitable for regulated
+  workloads despite the playbook's recommendation. Caro's Enterprise
+  positioning under
+  <a href="https://github.com/wildcard/caro/blob/main/docs/adr/ADR-001-enterprise-community-architecture.md">ADR-001</a>
+  is explicitly about audit-trail-forwarding and centralized policy
+  distribution for CISO buyers. Building our own KM on a tool we couldn't
+  sell to our own enterprise customer would be hypocritical. We use the
+  repo as the KM substrate and Hermes as the synthesis layer.
+</p>
+
+<p>
+  <strong>A specific funding posture.</strong> The playbook is agnostic
+  about whether you bootstrap, raise a seed, or stay open-source-funded.
+  Our
+  <a href="https://github.com/wildcard/caro/blob/main/COMPANY.md">COMPANY.md</a>
+  commits to four things we won't do — cripple the core to upsell,
+  telemetry-as-business-model, pivot to consumer, close the safety
+  patterns — and lets the funding choice remain a founder decision that
+  must be compatible with those constraints.
+</p>
+
+<h2>The honest part</h2>
+
+<p>
+  Some of this is performative. We could have written a 20-page strategy
+  doc nobody reads. The reason these artifacts are likely to actually
+  load-bear is that they live where the work lives — alongside the
+  Cargo.toml, the safety patterns, the constitution. The
+  <code>validation-discipline.md</code> rule is in the same directory as
+  the rule that blocks commits to main. The devil's-advocate agent is
+  in the same directory as the rust-cli-expert. The discovery transcripts
+  live one <code>cd</code> away from the safety patterns they will, over
+  time, justify.
+</p>
+
+<p>
+  We're publishing this because the playbook's premise depends on
+  honesty being the cheap part. "Where are you on the four-stage map?"
+  is a question every AI-native company should be able to answer in
+  one paragraph. Ours is the
+  <a href="https://github.com/wildcard/caro/blob/main/playbook/STAGE_MAP.md">stage map</a>:
+  late MVP heading into Launch, gated on retention. Yours might be
+  Stage 1 still doing 20 interviews. Either is fine. What's not fine is
+  conflating prototype existence with demand.
+</p>
+
+<h2>What's next</h2>
+
+<p>
+  Phase 5 of this adaptation lands the public-facing pages
+  (<a href="/playbook">/playbook</a>, this blog post, a draft
+  <a href="/pricing">/pricing</a>). Phases 1–4 landed the internal
+  scaffolding — rule, agent, skill, discovery directory, retroactive
+  audit, Launch-OS inventory, retention-dashboard spec, security
+  checklist, agentic-stack record. All five phases are in
+  <a href="https://github.com/wildcard/caro/pulls">a single feature
+  branch's PR history</a>.
+</p>
+
+<p>
+  The retention dashboard is the next real build. The Sean Ellis
+  instrument is blocked until the opt-in cohort reaches a defendable
+  size; running it earlier and citing 47% is exactly the misuse the
+  playbook warns about. And the discovery-debt epic seeds the
+  interviews that decide which v2.0 product lines come back.
+</p>
+
+<p>
+  If you want to be on the other end of one of those 20 interviews,
+  drop us a note via the
+  <a href="/">waitlist</a> and we'll reach out.
+</p>
+
+</BlogPost>

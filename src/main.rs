@@ -760,6 +760,14 @@ struct Cli {
     )]
     confirm: bool,
 
+    /// Approval mode: how accept/prompt/block decisions are made
+    #[arg(
+        long,
+        value_name = "MODE",
+        help = "Approval mode: prompt (static, default), auto (auto-confirm), smart (LLM risk judge)"
+    )]
+    approval: Option<String>,
+
     /// Verbose output with debug information
     #[arg(short, long, help = "Enable verbose output with timing and debug info")]
     verbose: bool,
@@ -875,6 +883,10 @@ impl IntoCliArgs for Cli {
 
     fn confirm(&self) -> bool {
         self.confirm
+    }
+
+    fn approval(&self) -> Option<String> {
+        self.approval.clone()
     }
 
     fn verbose(&self) -> bool {
@@ -1100,6 +1112,11 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         caro::models::BackendType::Mlx => "mlx".to_string(),
         caro::models::BackendType::Mock => "mock".to_string(),
         caro::models::BackendType::OpenRouter => "openrouter".to_string(),
+        caro::models::BackendType::Mesh => "mesh".to_string(),
+        caro::models::BackendType::AiHorde => "ai-horde".to_string(),
+        // The hybrid gateway sanitizes PII before remote transmission by
+        // default, so it is intentionally NOT treated as an off-host leak here.
+        caro::models::BackendType::Hybrid => "hybrid".to_string(),
     };
 
     let exec_ctx = ExecutionContext::detect();
