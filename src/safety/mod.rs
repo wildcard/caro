@@ -429,6 +429,49 @@ impl SafetyValidator {
     /// assert!(is_dangerous_in_context("rm -rf /", &pattern));
     /// assert!(!is_dangerous_in_context("echo 'rm -rf /'", &pattern));
     /// ```
+    /// True when a command targets a *catastrophic* location — one whose
+    /// destruction is irrecoverable and system-wide. These targets are NEVER
+    /// allowlistable: no user-supplied allowlist pattern, however specific,
+    /// may re-enable them. This is the safety floor introduced in #1110.
+    ///
+    /// It deliberately does NOT cover specific deep subpaths such as
+    /// `/tmp/myapp_123` or `./target`. Those still match a Critical built-in
+    /// (the broad `rm -rf /…` pattern over-matches any absolute path), but a
+    /// *deliberate, narrow* allowlist entry is allowed to bless them — that is
+    /// the entire purpose of the allowlist feature.
+    ///
+    /// The check is conservative: anything that looks like it could be root,
+    /// home, a bare wildcard, a parent-directory walk, a device node, a
+    /// whole-disk operation, or a root-protection bypass is treated as
+    /// catastrophic and stays blocked.
+    fn targets_catastrophic_location(command: &str) -> bool {
+        static CATASTROPHIC: std::sync::OnceLock<Vec<regex::Regex>> = std::sync::OnceLock::new();
+        let regexes = CATASTROPHIC.get_or_init(|| {
+            [
+                // Recursive delete whose target is root, a bare wildcard, home,
+                // $HOME, or a parent-directory reference. Anchors the target to
+                // a word boundary / end so `/tmp/...` (a specific subpath) is
+                // NOT caught, but `/`, `/*`, `~`, `~/`, `..`, `../` are.
+                r"\brm\s+(?:-{1,2}\S+\s+)*(?:/|/\*|~|~/|\$HOME)(?:\s|$|\*)",
+                r"\brm\s+(?:-{1,2}\S+\s+)*\*(?:\s|$)",
+                r"\brm\s+(?:-{1,2}\S+\s+)*\.\.?/?(?:\s|$|\*)",
+                // Explicit root-protection bypass — always catastrophic.
+                r"--no-preserve-root",
+                // Whole-disk / device destruction (dd, mkfs, shred to /dev/*).
+                r"/dev/(?:sd|hd|nvme|mmcblk|vd|xvd)",
+                r"\bmkfs\.",
+                // Fork bombs — not path-based but irrecoverable; never bless.
+                r":\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:",
+            ]
+            .iter()
+            .filter_map(|p| regex::Regex::new(p).ok())
+            .collect()
+        });
+        regexes
+            .iter()
+            .any(|re| Self::is_dangerous_in_context(command, re))
+    }
+
     fn is_dangerous_in_context(command: &str, pattern_regex: &regex::Regex) -> bool {
         if !pattern_regex.is_match(command) {
             return false;
@@ -494,8 +537,23 @@ impl SafetyValidator {
                 *level == RiskLevel::Critical && Self::is_dangerous_in_context(command, regex)
             });
 
-        // Check allowlist patterns only if no Critical built-in/CVE match.
-        if !has_critical_builtin_or_cve_match {
+        // The Critical-bypass guard is intentionally blunt: the broad
+        // recursive-delete pattern (`rm -rf /…`) matches both the catastrophic
+        // `rm -rf /` and an ordinary `rm -rf /tmp/myapp_123`. Refusing to honour
+        // the allowlist for *every* Critical match defeats the purpose of
+        // allowlists, which exist precisely so a team can bless a narrow,
+        // specific recursive cleanup. We therefore only force-block (bypass the
+        // allowlist) when the Critical match targets a *catastrophic* location
+        // (root, home, bare wildcard, parent dir, device node, disk wipe, root-
+        // protection bypass, fork bomb). A Critical match on a specific deep
+        // path may still be blessed by a deliberate allowlist entry — but the
+        // catastrophic floor from #1110 is preserved exactly.
+        let critical_is_catastrophic =
+            has_critical_builtin_or_cve_match && Self::targets_catastrophic_location(command);
+
+        // Check allowlist patterns only if there is no catastrophic Critical
+        // match.
+        if !critical_is_catastrophic {
             for allow_pattern in &self.config.allowlist_patterns {
                 if let Ok(regex) = regex::Regex::new(allow_pattern) {
                     if regex.is_match(command) {
@@ -931,5 +989,107 @@ mod smart_blend_tests {
         let d = blend_smart_decision(RiskLevel::Safe, Some(&j), SafetyLevel::Moderate, true);
         assert!(!d.requires_confirmation);
         assert!(!d.blocked);
+    }
+}
+
+#[cfg(test)]
+mod allowlist_catastrophic_tests {
+    use super::*;
+    use crate::models::ShellType;
+
+    #[test]
+    fn catastrophic_targets_are_never_allowlistable() {
+        // The safety floor from #1110: no allowlist may re-enable these.
+        let catastrophic = [
+            "rm -rf /",
+            "rm -rf /*",
+            "rm -rf ~",
+            "rm -rf ~/",
+            "rm -rf $HOME",
+            "rm -rf ..",
+            "rm -rf ../",
+            "rm -rf *",
+            "rm -rf --no-preserve-root /",
+            "dd if=/dev/zero of=/dev/sda",
+            "mkfs.ext4 /dev/sdb",
+            ":(){ :|:& };:",
+        ];
+        for cmd in catastrophic {
+            assert!(
+                SafetyValidator::targets_catastrophic_location(cmd),
+                "expected {cmd:?} to be treated as a catastrophic target"
+            );
+        }
+    }
+
+    #[test]
+    fn specific_subpaths_are_not_catastrophic() {
+        // Specific deep paths still match a Critical built-in, but are NOT
+        // catastrophic, so a deliberate allowlist entry may bless them.
+        let specific = [
+            "rm -rf /tmp/myapp_123",
+            "rm -rf /tmp/other_app",
+            "rm -rf /var/lib/docker/tmp",
+            "rm -rf ./target",
+            "rm -rf node_modules",
+        ];
+        for cmd in specific {
+            assert!(
+                !SafetyValidator::targets_catastrophic_location(cmd),
+                "expected {cmd:?} NOT to be treated as a catastrophic target"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn deliberate_allowlist_blesses_specific_path_but_not_others() {
+        let mut config = SafetyConfig::strict();
+        config.add_allowlist_pattern(r"rm -rf /tmp/myapp_\d+");
+        let validator = SafetyValidator::new(config).unwrap();
+
+        let allowed = validator
+            .validate_command("rm -rf /tmp/myapp_123", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(
+            allowed.allowed,
+            "deliberate, specific allowlist entry should bless rm -rf /tmp/myapp_123"
+        );
+
+        // A different specific path that is NOT in the allowlist stays blocked
+        // (Critical built-in still fires, no allowlist hit).
+        let blocked = validator
+            .validate_command("rm -rf /tmp/other_app", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(
+            !blocked.allowed,
+            "non-allowlisted recursive delete must stay blocked"
+        );
+    }
+
+    #[tokio::test]
+    async fn allowlist_cannot_reenable_catastrophe() {
+        // Even a broad allowlist must NOT re-enable `rm -rf /`.
+        let mut config = SafetyConfig::strict();
+        config.add_allowlist_pattern(r"^rm"); // dangerously permissive on purpose
+        let validator = SafetyValidator::new(config).unwrap();
+
+        for cmd in [
+            "rm -rf /",
+            "rm -rf /*",
+            "rm -rf ~",
+            "rm -rf --no-preserve-root /",
+        ] {
+            let result = validator
+                .validate_command(cmd, ShellType::Bash)
+                .await
+                .unwrap();
+            assert!(
+                !result.allowed,
+                "broad allowlist must never re-enable catastrophe: {cmd:?}"
+            );
+            assert_eq!(result.risk_level, RiskLevel::Critical, "{cmd:?}");
+        }
     }
 }
