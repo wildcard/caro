@@ -58,6 +58,8 @@ impl Evaluator for POSIXEvaluator {
                     est_tokens_in: 0,
                     est_tokens_out: 0,
                     est_cost_usd: 0.0,
+                    criteria_passed: 0,
+                    criteria_total: 0,
                 });
             }
         };
@@ -110,6 +112,8 @@ impl Evaluator for POSIXEvaluator {
             est_tokens_in: 0,
             est_tokens_out: 0,
             est_cost_usd: 0.0,
+            criteria_passed: 0,
+            criteria_total: 0,
         })
     }
 }

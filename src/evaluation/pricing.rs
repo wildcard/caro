@@ -192,16 +192,18 @@ mod tests {
 
     #[test]
     fn local_generation_costs_nothing() {
-        let (ti, to, cost) =
-            estimate_generation_cost("embedded", "list files", "ls -la");
+        let (ti, to, cost) = estimate_generation_cost("embedded", "list files", "ls -la");
         assert!(ti > 0 && to > 0);
         assert_eq!(cost, 0.0);
     }
 
     #[test]
     fn frontier_generation_costs_something() {
-        let (_ti, _to, cost) =
-            estimate_generation_cost("claude-opus-4-7", "list files recursively", "find . -type f");
+        let (_ti, _to, cost) = estimate_generation_cost(
+            "claude-opus-4-7",
+            "list files recursively",
+            "find . -type f",
+        );
         assert!(cost > 0.0);
     }
 }

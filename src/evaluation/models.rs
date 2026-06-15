@@ -179,6 +179,37 @@ pub struct EvaluationResult {
     /// backends; non-zero for hosted frontier APIs. See [`crate::evaluation::pricing`].
     #[serde(default)]
     pub est_cost_usd: f64,
+
+    /// Number of rubric criteria this result satisfied.
+    ///
+    /// For single-criterion cases this stays 0 and the mean-score is derived
+    /// from `passed` (see [`EvaluationResult::score`]). For multi-criterion
+    /// cases the evaluator sets `criteria_passed`/`criteria_total` so a result
+    /// can be "8 of 10" — the article's distinction between *all-pass*
+    /// (production) and *mean-score* (sensitivity).
+    #[serde(default)]
+    pub criteria_passed: u32,
+
+    /// Total rubric criteria evaluated for this case (0 = single-criterion).
+    #[serde(default)]
+    pub criteria_total: u32,
+}
+
+impl EvaluationResult {
+    /// Mean-score for this result: the fraction of rubric criteria passed.
+    ///
+    /// Single-criterion results (`criteria_total == 0`) score 1.0 when
+    /// `passed` and 0.0 otherwise, so a dataset with no multi-criterion cases
+    /// has `mean_score == pass_rate` by construction.
+    pub fn score(&self) -> f32 {
+        if self.criteria_total > 0 {
+            self.criteria_passed as f32 / self.criteria_total as f32
+        } else if self.passed {
+            1.0
+        } else {
+            0.0
+        }
+    }
 }
 
 /// Configuration for a specific inference backend
@@ -218,8 +249,17 @@ pub struct CategoryResult {
     /// Which category these results are for
     pub category: TestCategory,
 
-    /// Percentage passed for this category (0.0-1.0)
+    /// All-pass rate: fraction of tests where *every* criterion passed (0.0-1.0).
+    /// This is the production-readiness metric.
     pub pass_rate: f32,
+
+    /// Mean-score: average fraction of criteria passed across tests (0.0-1.0).
+    ///
+    /// The sensitivity metric. Equals `pass_rate` for single-criterion datasets;
+    /// diverges (sits above `pass_rate`) once multi-criterion cases exist, since
+    /// a "8 of 10" result lifts the mean but not the all-pass rate.
+    #[serde(default)]
+    pub mean_score: f32,
 
     /// Tests in this category
     pub total_tests: usize,
@@ -240,8 +280,12 @@ pub struct BackendResult {
     /// Backend identifier
     pub backend_name: String,
 
-    /// Percentage passed for this backend (0.0-1.0)
+    /// All-pass rate for this backend (0.0-1.0)
     pub pass_rate: f32,
+
+    /// Mean-score for this backend: average fraction of criteria passed (0.0-1.0).
+    #[serde(default)]
+    pub mean_score: f32,
 
     /// Tests run on this backend
     pub total_tests: usize,
@@ -297,8 +341,13 @@ pub struct BenchmarkReport {
     /// Git commit hash
     pub commit_sha: String,
 
-    /// Percentage of all tests passed (0.0-1.0)
+    /// Overall all-pass rate across all tests (0.0-1.0)
     pub overall_pass_rate: f32,
+
+    /// Overall mean-score across all tests (0.0-1.0). Equals `overall_pass_rate`
+    /// for single-criterion datasets; the article's sensitivity metric.
+    #[serde(default)]
+    pub overall_mean_score: f32,
 
     /// Total number of tests executed
     pub total_tests: usize,
@@ -610,6 +659,48 @@ mod tests {
         };
 
         assert!(test_case.validate().is_err());
+    }
+
+    fn result_with(passed: bool, criteria_passed: u32, criteria_total: u32) -> EvaluationResult {
+        EvaluationResult {
+            test_id: "t-1".to_string(),
+            backend_name: "b".to_string(),
+            passed,
+            actual_command: None,
+            actual_behavior: None,
+            failure_reason: None,
+            execution_time_ms: 0,
+            timestamp: Utc::now(),
+            error_type: None,
+            est_tokens_in: 0,
+            est_tokens_out: 0,
+            est_cost_usd: 0.0,
+            criteria_passed,
+            criteria_total,
+        }
+    }
+
+    #[test]
+    fn score_single_criterion_derives_from_passed() {
+        assert_eq!(result_with(true, 0, 0).score(), 1.0);
+        assert_eq!(result_with(false, 0, 0).score(), 0.0);
+    }
+
+    #[test]
+    fn score_multi_criterion_is_fraction() {
+        // 8 of 10 criteria pass: mean-score 0.8 but NOT all-pass.
+        let r = result_with(false, 8, 10);
+        assert!((r.score() - 0.8).abs() < 1e-6);
+        assert!(
+            !r.passed,
+            "8 of 10 is not all-pass — the article's distinction"
+        );
+    }
+
+    #[test]
+    fn score_all_criteria_pass_is_one() {
+        let r = result_with(true, 10, 10);
+        assert_eq!(r.score(), 1.0);
     }
 
     #[test]

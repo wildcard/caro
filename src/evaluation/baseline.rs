@@ -314,6 +314,7 @@ mod tests {
                 passed: (pass_rate * 10.0) as usize,
                 failed: ((1.0 - pass_rate) * 10.0) as usize,
                 pass_rate,
+                mean_score: pass_rate,
                 avg_execution_time_ms: 100,
             },
         );
@@ -327,6 +328,7 @@ mod tests {
                 passed: (pass_rate * 10.0) as usize,
                 failed: ((1.0 - pass_rate) * 10.0) as usize,
                 pass_rate,
+                mean_score: pass_rate,
                 avg_execution_time_ms: 100,
                 timeouts: 0,
                 category_breakdown: HashMap::new(),
@@ -343,6 +345,7 @@ mod tests {
             branch: branch.to_string(),
             commit_sha: "abc123".to_string(),
             overall_pass_rate: pass_rate,
+            overall_mean_score: pass_rate,
             total_tests: 10,
             total_passed: (pass_rate * 10.0) as usize,
             total_failed: ((1.0 - pass_rate) * 10.0) as usize,

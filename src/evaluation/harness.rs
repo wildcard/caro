@@ -57,6 +57,23 @@ impl CostRollup {
     }
 }
 
+/// Mean-score over a set of results: the average per-result `score()` (fraction
+/// of criteria passed). For single-criterion datasets this equals the all-pass
+/// rate; it diverges (sits above pass_rate) once multi-criterion results exist.
+fn mean_score_of<'a>(results: impl IntoIterator<Item = &'a EvaluationResult>) -> f32 {
+    let mut sum = 0.0_f32;
+    let mut n = 0_u32;
+    for r in results {
+        sum += r.score();
+        n += 1;
+    }
+    if n > 0 {
+        sum / n as f32
+    } else {
+        0.0
+    }
+}
+
 /// Configuration for the evaluation harness
 #[derive(Debug, Clone)]
 pub struct HarnessConfig {
@@ -237,6 +254,7 @@ impl EvaluationHarness {
             passed,
             failed,
             pass_rate,
+            mean_score: mean_score_of(all_results.iter()),
             avg_execution_time_ms: all_results.iter().map(|r| r.execution_time_ms).sum::<u64>()
                 / total.max(1) as u64,
         })
@@ -297,6 +315,7 @@ impl EvaluationHarness {
         Ok(BackendResult {
             backend_name: backend_name.to_string(),
             pass_rate,
+            mean_score: mean_score_of(all_results.iter()),
             total_tests: total,
             passed,
             failed,
@@ -461,6 +480,8 @@ impl EvaluationHarness {
                     est_tokens_in: 0,
                     est_tokens_out: 0,
                     est_cost_usd: 0.0,
+                    criteria_passed: 0,
+                    criteria_total: 0,
                 };
             }
         };
@@ -498,6 +519,8 @@ impl EvaluationHarness {
                 est_tokens_in: 0,
                 est_tokens_out: 0,
                 est_cost_usd: 0.0,
+                criteria_passed: 0,
+                criteria_total: 0,
             },
         }
     }
@@ -559,6 +582,7 @@ impl EvaluationHarness {
             0.0
         };
         let total_cost_usd: f64 = results.iter().map(|r| r.est_cost_usd).sum();
+        let overall_mean_score = mean_score_of(results.iter());
 
         // Group by category
         let mut category_results = HashMap::new();
@@ -594,6 +618,7 @@ impl EvaluationHarness {
                     passed,
                     failed,
                     pass_rate,
+                    mean_score: mean_score_of(category_tests.iter().copied()),
                     avg_execution_time_ms: if total > 0 {
                         category_tests
                             .iter()
@@ -643,6 +668,7 @@ impl EvaluationHarness {
                     passed,
                     failed,
                     pass_rate,
+                    mean_score: mean_score_of(backend_tests.iter().copied()),
                     avg_execution_time_ms: if total > 0 {
                         backend_tests
                             .iter()
@@ -675,6 +701,7 @@ impl EvaluationHarness {
             branch,
             commit_sha,
             overall_pass_rate,
+            overall_mean_score,
             total_tests,
             total_passed,
             total_failed,
@@ -823,6 +850,13 @@ mod tests {
         assert_eq!(report.total_tests, 2); // 2 tests × 1 backend
         assert!(report.overall_pass_rate >= 0.0);
         assert!(report.overall_pass_rate <= 1.0);
+        // Single-criterion dataset: mean-score equals the all-pass rate by
+        // construction (the article's two metrics coincide until multi-criterion
+        // cases exist).
+        assert!((report.overall_mean_score - report.overall_pass_rate).abs() < 1e-6);
+        for backend in report.backend_results.values() {
+            assert!((backend.mean_score - backend.pass_rate).abs() < 1e-6);
+        }
     }
 
     #[tokio::test]
@@ -878,17 +912,11 @@ mod tests {
         let dataset = create_simple_dataset();
         let mut harness = EvaluationHarness::new(dataset, HarnessConfig::default()).unwrap();
         // "embedded" resolves to a local (free) backend in the pricing table.
-        harness.add_backend(
-            "embedded".to_string(),
-            Arc::new(MockBackend::new("mock")),
-        );
+        harness.add_backend("embedded".to_string(), Arc::new(MockBackend::new("mock")));
 
         let report = harness.run().await.unwrap();
 
-        assert_eq!(
-            report.total_cost_usd, 0.0,
-            "local backend must be free"
-        );
+        assert_eq!(report.total_cost_usd, 0.0, "local backend must be free");
         let backend = report.backend_results.get("embedded").unwrap();
         assert_eq!(backend.total_cost_usd, 0.0);
         // Tokens are still counted even though the cost is zero.
