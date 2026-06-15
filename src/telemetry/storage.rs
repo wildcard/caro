@@ -88,6 +88,7 @@ impl TelemetryStorage {
             super::EventType::CommandGeneration { .. } => "command_generation",
             super::EventType::SafetyValidation { .. } => "safety_validation",
             super::EventType::BackendError { .. } => "backend_error",
+            super::EventType::AdvisorInvoked { .. } => "advisor_invoked",
         };
 
         conn.execute(

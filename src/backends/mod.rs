@@ -36,6 +36,26 @@ pub trait CommandGenerator: Send + Sync {
         None
     }
 
+    /// Act as a "frontier advisor": review and improve a low-confidence draft.
+    ///
+    /// The default is a no-op (`None`): a backend opts out of advising, so a
+    /// local worker is never used as its own advisor. A stronger/hosted backend
+    /// implements this to return an improved command for the same request,
+    /// informed by the local draft.
+    ///
+    /// This mirrors [`CommandGenerator::classify_risk`]'s opt-in, fail-safe
+    /// shape. The agent loop calls it only on a low-confidence draft (sparse —
+    /// the Fireworks "frontier advisor" pattern), re-validates the result
+    /// through the safety validator, and keeps the local result if this returns
+    /// `None` (advisor unavailable, opted out, or errored).
+    async fn advise(
+        &self,
+        _draft: &GeneratedCommand,
+        _request: &CommandRequest,
+    ) -> Option<GeneratedCommand> {
+        None
+    }
+
     /// Check if this backend is currently available for use
     async fn is_available(&self) -> bool;
 
