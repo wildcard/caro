@@ -29,7 +29,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^5.1.2",
+    "@vitejs/plugin-react": "^5.2.0",
     "@vitest/ui": "^4.0.16",
     "axe-core": "^4.11.0",
     "eslint": "^9",
@@ -39,6 +39,6 @@
     "playwright": "^1.57.0",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.0.16"
+    "vitest": "^4.1.0"
   }
 }
