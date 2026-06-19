@@ -8,7 +8,7 @@
     "sync-cve": "tsx nimble-cve-sync.ts"
   },
   "devDependencies": {
-    "tsx": "^4.19.2",
+    "tsx": "^4.22.4",
     "yaml": "^2.6.0",
     "@types/node": "^22.9.0"
   }
