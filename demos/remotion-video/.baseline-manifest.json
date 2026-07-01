@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "comment": "Tripwire manifest for the caro-demo landing-page video. Each entry records the SHA-256 of a source file the video depends on at the moment of the last shipped render. scripts/check-drift.sh compares the working tree to this manifest. When drift is detected the skill at .claude/skills/caro-demo-video/SKILL.md takes over. DO NOT EDIT BY HAND — regenerate with `scripts/render-and-ship.sh` (it rewrites this file on a successful render).",
-  "rendered_at": "2026-04-26T02:07:00Z",
-  "rendered_commit": "4c45fc56",
-  "caro_version_at_render": "1.3.0",
+  "rendered_at": "2026-07-01T12:08:12Z",
+  "rendered_commit": "9311c9e",
+  "caro_version_at_render": "1.4.0",
   "video_output": {
     "path": "website/public/caro-demo.mp4",
     "poster": "website/public/caro-demo-poster.png",
@@ -13,7 +13,7 @@
     "fps": 30
   },
   "claims_baked_into_video": {
-    "pattern_count": 52,
+    "pattern_count": 67,
     "pattern_count_claim_text": "52+ patterns. Blocked before damage.",
     "install_command": "cargo install caro",
     "block_message": "✗ command blocked by safety validator (Critical)",
@@ -40,7 +40,7 @@
   "watched_files": [
     {
       "path": "website/src/ui/tokens.css",
-      "sha256": "c7f38e748a8cda98adb2d29443aed333d266eb0322cd8a78c594b904085934a5",
+      "sha256": "bd9d70568001faa80b240249ddc453fcbb6ae112d3b4e9c6d0570f66f0549b7e",
       "purpose": "Brand colors. Mirrored verbatim into demos/remotion-video/src/tokens.ts. A drift here is the most common trigger — any palette change requires re-render."
     },
     {
@@ -50,7 +50,7 @@
     },
     {
       "path": "src/main.rs",
-      "sha256": "6f47a8e154c6198176836d903bb6e462f646c895887400c3799199e7fa38fd31",
+      "sha256": "83d26dc419613678d9ecf236d80739c9ae24d0c39b3a355deca7da4d5b3959d5",
       "purpose": "CLI output strings. Scene 3 quotes the block-message literal from around line 1016. If the CLI's user-facing strings change, the video lies."
     },
     {
@@ -60,12 +60,12 @@
     },
     {
       "path": "src/safety/patterns.rs",
-      "sha256": "30d29615cb61cc728ef37fe0c4c0518a3af8ce5450f6af1e2347237f94be82b0",
+      "sha256": "884386a630f6112d28e876586e4c902675838c2867c69ede2897f03ae0fd6d64",
       "purpose": "Safety pattern definitions. Pattern count drives the Scene 3 caption '52+ patterns'. Drift here may bump the claim text."
     },
     {
       "path": "homebrew-tap/README.md",
-      "sha256": "8d85e785e55c0d16ceaa568791141fee22a59aeecb7a02a1d2bbe71aad994803",
+      "sha256": "a9cf0944b33f9669df6aaa62f8b08814dc60c9ad4629fb0620aa684f3e4a7175",
       "purpose": "Homebrew install instructions. Scene 4's install line should match the canonical install command."
     },
     {
