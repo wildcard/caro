@@ -2099,9 +2099,23 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                     config.safety_level = level;
                     println!("{} Set safety level to '{:?}'", "✓".green(), level);
                 }
+                "telemetry.enabled" | "telemetry_enabled" => {
+                    let enabled: bool = value.parse().map_err(|_| {
+                        format!("Invalid boolean for telemetry.enabled '{}'", value)
+                    })?;
+                    config.telemetry.enabled = enabled;
+                    println!("{} Set telemetry.enabled to '{}'", "✓".green(), enabled);
+                }
+                "telemetry.first_run" | "telemetry_first_run" => {
+                    let first_run: bool = value.parse().map_err(|_| {
+                        format!("Invalid boolean for telemetry.first_run '{}'", value)
+                    })?;
+                    config.telemetry.first_run = first_run;
+                    println!("{} Set telemetry.first_run to '{}'", "✓".green(), first_run);
+                }
                 _ => {
                     return Err(format!(
-                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety",
+                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety, telemetry.enabled, telemetry.first_run",
                         key
                     ));
                 }
@@ -2144,9 +2158,23 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 "safety" => {
                     println!("{}: {:?}", "safety".bold(), config.safety_level);
                 }
+                "telemetry.enabled" | "telemetry_enabled" => {
+                    println!(
+                        "{}: {}",
+                        "telemetry.enabled".bold(),
+                        config.telemetry.enabled
+                    );
+                }
+                "telemetry.first_run" | "telemetry_first_run" => {
+                    println!(
+                        "{}: {}",
+                        "telemetry.first_run".bold(),
+                        config.telemetry.first_run
+                    );
+                }
                 _ => {
                     return Err(format!(
-                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety",
+                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety, telemetry.enabled, telemetry.first_run",
                         key
                     ));
                 }
