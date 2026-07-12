@@ -81,3 +81,75 @@ feature-evidence rule (this PR).
 - v1.5.0 release (decision D1) — in flight this session.
 - Discovery interviews for Self-Healing (#1151) and Local Context
   Indexing (#1152) remain the top unblocked milestone work.
+
+---
+
+## Captured output (verified 2026-07-12, `caro` debug build @ `c36d129`)
+
+Real invocations on the shipped tree, replacing the illustrative `# →`
+comments above. Reproduce with `cargo build --bin caro` then the commands
+shown.
+
+### Feature 1 — backend roster is now a single source of truth
+
+`caro --backend-info` (every advertised backend is one the CLI actually
+routes to; remote backends honestly show `not compiled` in the default
+build):
+
+```
+Available inference backends
+
+  Backend       Status            Notes
+  -------       ------            -----
+  embedded      available         local LLM (MLX/CPU); downloads model on first use, no setup
+  ollama        not compiled      remote Ollama HTTP API (requires: ollama serve)
+  exo           not compiled      Exo distributed cluster (requires: exo cluster)
+  vllm          not compiled      remote vLLM HTTP API (requires: vllm server)
+  mesh          not compiled      Mesh-LLM pooled mesh (requires: mesh node on :9337)
+  ai-horde      not compiled      AI-Horde volunteer cluster (free, public, no setup)
+  hybrid        not compiled      local sanitizer + remote enhancer (PII-safe)
+
+Remote backends need: cargo install caro --features remote-backends
+```
+
+`caro --backend static "list files"` — the old bug advertised `static`
+then errored "Unknown backend"; now the rejection names the exact
+servable roster (no drift between advertiser and acceptor):
+
+```
+Error: Invalid argument: Unknown backend 'static'
+
+Available backends:
+  - embedded: local LLM (MLX/CPU); downloads model on first use, no setup
+  - ollama: remote Ollama HTTP API (requires: ollama serve)
+  ...
+Set via: --backend <name>, CARO_BACKEND env var, or config file
+```
+
+### Feature 2 — catastrophic-floor regression guards (the safety change)
+
+Safety validation runs inside model-backed generation, so the model-free
+verifiable evidence is the regression guards executing on the shipped
+tree (these are the tests that fail if any of the 5 review-round bypasses
+reopens):
+
+```
+test safety::allowlist_catastrophic_tests::catastrophic_targets_are_never_allowlistable ... ok
+test safety::allowlist_catastrophic_tests::cross_reference_every_critical_class_is_covered ... ok
+test safety::allowlist_catastrophic_tests::floor_regexes_all_compile ... ok
+test safety::allowlist_catastrophic_tests::evasions_are_closed ... ok
+test safety::allowlist_catastrophic_tests::specific_subpaths_are_not_catastrophic ... ok
+test safety::allowlist_catastrophic_tests::deliberate_allowlist_blesses_specific_path_but_not_others ... ok
+test safety::allowlist_catastrophic_tests::allowlist_cannot_reenable_catastrophe ... ok
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 570 filtered out
+
+# full safety lib suite:            test result: ok. 34 passed; 0 failed
+# safety validator contract (e2e):  test result: ok. 21 passed; 0 failed; 1 ignored
+```
+
+`evasions_are_closed` and `allowlist_cannot_reenable_catastrophe` pin
+every bypass the 5 adversarial review rounds surfaced: multi-target
+`rm -rf /tmp /`, `--` end-of-options, escaped/quoted separators
+(`rm -rf /tmp\;staging /etc`), line continuations, and privilege-wrapper
+options (`sudo -n rm -rf /`). `specific_subpaths_are_not_catastrophic`
+proves a deliberate narrow allowlist still blesses `rm -rf /tmp/myapp_123`.

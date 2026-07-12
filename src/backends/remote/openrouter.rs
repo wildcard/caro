@@ -330,6 +330,16 @@ impl CommandGenerator for OpenRouterBackend {
         Ok(result)
     }
 
+    /// Act as a frontier advisor: produce this backend's own best command for
+    /// the request. The agent loop re-validates the result before using it.
+    async fn advise(
+        &self,
+        _draft: &GeneratedCommand,
+        request: &CommandRequest,
+    ) -> Option<GeneratedCommand> {
+        self.generate_command(request).await.ok()
+    }
+
     async fn is_available(&self) -> bool {
         let url = format!("{}/models", self.config.endpoint);
         let mut req = self.client.get(&url);

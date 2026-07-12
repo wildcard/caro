@@ -104,15 +104,15 @@ const { lang = 'en' } = Astro.props;
     background: var(--accent-fill);
     color: white;
     padding: 10px 24px;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     font-weight: 600;
     font-size: 14px;
     text-decoration: none;
-    transition: opacity 0.2s, transform 0.2s;
+    transition: background-color 0.2s, transform 0.2s;
   }
 
   .nav-cta:hover {
-    opacity: 0.9;
+    background: var(--accent-hover);
     transform: translateY(-1px);
   }
 
