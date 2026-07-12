@@ -43,26 +43,26 @@
       "ctaLink": "Lihat pola keamanan",
       "items": [
         {
-          "icon": "🛡️",
+          "icon": "ShieldCheck",
           "title": "Gak Bakal Ngehapus Production Lagi",
           "description": "Blokir rm -rf /, fork bombs, dan 50+ perintah berbahaya lainnya SEBELUM kamu jalanin. Diri kamu jam 2 pagi bakal berterima kasih.",
           "highlight": true
         },
         {
-          "icon": "🔒",
+          "icon": "Lock",
           "title": "Data Kamu Tetap Milik Kamu",
           "description": "Nol telemetri. Nol panggilan cloud API. Jalan di jaringan air-gapped. Lolos audit compliance apa pun. Perintah kamu gak pernah keluar dari mesin kamu.",
           "highlight": true,
           "privacyLink": true
         },
         {
-          "icon": "✅",
+          "icon": "Check",
           "title": "Perintah yang Beneran Jalan",
           "description": "Generate perintah yang jalan di Mac kamu, server Linux kamu, dan BSD box temen kamu. Sekali jalan. Setiap saat.",
           "highlight": false
         },
         {
-          "icon": "⚡",
+          "icon": "Zap",
           "title": "Cepat, Gak Ganggu Flow",
           "description": "Inferensi di bawah 2 detik di Apple Silicon. Gak nunggu cloud API. Gak mikir server down atau enggak. Langsung dapet jawaban.",
           "highlight": false

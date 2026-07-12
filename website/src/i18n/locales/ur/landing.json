@@ -43,26 +43,26 @@
       "ctaLink": "حفاظتی پیٹرن دیکھیں",
       "items": [
         {
-          "icon": "🛡️",
+          "icon": "ShieldCheck",
           "title": "پروڈکشن کو دوبارہ کبھی تباہ نہ کریں",
           "description": "rm -rf /، fork bombs، اور 50+ دیگر کیریئر ختم کرنے والی کمانڈز کو چلانے سے پہلے روکتا ہے۔ آپ کا رات 2 بجے والا خود آپ کا شکرگزار ہوگا۔",
           "highlight": true
         },
         {
-          "icon": "🔒",
+          "icon": "Lock",
           "title": "آپ کا ڈیٹا آپ کا ہے",
           "description": "صفر ٹیلی میٹری۔ صفر کلاؤڈ API کالز۔ ایئر گیپڈ نیٹ ورکس میں چلائیں۔ کوئی بھی compliance آڈٹ پاس کریں۔ آپ کی کمانڈز کبھی آپ کی مشین نہیں چھوڑتیں۔",
           "highlight": true,
           "privacyLink": true
         },
         {
-          "icon": "✅",
+          "icon": "Check",
           "title": "کمانڈز جو واقعی کام کرتی ہیں",
           "description": "ایسی کمانڈز بناتا ہے جو آپ کے Mac، آپ کے Linux سرور، اور آپ کے ساتھی کے BSD باکس پر کام کرتی ہیں۔ پہلی بار۔ ہر بار۔",
           "highlight": false
         },
         {
-          "icon": "⚡",
+          "icon": "Zap",
           "title": "فلو کو توڑنے کے لیے بہت تیز",
           "description": "Apple Silicon پر 2 سیکنڈ سے کم inference۔ کلاؤڈ APIs کا انتظار نہیں۔ سرور ڈاؤن ہونے کی فکر نہیں۔ بس جوابات۔",
           "highlight": false

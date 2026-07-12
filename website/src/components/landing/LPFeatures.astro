@@ -1,6 +1,7 @@
 ---
 import { t, type Locale } from '../../i18n/config';
 import { translations } from '../../i18n/index';
+import Icon from '../Icon.astro';
 
 interface Props {
   lang?: Locale;
@@ -20,7 +21,7 @@ const features = translations[lang].landing.features.items;
     <div class="features">
       {features.map((feature) => (
         <div class={`feature ${feature.highlight ? 'feature-highlight' : ''}`}>
-          <div class="feature-icon">{feature.icon}</div>
+          <div class="feature-icon"><Icon name={feature.icon as any} size={40} /></div>
           <h3>{feature.title}{feature.privacyLink && <a href="/telemetry" class="privacy-asterisk">*</a>}</h3>
           <p>{feature.description}</p>
         </div>

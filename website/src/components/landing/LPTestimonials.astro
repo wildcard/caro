@@ -1,6 +1,7 @@
 ---
 // LPTestimonials.astro - Social proof section
 // Replace placeholder testimonials with real quotes from beta users
+import Icon from '../Icon.astro';
 
 interface Testimonial {
   quote: string;
@@ -69,19 +70,19 @@ const testimonials: Testimonial[] = [
 
     <div class="social-proof-bar">
       <div class="proof-item">
-        <span class="proof-icon">⭐</span>
+        <span class="proof-icon"><Icon name="Github" size={20} /></span>
         <span class="proof-text">Open Source on GitHub</span>
       </div>
       <div class="proof-item">
-        <span class="proof-icon">🛡️</span>
+        <span class="proof-icon"><Icon name="Scale" size={20} /></span>
         <span class="proof-text">MIT Licensed</span>
       </div>
       <div class="proof-item">
-        <span class="proof-icon">🔒</span>
+        <span class="proof-icon"><Icon name="Lock" size={20} /></span>
         <span class="proof-text">Zero Telemetry</span>
       </div>
       <div class="proof-item">
-        <span class="proof-icon">🚀</span>
+        <span class="proof-icon"><Icon name="Rocket" size={20} /></span>
         <span class="proof-text">Production Ready</span>
       </div>
     </div>
@@ -161,7 +162,7 @@ const testimonials: Testimonial[] = [
     display: inline-block;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #15803d;
+    color: var(--status-safe);
     background: rgba(34, 197, 94, 0.15);
     padding: 6px 12px;
     border-radius: 100px;

@@ -43,26 +43,26 @@
       "ctaLink": "Sicherheitsmuster anzeigen",
       "items": [
         {
-          "icon": "🛡️",
+          "icon": "ShieldCheck",
           "title": "Nie wieder Production zerstören",
           "description": "Blockiert rm -rf /, Fork-Bomben und 50+ weitere karrierebeendende Befehle, BEVOR du sie ausführen kannst. Dein 2-Uhr-morgens-Ich wird es dir danken.",
           "highlight": true
         },
         {
-          "icon": "🔒",
+          "icon": "Lock",
           "title": "Deine Daten bleiben deine Daten",
           "description": "Null Telemetrie. Null Cloud-API-Aufrufe. Läuft in Air-Gapped-Netzwerken. Besteht jedes Compliance-Audit. Deine Befehle verlassen nie deine Maschine.",
           "highlight": true,
           "privacyLink": true
         },
         {
-          "icon": "✅",
+          "icon": "Check",
           "title": "Befehle, die tatsächlich funktionieren",
           "description": "Generiert Befehle, die auf deinem Mac, deinem Linux-Server und der BSD-Box deines Kollegen funktionieren. Beim ersten Mal. Jedes Mal.",
           "highlight": false
         },
         {
-          "icon": "⚡",
+          "icon": "Zap",
           "title": "Schnell genug, um den Flow nicht zu unterbrechen",
           "description": "Sub-2s-Inferenz auf Apple Silicon. Kein Warten auf Cloud-APIs. Kein Rätselraten, ob der Server down ist. Einfach Antworten.",
           "highlight": false

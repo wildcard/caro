@@ -43,26 +43,26 @@
       "ctaLink": "Ver patrones de seguridad",
       "items": [
         {
-          "icon": "🛡️",
+          "icon": "ShieldCheck",
           "title": "Nunca Más Tumbes Producción",
           "description": "Bloquea rm -rf /, bombas fork y más de 50 comandos que acaban con tu carrera ANTES de que puedas ejecutarlos. Tu yo de las 2 de la mañana te lo agradecerá.",
           "highlight": true
         },
         {
-          "icon": "🔒",
+          "icon": "Lock",
           "title": "Tus Datos Son Tuyos",
           "description": "Cero telemetría. Cero llamadas a APIs en la nube. Funciona en redes aisladas. Pasa cualquier auditoría de cumplimiento. Tus comandos nunca salen de tu ordenador.",
           "highlight": true,
           "privacyLink": true
         },
         {
-          "icon": "✅",
+          "icon": "Check",
           "title": "Comandos Que Funcionan de Verdad",
           "description": "Genera comandos que funcionan en tu Mac, tu servidor Linux y la caja BSD de tu compañero. De primera. Siempre.",
           "highlight": false
         },
         {
-          "icon": "⚡",
+          "icon": "Zap",
           "title": "Lo Bastante Rápido Para No Romper el Flujo",
           "description": "Inferencia en menos de 2s en Apple Silicon. Sin esperar a APIs en la nube. Sin preguntarte si el servidor está caído. Solo respuestas.",
           "highlight": false
