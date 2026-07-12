@@ -340,7 +340,10 @@ impl CliApp {
                 }
             },
             other => {
-                eprintln!("⚠  unknown advisor '{}': only 'claude' is supported today", other);
+                eprintln!(
+                    "⚠  unknown advisor '{}': only 'claude' is supported today",
+                    other
+                );
                 None
             }
         }
