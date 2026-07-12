@@ -100,6 +100,22 @@ pub enum EventType {
         /// Whether error is recoverable
         recoverable: bool,
     },
+
+    /// A frontier "advisor" backend was consulted on a low-confidence draft.
+    ///
+    /// Emitted by the agent loop's sparse advisor escalation (the Fireworks
+    /// "frontier advisor" pattern). The frequency of these events is the
+    /// cost/performance lever: how often the local worker reaches for a
+    /// stronger model. `accepted` records whether the advised command survived
+    /// safety re-validation and replaced the local draft.
+    AdvisorInvoked {
+        /// Advisor backend consulted (e.g., "claude", "openrouter").
+        advisor: String,
+        /// Whether the advised command was accepted (passed re-validation).
+        accepted: bool,
+        /// Advisor call duration in milliseconds.
+        duration_ms: u64,
+    },
 }
 
 /// Telemetry event with metadata

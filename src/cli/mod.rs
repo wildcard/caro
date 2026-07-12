@@ -185,7 +185,7 @@ impl CliApp {
     /// Uses configuration-driven backend selection with embedded model as primary
     /// and optional remote backend fallbacks.
     pub async fn new() -> Result<Self, CliError> {
-        Self::with_overrides(CliConfig::default(), None, None, false).await
+        Self::with_overrides(CliConfig::default(), None, None, false, None).await
     }
 
     /// Create CLI application with backend and model overrides from CLI args
@@ -200,6 +200,7 @@ impl CliApp {
         backend_override: Option<String>,
         model_name_override: Option<String>,
         force_llm: bool,
+        advisor_override: Option<String>,
     ) -> Result<Self, CliError> {
         // Load user configuration to determine backend preferences
         let config_manager =
@@ -279,8 +280,15 @@ impl CliApp {
 
         // Create agent loop with backend, context, and profile
         // If force_llm is true, disable the static matcher
-        let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone(), profile)
+        #[allow(unused_mut)]
+        let mut agent_loop = AgentLoop::new(backend_arc.clone(), context.clone(), profile)
             .with_static_matcher(!force_llm);
+
+        // Optional frontier advisor (off by default). Consulted only on
+        // low-confidence drafts; its output is re-validated before use.
+        if let Some(advisor_name) = advisor_override.as_deref() {
+            agent_loop = Self::maybe_attach_advisor(agent_loop, advisor_name).await;
+        }
 
         Ok(Self {
             config,
@@ -289,6 +297,56 @@ impl CliApp {
             validator,
             context,
         })
+    }
+
+    /// Build the named frontier advisor and attach it to the agent loop, or
+    /// warn and return the loop unchanged.
+    ///
+    /// The advisor is a remote/hosted model, so enabling it means low-confidence
+    /// prompts are sent off-host — we warn explicitly. Only `claude` is wired
+    /// today (the article's advisor was Claude Opus); `openrouter` is a trivial
+    /// follow-up once it grows an env constructor.
+    async fn maybe_attach_advisor(agent_loop: AgentLoop, name: &str) -> AgentLoop {
+        #[cfg(feature = "remote-backends")]
+        match Self::create_advisor(name).await {
+            Some(advisor) => {
+                eprintln!(
+                    "⚠  Frontier advisor '{}' enabled — low-confidence prompts will be sent \
+                     off-host to a remote model.",
+                    name
+                );
+                agent_loop.with_advisor(advisor)
+            }
+            None => agent_loop,
+        }
+        #[cfg(not(feature = "remote-backends"))]
+        {
+            let _ = name;
+            eprintln!("⚠  --advisor requires the 'remote-backends' feature; ignoring.");
+            agent_loop
+        }
+    }
+
+    /// Resolve an advisor backend by name from the environment (API keys).
+    /// Returns `None` (with a warning) when the backend can't be built.
+    #[cfg(feature = "remote-backends")]
+    async fn create_advisor(name: &str) -> Option<Arc<dyn CommandGenerator>> {
+        match name.to_ascii_lowercase().as_str() {
+            "claude" | "anthropic" => match crate::backends::remote::ClaudeBackend::from_env() {
+                Ok(backend) => Some(Arc::new(backend)),
+                Err(e) => {
+                    eprintln!("⚠  advisor 'claude' unavailable: {}", e);
+                    None
+                }
+            },
+            other => {
+                eprintln!(
+                    "⚠  unknown advisor '{}': only 'claude' is supported today",
+                    other
+                );
+                None
+            }
+        }
     }
 
     /// Create appropriate backend based on user configuration

@@ -89,9 +89,12 @@ const testimonials: Testimonial[] = [
 </section>
 
 <style>
+  /* Per Claude Design's May 9 caro-l06 ruling: LPTestimonials sits on
+     stage-grey (--bg-stage), the light-but-distinct neutral that
+     separates it from the paper surfaces above and below. */
   .testimonials {
     padding: 100px 20px;
-    background: var(--bg);
+    background: var(--bg-stage);
   }
 
   .container {
@@ -140,8 +143,10 @@ const testimonials: Testimonial[] = [
     margin-bottom: 60px;
   }
 
+  /* Cards lift to --bg-raised (white in light mode) so they read as
+     elevated against the stage-grey section surface. */
   .testimonial-card {
-    background: var(--bg-stage);
+    background: var(--bg-raised);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: 32px;
@@ -222,7 +227,7 @@ const testimonials: Testimonial[] = [
     flex-wrap: wrap;
     gap: 32px;
     padding: 32px;
-    background: var(--bg-stage);
+    background: var(--bg-raised);
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
   }
