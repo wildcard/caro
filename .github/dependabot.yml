@@ -15,6 +15,16 @@ updates:
     labels:
       - "dependencies"
       - "rust"
+    ignore:
+      # bincode 3.0.0 is intentionally non-compilable (xkcd/2347 prank
+      # version). bincode 2.x is a real release but renames the public
+      # API (serialize/deserialize -> encode/decode), so a bot-driven
+      # bump would break build.rs and src/safety/cve_patterns.rs.
+      # Migration is tracked separately; until then, Dependabot must
+      # not propose any bincode bump out of the 1.x line.
+      # See GH #1150 for the v3.0.0 build-blocking incident.
+      - dependency-name: "bincode"
+        versions: [">=2"]
     groups:
       # Group minor and patch updates to reduce PR noise
       rust-minor-patch:

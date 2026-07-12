@@ -145,7 +145,9 @@ impl std::fmt::Display for GeneratedCommand {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum RiskLevel {
     Safe,
@@ -278,6 +280,74 @@ impl std::fmt::Display for SafetyLevel {
     }
 }
 
+/// How accept / prompt / block decisions are made — an axis *orthogonal* to
+/// [`SafetyLevel`] (which sets the risk *threshold*). Modeled on goose's
+/// permission modes (`auto` / `approve` / `smart_approve`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum ApprovalMode {
+    /// Static decision only — current (and default) behavior.
+    #[default]
+    Prompt,
+    /// Auto-confirm any command the safety level would merely *confirm*
+    /// (hard blocks still apply). Equivalent to always passing `-y`.
+    Auto,
+    /// Blend the static decision with a bounded LLM "risk judge": relax benign
+    /// flagged commands, escalate static-`Safe` commands the judge finds risky.
+    /// A `Critical` static match is never relaxed.
+    Smart,
+}
+
+impl std::str::FromStr for ApprovalMode {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            // `approve` / `smart_approve` accepted as goose-compatible aliases.
+            "prompt" | "approve" => Ok(Self::Prompt),
+            "auto" => Ok(Self::Auto),
+            "smart" | "smart_approve" => Ok(Self::Smart),
+            _ => Err(format!(
+                "Invalid approval mode '{}'. Valid values: prompt, auto, smart",
+                s
+            )),
+        }
+    }
+}
+
+impl std::fmt::Display for ApprovalMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Prompt => write!(f, "prompt"),
+            Self::Auto => write!(f, "auto"),
+            Self::Smart => write!(f, "smart"),
+        }
+    }
+}
+
+/// Context handed to a backend's [`classify_risk`](crate::backends::CommandGenerator::classify_risk)
+/// judge so it can second-guess the static verdict with awareness of where the
+/// command would run.
+#[derive(Debug, Clone)]
+pub struct RiskJudgeContext {
+    pub shell: ShellType,
+    pub cwd: Option<String>,
+    /// Risk the static validator assigned (what the judge is re-examining).
+    pub static_risk: RiskLevel,
+    /// Human-readable names of static patterns that matched (may be empty).
+    pub matched_patterns: Vec<String>,
+}
+
+/// A backend's context-aware verdict on a command's risk. Verdicts below the
+/// blend confidence threshold are ignored (fail-safe → static decision stands).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+pub struct RiskJudgment {
+    pub risk: RiskLevel,
+    pub reason: String,
+    /// Confidence in the verdict, `0.0`–`1.0`.
+    pub confidence: f64,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum BackendType {
@@ -297,6 +367,12 @@ pub enum BackendType {
     Claude,
     /// OpenRouter unified API backend (100+ cloud LLMs)
     OpenRouter,
+    /// Mesh-LLM P2P mesh backend (OpenAI-compatible, pooled local GPUs)
+    Mesh,
+    /// AI-Horde crowdsourced volunteer cluster (async job queue)
+    AiHorde,
+    /// Hybrid privacy gateway (local sanitizer + remote enhancer)
+    Hybrid,
 }
 
 impl std::str::FromStr for BackendType {
@@ -312,6 +388,9 @@ impl std::str::FromStr for BackendType {
             "exo" => Ok(Self::Exo),
             "claude" | "anthropic" => Ok(Self::Claude),
             "openrouter" => Ok(Self::OpenRouter),
+            "mesh" | "mesh-llm" => Ok(Self::Mesh),
+            "ai-horde" | "aihorde" | "horde" => Ok(Self::AiHorde),
+            "hybrid" => Ok(Self::Hybrid),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -328,6 +407,9 @@ impl std::fmt::Display for BackendType {
             Self::Exo => write!(f, "exo"),
             Self::Claude => write!(f, "claude"),
             Self::OpenRouter => write!(f, "openrouter"),
+            Self::Mesh => write!(f, "mesh"),
+            Self::AiHorde => write!(f, "ai-horde"),
+            Self::Hybrid => write!(f, "hybrid"),
         }
     }
 }
@@ -774,6 +856,43 @@ fn default_log_rotation_days() -> u32 {
     7
 }
 
+/// Remote backend connection settings, parsed from the `[backends]` TOML
+/// section. Every field is optional; when unset, the built-in defaults
+/// baked into the backend factory are used. This lets users point caro at a
+/// Mesh-LLM node, a self-hosted AI-Horde, or non-default Ollama/vLLM/Exo
+/// endpoints without recompiling.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+pub struct BackendsConfig {
+    /// Mesh-LLM OpenAI-compatible endpoint (default `http://localhost:9337`).
+    #[serde(default)]
+    pub mesh_url: Option<String>,
+    /// Ollama endpoint (default `http://localhost:11434`).
+    #[serde(default)]
+    pub ollama_url: Option<String>,
+    /// vLLM endpoint (default `http://localhost:8000`).
+    #[serde(default)]
+    pub vllm_url: Option<String>,
+    /// Exo cluster endpoint (default `http://localhost:52415`).
+    #[serde(default)]
+    pub exo_url: Option<String>,
+    /// AI-Horde base API URL (default `https://aihorde.net/api`).
+    #[serde(default)]
+    pub ai_horde_url: Option<String>,
+    /// AI-Horde API key (default anonymous `"0000000000"`).
+    #[serde(default)]
+    pub ai_horde_key: Option<String>,
+    /// Which remote enhancer the `hybrid` backend wraps: `"mesh"` (default) or
+    /// `"ai-horde"`.
+    #[serde(default)]
+    pub hybrid_remote: Option<String>,
+    /// Allow sending prompts to public/untrusted inference networks. When
+    /// `false` (default), the hybrid gateway sanitizes all PII before any
+    /// prompt leaves the machine. When `true`, that guarantee is relaxed to a
+    /// standard remote-privacy warning (the path Claude/OpenRouter use).
+    #[serde(default)]
+    pub allow_public: bool,
+}
+
 /// User configuration with preferences
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UserConfiguration {
@@ -781,7 +900,10 @@ pub struct UserConfiguration {
     pub default_shell: Option<ShellType>,
     #[serde(default = "default_safety_level")]
     pub safety_level: SafetyLevel,
-    /// Default backend type (embedded, ollama, exo, vllm)
+    /// How accept/prompt/block decisions are made (`prompt`/`auto`/`smart`).
+    #[serde(default)]
+    pub approval_mode: ApprovalMode,
+    /// Default backend type (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid)
     #[serde(default)]
     pub default_model: Option<String>,
     /// Model name for the backend (e.g., codellama:7b for ollama)
@@ -806,6 +928,10 @@ pub struct UserConfiguration {
     /// of the built-in pattern database.
     #[serde(default)]
     pub safety: crate::safety::SafetySection,
+    /// Remote backend endpoints and keys, parsed from the `[backends]`
+    /// TOML section. Defaults to all-unset (factory defaults apply).
+    #[serde(default)]
+    pub backends: BackendsConfig,
 }
 
 impl Default for UserConfiguration {
@@ -813,6 +939,7 @@ impl Default for UserConfiguration {
         Self {
             default_shell: None, // Auto-detect
             safety_level: SafetyLevel::Moderate,
+            approval_mode: ApprovalMode::default(),
             default_model: None,
             model_name: None,
             log_level: LogLevel::Info,
@@ -822,6 +949,7 @@ impl Default for UserConfiguration {
             generation_profile: crate::prompts::profiles::GenerationProfile::default(),
             ai: AiConfig::default(),
             safety: crate::safety::SafetySection::default(),
+            backends: BackendsConfig::default(),
         }
     }
 }
@@ -855,6 +983,7 @@ impl UserConfiguration {
 pub struct UserConfigurationBuilder {
     default_shell: Option<ShellType>,
     safety_level: SafetyLevel,
+    approval_mode: ApprovalMode,
     default_model: Option<String>,
     model_name: Option<String>,
     log_level: LogLevel,
@@ -864,6 +993,7 @@ pub struct UserConfigurationBuilder {
     generation_profile: crate::prompts::profiles::GenerationProfile,
     ai: AiConfig,
     safety: crate::safety::SafetySection,
+    backends: BackendsConfig,
 }
 
 impl Default for UserConfigurationBuilder {
@@ -878,6 +1008,7 @@ impl UserConfigurationBuilder {
         Self {
             default_shell: defaults.default_shell,
             safety_level: defaults.safety_level,
+            approval_mode: defaults.approval_mode,
             default_model: defaults.default_model,
             model_name: defaults.model_name,
             log_level: defaults.log_level,
@@ -887,6 +1018,7 @@ impl UserConfigurationBuilder {
             generation_profile: defaults.generation_profile,
             ai: defaults.ai,
             safety: defaults.safety,
+            backends: defaults.backends,
         }
     }
 
@@ -902,6 +1034,11 @@ impl UserConfigurationBuilder {
 
     pub fn safety_level(mut self, level: SafetyLevel) -> Self {
         self.safety_level = level;
+        self
+    }
+
+    pub fn approval_mode(mut self, mode: ApprovalMode) -> Self {
+        self.approval_mode = mode;
         self
     }
 
@@ -943,10 +1080,16 @@ impl UserConfigurationBuilder {
         self
     }
 
+    pub fn backends(mut self, backends: BackendsConfig) -> Self {
+        self.backends = backends;
+        self
+    }
+
     pub fn build(self) -> Result<UserConfiguration, String> {
         let config = UserConfiguration {
             default_shell: self.default_shell,
             safety_level: self.safety_level,
+            approval_mode: self.approval_mode,
             default_model: self.default_model,
             model_name: self.model_name,
             log_level: self.log_level,
@@ -956,6 +1099,7 @@ impl UserConfigurationBuilder {
             generation_profile: self.generation_profile,
             ai: self.ai,
             safety: self.safety,
+            backends: self.backends,
         };
         config.validate()?;
         Ok(config)
@@ -992,6 +1136,14 @@ impl ConfigSchema {
         known_keys.insert("telemetry.air_gapped".to_string(), "bool".to_string());
         known_keys.insert("telemetry.endpoint".to_string(), "String".to_string());
         known_keys.insert("telemetry.first_run".to_string(), "bool".to_string());
+        known_keys.insert("backends.mesh_url".to_string(), "String".to_string());
+        known_keys.insert("backends.ollama_url".to_string(), "String".to_string());
+        known_keys.insert("backends.vllm_url".to_string(), "String".to_string());
+        known_keys.insert("backends.exo_url".to_string(), "String".to_string());
+        known_keys.insert("backends.ai_horde_url".to_string(), "String".to_string());
+        known_keys.insert("backends.ai_horde_key".to_string(), "String".to_string());
+        known_keys.insert("backends.hybrid_remote".to_string(), "String".to_string());
+        known_keys.insert("backends.allow_public".to_string(), "bool".to_string());
 
         Self {
             known_sections: vec![
@@ -999,6 +1151,7 @@ impl ConfigSchema {
                 "logging".to_string(),
                 "cache".to_string(),
                 "telemetry".to_string(),
+                "backends".to_string(),
             ],
             known_keys,
             deprecated_keys: HashMap::new(),

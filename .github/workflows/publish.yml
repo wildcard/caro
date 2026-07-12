@@ -4,6 +4,17 @@ on:
   push:
     tags:
       - 'v*'
+  # For tags created by the Tag Release workflow: GITHUB_TOKEN-pushed tags
+  # do not fire the push trigger (recursion prevention). Dispatch from MAIN
+  # (which contains this trigger — older tag refs do not, see gh docs on
+  # --ref) with the tag as an input; the tag ref is checked out explicitly.
+  #   gh workflow run publish.yml --ref main -f tag=vX.Y.Z
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag to publish (e.g. v1.5.0)'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -20,6 +31,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          # On tag push inputs.tag is empty and github.ref is the tag;
+          # on dispatch we check out the input tag explicitly.
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
@@ -29,8 +44,14 @@ jobs:
 
       - name: Verify version consistency
         id: version
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            TAG_VERSION=${INPUT_TAG#v}
+          else
+            TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          fi
           CARGO_VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[0].version')
           echo "Tag version: $TAG_VERSION"
           echo "Cargo.toml version: $CARGO_VERSION"

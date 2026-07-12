@@ -1,13 +1,15 @@
 # Download and install caro binary for Windows
 param(
-    [string]$Version = "1.4.0",
+    [string]$Version = "1.5.0",
     [string]$InstallPath = $PSScriptRoot
 )
 
 $ErrorActionPreference = "Stop"
 
 $repo = "wildcard/caro"
-$assetName = "caro-windows-amd64.exe"
+# Release assets are versioned (caro-<version>-windows-amd64.exe); the
+# unversioned name 404s — see the v1.4.0 release asset list.
+$assetName = "caro-$Version-windows-amd64.exe"
 $downloadUrl = "https://github.com/$repo/releases/download/v$Version/$assetName"
 $destinationPath = Join-Path $InstallPath "caro.exe"
 
