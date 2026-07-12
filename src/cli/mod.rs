@@ -430,7 +430,14 @@ impl CliApp {
             if let Some(model) = model_preference {
                 tracing::info!("User requested backend: {}", model);
 
-                match model {
+                // `validate_backend_name` lowercases before checking against
+                // CLI_SERVABLE_BACKENDS, so a mixed-case name like `Claude`
+                // or `CARO_BACKEND=OpenRouter` passes validation. Match on
+                // the same normalized form here so a validated request is
+                // never silently dropped to the `_ => auto-detect` arm.
+                let model_normalized = model.to_lowercase();
+
+                match model_normalized.as_str() {
                     "embedded" => {
                         tracing::info!("Using embedded backend (user preference)");
                         return match std::sync::Arc::try_unwrap(embedded_arc) {
