@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-07-12
+
+### Added
+
+- **Runtime-loadable custom safety patterns** via TOML config. Users can now
+  add organization-specific dangerous-command patterns (e.g. `kubectl delete
+  -n prod`, `terraform destroy`, `aws s3 rb s3://prod-…`) without
+  recompiling. Two delivery surfaces, both additive on top of the built-in
+  pattern database:
+  - Inline `[[safety.custom_patterns]]` in `config.toml`.
+  - Sibling `~/.config/caro/patterns.toml` (preferred for team-shared rule sets).
+  Hardened: `risk_level` capped at `High` (Critical reserved for built-ins),
+  pattern source ≤ 512 chars (ReDoS bound), description required, malformed
+  regex fails loudly, and user allowlists cannot bypass Critical built-ins
+  (`rm -rf /` is blocked regardless of allowlist contents). See
+  [examples/patterns.example.toml](examples/patterns.example.toml) for the
+  full schema. Idea sourced from
+  [adolfousier/opencrabs](https://github.com/adolfousier/opencrabs)'s
+  `tools.toml` ergonomic; re-implemented from scratch in caro.
+
 ### Changed
 
 - **MSRV bumped from 1.83 → 1.85** to fix CI breakage caused by transitive
@@ -32,6 +52,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   acceptance P0 carry-forward.
   ([#947](https://github.com/wildcard/caro/issues/947))
 
+- **Safety: allowlist regression fixed + catastrophic floor hardened**
+  ([#1246](https://github.com/wildcard/caro/pull/1246)). PR #1110's
+  "Critical is never allowlistable" guard over-matched, so a deliberate
+  narrow allowlist (`rm -rf /tmp/myapp_\d+`) could no longer bless
+  `rm -rf /tmp/myapp_123`. New `targets_catastrophic_location()` floor
+  force-blocks catastrophic targets — root/home/parent/wildcard rm
+  (including multi-target `rm -rf /tmp /`, `--` end-of-options, escaped/
+  quoted-separator tokens, line continuations, and `sudo -n`/`doas -u`
+  wrapper options), system directories, disk devices (Linux + BSD/macOS),
+  ZFS/LVM, reverse shells, remote-exec-as-root, Windows destructive
+  commands, and the fork bomb — while allowing specific-subpath
+  allowlists to work as designed. Five adversarial review rounds, each
+  closed test-first; pinned by `allowlist_cannot_reenable_catastrophe`,
+  `evasions_are_closed`, `cross_reference_every_critical_class_is_covered`,
+  and `floor_regexes_all_compile`. Follow-up shell-lexer rewrite tracked
+  in [#1302](https://github.com/wildcard/caro/issues/1302).
+- **CLI: single source of truth for the backend roster**
+  ([#1298](https://github.com/wildcard/caro/pull/1298), fixes
+  [#1115](https://github.com/wildcard/caro/issues/1115)). `--backend-info`
+  no longer advertises backends that `--backend` rejects; all CLI surfaces
+  iterate `CLI_SERVABLE_BACKENDS`, and remote backends show `not compiled`
+  in default builds with a `--features remote-backends` hint.
+- **Flaky `test_cache_roundtrip` de-flaked** via the `CARO_CAPABILITY_CACHE`
+  env override and serialized cache tests ([#1246](https://github.com/wildcard/caro/pull/1246)).
+
 ### Security
 
 - Bump `rustls-webpki` modern path (`0.103.10` → `0.103.13`) to resolve
@@ -45,6 +90,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (originally added in [#1072](https://github.com/wildcard/caro/pull/1072);
   revert criteria from that PR are now met).
   ([#1026](https://github.com/wildcard/caro/pull/1026))
+
+- Dependency drift repair (2026-07-12, [#1246](https://github.com/wildcard/caro/pull/1246)):
+  `crossbeam-epoch` 0.9.18 → 0.9.20 (RUSTSEC-2026-0204), `quinn-proto`
+  0.11.14 → 0.11.16 (RUSTSEC-2026-0185, 7.5 high), `ethnum` 1.5.2 → 1.5.3
+  (rustc 1.97 E0512 compile break). `quick-xml` RUSTSEC-2026-0194/0195
+  suppressed with documented rationale and revert criteria — the fix
+  requires a semver-major bump across the lancedb/opendal/object_store
+  chain, and the affected paths parse object-store API XML only.
+
+### Internal
+
+- rust 1.97 clippy fixes (`question_mark`, `useless_borrows_in_formatting`).
+- New Tier-2 rule `.claude/rules/feature-evidence.md`: every feature PR
+  carries evidence (green CI link), a runnable demo, and a named
+  regression-guard test; weekly demo reports land in `docs/demos/`.
 
 ## [1.4.0] - 2026-05-09
 

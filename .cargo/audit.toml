@@ -32,4 +32,16 @@ ignore = [
     "RUSTSEC-2026-0098",
     "RUSTSEC-2026-0099",
     "RUSTSEC-2026-0104",
+
+    # quick-xml 0.37.5 / 0.38.4 - RUSTSEC-2026-0194 / 0195 (DoS-class: quadratic
+    # attribute check, unbounded namespace allocation)
+    # - Fix requires quick-xml >=0.41.0 — SemVer-incompatible with both pinned
+    #   lines; both are transitive via the LanceDB knowledge stack:
+    #     0.37.5: lancedb → lance-io → opendal → reqsign
+    #     0.38.4: lancedb → datafusion → object_store
+    # - These parse object-store/S3 API XML responses, not untrusted user
+    #   input; worst case is a DoS of the optional knowledge feature.
+    # - Revert: when lancedb/opendal/object_store update to quick-xml 0.41+.
+    "RUSTSEC-2026-0194",
+    "RUSTSEC-2026-0195",
 ]

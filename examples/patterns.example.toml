@@ -1,0 +1,48 @@
+# Example sibling patterns.toml — place at ~/.config/caro/patterns.toml
+#
+# Why a sibling file?
+#   - Easier to version-control and share with a team (one file, no other config).
+#   - Cleaner diff surface for security teams adding org-specific rules.
+#
+# Loaded automatically by caro from the same directory as config.toml. Entries
+# here are MERGED with any [[safety.custom_patterns]] declared inline in
+# config.toml — both forms work, and they're additive.
+#
+# Hardening rules (enforced at load):
+#   - risk_level is capped at "High". "Critical" is reserved for built-ins.
+#   - pattern source ≤ 512 characters (ReDoS bound).
+#   - description is required and ≤ 200 characters.
+#   - Malformed regex fails startup loudly (no silent skip).
+#   - User patterns cannot disable built-ins. `rm -rf /` is blocked regardless
+#     of what's in `allowlist` below.
+
+[[pattern]]
+pattern = 'kubectl\s+delete\s+(-n\s+prod|--namespace\s+prod)'
+risk_level = "high"
+description = "Delete in prod namespace"
+
+[[pattern]]
+pattern = 'aws\s+s3\s+rb\s+s3://prod-'
+risk_level = "high"
+description = "Remove prod-prefixed S3 bucket"
+
+[[pattern]]
+pattern = 'terraform\s+destroy(\s+-auto-approve)?'
+risk_level = "high"
+description = "Tear down Terraform-managed infrastructure"
+
+# Optional shell-specific pattern
+[[pattern]]
+pattern = '\$\(.*curl[^)]+\|\s*sh\s*\)'
+risk_level = "high"
+description = "Subshell pipe-to-shell from network source"
+shell_specific = "bash"
+
+# Commands matching these regexes are explicitly allowed — UNLESS they also
+# match a Critical built-in (e.g. you can't allowlist `rm -rf /`).
+allowlist = [
+  '^echo\s+',
+  '^ls(\s+-[a-zA-Z]+)*\s*$',
+  '^pwd$',
+  '^whoami$',
+]

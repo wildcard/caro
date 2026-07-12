@@ -183,6 +183,7 @@ impl SetupWizard {
         let configuration = UserConfiguration {
             default_shell: shell,
             safety_level,
+            approval_mode: crate::models::ApprovalMode::default(),
             default_model: None,
             model_name: None,
             log_level,
@@ -191,6 +192,8 @@ impl SetupWizard {
             telemetry: crate::telemetry::TelemetryConfig::default(),
             generation_profile: crate::prompts::profiles::GenerationProfile::default(),
             ai: crate::models::AiConfig::default(),
+            safety: crate::safety::SafetySection::default(),
+            backends: crate::models::BackendsConfig::default(),
         };
 
         self.print_summary(&configuration, theme);

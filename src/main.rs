@@ -449,6 +449,11 @@ enum Commands {
         /// Filter tests by profile ID (e.g., bt_001)
         #[arg(long)]
         profile: Option<String>,
+
+        /// System-prompt variant for embedded backend: "default" (full) or "minimal"
+        /// (llm-cmd-style terse prompt). Has no effect on the static backend.
+        #[arg(long, default_value = "default")]
+        prompt_style: String,
     },
 
     /// Generate shell completion scripts
@@ -710,7 +715,7 @@ struct Cli {
     #[arg(
         short = 'b',
         long,
-        help = "Inference backend (embedded, ollama, exo, vllm)"
+        help = "Inference backend (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid; see --backend-info)"
     )]
     backend: Option<String>,
 
@@ -755,6 +760,14 @@ struct Cli {
     )]
     confirm: bool,
 
+    /// Approval mode: how accept/prompt/block decisions are made
+    #[arg(
+        long,
+        value_name = "MODE",
+        help = "Approval mode: prompt (static, default), auto (auto-confirm), smart (LLM risk judge)"
+    )]
+    approval: Option<String>,
+
     /// Verbose output with debug information
     #[arg(short, long, help = "Enable verbose output with timing and debug info")]
     verbose: bool,
@@ -786,6 +799,20 @@ struct Cli {
         help = "Interactive mode with step-by-step confirmation"
     )]
     interactive: bool,
+
+    /// Open the generated command in an editable prompt before executing
+    ///
+    /// When shell integration is installed (`eval "$(caro init zsh)"`), the
+    /// command is pushed into your real shell prompt buffer. Without shell
+    /// integration, an in-process rustyline prompt is shown with the
+    /// command pre-filled — press Enter to execute, Ctrl+C to cancel.
+    /// Inspired by simonw/llm-cmd.
+    #[arg(
+        short = 'e',
+        long,
+        help = "Edit the generated command before executing (rustyline pre-fill)"
+    )]
+    edit: bool,
 
     /// Force LLM inference (bypass static pattern matcher)
     #[arg(
@@ -858,6 +885,10 @@ impl IntoCliArgs for Cli {
         self.confirm
     }
 
+    fn approval(&self) -> Option<String> {
+        self.approval.clone()
+    }
+
     fn verbose(&self) -> bool {
         self.verbose
     }
@@ -905,55 +936,6 @@ impl IntoCliArgs for Cli {
 
 /// Exit code indicating edit mode - shell wrapper should capture command
 pub const EXIT_CODE_EDIT: i32 = 201;
-
-/// Copy text to system clipboard
-/// Returns true if successful, false if clipboard is unavailable
-fn copy_to_clipboard(text: &str) -> bool {
-    use std::process::{Command, Stdio};
-
-    #[cfg(target_os = "macos")]
-    {
-        if let Ok(mut child) = Command::new("pbcopy").stdin(Stdio::piped()).spawn() {
-            if let Some(stdin) = child.stdin.as_mut() {
-                use std::io::Write;
-                if stdin.write_all(text.as_bytes()).is_ok() {
-                    return child.wait().map(|s| s.success()).unwrap_or(false);
-                }
-            }
-        }
-        false
-    }
-
-    #[cfg(target_os = "linux")]
-    {
-        // Try xclip first, then xsel
-        for cmd in &["xclip", "xsel"] {
-            let args: &[&str] = if *cmd == "xclip" {
-                &["-selection", "clipboard"]
-            } else {
-                &["--clipboard", "--input"]
-            };
-
-            if let Ok(mut child) = Command::new(cmd).args(args).stdin(Stdio::piped()).spawn() {
-                if let Some(stdin) = child.stdin.as_mut() {
-                    use std::io::Write;
-                    if stdin.write_all(text.as_bytes()).is_ok()
-                        && child.wait().map(|s| s.success()).unwrap_or(false)
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-        false
-    }
-
-    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-    {
-        let _ = text;
-        false
-    }
-}
 
 /// Print shell integration script for the specified shell
 fn print_shell_init_script(shell: &str) {
@@ -1130,6 +1112,11 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         caro::models::BackendType::Mlx => "mlx".to_string(),
         caro::models::BackendType::Mock => "mock".to_string(),
         caro::models::BackendType::OpenRouter => "openrouter".to_string(),
+        caro::models::BackendType::Mesh => "mesh".to_string(),
+        caro::models::BackendType::AiHorde => "ai-horde".to_string(),
+        // The hybrid gateway sanitizes PII before remote transmission by
+        // default, so it is intentionally NOT treated as an off-host leak here.
+        caro::models::BackendType::Hybrid => "hybrid".to_string(),
     };
 
     let exec_ctx = ExecutionContext::detect();
@@ -2854,8 +2841,15 @@ async fn run_evaluation_tests(
     _verbose: bool,
     suite_path: Option<&str>,
     profile_id: Option<&str>,
+    prompt_style_str: &str,
 ) -> Result<(), String> {
+    use caro::prompts::PromptStyle;
+    let prompt_style: PromptStyle = prompt_style_str.parse().map_err(|e: String| e)?;
+
     println!("Running evaluation tests with backend: {}", backend_name);
+    if backend_name == "embedded" {
+        println!("Prompt style: {}", prompt_style);
+    }
     println!();
 
     // Create backend (boxed to allow different types)
@@ -2866,7 +2860,8 @@ async fn run_evaluation_tests(
         }
         "embedded" => Box::new(
             EmbeddedModelBackend::new()
-                .map_err(|e| format!("Failed to create embedded backend: {}", e))?,
+                .map_err(|e| format!("Failed to create embedded backend: {}", e))?
+                .with_prompt_style(prompt_style),
         ),
         _ => {
             return Err(format!(
@@ -3056,9 +3051,16 @@ async fn main() {
             verbose,
             suite,
             profile,
+            prompt_style,
         }) => {
-            match run_evaluation_tests(&backend, verbose, suite.as_deref(), profile.as_deref())
-                .await
+            match run_evaluation_tests(
+                &backend,
+                verbose,
+                suite.as_deref(),
+                profile.as_deref(),
+                &prompt_style,
+            )
+            .await
             {
                 Ok(()) => process::exit(0),
                 Err(e) => {
@@ -3801,7 +3803,75 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     }
     // If command wasn't executed yet and passes safety checks, ask user if they want to execute
     else if result.exit_code.is_none() && result.executed && !cli.execute && !cli.interactive {
+        use caro::cli::edit_prompt::{prompt_for_edit, EditOutcome};
         use dialoguer::Select;
+
+        // Local helper: execute a command and write the outcome onto `result`.
+        // Used by the "Yes" branch, the in-process edit fallback, and the
+        // `--edit` short-circuit below. Borrows `result` mutably each time;
+        // a closure would tangle the borrow checker, hence a free fn.
+        fn execute_and_capture(result: &mut caro::cli::CliResult, command: &str) {
+            use caro::execution::CommandExecutor;
+            let executor = CommandExecutor::new(result.shell_used);
+            match executor.execute(command) {
+                Ok(exec_result) => {
+                    result.exit_code = Some(exec_result.exit_code);
+                    result.stdout = Some(exec_result.stdout);
+                    result.stderr = Some(exec_result.stderr);
+                    result.execution_error = if !exec_result.success {
+                        Some(format!(
+                            "Command exited with code {}",
+                            exec_result.exit_code
+                        ))
+                    } else {
+                        None
+                    };
+                    result.timing_info.execution_time_ms = exec_result.execution_time_ms;
+                }
+                Err(e) => {
+                    result.execution_error = Some(format!("Execution failed: {}", e));
+                }
+            }
+        }
+
+        // Local helper: in-process rustyline edit-then-execute. Used when the
+        // user passed --edit (or chose Edit in the menu) but no shell wrapper
+        // is active. Inspired by simonw/llm-cmd.
+        fn edit_then_execute(result: &mut caro::cli::CliResult) -> Result<(), CliError> {
+            match prompt_for_edit(&result.generated_command).map_err(|e| CliError::Internal {
+                message: format!("Edit prompt failed: {}", e),
+            })? {
+                EditOutcome::Execute(cmd) => {
+                    use colored::Colorize;
+                    eprintln!();
+                    eprintln!("{}", "Executing command...".dimmed());
+                    execute_and_capture(result, &cmd);
+                    eprintln!();
+                }
+                EditOutcome::Cancelled => {
+                    use colored::Colorize;
+                    eprintln!("{}", "Execution cancelled.".yellow());
+                    eprintln!();
+                }
+            }
+            Ok(())
+        }
+
+        // --edit short-circuit: skip the Yes/No/Edit menu entirely.
+        if cli.edit {
+            if in_wrapper {
+                // Shell wrapper installed → push command into the real shell buffer
+                println!("{}", result.generated_command);
+                std::process::exit(EXIT_CODE_EDIT);
+            } else if std::io::stdin().is_terminal() {
+                edit_then_execute(result)?;
+                return Ok(());
+            } else {
+                // Non-TTY with --edit: emit the command and let the caller handle it
+                display!("{}", result.generated_command);
+                return Ok(());
+            }
+        }
 
         // Check if we're in a terminal environment
         if std::io::stdin().is_terminal() {
@@ -3820,31 +3890,7 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                     // Yes - execute
                     display!("");
                     display!("{}", "Executing command...".dimmed());
-
-                    // Execute the command
-                    use caro::execution::CommandExecutor;
-
-                    let executor = CommandExecutor::new(result.shell_used);
-
-                    match executor.execute(&result.generated_command) {
-                        Ok(exec_result) => {
-                            result.exit_code = Some(exec_result.exit_code);
-                            result.stdout = Some(exec_result.stdout);
-                            result.stderr = Some(exec_result.stderr);
-                            result.execution_error = if !exec_result.success {
-                                Some(format!(
-                                    "Command exited with code {}",
-                                    exec_result.exit_code
-                                ))
-                            } else {
-                                None
-                            };
-                            result.timing_info.execution_time_ms = exec_result.execution_time_ms;
-                        }
-                        Err(e) => {
-                            result.execution_error = Some(format!("Execution failed: {}", e));
-                        }
-                    }
+                    execute_and_capture(result, &result.generated_command.clone());
                     display!("");
                 }
                 2 => {
@@ -3855,30 +3901,8 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
                         println!("{}", result.generated_command);
                         std::process::exit(EXIT_CODE_EDIT);
                     } else {
-                        // Not running through wrapper - copy to clipboard as fallback
-                        let cmd = &result.generated_command;
-                        if copy_to_clipboard(cmd) {
-                            println!(
-                                "{} Command copied to clipboard. Paste with {} to edit.",
-                                "✓".green(),
-                                if cfg!(target_os = "macos") {
-                                    "Cmd+V"
-                                } else {
-                                    "Ctrl+V"
-                                }
-                            );
-                        } else {
-                            // Clipboard copy failed - just print the command
-                            println!("{}", "Command (copy manually):".yellow());
-                            println!("  {}", cmd);
-                        }
-                        println!();
-                        println!(
-                            "{}",
-                            "Tip: Add shell integration for seamless editing:".dimmed()
-                        );
-                        println!("  {}", "eval \"$(caro init zsh)\"  # or bash/fish".dimmed());
-                        println!();
+                        // No wrapper → in-process rustyline fallback (was: clipboard copy)
+                        edit_then_execute(result)?;
                     }
                 }
                 _ => {
@@ -3987,24 +4011,20 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
 /// environment variables / typical endpoints set that would make them
 /// usable. This is a best-effort snapshot, not a live health check.
 fn print_backend_info() {
+    use caro::backends::CLI_SERVABLE_BACKENDS;
     use colored::Colorize;
 
-    // Status helpers. For remote backends we use environment variables as
-    // a lightweight "configured?" signal — probing each endpoint would
-    // turn `--backend-info` into a slow diagnostic command.
+    // For remote backends we use environment variables as a lightweight
+    // "configured?" signal — probing each endpoint would turn
+    // `--backend-info` into a slow diagnostic command.
     let env_or = |keys: &[&str]| keys.iter().any(|k| std::env::var(k).is_ok());
 
-    let status_for = |keys: &[&str]| {
-        if env_or(keys) {
-            "configured"
-        } else {
-            "not configured"
-        }
-    };
-
-    let row = |backend: &str, status: &str, notes: &str| {
-        println!("  {:<12}  {:<16}  {}", backend, status, notes);
-    };
+    // The roster is driven by `CLI_SERVABLE_BACKENDS` — the SAME slice that
+    // `validate_backend_name` accepts — so this table can never advertise a
+    // backend that `--backend <name>` would reject (the divergence tracked
+    // by #1115). `static`/`claude`/`openrouter` are intentionally absent
+    // because the CLI does not route to them yet.
+    let remote_backends_compiled = cfg!(feature = "remote-backends");
 
     println!("{}", "Available inference backends".bold());
     println!();
@@ -4014,35 +4034,38 @@ fn print_backend_info() {
         "Status".bold(),
         "Notes".bold()
     );
-    row("-------", "------", "-----");
+    println!("  {:<12}  {:<16}  {:<5}", "-------", "------", "-----");
 
-    // Built-in, always-available backends.
-    row("static", "available", "template-based; no model required");
-    row(
-        "embedded",
-        "available",
-        "local LLM (MLX/CPU); downloads model on first use",
-    );
-
-    // Remote backends: we report "configured" if a credential / endpoint
-    // env var is set, otherwise "not configured".
-    row(
-        "ollama",
-        status_for(&["OLLAMA_HOST", "CARO_OLLAMA_URL"]),
-        "remote Ollama HTTP API (OLLAMA_HOST)",
-    );
-    row(
-        "vllm",
-        status_for(&["VLLM_BASE_URL", "CARO_VLLM_URL"]),
-        "remote vLLM HTTP API (VLLM_BASE_URL)",
-    );
-    row(
-        "claude",
-        status_for(&["ANTHROPIC_API_KEY"]),
-        "Anthropic Claude API (ANTHROPIC_API_KEY)",
-    );
+    for (name, notes) in CLI_SERVABLE_BACKENDS {
+        let status: &str = if *name == "embedded" {
+            // Always compiled in; downloads its model on first use.
+            "available"
+        } else if !remote_backends_compiled {
+            // Every other servable backend lives behind `remote-backends`,
+            // which is NOT a default feature — so the published binary cannot
+            // route to it. Say so instead of implying it works.
+            "not compiled"
+        } else {
+            match *name {
+                "ai-horde" => "available", // free public cluster, no config
+                "ollama" if env_or(&["OLLAMA_HOST", "CARO_OLLAMA_URL"]) => "configured",
+                "vllm" if env_or(&["VLLM_BASE_URL", "CARO_VLLM_URL"]) => "configured",
+                "exo" if env_or(&["CARO_EXO_URL"]) => "configured",
+                "mesh" if env_or(&["CARO_MESH_URL"]) => "configured",
+                "hybrid" => "needs config",
+                _ => "default endpoint",
+            }
+        };
+        println!("  {:<12}  {:<16}  {}", name, status, notes);
+    }
 
     println!();
+    if !remote_backends_compiled {
+        println!(
+            "{}",
+            "Remote backends need: cargo install caro --features remote-backends".dimmed()
+        );
+    }
     println!(
         "{}",
         "Use --backend <name> to force a specific backend.".dimmed()

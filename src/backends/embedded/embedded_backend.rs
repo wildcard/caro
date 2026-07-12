@@ -11,6 +11,7 @@ use regex::Regex;
 use crate::backends::embedded::{CpuBackend, EmbeddedConfig, InferenceBackend, ModelVariant};
 use crate::backends::{BackendInfo, CommandGenerator, GeneratorError};
 use crate::models::{BackendType, CommandRequest, GeneratedCommand};
+use crate::prompts::{build_minimal_prompt, PromptStyle};
 use crate::safety::{SafetyConfig, SafetyValidator};
 use crate::ModelLoader;
 
@@ -32,6 +33,8 @@ pub struct EmbeddedModelBackend {
     config: EmbeddedConfig,
     model_loader: ModelLoader,
     safety_validator: Arc<SafetyValidator>,
+    /// Which system-prompt variant to use (default vs minimal).
+    prompt_style: PromptStyle,
 }
 
 impl EmbeddedModelBackend {
@@ -93,12 +96,23 @@ impl EmbeddedModelBackend {
             config: EmbeddedConfig::default(),
             model_loader,
             safety_validator,
+            prompt_style: PromptStyle::Default,
         })
     }
 
     /// Update the embedded configuration
     pub fn with_config(mut self, config: EmbeddedConfig) -> Self {
         self.config = config;
+        self
+    }
+
+    /// Select the system-prompt variant to use.
+    ///
+    /// `PromptStyle::Default` uses the full production prompt.
+    /// `PromptStyle::Minimal` uses the llm-cmd-style terse variant.
+    /// Primarily used by `caro test --prompt-style minimal` for A/B evaluation.
+    pub fn with_prompt_style(mut self, style: PromptStyle) -> Self {
+        self.prompt_style = style;
         self
     }
 
@@ -163,8 +177,14 @@ impl EmbeddedModelBackend {
             })
     }
 
-    /// Generate system prompt for shell command generation
+    /// Generate system prompt for shell command generation.
+    ///
+    /// Dispatches to the minimal variant when `self.prompt_style == PromptStyle::Minimal`.
     fn create_system_prompt(&self, request: &CommandRequest) -> String {
+        if self.prompt_style == PromptStyle::Minimal {
+            return build_minimal_prompt(request);
+        }
+
         let base_prompt = format!(
             r#"You are a shell command generator. Convert natural language to POSIX shell commands.
 

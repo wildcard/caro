@@ -29,7 +29,7 @@ Have questions or want to discuss caro with other users? Join the community!
   - - **[Documentation](https://caro.sh)** - Check out our comprehensive docs
 ## 📋 Project Status
 
-**Current Version:** 1.4.0 (General Availability)
+**Current Version:** 1.5.0 (General Availability)
 
 This project is **generally available** with all core features implemented, tested, and working. The CLI achieves 93.1% pass rate on comprehensive test suite with zero false positives in safety validation.
 
@@ -44,7 +44,8 @@ This project is **generally available** with all core features implemented, test
 - 🤖 **Agentic context loop** - Iterative refinement with platform detection
 - 🌍 **Platform-aware generation** - Detects OS, architecture, available commands
 - 📍 **Execution context detection** - CWD, shell type, system constraints
-- 🌐 Remote backend support (Ollama, vLLM) with automatic fallback
+- 🌐 Remote backend support (Ollama, vLLM, Exo, Mesh-LLM, AI-Horde) with automatic fallback
+- 🔐 Privacy-preserving **hybrid** backend: sanitize PII locally, enhance remotely
 - 🛡️ Safety validation with 52 pre-compiled dangerous command patterns
 - ⚙️ Configuration management with TOML support
 - 💬 Interactive user confirmation flows with color-coded risk levels
@@ -84,6 +85,25 @@ This project is **generally available** with all core features implemented, test
 - 💾 **Model management** - Built-in model loading with optimization
 - 🌐 **Cross-platform** - Full support for macOS (including Apple Silicon), Linux, and Windows
 - 🎬 **Safe execution** - Optional command execution with shell-aware handling
+
+
+## How Caro fits in the guardian agent architecture
+
+In 2026, Gartner named **Guardian Agents** as a formal market category: autonomous oversight layers that monitor, constrain, and govern AI agent behavior in production. Microsoft's Agent Governance Toolkit (OWASP + EU AI Act compliance) and Orchid Security's zero-trust identity layer are two early category leaders.
+
+Most guardian agent products focus on **policy, identity, and observability** — *who* is the agent, *what* permissions does it have, *what did it do*. Caro occupies a complementary but distinct layer: **execution safety for shell and tool calls**. It sits at the exact point where a prompt becomes a command, applying deterministic validation before anything reaches the OS.
+
+| Guardian concern | Caro's contribution |
+|---|---|
+| Prompt injection → RCE | Deterministic regex + CVE rule validation breaks the injection→execution chain (see CVE-2026-25592, CVE-2026-26030) |
+| Tool-call governance | Every shell command passes through `SafetyValidator` regardless of which agent or backend produced it |
+| Risk-tiered approval | CRITICAL / HIGH / MEDIUM / LOW risk levels map directly onto tiered human-in-the-loop approval patterns |
+| Auditability | Structured JSON output and telemetry hooks give guardian orchestrators a machine-readable safety signal |
+| Defense in depth | 5-layer validation pipeline (allowlist → built-in patterns → CVE rules → custom patterns → user confirmation) — no single bypass produces execution |
+
+**In short:** if your guardian agent stack needs a safety primitive that sits between "the LLM decided to run a command" and "the command hits the shell", Caro is that layer.
+
+See [`docs/GUARDIAN_AGENT.md`](docs/GUARDIAN_AGENT.md) for the full explainer.
 
 ## Installation
 
@@ -231,7 +251,7 @@ caro --verbose "search for Python files"
 | Option | Description | Status |
 |--------|-------------|--------|
 | `-s, --shell <SHELL>` | Target shell (bash, zsh, fish, sh, powershell, cmd) | ✅ Implemented |
-| `-b, --backend <BACKEND>` | Inference backend (embedded, ollama, exo, vllm) | ✅ Implemented |
+| `-b, --backend <BACKEND>` | Inference backend (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid) | ✅ Implemented |
 | `-m, --model-name <NAME>` | Model name for the backend (e.g., codellama:7b) | ✅ Implemented |
 | `--safety <LEVEL>` | Safety level (strict, moderate, permissive) | ✅ Implemented |
 | `-o, --output <FORMAT>` | Output format (json, yaml, plain) | ✅ Implemented |
@@ -348,7 +368,7 @@ caro config reset
 **Available config keys:**
 | Key | Values | Description |
 |-----|--------|-------------|
-| `backend` | `embedded`, `ollama`, `exo`, `vllm` | Inference backend |
+| `backend` | `embedded`, `ollama`, `exo`, `vllm`, `mesh`, `ai-horde`, `hybrid` | Inference backend |
 | `model-name` | Any valid model name | Model for the backend (e.g., `codellama:7b`) |
 | `shell` | `bash`, `zsh`, `fish`, `sh`, `powershell`, `cmd` | Default target shell |
 | `safety` | `strict`, `moderate`, `permissive` | Safety validation level |
@@ -356,6 +376,37 @@ caro config reset
 **Config file location:** `~/.config/caro/config.toml` (Linux/macOS)
 
 **Priority order:** CLI flags (`--backend`, `--model-name`) > Environment variables > Config file > Auto-detect
+
+#### Remote & distributed backends (`[backends]`)
+
+Remote endpoint URLs and keys are configurable, so you can point Caro at a
+non-default port or a self-hosted service without recompiling:
+
+```toml
+[backends]
+# Mesh-LLM: pool GPUs across your own machines (OpenAI-compatible, :9337)
+mesh_url = "http://localhost:9337"
+# AI-Horde: free crowdsourced cluster (anonymous key works out of the box)
+ai_horde_url = "https://aihorde.net/api"
+ai_horde_key = "0000000000"
+# Hybrid gateway: which remote enhancer to wrap (mesh | ai-horde)
+hybrid_remote = "mesh"
+# Send prompts verbatim to a (trusted) remote instead of sanitizing PII first.
+# Leave false to keep the privacy guarantee on public networks.
+allow_public = false
+```
+
+- **`mesh`** — [Mesh-LLM](https://github.com/Mesh-LLM/mesh-llm) pools GPU/RAM
+  across machines you own, behind one OpenAI-compatible API. Best when a model
+  is too big for one box but you want it private.
+- **`ai-horde`** — [AI-Horde](https://github.com/Haidra-Org/AI-Horde) is a free
+  volunteer cluster needing no GPU and no API key. Explicit opt-in only.
+- **`hybrid`** *(recommended for remote use)* — runs a local sanitizer that
+  redacts PII (paths, usernames, IPs, emails) into reversible placeholders
+  before sending to the remote enhancer, then restores real values in the
+  returned command locally. The network never sees your private data unless you
+  set `allow_public = true`. See
+  [ADR-015](docs/adr/ADR-015-distributed-llm-backends-hybrid-privacy.md).
 
 ### System Assessment
 
