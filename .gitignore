@@ -95,6 +95,13 @@ venv/
 env/
 ENV/
 
+# The env/ / ENV/ virtualenv patterns above also match .flox/env/ (the
+# Flox environment dir) on case-insensitive filesystems. Force-track the
+# committed Flox manifest that lives there; generated state stays ignored
+# via .flox/.gitignore.
+!.flox/env/
+!.flox/env/manifest.toml
+
 # Benchmarking
 /target/criterion/
 perf.data

@@ -1,0 +1,51 @@
+# Caro Flox dev environment
+#
+# Activate with:    flox activate
+# Smoke test with:  flox activate -- cargo check --no-default-features --features embedded-cpu
+#
+# This is the project's reference Layer-1 environment in the three-layer
+# isolation model. See .claude/rules/coder-agent-isolation.md for the
+# boundary-vs-environment distinction; see
+# website/src/pages/use-cases/flox.astro for the user-facing articulation.
+
+version = 1
+
+[install]
+# Build toolchain — caro's MSRV is 1.85 (Cargo.toml).
+# rustup is preferred over a pinned rust package because contributors
+# may want to test alternate toolchains without leaving the env.
+rustup.pkg-path = "rustup"
+pkg-config.pkg-path = "pkg-config"
+openssl.pkg-path = "openssl"
+
+# Common dev utilities expected by Caro's tooling and skills.
+git.pkg-path = "git"
+gh.pkg-path = "gh"
+jq.pkg-path = "jq"
+ripgrep.pkg-path = "ripgrep"
+
+[vars]
+RUST_LOG = "info"
+# Make tests deterministic — caro's safety tests depend on stable
+# locale collation for regex matching.
+LC_ALL = "C"
+
+[hook]
+on-activate = '''
+  # Ensure the MSRV toolchain is available without forcing an install
+  # on every activation. Idempotent.
+  if command -v rustup >/dev/null 2>&1; then
+    rustup show active-toolchain >/dev/null 2>&1 || rustup default 1.85
+  fi
+  echo "caro dev env active — try: cargo check --no-default-features --features embedded-cpu"
+'''
+
+[options]
+# Caro ships on all four major Flox-supported systems. The Mac variants
+# get the embedded-mlx feature; Linux gets embedded-cpu.
+systems = [
+  "aarch64-darwin",
+  "x86_64-darwin",
+  "aarch64-linux",
+  "x86_64-linux",
+]

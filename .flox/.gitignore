@@ -1,0 +1,7 @@
+# Flox generates per-machine state under .flox/cache and .flox/run.
+# The committed parts of this directory are env/manifest.toml and the
+# lockfile (env/manifest.lock, generated on first activate).
+cache/
+run/
+log/
+.cache/

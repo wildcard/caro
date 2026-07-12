@@ -40,9 +40,13 @@ yield to anything in Tier 1 or Tier 2.
 
 6. **[good-boy-scout.md](./good-boy-scout.md)** — Leave code better than you
    found it; do not gold-plate.
-7. **[quick-actions-footer.md](./quick-actions-footer.md)** — Append a
+7. **[coder-agent-isolation.md](./coder-agent-isolation.md)** — Three layers
+   for isolated coder agents: command safety (caro), boundary
+   (sandflox/container/VM), and environment (Flox). Pick each layer on
+   its own merits; don't conflate them.
+8. **[quick-actions-footer.md](./quick-actions-footer.md)** — Append a
    Quick-Actions footer when stopping for user input.
-8. **[astro-esbuild-shell-syntax.md](./astro-esbuild-shell-syntax.md)** —
+9. **[astro-esbuild-shell-syntax.md](./astro-esbuild-shell-syntax.md)** —
    Escape `{` in shell snippets inside `.astro` / `.jsx` / `.tsx` templates
    (esbuild treats it as a JSX expression boundary).
 
@@ -62,6 +66,6 @@ yield to anything in Tier 1 or Tier 2.
 ## Why this exists
 
 Inspired by [swarm-forge](https://github.com/unclebob/swarm-forge)'s
-constitution layering. With 8 rule files and 4–5 parallel Claude sessions,
+constitution layering. With 9 rule files and 4–5 parallel Claude sessions,
 "first one I happen to load" is not a deterministic conflict resolution
 strategy; explicit precedence is.

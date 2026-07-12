@@ -198,11 +198,86 @@ jobs:
           echo "Install with: dotnet add package caro --version ${{ needs.prepare.outputs.version }}"
 
   # =============================================================================
+  # Flox: Publish a Flox-consumable release artifact
+  # =============================================================================
+  # First-iteration packaging stub. The GitHub Release that release.yml
+  # creates already carries per-platform tarballs; this job re-checksums
+  # them and uploads a Flox manifest stub so users can pin the release in
+  # their own Flox env today (see flox/README.md). Catalog submission to
+  # flox-floxpkgs is deferred — see the use-case page at
+  # /use-cases/flox for the full plan and the three-layer rationale.
+  flox:
+    name: Publish Flox Artifact
+    needs: prepare
+    runs-on: ubuntu-latest
+    env:
+      REPO: ${{ github.repository }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+
+      - name: Prepare Flox release manifest
+        run: |
+          mkdir -p dist/flox
+
+          cat > "dist/flox/caro-${VERSION}.toml" <<EOF
+          # Pin this release of caro in your own Flox environment.
+          # Drop the contents under [install] into your manifest.toml.
+          #
+          # See https://caro.sh/use-cases/flox for the full pattern.
+          version = 1
+
+          [install]
+          caro.flake = "github:${REPO}/${TAG}"
+
+          [vars]
+          CARO_VERSION = "${VERSION}"
+          EOF
+
+          # Checksum each per-platform binary the release uploaded so a
+          # downstream Flox catalog submission has the hashes it needs.
+          for SYS in aarch64-darwin x86_64-darwin aarch64-linux x86_64-linux; do
+            case "$SYS" in
+              aarch64-darwin) ASSET="caro-macos-arm64" ;;
+              x86_64-darwin)  ASSET="caro-macos-amd64" ;;
+              aarch64-linux)  ASSET="caro-linux-arm64" ;;
+              x86_64-linux)   ASSET="caro-linux-amd64" ;;
+            esac
+            URL="https://github.com/${REPO}/releases/download/${TAG}/${ASSET}"
+            if curl -fsSL "$URL" -o "dist/flox/${ASSET}" 2>/dev/null; then
+              sha256sum "dist/flox/${ASSET}" | awk -v sys="$SYS" '{ print sys "  " $1 }' \
+                >> "dist/flox/caro-${VERSION}.sha256"
+            else
+              echo "::warning::Missing release asset for ${SYS}: ${URL}"
+            fi
+          done
+
+          ls -la dist/flox/
+
+      - name: Upload Flox artifacts to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$TAG" \
+            "dist/flox/caro-${VERSION}.toml" \
+            "dist/flox/caro-${VERSION}.sha256" \
+            --clobber
+
+      - name: Summary
+        run: |
+          echo "Published Flox release manifest: caro-${VERSION}.toml"
+          echo "Users can pin via: flake = \"github:${REPO}/v${VERSION}\""
+
+  # =============================================================================
   # Summary
   # =============================================================================
   summary:
     name: Publish Summary
-    needs: [prepare, docker, npm, nuget]
+    needs: [prepare, docker, npm, nuget, flox]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -234,3 +309,12 @@ jobs:
           echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
           echo "cargo install caro@${{ needs.prepare.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Flox:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`toml" >> $GITHUB_STEP_SUMMARY
+          echo "# In your manifest.toml" >> $GITHUB_STEP_SUMMARY
+          echo "[install]" >> $GITHUB_STEP_SUMMARY
+          echo "caro.flake = \"github:${{ github.repository }}/v${{ needs.prepare.outputs.version }}\"" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See [/use-cases/flox](https://caro.sh/use-cases/flox) for the full pattern." >> $GITHUB_STEP_SUMMARY

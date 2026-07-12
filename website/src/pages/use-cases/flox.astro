@@ -1,0 +1,983 @@
+---
+/**
+ * Use Case: Flox — Reproducible Coder Agents on Any Boundary
+ *
+ * Target Persona: Developer/SRE running isolated coder agents (Claude
+ * Code, Crush, kraken, etc.) who needs reproducible envs they can move
+ * between boundaries (macOS sandbox / container / VM) without rebuilding.
+ *
+ * Key framing: boundary (OS-level isolation) and environment (dep set)
+ * are independent choices. Flox owns environment; sandflox/container/VM
+ * own boundary; caro owns command safety. Three orthogonal layers.
+ *
+ * See .claude/rules/coder-agent-isolation.md for the cross-layer rule.
+ */
+
+import LandingPage from '../../layouts/LandingPage.astro';
+import Navigation from '../../components/Navigation.astro';
+import LPDownload from '../../components/landing/LPDownload.astro';
+import LPFooter from '../../components/landing/LPFooter.astro';
+
+const jobs = [
+  {
+    id: 'reproducible-env',
+    title: 'Reproducible Coder-Agent Environments',
+    description: 'Pin every binary an agent can invoke. Same Flox env, same outputs, every laptop.',
+    painLevel: '5/5',
+    frequency: 'Daily',
+    trigger: 'Onboarding a new contributor or rebuilding a CI worker',
+  },
+  {
+    id: 'boundary-flexible',
+    title: 'Boundary-Flexible Isolation',
+    description: 'Start in a fast Mac sandbox. Move to a container or VM later. The env does not change.',
+    painLevel: '4/5',
+    frequency: 'Weekly',
+    trigger: 'Threat model gets stricter as the project matures',
+  },
+  {
+    id: 'inspect-before-build',
+    title: 'Inspect-Before-Build Supply Chain',
+    description: 'See exactly which packages an agent will have access to before activation. Audit the derivation graph, not a black-box image.',
+    painLevel: '4/5',
+    frequency: 'Monthly',
+    trigger: 'Security review of agent tooling',
+  },
+];
+
+const layers = [
+  {
+    n: 3,
+    name: 'Command safety',
+    owner: 'caro',
+    description: 'Pattern-based validator catches dangerous commands the agent rationalized as safe. Deterministic, always on.',
+    color: '#ef4444',
+    icon: '🛡️',
+  },
+  {
+    n: 2,
+    name: 'Boundary',
+    owner: 'sandflox / container / VM',
+    description: 'OS-level enforcement. Pick by threat model: kernel sandbox is cheapest, full VM is strongest.',
+    color: '#8b5cf6',
+    icon: '🧱',
+  },
+  {
+    n: 1,
+    name: 'Environment',
+    owner: 'Flox',
+    description: 'Nix-derived, inspectable, relocatable dep set. Same manifest runs unchanged across every Layer-2 boundary.',
+    color: '#06b6d4',
+    icon: '📦',
+  },
+];
+
+const boundaries = [
+  {
+    name: 'sandflox',
+    fullName: 'macOS kernel sandbox',
+    icon: '🍎',
+    speed: 'Native',
+    strength: 'Kernel-enforced',
+    platform: 'ARM Mac (today)',
+    bestFor: 'Solo developer machine, agent loops in a trusted repo. The default when you are on a Mac.',
+    upstream: 'github.com/flox/sandflox',
+  },
+  {
+    name: 'Container',
+    fullName: 'Docker / Podman / Colima',
+    icon: '📦',
+    speed: 'Fast (slower bind mounts on macOS)',
+    strength: 'Linux namespaces',
+    platform: 'Cross-platform',
+    bestFor: 'Crossing OS lines, needing Linux-only deps, sharing the same env across CI + dev. Skip the Dockerfile via flox containerize or containerd-shim-flox.',
+    upstream: 'flox containerize',
+  },
+  {
+    name: 'Full VM',
+    fullName: 'Guest OS in a hypervisor',
+    icon: '🖥️',
+    speed: 'Slowest (RAM + disk overhead)',
+    strength: 'Hardware-virtualized',
+    platform: 'Cross-platform',
+    bestFor: 'Untrusted code, regulated workloads, multi-tenant hosts. Reach for it when boundary integrity outranks performance.',
+    upstream: 'Lima, Tart, UTM, etc.',
+  },
+];
+
+const antiPatterns = [
+  {
+    pattern: '"We already have a Dockerfile — skip Flox."',
+    why: 'Dockerfile pins a snapshot. Flox pins a derivation graph you can inspect before activation. You lose supply-chain visibility and the ability to move the same env between boundaries.',
+  },
+  {
+    pattern: '"Flox alone is enough isolation."',
+    why: 'Flox is Layer 1 (environment). With no Layer 2, the agent still runs as your user. An npm install of a malicious package can do whatever you can do.',
+  },
+  {
+    pattern: '"VM is the safe default for coder agents."',
+    why: 'Premature pessimization. Use the cheapest boundary that matches the threat model. Hardening later is a manifest edit, not a rebuild.',
+  },
+  {
+    pattern: '"Sandflox is just the Mac equivalent of Docker."',
+    why: 'Different layers. Sandflox is Layer 2 enforcement; Docker is Layer 2 too but heavier and not Mac-native. The Flox env you put inside either is Layer 1.',
+  },
+];
+---
+
+<LandingPage
+  title="Caro on Flox | Reproducible Coder Agents, Any Boundary"
+  description="Run isolated coder agents with caro inside a Flox env. Same reproducible environment across macOS sandbox, container, and VM. Boundary and env are independent choices."
+  slug="use-cases/flox"
+  persona="Developers and SREs running isolated coder agents"
+  painPoint="Reproducible env that survives every boundary"
+>
+  <Navigation variant="use-cases" currentPage="flox" />
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">Flox + Caro</div>
+      <h1>Reproducible Coder Agents.<br />Any Boundary.</h1>
+      <p class="subtitle">
+        Caro keeps every shell command safe. Flox keeps every environment
+        reproducible. Together they let you run an isolated coder agent
+        inside a Mac sandbox today and a hardened VM next quarter — without
+        rebuilding the env in between.
+      </p>
+
+      <div class="key-stats">
+        <div class="stat">
+          <span class="stat-number">3</span>
+          <span class="stat-label">Independent layers</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">1</span>
+          <span class="stat-label">Manifest, every boundary</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">0</span>
+          <span class="stat-label">Dockerfile drift</span>
+        </div>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="#try-it" class="cta-button primary">Try the Flox env</a>
+        <a href="#layers" class="cta-button secondary">See the three layers</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Three layers -->
+  <section id="layers" class="layers-section">
+    <div class="container">
+      <h2>Three Layers. Pick Each on Its Own Merits.</h2>
+      <p class="section-subtitle">
+        The mistake people make with coder-agent isolation is conflating
+        <em>boundary</em> and <em>environment</em>. They are separate
+        choices. Caro is a third, independent layer below both.
+      </p>
+
+      <div class="layers-stack">
+        {layers.map((layer) => (
+          <div class="layer-card" style={`--layer-color: ${layer.color}`}>
+            <div class="layer-n">L{layer.n}</div>
+            <div class="layer-body">
+              <div class="layer-head">
+                <span class="layer-icon">{layer.icon}</span>
+                <div>
+                  <h3>{layer.name}</h3>
+                  <p class="layer-owner">Owned by: {layer.owner}</p>
+                </div>
+              </div>
+              <p class="layer-desc">{layer.description}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p class="layers-note">
+        Read top to bottom: every command the agent emits passes through
+        caro (L3); the process runs inside whichever boundary you chose
+        (L2); the binaries it can invoke are exactly the ones the Flox
+        env (L1) installed.
+      </p>
+    </div>
+  </section>
+
+  <!-- Jobs -->
+  <section class="jobs-section">
+    <div class="container">
+      <h2>Jobs Flox + Caro Does</h2>
+      <p class="section-subtitle">What you hire this combination to do</p>
+
+      <div class="jobs-grid">
+        {jobs.map((job) => (
+          <a href={`#${job.id}`} class="job-card">
+            <div class="job-header">
+              <h3>{job.title}</h3>
+              <div class="job-meta">
+                <span class="pain-badge">Pain: {job.painLevel}</span>
+                <span class="freq-badge">{job.frequency}</span>
+              </div>
+            </div>
+            <p>{job.description}</p>
+            <p class="job-trigger"><strong>Trigger:</strong> {job.trigger}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Boundary picker -->
+  <section class="boundaries-section">
+    <div class="container">
+      <h2>Picking the Right Boundary</h2>
+      <p class="section-subtitle">
+        Lightest to strongest. Same Flox env runs in all three.
+      </p>
+
+      <div class="boundaries-grid">
+        {boundaries.map((b) => (
+          <div class="boundary-card">
+            <div class="boundary-head">
+              <span class="boundary-icon">{b.icon}</span>
+              <div>
+                <h3>{b.name}</h3>
+                <p class="boundary-fullname">{b.fullName}</p>
+              </div>
+            </div>
+            <dl class="boundary-attrs">
+              <dt>Speed</dt><dd>{b.speed}</dd>
+              <dt>Strength</dt><dd>{b.strength}</dd>
+              <dt>Platform</dt><dd>{b.platform}</dd>
+            </dl>
+            <p class="boundary-best"><strong>Best for:</strong> {b.bestFor}</p>
+            <p class="boundary-upstream"><code>{b.upstream}</code></p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Try it -->
+  <section id="try-it" class="try-section">
+    <div class="container">
+      <h2>Try It on Caro's Own Env</h2>
+      <p class="section-subtitle">
+        Caro ships a Flox manifest for its own build environment. Activate
+        it, build the project, then drop the same manifest into your
+        favorite boundary.
+      </p>
+
+      <div class="try-grid">
+        <div class="try-step">
+          <span class="step-n">1</span>
+          <h3>Install Flox</h3>
+          <pre class="terminal-block"><code>brew install flox</code></pre>
+          <p>See <a href="https://flox.dev/docs/install-flox/">flox.dev/docs/install-flox</a> for Linux and other platforms.</p>
+        </div>
+
+        <div class="try-step">
+          <span class="step-n">2</span>
+          <h3>Clone and activate</h3>
+          <pre class="terminal-block"><code>git clone https://github.com/wildcard/caro
+cd caro
+flox activate</code></pre>
+          <p>The first activation resolves the manifest at <code>.flox/env/manifest.toml</code> and pins it to <code>.flox/env/manifest.lock</code>.</p>
+        </div>
+
+        <div class="try-step">
+          <span class="step-n">3</span>
+          <h3>Build inside the env</h3>
+          <pre class="terminal-block"><code>cargo check --no-default-features --features embedded-cpu</code></pre>
+          <p>No rustup-on-host required, no system openssl required. Whatever you build is exactly what every other contributor builds.</p>
+        </div>
+
+        <div class="try-step">
+          <span class="step-n">4</span>
+          <h3>Add a boundary</h3>
+          <pre class="terminal-block"><code># macOS: kernel sandbox, native speed
+sandflox flox activate
+
+# Container: cross-platform, no Dockerfile drift
+flox containerize</code></pre>
+          <p>The Flox env is the same. Only the enforcement layer changed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Anti-patterns -->
+  <section class="anti-section">
+    <div class="container">
+      <h2>Anti-Patterns to Avoid</h2>
+      <p class="section-subtitle">Things we have heard people say. None of them hold up.</p>
+
+      <div class="anti-list">
+        {antiPatterns.map((a) => (
+          <div class="anti-card">
+            <div class="anti-pattern">
+              <span class="anti-icon">⚠️</span>
+              <span class="anti-text">{a.pattern}</span>
+            </div>
+            <div class="anti-why">
+              <span class="why-icon">🔍</span>
+              <span class="why-text">{a.why}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Future packaging -->
+  <section class="packages-section">
+    <div class="container">
+      <h2>Coming Soon: Two Flox Packages</h2>
+      <p class="section-subtitle">
+        We are working with the Flox team to publish caro into the Flox
+        catalog. The split mirrors how the tool is used.
+      </p>
+
+      <div class="packages-grid">
+        <div class="package-card">
+          <div class="package-icon">⚙️</div>
+          <h3><code>caro</code></h3>
+          <p>The Rust binary. Drop it into any Flox env to give an agent a safe command-generation layer.</p>
+        </div>
+        <div class="package-card">
+          <div class="package-icon">🧠</div>
+          <h3><code>caro-skill</code></h3>
+          <p>The Claude Code skill bundle from <code>.claude/skills/caro-shell/</code>. Pair it with a Flox env that ships <code>claude-code</code> for a complete isolated coder agent.</p>
+        </div>
+      </div>
+
+      <p class="packages-note">
+        Tracking issue: <a href="https://github.com/wildcard/caro/issues">github.com/wildcard/caro/issues</a>.
+        Today you can pin caro's GitHub release URL in your own Flox manifest;
+        see <a href="https://github.com/wildcard/caro/tree/main/flox/README.md"><code>flox/README.md</code></a> for the pattern.
+      </p>
+    </div>
+  </section>
+
+  <!-- See also -->
+  <section class="seealso-section">
+    <div class="container">
+      <h2>Read More</h2>
+      <div class="seealso-grid">
+        <a href="https://flox.dev/" class="seealso-card">
+          <span class="seealso-icon">🌐</span>
+          <span class="seealso-title">flox.dev</span>
+          <span class="seealso-desc">The Flox project</span>
+        </a>
+        <a href="https://github.com/flox/sandflox" class="seealso-card">
+          <span class="seealso-icon">🍎</span>
+          <span class="seealso-title">flox/sandflox</span>
+          <span class="seealso-desc">macOS kernel sandbox for AI agents</span>
+        </a>
+        <a href="/use-cases/air-gapped" class="seealso-card">
+          <span class="seealso-icon">🔐</span>
+          <span class="seealso-title">Air-gapped use case</span>
+          <span class="seealso-desc">Caro without any network at all</span>
+        </a>
+        <a href="https://github.com/wildcard/caro/blob/main/.claude/rules/coder-agent-isolation.md" class="seealso-card">
+          <span class="seealso-icon">📜</span>
+          <span class="seealso-title">Isolation rule</span>
+          <span class="seealso-desc">The three-layer doctrine, in full</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <LPDownload />
+  <LPFooter />
+</LandingPage>
+
+<style>
+  .hero {
+    padding: 100px 20px 80px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    color: #06b6d4;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  h1 {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--color-text);
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--color-text-secondary);
+    max-width: 760px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+
+  .key-stats {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    margin-bottom: 40px;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .stat-number {
+    font-size: 48px;
+    font-weight: 700;
+    color: #06b6d4;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-top: 8px;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 16px 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .cta-button.primary {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    color: white;
+  }
+
+  .cta-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
+  }
+
+  .cta-button.secondary {
+    background: transparent;
+    border: 2px solid #06b6d4;
+    color: #06b6d4;
+  }
+
+  h2 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    margin-bottom: 50px;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Layers stack */
+  .layers-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .layers-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .layer-card {
+    display: flex;
+    gap: 24px;
+    align-items: stretch;
+    padding: 24px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border-left: 4px solid var(--layer-color);
+    border-top: 1px solid var(--color-border);
+    border-right: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .layer-n {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--layer-color);
+    align-self: center;
+    min-width: 56px;
+  }
+
+  .layer-body {
+    flex: 1;
+  }
+
+  .layer-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .layer-icon {
+    font-size: 28px;
+  }
+
+  .layer-head h3 {
+    font-size: 20px;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .layer-owner {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin: 2px 0 0;
+  }
+
+  .layer-desc {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .layers-note {
+    text-align: center;
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    margin-top: 32px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    font-style: italic;
+  }
+
+  /* Jobs */
+  .jobs-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .job-card {
+    padding: 28px;
+    border-radius: 12px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .job-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+
+  .job-card h3 {
+    font-size: 18px;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .job-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .pain-badge {
+    font-size: 11px;
+    color: #ef4444;
+    font-weight: 600;
+  }
+
+  .freq-badge {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .job-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .job-trigger {
+    font-size: 13px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* Boundaries */
+  .boundaries-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .boundaries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .boundary-card {
+    padding: 28px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+  }
+
+  .boundary-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .boundary-icon {
+    font-size: 32px;
+  }
+
+  .boundary-head h3 {
+    font-size: 20px;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .boundary-fullname {
+    font-size: 13px;
+    color: #06b6d4;
+    margin: 2px 0 0;
+  }
+
+  .boundary-attrs {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 16px;
+    font-size: 13px;
+    margin: 0 0 16px;
+  }
+
+  .boundary-attrs dt {
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+
+  .boundary-attrs dd {
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .boundary-best {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 0 0 12px;
+  }
+
+  .boundary-upstream {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .boundary-upstream code {
+    background: rgba(6, 182, 212, 0.1);
+    color: #06b6d4;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'SF Mono', monospace;
+  }
+
+  /* Try-it grid */
+  .try-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .try-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .try-step {
+    padding: 24px;
+    border-radius: 12px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+  }
+
+  .step-n {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #06b6d4;
+    color: white;
+    font-weight: 700;
+    text-align: center;
+    line-height: 32px;
+    margin-bottom: 12px;
+  }
+
+  .try-step h3 {
+    font-size: 18px;
+    color: var(--color-text);
+    margin: 0 0 12px;
+  }
+
+  .try-step p {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 12px 0 0;
+  }
+
+  .try-step a {
+    color: #06b6d4;
+    text-decoration: none;
+  }
+
+  .try-step a:hover {
+    text-decoration: underline;
+  }
+
+  .terminal-block {
+    background: #1a1a2e;
+    color: #d4d4d4;
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-family: 'SF Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 0;
+  }
+
+  .terminal-block code {
+    color: #9cdcfe;
+    background: transparent;
+    padding: 0;
+  }
+
+  /* Anti-patterns */
+  .anti-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .anti-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .anti-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .anti-pattern, .anti-why {
+    padding: 20px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .anti-pattern {
+    background: rgba(239, 68, 68, 0.05);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .anti-icon, .why-icon { font-size: 18px; flex-shrink: 0; }
+
+  .anti-text {
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 15px;
+  }
+
+  .anti-why {
+    background: rgba(6, 182, 212, 0.05);
+  }
+
+  .why-text {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Packages */
+  .packages-section {
+    padding: 80px 20px;
+    background: var(--color-bg-secondary);
+  }
+
+  .packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .package-card {
+    padding: 28px;
+    border-radius: 12px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+  }
+
+  .package-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .package-card h3 {
+    font-size: 20px;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+
+  .package-card code {
+    background: rgba(6, 182, 212, 0.1);
+    color: #06b6d4;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+
+  .package-card p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .packages-note {
+    text-align: center;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  .packages-note a {
+    color: #06b6d4;
+    text-decoration: none;
+  }
+
+  .packages-note a:hover {
+    text-decoration: underline;
+  }
+
+  /* See also */
+  .seealso-section {
+    padding: 80px 20px;
+    background: var(--color-bg);
+  }
+
+  .seealso-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .seealso-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 20px;
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .seealso-card:hover {
+    border-color: #06b6d4;
+    transform: translateY(-2px);
+  }
+
+  .seealso-icon { font-size: 24px; }
+  .seealso-title { font-weight: 600; font-size: 15px; }
+  .seealso-desc { font-size: 13px; color: var(--color-text-secondary); }
+
+  @media (max-width: 768px) {
+    h1 { font-size: 36px; }
+    h2 { font-size: 28px; }
+
+    .key-stats {
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .stat-number { font-size: 36px; }
+
+    .layer-card { flex-direction: column; gap: 12px; }
+    .layer-n { align-self: flex-start; }
+  }
+</style>
