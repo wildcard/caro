@@ -465,20 +465,20 @@ impl SafetyValidator {
         // DIFFERENT command (`rm -rf /tmp/x | echo /` must stay blessable);
         // any rm after a separator is matched as its own statement via the
         // head.
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?/+(?:\.|\*)?['"]?(?:\s|$)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?~/?(?:\s|$|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?\$HOME['"]?(?:\s|$|/|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?\.\.?/?['"]?(?:\s|$|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?\*(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?/+(?:\.|\*)?['"]?(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?~/?(?:\s|$|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?\$HOME['"]?(?:\s|$|/|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?\.\.?/?['"]?(?:\s|$|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?\*(?:\s|$)"#,
         // ── System-directory recursive delete ────────────────────────────────
         // Top-level system dirs whose loss is unrecoverable. Anchored with a
         // trailing boundary that allows `/etc`, `/etc/`, `/etc/*` but NOT
         // `/etc/foo` — and crucially NOT `/var/tmp/...` (a specific subpath).
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?(?:/(?:etc|usr|bin|sbin|lib|lib64|boot|var|sys|proc|dev|root|home|opt|srv|System|Library))(?:/\*?)?['"]?(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?(?:/(?:etc|usr|bin|sbin|lib|lib64|boot|var|sys|proc|dev|root|home|opt|srv|System|Library))(?:/\*?)?['"]?(?:\s|$)"#,
         // Windows drive root recursive delete (WSL / git-bash). Requires a
         // recursive flag somewhere before the drive-root target; other tokens
         // (including earlier targets) may sit between them.
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*-\S*r\S*\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?[A-Za-z]:[\\/]"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*-\S*r\S*\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?[A-Za-z]:[\\/]"#,
         // ── Explicit root-protection bypass — always catastrophic ────────────
         r"--no-preserve-root",
         // ── Whole-disk / device destruction ──────────────────────────────────
@@ -1236,6 +1236,12 @@ mod allowlist_catastrophic_tests {
             "rm -rf foo';'bar /etc",
             "rm -rf foo\\;bar /etc",
             "rm -rf a\\ b /",
+            // Escaped quote INSIDE a double-quoted token, and backslash-
+            // newline line continuation (cubic finding, round 4): both are
+            // single-rm invocations in bash whose final target is
+            // catastrophic
+            "rm -rf \"a\\\";b\" /",
+            "rm -rf /tmp \\\n /",
             // Compound statements: the catastrophic rm after the separator is
             // its own statement and trips the floor via the head anchor
             "rm -rf /tmp/cache; rm -rf /",
