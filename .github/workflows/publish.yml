@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'v*'
+  # Dispatch AT a tag ref (gh workflow run publish.yml --ref vX.Y.Z) for
+  # tags created by the Tag Release workflow: GITHUB_TOKEN-pushed tags do
+  # not fire the push trigger (recursion prevention). GITHUB_REF is then
+  # refs/tags/vX.Y.Z, so the version-consistency check works unchanged.
+  workflow_dispatch:
 
 permissions:
   contents: read

@@ -1,0 +1,75 @@
+name: Tag Release
+
+# Creates and pushes an annotated release tag from CI, for environments
+# (remote agent sessions, restricted tokens) that can merge release PRs
+# but cannot push tag refs directly.
+#
+# NOTE: a tag pushed with GITHUB_TOKEN does NOT trigger the tag-push
+# `Publish to crates.io` workflow (GitHub recursion prevention). After
+# this workflow succeeds, dispatch `publish.yml` at the new tag ref:
+#   gh workflow run publish.yml --ref <tag>
+# `release.yml` then chains via workflow_run as usual.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to create (e.g. v1.5.0)'
+        required: true
+        type: string
+      sha:
+        description: 'Commit SHA to tag (must be on main)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    name: Create release tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.sha }}
+          fetch-depth: 0
+
+      - name: Validate tag against Cargo.toml and main
+        env:
+          TAG: ${{ inputs.tag }}
+          SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          case "$TAG" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "::error::Tag '$TAG' does not look like vX.Y.Z"; exit 1 ;;
+          esac
+          VERSION="${TAG#v}"
+          CARGO_VERSION=$(grep -m1 '^version = ' Cargo.toml | cut -d'"' -f2)
+          if [ "$VERSION" != "$CARGO_VERSION" ]; then
+            echo "::error::Tag version ($VERSION) does not match Cargo.toml at $SHA ($CARGO_VERSION)"
+            exit 1
+          fi
+          git fetch origin main --quiet
+          if ! git merge-base --is-ancestor "$SHA" origin/main; then
+            echo "::error::$SHA is not an ancestor of main"
+            exit 1
+          fi
+          if git ls-remote --exit-code origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag $TAG already exists on origin"
+            exit 1
+          fi
+
+      - name: Create and push annotated tag
+        env:
+          TAG: ${{ inputs.tag }}
+          SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "$TAG" "$SHA"
+          git push origin "refs/tags/$TAG"
+          echo "Created and pushed $TAG at $SHA"
