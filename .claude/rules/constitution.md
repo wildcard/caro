@@ -37,17 +37,21 @@ These rules govern how code is written, reviewed, and released.
    First PR for any non-trivial external SDK is a build-spike (license,
    MSRV, optional feature flag, code-ref smoke, two verification builds);
    architecture lands only after the spike merges green.
+7. **[feature-evidence.md](./feature-evidence.md)** — Every feature PR
+   carries evidence (green CI run link), a runnable demo, and a named
+   regression-guard test; the Monday planning routine compiles merged
+   demos into `docs/demos/<date>-weekly-demo.md`.
 
 ## Tier 3 — Workflow hygiene
 
 These rules govern session ergonomics and surface-level conventions. They
 yield to anything in Tier 1 or Tier 2.
 
-7. **[good-boy-scout.md](./good-boy-scout.md)** — Leave code better than you
+8. **[good-boy-scout.md](./good-boy-scout.md)** — Leave code better than you
    found it; do not gold-plate.
-8. **[quick-actions-footer.md](./quick-actions-footer.md)** — Append a
+9. **[quick-actions-footer.md](./quick-actions-footer.md)** — Append a
    Quick-Actions footer when stopping for user input.
-9. **[astro-esbuild-shell-syntax.md](./astro-esbuild-shell-syntax.md)** —
+10. **[astro-esbuild-shell-syntax.md](./astro-esbuild-shell-syntax.md)** —
    Escape `{` in shell snippets inside `.astro` / `.jsx` / `.tsx` templates
    (esbuild treats it as a JSX expression boundary).
 
