@@ -322,6 +322,41 @@ async fn test_allowlist_functionality() {
 }
 
 #[tokio::test]
+async fn test_allowlist_cannot_escape_safe_root_via_traversal_or_glob() {
+    // Defense in depth (caro-qknc layered over #1246): even with a broad `/tmp`
+    // allowlist, a command that only *appears* to target `/tmp` but resolves
+    // outside it must stay blocked. #1246's catastrophic-location floor is a
+    // string denylist and misses these; the scoped-safe path resolver catches
+    // them by normalizing `..` and canonicalizing symlinks.
+    let mut config = SafetyConfig::strict();
+    config.add_allowlist_pattern(r"^rm -rf /tmp/"); // broad, trusting temp cleanup
+
+    let validator = SafetyValidator::new(config).unwrap();
+
+    for escape in [
+        "rm -rf /tmp/../etc",    // traversal -> /etc
+        "rm -rf /tmp/../../usr", // deeper traversal
+        "rm -rf /tmp/*/x",       // glob over a (potentially symlinked) dir
+    ] {
+        let r = validator
+            .validate_command(escape, ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(
+            !r.allowed,
+            "escape must stay blocked despite the /tmp allowlist: {escape}"
+        );
+    }
+
+    // The legitimately scoped deletion still passes (the feature still works).
+    let ok = validator
+        .validate_command("rm -rf /tmp/myapp_123", ShellType::Bash)
+        .await
+        .unwrap();
+    assert!(ok.allowed, "scoped temp deletion should be allowed");
+}
+
+#[tokio::test]
 async fn test_validation_performance() {
     // CONTRACT: Validation should be fast (<100ms for typical commands)
     let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();

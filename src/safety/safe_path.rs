@@ -8,6 +8,14 @@
 //! `rm -rf /etc`, traversal/symlink escapes, and anything ambiguous stay blocked.
 //!
 //! Design + threat model: `.claude/beta-testing/threats/path-aware-allowlist.md`.
+//!
+//! Scope caveat: the safety guarantee is evaluated at *check* time, not *use*
+//! time. A local attacker who plants a symlink into a world-writable safe root
+//! (e.g. `/tmp`) between validation and the `rm` could still redirect a
+//! not-yet-existing target (a check-then-use / TOCTOU race). The classifier
+//! closes the far more reachable *static* escapes (traversal, symlinked dirs,
+//! glob-masked symlinks); the residual race is inherent to validating a command
+//! string rather than performing the deletion atomically.
 
 use std::path::{Component, Path, PathBuf};
 
@@ -105,6 +113,18 @@ pub fn is_scoped_safe_deletion(command: &str, roots: &[PathBuf], cwd: &Path) -> 
 }
 
 fn target_in_safe_root(target: &str, roots: &[PathBuf], cwd: &Path) -> bool {
+    // A glob may appear ONLY in the final path component. A glob in a
+    // non-final component (e.g. `/tmp/*/x`) is fail-closed rejected: the shell
+    // expands it and `rm` follows the expanded directory *through* a symlink,
+    // but the classifier only sees the literal (non-existent) pattern, so the
+    // symlink canonicalization below never runs on it — a real escape
+    // (`/tmp/link -> /etc` ⇒ `/tmp/*/x` deletes `/etc/x`). A *leaf* glob is
+    // safe because `rm` unlinks a matched symlink operand rather than
+    // recursing through it. See aegis review, caro-qknc.
+    if !glob_position_ok(target) {
+        return false;
+    }
+
     let raw = Path::new(target);
     let joined = if raw.is_absolute() {
         raw.to_path_buf()
@@ -126,6 +146,31 @@ fn target_in_safe_root(target: &str, roots: &[PathBuf], cwd: &Path) -> bool {
     // Hybrid (D2): if the path or its nearest existing ancestor exists,
     // canonicalize to catch symlink escapes (e.g. /tmp/link -> /etc).
     canonical_still_safe(&norm, roots)
+}
+
+/// Glob metacharacters that the shell expands (and whose expansion can follow
+/// symlinks for directory components).
+const GLOB_CHARS: &[char] = &['*', '?', '[', ']'];
+
+/// A glob is permitted ONLY in the final path component and never with a
+/// trailing slash (which forces directory semantics on a symlinked match).
+/// Everything else with a glob is rejected fail-closed.
+fn glob_position_ok(target: &str) -> bool {
+    if !target.contains(GLOB_CHARS) {
+        return true; // concrete path — symlink handling is done via canonicalize
+    }
+    if target.ends_with('/') {
+        return false; // glob + trailing slash → directory semantics on a match
+    }
+    let comps: Vec<Component> = Path::new(target).components().collect();
+    if comps.is_empty() {
+        return false;
+    }
+    // No glob char may appear in any component before the last.
+    comps[..comps.len() - 1].iter().all(|c| match c {
+        Component::Normal(seg) => !seg.to_string_lossy().contains(GLOB_CHARS),
+        _ => true,
+    })
 }
 
 /// Resolve `.` and `..` lexically without touching the filesystem. Glob chars
@@ -286,6 +331,65 @@ mod tests {
     fn blocks_glob_escape() {
         assert!(!is_scoped_safe_deletion(
             "rm -rf /tmp/../*",
+            &roots(),
+            &cwd()
+        ));
+    }
+
+    // ---- T4∘T5 composition: non-final glob masks a symlinked dir --------
+    // Regression for the aegis-confirmed bypass: `/tmp/*/x` validates the
+    // literal (non-existent) pattern, so canonicalization never resolves the
+    // symlink the shell expands `*` into.
+    #[test]
+    fn blocks_non_final_glob() {
+        for cmd in [
+            "rm -rf /tmp/*/x",
+            "rm -rf /tmp/a*/x",
+            "rm -rf /tmp/*/passwd",
+            "rm -rf /tmp/*/",  // trailing slash on glob
+            "rm -rf /tmp/?/x", // ? in non-final component
+        ] {
+            assert!(!is_scoped_safe_deletion(cmd, &roots(), &cwd()), "{cmd}");
+        }
+    }
+
+    // Real-filesystem proof: with a symlink `<tmp>/link -> /etc`, the literal
+    // `<tmp>/link/x` is (correctly) rejected AND the glob form `<tmp>/*/x`
+    // must be too — both denote the same escaping deletion.
+    #[test]
+    fn blocks_glob_over_symlinked_dir_on_real_fs() {
+        let base = std::env::temp_dir().join(format!("caro_qknc_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(&base).unwrap();
+        #[cfg(unix)]
+        std::os::unix::fs::symlink("/etc", base.join("link")).unwrap();
+        let roots = vec![base.clone()];
+        let cwd = std::env::current_dir().unwrap();
+
+        let literal = format!("rm -rf {}/link/x", base.display());
+        let globbed = format!("rm -rf {}/*/x", base.display());
+        assert!(
+            !is_scoped_safe_deletion(&literal, &roots, &cwd),
+            "literal symlink escape"
+        );
+        assert!(
+            !is_scoped_safe_deletion(&globbed, &roots, &cwd),
+            "glob-masked symlink escape"
+        );
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn leaf_glob_still_allowed() {
+        // The intended feature: a glob only in the final component.
+        assert!(is_scoped_safe_deletion(
+            "rm -rf /tmp/myapp_*",
+            &roots(),
+            &cwd()
+        ));
+        assert!(is_scoped_safe_deletion(
+            "rm -rf /tmp/build_?",
             &roots(),
             &cwd()
         ));

@@ -1,6 +1,6 @@
 # Caro as a Company
 
-**Last Updated**: 2026-05-25
+**Last Updated**: 2026-07-12
 **Companion docs**: [`MISSION.md`](./MISSION.md) (values),
 [`playbook/STAGE_MAP.md`](./playbook/STAGE_MAP.md) (where we are),
 [`docs/PITCH_DECK.md`](./docs/PITCH_DECK.md) (long-form pitch)
@@ -99,6 +99,21 @@ outside this repo. What this document does commit to is that any
 funding choice must be compatible with the four "what we will not do"
 items above. If a term sheet would require closing the safety patterns,
 the term sheet loses.
+
+## Decision log
+
+Strategic decisions made while routing around normal review (per
+`validation-discipline.md`, these get recorded so the next
+decision-maker inherits the reasoning):
+
+- **2026-07-12 — v1.5.0 now; v2.0.0 stays gated; autonomous-ops
+  protocol.** With the owner preoccupied, an autonomous session chose
+  to ship two months of unreleased work as a semver-honest v1.5.0
+  rather than a hollow "v2.0.0 - Distributed Autonomy" (whose 5
+  defining features are all at 0/20 discovery transcripts), and
+  codified the evidence/demo/regression-guard requirement for every
+  feature PR. Full record with alternatives:
+  [`docs/decisions/2026-07-12-autonomous-mode-release-scope.md`](./docs/decisions/2026-07-12-autonomous-mode-release-scope.md).
 
 ## How to contribute to "the company part"
 

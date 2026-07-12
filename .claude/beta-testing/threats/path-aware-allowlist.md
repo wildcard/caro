@@ -79,3 +79,22 @@ BLOCKED regardless of allowlist (T1–T7):
 
 No-regression: with `allow_delete_paths=[]` (default), every existing safety test
 passes unchanged.
+
+## Security review (aegis, caro-qknc) — findings & resolution
+
+- **CONFIRMED bypass (fixed):** `rm -rf /tmp/*/x` with a planted `/tmp/link -> /etc`.
+  A glob in a **non-final** component means the literal `/tmp/*/x` doesn't exist,
+  so `canonical_still_safe` anchored at `/tmp` and never resolved the symlink —
+  but the shell expands `*` into `/tmp/link` and `rm` follows it to `/etc/x`
+  (composition of T4∘T5). Resolution: `glob_position_ok` rejects any glob outside
+  the final component and any glob with a trailing slash; leaf globs
+  (`/tmp/myapp_*`) stay allowed because `rm` unlinks a matched symlink *operand*
+  rather than recursing through it. Regression:
+  `blocks_non_final_glob` + `blocks_glob_over_symlinked_dir_on_real_fs`
+  (real symlink to `/etc`).
+- **TOCTOU (documented):** the guarantee is check-time, not use-time; a symlink
+  raced into a world-writable safe root after validation can still redirect a
+  not-yet-existing target. Inherent to string validation; noted in the module doc.
+- **Hardening (accepted, non-blocking, fail-closed):** `--` handling over-rejects
+  rather than under-rejects; `ends_with("/rm")` is loose but requires an
+  allowlist + planted binary. Left as-is to keep the surface minimal.

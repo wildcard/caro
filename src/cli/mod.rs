@@ -643,34 +643,37 @@ impl CliApp {
     ///
     /// Returns Ok(()) if valid, or a helpful error message if not.
     fn validate_backend_name(backend: &str) -> Result<(), CliError> {
-        const VALID_BACKENDS: &[&str] = &[
-            "embedded", "ollama", "exo", "vllm", "mesh", "ai-horde", "hybrid",
-        ];
+        // The accepted roster and the `--backend-info` table are driven by the
+        // same slice so the two user-facing surfaces cannot drift (#1115).
+        use crate::backends::CLI_SERVABLE_BACKENDS;
 
         let normalized = backend.to_lowercase();
-        if VALID_BACKENDS.contains(&normalized.as_str()) {
+        if CLI_SERVABLE_BACKENDS
+            .iter()
+            .any(|(name, _)| *name == normalized)
+        {
             return Ok(());
         }
 
         // Provide helpful error with suggestions
-        let suggestion = VALID_BACKENDS
+        let suggestion = CLI_SERVABLE_BACKENDS
             .iter()
-            .find(|&&v| v.starts_with(&normalized) || normalized.starts_with(v))
-            .map(|&v| format!(". Did you mean '{}'?", v))
+            .map(|(name, _)| *name)
+            .find(|v| v.starts_with(normalized.as_str()) || normalized.starts_with(v))
+            .map(|v| format!(". Did you mean '{}'?", v))
             .unwrap_or_default();
+
+        let available = CLI_SERVABLE_BACKENDS
+            .iter()
+            .map(|(name, note)| format!("  - {}: {}", name, note))
+            .collect::<Vec<_>>()
+            .join("\n");
 
         Err(CliError::InvalidArgument {
             message: format!(
-                "Unknown backend '{}'{}\n\nAvailable backends:\n  \
-                 - embedded: Local Qwen model (default, no setup required)\n  \
-                 - ollama: Ollama server (requires: ollama serve)\n  \
-                 - exo: Exo distributed cluster (requires: exo cluster)\n  \
-                 - vllm: vLLM HTTP API (requires: vllm server)\n  \
-                 - mesh: Mesh-LLM pooled mesh (requires: mesh node on :9337)\n  \
-                 - ai-horde: AI-Horde volunteer cluster (free, no setup; public)\n  \
-                 - hybrid: Local sanitizer + remote enhancer (PII-safe)\n\n\
+                "Unknown backend '{}'{}\n\nAvailable backends:\n{}\n\n\
                  Set via: --backend <name>, CARO_BACKEND env var, or config file",
-                backend, suggestion
+                backend, suggestion, available
             ),
         })
     }
@@ -699,8 +702,13 @@ impl CliApp {
     }
 
     /// Get list of available backend names
-    pub fn available_backends() -> &'static [&'static str] {
-        &["embedded", "ollama", "exo", "vllm"]
+    pub fn available_backends() -> Vec<&'static str> {
+        // Derived from the same source of truth as `validate_backend_name`
+        // and `--backend-info` so all three agree (#1115).
+        crate::backends::CLI_SERVABLE_BACKENDS
+            .iter()
+            .map(|(name, _)| *name)
+            .collect()
     }
 
     /// Run CLI with provided arguments
@@ -1158,6 +1166,33 @@ mod tests {
         assert!(backends.contains(&"ollama"));
         assert!(backends.contains(&"exo"));
         assert!(backends.contains(&"vllm"));
+    }
+
+    #[test]
+    fn test_validate_backend_name_matches_servable_roster() {
+        // Pins the acceptor to the single source of truth so the
+        // `--backend-info` table (which iterates the same slice) can never
+        // advertise a backend that `--backend <name>` rejects. This is the
+        // regression guard for issue #1115.
+        for (name, _note) in crate::backends::CLI_SERVABLE_BACKENDS {
+            assert!(
+                CliApp::validate_backend_name(name).is_ok(),
+                "advertised backend '{}' must be accepted by --backend",
+                name
+            );
+        }
+
+        // Enum variants that exist in `BackendType` but are NOT CLI-wired are
+        // intentionally rejected — advertising them was the #1115 bug. If a
+        // future PR wires one of these, add it to CLI_SERVABLE_BACKENDS (which
+        // updates every surface at once) rather than special-casing here.
+        for unwired in ["claude", "static", "openrouter", "mlx"] {
+            assert!(
+                CliApp::validate_backend_name(unwired).is_err(),
+                "'{}' is not CLI-wired yet and must not be silently accepted",
+                unwired
+            );
+        }
     }
 
     #[test]

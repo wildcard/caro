@@ -113,4 +113,21 @@ ignore = [
     # Risk accepted as upstream dependency with no available fix.
     # Also in deny.toml [advisories] ignore list.
     { id = "RUSTSEC-2023-0071", reason = "no fix available; LanceDB transitive dep; also in deny.toml" },
+
+    # -------------------------------------------------------------------------
+    # TRANSITIVE — quick-xml via LanceDB stack (fix is semver-major upstream)
+    # -------------------------------------------------------------------------
+
+    # RUSTSEC-2026-0194 / RUSTSEC-2026-0195: quick-xml 0.37.5 / 0.38.4 —
+    # quadratic duplicate-attribute check and unbounded namespace-declaration
+    # allocation (both DoS-class). Fix requires quick-xml >= 0.41.0, which is
+    # SemVer-incompatible with both pinned lines. Transitive via the LanceDB
+    # knowledge stack only (0.37.5: lance-io -> opendal -> reqsign; 0.38.4:
+    # datafusion -> object_store). These paths parse object-store/S3 API XML
+    # responses, not untrusted user input; worst case is a DoS of the optional
+    # knowledge feature, not the core CLI.
+    # Revert: when lancedb/opendal/object_store release against quick-xml 0.41+.
+    # Tracked: https://github.com/wildcard/caro/issues/1050
+    { id = "RUSTSEC-2026-0194", reason = "transitive via lancedb stack; fix is semver-major upstream; DoS-class only" },
+    { id = "RUSTSEC-2026-0195", reason = "transitive via lancedb stack; fix is semver-major upstream; DoS-class only" },
 ]

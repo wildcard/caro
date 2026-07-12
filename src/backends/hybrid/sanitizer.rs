@@ -173,7 +173,7 @@ impl SanitizeSession<'_> {
         // Replace longest placeholders first so `<REDACTED_FILEPATH_1>` does not
         // corrupt `<REDACTED_FILEPATH_11>`.
         let mut ordered: Vec<&Redaction> = self.entries.iter().collect();
-        ordered.sort_by(|a, b| b.placeholder.len().cmp(&a.placeholder.len()));
+        ordered.sort_by_key(|b| std::cmp::Reverse(b.placeholder.len()));
         let mut out = command.to_string();
         for r in ordered {
             out = out.replace(r.placeholder.as_str(), &r.original);
