@@ -457,26 +457,28 @@ impl SafetyValidator {
         // (flags AND earlier targets, including `--`), not just `-`-prefixed
         // flags: in a multi-target invocation like `rm -rf /tmp /` the
         // catastrophic `/` is the SECOND target, and a flags-only group would
-        // leave it unexamined (reviewer finding on #1246). Tokens are either
-        // quoted strings (so `rm -rf "a;b" /` can't hide its later target) or
-        // separator-free runs — the group deliberately STOPS at `;`/`|`/`&`,
-        // because an argument after a separator belongs to a DIFFERENT
-        // command (`rm -rf /tmp/x | echo /` must stay blessable); any rm
-        // after a separator is matched as its own statement via the head.
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?/+(?:\.|\*)?['"]?(?:\s|$)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?~/?(?:\s|$|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?\$HOME['"]?(?:\s|$|/|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?\.\.?/?['"]?(?:\s|$|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?\*(?:\s|$)"#,
+        // leave it unexamined (reviewer finding on #1246). A token is a run of
+        // plain characters, ESCAPED characters (`\;` — so `rm -rf a\;b /etc`
+        // can't hide its later target), or quoted segments (`"a;b"`,
+        // `foo';'bar`). The group deliberately STOPS at a bare `;`/`|`/`&`,
+        // because an argument after an unescaped separator belongs to a
+        // DIFFERENT command (`rm -rf /tmp/x | echo /` must stay blessable);
+        // any rm after a separator is matched as its own statement via the
+        // head.
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?/+(?:\.|\*)?['"]?(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?~/?(?:\s|$|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?\$HOME['"]?(?:\s|$|/|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?\.\.?/?['"]?(?:\s|$|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?\*(?:\s|$)"#,
         // ── System-directory recursive delete ────────────────────────────────
         // Top-level system dirs whose loss is unrecoverable. Anchored with a
         // trailing boundary that allows `/etc`, `/etc/`, `/etc/*` but NOT
         // `/etc/foo` — and crucially NOT `/var/tmp/...` (a specific subpath).
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?(?:/(?:etc|usr|bin|sbin|lib|lib64|boot|var|sys|proc|dev|root|home|opt|srv|System|Library))(?:/\*?)?['"]?(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?(?:/(?:etc|usr|bin|sbin|lib|lib64|boot|var|sys|proc|dev|root|home|opt|srv|System|Library))(?:/\*?)?['"]?(?:\s|$)"#,
         // Windows drive root recursive delete (WSL / git-bash). Requires a
         // recursive flag somewhere before the drive-root target; other tokens
         // (including earlier targets) may sit between them.
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*-\S*r\S*\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?[A-Za-z]:[\\/]"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*-\S*r\S*\s+(?:(?:[^\s;&|"'\\]|\\.|"[^"]*"|'[^']*')+\s+)*['"]?[A-Za-z]:[\\/]"#,
         // ── Explicit root-protection bypass — always catastrophic ────────────
         r"--no-preserve-root",
         // ── Whole-disk / device destruction ──────────────────────────────────
@@ -1227,6 +1229,13 @@ mod allowlist_catastrophic_tests {
             // A quoted token containing a separator must not hide a later
             // catastrophic target of the same rm statement
             "rm -rf \"a;b\" /",
+            // Escaped and mixed-quote separators inside a token likewise
+            // (cubic finding, round 3): the token is one rm argument, and the
+            // catastrophic target after it must still be examined
+            "rm -rf /tmp\\;staging /etc",
+            "rm -rf foo';'bar /etc",
+            "rm -rf foo\\;bar /etc",
+            "rm -rf a\\ b /",
             // Compound statements: the catastrophic rm after the separator is
             // its own statement and trips the floor via the head anchor
             "rm -rf /tmp/cache; rm -rf /",
@@ -1393,6 +1402,8 @@ mod allowlist_catastrophic_tests {
             "rm -rf -- /",
             "rm -rf /tmp /",
             "rm -rf /tmp/scratch /etc",
+            "rm -rf /tmp\\;staging /etc",
+            "rm -rf foo';'bar /etc",
         ];
         for cmd in must_stay_blocked {
             let result = validator
