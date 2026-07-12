@@ -441,7 +441,7 @@ impl SafetyValidator {
         // NOTE on anchoring: the destructive *verb* in every command-initiating
         // pattern is anchored to a statement boundary — start-of-string, a shell
         // separator (`;`, `|`, `&`, newline), or a `sudo`/`doas` prefix — via the
-        // shared `(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)` head. This is what keeps the
+        // shared `(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)` head. This is what keeps the
         // floor from firing on `echo 'rm -rf /'` (the `rm` there is preceded by a
         // quote, not a separator) while still catching `sudo rm -rf /` and
         // `foo; rm -rf /`. The floor uses plain `is_match` (see
@@ -465,20 +465,20 @@ impl SafetyValidator {
         // DIFFERENT command (`rm -rf /tmp/x | echo /` must stay blessable);
         // any rm after a separator is matched as its own statement via the
         // head.
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?/+(?:\.|\*)?['"]?(?:\s|$)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?~/?(?:\s|$|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?\$HOME['"]?(?:\s|$|/|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?\.\.?/?['"]?(?:\s|$|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?\*(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?/+(?:\.|\*)?['"]?(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?~/?(?:\s|$|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?\$HOME['"]?(?:\s|$|/|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?\.\.?/?['"]?(?:\s|$|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?\*(?:\s|$)"#,
         // ── System-directory recursive delete ────────────────────────────────
         // Top-level system dirs whose loss is unrecoverable. Anchored with a
         // trailing boundary that allows `/etc`, `/etc/`, `/etc/*` but NOT
         // `/etc/foo` — and crucially NOT `/var/tmp/...` (a specific subpath).
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?(?:/(?:etc|usr|bin|sbin|lib|lib64|boot|var|sys|proc|dev|root|home|opt|srv|System|Library))(?:/\*?)?['"]?(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?(?:/(?:etc|usr|bin|sbin|lib|lib64|boot|var|sys|proc|dev|root|home|opt|srv|System|Library))(?:/\*?)?['"]?(?:\s|$)"#,
         // Windows drive root recursive delete (WSL / git-bash). Requires a
         // recursive flag somewhere before the drive-root target; other tokens
         // (including earlier targets) may sit between them.
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*-\S*r\S*\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?[A-Za-z]:[\\/]"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*-\S*r\S*\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?[A-Za-z]:[\\/]"#,
         // ── Explicit root-protection bypass — always catastrophic ────────────
         r"--no-preserve-root",
         // ── Whole-disk / device destruction ──────────────────────────────────
@@ -1242,6 +1242,12 @@ mod allowlist_catastrophic_tests {
             // catastrophic
             "rm -rf \"a\\\";b\" /",
             "rm -rf /tmp \\\n /",
+            // Privilege wrappers with options (cubic finding, round 5): the
+            // wrapper head must consume option tokens before rm
+            "sudo -n rm -rf /",
+            "sudo -u root rm -rf /etc",
+            "sudo -- rm -rf /",
+            "doas -u root rm -rf ~",
             // Compound statements: the catastrophic rm after the separator is
             // its own statement and trips the floor via the head anchor
             "rm -rf /tmp/cache; rm -rf /",
@@ -1410,6 +1416,7 @@ mod allowlist_catastrophic_tests {
             "rm -rf /tmp/scratch /etc",
             "rm -rf /tmp\\;staging /etc",
             "rm -rf foo';'bar /etc",
+            "sudo -n rm -rf /",
         ];
         for cmd in must_stay_blocked {
             let result = validator
