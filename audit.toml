@@ -113,4 +113,22 @@ ignore = [
     # Risk accepted as upstream dependency with no available fix.
     # Also in deny.toml [advisories] ignore list.
     { id = "RUSTSEC-2023-0071", reason = "no fix available; LanceDB transitive dep; also in deny.toml" },
+
+    # RUSTSEC-2026-0194: quick-xml quadratic runtime checking a start tag for
+    # duplicate attribute names (DoS on malicious XML).
+    # RUSTSEC-2026-0195: quick-xml unbounded namespace-declaration allocation
+    # in NsReader (memory-exhaustion DoS on malicious XML).
+    # Both present as quick-xml 0.37.5 (via reqsign -> opendal -> lance-io) and
+    # 0.38.4 (via object_store -> datafusion -> lance-geo), i.e. the LanceDB
+    # knowledge/chromadb optional feature. The fixed release (>= 0.41.0) is a
+    # cross-minor 0.x break; the parent crates pin 0.37/0.38, so cargo cannot
+    # resolve 0.41 and a [patch] override does not compile against those parents.
+    # Exposure: the affected path is quick-xml parsing of XML responses from a
+    # REMOTE object store (S3/GCS/Azure). caro's LanceDB usage is local, on-disk
+    # vector storage, so the remote-object-store XML parser is not reached at
+    # runtime. DoS-only (no RCE / memory-safety).
+    # Revert: when lancedb / object_store / reqsign bump quick-xml to >= 0.41.
+    # Tracked: caro-xk0.106
+    { id = "RUSTSEC-2026-0194", reason = "quick-xml DoS via remote object-store XML; local LanceDB path unreached; parents pin 0.37/0.38, no compatible fix" },
+    { id = "RUSTSEC-2026-0195", reason = "quick-xml DoS via remote object-store XML; local LanceDB path unreached; parents pin 0.37/0.38, no compatible fix" },
 ]

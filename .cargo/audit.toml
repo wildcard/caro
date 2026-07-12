@@ -32,4 +32,19 @@ ignore = [
     "RUSTSEC-2026-0098",
     "RUSTSEC-2026-0099",
     "RUSTSEC-2026-0104",
+
+    # quick-xml 0.37.5 / 0.38.4 - RUSTSEC-2026-0194 / 0195 (DoS)
+    # - Quadratic runtime on duplicate attribute names (0194) and unbounded
+    #   namespace-declaration allocation in NsReader (0195).
+    # - Transitive via LanceDB: reqsign → opendal → lance-io (0.37.5) and
+    #   object_store → datafusion → lance-geo (0.38.4). Fix (>=0.41.0) is a
+    #   cross-minor 0.x break; parents pin 0.37/0.38, so no compatible fix
+    #   resolves and a [patch] override won't compile against those parents.
+    # - Exposure: reached only when quick-xml parses XML from a REMOTE object
+    #   store. Caro's LanceDB usage is local on-disk vector storage; the remote
+    #   XML path is not exercised. DoS-only.
+    # - Revert when lancedb/object_store/reqsign bump quick-xml to >=0.41.
+    # - Tracked: caro-xk0.106
+    "RUSTSEC-2026-0194",
+    "RUSTSEC-2026-0195",
 ]
