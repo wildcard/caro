@@ -34,6 +34,7 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 use crate::models::{RiskJudgment, RiskLevel, SafetyLevel, ShellType, SuggestedRouting};
+use once_cell::sync::Lazy;
 
 pub use cve_patterns::{get_cve_compiled_patterns_for_shell, CVE_COMPILED};
 pub use patterns::{
@@ -46,6 +47,53 @@ pub use patterns::{
 /// User patterns longer than this are rejected by [`validate_user_pattern`].
 /// Built-in patterns are not subject to this cap.
 pub const MAX_USER_PATTERN_LENGTH: usize = 512;
+
+/// The **catastrophic core**: a deliberately narrow set of unrecoverable
+/// operations that an allowlist may NEVER re-enable.
+///
+/// A user-supplied allowlist entry is a statement of trust for a *specific,
+/// scoped* command (e.g. `rm -rf /tmp/myapp_\d+`). Honouring that trust is the
+/// whole point of the allowlist. But some commands are catastrophic regardless
+/// of intent — deleting `/`, wiping a raw disk, formatting a filesystem, a fork
+/// bomb — and no allowlist should be able to turn them back on.
+///
+/// This list is intentionally *narrower* than the full set of Critical
+/// built-in patterns. The Critical `rm -rf /` patterns in [`patterns`] are
+/// unanchored and also match benign scoped absolute paths like
+/// `rm -rf /tmp/myapp_123`; gating the allowlist on "matches any Critical
+/// pattern" therefore made every scoped `rm -rf /abs/path` un-allowlistable,
+/// breaking the allowlist contract (see `test_allowlist_functionality`).
+/// Matching against this focused list instead lets scoped operations be
+/// allowlisted while keeping the genuinely unrecoverable forms locked.
+static CATASTROPHIC_CORE_PATTERNS: Lazy<Vec<regex::Regex>> = Lazy::new(|| {
+    [
+        // Recursive deletion whose target IS root / home / a top-level glob
+        // (target is exactly `/`, `~`, `$HOME`, `/*`, `~/*`, or `*` — followed
+        // by a separator or end-of-command, NOT a subpath like `/tmp`).
+        r"rm\s+(-\S+\s+)*(/|~|\$HOME|/\*|~/\*|\*)(\s|;|&|\||$)",
+        // Explicit root-protection bypass — never legitimate.
+        r"rm\s+.*--no-preserve-root",
+        // Raw block-device overwrite (either argument order).
+        r"dd\s+.*of=/dev/(sd|hd|nvme|disk|da)",
+        r"dd\s+.*if=/dev/(zero|random|urandom).*of=/dev/(sd|hd|nvme|disk|da)",
+        // Formatting a real block device.
+        r"mkfs(\.\w+)?\s+.*/dev/(sd|hd|nvme|disk|da)",
+        // Classic fork bomb.
+        r":\s*\(\s*\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:",
+    ]
+    .iter()
+    .map(|p| regex::Regex::new(p).expect("catastrophic-core regex must compile"))
+    .collect()
+});
+
+/// Returns `true` when `command` matches the catastrophic core — the set of
+/// operations an allowlist must never re-enable. See
+/// [`CATASTROPHIC_CORE_PATTERNS`].
+fn matches_catastrophic_core(command: &str) -> bool {
+    CATASTROPHIC_CORE_PATTERNS
+        .iter()
+        .any(|re| re.is_match(command))
+}
 
 /// Maximum length of a user-supplied pattern description.
 pub const MAX_USER_PATTERN_DESCRIPTION_LENGTH: usize = 200;
@@ -480,22 +528,21 @@ impl SafetyValidator {
             });
         }
 
-        // First pass: detect whether the command matches a built-in or CVE
-        // pattern at Critical risk. Critical built-ins are NEVER bypassed by
-        // user-supplied allowlists — `rm -rf /` is dangerous regardless of
-        // what's in patterns.toml. Without this guard a permissive
-        // `allowlist_patterns = ["^rm"]` would silently re-enable disaster.
+        // First pass: an allowlist entry expresses trust for a specific, scoped
+        // command and may override even a Critical built-in match — EXCEPT for
+        // the catastrophic core (`rm -rf /`, raw-disk wipe, mkfs, fork bomb,
+        // `--no-preserve-root`), which no allowlist can re-enable.
+        //
+        // Gating on the catastrophic core rather than "any Critical match" is
+        // deliberate: the Critical `rm -rf /` patterns are unanchored and also
+        // match benign scoped paths like `rm -rf /tmp/myapp_123`, so the old
+        // "any Critical match blocks the allowlist" rule made every scoped
+        // `rm -rf /abs/path` un-allowlistable and broke the allowlist contract.
         let built_in_patterns = patterns::get_compiled_patterns_for_shell(shell);
         let cve_compiled = cve_patterns::get_cve_compiled_patterns_for_shell(shell);
-        let has_critical_builtin_or_cve_match = built_in_patterns
-            .iter()
-            .chain(cve_compiled.iter())
-            .any(|(regex, level, _desc, _)| {
-                *level == RiskLevel::Critical && Self::is_dangerous_in_context(command, regex)
-            });
 
-        // Check allowlist patterns only if no Critical built-in/CVE match.
-        if !has_critical_builtin_or_cve_match {
+        // Check allowlist patterns only if the command is not catastrophic-core.
+        if !matches_catastrophic_core(command) {
             for allow_pattern in &self.config.allowlist_patterns {
                 if let Ok(regex) = regex::Regex::new(allow_pattern) {
                     if regex.is_match(command) {
