@@ -118,7 +118,7 @@
    ============================================ */
 
 .brand {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: var(--accent-press);
   color: white;
 }
@@ -129,7 +129,7 @@
 }
 
 :global(.dark) .brand {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: var(--accent-press);
   color: white;
 }

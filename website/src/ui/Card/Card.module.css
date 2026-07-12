@@ -125,7 +125,7 @@
   position: absolute;
   top: 15px;
   left: 15px;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: white;
   padding: 4px 12px;
   border-radius: 12px;

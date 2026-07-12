@@ -1465,20 +1465,11 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
       });
     });
 
-    // Dark mode toggle
-    const themeToggle = document.getElementById('theme-toggle');
-
-    themeToggle?.addEventListener('click', () => {
-      const isDark = document.documentElement.classList.contains('dark');
-
-      if (isDark) {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      } else {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-      }
-    });
+    // Dark-mode toggle handler intentionally removed: the #theme-toggle button
+    // only renders on the homepage (via LPNavigation, which owns its own click
+    // handler). A second handler here double-fired and cancelled LPNavigation's,
+    // freezing the homepage toggle. Every other Layout page uses Navigation's
+    // separate #theme-toggle-desktop / #theme-toggle-mobile buttons + handlers.
 
     // Listen for system theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {

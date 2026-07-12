@@ -1,0 +1,108 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout
+  title="404 — Page not found | Caro"
+  description="This page wandered off. Even Kyaro couldn't sniff it out."
+>
+  <Navigation />
+  <main class="notfound">
+    <img
+      src="/kyaro/shocked.gif"
+      alt="Kyaro the Shiba, looking startled"
+      width="96"
+      height="96"
+      class="notfound-mascot"
+    />
+    <p class="notfound-code">Error 404</p>
+    <h1 class="notfound-title">This page wandered off.</h1>
+    <p class="notfound-text">
+      Even Kyaro couldn't sniff it out. The link may be broken, or the page may
+      have moved somewhere safer.
+    </p>
+    <div class="notfound-actions">
+      <a href="/" class="notfound-cta">Back to safety</a>
+      <a href="/docs" class="notfound-link">Read the docs</a>
+    </div>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .notfound {
+    min-height: 62vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 72px 20px;
+    gap: 6px;
+  }
+
+  .notfound-mascot {
+    image-rendering: pixelated;
+    margin-bottom: 12px;
+  }
+
+  .notfound-code {
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: var(--track-widest);
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0;
+  }
+
+  .notfound-title {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 5vw, 42px);
+    color: var(--fg-strong);
+    margin: 4px 0 10px;
+  }
+
+  .notfound-text {
+    max-width: 440px;
+    color: var(--fg-muted);
+    line-height: 1.6;
+    margin: 0 0 28px;
+  }
+
+  .notfound-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .notfound-cta {
+    background: var(--accent-fill);
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .notfound-cta:hover {
+    transform: translateY(-1px);
+    opacity: 0.92;
+  }
+
+  .notfound-link {
+    color: var(--fg-muted);
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    transition: color 0.2s ease;
+  }
+
+  .notfound-link:hover {
+    color: var(--accent);
+  }
+</style>

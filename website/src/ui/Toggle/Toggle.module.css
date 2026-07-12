@@ -81,7 +81,7 @@
 
 /* Branded variant when checked (orange) */
 .branded .input:checked + .track {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: var(--accent-press);
 }
 

@@ -125,6 +125,11 @@
   --accent:        var(--caro-red-500);
   --accent-hover:  var(--caro-red-600);
   --accent-press:  var(--caro-red-700);
+  /* Solid fill for buttons/CTAs with white text. Stays the base signal-red in
+     BOTH themes — the dark-mode --accent is lightened (#ff6464) for text-on-dark
+     legibility, which fails WCAG as a white-text fill (2.89:1). Not overridden
+     in .dark. */
+  --accent-fill:   var(--caro-red-500);
   --highlight:     var(--caro-yellow-400);
 
   --border:        var(--caro-grey-300);
