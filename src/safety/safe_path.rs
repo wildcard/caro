@@ -34,7 +34,15 @@ pub fn is_recursive_rm(command: &str) -> bool {
     // long form. `--force` also matches (contains 'r') — harmless over-match.
     static REC: Lazy<Regex> =
         Lazy::new(|| Regex::new(r"-[a-zA-Z]*[rR]|--recursive").expect("valid regex"));
-    RM.is_match(command) && REC.is_match(command)
+    if !RM.is_match(command) {
+        return false;
+    }
+    // Any `rm` bearing shell complexity (quote/backslash/…) must go through the
+    // fail-closed scoped gate: detecting the recursive flag through obfuscation
+    // (`rm -"r"f`, `rm -f\r`) is a losing regex game, so route ALL such `rm`
+    // commands to `is_scoped_safe_deletion` (which rejects them). Only a clean,
+    // metacharacter-free `rm` is judged by the flag regex. See aegis round-3.
+    command.chars().any(|c| UNSAFE_META.contains(&c)) || REC.is_match(command)
 }
 
 /// Shell metacharacters that make a command too complex to prove safe. Their

@@ -377,6 +377,8 @@ async fn test_broad_allowlist_cannot_bypass_via_quote_or_escape() {
         "rm --recursive --force \"/etc\"",
         "rm -rf /tmp/../etc", // traversal → /etc (base flags; scoped-safe blocks)
         "rm -rf /tmp/*/x",    // non-final glob over a symlinked dir
+        r"rm -\rf \/etc",     // aegis round-3: obfuscated flag + escaped target
+        "rm -\"r\"f \"/etc/ssh\"", // aegis round-3: quote-split flag
     ] {
         let r = validator
             .validate_command(danger, ShellType::Bash)
