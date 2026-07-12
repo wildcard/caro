@@ -28,10 +28,11 @@
 
 pub mod cve_patterns;
 mod patterns;
+mod safe_path;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::models::{RiskJudgment, RiskLevel, SafetyLevel, ShellType, SuggestedRouting};
 
@@ -622,42 +623,62 @@ impl SafetyValidator {
         let built_in_patterns = patterns::get_compiled_patterns_for_shell(shell);
         let cve_compiled = cve_patterns::get_cve_compiled_patterns_for_shell(shell);
 
-        // The Critical-bypass guard is intentionally blunt: the broad
-        // recursive-delete pattern (`rm -rf /…`) matches both the catastrophic
-        // `rm -rf /` and an ordinary `rm -rf /tmp/myapp_123`. Refusing to honour
-        // the allowlist for *every* Critical match defeats the purpose of
-        // allowlists, which exist precisely so a team can bless a narrow,
-        // specific recursive cleanup. We therefore only force-block (bypass the
-        // allowlist) when the command targets a *catastrophic* location (root,
-        // system dir, home, bare wildcard, parent dir, device node, disk wipe,
-        // root-protection bypass, reverse shell, remote-exec-as-root, fork bomb,
-        // …). A Critical match on a specific deep path may still be blessed by a
-        // deliberate allowlist entry — but the catastrophic floor is preserved.
+        // Defense in depth (caro-qknc layered over #1246): a user allowlist may
+        // bypass a Critical match ONLY when BOTH gates pass:
+        //   (a) the command is not a *catastrophic location* — #1246's curated,
+        //       quote-tolerant string floor (root, system dir, home, bare
+        //       wildcard, device node, disk wipe, fork bomb, reverse shell, …); AND
+        //   (b) if it is a recursive `rm` *at all*, it must provably resolve
+        //       strictly inside a safe path (temp dir or project dir). For any
+        //       other command, it must simply not be a Critical built-in/CVE match.
         //
-        // The floor (`targets_catastrophic_location`) is its own curated,
-        // quote-tolerant set of catastrophic Critical patterns, so it is
-        // authoritative on its own: we do NOT additionally require a separate
-        // built-in/CVE Critical hit. The original #1246 form gated on
-        // `has_critical_builtin_or_cve_match && targets_catastrophic_location`,
-        // but the quote-suppressing built-in scan misses evasions like
-        // `rm -rf "/"` and `rm --recursive --force /` that the floor *does*
-        // catch — so requiring a built-in hit re-opened a hole. The floor alone
-        // decides whether the allowlist may run; the escalation block further
-        // down forces the reported risk level to Critical to keep the result
-        // consistent with that decision.
+        // Crucial (aegis round-2): the scoped-safe gate for `rm` is NOT gated on
+        // the built-in Critical scan. That scan is *target-anchored* and a leading
+        // quote/backslash (`rm -rf "/etc/ssh"`, `rm -rf \/`) drops it to `false`;
+        // gating on it there let a recursive `rm` skip path resolution entirely and
+        // fall through to the (subset) floor — a root-wipe hole. Instead, EVERY
+        // recursive `rm` must pass `is_scoped_safe_deletion`, which itself
+        // fail-closed-rejects quotes/escapes, so `rm -rf \/` and `rm -rf "/etc/ssh"`
+        // resolve to "not scoped-safe" → blocked.
         let critical_is_catastrophic = Self::targets_catastrophic_location(command);
+        let has_critical_match =
+            built_in_patterns
+                .iter()
+                .chain(cve_compiled.iter())
+                .any(|(regex, level, _desc, _)| {
+                    *level == RiskLevel::Critical && Self::is_dangerous_in_context(command, regex)
+                });
+        let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("/"));
+        let scoped_safe_deletion =
+            safe_path::is_scoped_safe_deletion(command, &safe_path::safe_roots(&cwd), &cwd);
+        let allowlist_eligible = !critical_is_catastrophic
+            && if safe_path::is_recursive_rm(command) {
+                // Any recursive rm must be provably confined to a safe path.
+                scoped_safe_deletion
+            } else {
+                // Non-rm: the catastrophic floor + built-in Critical scan guard it.
+                !has_critical_match
+            };
 
-        // Check allowlist patterns only if there is no catastrophic Critical
-        // match.
-        if !critical_is_catastrophic {
+        if allowlist_eligible {
             for allow_pattern in &self.config.allowlist_patterns {
                 if let Ok(regex) = regex::Regex::new(allow_pattern) {
                     if regex.is_match(command) {
+                        let warnings = if scoped_safe_deletion {
+                            // Agent guidance: explain why this normally-Critical
+                            // deletion was permitted, and what would NOT be.
+                            vec!["Allowed by allowlist: deletion is confined to a \
+                                  safe path (temp or project directory). The same \
+                                  command targeting a system path would be blocked."
+                                .to_string()]
+                        } else {
+                            vec![]
+                        };
                         return Ok(ValidationResult {
                             allowed: true,
                             risk_level: RiskLevel::Safe,
                             explanation: "Command matches allowlist pattern".to_string(),
-                            warnings: vec![],
+                            warnings,
                             matched_patterns: vec![allow_pattern.clone()],
                             confidence_score: 1.0,
                         });

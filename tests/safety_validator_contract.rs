@@ -322,6 +322,86 @@ async fn test_allowlist_functionality() {
 }
 
 #[tokio::test]
+async fn test_allowlist_cannot_escape_safe_root_via_traversal_or_glob() {
+    // Defense in depth (caro-qknc layered over #1246): even with a broad `/tmp`
+    // allowlist, a command that only *appears* to target `/tmp` but resolves
+    // outside it must stay blocked. #1246's catastrophic-location floor is a
+    // string denylist and misses these; the scoped-safe path resolver catches
+    // them by normalizing `..` and canonicalizing symlinks.
+    let mut config = SafetyConfig::strict();
+    config.add_allowlist_pattern(r"^rm -rf /tmp/"); // broad, trusting temp cleanup
+
+    let validator = SafetyValidator::new(config).unwrap();
+
+    for escape in [
+        "rm -rf /tmp/../etc",    // traversal -> /etc
+        "rm -rf /tmp/../../usr", // deeper traversal
+        "rm -rf /tmp/*/x",       // glob over a (potentially symlinked) dir
+    ] {
+        let r = validator
+            .validate_command(escape, ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(
+            !r.allowed,
+            "escape must stay blocked despite the /tmp allowlist: {escape}"
+        );
+    }
+
+    // The legitimately scoped deletion still passes (the feature still works).
+    let ok = validator
+        .validate_command("rm -rf /tmp/myapp_123", ShellType::Bash)
+        .await
+        .unwrap();
+    assert!(ok.allowed, "scoped temp deletion should be allowed");
+}
+
+#[tokio::test]
+async fn test_broad_allowlist_cannot_bypass_via_quote_or_escape() {
+    // aegis round-2 regressions (CB-1/2/3): a *broad* `^rm ` allowlist must not
+    // let a recursive rm skip path resolution via quoting/escaping. Every
+    // recursive rm is forced through the scoped-safe gate, which fail-closed
+    // rejects quotes/escapes → these all stay blocked, incl. a full root wipe.
+    let mut config = SafetyConfig::strict();
+    config.add_allowlist_pattern(r"^rm "); // dangerously broad, on purpose
+
+    let validator = SafetyValidator::new(config).unwrap();
+
+    // These are all flagged dangerous by the base validator; the allowlist must
+    // NOT rescue them, because every recursive `rm` is forced through the
+    // scoped-safe gate, which fail-closed-rejects quotes/escapes and resolves
+    // paths (aegis round-2 CB-2/CB-3 + traversal/glob).
+    for danger in [
+        "rm -rf \"/\"",        // quoted root (base flags Critical)
+        "rm -rf \"/etc/ssh\"", // deep system path (base flags High)
+        "rm --recursive --force \"/etc\"",
+        "rm -rf /tmp/../etc", // traversal → /etc (base flags; scoped-safe blocks)
+        "rm -rf /tmp/*/x",    // non-final glob over a symlinked dir
+        r"rm -\rf \/etc",     // aegis round-3: obfuscated flag + escaped target
+        "rm -\"r\"f \"/etc/ssh\"", // aegis round-3: quote-split flag
+    ] {
+        let r = validator
+            .validate_command(danger, ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(
+            !r.allowed,
+            "allowlist must not rescue a base-flagged danger: {danger:?}"
+        );
+    }
+
+    // The intended narrow use still works.
+    let ok = validator
+        .validate_command("rm -rf /tmp/myapp_123", ShellType::Bash)
+        .await
+        .unwrap();
+    assert!(
+        ok.allowed,
+        "unquoted scoped temp deletion should be allowed"
+    );
+}
+
+#[tokio::test]
 async fn test_validation_performance() {
     // CONTRACT: Validation should be fast (<100ms for typical commands)
     let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
