@@ -237,12 +237,13 @@ impl AgentLoop {
             ShellType::Bash,
         );
 
-        let run = pipeline
-            .run_ranked(prompt)
-            .await
-            .map_err(|e| GeneratorError::GenerationFailed {
-                details: e.to_string(),
-            })?;
+        let run =
+            pipeline
+                .run_ranked(prompt)
+                .await
+                .map_err(|e| GeneratorError::GenerationFailed {
+                    details: e.to_string(),
+                })?;
 
         let generated = Self::candidate_to_generated(&run.winner, &run.ranked, start);
 

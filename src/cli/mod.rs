@@ -202,8 +202,10 @@ impl CliApp {
         force_llm: bool,
         best_of: bool,
     ) -> Result<Self, CliError> {
+        // The --best-of flag is a no-op unless the ranking feature is built in.
         #[cfg(not(feature = "candidate-ranking"))]
-        let _ = best_of; // flag is a no-op unless the ranking feature is built in
+        let _ = best_of;
+
         // Load user configuration to determine backend preferences
         let config_manager =
             crate::config::ConfigManager::new().map_err(|e| CliError::ConfigurationError {
@@ -295,14 +297,11 @@ impl CliApp {
                 &user_config,
                 config_manager.config_path(),
             );
-            let safety =
-                Arc::new(
-                    SafetyValidator::new(safety_config).map_err(|e| {
-                        CliError::ConfigurationError {
-                            message: format!("Failed to init ranking safety validator: {}", e),
-                        }
-                    })?,
-                );
+            let safety = Arc::new(SafetyValidator::new(safety_config).map_err(|e| {
+                CliError::ConfigurationError {
+                    message: format!("Failed to init ranking safety validator: {}", e),
+                }
+            })?);
             agent_loop.with_ranking(vec![(extra, "embedded".to_string())], safety)
         } else {
             agent_loop
@@ -828,11 +827,13 @@ impl CliApp {
                     details: e.to_string(),
                 })?
         } else {
-            let g = self.agent_loop.generate_command(&prompt).await.map_err(|e| {
-                CliError::GenerationFailed {
+            let g = self
+                .agent_loop
+                .generate_command(&prompt)
+                .await
+                .map_err(|e| CliError::GenerationFailed {
                     details: e.to_string(),
-                }
-            })?;
+                })?;
             (g, Vec::new())
         };
         #[cfg(not(feature = "candidate-ranking"))]
