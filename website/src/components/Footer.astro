@@ -297,13 +297,15 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
   .kyaro-title {
     font-size: 15px;
     font-weight: 600;
-    color: var(--color-footer-text);
+    /* Adaptive ink: the banner surface is light in light mode / dark in dark
+       mode, so the text must flip too (was always-cream -> invisible on light). */
+    color: var(--fg-strong);
     margin-bottom: 4px;
   }
 
   .kyaro-text {
     font-size: 13px;
-    color: var(--color-footer-text-muted);
+    color: var(--fg-muted);
     line-height: 1.4;
   }
 

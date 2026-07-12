@@ -35,4 +35,10 @@ const { size = 28, class: className = '', label = 'Kyaro, the Caro mascot' } = A
     vertical-align: middle;
     flex-shrink: 0;
   }
+
+  /* On dark surfaces the sprite's dark fur can blend into the background; a faint
+     cream halo keeps the silhouette crisp at small (<=32px) sizes. */
+  :global(.dark) .kyaro-mark {
+    filter: drop-shadow(0 0 1px rgba(244, 241, 223, 0.55));
+  }
 </style>

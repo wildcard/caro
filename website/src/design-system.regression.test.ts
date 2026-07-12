@@ -21,22 +21,11 @@ const ORANGE =
 const TEXT_EXT = /\.(astro|css|ts|tsx|js|mjs|cjs|json|md)$/;
 
 /**
- * Files that still carry orange on the in-flight design-system PRs
- * (#1155 / #1156 / #1158 / #1159) and are fixed on their own branches.
- * DELETE each entry as its PR merges to main — the guard then widens
- * automatically to cover it.
+ * This branch's design pass now covers the WHOLE tree — including the files the
+ * 4 in-flight design PRs (#1155/#1156/#1158/#1159) touched, which this branch
+ * supersedes — so no file is exempt from the no-orange guard.
  */
-const IN_FLIGHT_PR_FILES = new Set([
-  'src/ui/tokens.css',
-  'src/components/landing/LPDownload.astro',
-  'src/components/landing/LPNavigation.astro',
-  'src/components/landing/LPMoments.astro',
-  'src/components/landing/LPTestimonials.astro',
-  'src/components/landing/LPFeatures.astro',
-  'src/components/landing/LPPersonas.astro',
-  'src/components/SEO.astro',
-  'src/components/landing/LPHero.astro',
-]);
+const IN_FLIGHT_PR_FILES = new Set<string>([]);
 
 /** This test file itself contains the orange regex literal — exclude it from its own scan. */
 const SELF = 'src/design-system.regression.test.ts';
