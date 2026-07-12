@@ -13,6 +13,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **Context**: Remote CI/QA sandbox where `https://huggingface.co/` returns HTTP 200 but binary blob downloads time out or are blocked at a lower network layer.  
 **Impact**: Slot A `--dry-run` smoke check cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:
+- 2026-07-12: observed (second proximity) — model download slow ~60s+ in sandbox; 30s timeout killed process; 90s timeout succeeded but CPU stub bug (#1269) produced wrong output
 - 2026-05-07: observed once
 
 **Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
