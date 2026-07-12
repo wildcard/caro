@@ -13,7 +13,12 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
     vec![
         // CRITICAL: Filesystem destruction
         DangerPattern {
-            pattern: r"rm\s+(-[rfRF]*\s+)*(/|~|\$HOME|/\*|~/\*|\*|\.\.?/?|\.\./\*|\.\*)"
+            // Accept any combination of short (`-rf`, `-fr`, `-r -f`) and GNU
+            // long (`--recursive`, `--force`, `--no-preserve-root`) flag tokens
+            // between `rm` and the target. The prior `(-[rfRF]*\s+)*` group only
+            // matched short flags, so `rm --recursive --force /` slipped past the
+            // Critical gate and could be re-enabled by a broad allowlist (#1246).
+            pattern: r"rm\s+(-{1,2}\S+\s+)*(/|~|\$HOME|/\*|~/\*|\*|\.\.?/?|\.\./\*|\.\*)"
                 .to_string(),
             risk_level: RiskLevel::Critical,
             description: "Recursive deletion of root, home, current, or parent directory"

@@ -232,15 +232,12 @@ fn parse_on_clause(rest: &str) -> Option<PlatformPragma> {
             "PREFER" => current = Some(&mut prefer),
             "AVOID" => current = Some(&mut avoid),
             _ => {
-                if let Some(target) = current.as_deref_mut() {
-                    for item in tok.split(',') {
-                        let trimmed = item.trim();
-                        if !trimmed.is_empty() {
-                            target.push(trimmed.to_string());
-                        }
+                let target = current.as_deref_mut()?;
+                for item in tok.split(',') {
+                    let trimmed = item.trim();
+                    if !trimmed.is_empty() {
+                        target.push(trimmed.to_string());
                     }
-                } else {
-                    return None;
                 }
             }
         }
