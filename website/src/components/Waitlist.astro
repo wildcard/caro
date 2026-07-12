@@ -92,8 +92,8 @@ try {
     right: 0;
     bottom: 0;
     background:
-      radial-gradient(circle at 20% 80%, rgba(255, 140, 66, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.15) 0%, transparent 50%);
+      radial-gradient(circle at 20% 80%, rgba(239, 51, 51, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(239, 51, 51, 0.15) 0%, transparent 50%);
     pointer-events: none;
   }
 
@@ -107,7 +107,7 @@ try {
 
   .waitlist-badge {
     display: inline-block;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     color: white;
     padding: 8px 20px;
     border-radius: 20px;
@@ -116,7 +116,7 @@ try {
     text-transform: uppercase;
     letter-spacing: 2px;
     margin-bottom: 25px;
-    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.4);
+    box-shadow: 0 4px 15px rgba(239, 51, 51, 0.4);
   }
 
   .waitlist-section h2 {
@@ -150,7 +150,7 @@ try {
 
   .waitlist-feature:hover {
     transform: translateY(-4px);
-    border-color: rgba(255, 140, 66, 0.4);
+    border-color: rgba(239, 51, 51, 0.4);
   }
 
   .waitlist-feature-icon {
@@ -161,7 +161,7 @@ try {
   .waitlist-feature h4 {
     font-size: 16px;
     margin-bottom: 8px;
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .waitlist-feature p {
@@ -194,13 +194,13 @@ try {
 
   .waitlist-form input[type="email"]:focus {
     outline: none;
-    border-color: #ff8c42;
+    border-color: var(--accent);
     background: rgba(255, 255, 255, 0.15);
   }
 
   .waitlist-form button {
     padding: 16px 32px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     color: white;
     border: none;
     border-radius: 8px;
@@ -213,7 +213,7 @@ try {
 
   .waitlist-form button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 140, 66, 0.4);
+    box-shadow: 0 8px 25px rgba(239, 51, 51, 0.4);
   }
 
   .waitlist-form button:disabled {
@@ -229,7 +229,7 @@ try {
   }
 
   .waitlist-privacy a {
-    color: #ff8c42;
+    color: var(--accent);
     text-decoration: none;
   }
 
@@ -270,7 +270,7 @@ try {
   }
 
   .waitlist-counter strong {
-    color: #ff8c42;
+    color: var(--accent);
     font-size: 18px;
   }
 

@@ -563,19 +563,19 @@ const blockedPatterns = [
   }
 
   .cta-button.primary {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     color: white;
   }
 
   .cta-button.primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 10px 25px rgba(239, 51, 51, 0.3);
   }
 
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid #ff8c42;
-    color: #ff8c42;
+    border: 2px solid var(--accent);
+    color: var(--accent);
   }
 
   /* Jobs Section */
@@ -773,7 +773,7 @@ const blockedPatterns = [
   .prompt { color: #4ec9b0; }
   .command { color: #9cdcfe; }
   .output { color: #ce9178; }
-  .caro-label { color: #ff8c42; font-weight: 600; }
+  .caro-label { color: var(--accent); font-weight: 600; }
   .safe-label { color: #22c55e; }
   .safe-command { color: #22c55e; margin-left: 16px; }
 
@@ -866,7 +866,7 @@ const blockedPatterns = [
   .command-number {
     width: 32px;
     height: 32px;
-    background: #ff8c42;
+    background: var(--accent);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -921,7 +921,7 @@ const blockedPatterns = [
   .incident-tip {
     margin-top: 20px;
     padding: 16px;
-    background: rgba(255, 140, 66, 0.1);
+    background: rgba(239, 51, 51, 0.1);
     border-radius: 8px;
     font-size: 14px;
     color: var(--color-text);
@@ -1072,7 +1072,7 @@ const blockedPatterns = [
   .summary-item strong {
     display: block;
     font-size: 16px;
-    color: #ff8c42;
+    color: var(--accent);
     margin-bottom: 8px;
   }
 
@@ -1122,7 +1122,7 @@ const blockedPatterns = [
   }
 
   .patterns-note a {
-    color: #ff8c42;
+    color: var(--accent);
     text-decoration: none;
   }
 

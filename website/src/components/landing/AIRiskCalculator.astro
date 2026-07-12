@@ -143,17 +143,17 @@
     -webkit-appearance: none;
     width: 24px;
     height: 24px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 2px 8px rgba(239, 51, 51, 0.3);
   }
 
   .input-value {
     font-family: 'SF Mono', 'Monaco', monospace;
     font-size: 18px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent);
     min-width: 80px;
     text-align: right;
   }
@@ -291,8 +291,8 @@
 
   .enterprise-cta {
     text-align: center;
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.04) 100%);
-    border: 1px solid rgba(255, 140, 66, 0.2);
+    background: linear-gradient(135deg, rgba(239, 51, 51, 0.08) 0%, rgba(239, 51, 51, 0.04) 100%);
+    border: 1px solid rgba(239, 51, 51, 0.2);
     border-radius: 12px;
     padding: 32px;
   }
@@ -306,7 +306,7 @@
   .cta-button {
     display: inline-block;
     padding: 14px 36px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     color: white;
     border-radius: 8px;
     font-size: 16px;
@@ -317,7 +317,7 @@
 
   .cta-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 8px 20px rgba(239, 51, 51, 0.3);
   }
 
   @media (max-width: 768px) {

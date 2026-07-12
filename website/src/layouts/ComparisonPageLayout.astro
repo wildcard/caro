@@ -185,7 +185,7 @@ function renderValue(value: boolean | string) {
   .product { display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .product-icon { font-size: 48px; }
   .product-name { font-size: 18px; font-weight: 600; color: var(--color-text); }
-  .product-caro .product-name { color: #ff8c42; }
+  .product-caro .product-name { color: var(--accent); }
   .vs-badge { font-size: 24px; font-weight: 700; color: var(--color-text-secondary); background: var(--color-bg-secondary); padding: 12px 20px; border-radius: 12px; }
   .hero h1 { font-size: 36px; font-weight: 700; margin-bottom: 12px; color: var(--color-text); }
   .hero-subtitle { font-size: 18px; color: var(--color-text-secondary); }
@@ -195,7 +195,7 @@ function renderValue(value: boolean | string) {
   .tldr-list { list-style: none; padding: 0; margin: 0; }
   .tldr-list li { padding: 12px 0; padding-left: 28px; position: relative; color: var(--color-text); border-bottom: 1px solid var(--color-border); }
   .tldr-list li:last-child { border-bottom: none; }
-  .tldr-list li::before { content: '→'; position: absolute; left: 0; color: #ff8c42; font-weight: bold; }
+  .tldr-list li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-weight: bold; }
 
   .head-to-head { padding: 60px 20px; }
   .head-to-head h2 { font-size: 28px; text-align: center; margin-bottom: 30px; color: var(--color-text); }
@@ -203,7 +203,7 @@ function renderValue(value: boolean | string) {
   .comparison-table { width: 100%; border-collapse: collapse; }
   .comparison-table th, .comparison-table td { padding: 16px 20px; text-align: center; border-bottom: 1px solid var(--color-border); }
   .comparison-table th { background: var(--color-bg-tertiary); font-weight: 600; color: var(--color-text); }
-  .comparison-table th.highlight { background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 140, 66, 0.05) 100%); color: #ff8c42; }
+  .comparison-table th.highlight { background: linear-gradient(135deg, rgba(239, 51, 51, 0.15) 0%, rgba(239, 51, 51, 0.05) 100%); color: var(--accent); }
   .feature-col { text-align: left !important; min-width: 200px; }
   .tool-col { min-width: 140px; }
   .feature-name { text-align: left !important; color: var(--color-text); }
@@ -232,22 +232,22 @@ function renderValue(value: boolean | string) {
   .verdict-subtitle { text-align: center; color: var(--color-text-secondary); margin-bottom: 40px; margin-top: -32px; }
   .verdict-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
   .verdict-card { padding: 30px; border-radius: 12px; border: 1px solid var(--color-border); }
-  .verdict-card.caro { background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 140, 66, 0.02) 100%); border-color: rgba(255, 140, 66, 0.3); }
+  .verdict-card.caro { background: linear-gradient(135deg, rgba(239, 51, 51, 0.1) 0%, rgba(239, 51, 51, 0.02) 100%); border-color: rgba(239, 51, 51, 0.3); }
   .verdict-card.competitor { background: var(--color-bg-secondary); }
   .verdict-card h3 { font-size: 20px; margin-bottom: 20px; color: var(--color-text); }
   .verdict-card ul { list-style: none; padding: 0; margin: 0 0 24px 0; }
   .verdict-card li { padding: 10px 0; color: var(--color-text-secondary); display: flex; gap: 10px; }
   .check { color: #22c55e; font-weight: bold; }
   .bullet { color: var(--color-text-secondary); }
-  .verdict-cta { display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.2s; }
-  .verdict-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3); }
+  .verdict-cta { display: inline-block; padding: 14px 28px; background: var(--accent); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.2s; }
+  .verdict-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(239, 51, 51, 0.3); }
 
-  .final-cta { padding: 80px 20px; text-align: center; background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%); color: white; }
+  .final-cta { padding: 80px 20px; text-align: center; background: var(--accent); color: white; }
   .final-cta h2 { font-size: 32px; margin-bottom: 12px; color: white; }
   .final-cta p { font-size: 18px; opacity: 0.9; margin-bottom: 30px; }
   .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
   .cta-button { display: inline-block; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; text-decoration: none; transition: all 0.2s; }
-  .cta-button.primary { background: white; color: #ff6b35; }
+  .cta-button.primary { background: white; color: var(--accent-hover); }
   .cta-button.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); }
   .cta-button.secondary { background: transparent; color: white; border: 2px solid white; }
   .cta-button.secondary:hover { background: rgba(255, 255, 255, 0.1); }
