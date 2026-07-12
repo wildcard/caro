@@ -84,7 +84,7 @@
   --color-bg: #ffffff;
   --color-bg-secondary: #f8f9fa;
   --color-bg-tertiary: #fff8f0;
-  --color-bg-hover: rgba(255, 140, 66, 0.08);
+  --color-bg-hover: rgba(239, 51, 51, 0.08);
 
   /* ============================================
      TEXT COLORS
@@ -98,15 +98,18 @@
      BORDERS
      ============================================ */
   --color-border: #e0e0e0;
-  --color-border-hover: #ff8c42;
+  --color-border-hover: var(--accent);
 
   /* ============================================
      LINKS
-     Use brand colors for links, with darker hover state
+     Brand-aligned link family — resolves to signal red via --accent.
+     Legacy orange (`#ff8c42`) was deprecated in v2; remapping the alias
+     here propagates the new red to every consumer (Layout, LandingPage,
+     support, credits, etc.) without touching their call sites.
      ============================================ */
-  --color-link: #ff8c42;
-  --color-link-hover: #ff6b35;
-  --color-link-visited: #ff8c42;
+  --color-link: var(--accent);
+  --color-link-hover: var(--accent-hover);
+  --color-link-visited: var(--accent);
 
   /* ============================================
      CARO SEMANTIC TOKENS — brand-aligned aliases for new components
@@ -213,7 +216,7 @@
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
   --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
-  --shadow-primary: 0 8px 20px rgba(255, 140, 66, 0.3);
+  --shadow-primary: 0 8px 20px rgba(239, 51, 51, 0.28);
   --shadow-support: 0 8px 20px rgba(234, 74, 170, 0.3);
 
   /* ============================================
@@ -262,7 +265,7 @@
      These are overridden by the DistroPreferences component
      based on the user's selected OS/distro
      ============================================ */
-  --distro-accent: #ff8c42;
+  --distro-accent: var(--accent);
   --distro-secondary: #ea4aaa;
   --distro-terminal-bg: #1e1e2e;
   --distro-terminal-text: #cdd6f4;
@@ -281,7 +284,7 @@
   --color-bg: #1a1a1a;
   --color-bg-secondary: #2d2d2d;
   --color-bg-tertiary: #252525;
-  --color-bg-hover: rgba(255, 140, 66, 0.12);
+  --color-bg-hover: rgba(255, 100, 100, 0.12);
 
   --color-text: #e0e0e0;
   --color-text-secondary: #a0a0a0;
@@ -289,10 +292,12 @@
 
   --color-border: #3a3a3a;
 
-  /* Lighter link colors for dark mode contrast */
-  --color-link: #ffa76c;
-  --color-link-hover: #ff8c42;
-  --color-link-visited: #ffa76c;
+  /* Brand-red link family in dark mode — `--accent` is already lifted to
+     a lighter red (#ff6464) for dark-mode contrast in the semantic block
+     below, so consumers of --color-link inherit the correct hue. */
+  --color-link: var(--accent);
+  --color-link-hover: var(--accent-hover);
+  --color-link-visited: var(--accent);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
