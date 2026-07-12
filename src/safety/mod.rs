@@ -452,18 +452,29 @@ impl SafetyValidator {
         // Quote-tolerant target of `/`, `//`, `/.`, `/*`, `~`, `~/`, `$HOME`,
         // `..`, `../`, or a bare `*`. The trailing boundary forbids a deeper
         // path, so a *specific* subpath (`/tmp/myapp_123`) is NOT caught.
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:-{1,2}\S+\s+)*['"]?/+(?:\.|\*)?['"]?(?:\s|$)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:-{1,2}\S+\s+)*['"]?~/?(?:\s|$|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:-{1,2}\S+\s+)*['"]?\$HOME['"]?(?:\s|$|/|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:-{1,2}\S+\s+)*['"]?\.\.?/?['"]?(?:\s|$|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:-{1,2}\S+\s+)*['"]?\*(?:\s|$)"#,
+        //
+        // The `(?:\S+\s+)*` skip-group deliberately consumes ANY token (flags
+        // AND earlier targets, including `--`), not just `-`-prefixed flags:
+        // in a multi-target invocation like `rm -rf /tmp /` the catastrophic
+        // `/` is the SECOND target, and a flags-only group would leave it
+        // unexamined (reviewer finding on #1246). Over-consuming is safe here:
+        // the pattern still requires a catastrophic token at some argument
+        // position, and the statement-boundary head keeps `echo 'rm -rf /'`
+        // out.
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*['"]?/+(?:\.|\*)?['"]?(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*['"]?~/?(?:\s|$|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*['"]?\$HOME['"]?(?:\s|$|/|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*['"]?\.\.?/?['"]?(?:\s|$|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*['"]?\*(?:\s|$)"#,
         // ── System-directory recursive delete ────────────────────────────────
         // Top-level system dirs whose loss is unrecoverable. Anchored with a
         // trailing boundary that allows `/etc`, `/etc/`, `/etc/*` but NOT
         // `/etc/foo` — and crucially NOT `/var/tmp/...` (a specific subpath).
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:-{1,2}\S+\s+)*['"]?(?:/(?:etc|usr|bin|sbin|lib|lib64|boot|var|sys|proc|dev|root|home|opt|srv|System|Library))(?:/\*?)?['"]?(?:\s|$)"#,
-        // Windows drive root recursive delete (WSL / git-bash).
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+-\S*r\S*\s+['"]?[A-Za-z]:[\\/]"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*['"]?(?:/(?:etc|usr|bin|sbin|lib|lib64|boot|var|sys|proc|dev|root|home|opt|srv|System|Library))(?:/\*?)?['"]?(?:\s|$)"#,
+        // Windows drive root recursive delete (WSL / git-bash). Requires a
+        // recursive flag somewhere before the drive-root target; other tokens
+        // (including earlier targets) may sit between them.
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*-\S*r\S*\s+(?:\S+\s+)*['"]?[A-Za-z]:[\\/]"#,
         // ── Explicit root-protection bypass — always catastrophic ────────────
         r"--no-preserve-root",
         // ── Whole-disk / device destruction ──────────────────────────────────
@@ -962,7 +973,7 @@ impl SafetyConfig {
             // Add pattern anyway for deferred validation (see method docs)
             self.custom_patterns.push(pattern);
             return Err(ValidationError::PatternError {
-                pattern: format!("{}: {}", &self.custom_patterns.last().unwrap().pattern, e),
+                pattern: format!("{}: {}", self.custom_patterns.last().unwrap().pattern, e),
             });
         }
 
@@ -1201,6 +1212,16 @@ mod allowlist_catastrophic_tests {
             "rm --recursive --force /",
             "sudo rm -rf /",
             "sudo rm -rf /etc",
+            // `--` end-of-options marker before the target
+            "rm -rf -- /",
+            // Multi-target invocations: a catastrophic target after a benign
+            // one must still trip the floor (reviewer finding on #1246)
+            "rm -rf /tmp /",
+            "rm -rf /tmp/scratch /etc",
+            "rm -rf \"/tmp\" /",
+            "rm -rf /tmp ~",
+            "rm -rf C:\\",
+            "rm -rf /tmp/build C:\\",
         ];
         for cmd in evasions {
             assert!(
@@ -1221,6 +1242,9 @@ mod allowlist_catastrophic_tests {
             "rm -rf /var/lib/docker/tmp",
             "rm -rf ./target",
             "rm -rf node_modules",
+            // Multi-target with ONLY specific subpaths stays blessable
+            "rm -rf /tmp/myapp_123 /tmp/myapp_456",
+            "rm -rf -- /tmp/myapp_123",
         ];
         for cmd in specific {
             assert!(
@@ -1349,6 +1373,11 @@ mod allowlist_catastrophic_tests {
             "format C:",
             "del /f /s /q C:\\",
             ":(){ :|:& };:",
+            // `--` end-of-options marker and multi-target forms (reviewer
+            // findings on #1246) must stay blocked end-to-end too
+            "rm -rf -- /",
+            "rm -rf /tmp /",
+            "rm -rf /tmp/scratch /etc",
         ];
         for cmd in must_stay_blocked {
             let result = validator
