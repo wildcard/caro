@@ -55,6 +55,11 @@ impl Evaluator for POSIXEvaluator {
                     execution_time_ms: result.execution_time_ms,
                     timestamp: Utc::now(),
                     error_type: Some(crate::evaluation::ErrorType::GenerationFailure),
+                    est_tokens_in: 0,
+                    est_tokens_out: 0,
+                    est_cost_usd: 0.0,
+                    criteria_passed: 0,
+                    criteria_total: 0,
                 });
             }
         };
@@ -104,6 +109,11 @@ impl Evaluator for POSIXEvaluator {
             } else {
                 None
             },
+            est_tokens_in: 0,
+            est_tokens_out: 0,
+            est_cost_usd: 0.0,
+            criteria_passed: 0,
+            criteria_total: 0,
         })
     }
 }
