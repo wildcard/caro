@@ -69,19 +69,19 @@ const testimonials: Testimonial[] = [
 
     <div class="social-proof-bar">
       <div class="proof-item">
-        <span class="proof-icon">⭐</span>
+        <span class="proof-icon" aria-hidden="true">❯</span>
         <span class="proof-text">Open Source on GitHub</span>
       </div>
       <div class="proof-item">
-        <span class="proof-icon">🛡️</span>
+        <span class="proof-icon" aria-hidden="true">■</span>
         <span class="proof-text">MIT Licensed</span>
       </div>
       <div class="proof-item">
-        <span class="proof-icon">🔒</span>
+        <span class="proof-icon" aria-hidden="true">▸</span>
         <span class="proof-text">Zero Telemetry</span>
       </div>
       <div class="proof-item">
-        <span class="proof-icon">🚀</span>
+        <span class="proof-icon" aria-hidden="true">$</span>
         <span class="proof-text">Production Ready</span>
       </div>
     </div>
@@ -240,8 +240,13 @@ const testimonials: Testimonial[] = [
     color: var(--fg);
   }
 
+  /* Terminal-glyph proof marks per v2.1 icon-system reframe (no emoji). */
   .proof-icon {
-    font-size: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
   }
 
   .proof-text {
