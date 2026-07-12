@@ -288,11 +288,18 @@ impl CliApp {
             .with_static_matcher(!force_llm);
 
         // Best-of-N ranking (opt-in via --best-of / CARO_BEST_OF). Adds the
-        // embedded backend as a second, independent source so the pipeline can
-        // pick the better of local + primary. Off by default → unchanged path.
+        // every distinct available backend as an independent source so the
+        // pipeline can pick the best. Off by default → unchanged path. With only
+        // one distinct backend (e.g. embedded-only), `extra` is empty and the
+        // ranked path degrades to the single-backend result — nothing to compare.
         #[cfg(feature = "candidate-ranking")]
         let agent_loop = if best_of {
-            let extra = Self::build_embedded_source(&user_config).await?;
+            let primary_type = backend_arc.backend_info().backend_type;
+            let extra: Vec<_> = Self::collect_ranking_sources(&user_config)
+                .await?
+                .into_iter()
+                .filter(|(b, _)| b.backend_info().backend_type != primary_type)
+                .collect();
             let safety_config = crate::safety::SafetyConfig::from_user_config(
                 &user_config,
                 config_manager.config_path(),
@@ -302,7 +309,7 @@ impl CliApp {
                     message: format!("Failed to init ranking safety validator: {}", e),
                 }
             })?);
-            agent_loop.with_ranking(vec![(extra, "embedded".to_string())], safety)
+            agent_loop.with_ranking(extra, safety)
         } else {
             agent_loop
         };
@@ -348,6 +355,98 @@ impl CliApp {
                 })?;
             Ok(Arc::new(embedded))
         }
+    }
+
+    /// Collect every currently-available backend as a best-of-N ranking source.
+    /// Always includes the embedded backend (the local, always-available
+    /// anchor); when `remote-backends` is built in, also builds each configured
+    /// remote (Mesh / Exo / Ollama / vLLM) and probes them concurrently,
+    /// including only the ones that answer. The caller drops whichever source
+    /// duplicates the already-selected primary.
+    #[cfg(feature = "candidate-ranking")]
+    async fn collect_ranking_sources(
+        user_config: &crate::models::UserConfiguration,
+    ) -> Result<Vec<(Arc<dyn CommandGenerator>, String)>, CliError> {
+        let mut sources: Vec<(Arc<dyn CommandGenerator>, String)> = Vec::new();
+
+        // Embedded is always available and privacy-preserving — the local anchor.
+        let embedded = Self::build_embedded_source(user_config).await?;
+        sources.push((embedded, "embedded".to_string()));
+
+        #[cfg(all(not(test), feature = "remote-backends"))]
+        {
+            use crate::backends::remote::{ExoBackend, MeshBackend, OllamaBackend, VllmBackend};
+            use reqwest::Url;
+
+            let backends_cfg = &user_config.backends;
+            let mesh_url_str = backends_cfg
+                .mesh_url
+                .as_deref()
+                .unwrap_or("http://localhost:9337");
+            let ollama_url_str = backends_cfg
+                .ollama_url
+                .as_deref()
+                .unwrap_or("http://localhost:11434");
+            let exo_url_str = backends_cfg
+                .exo_url
+                .as_deref()
+                .unwrap_or("http://localhost:52415");
+            let vllm_url_str = backends_cfg
+                .vllm_url
+                .as_deref()
+                .unwrap_or("http://localhost:8000");
+            let mesh_model = user_config
+                .model_name
+                .clone()
+                .unwrap_or_else(|| "mesh".to_string());
+
+            // Build each remote (no embedded fallback — embedded is its own
+            // source above, and an unreachable remote is simply dropped).
+            let mut candidates: Vec<(Arc<dyn CommandGenerator>, String)> = Vec::new();
+            if let Ok(u) = Url::parse(mesh_url_str) {
+                if let Ok(b) = MeshBackend::new(u, mesh_model) {
+                    candidates.push((Arc::new(b) as Arc<dyn CommandGenerator>, "mesh".to_string()));
+                }
+            }
+            if let Ok(u) = Url::parse(exo_url_str) {
+                if let Ok(b) = ExoBackend::new(u, "llama-3.2-3b".to_string()) {
+                    candidates.push((Arc::new(b) as Arc<dyn CommandGenerator>, "exo".to_string()));
+                }
+            }
+            if let Ok(u) = Url::parse(ollama_url_str) {
+                if let Ok(b) = OllamaBackend::new(u, "codellama:7b".to_string()) {
+                    candidates.push((
+                        Arc::new(b) as Arc<dyn CommandGenerator>,
+                        "ollama".to_string(),
+                    ));
+                }
+            }
+            if let Ok(u) = Url::parse(vllm_url_str) {
+                if let Ok(b) = VllmBackend::new(u, "codellama/CodeLlama-7b-hf".to_string()) {
+                    candidates.push((Arc::new(b) as Arc<dyn CommandGenerator>, "vllm".to_string()));
+                }
+            }
+
+            // Probe availability concurrently with a short timeout so a set of
+            // unreachable remotes can't stall startup.
+            let checks = candidates.iter().map(|(b, _)| {
+                let b = Arc::clone(b);
+                async move {
+                    tokio::time::timeout(std::time::Duration::from_millis(800), b.is_available())
+                        .await
+                        .unwrap_or(false)
+                }
+            });
+            let available = futures::future::join_all(checks).await;
+            for ((backend, label), ok) in candidates.into_iter().zip(available) {
+                if ok {
+                    tracing::info!("best-of: including {} backend as a ranking source", label);
+                    sources.push((backend, label));
+                }
+            }
+        }
+
+        Ok(sources)
     }
 
     /// Create appropriate backend based on user configuration
@@ -1215,6 +1314,18 @@ impl CommandGenerator for MockCommandGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(feature = "candidate-ranking")]
+    #[tokio::test]
+    async fn collect_ranking_sources_includes_embedded_anchor() {
+        // Under cfg(test) the remote block is compiled out, so the result is
+        // exactly the embedded anchor — the same shape a real host sees when no
+        // remote backend is reachable.
+        let cfg = crate::models::UserConfiguration::default();
+        let sources = CliApp::collect_ranking_sources(&cfg).await.unwrap();
+        assert_eq!(sources.len(), 1);
+        assert_eq!(sources[0].1, "embedded");
+    }
 
     #[test]
     fn test_validate_backend_name_valid() {
