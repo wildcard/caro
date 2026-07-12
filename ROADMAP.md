@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: May 9, 2026
+**Last Updated**: July 12, 2026
 
 > **Recent Update**: Integrated 104 PRs (#557-660) into roadmap with milestone assignments and tracking issues.
 
@@ -48,6 +48,19 @@ gantt
 ---
 
 ## Release Milestones
+
+### 🎉 v1.5.0 - Safety Floor Hardening & CI Repair
+**Released**: July 12, 2026 ✅
+**Status**: 100% Complete - **RELEASED**
+**Focus**: Catastrophic-floor allowlist safety (5 adversarial review rounds,
+evasion-hardened, all test-pinned), backend-roster single source of truth,
+runtime-loadable custom safety patterns via TOML, MSRV 1.85, dependency
+security repair (RUSTSEC-2026-0204/0185, ethnum/rust-1.97 compile break),
+cache-test de-flaking. Note: the v2.0.0 "Distributed Autonomy" milestone
+stays open pending validation-discipline Gate 1 (user discovery) — see
+docs/decisions/2026-07-12-autonomous-mode-release-scope.md (D1).
+
+---
 
 ### 🎉 v1.4.0 - CaroML Meta-Language Preview
 **Released**: May 9, 2026 ✅
@@ -282,24 +295,56 @@ gantt
 
 ---
 
+## Research (unvalidated)
+
+> **As of 2026-05-25**, the following v2.0 product lines have been
+> **downgraded to research-only** by
+> [`docs/discovery/v2.0-validation-audit.md`](./docs/discovery/v2.0-validation-audit.md)
+> per [`.claude/rules/validation-discipline.md`](./.claude/rules/validation-discipline.md).
+> None has yet cleared Gate 1 (20 first-hand interview transcripts).
+> Promised release dates are removed until validation evidence lands.
+> Discovery-debt is tracked in beads epic `discovery-debt-v2.0`.
+
+| Hypothesis ID | Product line | Transcripts | Validation status | Audit |
+| --- | --- | ---: | --- | --- |
+| `local-context-indexing` | Local directory context (#152), Local Chroma DB indexing (#166), ChromaDB epic (#504) | 0 / 20 | `unvalidated` | [audit](./docs/discovery/v2.0-validation-audit.md#local-context-indexing) |
+| `karo-distributed` | Karo distributed terminal intelligence (#133, #171), Jazz cross-device sync (#154) | 0 / 20 | `unvalidated` | [audit](./docs/discovery/v2.0-validation-audit.md#karo-distributed-intelligence) |
+| `dogma-rules` | Dogma rule engine (#126) | 0 / 20 | `unvalidated` | [audit](./docs/discovery/v2.0-validation-audit.md#dogma-rule-engine) |
+| `self-healing` | Self-healing features (#155) | 0 / 20 | `unvalidated` (high demoware-trap risk) | [audit](./docs/discovery/v2.0-validation-audit.md#self-healing-features) |
+| `voice-synthesis` | Voice synthesis (#160, #187) | 0 / 20 | `unvalidated` (highest a-priori risk) | [audit](./docs/discovery/v2.0-validation-audit.md#voice-synthesis) |
+
+Items above graduate back into v2.0 (or a later milestone) only when
+their hypothesis row in
+[`docs/discovery/hypothesis-ledger.md`](./docs/discovery/hypothesis-ledger.md)
+shows `validated` status.
+
+---
+
 ### 🚀 v2.0.0 - Advanced Features
 **Due Date**: June 30, 2026 (184 days)
 **Status**: 38% Complete (13 open, 8 closed)
-**Focus**: Innovation and advanced capabilities
+**Focus**: Innovation and advanced capabilities (extensions of the
+already-validated core loop). New product lines that did NOT clear
+the validation gate appear in the **Research (unvalidated)** section
+above.
 
 #### Key Deliverables
-- **Distributed Intelligence**
-  - Define Karo distributed terminal intelligence system (#133, #171)
-  - Plan Jazz integration for cross-device sync (#154)
+- **Distributed Intelligence** — *moved to Research (unvalidated)*
 
 - **Safety & Rules**
-  - Research Dogma rule engine architecture (#126)
-  - Add security hardening features (#6)
+  - ~~Research Dogma rule engine architecture (#126)~~ — *moved to Research (unvalidated)*
+  - Add security hardening features (#6) — extends `caro-core`, exempt
 
 - **AI Enhancements**
-  - Research voice synthesis for Caro character (#160, #187)
-  - Add Exo cluster connection support (#162)
+  - ~~Research voice synthesis for Caro character (#160, #187)~~ — *moved to Research (unvalidated)*
+  - Add Exo cluster connection support (#162) — extends `caro-core`, exempt
   - Research Yappus-Term features (#153, #185)
+  - Azure Foundry Backend Integration (#661) — extends `caro-core`, exempt
+  - Handy.Computer Integration (#662) — extends `caro-core`, exempt
+  - vLLM Jukebox Multi-Model Server (#663) — extends `caro-core`, exempt
+  - Skills Extension System (ADR-004) (#664) — extends `caro-core`, exempt
+
+- **Self-Healing & Context** — *moved to Research (unvalidated)*
 
 - **Developer Experience**
   - Create 12-month strategic roadmap (PR #169)
@@ -327,6 +372,7 @@ gantt
 
 | Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
 |-----------|----------|---------------------|----------|----------|---------|
+| **v1.5.0** | Jul 12, 2026 | Safety floor hardening + CI repair | 4 | 100% | ✅ **RELEASED** |
 | **v1.4.0** | May 9, 2026 | CaroML preview + safety hardening | 12 | 100% | ✅ **RELEASED** |
 | **v1.3.2** | May 9, 2026 | Static matcher coverage gaps | 7 | 100% | ✅ **RELEASED** |
 | **v1.3.1** | May 9, 2026 | P0/P1 safety patch | 4 | 100% | ✅ **RELEASED** |

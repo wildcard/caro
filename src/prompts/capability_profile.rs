@@ -178,8 +178,19 @@ struct CachedProfile {
 }
 
 impl CachedProfile {
-    /// Get the cache file path
+    /// Get the cache file path.
+    ///
+    /// Honours the `CARO_CAPABILITY_CACHE` environment variable when set,
+    /// which lets each test point at an isolated temp file instead of the
+    /// single process-global `~/.cache/caro/capabilities.json`. Without this
+    /// override the cache tests share one file and race each other (one
+    /// test's `clear_cache` deletes the file another test just wrote),
+    /// making `test_cache_roundtrip` flaky. In normal operation the env var
+    /// is unset and behaviour is unchanged.
     fn cache_path() -> Option<PathBuf> {
+        if let Some(path) = std::env::var_os("CARO_CAPABILITY_CACHE") {
+            return Some(PathBuf::from(path));
+        }
         dirs::cache_dir().map(|d| d.join("caro").join("capabilities.json"))
     }
 
@@ -945,6 +956,37 @@ async fn probe_ls_sort() -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
+
+    /// Point the capability cache at an isolated temp file for the duration
+    /// of a single test. Returned guard restores the previous value (and
+    /// deletes the temp file) on drop, so tests never share the
+    /// process-global `~/.cache/caro/capabilities.json` and never race each
+    /// other. Pair with `#[serial]` because the override is a process-wide
+    /// env var.
+    struct CacheEnvGuard {
+        _dir: tempfile::TempDir,
+        prev: Option<std::ffi::OsString>,
+    }
+
+    impl CacheEnvGuard {
+        fn new() -> Self {
+            let dir = tempfile::tempdir().expect("create temp cache dir");
+            let path = dir.path().join("capabilities.json");
+            let prev = std::env::var_os("CARO_CAPABILITY_CACHE");
+            std::env::set_var("CARO_CAPABILITY_CACHE", &path);
+            Self { _dir: dir, prev }
+        }
+    }
+
+    impl Drop for CacheEnvGuard {
+        fn drop(&mut self) {
+            match &self.prev {
+                Some(v) => std::env::set_var("CARO_CAPABILITY_CACHE", v),
+                None => std::env::remove_var("CARO_CAPABILITY_CACHE"),
+            }
+        }
+    }
 
     #[test]
     fn test_ubuntu_profile() {
@@ -1012,7 +1054,9 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial]
     async fn test_cache_roundtrip() {
+        let _guard = CacheEnvGuard::new();
         // Clear any existing cache
         let _ = CapabilityProfile::clear_cache().await;
 
@@ -1041,7 +1085,9 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial]
     async fn test_detect_or_cached_uses_cache() {
+        let _guard = CacheEnvGuard::new();
         // Clear any existing cache
         let _ = CapabilityProfile::clear_cache().await;
 
@@ -1065,7 +1111,9 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial]
     async fn test_detect_or_cached_without_cache() {
+        let _guard = CacheEnvGuard::new();
         // Clear any existing cache
         let _ = CapabilityProfile::clear_cache().await;
 
@@ -1102,9 +1150,11 @@ mod tests {
     /// Run with: cargo test --lib -- test_caching_performance_benchmark --nocapture --ignored
     #[tokio::test]
     #[ignore] // Only run manually - takes time
+    #[serial]
     async fn test_caching_performance_benchmark() {
         use std::time::Instant;
 
+        let _guard = CacheEnvGuard::new();
         // Clear any existing cache
         let _ = CapabilityProfile::clear_cache().await;
 

@@ -44,6 +44,11 @@ technical:
     description: "Daily ML/DS engineer pass — dataset growth, base-model selection, training experiments"
     schedule: "5 0 * * *"           # Daily 12:05 AM (offset 5 min from metrics_collection at 0 0 since parallel_runs=false)
     skill: "/ml-fine-tune-loop"
+  creative_query_generator:
+    description: "Generate novel natural-language queries, test against caro, file GH issues for epic failures"
+    schedule: "0 4 * * *"           # Daily 4 AM
+    agent: "creative-query-generator"
+    prompt: "Run a daily creative query cycle: seed (allowlist + local + free-roam), generate 15-25 novel queries, write per-topic execution plan, test stable + branch builds across static and embedded backends, classify PASS/MISS/EPIC FAILURE, file GH issues for epic failures, open daily PR. Skip yesterday's seeds; never push to main."
     enabled: true
     timeout_minutes: 45
     notify_on_failure: true

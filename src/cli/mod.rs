@@ -1,5 +1,6 @@
 // CLI module - Command-line interface and user interaction
 
+pub mod edit_prompt;
 pub mod telemetry;
 
 use serde::{Deserialize, Serialize};
@@ -11,7 +12,7 @@ use crate::{
     agent::AgentLoop,
     backends::CommandGenerator,
     context::ExecutionContext,
-    models::{CommandRequest, SafetyLevel, ShellType},
+    models::{ApprovalMode, CommandRequest, RiskJudgeContext, SafetyLevel, ShellType},
     prompts::CapabilityProfile,
     safety::SafetyValidator,
 };
@@ -64,6 +65,10 @@ pub struct CliConfig {
     pub safety_level: SafetyLevel,
     pub output_format: OutputFormat,
     pub auto_confirm: bool,
+    /// How accept/prompt/block decisions are made (resolved from config file;
+    /// overridden per-invocation by `--approval` / `CARO_APPROVAL`).
+    #[serde(default)]
+    pub approval_mode: ApprovalMode,
 }
 
 /// Result of CLI command execution
@@ -145,6 +150,11 @@ pub trait IntoCliArgs {
     fn safety(&self) -> Option<String>;
     fn output(&self) -> Option<String>;
     fn confirm(&self) -> bool;
+    /// Approval mode (`--approval prompt|auto|smart`).
+    /// Default returns `None` (resolve to config/default) for back-compat.
+    fn approval(&self) -> Option<String> {
+        None
+    }
     fn verbose(&self) -> bool;
     fn config_file(&self) -> Option<String>;
     fn execute(&self) -> bool;
@@ -186,7 +196,7 @@ impl CliApp {
     /// 3. Config file (`~/.config/caro/config.toml`)
     /// 4. Auto-detect (default: embedded)
     pub async fn with_overrides(
-        config: CliConfig,
+        mut config: CliConfig,
         backend_override: Option<String>,
         model_name_override: Option<String>,
         force_llm: bool,
@@ -202,6 +212,11 @@ impl CliApp {
             .map_err(|e| CliError::ConfigurationError {
                 message: format!("Failed to load configuration: {}", e),
             })?;
+
+        // Carry the config-file approval mode into the runtime config; the
+        // per-invocation `--approval` flag / `CARO_APPROVAL` env override it
+        // later in `run_with_args`.
+        config.approval_mode = user_config.approval_mode;
 
         // Backend selection priority: CLI flag > env var > config file
         let env_backend = std::env::var("CARO_BACKEND").ok();
@@ -243,11 +258,17 @@ impl CliApp {
         let backend = Self::create_backend(&user_config).await?;
         let backend_arc: Arc<dyn CommandGenerator> = Arc::from(backend);
 
+        // Build a safety validator that honors both the user's safety level
+        // AND their custom patterns / allowlist from config.toml + sibling
+        // patterns.toml. Critical built-ins still take precedence over any
+        // user allowlist (see `SafetyValidator::validate_command`).
+        let safety_config = crate::safety::SafetyConfig::from_user_config(
+            &user_config,
+            config_manager.config_path(),
+        );
         let validator =
-            SafetyValidator::new(crate::safety::SafetyConfig::default()).map_err(|e| {
-                CliError::ConfigurationError {
-                    message: format!("Failed to initialize safety validator: {}", e),
-                }
+            SafetyValidator::new(safety_config).map_err(|e| CliError::ConfigurationError {
+                message: format!("Failed to initialize safety validator: {}", e),
             })?;
 
         // Detect execution context
@@ -309,6 +330,41 @@ impl CliApp {
 
             let embedded_arc: Arc<EmbeddedModelBackend> = Arc::new(embedded_backend);
 
+            // Resolve remote endpoint URLs from the `[backends]` config section,
+            // falling back to the built-in localhost defaults when unset.
+            #[cfg(feature = "remote-backends")]
+            let backends_cfg = &user_config.backends;
+            #[cfg(feature = "remote-backends")]
+            let mesh_url_str = backends_cfg
+                .mesh_url
+                .as_deref()
+                .unwrap_or("http://localhost:9337");
+            #[cfg(feature = "remote-backends")]
+            let ollama_url_str = backends_cfg
+                .ollama_url
+                .as_deref()
+                .unwrap_or("http://localhost:11434");
+            #[cfg(feature = "remote-backends")]
+            let exo_url_str = backends_cfg
+                .exo_url
+                .as_deref()
+                .unwrap_or("http://localhost:52415");
+            #[cfg(feature = "remote-backends")]
+            let vllm_url_str = backends_cfg
+                .vllm_url
+                .as_deref()
+                .unwrap_or("http://localhost:8000");
+            #[cfg(feature = "remote-backends")]
+            let ai_horde_url_str = backends_cfg
+                .ai_horde_url
+                .as_deref()
+                .unwrap_or(crate::backends::remote::ai_horde::AI_HORDE_DEFAULT_URL);
+            #[cfg(feature = "remote-backends")]
+            let ai_horde_key_str = backends_cfg
+                .ai_horde_key
+                .as_deref()
+                .unwrap_or(crate::backends::remote::ai_horde::AI_HORDE_ANON_KEY);
+
             // Check for user-specified model preference
             let model_preference = user_config.default_model.as_deref();
 
@@ -325,11 +381,116 @@ impl CliApp {
                         };
                     }
                     #[cfg(feature = "remote-backends")]
+                    "mesh" => {
+                        use crate::backends::remote::MeshBackend;
+                        use reqwest::Url;
+
+                        let mesh_model = user_config
+                            .model_name
+                            .clone()
+                            .unwrap_or_else(|| "mesh".to_string());
+                        if let Ok(mesh_url) = Url::parse(mesh_url_str) {
+                            let mesh_backend = MeshBackend::new(mesh_url, mesh_model)
+                                .map_err(|e| CliError::ConfigurationError {
+                                    message: format!("Failed to create Mesh-LLM backend: {}", e),
+                                })?
+                                .with_embedded_fallback(embedded_arc.clone());
+                            if mesh_backend.is_available().await {
+                                tracing::info!("Using Mesh-LLM backend (user preference)");
+                                return Ok(Box::new(mesh_backend));
+                            } else {
+                                tracing::warn!(
+                                    "Mesh-LLM backend not available, falling back to embedded"
+                                );
+                            }
+                        }
+                    }
+                    #[cfg(feature = "remote-backends")]
+                    "ai-horde" | "aihorde" | "horde" => {
+                        use crate::backends::remote::AiHordeBackend;
+
+                        let horde = AiHordeBackend::new(ai_horde_url_str, ai_horde_key_str)
+                            .map_err(|e| CliError::ConfigurationError {
+                                message: format!("Failed to create AI-Horde backend: {}", e),
+                            })?
+                            .with_embedded_fallback(embedded_arc.clone());
+                        // AI-Horde is a public volunteer cluster: never silently
+                        // probe-and-skip. Honor the explicit request and rely on
+                        // the embedded fallback if the Horde is unreachable.
+                        if horde.is_available().await {
+                            tracing::info!("Using AI-Horde backend (user preference)");
+                        } else {
+                            tracing::warn!(
+                                "AI-Horde heartbeat failed; will attempt anyway with embedded fallback"
+                            );
+                        }
+                        return Ok(Box::new(horde));
+                    }
+                    #[cfg(feature = "remote-backends")]
+                    "hybrid" => {
+                        use crate::backends::hybrid::{ContextSanitizer, HybridBackend};
+                        use crate::backends::remote::{AiHordeBackend, MeshBackend};
+                        use reqwest::Url;
+
+                        // Pick the remote enhancer (default: mesh).
+                        let remote_kind = backends_cfg.hybrid_remote.as_deref().unwrap_or("mesh");
+                        let remote: Arc<dyn CommandGenerator> = match remote_kind {
+                            "ai-horde" | "aihorde" | "horde" => Arc::new(
+                                AiHordeBackend::new(ai_horde_url_str, ai_horde_key_str).map_err(
+                                    |e| CliError::ConfigurationError {
+                                        message: format!(
+                                            "Failed to create AI-Horde remote for hybrid: {}",
+                                            e
+                                        ),
+                                    },
+                                )?,
+                            ),
+                            _ => {
+                                let mesh_model = user_config
+                                    .model_name
+                                    .clone()
+                                    .unwrap_or_else(|| "mesh".to_string());
+                                let mesh_url = Url::parse(mesh_url_str).map_err(|e| {
+                                    CliError::ConfigurationError {
+                                        message: format!("Invalid mesh URL for hybrid: {}", e),
+                                    }
+                                })?;
+                                Arc::new(MeshBackend::new(mesh_url, mesh_model).map_err(|e| {
+                                    CliError::ConfigurationError {
+                                        message: format!(
+                                            "Failed to create Mesh remote for hybrid: {}",
+                                            e
+                                        ),
+                                    }
+                                })?)
+                            }
+                        };
+
+                        // Seed the sanitizer with the current identity so the
+                        // username/hostname are redacted alongside paths/IPs.
+                        let user = std::env::var("USER")
+                            .or_else(|_| std::env::var("LOGNAME"))
+                            .ok();
+                        let host = std::env::var("HOSTNAME").ok();
+                        let sanitizer =
+                            ContextSanitizer::new().with_identity(user.as_deref(), host.as_deref());
+
+                        let local: Arc<dyn CommandGenerator> = embedded_arc.clone();
+                        let hybrid =
+                            HybridBackend::new(local, remote, sanitizer, backends_cfg.allow_public);
+                        tracing::info!(
+                            "Using Hybrid backend (local sanitizer + {} enhancer, sanitize={})",
+                            remote_kind,
+                            !backends_cfg.allow_public
+                        );
+                        return Ok(Box::new(hybrid));
+                    }
+                    #[cfg(feature = "remote-backends")]
                     "ollama" => {
                         use crate::backends::remote::OllamaBackend;
                         use reqwest::Url;
 
-                        if let Ok(ollama_url) = Url::parse("http://localhost:11434") {
+                        if let Ok(ollama_url) = Url::parse(ollama_url_str) {
                             let ollama_backend =
                                 OllamaBackend::new(ollama_url, "codellama:7b".to_string())
                                     .map_err(|e| CliError::ConfigurationError {
@@ -352,7 +513,7 @@ impl CliApp {
                         use crate::backends::remote::ExoBackend;
                         use reqwest::Url;
 
-                        if let Ok(exo_url) = Url::parse("http://localhost:52415") {
+                        if let Ok(exo_url) = Url::parse(exo_url_str) {
                             let exo_backend = ExoBackend::new(exo_url, "llama-3.2-3b".to_string())
                                 .map_err(|e| CliError::ConfigurationError {
                                     message: format!("Failed to create Exo backend: {}", e),
@@ -374,7 +535,7 @@ impl CliApp {
                         use crate::backends::remote::VllmBackend;
                         use reqwest::Url;
 
-                        if let Ok(vllm_url) = Url::parse("http://localhost:8000") {
+                        if let Ok(vllm_url) = Url::parse(vllm_url_str) {
                             let vllm_backend =
                                 VllmBackend::new(vllm_url, "codellama/CodeLlama-7b-hf".to_string())
                                     .map_err(|e| CliError::ConfigurationError {
@@ -393,7 +554,7 @@ impl CliApp {
                         }
                     }
                     #[cfg(not(feature = "remote-backends"))]
-                    "ollama" | "exo" | "vllm" => {
+                    "mesh" | "ollama" | "exo" | "vllm" | "ai-horde" | "hybrid" => {
                         return Err(Self::remote_backend_unavailable_error(model));
                     }
                     _ => {
@@ -405,11 +566,30 @@ impl CliApp {
             // Auto-detect: try remote backends with embedded fallback
             #[cfg(feature = "remote-backends")]
             {
-                use crate::backends::remote::{ExoBackend, OllamaBackend, VllmBackend};
+                use crate::backends::remote::{
+                    ExoBackend, MeshBackend, OllamaBackend, VllmBackend,
+                };
                 use reqwest::Url;
 
-                // Priority: Exo cluster > Ollama > vLLM > Embedded
-                if let Ok(exo_url) = Url::parse("http://localhost:52415") {
+                // Priority: Mesh-LLM > Exo cluster > Ollama > vLLM > Embedded
+                if let Ok(mesh_url) = Url::parse(mesh_url_str) {
+                    let mesh_model = user_config
+                        .model_name
+                        .clone()
+                        .unwrap_or_else(|| "mesh".to_string());
+                    let mesh_backend = MeshBackend::new(mesh_url, mesh_model)
+                        .map_err(|e| CliError::ConfigurationError {
+                            message: format!("Failed to create Mesh-LLM backend: {}", e),
+                        })?
+                        .with_embedded_fallback(embedded_arc.clone());
+
+                    if mesh_backend.is_available().await {
+                        tracing::info!("Using Mesh-LLM backend (auto-detected)");
+                        return Ok(Box::new(mesh_backend));
+                    }
+                }
+
+                if let Ok(exo_url) = Url::parse(exo_url_str) {
                     let exo_backend = ExoBackend::new(exo_url, "llama-3.2-3b".to_string())
                         .map_err(|e| CliError::ConfigurationError {
                             message: format!("Failed to create Exo backend: {}", e),
@@ -422,7 +602,7 @@ impl CliApp {
                     }
                 }
 
-                if let Ok(ollama_url) = Url::parse("http://localhost:11434") {
+                if let Ok(ollama_url) = Url::parse(ollama_url_str) {
                     let ollama_backend = OllamaBackend::new(ollama_url, "codellama:7b".to_string())
                         .map_err(|e| CliError::ConfigurationError {
                             message: format!("Failed to create Ollama backend: {}", e),
@@ -435,7 +615,7 @@ impl CliApp {
                     }
                 }
 
-                if let Ok(vllm_url) = Url::parse("http://localhost:8000") {
+                if let Ok(vllm_url) = Url::parse(vllm_url_str) {
                     let vllm_backend =
                         VllmBackend::new(vllm_url, "codellama/CodeLlama-7b-hf".to_string())
                             .map_err(|e| CliError::ConfigurationError {
@@ -463,29 +643,37 @@ impl CliApp {
     ///
     /// Returns Ok(()) if valid, or a helpful error message if not.
     fn validate_backend_name(backend: &str) -> Result<(), CliError> {
-        const VALID_BACKENDS: &[&str] = &["embedded", "ollama", "exo", "vllm"];
+        // The accepted roster and the `--backend-info` table are driven by the
+        // same slice so the two user-facing surfaces cannot drift (#1115).
+        use crate::backends::CLI_SERVABLE_BACKENDS;
 
         let normalized = backend.to_lowercase();
-        if VALID_BACKENDS.contains(&normalized.as_str()) {
+        if CLI_SERVABLE_BACKENDS
+            .iter()
+            .any(|(name, _)| *name == normalized)
+        {
             return Ok(());
         }
 
         // Provide helpful error with suggestions
-        let suggestion = VALID_BACKENDS
+        let suggestion = CLI_SERVABLE_BACKENDS
             .iter()
-            .find(|&&v| v.starts_with(&normalized) || normalized.starts_with(v))
-            .map(|&v| format!(". Did you mean '{}'?", v))
+            .map(|(name, _)| *name)
+            .find(|v| v.starts_with(normalized.as_str()) || normalized.starts_with(v))
+            .map(|v| format!(". Did you mean '{}'?", v))
             .unwrap_or_default();
+
+        let available = CLI_SERVABLE_BACKENDS
+            .iter()
+            .map(|(name, note)| format!("  - {}: {}", name, note))
+            .collect::<Vec<_>>()
+            .join("\n");
 
         Err(CliError::InvalidArgument {
             message: format!(
-                "Unknown backend '{}'{}\n\nAvailable backends:\n  \
-                 - embedded: Local Qwen model (default, no setup required)\n  \
-                 - ollama: Ollama server (requires: ollama serve)\n  \
-                 - exo: Exo distributed cluster (requires: exo cluster)\n  \
-                 - vllm: vLLM HTTP API (requires: vllm server)\n\n\
+                "Unknown backend '{}'{}\n\nAvailable backends:\n{}\n\n\
                  Set via: --backend <name>, CARO_BACKEND env var, or config file",
-                backend, suggestion
+                backend, suggestion, available
             ),
         })
     }
@@ -514,8 +702,13 @@ impl CliApp {
     }
 
     /// Get list of available backend names
-    pub fn available_backends() -> &'static [&'static str] {
-        &["embedded", "ollama", "exo", "vllm"]
+    pub fn available_backends() -> Vec<&'static str> {
+        // Derived from the same source of truth as `validate_backend_name`
+        // and `--backend-info` so all three agree (#1115).
+        crate::backends::CLI_SERVABLE_BACKENDS
+            .iter()
+            .map(|(name, _)| *name)
+            .collect()
     }
 
     /// Run CLI with provided arguments
@@ -590,29 +783,82 @@ impl CliApp {
                 message: format!("Safety validation failed: {}", e),
             })?;
 
-        // Check if confirmation is required
-        let requires_confirmation =
-            validation.risk_level.requires_confirmation(safety_level) && !args.confirm();
+        // Resolve approval mode: `--approval` flag > CARO_APPROVAL env > config.
+        let approval_mode = args
+            .approval()
+            .and_then(|s| ApprovalMode::from_str(&s).ok())
+            .or_else(|| {
+                std::env::var("CARO_APPROVAL")
+                    .ok()
+                    .and_then(|s| ApprovalMode::from_str(&s).ok())
+            })
+            .unwrap_or(self.config.approval_mode);
 
-        let blocked_reason = if validation.risk_level.is_blocked(safety_level) {
-            Some(format!(
+        // `auto` mode auto-confirms confirmable commands (hard blocks still apply),
+        // equivalent to always passing `-y`.
+        let auto_confirm = args.confirm() || approval_mode == ApprovalMode::Auto;
+
+        // Compute the approval decision. `prompt`/`auto` use the static matrix
+        // unchanged; `smart` blends in a bounded LLM judge (hard floor: a
+        // Critical static match is never relaxed; uncertain → static fallback).
+        let block_message = || {
+            format!(
                 "Command blocked due to {} risk: {}",
                 validation.risk_level,
                 validation.warnings.join(", ")
-            ))
-        } else {
-            None
+            )
         };
+        let (requires_confirmation, blocked_reason, smart_note) = match approval_mode {
+            ApprovalMode::Smart => {
+                let ctx = RiskJudgeContext {
+                    shell,
+                    cwd: std::env::current_dir()
+                        .ok()
+                        .map(|p| p.display().to_string()),
+                    static_risk: validation.risk_level,
+                    matched_patterns: validation.matched_patterns.clone(),
+                };
+                let judgment = self.backend.classify_risk(&generated.command, &ctx).await;
+                let decision = crate::safety::blend_smart_decision(
+                    validation.risk_level,
+                    judgment.as_ref(),
+                    safety_level,
+                    auto_confirm,
+                );
+                let blocked = decision.blocked.then(block_message);
+                (decision.requires_confirmation, blocked, decision.note)
+            }
+            ApprovalMode::Prompt | ApprovalMode::Auto => {
+                let requires_confirmation =
+                    validation.risk_level.requires_confirmation(safety_level) && !auto_confirm;
+                let blocked = validation
+                    .risk_level
+                    .is_blocked(safety_level)
+                    .then(block_message);
+                (requires_confirmation, blocked, None)
+            }
+        };
+
+        // Surface any smart-mode re-route note to the user / JSON consumers.
+        if let Some(note) = &smart_note {
+            warnings_list.push(note.clone());
+        }
 
         // Determine if command passes safety checks
         let can_execute = blocked_reason.is_none() && !requires_confirmation;
 
-        // Build confirmation prompt
+        // Build confirmation prompt (use the smart note when the judge re-routed).
         let confirmation_prompt = if requires_confirmation {
-            format!(
-                "Command '{}' requires confirmation due to {} risk. Proceed? (y/N)",
-                generated.command, validation.risk_level
-            )
+            match &smart_note {
+                Some(note) => format!(
+                    "Command '{}' requires confirmation ({}). Proceed? (y/N)",
+                    generated.command, note
+                ),
+                None => format!(
+                    "Command '{}' requires confirmation due to {} risk. Proceed? (y/N)",
+                    generated.command, validation.risk_level
+                ),
+            }
         } else {
             String::new()
         };
@@ -759,6 +1005,7 @@ impl Default for CliConfig {
             safety_level: SafetyLevel::Moderate,
             output_format: OutputFormat::Plain,
             auto_confirm: false,
+            approval_mode: ApprovalMode::default(),
         }
     }
 }
@@ -919,6 +1166,33 @@ mod tests {
         assert!(backends.contains(&"ollama"));
         assert!(backends.contains(&"exo"));
         assert!(backends.contains(&"vllm"));
+    }
+
+    #[test]
+    fn test_validate_backend_name_matches_servable_roster() {
+        // Pins the acceptor to the single source of truth so the
+        // `--backend-info` table (which iterates the same slice) can never
+        // advertise a backend that `--backend <name>` rejects. This is the
+        // regression guard for issue #1115.
+        for (name, _note) in crate::backends::CLI_SERVABLE_BACKENDS {
+            assert!(
+                CliApp::validate_backend_name(name).is_ok(),
+                "advertised backend '{}' must be accepted by --backend",
+                name
+            );
+        }
+
+        // Enum variants that exist in `BackendType` but are NOT CLI-wired are
+        // intentionally rejected — advertising them was the #1115 bug. If a
+        // future PR wires one of these, add it to CLI_SERVABLE_BACKENDS (which
+        // updates every surface at once) rather than special-casing here.
+        for unwired in ["claude", "static", "openrouter", "mlx"] {
+            assert!(
+                CliApp::validate_backend_name(unwired).is_err(),
+                "'{}' is not CLI-wired yet and must not be silently accepted",
+                unwired
+            );
+        }
     }
 
     #[test]
