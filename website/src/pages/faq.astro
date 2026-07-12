@@ -300,14 +300,14 @@ const iconPaths = {
     text-align: center;
     padding: 100px 20px 60px;
     background: var(--bg-inverse);
-    color: #fff;
+    color: var(--fg-inverse);
   }
 
   .faq-hero h1 {
     font-size: 48px;
     font-weight: 800;
     margin: 0 0 16px;
-    color: #fff;
+    color: var(--fg-inverse);
   }
 
   .hero-subtitle {
@@ -502,13 +502,16 @@ const iconPaths = {
 
   .questions-card {
     text-align: center;
-    color: #fff;
+    color: var(--fg-inverse);
   }
 
   .questions-card h2 {
     font-size: 32px;
     font-weight: 700;
     margin: 0 0 12px;
+    /* Direct color beats the global `section h2 { color: var(--color-text) }`,
+       which resolves == --bg-inverse on this panel and would vanish. */
+    color: var(--fg-inverse);
   }
 
   .questions-card > p {
@@ -529,10 +532,11 @@ const iconPaths = {
     align-items: center;
     gap: 10px;
     padding: 14px 24px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    /* Overlay derived from --fg-inverse so it adapts when --bg-inverse flips. */
+    background: color-mix(in srgb, var(--fg-inverse) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--fg-inverse) 25%, transparent);
     border-radius: 10px;
-    color: #fff;
+    color: var(--fg-inverse);
     text-decoration: none;
     font-weight: 600;
     font-size: 15px;
