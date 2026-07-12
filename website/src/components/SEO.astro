@@ -158,11 +158,14 @@ const articleSchema = type === 'article' && publishedTime ? {
 <meta name="theme-color" content="#1a1a2e" />
 <meta name="color-scheme" content="dark light" />
 
-<!-- Favicon Package -->
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+<!-- Favicon Package
+     SVG favicon covers every modern browser. caro-pixel.png is the legacy
+     raster fallback for older Chromium / IE-Edge. The previous
+     favicon-32x32 / favicon-16x16 / apple-touch-icon PNG links pointed at
+     files that were never bundled and 404'd on every page load — removed
+     until a sized PNG pack is generated from favicon.svg. -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="icon" type="image/png" href="/caro-pixel.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 
 <!-- Structured Data -->

@@ -70,7 +70,12 @@ const { lang = 'en' } = Astro.props;
     letter-spacing: 1px;
   }
 
+  /* Display face per Caro brand: Azeret Mono via --font-display.
+     The previous omission let the headline fall through to body sans-serif
+     in environments where the system stack resolved before Azeret Mono
+     loaded — visible regression flagged in caro-a85d. */
   .headline {
+    font-family: var(--font-display);
     font-size: 52px;
     font-weight: 700;
     line-height: 1.2;
