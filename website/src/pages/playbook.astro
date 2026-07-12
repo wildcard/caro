@@ -1,0 +1,383 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+
+const stages = [
+  {
+    id: 'idea',
+    title: 'Stage 1 — Idea',
+    status: 'Exited',
+    statusTone: 'done',
+    summary:
+      'Problem validated. Personas documented. Distribution channels live. Waitlist signal is real (~247) but qualitative — quantitative validation gates are codified now to apply forward from May 25, 2026.',
+    evidence: [
+      'MISSION.md',
+      'docs/PERSONAS_JTBD.md',
+      'docs/JOBS_TO_BE_DONE.md',
+      'live waitlist on caro.sh',
+    ],
+  },
+  {
+    id: 'mvp',
+    title: 'Stage 2 — MVP',
+    status: 'Exited',
+    statusTone: 'done',
+    summary:
+      'Core loop ships at 94.8% Command Success Rate. Multi-backend by construction (no single-vendor lock-in). 52+ dangerous-command patterns. 700+ eval cases. Engineering discipline encoded in a tiered constitution.',
+    evidence: [
+      'Cargo.toml v1.4.0',
+      'tests/evaluation/',
+      'src/safety/patterns.rs',
+      '.claude/rules/constitution.md',
+    ],
+  },
+  {
+    id: 'launch',
+    title: 'Stage 3 — Launch',
+    status: 'Current stage',
+    statusTone: 'current',
+    summary:
+      'Distribution shipped (crates.io, Homebrew, npm, NuGet, install script). Public surface shipped (15-locale website, docs). The exit gate is retention, not features. Until we publish a defended D7 curve, we do not claim PMF.',
+    evidence: [
+      'Multi-channel distribution',
+      'Telemetry infrastructure',
+      'docs/retention-dashboard-spec.md (spec only; dashboard not yet shipped)',
+    ],
+  },
+  {
+    id: 'scale',
+    title: 'Stage 4 — Scale',
+    status: 'Mapped, not entered',
+    statusTone: 'planned',
+    summary:
+      'Dual-track Community / Enterprise per ADR-001. Multi-agent operating layer in place (Hermes + 33 domain agents). Scale is horizontal adoption inside orgs that already deploy AI coding agents — not consumer pivots.',
+    evidence: [
+      'docs/adr/ADR-001-enterprise-community-architecture.md',
+      'docs/enterprise/MOAT.md',
+      '.hermes/AGENT.md',
+    ],
+  },
+];
+
+const gates = [
+  {
+    name: '20 first-hand transcripts',
+    body: 'Real interviews, not surveys, not stars, not waitlist counts. 20 conversations surfacing at least 3 distinct pain patterns.',
+  },
+  {
+    name: 'No surveys as primary evidence',
+    body: 'Surveys size hypotheses after qualitative interviews surface them — never replace them.',
+  },
+  {
+    name: 'What breaks at 100 real users',
+    body: 'Every spec names the demoware-trap failure mode and the instrumentation that would detect it.',
+  },
+  {
+    name: "Devil's-advocate review",
+    body: 'An adversarial agent interrogates AI-drafted proposals before merge to counter confirmation bias.',
+  },
+  {
+    name: 'Sean Ellis with a defended cohort',
+    body: 'PMF claims require both the >40% threshold and a cohort definition we can defend — not "everyone who installed".',
+  },
+];
+
+const repo = 'https://github.com/wildcard/caro';
+---
+
+<Layout
+  title="The Caro Playbook — Where we are, where we're going"
+  description="Caro's founder-arc stage map adapted from Anthropic's Founder's Playbook. We're at late MVP heading into Launch. The next gate is retention, not features."
+>
+  <Navigation />
+
+  <main class="playbook">
+    <header class="hero">
+      <p class="eyebrow">Founder Playbook</p>
+      <h1>Where Caro is on the founder arc</h1>
+      <p class="subtitle">
+        We adapted
+        <a href="https://claude.com/blog/the-founders-playbook" target="_blank" rel="noopener noreferrer">
+          Anthropic's Founder's Playbook
+        </a>
+        into a stage map you can actually inspect — with the evidence,
+        the gaps, and the honest failure modes we're watching for.
+      </p>
+    </header>
+
+    <section class="intro">
+      <h2>Why we publish this</h2>
+      <p>
+        Most companies tell you they have product-market fit. We tell
+        you the four-stage map we're on, where we sit on it, and what
+        evidence we'd need to claim the next stage. The playbook came
+        from Anthropic; the honesty is the only way to make it useful.
+      </p>
+    </section>
+
+    <section class="stages">
+      <h2>The four stages</h2>
+      <div class="stage-grid">
+        {stages.map((stage) => (
+          <article class={`stage stage--${stage.statusTone}`}>
+            <div class="stage-header">
+              <h3>{stage.title}</h3>
+              <span class={`status status--${stage.statusTone}`}>{stage.status}</span>
+            </div>
+            <p>{stage.summary}</p>
+            <ul class="evidence">
+              {stage.evidence.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="discipline">
+      <h2>The five gates we now apply to ourselves</h2>
+      <p class="discipline-intro">
+        Adopting the playbook meant codifying its anti-confirmation-bias
+        practices as a constitution rule. New product lines clear five
+        gates before the spec graduates from research to implementation.
+      </p>
+      <ol class="gates">
+        {gates.map((gate) => (
+          <li>
+            <h3>{gate.name}</h3>
+            <p>{gate.body}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="audit">
+      <h2>We audited our own roadmap against these gates</h2>
+      <p>
+        Five v2.0 product lines moved to <strong>Research (unvalidated)</strong>
+        because they had zero first-hand transcripts: <em>Karo distributed
+        intelligence</em>, <em>Dogma rule engine</em>, <em>voice synthesis</em>,
+        <em>self-healing</em>, and <em>local context indexing</em>. The four
+        items that extend the already-validated core loop (Azure Foundry,
+        vLLM Jukebox, Skills extension, Handy.Computer) pass as extensions
+        and remain on v2.0.
+      </p>
+      <p>
+        <a href={`${repo}/blob/main/docs/discovery/v2.0-validation-audit.md`}>
+          Read the full retroactive audit →
+        </a>
+      </p>
+    </section>
+
+    <section class="links">
+      <h2>Read the work</h2>
+      <ul>
+        <li><a href={`${repo}/blob/main/playbook/STAGE_MAP.md`}>Full stage map</a></li>
+        <li><a href={`${repo}/blob/main/COMPANY.md`}>How Caro becomes a company</a></li>
+        <li><a href={`${repo}/blob/main/.claude/rules/validation-discipline.md`}>Validation discipline rule</a></li>
+        <li><a href={`${repo}/tree/main/docs/discovery`}>Discovery directory</a></li>
+        <li><a href={`${repo}/blob/main/docs/launch-os.md`}>Launch operating system inventory</a></li>
+        <li><a href={`${repo}/blob/main/docs/retention-dashboard-spec.md`}>Retention dashboard spec</a></li>
+        <li><a href={`${repo}/blob/main/docs/agentic-stack.md`}>How we use Chat / Cowork / Code / Platform</a></li>
+        <li><a href="https://claude.com/blog/the-founders-playbook" target="_blank" rel="noopener noreferrer">The original playbook</a></li>
+      </ul>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .playbook {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+    color: var(--fg);
+  }
+
+  .hero {
+    text-align: left;
+    margin-bottom: 3rem;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.85rem;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .playbook h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.1;
+    margin: 0 0 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 1.15rem;
+    line-height: 1.55;
+    max-width: 60ch;
+    color: var(--fg-muted);
+  }
+
+  .playbook h2 {
+    font-size: 1.5rem;
+    margin: 3rem 0 1rem;
+  }
+
+  .playbook h3 {
+    font-size: 1.1rem;
+    margin: 0 0 0.5rem;
+  }
+
+  .intro p,
+  .audit p,
+  .discipline-intro {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--fg-muted);
+  }
+
+  .stage-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+
+  .stage {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.25rem 1rem;
+    background: var(--bg-raised);
+  }
+
+  .stage--current {
+    border-color: var(--accent);
+    background: var(--bg-subtle);
+  }
+
+  .stage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .status {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    background: var(--bg-subtle);
+    color: var(--fg-muted);
+    white-space: nowrap;
+  }
+
+  /* NOTE: status badge tint colors are hardcoded pending a Claude
+     Design decision on whether to add semantic --status-done-bg /
+     --status-planned-bg tokens. Tracked as P2 in the design audit
+     for PR #1174. */
+  .status--done {
+    background: #eef9ef;
+    color: #2a6b2f;
+  }
+
+  .status--current {
+    background: var(--accent);
+    color: var(--caro-white, #ffffff);
+  }
+
+  .status--planned {
+    background: #f1efff;
+    color: #4a3e8c;
+  }
+
+  .stage p {
+    line-height: 1.55;
+    color: var(--fg-muted);
+    font-size: 0.98rem;
+    margin: 0 0 0.75rem;
+  }
+
+  .evidence {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.85rem;
+    color: var(--fg-muted);
+  }
+
+  .evidence li {
+    padding: 0.15rem 0;
+  }
+
+  .gates {
+    counter-reset: gate;
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .gates li {
+    counter-increment: gate;
+    border: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    background: var(--bg-raised);
+    border-radius: 6px;
+    transition: border-color 0.15s ease;
+  }
+
+  .gates li:hover {
+    border-color: var(--accent);
+  }
+
+  .gates h3::before {
+    content: 'Gate ' counter(gate) ' — ';
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .gates p {
+    margin: 0;
+    color: var(--fg-muted);
+    line-height: 1.55;
+  }
+
+  .audit em {
+    font-style: normal;
+    background: var(--bg-subtle);
+    padding: 0.05rem 0.3rem;
+    border-radius: 3px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.92em;
+  }
+
+  .audit a,
+  .links a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+  }
+
+  .links ul {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .links li {
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Dark mode is handled by tokens.css — all semantic tokens above
+     (--bg-raised, --bg-subtle, --fg, --fg-muted, --border, --accent)
+     resolve correctly under prefers-color-scheme: dark. */
+</style>

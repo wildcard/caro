@@ -5,10 +5,14 @@
 use crate::knowledge::{KnowledgeError, Result};
 use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
 use std::path::Path;
+use std::sync::Mutex;
 
 /// Text embedder using sentence transformers
 pub struct Embedder {
-    model: TextEmbedding,
+    // fastembed's `TextEmbedding::embed` takes `&mut self`, but the embedder is
+    // shared behind `Arc<KnowledgeIndex>`, so we keep a `&self` API via interior
+    // mutability rather than rippling `&mut` through every caller.
+    model: Mutex<TextEmbedding>,
 }
 
 impl Embedder {
@@ -25,7 +29,9 @@ impl Embedder {
         let model = TextEmbedding::try_new(options)
             .map_err(|e| KnowledgeError::EmbedderInit(e.to_string()))?;
 
-        Ok(Self { model })
+        Ok(Self {
+            model: Mutex::new(model),
+        })
     }
 
     /// Create embedder with quantized model for faster inference
@@ -39,13 +45,19 @@ impl Embedder {
         let model = TextEmbedding::try_new(options)
             .map_err(|e| KnowledgeError::EmbedderInit(e.to_string()))?;
 
-        Ok(Self { model })
+        Ok(Self {
+            model: Mutex::new(model),
+        })
     }
 
     /// Generate embeddings for a list of texts
     pub fn embed(&self, texts: &[&str]) -> Result<Vec<Vec<f32>>> {
-        self.model
-            .embed(texts.to_vec(), None)
+        let mut model = self
+            .model
+            .lock()
+            .map_err(|e| KnowledgeError::EmbeddingFailed(format!("embedder lock poisoned: {e}")))?;
+        model
+            .embed(texts, None)
             .map_err(|e| KnowledgeError::EmbeddingFailed(e.to_string()))
     }
 

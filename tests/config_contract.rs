@@ -156,28 +156,29 @@ safety_level = "Strict
 
 #[test]
 fn test_load_fails_on_invalid_enum() {
-    // CONTRACT: load() returns InvalidValue for invalid enum variants
+    // CONTRACT: load() returns ParseError or ValidationError for invalid
+    // enum variants. (Previously this test asserted on the legacy
+    // `[general]` nesting which serde tolerated as "unknown section",
+    // making the test effectively a no-op. Now it exercises a truly
+    // invalid `safety_level` value at the top level — the contract this
+    // test was always supposed to cover.)
     let temp_dir = TempDir::new().unwrap();
     let config_path = temp_dir.path().join("invalid_enum.toml");
 
-    // Write config with invalid safety_level
     let toml_content = r#"
-[general]
-safety_level = "high"
+safety_level = "ultra-paranoid"
 "#;
     fs::write(&config_path, toml_content).unwrap();
 
     let config_manager = ConfigManager::with_config_path(config_path).unwrap();
     let result = config_manager.load();
 
-    assert!(result.is_err(), "Should fail on invalid enum value");
-
-    // Note: The actual error will be ParseError from TOML deserialization
-    // or ValidationError from the validate() call
+    assert!(
+        result.is_err(),
+        "Should fail on invalid enum value 'ultra-paranoid'"
+    );
     match result.unwrap_err() {
-        ConfigError::ParseError(_) | ConfigError::ValidationError(_) => {
-            // Expected - invalid enum values cause parse or validation errors
-        }
+        ConfigError::ParseError(_) | ConfigError::ValidationError(_) => {}
         e => panic!("Expected ParseError or ValidationError, got: {:?}", e),
     }
 }

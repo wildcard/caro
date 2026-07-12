@@ -19,10 +19,12 @@ Don't use this skill for:
 - Programs/scripts that need to live in a file (write the file directly).
 - Commands the user has already typed and just wants explained (`man` / `tldr` are better).
 - Pure questions like "what does `awk` do?" (answer directly).
+- Routine agent-internal shell work where the agent already knows the API surface: `git status`, `git add`, `git commit`, `gh pr view`, `bd create`, `npm install`, `cargo test`, `ls`, `cat`, `mkdir`, `find <known-pattern>`. Caro adds friction without value when the agent already has full context.
+- Multi-line shell scripts (`bash -c '...'` blocks with newlines). Caro is single-line synthesis; for scripts, write the file.
 
 ## What caro provides
 
-[`caro`](https://crates.io/crates/caro) is a Rust CLI that converts natural language → POSIX shell commands using local LLMs (MLX on Apple Silicon, Candle CPU elsewhere). The default `cargo install caro` build ships with embedded backends only; remote providers (Ollama, vLLM, Exo) require a custom build with `--features remote-backends`, and the Anthropic Claude backend is not yet wired into the CLI. Every generated command goes through 52+ dangerous-pattern safety regexes before being shown to the user. Risk levels: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`.
+[`caro`](https://crates.io/crates/caro) is a Rust CLI that converts natural language → POSIX shell commands using local LLMs (MLX on Apple Silicon, Candle CPU elsewhere). The default `cargo install caro` build ships with the embedded backend only; remote providers (Ollama, vLLM, Exo) require a custom build with `--features remote-backends`. Every generated command goes through 52+ dangerous-pattern safety regexes before being shown to the user. Risk levels: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`.
 
 ## How to invoke
 
@@ -50,15 +52,25 @@ Don't use this skill for:
 
    | Flag | When |
    |---|---|
-   | `--backend embedded` | Force the local model (privacy, no network) |
-   | `--backend ollama --model qwen2.5-coder:7b` | Use a local Ollama server |
-   | `--backend claude` | Use Anthropic API (`ANTHROPIC_API_KEY` must be set) |
-   | `--explain` | Include a one-line rationale |
+   | (none — let caro pick default) | **Default for agents.** caro picks `embedded` (local model, zero-cost, deterministic). Right choice for autonomous loops. |
+   | `--backend embedded` | Be explicit about the local-model path |
+   | `--backend ollama --model qwen2.5-coder:7b` | Only if the user explicitly asks for a local Ollama server |
+   | `--explain` | Include a rationale — useful when the user asked WHY, not just WHAT |
    | `--shell zsh` (or `bash`/`fish`) | Target a specific shell |
 
-3. **Parse caro's output** — it prints the suggested command + a safety classification. If the classification is `CRITICAL` or `HIGH`, surface that prominently to the user before they decide.
+   **Do not** pass `--backend claude` or `--backend static` in this version: both are advertised by `caro --backend-info` but rejected by the `--backend` validator at v1.4.0. Tracking issue: caro-zh41. Do not pass `--quiet` either — it suppresses the safety information you need to surface.
 
-4. **Present, do not execute** — show the user the command verbatim, the safety level, and any caveats. Let *them* decide whether to run it. If they ask you to run it, use the regular Bash tool with explicit confirmation per the standard destructive-command rules — do not bypass that just because caro classified it as `LOW`.
+3. **Detect synthesis failures before presenting** — caro's output today has three known failure modes that look like success ([audit 2026-05-16](../../audits/2026-05-16-caro-dogfood/audit.md), tracking issue caro-bnr6). Before presenting any command from caro, run these tripwires:
+
+   - **Empty `Command:` block** → caro produced nothing. Treat as failure.
+   - **`echo 'Unable to generate command'`** → caro's refusal path wrapped in `echo`. Treat as failure.
+   - **Unsubstituted placeholders** (`PID`, `directory/`, `output.tar.gz`, `archive.tar.gz`, or any all-caps token that looks like a variable name) → caro returned a template, not a synthesized command. Treat as failure.
+
+   On any tripwire: tell the user *"caro could not fully synthesize this; here's a hand-written suggestion, please double-check"* and fall back to your own command synthesis with the BSD-vs-GNU caveats explicit.
+
+4. **Parse caro's output** — when caro successfully synthesizes, it prints the suggested command. **Risk tier is only printed when the safety gate fires (block / CRITICAL).** For commands that pass the gate, caro prints no tier today (tracking issue caro-b45s). Do not invent a tier. If the user asked for safety context, re-run with `--explain` or pattern-match the command yourself (`rm -rf`, `chmod -R`, `dd if=`, `curl ... | sh`).
+
+5. **Present, do not execute** — show the user the command verbatim, the safety status from caro (or "no block; tier not surfaced" if caro stayed silent), and any caveats. Let *them* decide whether to run it. If they ask you to run it, use the regular Bash tool with explicit confirmation per the standard destructive-command rules — do not bypass that just because caro returned a non-error.
 
 ## Reply shape
 
@@ -69,13 +81,15 @@ Keep it tight:
 ```bash
 <the command from caro>
 ```
-**Safety:** <LOW|MEDIUM|HIGH|CRITICAL> — <one-line rationale if HIGH+>
+**Safety:** <CRITICAL|HIGH|MEDIUM|LOW|"caro did not surface a tier — agent assessment: <X>">
 **Notes:** <only if non-obvious caveats: BSD-vs-GNU, requires sudo, irreversible, etc.>
 ```
 
 If `CRITICAL` or `HIGH`, lead with the safety line and ask the user explicitly to confirm before running.
 
-If caro fails or returns empty, fall back to your own command synthesis — but say so explicitly: *"caro errored, here's a hand-written suggestion — please double-check."*
+If any tripwire from step 3 fires (empty / `echo 'Unable...'` / placeholder), do **not** print the command. Instead say: *"caro could not fully synthesize this; here's a hand-written suggestion — please double-check."* and write the command yourself.
+
+If caro errors (exit non-zero, e.g. CRITICAL block fired), surface the error verbatim — the safety-gate text is the most useful thing in the whole pipeline.
 
 ## Examples
 
@@ -108,9 +122,23 @@ Caro will likely return either a refusal or a heavily caveated `find /tmp -minde
 ## Constraints
 
 - **Always `--dry-run`.** This skill never lets caro execute. The user (or you, via the regular Bash tool with confirmation) executes if they choose to.
-- **Never strip caro's safety classification.** If caro says `HIGH`, the user sees `HIGH`.
+- **Never strip caro's safety classification.** If caro says `CRITICAL`, the user sees `CRITICAL`.
 - **No `--execute` flag**, ever, from this skill.
+- **No `--quiet` flag**, ever — it suppresses the safety information.
+- **No paid backends by default.** Do not pass `--backend claude` or recommend paid remote backends unless the user explicitly asks. The default (no flag) gives caro's embedded local model, which is free and deterministic — the right choice for an autonomous agent loop.
 - **One command per call.** If the user wants a multi-step pipeline that doesn't fit on one line, iterate — call caro once per step.
+- **Tripwire before trust.** Per step 3 of "How to invoke", scan caro's output for placeholder / empty / echo-refusal failure modes before presenting. These are known v1.4.0 bugs (caro-bnr6); the binary reports success even when synthesis failed, so the skill is the safety net.
+
+## Agent contract by risk tier
+
+When caro *does* return a tier (block path) or you assess one yourself:
+
+| Tier | Agent action |
+|---|---|
+| `LOW` | Surface command + tier to user. May proceed via Bash with normal confirmation. |
+| `MEDIUM` | Surface tier prominently. Recommend the user run the command themselves or via Bash with explicit confirmation. Suggest `--dry-run` (caro's, not the agent's) for any file-touching variant. |
+| `HIGH` | Lead with the tier. Refuse to execute via Bash unless the user types verbatim approval. Suggest a safer alternative if one is obvious (`-i` interactive flag, `-n` non-clobber). |
+| `CRITICAL` | **Hard refusal.** Show caro's block message. Do not execute even with user approval — ask the user to run it themselves in a separate terminal if they truly want to. |
 
 ## Why this skill exists
 

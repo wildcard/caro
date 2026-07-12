@@ -2,6 +2,7 @@
 // These are placeholder stubs - tests should fail until proper implementation
 
 pub mod embedded;
+pub mod hybrid;
 #[cfg(feature = "remote-backends")]
 pub mod remote;
 pub mod static_matcher;
@@ -10,7 +11,45 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-use crate::models::{BackendType, CommandRequest, GeneratedCommand};
+use crate::models::{
+    BackendType, CommandRequest, GeneratedCommand, RiskJudgeContext, RiskJudgment,
+};
+
+/// The set of backend names the CLI's `--backend <name>` flag actually routes
+/// to, each paired with a one-line note.
+///
+/// This is the **single source of truth** shared by
+/// [`crate::cli::CommandLineInterface::validate_backend_name`] (the acceptor +
+/// its error text) and `print_backend_info` in `main.rs` (the `--backend-info`
+/// table). Iterating the same slice in both places is what keeps the two
+/// user-facing rosters from drifting — the divergence tracked by
+/// [#1115](https://github.com/wildcard/caro/issues/1115), where `--backend-info`
+/// advertised `static`/`claude` while `--backend static`/`--backend claude`
+/// hard-errored "Unknown backend".
+///
+/// It lists only backends the CLI can route to today. Enum variants that exist
+/// in [`BackendType`] but are **not yet CLI-wired** (`claude`, `openrouter`,
+/// `mlx`, `static`) are intentionally excluded so no surface advertises a name
+/// that `--backend` rejects. Wiring those (and unifying the remaining help-text
+/// rosters) is the larger follow-up on #1115.
+pub const CLI_SERVABLE_BACKENDS: &[(&str, &str)] = &[
+    (
+        "embedded",
+        "local LLM (MLX/CPU); downloads model on first use, no setup",
+    ),
+    ("ollama", "remote Ollama HTTP API (requires: ollama serve)"),
+    ("exo", "Exo distributed cluster (requires: exo cluster)"),
+    ("vllm", "remote vLLM HTTP API (requires: vllm server)"),
+    (
+        "mesh",
+        "Mesh-LLM pooled mesh (requires: mesh node on :9337)",
+    ),
+    (
+        "ai-horde",
+        "AI-Horde volunteer cluster (free, public, no setup)",
+    ),
+    ("hybrid", "local sanitizer + remote enhancer (PII-safe)"),
+];
 
 /// Core trait that all command generation backends must implement
 #[async_trait]
@@ -20,6 +59,18 @@ pub trait CommandGenerator: Send + Sync {
         &self,
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError>;
+
+    /// Context-aware risk verdict used by `--approval smart`.
+    ///
+    /// The default is a no-op (`None`): backends that cannot reliably judge
+    /// risk opt out, and the caller falls back to the static decision
+    /// (fail-safe). Implementing this lets a backend relax benign flagged
+    /// commands or escalate static-`Safe` commands it finds dangerous —
+    /// always bounded by the hard floor in
+    /// [`blend_smart_decision`](crate::safety::blend_smart_decision).
+    async fn classify_risk(&self, _command: &str, _ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
+        None
+    }
 
     /// Check if this backend is currently available for use
     async fn is_available(&self) -> bool;

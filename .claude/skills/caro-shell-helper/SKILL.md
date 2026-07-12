@@ -1,14 +1,26 @@
 ---
 name: "caro-shell-helper"
-description: "Use when users need help generating safe, tested POSIX shell commands from natural language descriptions. Guides users through command generation, safety validation, and execution workflows using Caro best practices"
+description: "DEPRECATED 2026-05-16 — use caro-shell instead. This skill recommends the --backend claude flag and a ~/.config/caro/config.toml path that do not work on the current caro 1.4.0 binary, and its 522-line educational body is 4× the size of caro-shell for no benefit to an agent. Will be removed after 2026-08-01."
 version: "1.0.0"
 allowed-tools: "Bash, Read, Write, Grep, Glob"
 license: "AGPL-3.0"
 ---
 
-# Caro Shell Command Helper
+# Caro Shell Command Helper — **DEPRECATED**
 
-## What This Skill Does
+> **Status: Deprecated 2026-05-16.** Use [caro-shell](../caro-shell/SKILL.md) instead.
+>
+> **Why:** This skill recommends `caro --backend claude` (rejected by the v1.4.0 binary's `--backend` validator; tracking issue caro-zh41), claims the config path is `~/.config/caro/config.toml` (actual macOS path: `~/Library/Application Support/caro/config.toml`), and shows risk-emoji output that caro does not actually emit on the success path (tracking issue caro-b45s). The 522-line body is 4× the size of caro-shell for no agent benefit — see [skill-friction.md](../../audits/2026-05-16-caro-dogfood/skill-friction.md) for the side-by-side comparison.
+>
+> **Replacement:** [.claude/skills/caro-shell/SKILL.md](../caro-shell/SKILL.md). The replacement is hardened against caro's known synthesis bugs and defaults to caro's free embedded backend (correct choice for autonomous agent loops under the no-paid-default convention).
+>
+> **Removal date:** 2026-08-01. Until then this skill is kept for compatibility but its `description` will not be matched by the skill-discovery layer.
+>
+> **For maintainers:** the educational POSIX-compliance prose and backend-config TOML examples in this file are useful reference material — consider extracting to `docs/` rather than re-introducing them as a skill.
+
+---
+
+## What This Skill Does (legacy content below — do not follow as-written)
 
 This skill helps users effectively leverage **Caro** (formerly Caro) - a Rust CLI tool that converts natural language descriptions into safe, POSIX-compliant shell commands using local LLMs.
 

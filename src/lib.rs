@@ -57,6 +57,10 @@ pub mod version;
 #[cfg(feature = "knowledge")]
 pub mod knowledge;
 
+/// Microsoft Agent Governance Toolkit (AGT) integration. Phase 0: build-spike only.
+#[cfg(feature = "governance")]
+pub mod governance;
+
 // Re-export commonly used types for convenience
 pub use model_catalog::{ModelCatalog, ModelInfo, ModelSize};
 pub use models::{

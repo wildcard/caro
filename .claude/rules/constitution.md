@@ -26,19 +26,32 @@ These rules govern how code is written, reviewed, and released.
    conventional commits, code style.
 3. **[release-version-alignment.md](./release-version-alignment.md)** — The
    6-file release checklist; every release PR touches all six files.
-4. **[adr-numbering.md](./adr-numbering.md)** — ADRs are sequential, no gaps;
+4. **[validation-discipline.md](./validation-discipline.md)** — Evidence
+   requirements before a new product line graduates from research to
+   implementation (20 transcripts, no surveys-only, demoware-trap gate,
+   devil's-advocate review, Sean Ellis with defended cohort). Adapted
+   from [Anthropic's Founder's Playbook](https://claude.com/blog/the-founders-playbook).
+5. **[adr-numbering.md](./adr-numbering.md)** — ADRs are sequential, no gaps;
    renumber on merge if PRs land out of order.
+6. **[external-sdk-integration.md](./external-sdk-integration.md)** —
+   First PR for any non-trivial external SDK is a build-spike (license,
+   MSRV, optional feature flag, code-ref smoke, two verification builds);
+   architecture lands only after the spike merges green.
+7. **[feature-evidence.md](./feature-evidence.md)** — Every feature PR
+   carries evidence (green CI run link), a runnable demo, and a named
+   regression-guard test; the Monday planning routine compiles merged
+   demos into `docs/demos/<date>-weekly-demo.md`.
 
 ## Tier 3 — Workflow hygiene
 
 These rules govern session ergonomics and surface-level conventions. They
 yield to anything in Tier 1 or Tier 2.
 
-5. **[good-boy-scout.md](./good-boy-scout.md)** — Leave code better than you
+8. **[good-boy-scout.md](./good-boy-scout.md)** — Leave code better than you
    found it; do not gold-plate.
-6. **[quick-actions-footer.md](./quick-actions-footer.md)** — Append a
+9. **[quick-actions-footer.md](./quick-actions-footer.md)** — Append a
    Quick-Actions footer when stopping for user input.
-7. **[astro-esbuild-shell-syntax.md](./astro-esbuild-shell-syntax.md)** —
+10. **[astro-esbuild-shell-syntax.md](./astro-esbuild-shell-syntax.md)** —
    Escape `{` in shell snippets inside `.astro` / `.jsx` / `.tsx` templates
    (esbuild treats it as a JSX expression boundary).
 
@@ -58,6 +71,6 @@ yield to anything in Tier 1 or Tier 2.
 ## Why this exists
 
 Inspired by [swarm-forge](https://github.com/unclebob/swarm-forge)'s
-constitution layering. With 7 rule files and 4–5 parallel Claude sessions,
+constitution layering. With 8 rule files and 4–5 parallel Claude sessions,
 "first one I happen to load" is not a deterministic conflict resolution
 strategy; explicit precedence is.

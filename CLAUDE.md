@@ -6,7 +6,7 @@ A Rust CLI that converts natural language descriptions into safe POSIX shell com
 
 - **Language**: Rust (edition 2021, MSRV 1.83)
 - **License**: AGPL-3.0
-- **Version**: 1.3.0 (GA)
+- **Version**: 1.4.0 (GA)
 - **Crate**: [crates.io/crates/caro](https://crates.io/crates/caro)
 
 ## Key Architecture
@@ -14,12 +14,19 @@ A Rust CLI that converts natural language descriptions into safe POSIX shell com
 ```
 src/
 ├── main.rs              # Entry point, CLI argument parsing
-├── inference/           # Backend trait + implementations
-│   ├── mod.rs           # InferenceBackend trait definition
-│   ├── static_backend.rs    # Template-based backend
-│   ├── embedded_backend.rs  # Local LLM (MLX/CPU)
-│   ├── ollama_backend.rs    # Remote Ollama API
-│   └── vllm_backend.rs      # Remote vLLM API
+├── backends/            # CommandGenerator trait + implementations
+│   ├── mod.rs           # CommandGenerator trait + GeneratorError
+│   ├── static_matcher.rs    # Template-based deterministic backend
+│   ├── embedded/            # Local LLM (MLX/CPU)
+│   ├── remote/              # Remote HTTP backends (feature = remote-backends)
+│   │   ├── ollama.rs        # Ollama API
+│   │   ├── vllm.rs          # vLLM OpenAI-compatible API
+│   │   ├── exo.rs           # Exo distributed cluster
+│   │   ├── mesh.rs          # Mesh-LLM pooled mesh (OpenAI-compatible, :9337)
+│   │   └── ai_horde.rs      # AI-Horde async volunteer cluster
+│   └── hybrid/              # Privacy gateway: local sanitizer + remote enhancer
+│       ├── mod.rs           # HybridBackend (sanitize→enhance→restore→fallback)
+│       └── sanitizer.rs     # Deterministic reversible PII redaction
 ├── safety/              # Command safety validation
 │   ├── mod.rs           # SafetyValidator trait
 │   ├── patterns.rs      # 52+ dangerous command patterns

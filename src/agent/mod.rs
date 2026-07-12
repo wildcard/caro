@@ -1,3 +1,9 @@
+/// Multi-stage candidate pipeline (x-algorithm-inspired). Scaffolding +
+/// adapters around the existing primitives. Wiring into [`AgentLoop`] is
+/// scheduled for a follow-up commit; see PR #1108.
+#[cfg(feature = "candidate-ranking")]
+pub mod pipeline;
+
 use crate::backends::{CommandGenerator, GeneratorError, StaticMatcher};
 use crate::context::{DirectoryContext, ExecutionContext};
 use crate::models::{CommandRequest, GeneratedCommand, SafetyLevel, ShellType};
