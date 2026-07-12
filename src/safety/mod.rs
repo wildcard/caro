@@ -453,28 +453,30 @@ impl SafetyValidator {
         // `..`, `../`, or a bare `*`. The trailing boundary forbids a deeper
         // path, so a *specific* subpath (`/tmp/myapp_123`) is NOT caught.
         //
-        // The `(?:\S+\s+)*` skip-group deliberately consumes ANY token (flags
-        // AND earlier targets, including `--`), not just `-`-prefixed flags:
-        // in a multi-target invocation like `rm -rf /tmp /` the catastrophic
-        // `/` is the SECOND target, and a flags-only group would leave it
-        // unexamined (reviewer finding on #1246). Over-consuming is safe here:
-        // the pattern still requires a catastrophic token at some argument
-        // position, and the statement-boundary head keeps `echo 'rm -rf /'`
-        // out.
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*['"]?/+(?:\.|\*)?['"]?(?:\s|$)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*['"]?~/?(?:\s|$|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*['"]?\$HOME['"]?(?:\s|$|/|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*['"]?\.\.?/?['"]?(?:\s|$|\*)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*['"]?\*(?:\s|$)"#,
+        // The skip-group consumes ANY argument token of the SAME rm statement
+        // (flags AND earlier targets, including `--`), not just `-`-prefixed
+        // flags: in a multi-target invocation like `rm -rf /tmp /` the
+        // catastrophic `/` is the SECOND target, and a flags-only group would
+        // leave it unexamined (reviewer finding on #1246). Tokens are either
+        // quoted strings (so `rm -rf "a;b" /` can't hide its later target) or
+        // separator-free runs — the group deliberately STOPS at `;`/`|`/`&`,
+        // because an argument after a separator belongs to a DIFFERENT
+        // command (`rm -rf /tmp/x | echo /` must stay blessable); any rm
+        // after a separator is matched as its own statement via the head.
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?/+(?:\.|\*)?['"]?(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?~/?(?:\s|$|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?\$HOME['"]?(?:\s|$|/|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?\.\.?/?['"]?(?:\s|$|\*)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?\*(?:\s|$)"#,
         // ── System-directory recursive delete ────────────────────────────────
         // Top-level system dirs whose loss is unrecoverable. Anchored with a
         // trailing boundary that allows `/etc`, `/etc/`, `/etc/*` but NOT
         // `/etc/foo` — and crucially NOT `/var/tmp/...` (a specific subpath).
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*['"]?(?:/(?:etc|usr|bin|sbin|lib|lib64|boot|var|sys|proc|dev|root|home|opt|srv|System|Library))(?:/\*?)?['"]?(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?(?:/(?:etc|usr|bin|sbin|lib|lib64|boot|var|sys|proc|dev|root|home|opt|srv|System|Library))(?:/\*?)?['"]?(?:\s|$)"#,
         // Windows drive root recursive delete (WSL / git-bash). Requires a
         // recursive flag somewhere before the drive-root target; other tokens
         // (including earlier targets) may sit between them.
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:\S+\s+)*-\S*r\S*\s+(?:\S+\s+)*['"]?[A-Za-z]:[\\/]"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)\s+)rm\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*-\S*r\S*\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)*['"]?[A-Za-z]:[\\/]"#,
         // ── Explicit root-protection bypass — always catastrophic ────────────
         r"--no-preserve-root",
         // ── Whole-disk / device destruction ──────────────────────────────────
@@ -1222,6 +1224,14 @@ mod allowlist_catastrophic_tests {
             "rm -rf /tmp ~",
             "rm -rf C:\\",
             "rm -rf /tmp/build C:\\",
+            // A quoted token containing a separator must not hide a later
+            // catastrophic target of the same rm statement
+            "rm -rf \"a;b\" /",
+            // Compound statements: the catastrophic rm after the separator is
+            // its own statement and trips the floor via the head anchor
+            "rm -rf /tmp/cache; rm -rf /",
+            "rm -rf /tmp/cache | rm -rf /",
+            "rm -rf /tmp/cache && sudo rm -rf /etc",
         ];
         for cmd in evasions {
             assert!(
@@ -1245,6 +1255,11 @@ mod allowlist_catastrophic_tests {
             // Multi-target with ONLY specific subpaths stays blessable
             "rm -rf /tmp/myapp_123 /tmp/myapp_456",
             "rm -rf -- /tmp/myapp_123",
+            // A later command in a compound statement owns its own arguments;
+            // `/` here belongs to `echo`, not `rm` (reviewer finding on #1246)
+            "rm -rf /tmp/myapp_123 | echo /",
+            "rm -rf /tmp/myapp_123 && ls /",
+            "rm -rf /tmp/myapp_123; du -sh /",
         ];
         for cmd in specific {
             assert!(
