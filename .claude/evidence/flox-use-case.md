@@ -41,7 +41,8 @@ Notable cross-checks the test enforces:
 
 | ID | Claim | Verifier | Result |
 |----|-------|----------|--------|
-| V1 | Website test suite green (baseline kept) | `npx vitest run` | ✅ 64 passed (46 baseline + 18 new) |
+| V1 | Website test suite green (baseline kept) | `npx vitest run` | ✅ 67 passed (46 baseline + 18 flox + 3 adapter-alignment) |
+| V10 | Vercel deploy fixed, zero regressions | live deploy on PR #1313 | ✅ all 6 Vercel projects pass (caro-foss-website GREEN + docs/slides/storybook/cmdai/cmdai-saas unregressed) |
 | V2 | Flox use-case page renders end-to-end | dev server + browser page-text capture | ✅ all sections present, 0 console errors |
 | V3 | Flox persona card live in hub | JS query on `/use-cases` | ✅ `/use-cases/flox` link present, correct text |
 | V4 | Astro parses the new page (no esbuild brace crash) | `npx astro sync` | ✅ types generated, no error |
@@ -87,6 +88,28 @@ validated by TOML structure + the MSRV cross-check in the test, not a live
 page and in `flox/README.md`; a follow-up on a Flox-equipped host should
 run `flox activate -- cargo check --no-default-features --features embedded-cpu`
 to close that gap.
+
+## Vercel deploy fix (issue #1309 / PR #1313, landed here)
+
+The website deploy (`caro-foss-website`) had been red on every branch,
+including production `main`. Root cause: `@astrojs/vercel@9` peers astro
+`^5`, but the site runs astro 6; the adapter's serverless polyfill
+imported `applyPolyfills` (astro-6 only) against a nested astro 5 and the
+build crashed.
+
+Fix: bump `@astrojs/vercel` to `^10` (peer astro `^6`) + a clean
+`--legacy-peer-deps` lockfile regen so astro 6 hoists to root. Regression
+guard added: `website/src/__tests__/vercel-adapter-astro-alignment.test.ts`
+locks the adapter major to the astro major.
+
+**Verification caveat that mattered**: local `astro build` was misleading
+— (a) it must be run as `npm run prebuild && astro build` (the prebuild
+generates `src/config/version`, else rollup fails on a missing import),
+and (b) `docs-site` fails to build under local Node 22 regardless. The
+authoritative check was the real Vercel deploy on PR #1313: **all six
+projects pass** — `caro-foss-website` went green and `caro-docs`,
+`caro-slides`, `caro-storybook`, `cmdai`, `cmdai-saas` stayed green. No
+regression.
 
 ## Deferred (tracked as follow-ups)
 
