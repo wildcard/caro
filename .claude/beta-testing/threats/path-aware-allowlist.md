@@ -98,3 +98,26 @@ passes unchanged.
 - **Hardening (accepted, non-blocking, fail-closed):** `--` handling over-rejects
   rather than under-rejects; `ends_with("/rm")` is loose but requires an
   allowlist + planted binary. Left as-is to keep the surface minimal.
+
+## Security review round 2 (aegis) — composition fix + a separate base-validator P0
+
+- **Fixed — layered composition was fail-open.** Both the allowlist-skip decision
+  and the scoped-safe gate hung off the *target-anchored* built-in Critical scan
+  (`has_critical_match`); a leading quote/backslash dropped it to `false`, so
+  eligibility collapsed to just `!catastrophic`, disabling the scoped-safe layer.
+  **Fix:** any recursive `rm` (detected by `is_recursive_rm`, a broad
+  quote/escape-agnostic matcher) must independently pass `is_scoped_safe_deletion`
+  — the scoped check is no longer gated on the built-in scan. Since the classifier
+  fail-closed-rejects quotes/escapes, `rm -rf "/etc/ssh"`, `rm -rf "/data/prod"`,
+  and `rm -rf "/tmp"/*/x` are now allowlist-**ineligible** and fall back to the
+  base validator. Regression: `test_broad_allowlist_cannot_bypass_via_quote_or_escape`.
+
+- **SEPARATE PRE-EXISTING P0 (not fixed here) — base validator is quote/escape
+  evadable.** `rm -rf \/` and `rm -rf "/tmp"/*/x` are rated **Safe and allowed by
+  the base validator with NO allowlist** — the built-in recursive-rm scan and the
+  #1246 catastrophic floor both anchor on an unquoted/unescaped target, so a
+  backslash or quote hides the real path. `\/` reaches `rm -rf /` (full root wipe).
+  This affects `main` independent of the allowlist feature and cannot be closed
+  inside it. Fix belongs in the base scanner: normalize (strip shell
+  quoting/backslash-escapes for POSIX shells) BEFORE the built-in scan and the
+  catastrophic floor. Tracked as a P0 security issue.

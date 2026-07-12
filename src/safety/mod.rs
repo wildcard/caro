@@ -627,18 +627,19 @@ impl SafetyValidator {
         // bypass a Critical match ONLY when BOTH gates pass:
         //   (a) the command is not a *catastrophic location* — #1246's curated,
         //       quote-tolerant string floor (root, system dir, home, bare
-        //       wildcard, parent dir, device node, disk wipe, fork bomb, reverse
-        //       shell, …); it catches quote evasions like `rm -rf "/"` that the
-        //       built-in scan suppresses; AND
-        //   (b) either the command is not a Critical built-in/CVE match at all,
-        //       or it is a recursive deletion that provably resolves strictly
-        //       inside a safe path (temp dir or project dir).
-        // The floor is a *string* denylist; the scoped-safe check *resolves*
-        // paths (lexical + symlink canonicalization), so it additionally blocks
-        // traversal / symlinked / arbitrary-path escapes the floor's patterns
-        // cannot see — e.g. `rm -rf /tmp/../etc`, `/tmp/*/x` (glob over a
-        // symlinked dir), `/data/prod`. Both layers preserve the hard floor for
-        // `rm -rf /`, mkfs, etc. See `safe_path::is_scoped_safe_deletion`.
+        //       wildcard, device node, disk wipe, fork bomb, reverse shell, …); AND
+        //   (b) if it is a recursive `rm` *at all*, it must provably resolve
+        //       strictly inside a safe path (temp dir or project dir). For any
+        //       other command, it must simply not be a Critical built-in/CVE match.
+        //
+        // Crucial (aegis round-2): the scoped-safe gate for `rm` is NOT gated on
+        // the built-in Critical scan. That scan is *target-anchored* and a leading
+        // quote/backslash (`rm -rf "/etc/ssh"`, `rm -rf \/`) drops it to `false`;
+        // gating on it there let a recursive `rm` skip path resolution entirely and
+        // fall through to the (subset) floor — a root-wipe hole. Instead, EVERY
+        // recursive `rm` must pass `is_scoped_safe_deletion`, which itself
+        // fail-closed-rejects quotes/escapes, so `rm -rf \/` and `rm -rf "/etc/ssh"`
+        // resolve to "not scoped-safe" → blocked.
         let critical_is_catastrophic = Self::targets_catastrophic_location(command);
         let has_critical_match =
             built_in_patterns
@@ -648,10 +649,16 @@ impl SafetyValidator {
                     *level == RiskLevel::Critical && Self::is_dangerous_in_context(command, regex)
                 });
         let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("/"));
-        let scoped_safe_deletion = has_critical_match
-            && safe_path::is_scoped_safe_deletion(command, &safe_path::safe_roots(&cwd), &cwd);
-        let allowlist_eligible =
-            !critical_is_catastrophic && (!has_critical_match || scoped_safe_deletion);
+        let scoped_safe_deletion =
+            safe_path::is_scoped_safe_deletion(command, &safe_path::safe_roots(&cwd), &cwd);
+        let allowlist_eligible = !critical_is_catastrophic
+            && if safe_path::is_recursive_rm(command) {
+                // Any recursive rm must be provably confined to a safe path.
+                scoped_safe_deletion
+            } else {
+                // Non-rm: the catastrophic floor + built-in Critical scan guard it.
+                !has_critical_match
+            };
 
         if allowlist_eligible {
             for allow_pattern in &self.config.allowlist_patterns {

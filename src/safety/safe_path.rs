@@ -17,7 +17,25 @@
 //! glob-masked symlinks); the residual race is inherent to validating a command
 //! string rather than performing the deletion atomically.
 
+use once_cell::sync::Lazy;
+use regex::Regex;
 use std::path::{Component, Path, PathBuf};
+
+/// Broad, quote/escape-agnostic detector for "this command invokes a recursive
+/// `rm`". Deliberately **over-inclusive**: it must be impossible to evade (a
+/// leading quote/backslash, odd flag spelling, `--recursive`, a path-qualified
+/// `rm`, `sudo rm`, …), because any recursive `rm` the caller thinks is safe
+/// MUST be forced through [`is_scoped_safe_deletion`]. Over-detection only ever
+/// forces *more* commands through that fail-closed gate, so it can never widen
+/// the allowlist — only tighten it. See caro-qknc / aegis round-2.
+pub fn is_recursive_rm(command: &str) -> bool {
+    static RM: Lazy<Regex> = Lazy::new(|| Regex::new(r"\brm\b").expect("valid regex"));
+    // A recursive flag: any single/double-dash cluster containing r/R, or the
+    // long form. `--force` also matches (contains 'r') — harmless over-match.
+    static REC: Lazy<Regex> =
+        Lazy::new(|| Regex::new(r"-[a-zA-Z]*[rR]|--recursive").expect("valid regex"));
+    RM.is_match(command) && REC.is_match(command)
+}
 
 /// Shell metacharacters that make a command too complex to prove safe. Their
 /// presence makes the command ineligible for the override (fail-closed) — the
@@ -378,6 +396,39 @@ mod tests {
         );
 
         let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn recursive_rm_detector_is_evasion_proof() {
+        // Must catch every recursive-rm form, incl. quoted/escaped ones that
+        // dodge the target-anchored built-in scan (aegis round-2 CB-1/2/3).
+        for yes in [
+            "rm -rf /tmp/x",
+            "rm -fr /tmp/x",
+            "rm -r -f /tmp/x",
+            "rm -R /tmp/x",
+            "rm --recursive /tmp/x",
+            "rm -rf \\/",          // backslash-escaped root
+            "rm -rf \"/etc/ssh\"", // quoted deep system path
+            "rm -rf \"/tmp\"/*/x", // quoted prefix + glob
+            "sudo rm -rf /tmp/x",
+            "/bin/rm -rf /tmp/x",
+        ] {
+            assert!(is_recursive_rm(yes), "should detect recursive rm: {yes}");
+        }
+        for no in [
+            "ls -la",
+            "rm file.txt",
+            "echo hi",
+            "confirm -r",
+            "git rm -r x",
+        ] {
+            // `git rm -r` and `rm file.txt` (non-recursive) may or may not match;
+            // only assert the clearly-non-rm ones are NOT detected.
+            if no.starts_with("ls") || no.starts_with("echo") || no.starts_with("confirm") {
+                assert!(!is_recursive_rm(no), "should NOT detect: {no}");
+            }
+        }
     }
 
     #[test]
