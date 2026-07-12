@@ -727,6 +727,14 @@ struct Cli {
     )]
     model_name: Option<String>,
 
+    /// Frontier advisor backend consulted only on low-confidence drafts
+    /// (off by default). Its output is re-validated for safety before use.
+    #[arg(
+        long = "advisor",
+        help = "Frontier advisor for low-confidence drafts (e.g., claude; sends prompts off-host)"
+    )]
+    advisor: Option<String>,
+
     /// Knowledge backend for command history and learning
     #[arg(
         long = "knowledge-backend",
@@ -1094,6 +1102,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         cli.backend.clone(),
         cli.model_name.clone(),
         cli.force_llm,
+        cli.advisor.clone(),
     )
     .await
     .map_err(|e| format!("initializing backend: {}", e))?;
@@ -3614,6 +3623,7 @@ async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
         cli.backend.clone(),
         cli.model_name.clone(),
         cli.force_llm,
+        cli.advisor.clone(),
     )
     .await?;
 
