@@ -346,9 +346,10 @@ jobs:
     name: Security Audit
     runs-on: ubuntu-latest
     # continue-on-error removed: #1050 revert criteria met — cargo audit
-    # exits 0 with all known warnings suppressed in audit.toml. See PR that
-    # resolved RUSTSEC-2026-0104 for full documentation of the reqwest 0.11
-    # legacy path rationale.
+    # exits 0 with all known warnings suppressed in .cargo/audit.toml (the
+    # only config path cargo-audit reads). See PR that resolved
+    # RUSTSEC-2026-0104 for full documentation of the reqwest 0.11 legacy
+    # path rationale.
     steps:
     - uses: actions/checkout@v6
 

@@ -191,6 +191,7 @@ tests/evaluation/results/*.md
 .claude/.env
 .claude/cache/
 .claude/notifications.log
+.claude/scheduled_tasks.lock
 
 # Codex CLI
 .codex/sessions/

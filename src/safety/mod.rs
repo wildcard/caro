@@ -566,6 +566,45 @@ impl SafetyValidator {
             .any(|re| re.is_match(command))
     }
 
+    /// Destructive commands whose *target* is quote/escape-obscurable, so the
+    /// target-anchored regex scanners can miss it (`rm -rf \/` → `/`).
+    const DESTRUCTIVE_CMDS: &'static [&'static str] = &[
+        "rm", "rmdir", "unlink", "dd", "shred", "wipefs", "mkfs", "newfs", "chmod", "chown",
+        "truncate", "mv", "cp",
+    ];
+
+    /// For a POSIX destructive-command statement, return the shell-*unquoted /
+    /// unescaped* form (argv rejoined by spaces) so the pattern scanners see the
+    /// path the shell will actually act on. `rm -rf \/` → `rm -rf /`,
+    /// `rm -rf "/tmp"/*/x` → `rm -rf /tmp/*/x`. Returns `None` when it does not
+    /// apply, so callers fall back to the original command only.
+    ///
+    /// Gated to statements whose command word is destructive so a *quoted
+    /// argument* to a benign command is never re-exposed as executable text
+    /// (`echo 'rm -rf /'`, `foo "; rm -rf /"` stay untouched). Windows shells
+    /// keep their backslash paths.
+    fn destructive_unescaped(command: &str, shell: ShellType) -> Option<String> {
+        if shell.is_windows() || !command.contains(['\\', '"', '\'']) {
+            return None;
+        }
+        let argv = shell_words::split(command).ok()?;
+        let base = |tok: &str| tok.rsplit('/').next().unwrap_or(tok).to_string();
+        let cmd_word = match argv.first().map(|s| base(s)) {
+            // Look past a sudo/doas prefix at the real command word.
+            Some(ref w) if (w == "sudo" || w == "doas") && argv.len() > 1 => base(&argv[1]),
+            Some(w) => w,
+            None => return None,
+        };
+        let is_destructive = Self::DESTRUCTIVE_CMDS
+            .iter()
+            .any(|c| cmd_word == *c || cmd_word.starts_with(&format!("{c}.")));
+        if !is_destructive {
+            return None;
+        }
+        let joined = argv.join(" ");
+        (joined != command).then_some(joined)
+    }
+
     fn is_dangerous_in_context(command: &str, pattern_regex: &regex::Regex) -> bool {
         if !pattern_regex.is_match(command) {
             return false;
@@ -622,6 +661,17 @@ impl SafetyValidator {
         let built_in_patterns = patterns::get_compiled_patterns_for_shell(shell);
         let cve_compiled = cve_patterns::get_cve_compiled_patterns_for_shell(shell);
 
+        // Scan the ORIGINAL command and, for a destructive-command statement, a
+        // shell-unescaped/unquoted form. The pattern scanners are target-anchored
+        // and a leading backslash or grouping-quote hides the real path
+        // (`rm -rf \/` → `/` = root wipe); scanning the unescaped form closes that
+        // whole quote/escape-evasion class. `None` for benign commands, so their
+        // quoted arguments are never re-exposed. See caro-pr3f.
+        let unescaped = Self::destructive_unescaped(command, shell);
+        let scan_targets: Vec<&str> = std::iter::once(command)
+            .chain(unescaped.as_deref())
+            .collect();
+
         // The Critical-bypass guard is intentionally blunt: the broad
         // recursive-delete pattern (`rm -rf /…`) matches both the catastrophic
         // `rm -rf /` and an ordinary `rm -rf /tmp/myapp_123`. Refusing to honour
@@ -645,7 +695,9 @@ impl SafetyValidator {
         // decides whether the allowlist may run; the escalation block further
         // down forces the reported risk level to Critical to keep the result
         // consistent with that decision.
-        let critical_is_catastrophic = Self::targets_catastrophic_location(command);
+        let critical_is_catastrophic = scan_targets
+            .iter()
+            .any(|s| Self::targets_catastrophic_location(s));
 
         // Check allowlist patterns only if there is no catastrophic Critical
         // match.
@@ -671,7 +723,10 @@ impl SafetyValidator {
 
         // Check against built-in compiled patterns (fast!)
         for (regex, risk_level, description, _) in built_in_patterns {
-            if Self::is_dangerous_in_context(command, regex) {
+            if scan_targets
+                .iter()
+                .any(|s| Self::is_dangerous_in_context(s, regex))
+            {
                 // Normalize to lowercase for consistent .contains() matching in tests
                 // Original case is preserved in warnings for readability
                 matched.push(description.to_lowercase());
@@ -687,7 +742,10 @@ impl SafetyValidator {
         // identical; descriptions carry the CVE ID prefix for provenance.
         // Reuses `cve_compiled` from the Critical pre-scan above.
         for (regex, risk_level, description, _) in cve_compiled {
-            if Self::is_dangerous_in_context(command, regex) {
+            if scan_targets
+                .iter()
+                .any(|s| Self::is_dangerous_in_context(s, regex))
+            {
                 matched.push(description.to_lowercase());
                 if *risk_level > highest_risk {
                     highest_risk = *risk_level;
@@ -698,7 +756,10 @@ impl SafetyValidator {
 
         // Check pre-compiled custom patterns
         for (regex, risk_level, description) in &self.compiled_patterns {
-            if Self::is_dangerous_in_context(command, regex) {
+            if scan_targets
+                .iter()
+                .any(|s| Self::is_dangerous_in_context(s, regex))
+            {
                 // Normalize to lowercase for consistent .contains() matching in tests
                 // Original case is preserved in warnings for readability
                 matched.push(description.to_lowercase());
