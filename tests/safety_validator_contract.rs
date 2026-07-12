@@ -322,6 +322,39 @@ async fn test_allowlist_functionality() {
 }
 
 #[tokio::test]
+async fn test_allowlist_cannot_bypass_catastrophic_core() {
+    // CONTRACT: An allowlist expresses trust for a scoped command, but it must
+    // NEVER be able to re-enable the catastrophic core (root deletion, raw-disk
+    // wipe, mkfs, fork bomb, --no-preserve-root). Even an explicit, matching
+    // allowlist entry must not allow these through.
+    let catastrophic = [
+        r"rm -rf /",
+        r"rm -rf /*",
+        r"rm -rf ~",
+        r"rm -rf --no-preserve-root /",
+        r"dd if=/dev/zero of=/dev/sda",
+        r"mkfs.ext4 /dev/sda",
+    ];
+
+    for cmd in catastrophic {
+        let mut config = SafetyConfig::strict();
+        // Deliberately allowlist the exact command — this must still not help.
+        config.add_allowlist_pattern(&regex::escape(cmd));
+        let validator = SafetyValidator::new(config).unwrap();
+
+        let result = validator
+            .validate_command(cmd, ShellType::Bash)
+            .await
+            .unwrap();
+
+        assert!(
+            !result.allowed,
+            "Catastrophic-core command must stay blocked even when allowlisted: {cmd:?}"
+        );
+    }
+}
+
+#[tokio::test]
 async fn test_validation_performance() {
     // CONTRACT: Validation should be fast (<100ms for typical commands)
     let validator = SafetyValidator::new(SafetyConfig::moderate()).unwrap();
