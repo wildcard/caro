@@ -9,6 +9,7 @@
  */
 
 import { t, type Locale } from '../i18n/config';
+import KyaroMark from './KyaroMark.astro';
 
 interface Props {
   variant?: 'default' | 'use-cases';
@@ -32,7 +33,7 @@ const personas = [
   <div class="nav-container">
     <!-- Logo -->
     <a href={lang === 'en' ? '/' : `/${lang}/`} class="nav-brand">
-      <span class="brand-icon">🐕</span>
+      <KyaroMark size={28} class="brand-icon" />
       <span class="brand-text">Caro</span>
     </a>
 
@@ -265,7 +266,7 @@ const personas = [
   <div class="drawer-panel">
     <div class="drawer-header">
       <a href={lang === 'en' ? '/' : `/${lang}/`} class="drawer-brand">
-        <span>🐕</span> Caro
+        <KyaroMark size={22} /> Caro
       </a>
       <div class="drawer-header-actions">
         <div id="nav-search-slot-mobile"></div>

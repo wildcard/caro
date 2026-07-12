@@ -1,0 +1,38 @@
+---
+/**
+ * KyaroMark — the Caro brand mascot (Kyaro the Shiba).
+ *
+ * Renders the sanctioned mascot sprite (a resting frame of `/kyaro/idle.gif`) as
+ * a transparent, full-color image that reads clearly as a friendly dog on both
+ * light and dark surfaces. Replaces the retired `kyaro-mark` pixel-glyph, which
+ * read as a horned silhouette at <=32px (evidence: .claude/audits/2026-07-12).
+ *
+ * Static by default — no motion in always-visible chrome. For an animated
+ * mascot spotlight, use `/kyaro/idle.gif` directly.
+ */
+interface Props {
+  /** Rendered box size in px (sprite is square). */
+  size?: number;
+  class?: string;
+  label?: string;
+}
+const { size = 28, class: className = '', label = 'Kyaro, the Caro mascot' } = Astro.props;
+---
+<img
+  src="/kyaro/idle-static.png"
+  width={size}
+  height={size}
+  alt={label}
+  class:list={['kyaro-mark', className]}
+  loading="lazy"
+  decoding="async"
+/>
+
+<style>
+  .kyaro-mark {
+    display: inline-block;
+    object-fit: contain;
+    vertical-align: middle;
+    flex-shrink: 0;
+  }
+</style>

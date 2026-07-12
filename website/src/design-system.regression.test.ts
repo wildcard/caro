@@ -88,6 +88,26 @@ describe('icon system: manifest references resolve', () => {
   });
 });
 
+describe('icon system: retired kyaro-mark glyph stays gone', () => {
+  it('no component references the horned kyaro-mark glyph', () => {
+    const offenders = walk(SRC)
+      .filter((f) => /name=["']kyaro-mark["']/.test(readFileSync(f, 'utf8')))
+      .map(rel)
+      .filter((r) => r !== SELF);
+    expect(
+      offenders,
+      `The kyaro-mark pixel-glyph was retired (horned read at <=32px); use <KyaroMark> (the real mascot sprite) instead. Found in:\n${offenders.join('\n')}`
+    ).toEqual([]);
+  });
+
+  it('the icon manifest no longer declares kyaro-mark', () => {
+    const manifest = JSON.parse(
+      readFileSync(join(SRC, 'data/icon-manifest.json'), 'utf8')
+    ) as { icons: Record<string, unknown> };
+    expect(Object.keys(manifest.icons)).not.toContain('kyaro-mark');
+  });
+});
+
 describe('typography: Figtree is self-hosted and applied', () => {
   const fontsCss = readFileSync(join(SRC, 'ui/fonts.css'), 'utf8');
 

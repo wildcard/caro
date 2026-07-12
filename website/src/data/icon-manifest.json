@@ -15,8 +15,10 @@
     "rocket":     { "path": "icons/rocket.svg",     "category": "trust-badge",   "replaces_emoji": "🚀",                "tier": "secondary" },
     "shield":     { "path": "icons/shield.svg",     "category": "trust-badge",   "replaces_emoji": "🛡️",          "tier": "secondary" },
     "lightning":  { "path": "icons/lightning.svg",  "category": "trust-badge",   "replaces_emoji": "⚡",                      "tier": "secondary" },
-    "brain":      { "path": "icons/brain.svg",      "category": "feature",       "replaces_emoji": "🧠",                "tier": "secondary" },
-    "kyaro-mark": { "path": "icons/kyaro-mark.svg", "category": "brand",         "replaces_emoji": "🐕",                "tier": "brand", "version": "2.1.1", "notes": "Redrawn 2026-05-09 to fix horned-demon read at 16-32 px (caro-bsi)" }
+    "brain":      { "path": "icons/brain.svg",      "category": "feature",       "replaces_emoji": "🧠",                "tier": "secondary" }
+  },
+  "retired": {
+    "kyaro-mark": "Pulled 2026-07-12: the pixel-glyph brand mark read as a horned silhouette at <=32px (evidence: .claude/audits/2026-07-12). Replaced by the real Kyaro mascot sprite via the <KyaroMark> component (/kyaro/idle-static.png) and /kyaro/idle.gif. Do NOT re-add a kyaro-mark glyph."
   },
   "deferred_v3": [
     "git", "terminal", "package", "model", "gear", "doc", "search", "spinner", "check", "cross"
