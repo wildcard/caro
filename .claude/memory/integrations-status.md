@@ -3,7 +3,7 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-05-18 — main was unbuildable (bincode 3.0.0 prank version landed via Dependabot PR #925); tonight's PR #1154 pins back to 1.3 and locks Dependabot out of bincode 2.x. No integration-row validation tonight — every backend smoke-test would have failed at `cargo build`. See log.
+> **Last updated:** 2026-07-11 — main is buildable again (PR #1154 landed the bincode+rusqlite+candle unblock 2026-05-19). Tonight closed the acute half of the #1115 backend-roster divergence: `--backend-info` (and `available_backends()`, and the `--backend` help string) now iterate a single source of truth — `backends::CLI_SERVABLE_BACKENDS` — shared with `validate_backend_name`, so no surface advertises a backend `--backend` rejects. `static`/`claude` no longer advertised as usable. PR #<TBD>. NOTE: published crates.io binary is still `1.4.0` (2026-05-09) — two months of backend work (mesh, ai-horde, hybrid, openrouter) has NOT reached a released binary; that's a release-management gap, out of integrator scope, flagged below. See log.
 
 ## Legend
 
