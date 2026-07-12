@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: May 9, 2026
+**Last Updated**: July 12, 2026
 
 > **Recent Update**: Integrated 104 PRs (#557-660) into roadmap with milestone assignments and tracking issues.
 
@@ -48,6 +48,19 @@ gantt
 ---
 
 ## Release Milestones
+
+### 🎉 v1.5.0 - Safety Floor Hardening & CI Repair
+**Released**: July 12, 2026 ✅
+**Status**: 100% Complete - **RELEASED**
+**Focus**: Catastrophic-floor allowlist safety (5 adversarial review rounds,
+evasion-hardened, all test-pinned), backend-roster single source of truth,
+runtime-loadable custom safety patterns via TOML, MSRV 1.85, dependency
+security repair (RUSTSEC-2026-0204/0185, ethnum/rust-1.97 compile break),
+cache-test de-flaking. Note: the v2.0.0 "Distributed Autonomy" milestone
+stays open pending validation-discipline Gate 1 (user discovery) — see
+docs/decisions/2026-07-12-autonomous-mode-release-scope.md (D1).
+
+---
 
 ### 🎉 v1.4.0 - CaroML Meta-Language Preview
 **Released**: May 9, 2026 ✅
@@ -359,6 +372,7 @@ above.
 
 | Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
 |-----------|----------|---------------------|----------|----------|---------|
+| **v1.5.0** | Jul 12, 2026 | Safety floor hardening + CI repair | 4 | 100% | ✅ **RELEASED** |
 | **v1.4.0** | May 9, 2026 | CaroML preview + safety hardening | 12 | 100% | ✅ **RELEASED** |
 | **v1.3.2** | May 9, 2026 | Static matcher coverage gaps | 7 | 100% | ✅ **RELEASED** |
 | **v1.3.1** | May 9, 2026 | P0/P1 safety patch | 4 | 100% | ✅ **RELEASED** |
