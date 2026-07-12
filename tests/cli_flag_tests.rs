@@ -200,7 +200,10 @@ fn backend_info_lists_known_backends() {
         "--backend-info output should mention 'backend', got:\n{}",
         combined
     );
-    for name in ["static", "embedded", "ollama", "vllm"] {
+    // "static" is intentionally excluded from the roster (#1115): it was
+    // advertised but never actually routable via create_backend, which was
+    // the P0 bug that commit fixed. See backends::CLI_SERVABLE_BACKENDS.
+    for name in ["embedded", "ollama", "vllm"] {
         assert!(
             combined.to_lowercase().contains(name),
             "--backend-info output should list '{}', got:\n{}",

@@ -293,14 +293,22 @@ async fn test_custom_pattern_addition() {
 
 #[tokio::test]
 async fn test_allowlist_functionality() {
-    // CONTRACT: Should support allowlists for trusted commands
+    // CONTRACT: Should support allowlists for trusted commands.
+    //
+    // Uses a High-risk (not Critical) dangerous pattern here on purpose:
+    // since PR #1110, allowlists can never bypass a Critical built-in match
+    // (`rm -rf /` and friends stay blocked no matter what's in
+    // patterns.toml — see tests/custom_patterns_toml.rs for that contract).
+    // `rm -rf /tmp/...` collides with the Critical root-deletion patterns'
+    // unanchored `/` alternative, so it can never demonstrate an allowlist
+    // override; a High-risk system-directory match does.
     let mut config = SafetyConfig::strict();
-    config.add_allowlist_pattern(r"rm -rf /tmp/myapp_\d+"); // Allow cleaning app temp dirs
+    config.add_allowlist_pattern(r"chown\s+\S+\s+/etc/myapp/config\.toml"); // Allow the app's own config
 
     let validator = SafetyValidator::new(config).unwrap();
 
-    let allowed_rm = "rm -rf /tmp/myapp_123";
-    let blocked_rm = "rm -rf /tmp/other_app";
+    let allowed_rm = "chown appuser:appuser /etc/myapp/config.toml";
+    let blocked_rm = "chown appuser:appuser /etc/passwd";
 
     let allowed_result = validator
         .validate_command(allowed_rm, ShellType::Bash)

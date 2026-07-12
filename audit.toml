@@ -64,6 +64,24 @@ ignore = [
     # TRANSITIVE — LanceDB / fastembed / knowledge optional feature
     # -------------------------------------------------------------------------
 
+    # RUSTSEC-2026-0194 / RUSTSEC-2026-0195: quick-xml quadratic run time on
+    # duplicate-attribute checks + unbounded namespace-declaration allocation
+    # (both high severity, DoS-class). Two locked instances, both transitive
+    # via the LanceDB knowledge feature and both pinned by intermediate deps
+    # that haven't released a quick-xml >=0.41 compatible version yet:
+    #   quick-xml 0.37.5 <- reqsign 0.16.5 (requires quick-xml ^0.37) <-
+    #     opendal 0.55.0 <- lance-io 1.0.1 <- lancedb 0.23.1
+    #   quick-xml 0.38.4 <- object_store 0.12.4 (requires quick-xml ^0.38.0)
+    #     <- lancedb 0.23.1
+    # `cargo update -p quick-xml --precise 0.41.0` fails for both — no
+    # semver-compatible resolution exists today. Confirmed 2026-07-12 while
+    # investigating the red main-branch Security Audit CI job.
+    # Revert: When reqsign and object_store both release versions depending
+    # on quick-xml >=0.41, or when lancedb bumps past both.
+    # Tracked: https://github.com/wildcard/caro/issues/1050
+    { id = "RUSTSEC-2026-0194", reason = "transitive via reqsign/object_store pins in lancedb; no compatible upgrade path yet" },
+    { id = "RUSTSEC-2026-0195", reason = "transitive via reqsign/object_store pins in lancedb; no compatible upgrade path yet" },
+
     # RUSTSEC-2026-0105: core2 0.4.0 yanked and unmaintained.
     # Via fastembed -> image -> ravif -> rav1e -> bitstream-io.
     # No control without updating fastembed. Image codec path; not hot path.

@@ -32,4 +32,20 @@ ignore = [
     "RUSTSEC-2026-0098",
     "RUSTSEC-2026-0099",
     "RUSTSEC-2026-0104",
+
+    # quick-xml - RUSTSEC-2026-0194 / RUSTSEC-2026-0195 (high severity, DoS-class)
+    # - Quadratic run time checking duplicate attribute names + unbounded
+    #   namespace-declaration allocation.
+    # - Two locked instances, both transitive via the LanceDB knowledge
+    #   feature, both pinned by intermediate deps with no compatible
+    #   quick-xml >=0.41 release yet:
+    #     quick-xml 0.37.5 <- reqsign 0.16.5 (requires quick-xml ^0.37) <-
+    #       opendal 0.55.0 <- lance-io 1.0.1 <- lancedb 0.23.1
+    #     quick-xml 0.38.4 <- object_store 0.12.4 (requires quick-xml ^0.38.0)
+    #       <- lancedb 0.23.1
+    # - `cargo update -p quick-xml --precise 0.41.0` fails for both today.
+    # - Revert: when reqsign and object_store both depend on quick-xml
+    #   >=0.41, or lancedb bumps past both.
+    "RUSTSEC-2026-0194",
+    "RUSTSEC-2026-0195",
 ]
