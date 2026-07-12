@@ -850,6 +850,13 @@ struct Cli {
     )]
     backend_info: bool,
 
+    /// Best-of-N ranking: generate across multiple backends and keep the best
+    #[arg(
+        long = "best-of",
+        help = "Generate across multiple backends in parallel and pick the best-scored command (requires the candidate-ranking build feature)"
+    )]
+    best_of: bool,
+
     /// Trailing unquoted arguments forming the prompt
     #[arg(trailing_var_arg = true, num_args = 0..)]
     trailing_args: Vec<String>,
@@ -1094,6 +1101,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         cli.backend.clone(),
         cli.model_name.clone(),
         cli.force_llm,
+        false, // CaroML runs its own task pipeline; best-of-N is for interactive queries
     )
     .await
     .map_err(|e| format!("initializing backend: {}", e))?;
@@ -3608,12 +3616,19 @@ fn print_usage() {
 }
 
 async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
+    // Best-of-N ranking: --best-of flag OR CARO_BEST_OF env (non-empty, != "0").
+    let best_of = cli.best_of
+        || std::env::var("CARO_BEST_OF")
+            .map(|v| !v.is_empty() && v != "0")
+            .unwrap_or(false);
+
     // Create CLI application with optional backend and model overrides
     let app = CliApp::with_overrides(
         caro::cli::CliConfig::default(),
         cli.backend.clone(),
         cli.model_name.clone(),
         cli.force_llm,
+        best_of,
     )
     .await?;
 

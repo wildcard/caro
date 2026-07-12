@@ -23,7 +23,7 @@ use crate::knowledge::{default_knowledge_path, KnowledgeIndex};
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
     static_matcher: Option<StaticMatcher>,
-    validator: CommandValidator,
+    validator: Arc<CommandValidator>,
     context: ExecutionContext,
     directory_context: DirectoryContext,
     _max_iterations: usize,
@@ -32,6 +32,13 @@ pub struct AgentLoop {
     /// Knowledge index for learning from past commands (optional)
     #[cfg(feature = "knowledge")]
     knowledge_index: Option<Arc<KnowledgeIndex>>,
+    /// Extra backends to fan out across when best-of-N ranking is enabled.
+    /// Empty ⇒ the single-backend path runs (default behavior unchanged).
+    #[cfg(feature = "candidate-ranking")]
+    ranking_sources: Vec<(Arc<dyn CommandGenerator>, String)>,
+    /// Safety validator shared with the ranking pipeline's `SafetyHydrator`.
+    #[cfg(feature = "candidate-ranking")]
+    ranking_safety: Option<Arc<crate::safety::SafetyValidator>>,
 }
 
 /// Command information for context enrichment
@@ -60,7 +67,7 @@ impl AgentLoop {
     ) -> Self {
         // Create static matcher with detected capabilities
         let static_matcher = Some(StaticMatcher::new(profile.clone()));
-        let validator = CommandValidator::new(profile);
+        let validator = Arc::new(CommandValidator::new(profile));
 
         // Scan current directory for project context
         let directory_context = DirectoryContext::scan(context.cwd.as_path());
@@ -76,6 +83,10 @@ impl AgentLoop {
             confidence_threshold: 0.8,        // Default: refine if confidence < 80%
             #[cfg(feature = "knowledge")]
             knowledge_index: None,
+            #[cfg(feature = "candidate-ranking")]
+            ranking_sources: Vec::new(),
+            #[cfg(feature = "candidate-ranking")]
+            ranking_safety: None,
         }
     }
 
@@ -90,6 +101,28 @@ impl AgentLoop {
             self.static_matcher = None;
         }
         self
+    }
+
+    /// Enable best-of-N ranking: fan the primary backend out alongside
+    /// `extra_sources`, score every candidate, and pick the best. `safety` is
+    /// shared with the ranking pipeline's `SafetyHydrator`. With an empty
+    /// `extra_sources` the ranked path degrades to the single-backend result,
+    /// so callers can enable it unconditionally.
+    #[cfg(feature = "candidate-ranking")]
+    pub fn with_ranking(
+        mut self,
+        extra_sources: Vec<(Arc<dyn CommandGenerator>, String)>,
+        safety: Arc<crate::safety::SafetyValidator>,
+    ) -> Self {
+        self.ranking_sources = extra_sources;
+        self.ranking_safety = Some(safety);
+        self
+    }
+
+    /// True once best-of-N ranking has been configured with ≥1 extra source.
+    #[cfg(feature = "candidate-ranking")]
+    pub fn ranking_enabled(&self) -> bool {
+        !self.ranking_sources.is_empty() && self.ranking_safety.is_some()
     }
 
     /// Enable the knowledge index for learning from past commands
@@ -159,6 +192,96 @@ impl AgentLoop {
         }
 
         result
+    }
+
+    /// Best-of-N command generation: fan out across the primary backend plus
+    /// any configured ranking sources, score every candidate, and return the
+    /// winner together with the full scored set (for `--dry-run` / `--explain`
+    /// display). The static matcher still short-circuits when it hits. When
+    /// ranking is not configured, falls back to [`Self::generate_command`].
+    #[cfg(feature = "candidate-ranking")]
+    pub async fn generate_command_ranked(
+        &self,
+        prompt: &str,
+    ) -> Result<(GeneratedCommand, Vec<pipeline::Candidate>), GeneratorError> {
+        let start = Instant::now();
+
+        // Static matcher stays the first, deterministic short-circuit.
+        if let Some(ref matcher) = self.static_matcher {
+            let request = CommandRequest::new(prompt, ShellType::Bash);
+            match matcher.generate_command(&request).await {
+                Ok(command) => return Ok((command, Vec::new())),
+                Err(GeneratorError::BackendUnavailable { .. }) => {}
+                // Security rejections must not fall through to the backends.
+                Err(e) => return Err(e),
+            }
+        }
+
+        // Ranking not configured → single-backend behavior, no ranked set.
+        let Some(ref safety) = self.ranking_safety else {
+            let cmd = self.generate_command(prompt).await?;
+            return Ok((cmd, Vec::new()));
+        };
+
+        // Primary backend first, then the configured extra sources.
+        let mut sources: Vec<(Arc<dyn CommandGenerator>, String)> =
+            Vec::with_capacity(1 + self.ranking_sources.len());
+        sources.push((Arc::clone(&self.backend), "primary".to_string()));
+        sources.extend(self.ranking_sources.iter().cloned());
+
+        let pipeline = pipeline::Pipeline::standard(
+            sources,
+            Arc::clone(safety),
+            Arc::clone(&self.validator),
+            std::env::consts::OS,
+            ShellType::Bash,
+        );
+
+        let run = pipeline
+            .run_ranked(prompt)
+            .await
+            .map_err(|e| GeneratorError::GenerationFailed {
+                details: e.to_string(),
+            })?;
+
+        let generated = Self::candidate_to_generated(&run.winner, &run.ranked, start);
+
+        #[cfg(feature = "knowledge")]
+        self.record_success(prompt, &generated.command).await;
+
+        Ok((generated, run.ranked))
+    }
+
+    /// Project a winning [`pipeline::Candidate`] back into a [`GeneratedCommand`],
+    /// carrying the runner-up commands through as `alternatives`.
+    #[cfg(feature = "candidate-ranking")]
+    fn candidate_to_generated(
+        winner: &pipeline::Candidate,
+        ranked: &[pipeline::Candidate],
+        start: Instant,
+    ) -> GeneratedCommand {
+        let alternatives = ranked
+            .iter()
+            .filter(|c| c.command != winner.command && !c.is_rejected())
+            .map(|c| c.command.clone())
+            .collect();
+        GeneratedCommand {
+            command: winner.command.clone(),
+            explanation: format!(
+                "Selected best of {} candidate(s) via multi-backend ranking (source: {})",
+                ranked.len(),
+                winner.source
+            ),
+            safety_level: winner
+                .features
+                .risk_level
+                .unwrap_or(crate::models::RiskLevel::Safe),
+            estimated_impact: String::new(),
+            alternatives,
+            backend_used: format!("best-of:{}", winner.source),
+            generation_time_ms: start.elapsed().as_millis() as u64,
+            confidence_score: winner.features.llm_confidence as f64,
+        }
     }
 
     /// Record a successful command to the knowledge index
@@ -829,5 +952,34 @@ mod tests {
         let commands = AgentLoop::extract_commands(cmd);
         // xargs takes grep as an argument, so only find and xargs are top-level commands
         assert_eq!(commands, vec!["find", "xargs"]);
+    }
+
+    #[cfg(feature = "candidate-ranking")]
+    #[test]
+    fn candidate_to_generated_carries_runners_up_as_alternatives() {
+        use crate::agent::pipeline::Candidate;
+        use crate::models::RiskLevel;
+
+        let mut winner = Candidate::new("echo win", "primary");
+        winner.features.llm_confidence = 0.9;
+        winner.features.risk_level = Some(RiskLevel::Safe);
+        winner.score = Some(0.8);
+
+        let mut runner = Candidate::new("echo runner", "embedded");
+        runner.score = Some(0.6);
+
+        let mut rejected = Candidate::new("rm -rf /", "embedded");
+        rejected.rejection_reason = Some("safety-filter: Critical".into());
+
+        let ranked = vec![winner.clone(), runner, rejected];
+        let g = AgentLoop::candidate_to_generated(&winner, &ranked, std::time::Instant::now());
+
+        assert_eq!(g.command, "echo win");
+        assert_eq!(g.backend_used, "best-of:primary");
+        assert_eq!(g.safety_level, RiskLevel::Safe);
+        // Runner-up is carried through; the rejected candidate and the winner
+        // itself are excluded from alternatives.
+        assert_eq!(g.alternatives, vec!["echo runner".to_string()]);
+        assert!((g.confidence_score - 0.9).abs() < 1e-6);
     }
 }

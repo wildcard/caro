@@ -185,7 +185,7 @@ impl CliApp {
     /// Uses configuration-driven backend selection with embedded model as primary
     /// and optional remote backend fallbacks.
     pub async fn new() -> Result<Self, CliError> {
-        Self::with_overrides(CliConfig::default(), None, None, false).await
+        Self::with_overrides(CliConfig::default(), None, None, false, false).await
     }
 
     /// Create CLI application with backend and model overrides from CLI args
@@ -200,7 +200,10 @@ impl CliApp {
         backend_override: Option<String>,
         model_name_override: Option<String>,
         force_llm: bool,
+        best_of: bool,
     ) -> Result<Self, CliError> {
+        #[cfg(not(feature = "candidate-ranking"))]
+        let _ = best_of; // flag is a no-op unless the ranking feature is built in
         // Load user configuration to determine backend preferences
         let config_manager =
             crate::config::ConfigManager::new().map_err(|e| CliError::ConfigurationError {
@@ -282,6 +285,29 @@ impl CliApp {
         let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone(), profile)
             .with_static_matcher(!force_llm);
 
+        // Best-of-N ranking (opt-in via --best-of / CARO_BEST_OF). Adds the
+        // embedded backend as a second, independent source so the pipeline can
+        // pick the better of local + primary. Off by default → unchanged path.
+        #[cfg(feature = "candidate-ranking")]
+        let agent_loop = if best_of {
+            let extra = Self::build_embedded_source(&user_config).await?;
+            let safety_config = crate::safety::SafetyConfig::from_user_config(
+                &user_config,
+                config_manager.config_path(),
+            );
+            let safety =
+                Arc::new(
+                    SafetyValidator::new(safety_config).map_err(|e| {
+                        CliError::ConfigurationError {
+                            message: format!("Failed to init ranking safety validator: {}", e),
+                        }
+                    })?,
+                );
+            agent_loop.with_ranking(vec![(extra, "embedded".to_string())], safety)
+        } else {
+            agent_loop
+        };
+
         Ok(Self {
             config,
             backend: backend_arc,
@@ -289,6 +315,40 @@ impl CliApp {
             validator,
             context,
         })
+    }
+
+    /// Build the embedded backend as an independent best-of-N ranking source.
+    /// Mirrors [`Self::create_backend`]'s embedded construction (mock under
+    /// `cfg(test)`) so ranking works in tests without loading a model.
+    #[cfg(feature = "candidate-ranking")]
+    async fn build_embedded_source(
+        user_config: &crate::models::UserConfiguration,
+    ) -> Result<Arc<dyn CommandGenerator>, CliError> {
+        #[cfg(test)]
+        {
+            let _ = user_config;
+            Ok(Arc::new(MockCommandGenerator::new()))
+        }
+
+        #[cfg(not(test))]
+        {
+            #[cfg(feature = "mock-backend")]
+            if std::env::var("CARO_MOCK_BACKEND").is_ok() {
+                return Ok(Arc::new(MockCommandGenerator::new()));
+            }
+
+            use crate::backends::embedded::EmbeddedModelBackend;
+            let safety_config = SafetyConfig::from_level(user_config.safety_level);
+            let embedded = EmbeddedModelBackend::new()
+                .map_err(|e| CliError::ConfigurationError {
+                    message: format!("Failed to create embedded ranking source: {}", e),
+                })?
+                .with_safety_config(safety_config)
+                .map_err(|e| CliError::ConfigurationError {
+                    message: format!("Failed to apply safety config to ranking source: {}", e),
+                })?;
+            Ok(Arc::new(embedded))
+        }
     }
 
     /// Create appropriate backend based on user configuration
@@ -755,8 +815,27 @@ impl CliApp {
             backend_preference: None,
         };
 
-        // Generate command using agent loop (handles iterations internally)
+        // Generate command using agent loop (handles iterations internally).
+        // With best-of-N ranking enabled, fan out across backends and keep the
+        // full scored set for --dry-run / --explain display.
         let gen_start = Instant::now();
+        #[cfg(feature = "candidate-ranking")]
+        let (generated, ranked) = if self.agent_loop.ranking_enabled() {
+            self.agent_loop
+                .generate_command_ranked(&prompt)
+                .await
+                .map_err(|e| CliError::GenerationFailed {
+                    details: e.to_string(),
+                })?
+        } else {
+            let g = self.agent_loop.generate_command(&prompt).await.map_err(|e| {
+                CliError::GenerationFailed {
+                    details: e.to_string(),
+                }
+            })?;
+            (g, Vec::new())
+        };
+        #[cfg(not(feature = "candidate-ranking"))]
         let generated = self
             .agent_loop
             .generate_command(&prompt)
@@ -765,6 +844,25 @@ impl CliApp {
                 details: e.to_string(),
             })?;
         let generation_time = gen_start.elapsed();
+
+        // Surface the best-of-N ranking on inspection paths (stderr so it never
+        // pollutes json/plain stdout consumers).
+        #[cfg(feature = "candidate-ranking")]
+        if (args.dry_run() || args.explain()) && !args.quiet() && !ranked.is_empty() {
+            eprintln!("Best-of-{} ranking (* = selected):", ranked.len());
+            for c in &ranked {
+                let score = c
+                    .score
+                    .map(|s| format!("{:.3}", s))
+                    .unwrap_or_else(|| "reject".to_string());
+                let mark = if c.command == generated.command {
+                    "*"
+                } else {
+                    " "
+                };
+                eprintln!("  {} [{}] {:<12} {}", mark, score, c.source, c.command);
+            }
+        }
 
         // Validate command safety
         let validation = self
