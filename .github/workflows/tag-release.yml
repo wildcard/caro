@@ -42,10 +42,10 @@ jobs:
           SHA: ${{ inputs.sha }}
         run: |
           set -euo pipefail
-          case "$TAG" in
-            v[0-9]*.[0-9]*.[0-9]*) ;;
-            *) echo "::error::Tag '$TAG' does not look like vX.Y.Z"; exit 1 ;;
-          esac
+          if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Tag '$TAG' does not match vX.Y.Z (digits only)"
+            exit 1
+          fi
           VERSION="${TAG#v}"
           CARGO_VERSION=$(grep -m1 '^version = ' Cargo.toml | cut -d'"' -f2)
           if [ "$VERSION" != "$CARGO_VERSION" ]; then
