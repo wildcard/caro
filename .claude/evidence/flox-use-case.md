@@ -41,7 +41,8 @@ Notable cross-checks the test enforces:
 
 | ID | Claim | Verifier | Result |
 |----|-------|----------|--------|
-| V1 | Website test suite green (baseline kept) | `npx vitest run` | ✅ 64 passed (46 baseline + 18 new) |
+| V1 | Website test suite green (baseline kept) | `npx vitest run` | ✅ 67 passed (46 baseline + 18 flox + 3 adapter-alignment) |
+| V10 | Production website build succeeds (Vercel parity) | `ASTRO_DATABASE_FILE=… astro build` | ✅ exit 0, `[build] Complete!`, `dist/client/use-cases/flox/index.html` built |
 | V2 | Flox use-case page renders end-to-end | dev server + browser page-text capture | ✅ all sections present, 0 console errors |
 | V3 | Flox persona card live in hub | JS query on `/use-cases` | ✅ `/use-cases/flox` link present, correct text |
 | V4 | Astro parses the new page (no esbuild brace crash) | `npx astro sync` | ✅ types generated, no error |
@@ -87,6 +88,23 @@ validated by TOML structure + the MSRV cross-check in the test, not a live
 page and in `flox/README.md`; a follow-up on a Flox-equipped host should
 run `flox activate -- cargo check --no-default-features --features embedded-cpu`
 to close that gap.
+
+## Vercel deploy fix (issue #1309, fixed in this PR)
+
+The website deploy (`caro-foss-website`) had been red on **every** branch,
+including production `main` — a pre-existing baseline failure. Root cause:
+the site runs astro 6 but pinned `@astrojs/vercel@^9`, whose astro peer is
+`^5.0.0`. npm nested an astro-5 copy under the adapter; its serverless
+polyfill imported `applyPolyfills` (astro-6 only) against astro 5 and the
+build crashed.
+
+Fix (verified locally via the production `astro build` above): bump
+`@astrojs/vercel` to `^10.0.8` (peer `astro ^6.0.0`). The adapter now
+dedupes to the site's astro 6.1.10, the polyfill is gone in v10, and the
+build completes. Regression guard added:
+`website/src/__tests__/vercel-adapter-astro-alignment.test.ts` asserts the
+adapter major stays in lockstep with the astro major, so a future astro
+bump that forgets the adapter fails in CI instead of only as a red deploy.
 
 ## Deferred (tracked as follow-ups)
 
