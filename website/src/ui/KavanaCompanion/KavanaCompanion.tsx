@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import styles from './KavanaCompanion.module.css';
 
 type Topic = 'welcome' | 'status' | 'adopt' | 'hatch';
-type AnimationName = 'idle' | 'runRight' | 'runLeft' | 'wave' | 'jump' | 'waiting' | 'resting' | 'working' | 'review' | 'lookAround';
+type AnimationName = 'idle' | 'runRight' | 'runLeft' | 'wave' | 'jump' | 'waiting' | 'resting' | 'sleeping' | 'working' | 'review' | 'lookAround';
 
 interface SpriteFrame {
   row: number;
@@ -60,6 +60,13 @@ const animations: Record<AnimationName, SpriteFrame[]> = {
     { row: 6, column: 4, duration: 650 },
     { row: 6, column: 3, duration: 220 },
   ],
+  sleeping: [
+    { row: 5, column: 2, duration: 320 },
+    { row: 5, column: 3, duration: 420 },
+    { row: 5, column: 4, duration: 1400 },
+    { row: 5, column: 5, duration: 520 },
+    { row: 5, column: 4, duration: 1400 },
+  ],
   working: rowFrames(7, [120, 120, 120, 120, 120, 220]),
   review: rowFrames(8, [150, 150, 150, 150, 150, 280]),
   lookAround: [
@@ -71,6 +78,12 @@ const animations: Record<AnimationName, SpriteFrame[]> = {
 const entranceStart: RoamStep = {
   id: 'offstage', x: '-150px', y: 'calc(100vh - 150px)', animation: 'runRight', duration: 0, travelTime: 0, side: 'left',
 };
+
+const reducedMotionRest: RoamStep = {
+  id: 'reduced-rest', x: '22px', y: 'calc(100vh - 150px)', animation: 'resting', duration: 0, travelTime: 0, side: 'left',
+};
+
+const SLEEP_AFTER_MS = 60_000;
 
 const roamRoute: RoamStep[] = [
   { id: 'entrance', x: '22px', y: 'calc(100vh - 150px)', animation: 'runRight', duration: 3000, travelTime: 2500, side: 'left' },
@@ -105,9 +118,11 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   const [dragDirection, setDragDirection] = useState<'left' | 'right'>('right');
   const [dragPosition, setDragPosition] = useState<Position>();
   const [placedPosition, setPlacedPosition] = useState<Position>();
+  const [sleeping, setSleeping] = useState(false);
   const copyFeedbackTimeout = useRef<number>();
   const dragSession = useRef<DragSession>();
   const suppressClick = useRef(false);
+  const sleepTimeout = useRef<number>();
 
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -122,6 +137,38 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   }, []);
 
   useEffect(() => () => window.clearTimeout(copyFeedbackTimeout.current), []);
+
+  useEffect(() => {
+    window.clearTimeout(sleepTimeout.current);
+    if (!placedPosition || open || dragging) {
+      setSleeping(false);
+      return;
+    }
+
+    const fallAsleep = () => setSleeping(true);
+    const wakeAndRestartClock = () => {
+      setSleeping(false);
+      window.clearTimeout(sleepTimeout.current);
+      sleepTimeout.current = window.setTimeout(fallAsleep, SLEEP_AFTER_MS);
+    };
+    const sleepOnScroll = () => {
+      window.clearTimeout(sleepTimeout.current);
+      setSleeping(true);
+    };
+
+    wakeAndRestartClock();
+    window.addEventListener('pointermove', wakeAndRestartClock, { passive: true });
+    window.addEventListener('pointerdown', wakeAndRestartClock, { capture: true });
+    window.addEventListener('keydown', wakeAndRestartClock);
+    window.addEventListener('scroll', sleepOnScroll, { passive: true });
+    return () => {
+      window.clearTimeout(sleepTimeout.current);
+      window.removeEventListener('pointermove', wakeAndRestartClock);
+      window.removeEventListener('pointerdown', wakeAndRestartClock, { capture: true });
+      window.removeEventListener('keydown', wakeAndRestartClock);
+      window.removeEventListener('scroll', sleepOnScroll);
+    };
+  }, [dragging, open, placedPosition]);
 
   useEffect(() => {
     if (embedded || open || reducedMotion || dragging || placedPosition) return;
@@ -142,7 +189,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
     return () => window.clearInterval(hints);
   }, [embedded, open]);
 
-  const routeStep = reducedMotion ? roamRoute[0] : routeIndex < 0 ? entranceStart : roamRoute[routeIndex];
+  const routeStep = reducedMotion ? reducedMotionRest : routeIndex < 0 ? entranceStart : roamRoute[routeIndex];
   const restingStep: RoamStep | undefined = placedPosition ? {
     id: 'placed', x: `${placedPosition.x}px`, y: `${placedPosition.y}px`, animation: 'resting', duration: 0, travelTime: 0,
     side: placedPosition.x > window.innerWidth / 2 ? 'right' : 'left',
@@ -152,7 +199,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
     side: dragPosition.x > window.innerWidth / 2 ? 'right' : 'left',
   } : undefined;
   const step = dragStep ?? restingStep ?? routeStep;
-  const animationName: AnimationName = dragging ? step.animation : open ? 'idle' : placedPosition ? 'resting' : hovered ? 'wave' : embedded ? 'waiting' : step.animation;
+  const animationName: AnimationName = dragging ? step.animation : open ? 'idle' : sleeping ? 'sleeping' : placedPosition ? 'resting' : reducedMotion ? 'resting' : hovered ? 'wave' : embedded ? 'waiting' : step.animation;
   const animation = animations[animationName];
 
   useEffect(() => setFrameIndex(0), [animationName]);
@@ -259,6 +306,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     if (session.moved && dragPosition) {
       setPlacedPosition(avoidFloatingControls(dragPosition));
+      setSleeping(false);
       suppressClick.current = true;
     }
     setDragPosition(undefined);
@@ -280,7 +328,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
       style={embedded ? undefined : motionStyle}
       data-motion={embedded ? 'embedded' : step.id}
       data-animation={animationName}
-      data-placement={placedPosition ? 'resting' : dragging ? 'dragging' : 'roaming'}
+      data-placement={dragging ? 'dragging' : sleeping ? 'sleeping' : placedPosition || reducedMotion ? 'resting' : 'roaming'}
       aria-label="Kavana, the Caro project companion"
     >
       {open && (
@@ -320,7 +368,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
       >
-        {!open && <span className={styles.prompt}>{placedPosition ? 'Comfy here — drag me anytime' : roamingHints[hintIndex]}</span>}
+        {!open && <span className={styles.prompt}>{sleeping ? 'Zzz…' : placedPosition ? 'Comfy here — drag me anytime' : reducedMotion ? 'Keeping quiet company' : roamingHints[hintIndex]}</span>}
         <span className={styles.sprite} aria-hidden="true"><img src="/pets/kavana/spritesheet.webp" alt="" draggable={false} style={{ transform: `translate(${-frame.column * 96}px, ${-frame.row * 104}px)` }} /></span>
         <span className={styles.nameplate}>Kavana</span>
       </button>
