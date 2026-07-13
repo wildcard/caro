@@ -1,7 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import styles from './KavanaCompanion.module.css';
 
 type Topic = 'welcome' | 'status' | 'adopt' | 'hatch';
+type AnimationName = 'idle' | 'runRight' | 'runLeft' | 'wave' | 'jump' | 'waiting' | 'working' | 'review' | 'lookAround';
+
+interface SpriteFrame {
+  row: number;
+  column: number;
+  duration: number;
+}
+
+interface RoamStep {
+  id: string;
+  x: string;
+  y: string;
+  animation: AnimationName;
+  duration: number;
+  travelTime: number;
+  side: 'left' | 'right' | 'center';
+}
 
 export interface KavanaCompanionProps {
   embedded?: boolean;
@@ -15,17 +32,56 @@ const topics: Record<Topic, { eyebrow: string; title: string; body: string }> = 
   hatch: { eyebrow: 'Make a companion', title: 'Or hatch your own pet.', body: 'Open a Codex task with your character idea or reference art and ask Codex to use the hatch-pet skill. It can assemble and validate the complete animated atlas.' },
 };
 
-const roamingHints = ['Psst—need a guide?', 'Roadmap check-in ready', 'Want a Codex pet?'];
+const rowFrames = (row: number, durations: number[]): SpriteFrame[] => durations.map((duration, column) => ({ row, column, duration }));
+
+const animations: Record<AnimationName, SpriteFrame[]> = {
+  idle: rowFrames(0, [280, 110, 110, 140, 140, 320]),
+  runRight: rowFrames(1, [120, 120, 120, 120, 120, 120, 120, 220]),
+  runLeft: rowFrames(2, [120, 120, 120, 120, 120, 120, 120, 220]),
+  wave: rowFrames(3, [140, 140, 140, 280]),
+  jump: rowFrames(4, [140, 140, 140, 140, 280]),
+  waiting: rowFrames(6, [150, 150, 150, 150, 150, 260]),
+  working: rowFrames(7, [120, 120, 120, 120, 120, 220]),
+  review: rowFrames(8, [150, 150, 150, 150, 150, 280]),
+  lookAround: [
+    ...rowFrames(9, [190, 150, 150, 150, 190, 150, 150, 150]),
+    ...rowFrames(10, [190, 150, 150, 150, 190, 150, 150, 240]),
+  ],
+};
+
+const entranceStart: RoamStep = {
+  id: 'offstage', x: '-150px', y: 'calc(100vh - 150px)', animation: 'runRight', duration: 0, travelTime: 0, side: 'left',
+};
+
+const roamRoute: RoamStep[] = [
+  { id: 'entrance', x: '22px', y: 'calc(100vh - 150px)', animation: 'runRight', duration: 3000, travelTime: 2500, side: 'left' },
+  { id: 'hello', x: '22px', y: 'calc(100vh - 150px)', animation: 'wave', duration: 1800, travelTime: 0, side: 'left' },
+  { id: 'bottom-cross', x: 'calc(100vw - 142px)', y: 'calc(100vh - 150px)', animation: 'runRight', duration: 6100, travelTime: 5500, side: 'right' },
+  { id: 'scan-right', x: 'calc(100vw - 142px)', y: 'calc(100vh - 150px)', animation: 'lookAround', duration: 3100, travelTime: 0, side: 'right' },
+  { id: 'hop-up', x: 'calc(100vw - 170px)', y: '42vh', animation: 'jump', duration: 2600, travelTime: 2100, side: 'right' },
+  { id: 'review', x: 'calc(100vw - 170px)', y: '42vh', animation: 'review', duration: 2600, travelTime: 0, side: 'right' },
+  { id: 'upper-cross', x: '30px', y: '48vh', animation: 'runLeft', duration: 6400, travelTime: 5800, side: 'left' },
+  { id: 'waiting', x: '30px', y: '48vh', animation: 'waiting', duration: 2600, travelTime: 0, side: 'left' },
+  { id: 'hop-home', x: 'calc(50vw - 48px)', y: 'calc(100vh - 170px)', animation: 'jump', duration: 3000, travelTime: 2400, side: 'center' },
+  { id: 'working', x: 'calc(50vw - 48px)', y: 'calc(100vh - 170px)', animation: 'working', duration: 2800, travelTime: 0, side: 'center' },
+  { id: 'return-right', x: 'calc(100vw - 142px)', y: 'calc(100vh - 150px)', animation: 'runRight', duration: 5200, travelTime: 4600, side: 'right' },
+  { id: 'curious', x: 'calc(100vw - 142px)', y: 'calc(100vh - 150px)', animation: 'lookAround', duration: 3100, travelTime: 0, side: 'right' },
+  { id: 'bottom-left', x: '22px', y: 'calc(100vh - 150px)', animation: 'runLeft', duration: 6100, travelTime: 5500, side: 'left' },
+  { id: 'welcome-back', x: '22px', y: 'calc(100vh - 150px)', animation: 'wave', duration: 1800, travelTime: 0, side: 'left' },
+];
+
+const roamingHints = ['Psst—need a guide?', 'Roadmap check-in ready', 'Want a Codex pet?', 'Following the work…'];
 
 export function KavanaCompanion({ embedded = false, initiallyOpen = false }: KavanaCompanionProps) {
   const [open, setOpen] = useState(initiallyOpen);
   const [topic, setTopic] = useState<Topic>('welcome');
-  const [frame, setFrame] = useState(0);
-  const [atRight, setAtRight] = useState(false);
+  const [routeIndex, setRouteIndex] = useState(-1);
+  const [frameIndex, setFrameIndex] = useState(0);
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const [hintIndex, setHintIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -36,22 +92,48 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   }, []);
 
   useEffect(() => {
-    if (reducedMotion) return;
-    const animation = window.setInterval(() => setFrame((value) => (value + 1) % 8), 120);
-    return () => window.clearInterval(animation);
-  }, [reducedMotion]);
-
-  useEffect(() => {
     if (embedded || open || reducedMotion) return;
-    const roam = window.setInterval(() => setAtRight((value) => !value), 9000);
-    return () => window.clearInterval(roam);
-  }, [embedded, open, reducedMotion]);
+    if (routeIndex < 0) {
+      const entrance = window.setTimeout(() => setRouteIndex(0), 120);
+      return () => window.clearTimeout(entrance);
+    }
+    const step = roamRoute[routeIndex];
+    const advance = window.setTimeout(() => {
+      setRouteIndex((value) => value >= roamRoute.length - 1 ? 2 : value + 1);
+    }, step.duration);
+    return () => window.clearTimeout(advance);
+  }, [embedded, open, reducedMotion, routeIndex]);
 
   useEffect(() => {
     if (embedded || open) return;
     const hints = window.setInterval(() => setHintIndex((value) => (value + 1) % roamingHints.length), 6000);
     return () => window.clearInterval(hints);
   }, [embedded, open]);
+
+  const step = reducedMotion ? roamRoute[0] : routeIndex < 0 ? entranceStart : roamRoute[routeIndex];
+  const animationName: AnimationName = open ? 'idle' : hovered ? 'wave' : embedded ? 'waiting' : step.animation;
+  const animation = animations[animationName];
+
+  useEffect(() => setFrameIndex(0), [animationName]);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setFrameIndex(0);
+      return;
+    }
+    const frame = animation[frameIndex % animation.length];
+    const advance = window.setTimeout(() => setFrameIndex((value) => (value + 1) % animation.length), frame.duration);
+    return () => window.clearTimeout(advance);
+  }, [animation, frameIndex, reducedMotion]);
+
+  const frame = animation[frameIndex % animation.length];
+  const content = topics[topic];
+  const atRight = !embedded && step.side === 'right';
+  const motionStyle = useMemo(() => ({
+    '--kavana-x': step.x,
+    '--kavana-y': step.y,
+    '--kavana-travel-time': reducedMotion ? '0ms' : `${step.travelTime}ms`,
+  }) as CSSProperties, [reducedMotion, step.travelTime, step.x, step.y]);
 
   const copyHatchPrompt = async () => {
     try {
@@ -66,14 +148,24 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
     }
   };
 
-  const animationRow = open ? 0 : atRight ? 1 : 2;
-  const content = topics[topic];
+  const closeCompanion = () => {
+    setOpen(false);
+    if (!embedded && !reducedMotion) setRouteIndex(3);
+  };
+
+  const toggleOpen = () => open ? closeCompanion() : setOpen(true);
 
   return (
-    <aside className={`${styles.companion} ${embedded ? styles.embedded : styles.roaming} ${atRight ? styles.atRight : ''}`} aria-label="Kavana, the Caro project companion">
+    <aside
+      className={`${styles.companion} ${embedded ? styles.embedded : styles.roaming} ${atRight ? styles.atRight : ''}`}
+      style={embedded ? undefined : motionStyle}
+      data-motion={embedded ? 'embedded' : step.id}
+      data-animation={animationName}
+      aria-label="Kavana, the Caro project companion"
+    >
       {open && (
         <section className={styles.dialogue} aria-live="polite">
-          <button className={styles.close} type="button" onClick={() => setOpen(false)} aria-label="Close Kavana's message">×</button>
+          <button className={styles.close} type="button" onClick={closeCompanion} aria-label="Close Kavana's message">×</button>
           <span className={styles.eyebrow}>{content.eyebrow}</span>
           <h2>{content.title}</h2>
           <p>{content.body}</p>
@@ -93,9 +185,17 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
           <p className={styles.disclaimer}>Community artwork for Caro · Codex is an OpenAI product</p>
         </section>
       )}
-      <button type="button" className={styles.petButton} aria-label={open ? 'Kavana is listening' : 'Talk with Kavana'} aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+      <button
+        type="button"
+        className={styles.petButton}
+        aria-label={open ? 'Kavana is listening' : 'Talk with Kavana'}
+        aria-expanded={open}
+        onClick={toggleOpen}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
         {!open && <span className={styles.prompt}>{roamingHints[hintIndex]}</span>}
-        <span className={styles.sprite} aria-hidden="true"><img src="/pets/kavana/spritesheet.webp" alt="" draggable={false} style={{ transform: `translate(${-frame * 96}px, ${-animationRow * 104}px)` }} /></span>
+        <span className={styles.sprite} aria-hidden="true"><img src="/pets/kavana/spritesheet.webp" alt="" draggable={false} style={{ transform: `translate(${-frame.column * 96}px, ${-frame.row * 104}px)` }} /></span>
         <span className={styles.nameplate}>Kavana</span>
       </button>
     </aside>

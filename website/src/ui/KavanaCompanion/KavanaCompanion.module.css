@@ -1,7 +1,6 @@
 .companion { --ink: #251f1b; --cream: #fff8e8; --mint: #b9e4ce; --outline: #38271d; --panel: #fff; --nameplate: #fff4d6; --topic-panel: #f2e6cf; --soft-border: #d9cdb6; --muted: #5f5047; --quiet: #88786c; --eyebrow: #a5421e; --active-bg: #38271d; --active-text: #fff; font-family: Figtree, ui-sans-serif, sans-serif; color: var(--ink); }
 :global(.dark) .companion { --ink: #f5eee8; --cream: #2b241f; --mint: #397e69; --outline: #d8c2b2; --panel: #352c26; --nameplate: #3a2e26; --topic-panel: #463a32; --soft-border: #6b594d; --muted: #ddd0c7; --quiet: #c5b4a9; --eyebrow: #ff9d72; --active-bg: #ead8ca; --active-text: #251f1b; }
-.roaming { position: fixed; left: 22px; bottom: 18px; z-index: 90; transition: left 2.8s cubic-bezier(.4, 0, .2, 1); }
-.roaming.atRight { left: calc(100vw - 142px); }
+.roaming { position: fixed; left: 0; top: 0; z-index: 90; transform: translate3d(var(--kavana-x, -150px), var(--kavana-y, calc(100vh - 150px)), 0); transition: transform var(--kavana-travel-time, 0ms) cubic-bezier(.42, 0, .24, 1); will-change: transform; }
 .embedded { position: relative; width: min(calc(100vw - 32px), 470px); min-height: 570px; display: grid; place-items: end center; }
 .petButton { appearance: none; position: relative; display: grid; justify-items: center; border: 0; background: transparent; color: inherit; padding: 0; cursor: pointer; filter: drop-shadow(0 12px 14px rgba(31, 20, 13, .24)); }
 .petButton:focus-visible { outline: 3px solid #139979; outline-offset: 5px; border-radius: 18px; }
@@ -25,5 +24,5 @@
 .actions a:first-child, .actions button:first-child { background: var(--mint); }
 .dialogue .disclaimer { margin-top: 13px; color: var(--quiet); font-size: 10px; }
 @keyframes bob { 50% { transform: translateY(-4px) rotate(-1deg); } }
-@media (max-width: 600px) { .roaming { left: 12px; bottom: 10px; } .roaming.atRight { left: calc(100vw - 116px); } .dialogue { position: fixed; inset: auto 14px 132px 14px; width: auto; max-height: calc(100vh - 165px); overflow: auto; border-radius: 22px; } .prompt { right: -8px; top: -28px; } }
+@media (max-width: 600px) { .roaming .dialogue { left: calc(14px - var(--kavana-x)); right: auto; bottom: 132px; width: calc(100vw - 28px); max-height: calc(100vh - 165px); overflow: auto; border-radius: 22px; } .prompt { right: -8px; top: -28px; } }
 @media (prefers-reduced-motion: reduce) { .roaming, .sprite img, .prompt { transition: none; animation: none; } }
