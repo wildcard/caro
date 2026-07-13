@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import styles from './KavanaCompanion.module.css';
 
 type Topic = 'welcome' | 'status' | 'adopt' | 'hatch';
@@ -82,14 +82,21 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   const [hintIndex, setHintIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const copyFeedbackTimeout = useRef<number>();
 
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
     const updatePreference = () => setReducedMotion(preference.matches);
     updatePreference();
-    preference.addEventListener('change', updatePreference);
-    return () => preference.removeEventListener('change', updatePreference);
+    if ('addEventListener' in preference) {
+      preference.addEventListener('change', updatePreference);
+      return () => preference.removeEventListener('change', updatePreference);
+    }
+    preference.addListener(updatePreference);
+    return () => preference.removeListener(updatePreference);
   }, []);
+
+  useEffect(() => () => window.clearTimeout(copyFeedbackTimeout.current), []);
 
   useEffect(() => {
     if (embedded || open || reducedMotion) return;
@@ -136,15 +143,16 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   }) as CSSProperties, [reducedMotion, step.travelTime, step.x, step.y]);
 
   const copyHatchPrompt = async () => {
+    window.clearTimeout(copyFeedbackTimeout.current);
     try {
       await navigator.clipboard.writeText('Use the hatch-pet skill to create a Codex pet from my idea or attached reference art. Package and validate the full v2 animated spritesheet, and show me the final QA preview.');
       setCopyFailed(false);
       setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
+      copyFeedbackTimeout.current = window.setTimeout(() => setCopied(false), 1800);
     } catch {
       setCopied(false);
       setCopyFailed(true);
-      window.setTimeout(() => setCopyFailed(false), 3000);
+      copyFeedbackTimeout.current = window.setTimeout(() => setCopyFailed(false), 3000);
     }
   };
 
