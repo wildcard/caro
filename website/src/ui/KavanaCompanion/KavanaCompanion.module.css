@@ -1,0 +1,27 @@
+.companion { --ink: #251f1b; --cream: #fff8e8; --mint: #b9e4ce; font-family: Figtree, ui-sans-serif, sans-serif; color: var(--ink); }
+.roaming { position: fixed; left: 22px; bottom: 18px; z-index: 90; transition: left 2.8s cubic-bezier(.4, 0, .2, 1); }
+.roaming.atRight { left: calc(100vw - 142px); }
+.embedded { position: relative; width: min(calc(100vw - 32px), 470px); min-height: 570px; display: grid; place-items: end center; }
+.petButton { appearance: none; position: relative; display: grid; justify-items: center; border: 0; background: transparent; color: inherit; padding: 0; cursor: pointer; filter: drop-shadow(0 12px 14px rgba(31, 20, 13, .24)); }
+.petButton:focus-visible { outline: 3px solid #139979; outline-offset: 5px; border-radius: 18px; }
+.sprite { position: relative; display: block; width: 96px; height: 104px; overflow: hidden; }
+.sprite img { position: absolute; inset: 0 auto auto 0; width: 768px; height: 1144px; max-width: none; image-rendering: auto; transition: transform 0s; }
+.nameplate { margin-top: -5px; padding: 3px 9px; border: 2px solid #38271d; border-radius: 999px; background: #fff4d6; font: 800 11px/1 Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+.prompt { position: absolute; right: -88px; top: -18px; white-space: nowrap; padding: 8px 11px; border: 2px solid #38271d; border-radius: 13px 13px 13px 3px; background: var(--cream); font-size: 12px; font-weight: 800; animation: bob 2.4s ease-in-out infinite; }
+.dialogue { box-sizing: border-box; position: absolute; left: 4px; bottom: 118px; width: min(390px, calc(100vw - 32px)); padding: 25px; border: 2px solid #38271d; border-radius: 25px 25px 25px 6px; background: var(--cream); box-shadow: 7px 8px 0 #38271d, 0 22px 50px rgba(37, 31, 27, .18); }
+.atRight .dialogue { left: auto; right: 4px; border-radius: 25px 25px 6px 25px; }
+.embedded .dialogue { position: relative; inset: auto; width: 100%; margin-bottom: 25px; }
+.close { position: absolute; top: 10px; right: 13px; border: 0; background: transparent; font: 500 24px/1 serif; cursor: pointer; }
+.eyebrow { display: block; margin-bottom: 7px; color: #a5421e; font: 900 11px/1 Figtree, sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+.dialogue h2 { margin: 0 25px 8px 0; font: 900 clamp(24px, 5vw, 33px)/.98 Georgia, serif; letter-spacing: -.035em; }
+.dialogue p { margin: 0; color: #5f5047; font-size: 14px; line-height: 1.5; }
+.topicNav { display: flex; gap: 5px; margin: 18px 0 14px; padding: 4px; overflow-x: auto; border: 1px solid #d9cdb6; border-radius: 13px; background: #f2e6cf; }
+.topicNav button { flex: 0 0 auto; border: 0; border-radius: 9px; background: transparent; padding: 7px 9px; color: #64564c; font: 750 11px/1 Figtree, sans-serif; cursor: pointer; }
+.topicNav .activeTopic { background: #38271d; color: white; }
+.actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.actions a, .actions button { border: 1.5px solid #38271d; border-radius: 10px; background: white; color: #38271d; padding: 8px 10px; font: 800 12px/1.15 Figtree, sans-serif; text-decoration: none; cursor: pointer; box-shadow: 2px 2px 0 #38271d; }
+.actions a:first-child, .actions button:first-child { background: var(--mint); }
+.dialogue .disclaimer { margin-top: 13px; color: #88786c; font-size: 10px; }
+@keyframes bob { 50% { transform: translateY(-4px) rotate(-1deg); } }
+@media (max-width: 600px) { .roaming { left: 12px; bottom: 10px; } .roaming.atRight { left: calc(100vw - 116px); } .dialogue { position: fixed; inset: auto 14px 132px 14px; width: auto; max-height: calc(100vh - 165px); overflow: auto; border-radius: 22px; } .prompt { right: -8px; top: -28px; } }
+@media (prefers-reduced-motion: reduce) { .roaming, .sprite img, .prompt { transition: none; animation: none; } }

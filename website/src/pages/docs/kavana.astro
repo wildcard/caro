@@ -1,0 +1,99 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Kavana: your Codex pet"
+  description="Meet Kavana, install her as a community pet in the Codex desktop app, or use Codex to hatch an animated companion of your own."
+>
+  <p class="kavana-kicker">CARO FIELD GUIDE · COMPANION 01</p>
+  <h1>Bring Kavana into Codex</h1>
+
+  <p>
+    Kavana is Caro’s black-and-tan Shiba Inu companion. Her name means
+    <em>intention</em> in Hebrew—an apt quality for careful work in a terminal.
+    Her package includes the complete Codex v2 animation atlas: nine task states
+    and sixteen look directions.
+  </p>
+
+  <div class="callout callout-info">
+    <strong>A community add-on.</strong> Kavana is artwork from the Caro project,
+    not an official OpenAI pet. Codex is an OpenAI product.
+  </div>
+
+  <h2>1. Get the official Codex desktop app</h2>
+
+  <p>
+    Download Codex from <a href="https://openai.com/codex/" target="_blank" rel="noreferrer">OpenAI’s official Codex page</a>
+    and sign in with your ChatGPT account. OpenAI describes the desktop app as a
+    command center for working with coding agents across projects and worktrees.
+    OpenAI also publishes a
+    <a href="https://openai.com/academy/codex-how-to-start/" target="_blank" rel="noreferrer">getting-started guide for the Codex app</a>.
+  </p>
+
+  <h2>2. Download Kavana</h2>
+
+  <p><a class="kavana-download" href="/pets/kavana/kavana-codex-pet.zip" download>Download Kavana’s pet package (.zip)</a></p>
+
+  <p>Expand the archive. It contains exactly two runtime files:</p>
+
+  <ul>
+    <li><code>pet.json</code> — Kavana’s identity and Codex sprite-version metadata</li>
+    <li><code>spritesheet.webp</code> — her validated 1536×2288 animation atlas</li>
+  </ul>
+
+  <h2>3. Install the two files</h2>
+
+  <p>On macOS or Linux, run this command from the expanded download folder:</p>
+
+  <pre><code>mkdir -p "$HOME/.codex/pets/kavana"
+cp pet.json spritesheet.webp "$HOME/.codex/pets/kavana/"</code></pre>
+
+  <p>
+    Restart Codex after copying the files. Custom-pet loading is a Codex desktop
+    behavior and can change between app releases; if Kavana is not offered in
+    your pet controls, update Codex and keep the package in place for a future app
+    release. The two-file package does not execute code.
+  </p>
+
+  <h2 id="hatch-your-own">Hatch your own Codex pet</h2>
+
+  <p>
+    Codex can turn a character idea or reference image into a complete companion.
+    Start a task in the Codex app, attach any art you have permission to use, and
+    paste this prompt:
+  </p>
+
+  <pre><code>Use the hatch-pet skill to create a Codex pet from my idea or attached
+reference art. Package and validate the full v2 animated spritesheet,
+and show me the final QA preview.</code></pre>
+
+  <p>A good request also tells Codex:</p>
+
+  <ul>
+    <li>the pet’s name, personality, species or form;</li>
+    <li>which visual details must remain consistent;</li>
+    <li>the desired style, such as pixel, plush, clay, sticker, or painterly;</li>
+    <li>whether a prop or asymmetrical marking must face a specific direction.</li>
+  </ul>
+
+  <p>
+    The hatch workflow prepares the standard task animations, builds all sixteen
+    directional looks, checks transparency and continuity, and packages the
+    resulting <code>pet.json</code> and <code>spritesheet.webp</code>.
+  </p>
+
+  <h2>Artwork terms</h2>
+
+  <p>
+    Kavana may be installed for personal, noncommercial use as a Codex pet. Her
+    artwork is not public-domain or generally open-source; see the
+    <a href="https://github.com/wildcard/caro/tree/main/assets/kavana">Kavana asset notes</a>
+    before redistributing it.
+  </p>
+</DocsLayout>
+
+<style>
+  .kavana-kicker { color: #b84d24; font-weight: 900; font-size: .75rem; letter-spacing: .15em; }
+  .kavana-download { display: inline-block; padding: .8rem 1rem; border: 2px solid #33261e; border-radius: .75rem; background: #b9e4ce; color: #251f1b; font-weight: 800; text-decoration: none; box-shadow: 3px 3px 0 #33261e; }
+</style>

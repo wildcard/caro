@@ -14,7 +14,7 @@ Copy the package into your Codex pets directory:
 
 ```sh
 mkdir -p "$HOME/.codex/pets/kavana"
-cp codex-pet/pet.json codex-pet/spritesheet.webp "$HOME/.codex/pets/kavana/"
+cp assets/kavana/codex-pet/pet.json assets/kavana/codex-pet/spritesheet.webp "$HOME/.codex/pets/kavana/"
 ```
 
 Restart Codex if Kavana does not appear immediately, then select **Kavana** in
@@ -29,8 +29,8 @@ the pet picker.
 
 Kavana was created for this project from Karo/Kyaro character direction. The
 artwork remains subject to the project-specific terms in
-[`../kyaro/README.md`](../kyaro/README.md). It may be used as a Codex pet by
-people working on this project; it is not a general-purpose public-domain or
+[`../kyaro/README.md`](../kyaro/README.md). It may be installed for personal,
+noncommercial use as a Codex pet; it is not a general-purpose public-domain or
 open-source art asset.
 
 Made with intention and shared with love. ❤

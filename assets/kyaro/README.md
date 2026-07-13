@@ -14,6 +14,11 @@ asset and is covered by these same project-specific artwork terms.
 ## 1. Permitted use
 You may use, view, and reproduce the Kyaro Assets **only as part of this original project** for running, testing, or contributing to this repository.
 
+As a specific exception, the Kavana package in [`../kavana/codex-pet/`](../kavana/codex-pet/)
+may also be installed and used as a personal, noncommercial pet in the Codex
+desktop app. This exception does not permit repackaging, resale, character
+merchandising, or use in another product or service.
+
 ## 2. Prohibited use
 Unless you have prior written permission from the copyright holders, you may **not**:
 - Use the Kyaro Assets in any other project, product, or service
