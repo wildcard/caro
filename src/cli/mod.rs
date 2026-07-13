@@ -1084,6 +1084,25 @@ impl CliApp {
                 (None, None, None, None, 0)
             };
 
+        // Attribute the outcome to the winning backend so best-of-N ranking
+        // self-tunes. Only when a backend was actually chosen (ranked path) AND
+        // the command was actually executed — dry-run / declined give no signal.
+        // A win is real user acceptance (exit 0), never the scorer's own pick.
+        #[cfg(feature = "candidate-ranking")]
+        if !ranked.is_empty()
+            && (args.execute() || args.interactive())
+            && can_execute
+            && !args.dry_run()
+        {
+            if let Some(winner) = ranked.iter().find(|c| c.command == generated.command) {
+                crate::agent::pipeline::BackendStats::record_and_save(
+                    &winner.source,
+                    exit_code == Some(0),
+                    generation_time.as_millis() as u64,
+                );
+            }
+        }
+
         // The 'executed' field indicates whether safety checks passed (original behavior)
         let executed = can_execute;
 

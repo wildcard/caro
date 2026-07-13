@@ -19,6 +19,7 @@
 //!
 //! [1]: https://github.com/xai-org/x-algorithm
 
+pub mod backend_stats;
 pub mod filters;
 pub mod hydrators;
 pub mod scorer;
@@ -26,8 +27,11 @@ pub mod selector;
 pub mod sources;
 pub mod weights;
 
+pub use backend_stats::BackendStats;
 pub use filters::{SafetyFilter, ValidationFilter};
-pub use hydrators::{PlatformFitHydrator, SafetyHydrator, ValidationHydrator};
+pub use hydrators::{
+    BackendSuccessHydrator, PlatformFitHydrator, SafetyHydrator, ValidationHydrator,
+};
 pub use scorer::{LinearScorer, Scorer};
 pub use selector::{ArgmaxSelector, Selector};
 pub use sources::BackendSource;
@@ -66,6 +70,10 @@ pub struct CandidateFeatures {
     pub platform_fit: f32,
     /// Cosine similarity to the closest known successful command, if any.
     pub knowledge_similarity: Option<f32>,
+    /// Historical acceptance rate of this candidate's source backend, in
+    /// `[0, 1]` (0.5 neutral prior when unrated). Written by
+    /// [`BackendSuccessHydrator`] from persisted per-backend stats.
+    pub backend_success: f32,
     /// Wall-clock time the source took to produce this candidate.
     pub latency_ms: u64,
     /// Whether the structural / syntactic validator passed. `false` is the
@@ -171,13 +179,15 @@ impl Pipeline {
     ///
     /// Wraps each `(backend, label)` in a [`BackendSource`], wires the standard
     /// hydrators ([`PlatformFitHydrator`], [`SafetyHydrator`],
-    /// [`ValidationHydrator`]), filters ([`SafetyFilter`], [`ValidationFilter`]),
-    /// a [`LinearScorer`], and an [`ArgmaxSelector`]. Reuses the existing
-    /// primitives rather than re-implementing scoring or selection.
+    /// [`ValidationHydrator`], [`BackendSuccessHydrator`]), filters
+    /// ([`SafetyFilter`], [`ValidationFilter`]), a [`LinearScorer`], and an
+    /// [`ArgmaxSelector`]. Reuses the existing primitives rather than
+    /// re-implementing scoring or selection.
     pub fn standard(
         sources: Vec<(Arc<dyn CommandGenerator>, String)>,
         safety: Arc<SafetyValidator>,
         validator: Arc<CommandValidator>,
+        backend_stats: Arc<BackendStats>,
         os: impl Into<String>,
         shell: ShellType,
     ) -> Self {
@@ -193,6 +203,7 @@ impl Pipeline {
             Arc::new(PlatformFitHydrator::new(os)),
             Arc::new(SafetyHydrator::new(safety).with_shell(shell)),
             Arc::new(ValidationHydrator::new(validator)),
+            Arc::new(BackendSuccessHydrator::new(backend_stats)),
         ];
         let filters: Vec<Arc<dyn Filter>> =
             vec![Arc::new(SafetyFilter), Arc::new(ValidationFilter)];

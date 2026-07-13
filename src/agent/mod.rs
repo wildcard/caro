@@ -223,16 +223,23 @@ impl AgentLoop {
             return Ok((cmd, Vec::new()));
         };
 
-        // Primary backend first, then the configured extra sources.
+        // Primary backend first (labelled by its backend type so per-backend
+        // stats and the ranked display key on real backend identity), then the
+        // configured extra sources.
+        let primary_label =
+            format!("{:?}", self.backend.backend_info().backend_type).to_lowercase();
         let mut sources: Vec<(Arc<dyn CommandGenerator>, String)> =
             Vec::with_capacity(1 + self.ranking_sources.len());
-        sources.push((Arc::clone(&self.backend), "primary".to_string()));
+        sources.push((Arc::clone(&self.backend), primary_label));
         sources.extend(self.ranking_sources.iter().cloned());
 
+        // Snapshot the per-backend effectiveness stats once (no per-candidate I/O).
+        let backend_stats = Arc::new(pipeline::BackendStats::load_default());
         let pipeline = pipeline::Pipeline::standard(
             sources,
             Arc::clone(safety),
             Arc::clone(&self.validator),
+            backend_stats,
             std::env::consts::OS,
             ShellType::Bash,
         );
