@@ -4,6 +4,20 @@
 .embedded { position: relative; width: min(calc(100vw - 32px), 470px); min-height: 570px; display: grid; place-items: end center; }
 .petButton { appearance: none; position: relative; display: grid; justify-items: center; border: 0; background: transparent; color: inherit; padding: 0; cursor: grab; touch-action: none; user-select: none; filter: drop-shadow(0 12px 14px rgba(31, 20, 13, .24)); }
 .companion[data-placement='dragging'] .petButton { cursor: grabbing; filter: drop-shadow(0 16px 18px rgba(31, 20, 13, .3)); }
+.petControls { position: absolute; left: calc(100% + 5px); top: 27px; z-index: 3; display: grid; gap: 5px; opacity: 0; transform: translateX(-5px); transition: opacity .16s ease, transform .16s ease; pointer-events: none; }
+.atRight .petControls { right: calc(100% + 5px); left: auto; transform: translateX(5px); }
+.companion:hover .petControls, .companion:focus-within .petControls { opacity: 1; transform: translateX(0); pointer-events: auto; }
+.petControls button, .recallButton { appearance: none; display: grid; place-items: center; border: 2px solid var(--outline); background: var(--cream); color: var(--ink); cursor: pointer; box-shadow: 2px 3px 0 var(--outline); }
+.petControls button { width: 25px; height: 25px; padding: 0; border-radius: 50%; font: 900 16px/1 Georgia, serif; }
+.petControls button:hover { transform: translateY(-1px); background: var(--mint); }
+.petControls button:focus-visible, .recallButton:focus-visible { outline: 3px solid #139979; outline-offset: 3px; }
+.minimizedDock { position: fixed; top: 50%; z-index: 90; transform: translateY(-50%); }
+.dockLeft { left: 0; }
+.dockRight { right: 0; }
+.recallButton { width: 38px; height: 46px; padding: 4px 2px; overflow: hidden; border-radius: 0 15px 15px 0; }
+.dockRight .recallButton { border-radius: 15px 0 0 15px; }
+.recallSprite { position: relative; display: block; width: 32px; height: 35px; overflow: hidden; }
+.recallSprite img { position: absolute; inset: 0 auto auto 0; width: 256px; height: 381.333px; max-width: none; image-rendering: auto; }
 .petButton:focus-visible { outline: 3px solid #139979; outline-offset: 5px; border-radius: 18px; }
 .sprite { position: relative; display: block; width: 96px; height: 104px; overflow: hidden; }
 .sprite img { position: absolute; inset: 0 auto auto 0; width: 768px; height: 1144px; max-width: none; image-rendering: auto; transition: transform 0s; }
@@ -26,4 +40,4 @@
 .dialogue .disclaimer { margin-top: 13px; color: var(--quiet); font-size: 10px; }
 @keyframes bob { 50% { transform: translateY(-4px) rotate(-1deg); } }
 @media (max-width: 600px) { .roaming .dialogue { left: calc(14px - var(--kavana-x)); right: auto; bottom: 132px; width: calc(100vw - 28px); max-height: calc(100vh - 165px); overflow: auto; border-radius: 22px; } .prompt { right: -8px; top: -28px; } }
-@media (prefers-reduced-motion: reduce) { .roaming, .sprite img, .prompt { transition: none; animation: none; } }
+@media (prefers-reduced-motion: reduce) { .roaming, .sprite img, .prompt, .petControls { transition: none; animation: none; } }

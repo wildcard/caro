@@ -3,6 +3,7 @@ import styles from './KavanaCompanion.module.css';
 
 type Topic = 'welcome' | 'status' | 'adopt' | 'hatch';
 type AnimationName = 'idle' | 'runRight' | 'runLeft' | 'wave' | 'jump' | 'waiting' | 'resting' | 'sleeping' | 'working' | 'review' | 'lookAround';
+type MinimizedSide = 'left' | 'right';
 
 interface SpriteFrame {
   row: number;
@@ -84,6 +85,7 @@ const reducedMotionRest: RoamStep = {
 };
 
 const SLEEP_AFTER_MS = 60_000;
+const PREFERENCE_KEY = 'caro:kavana-preference';
 
 const roamRoute: RoamStep[] = [
   { id: 'entrance', x: '22px', y: 'calc(100vh - 150px)', animation: 'runRight', duration: 3000, travelTime: 2500, side: 'left' },
@@ -118,11 +120,15 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   const [dragDirection, setDragDirection] = useState<'left' | 'right'>('right');
   const [dragPosition, setDragPosition] = useState<Position>();
   const [placedPosition, setPlacedPosition] = useState<Position>();
-  const [sleeping, setSleeping] = useState(false);
+  const [autoSleeping, setAutoSleeping] = useState(false);
+  const [manualSleeping, setManualSleeping] = useState(false);
+  const [minimizedSide, setMinimizedSide] = useState<MinimizedSide>();
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const copyFeedbackTimeout = useRef<number>();
   const dragSession = useRef<DragSession>();
   const suppressClick = useRef(false);
   const sleepTimeout = useRef<number>();
+  const companionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -139,36 +145,66 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   useEffect(() => () => window.clearTimeout(copyFeedbackTimeout.current), []);
 
   useEffect(() => {
+    if (embedded) return;
+    try {
+      const preference = window.localStorage.getItem(PREFERENCE_KEY);
+      if (preference === 'sleeping') {
+        setManualSleeping(true);
+        setPlacedPosition({ x: 22, y: window.innerHeight - 150 });
+      } else if (preference === 'minimized-left' || preference === 'minimized-right') {
+        setMinimizedSide(preference.endsWith('left') ? 'left' : 'right');
+      }
+    } catch {
+      // Storage can be unavailable in privacy-restricted browsing contexts.
+    } finally {
+      setPreferencesLoaded(true);
+    }
+  }, [embedded]);
+
+  useEffect(() => {
+    if (embedded || !preferencesLoaded) return;
+    const preference = minimizedSide ? `minimized-${minimizedSide}` : manualSleeping ? 'sleeping' : 'awake';
+    try {
+      window.localStorage.setItem(PREFERENCE_KEY, preference);
+    } catch {
+      // The controls still work for this visit when persistence is unavailable.
+    }
+  }, [embedded, manualSleeping, minimizedSide, preferencesLoaded]);
+
+  useEffect(() => {
     window.clearTimeout(sleepTimeout.current);
-    if (!placedPosition || open || dragging) {
-      setSleeping(false);
+    if (!placedPosition || open || dragging || manualSleeping || minimizedSide) {
+      setAutoSleeping(false);
       return;
     }
 
-    const fallAsleep = () => setSleeping(true);
+    const fallAsleep = () => setAutoSleeping(true);
     const wakeAndRestartClock = () => {
-      setSleeping(false);
+      setAutoSleeping(false);
       window.clearTimeout(sleepTimeout.current);
       sleepTimeout.current = window.setTimeout(fallAsleep, SLEEP_AFTER_MS);
     };
+    const wakeFromControl = (event: PointerEvent) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest('[data-kavana-sleep-toggle]')) return;
+      if (target?.closest('button, a, input, select, textarea, [role="button"]')) wakeAndRestartClock();
+    };
     const sleepOnScroll = () => {
       window.clearTimeout(sleepTimeout.current);
-      setSleeping(true);
+      setAutoSleeping(true);
     };
 
     wakeAndRestartClock();
-    window.addEventListener('pointermove', wakeAndRestartClock, { passive: true });
-    window.addEventListener('pointerdown', wakeAndRestartClock, { capture: true });
+    window.addEventListener('pointerdown', wakeFromControl, { capture: true });
     window.addEventListener('keydown', wakeAndRestartClock);
     window.addEventListener('scroll', sleepOnScroll, { passive: true });
     return () => {
       window.clearTimeout(sleepTimeout.current);
-      window.removeEventListener('pointermove', wakeAndRestartClock);
-      window.removeEventListener('pointerdown', wakeAndRestartClock, { capture: true });
+      window.removeEventListener('pointerdown', wakeFromControl, { capture: true });
       window.removeEventListener('keydown', wakeAndRestartClock);
       window.removeEventListener('scroll', sleepOnScroll);
     };
-  }, [dragging, open, placedPosition]);
+  }, [dragging, manualSleeping, minimizedSide, open, placedPosition]);
 
   useEffect(() => {
     if (embedded || open || reducedMotion || dragging || placedPosition) return;
@@ -199,6 +235,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
     side: dragPosition.x > window.innerWidth / 2 ? 'right' : 'left',
   } : undefined;
   const step = dragStep ?? restingStep ?? routeStep;
+  const sleeping = manualSleeping || autoSleeping;
   const animationName: AnimationName = dragging ? step.animation : open ? 'idle' : sleeping ? 'sleeping' : placedPosition ? 'resting' : reducedMotion ? 'resting' : hovered ? 'wave' : embedded ? 'waiting' : step.animation;
   const animation = animations[animationName];
 
@@ -206,13 +243,16 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
 
   useEffect(() => {
     if (reducedMotion) {
-      setFrameIndex(0);
+      setFrameIndex(animationName === 'sleeping' ? animation.length - 1 : 0);
       return;
     }
+    if (animationName === 'sleeping' && frameIndex >= animation.length - 1) return;
     const frame = animation[frameIndex % animation.length];
-    const advance = window.setTimeout(() => setFrameIndex((value) => (value + 1) % animation.length), frame.duration);
+    const advance = window.setTimeout(() => setFrameIndex((value) => (
+      animationName === 'sleeping' ? Math.min(value + 1, animation.length - 1) : (value + 1) % animation.length
+    )), frame.duration);
     return () => window.clearTimeout(advance);
-  }, [animation, frameIndex, reducedMotion]);
+  }, [animation, animationName, frameIndex, reducedMotion]);
 
   const frame = animation[frameIndex % animation.length];
   const content = topics[topic];
@@ -306,7 +346,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     if (session.moved && dragPosition) {
       setPlacedPosition(avoidFloatingControls(dragPosition));
-      setSleeping(false);
+      setAutoSleeping(false);
       suppressClick.current = true;
     }
     setDragPosition(undefined);
@@ -322,13 +362,46 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
     toggleOpen();
   };
 
+  const toggleSleep = () => {
+    if (sleeping) {
+      setManualSleeping(false);
+      setAutoSleeping(false);
+      return;
+    }
+    const bounds = companionRef.current?.getBoundingClientRect();
+    if (bounds) setPlacedPosition(avoidFloatingControls({ x: bounds.left, y: bounds.top }));
+    setOpen(false);
+    setManualSleeping(true);
+  };
+
+  const minimize = () => {
+    const bounds = companionRef.current?.getBoundingClientRect();
+    const side: MinimizedSide = (bounds?.left ?? 0) + (bounds?.width ?? 96) / 2 > window.innerWidth / 2 ? 'right' : 'left';
+    setOpen(false);
+    setAutoSleeping(false);
+    setManualSleeping(false);
+    setMinimizedSide(side);
+  };
+
+  if (!embedded && minimizedSide) {
+    return (
+      <aside className={`${styles.companion} ${styles.minimizedDock} ${minimizedSide === 'right' ? styles.dockRight : styles.dockLeft}`} data-placement="minimized" aria-label="Kavana is tucked away">
+        <button className={styles.recallButton} type="button" onClick={() => setMinimizedSide(undefined)} aria-label="Bring Kavana back" title="Bring Kavana back">
+          <span className={styles.recallSprite} aria-hidden="true"><img src="/pets/kavana/spritesheet.webp" alt="" draggable={false} /></span>
+        </button>
+      </aside>
+    );
+  }
+
   return (
     <aside
+      ref={companionRef}
       className={`${styles.companion} ${embedded ? styles.embedded : styles.roaming} ${atRight ? styles.atRight : ''}`}
       style={embedded ? undefined : motionStyle}
       data-motion={embedded ? 'embedded' : step.id}
       data-animation={animationName}
       data-placement={dragging ? 'dragging' : sleeping ? 'sleeping' : placedPosition || reducedMotion ? 'resting' : 'roaming'}
+      data-kavana-companion
       aria-label="Kavana, the Caro project companion"
     >
       {open && (
@@ -352,6 +425,16 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
           </div>
           <p className={styles.disclaimer}>Community artwork for Caro · Codex is an OpenAI product</p>
         </section>
+      )}
+      {!embedded && !open && !dragging && (
+        <div className={styles.petControls} aria-label="Kavana controls">
+          <button type="button" data-kavana-sleep-toggle onClick={toggleSleep} aria-label={sleeping ? 'Wake Kavana' : 'Let Kavana sleep'} title={sleeping ? 'Wake Kavana' : 'Let Kavana sleep'}>
+            <span aria-hidden="true">{sleeping ? '☀' : '☾'}</span>
+          </button>
+          <button type="button" onClick={minimize} aria-label="Tuck Kavana away" title="Tuck Kavana away">
+            <span aria-hidden="true">{step.side === 'right' ? '›' : '‹'}</span>
+          </button>
+        </div>
       )}
       <button
         type="button"
