@@ -1,0 +1,119 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Kavana: your Codex pet"
+  description="Meet Kavana, install her as a community pet in the Codex desktop app, or use Codex to hatch an animated companion of your own."
+>
+  <p class="kavana-kicker">CARO FIELD GUIDE · COMPANION 01</p>
+  <h1>Bring Kavana into Codex</h1>
+
+  <p>
+    Kavana is Caro’s black-and-tan Shiba Inu companion. Her name means
+    <em>intention</em> in Hebrew—an apt quality for careful work in a terminal.
+    Her package includes the complete Codex v2 animation atlas: nine task states
+    and sixteen look directions.
+  </p>
+
+  <div class="callout callout-info">
+    <strong>A community add-on.</strong> Kavana now lives in her own
+    <a href="https://github.com/wildcard/kavana-codex-pet" target="_blank" rel="noreferrer">standalone open-source project</a>
+    with an <a href="https://kavana.caro.sh/" target="_blank" rel="noreferrer">interactive field guide</a>,
+    and is contributed back to the Caro community. She is not an official OpenAI pet.
+    Codex is an OpenAI product.
+  </div>
+
+  <h2>1. Get the official Codex desktop app</h2>
+
+  <p>
+    Download Codex from <a href="https://openai.com/codex/" target="_blank" rel="noreferrer">OpenAI’s official Codex page</a>
+    and sign in with your ChatGPT account. OpenAI describes the desktop app as a
+    command center for working with coding agents across projects and worktrees.
+    OpenAI also publishes a
+    <a href="https://openai.com/academy/codex-how-to-start/" target="_blank" rel="noreferrer">getting-started guide for the Codex app</a>.
+  </p>
+
+  <h2>2. Download Kavana</h2>
+
+  <p><a class="kavana-download" href="https://github.com/wildcard/kavana-codex-pet/releases/latest" target="_blank" rel="noreferrer">Download Kavana’s latest release</a></p>
+
+  <p>The release archive contains one <code>kavana/</code> folder with exactly two runtime files:</p>
+
+  <ul>
+    <li><code>pet.json</code> — Kavana’s identity and Codex sprite-version metadata</li>
+    <li><code>spritesheet.webp</code> — her validated 1536×2288 animation atlas</li>
+  </ul>
+
+  <h2>3. Install the two files</h2>
+
+  <p>Unzip the release, then copy its <code>kavana/</code> folder into your Codex pets directory. On macOS or Linux:</p>
+
+  <pre><code>mkdir -p "&#36;&#123;CODEX_HOME:-$HOME/.codex&#125;/pets"
+cp -R kavana "&#36;&#123;CODEX_HOME:-$HOME/.codex&#125;/pets/"</code></pre>
+
+  <p>On Windows PowerShell:</p>
+
+  <pre><code>$codexHome = if ($env:CODEX_HOME) &#123; $env:CODEX_HOME &#125; else &#123; Join-Path $HOME '.codex' &#125;
+New-Item -ItemType Directory -Force (Join-Path $codexHome 'pets') | Out-Null
+Copy-Item -Recurse -Force .\kavana (Join-Path $codexHome 'pets')</code></pre>
+
+  <p>Alternatively, clone the full project and use its installer:</p>
+
+  <pre><code>git clone https://github.com/wildcard/kavana-codex-pet.git
+cd kavana-codex-pet
+./scripts/install.sh</code></pre>
+
+  <p>On Windows PowerShell, clone the project and run <code>.\scripts\install.ps1 -Select</code>.</p>
+
+  <p>
+    Restart Codex after copying the files. Custom-pet loading is a Codex desktop
+    behavior and can change between app releases; if Kavana is not offered in
+    your pet controls, update Codex and use <strong>Refresh custom pets</strong>.
+    The standalone repository also includes checksums, verification, previews,
+    mobile-sync helpers, and public source frames.
+  </p>
+
+  <h2 id="hatch-your-own">Hatch your own Codex pet</h2>
+
+  <p>
+    Codex can turn a character idea or reference image into a complete companion.
+    Start a task in the Codex app, attach any art you have permission to use, and
+    paste this prompt:
+  </p>
+
+  <pre><code>Use the hatch-pet skill to create a Codex pet from my idea or attached
+reference art. Package and validate the full v2 animated spritesheet,
+and show me the final QA preview.</code></pre>
+
+  <p>A good request also tells Codex:</p>
+
+  <ul>
+    <li>the pet’s name, personality, species or form;</li>
+    <li>which visual details must remain consistent;</li>
+    <li>the desired style, such as pixel, plush, clay, sticker, or painterly;</li>
+    <li>whether a prop or asymmetrical marking must face a specific direction.</li>
+  </ul>
+
+  <p>
+    The hatch workflow prepares the standard task animations, builds all sixteen
+    directional looks, checks transparency and continuity, and packages the
+    resulting <code>pet.json</code> and <code>spritesheet.webp</code>.
+  </p>
+
+  <h2>Artwork terms</h2>
+
+  <p>
+    Kavana may be installed and shared under the terms of her standalone project.
+    Code and documentation are MIT licensed; artwork is CC BY-NC 4.0. See
+    <a href="https://github.com/wildcard/kavana-codex-pet/blob/main/LICENSE.md" target="_blank" rel="noreferrer">Kavana’s license</a>
+    and <a href="https://github.com/wildcard/kavana-codex-pet/blob/main/ATTRIBUTION.md" target="_blank" rel="noreferrer">attribution</a>
+    before redistributing or adapting her artwork.
+  </p>
+</DocsLayout>
+
+<style>
+  .kavana-kicker { color: #b84d24; font-weight: 900; font-size: .75rem; letter-spacing: .15em; }
+  :global(.dark) .kavana-kicker { color: #ff9d72; }
+  .kavana-download { display: inline-block; padding: .8rem 1rem; border: 2px solid #33261e; border-radius: .75rem; background: #b9e4ce; color: #251f1b; font-weight: 800; text-decoration: none; box-shadow: 3px 3px 0 #33261e; }
+</style>

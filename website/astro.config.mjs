@@ -27,6 +27,14 @@ export default defineConfig({
   build: {
     inlineStylesheets: 'auto',
   },
+  vite: {
+    // This is the site's first hydrated React island. Explicitly pre-bundle
+    // React's client entry so monorepo-hoisted CommonJS dependencies are
+    // converted before Astro loads Kavana in development.
+    optimizeDeps: {
+      include: ['react', 'react-dom/client'],
+    },
+  },
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'es', 'fr', 'pt', 'de', 'he', 'ar', 'uk', 'ru', 'ja', 'ko', 'hi', 'ur', 'fil', 'id'],

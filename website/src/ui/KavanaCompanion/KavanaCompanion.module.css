@@ -1,0 +1,46 @@
+.companion { --ink: #251f1b; --cream: #fff8e8; --mint: #b9e4ce; --outline: #38271d; --panel: #fff; --nameplate: #fff4d6; --topic-panel: #f2e6cf; --soft-border: #d9cdb6; --muted: #5f5047; --quiet: #88786c; --eyebrow: #a5421e; --active-bg: #38271d; --active-text: #fff; font-family: Figtree, ui-sans-serif, sans-serif; color: var(--ink); }
+:global(.dark) .companion { --ink: #f5eee8; --cream: #2b241f; --mint: #397e69; --outline: #d8c2b2; --panel: #352c26; --nameplate: #3a2e26; --topic-panel: #463a32; --soft-border: #6b594d; --muted: #ddd0c7; --quiet: #c5b4a9; --eyebrow: #ff9d72; --active-bg: #ead8ca; --active-text: #251f1b; }
+.roaming { position: fixed; left: 0; top: 0; z-index: 90; transform: translate3d(var(--kavana-x, -150px), var(--kavana-y, calc(100vh - 150px)), 0); transition: transform var(--kavana-travel-time, 0ms) cubic-bezier(.42, 0, .24, 1); will-change: transform; }
+.embedded { position: relative; width: min(calc(100vw - 32px), 470px); min-height: 570px; display: grid; place-items: end center; }
+.petButton { appearance: none; position: relative; display: grid; justify-items: center; border: 0; background: transparent; color: inherit; padding: 0; cursor: grab; touch-action: none; user-select: none; filter: drop-shadow(0 12px 14px rgba(31, 20, 13, .24)); }
+.companion[data-placement='dragging'] .petButton { cursor: grabbing; filter: drop-shadow(0 16px 18px rgba(31, 20, 13, .3)); }
+.exiting { pointer-events: none; }
+.exiting .petButton { cursor: default; }
+.petControls { position: absolute; left: calc(100% + 5px); top: 27px; z-index: 3; display: grid; gap: 5px; opacity: 0; transform: translateX(-5px); transition: opacity .16s ease, transform .16s ease; pointer-events: none; }
+.atRight .petControls { right: calc(100% + 5px); left: auto; transform: translateX(5px); }
+.companion:hover .petControls, .companion:focus-within .petControls { opacity: 1; transform: translateX(0); pointer-events: auto; }
+.petControls button, .recallButton { appearance: none; display: grid; place-items: center; border: 2px solid var(--outline); background: var(--cream); color: var(--ink); cursor: pointer; box-shadow: 2px 3px 0 var(--outline); }
+.petControls button { width: 25px; height: 25px; padding: 0; border-radius: 50%; font: 900 16px/1 Georgia, serif; }
+.petControls button:hover { transform: translateY(-1px); background: var(--mint); }
+.petControls button:focus-visible, .recallButton:focus-visible { outline: 3px solid #139979; outline-offset: 3px; }
+.minimizedDock { position: fixed; top: 50%; z-index: 90; transform: translateY(-50%); }
+.dockLeft { left: 0; }
+.dockRight { right: 0; }
+.recallButton { width: 38px; height: 46px; padding: 4px 2px; overflow: hidden; border-radius: 0 15px 15px 0; }
+.dockRight .recallButton { border-radius: 15px 0 0 15px; }
+.recallSprite { position: relative; display: block; width: 32px; height: 35px; overflow: hidden; }
+.recallSprite img { position: absolute; inset: 0 auto auto 0; width: 256px; height: 381.333px; max-width: none; image-rendering: auto; }
+.petButton:focus-visible { outline: 3px solid #139979; outline-offset: 5px; border-radius: 18px; }
+.sprite { position: relative; display: block; width: 96px; height: 104px; overflow: hidden; }
+.sprite img { position: absolute; inset: 0 auto auto 0; width: 768px; height: 1144px; max-width: none; image-rendering: auto; transition: transform 0s; }
+.nameplate { margin-top: -5px; padding: 3px 9px; border: 2px solid var(--outline); border-radius: 999px; background: var(--nameplate); font: 800 11px/1 Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+.prompt { position: absolute; right: -88px; top: -18px; white-space: nowrap; padding: 8px 11px; border: 2px solid var(--outline); border-radius: 13px 13px 13px 3px; background: var(--cream); font-size: 12px; font-weight: 800; animation: bob 2.4s ease-in-out infinite; }
+.atRight .prompt { right: calc(100% + 8px); border-radius: 13px 13px 3px 13px; }
+.dialogue { box-sizing: border-box; position: absolute; left: 4px; bottom: 118px; width: min(390px, calc(100vw - 32px)); padding: 25px; border: 2px solid var(--outline); border-radius: 25px 25px 25px 6px; background: var(--cream); box-shadow: 7px 8px 0 var(--outline), 0 22px 50px rgba(37, 31, 27, .18); }
+.atRight .dialogue { left: auto; right: 4px; border-radius: 25px 25px 6px 25px; }
+.embedded .dialogue { position: relative; inset: auto; width: 100%; margin-bottom: 25px; }
+.close { position: absolute; top: 10px; right: 13px; border: 0; background: transparent; color: var(--ink); font: 500 24px/1 serif; cursor: pointer; }
+.eyebrow { display: block; margin-bottom: 7px; color: var(--eyebrow); font: 900 11px/1 Figtree, sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+.dialogue h2 { margin: 0 25px 8px 0; font: 900 clamp(24px, 5vw, 33px)/.98 Georgia, serif; letter-spacing: -.035em; }
+.dialogue p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.topicNav { display: flex; gap: 5px; margin: 18px 0 14px; padding: 4px; overflow-x: auto; border: 1px solid var(--soft-border); border-radius: 13px; background: var(--topic-panel); }
+.topicNav button { flex: 0 0 auto; border: 0; border-radius: 9px; background: transparent; padding: 7px 9px; color: var(--muted); font: 750 11px/1 Figtree, sans-serif; cursor: pointer; }
+.topicNav .activeTopic { background: var(--active-bg); color: var(--active-text); }
+.actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.actions a, .actions button { border: 1.5px solid var(--outline); border-radius: 10px; background: var(--panel); color: var(--ink); padding: 8px 10px; font: 800 12px/1.15 Figtree, sans-serif; text-decoration: none; cursor: pointer; box-shadow: 2px 2px 0 var(--outline); }
+.actions a:first-child, .actions button:first-child { background: var(--mint); }
+.dialogue .disclaimer { margin-top: 13px; color: var(--quiet); font-size: 10px; }
+@keyframes bob { 50% { transform: translateY(-4px) rotate(-1deg); } }
+@media (max-width: 600px) { .roaming .dialogue { left: calc(14px - var(--kavana-x)); right: auto; bottom: 132px; width: calc(100vw - 28px); max-height: calc(100vh - 165px); overflow: auto; border-radius: 22px; } .prompt { right: -8px; top: -28px; } }
+@media (hover: none), (pointer: coarse) { .petControls { opacity: 1; transform: translateX(0); pointer-events: auto; } }
+@media (prefers-reduced-motion: reduce) { .roaming, .sprite img, .prompt, .petControls { transition: none; animation: none; } }
