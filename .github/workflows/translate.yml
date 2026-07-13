@@ -60,7 +60,7 @@ jobs:
         locale: [es, fr, pt, de, he, ar, uk, ru, ja, ko, hi, ur, fil, id]
       max-parallel: 3
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
