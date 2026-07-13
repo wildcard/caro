@@ -23,19 +23,29 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   const [frame, setFrame] = useState(0);
   const [atRight, setAtRight] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
   const [hintIndex, setHintIndex] = useState(0);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const animation = window.setInterval(() => setFrame((value) => (value + 1) % 8), 120);
-    return () => window.clearInterval(animation);
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setReducedMotion(preference.matches);
+    updatePreference();
+    preference.addEventListener('change', updatePreference);
+    return () => preference.removeEventListener('change', updatePreference);
   }, []);
 
   useEffect(() => {
-    if (embedded || open || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (reducedMotion) return;
+    const animation = window.setInterval(() => setFrame((value) => (value + 1) % 8), 120);
+    return () => window.clearInterval(animation);
+  }, [reducedMotion]);
+
+  useEffect(() => {
+    if (embedded || open || reducedMotion) return;
     const roam = window.setInterval(() => setAtRight((value) => !value), 9000);
     return () => window.clearInterval(roam);
-  }, [embedded, open]);
+  }, [embedded, open, reducedMotion]);
 
   useEffect(() => {
     if (embedded || open) return;
@@ -44,9 +54,16 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   }, [embedded, open]);
 
   const copyHatchPrompt = async () => {
-    await navigator.clipboard.writeText('Use the hatch-pet skill to create a Codex pet from my idea or attached reference art. Package and validate the full v2 animated spritesheet, and show me the final QA preview.');
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    try {
+      await navigator.clipboard.writeText('Use the hatch-pet skill to create a Codex pet from my idea or attached reference art. Package and validate the full v2 animated spritesheet, and show me the final QA preview.');
+      setCopyFailed(false);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+      setCopyFailed(true);
+      window.setTimeout(() => setCopyFailed(false), 3000);
+    }
   };
 
   const animationRow = open ? 0 : atRight ? 1 : 2;
@@ -70,7 +87,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
           <div className={styles.actions}>
             {topic === 'status' && <a href="/roadmap">See the public roadmap <span aria-hidden="true">→</span></a>}
             {topic === 'adopt' && <><a href="https://openai.com/codex/" target="_blank" rel="noreferrer">Get the official Codex app <span aria-hidden="true">↗</span></a><a href="/pets/kavana/kavana-codex-pet.zip" download>Download Kavana <span aria-hidden="true">↓</span></a><a href="/docs/kavana">Installation guide <span aria-hidden="true">→</span></a></>}
-            {topic === 'hatch' && <><button type="button" onClick={copyHatchPrompt}>{copied ? 'Prompt copied!' : 'Copy starter prompt'}</button><a href="/docs/kavana#hatch-your-own">Read the pet-making guide <span aria-hidden="true">→</span></a></>}
+            {topic === 'hatch' && <><button type="button" onClick={copyHatchPrompt}>{copied ? 'Prompt copied!' : copyFailed ? 'Copy blocked — open guide' : 'Copy starter prompt'}</button><a href="/docs/kavana#hatch-your-own">Read the pet-making guide <span aria-hidden="true">→</span></a></>}
             {topic === 'welcome' && <button type="button" onClick={() => setTopic('adopt')}>Can I take you home?</button>}
           </div>
           <p className={styles.disclaimer}>Community artwork for Caro · Codex is an OpenAI product</p>
