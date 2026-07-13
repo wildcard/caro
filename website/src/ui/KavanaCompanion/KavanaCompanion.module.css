@@ -4,6 +4,8 @@
 .embedded { position: relative; width: min(calc(100vw - 32px), 470px); min-height: 570px; display: grid; place-items: end center; }
 .petButton { appearance: none; position: relative; display: grid; justify-items: center; border: 0; background: transparent; color: inherit; padding: 0; cursor: grab; touch-action: none; user-select: none; filter: drop-shadow(0 12px 14px rgba(31, 20, 13, .24)); }
 .companion[data-placement='dragging'] .petButton { cursor: grabbing; filter: drop-shadow(0 16px 18px rgba(31, 20, 13, .3)); }
+.exiting { pointer-events: none; }
+.exiting .petButton { cursor: default; }
 .petControls { position: absolute; left: calc(100% + 5px); top: 27px; z-index: 3; display: grid; gap: 5px; opacity: 0; transform: translateX(-5px); transition: opacity .16s ease, transform .16s ease; pointer-events: none; }
 .atRight .petControls { right: calc(100% + 5px); left: auto; transform: translateX(5px); }
 .companion:hover .petControls, .companion:focus-within .petControls { opacity: 1; transform: translateX(0); pointer-events: auto; }

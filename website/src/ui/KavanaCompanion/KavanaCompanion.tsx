@@ -85,6 +85,7 @@ const reducedMotionRest: RoamStep = {
 };
 
 const SLEEP_AFTER_MS = 60_000;
+const EXIT_DURATION_MS = 900;
 const PREFERENCE_KEY = 'caro:kavana-preference';
 
 const roamRoute: RoamStep[] = [
@@ -123,6 +124,8 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   const [autoSleeping, setAutoSleeping] = useState(false);
   const [manualSleeping, setManualSleeping] = useState(false);
   const [minimizedSide, setMinimizedSide] = useState<MinimizedSide>();
+  const [exitingSide, setExitingSide] = useState<MinimizedSide>();
+  const [exitY, setExitY] = useState(0);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const copyFeedbackTimeout = useRef<number>();
   const dragSession = useRef<DragSession>();
@@ -163,13 +166,23 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
 
   useEffect(() => {
     if (embedded || !preferencesLoaded) return;
-    const preference = minimizedSide ? `minimized-${minimizedSide}` : manualSleeping ? 'sleeping' : 'awake';
+    const hiddenSide = minimizedSide ?? exitingSide;
+    const preference = hiddenSide ? `minimized-${hiddenSide}` : manualSleeping ? 'sleeping' : 'awake';
     try {
       window.localStorage.setItem(PREFERENCE_KEY, preference);
     } catch {
       // The controls still work for this visit when persistence is unavailable.
     }
-  }, [embedded, manualSleeping, minimizedSide, preferencesLoaded]);
+  }, [embedded, exitingSide, manualSleeping, minimizedSide, preferencesLoaded]);
+
+  useEffect(() => {
+    if (!exitingSide) return;
+    const finishExit = window.setTimeout(() => {
+      setMinimizedSide(exitingSide);
+      setExitingSide(undefined);
+    }, reducedMotion ? 0 : EXIT_DURATION_MS);
+    return () => window.clearTimeout(finishExit);
+  }, [exitingSide, reducedMotion]);
 
   useEffect(() => {
     window.clearTimeout(sleepTimeout.current);
@@ -234,9 +247,18 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
     id: 'dragging', x: `${dragPosition.x}px`, y: `${dragPosition.y}px`, animation: dragDirection === 'right' ? 'runRight' : 'runLeft', duration: 0, travelTime: 0,
     side: dragPosition.x > window.innerWidth / 2 ? 'right' : 'left',
   } : undefined;
-  const step = dragStep ?? restingStep ?? routeStep;
+  const exitStep: RoamStep | undefined = exitingSide ? {
+    id: `exiting-${exitingSide}`,
+    x: exitingSide === 'left' ? '-120px' : 'calc(100vw + 24px)',
+    y: `${exitY}px`,
+    animation: exitingSide === 'left' ? 'runLeft' : 'runRight',
+    duration: EXIT_DURATION_MS,
+    travelTime: EXIT_DURATION_MS,
+    side: exitingSide,
+  } : undefined;
+  const step = exitStep ?? dragStep ?? restingStep ?? routeStep;
   const sleeping = manualSleeping || autoSleeping;
-  const animationName: AnimationName = dragging ? step.animation : open ? 'idle' : sleeping ? 'sleeping' : placedPosition ? 'resting' : reducedMotion ? 'resting' : hovered ? 'wave' : embedded ? 'waiting' : step.animation;
+  const animationName: AnimationName = exitingSide ? step.animation : dragging ? step.animation : open ? 'idle' : sleeping ? 'sleeping' : placedPosition ? 'resting' : reducedMotion ? 'resting' : hovered ? 'wave' : embedded ? 'waiting' : step.animation;
   const animation = animations[animationName];
 
   useEffect(() => setFrameIndex(0), [animationName]);
@@ -380,7 +402,8 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
     setOpen(false);
     setAutoSleeping(false);
     setManualSleeping(false);
-    setMinimizedSide(side);
+    setExitY(bounds?.top ?? window.innerHeight - 150);
+    setExitingSide(side);
   };
 
   if (!embedded && minimizedSide) {
@@ -396,11 +419,11 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   return (
     <aside
       ref={companionRef}
-      className={`${styles.companion} ${embedded ? styles.embedded : styles.roaming} ${atRight ? styles.atRight : ''}`}
+      className={`${styles.companion} ${embedded ? styles.embedded : styles.roaming} ${atRight ? styles.atRight : ''} ${exitingSide ? styles.exiting : ''}`}
       style={embedded ? undefined : motionStyle}
       data-motion={embedded ? 'embedded' : step.id}
       data-animation={animationName}
-      data-placement={dragging ? 'dragging' : sleeping ? 'sleeping' : placedPosition || reducedMotion ? 'resting' : 'roaming'}
+      data-placement={exitingSide ? 'exiting' : dragging ? 'dragging' : sleeping ? 'sleeping' : placedPosition || reducedMotion ? 'resting' : 'roaming'}
       data-kavana-companion
       aria-label="Kavana, the Caro project companion"
     >
@@ -426,7 +449,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
           <p className={styles.disclaimer}>Community artwork for Caro · Codex is an OpenAI product</p>
         </section>
       )}
-      {!embedded && !open && !dragging && (
+      {!embedded && !open && !dragging && !exitingSide && (
         <div className={styles.petControls} aria-label="Kavana controls">
           <button type="button" data-kavana-sleep-toggle onClick={toggleSleep} aria-label={sleeping ? 'Wake Kavana' : 'Let Kavana sleep'} title={sleeping ? 'Wake Kavana' : 'Let Kavana sleep'}>
             <span aria-hidden="true">{sleeping ? '☀' : '☾'}</span>
@@ -451,7 +474,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
       >
-        {!open && <span className={styles.prompt}>{sleeping ? 'Zzz…' : placedPosition ? 'Comfy here — drag me anytime' : reducedMotion ? 'Keeping quiet company' : roamingHints[hintIndex]}</span>}
+        {!open && !exitingSide && <span className={styles.prompt}>{sleeping ? 'Zzz…' : placedPosition ? 'Comfy here — drag me anytime' : reducedMotion ? 'Keeping quiet company' : roamingHints[hintIndex]}</span>}
         <span className={styles.sprite} aria-hidden="true"><img src="/pets/kavana/spritesheet.webp" alt="" draggable={false} style={{ transform: `translate(${-frame.column * 96}px, ${-frame.row * 104}px)` }} /></span>
         <span className={styles.nameplate}>Kavana</span>
       </button>
