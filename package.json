@@ -8,6 +8,7 @@
     "apps/devrel"
   ],
   "dependencies": {
+    "astro": "^6.1.10",
     "openai": "^6.38.0"
   }
 }
