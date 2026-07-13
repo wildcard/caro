@@ -8,6 +8,9 @@ This license applies **only** to the Kyaro character and related artwork contain
 
 These files are collectively referred to as the "Kyaro Assets". The software code in this repository is licensed separately under the AGPL-3.0 license. The Kyaro Assets are **not** covered by that license.
 
+The Kavana Codex pet in [`../kavana/`](../kavana/) is a related character
+asset and is covered by these same project-specific artwork terms.
+
 ## 1. Permitted use
 You may use, view, and reproduce the Kyaro Assets **only as part of this original project** for running, testing, or contributing to this repository.
 
