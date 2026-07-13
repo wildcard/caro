@@ -32,7 +32,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   }, []);
 
   useEffect(() => {
-    if (embedded || open) return;
+    if (embedded || open || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const roam = window.setInterval(() => setAtRight((value) => !value), 9000);
     return () => window.clearInterval(roam);
   }, [embedded, open]);

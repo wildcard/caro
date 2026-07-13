@@ -8,6 +8,7 @@
 .sprite img { position: absolute; inset: 0 auto auto 0; width: 768px; height: 1144px; max-width: none; image-rendering: auto; transition: transform 0s; }
 .nameplate { margin-top: -5px; padding: 3px 9px; border: 2px solid #38271d; border-radius: 999px; background: #fff4d6; font: 800 11px/1 Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
 .prompt { position: absolute; right: -88px; top: -18px; white-space: nowrap; padding: 8px 11px; border: 2px solid #38271d; border-radius: 13px 13px 13px 3px; background: var(--cream); font-size: 12px; font-weight: 800; animation: bob 2.4s ease-in-out infinite; }
+.atRight .prompt { right: calc(100% + 8px); border-radius: 13px 13px 3px 13px; }
 .dialogue { box-sizing: border-box; position: absolute; left: 4px; bottom: 118px; width: min(390px, calc(100vw - 32px)); padding: 25px; border: 2px solid #38271d; border-radius: 25px 25px 25px 6px; background: var(--cream); box-shadow: 7px 8px 0 #38271d, 0 22px 50px rgba(37, 31, 27, .18); }
 .atRight .dialogue { left: auto; right: 4px; border-radius: 25px 25px 6px 25px; }
 .embedded .dialogue { position: relative; inset: auto; width: 100%; margin-bottom: 25px; }
