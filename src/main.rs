@@ -2226,6 +2226,11 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                     "disabled"
                 }
             );
+            println!(
+                "  {}: {}",
+                "telemetry.first_run".cyan(),
+                config.telemetry.first_run
+            );
             println!();
             println!(
                 "{}",
