@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import styles from './KavanaCompanion.module.css';
 
 type Topic = 'welcome' | 'status' | 'adopt' | 'hatch';
-type AnimationName = 'idle' | 'runRight' | 'runLeft' | 'wave' | 'jump' | 'waiting' | 'working' | 'review' | 'lookAround';
+type AnimationName = 'idle' | 'runRight' | 'runLeft' | 'wave' | 'jump' | 'waiting' | 'resting' | 'working' | 'review' | 'lookAround';
 
 interface SpriteFrame {
   row: number;
@@ -18,6 +18,19 @@ interface RoamStep {
   duration: number;
   travelTime: number;
   side: 'left' | 'right' | 'center';
+}
+
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface DragSession extends Position {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  lastX: number;
+  moved: boolean;
 }
 
 export interface KavanaCompanionProps {
@@ -41,6 +54,12 @@ const animations: Record<AnimationName, SpriteFrame[]> = {
   wave: rowFrames(3, [140, 140, 140, 280]),
   jump: rowFrames(4, [140, 140, 140, 140, 280]),
   waiting: rowFrames(6, [150, 150, 150, 150, 150, 260]),
+  resting: [
+    { row: 6, column: 2, duration: 650 },
+    { row: 6, column: 3, duration: 220 },
+    { row: 6, column: 4, duration: 650 },
+    { row: 6, column: 3, duration: 220 },
+  ],
   working: rowFrames(7, [120, 120, 120, 120, 120, 220]),
   review: rowFrames(8, [150, 150, 150, 150, 150, 280]),
   lookAround: [
@@ -56,16 +75,16 @@ const entranceStart: RoamStep = {
 const roamRoute: RoamStep[] = [
   { id: 'entrance', x: '22px', y: 'calc(100vh - 150px)', animation: 'runRight', duration: 3000, travelTime: 2500, side: 'left' },
   { id: 'hello', x: '22px', y: 'calc(100vh - 150px)', animation: 'wave', duration: 1800, travelTime: 0, side: 'left' },
-  { id: 'bottom-cross', x: 'calc(100vw - 142px)', y: 'calc(100vh - 150px)', animation: 'runRight', duration: 6100, travelTime: 5500, side: 'right' },
-  { id: 'scan-right', x: 'calc(100vw - 142px)', y: 'calc(100vh - 150px)', animation: 'lookAround', duration: 3100, travelTime: 0, side: 'right' },
+  { id: 'bottom-cross', x: 'calc(100vw - 220px)', y: 'calc(100vh - 150px)', animation: 'runRight', duration: 5700, travelTime: 5100, side: 'right' },
+  { id: 'scan-right', x: 'calc(100vw - 220px)', y: 'calc(100vh - 150px)', animation: 'lookAround', duration: 3100, travelTime: 0, side: 'right' },
   { id: 'hop-up', x: 'calc(100vw - 170px)', y: '42vh', animation: 'jump', duration: 2600, travelTime: 2100, side: 'right' },
   { id: 'review', x: 'calc(100vw - 170px)', y: '42vh', animation: 'review', duration: 2600, travelTime: 0, side: 'right' },
   { id: 'upper-cross', x: '30px', y: '48vh', animation: 'runLeft', duration: 6400, travelTime: 5800, side: 'left' },
   { id: 'waiting', x: '30px', y: '48vh', animation: 'waiting', duration: 2600, travelTime: 0, side: 'left' },
   { id: 'hop-home', x: 'calc(50vw - 48px)', y: 'calc(100vh - 170px)', animation: 'jump', duration: 3000, travelTime: 2400, side: 'center' },
   { id: 'working', x: 'calc(50vw - 48px)', y: 'calc(100vh - 170px)', animation: 'working', duration: 2800, travelTime: 0, side: 'center' },
-  { id: 'return-right', x: 'calc(100vw - 142px)', y: 'calc(100vh - 150px)', animation: 'runRight', duration: 5200, travelTime: 4600, side: 'right' },
-  { id: 'curious', x: 'calc(100vw - 142px)', y: 'calc(100vh - 150px)', animation: 'lookAround', duration: 3100, travelTime: 0, side: 'right' },
+  { id: 'return-right', x: 'calc(100vw - 220px)', y: 'calc(100vh - 150px)', animation: 'runRight', duration: 5000, travelTime: 4400, side: 'right' },
+  { id: 'curious', x: 'calc(100vw - 220px)', y: 'calc(100vh - 150px)', animation: 'lookAround', duration: 3100, travelTime: 0, side: 'right' },
   { id: 'bottom-left', x: '22px', y: 'calc(100vh - 150px)', animation: 'runLeft', duration: 6100, travelTime: 5500, side: 'left' },
   { id: 'welcome-back', x: '22px', y: 'calc(100vh - 150px)', animation: 'wave', duration: 1800, travelTime: 0, side: 'left' },
 ];
@@ -82,7 +101,13 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   const [hintIndex, setHintIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [dragDirection, setDragDirection] = useState<'left' | 'right'>('right');
+  const [dragPosition, setDragPosition] = useState<Position>();
+  const [placedPosition, setPlacedPosition] = useState<Position>();
   const copyFeedbackTimeout = useRef<number>();
+  const dragSession = useRef<DragSession>();
+  const suppressClick = useRef(false);
 
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -99,7 +124,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   useEffect(() => () => window.clearTimeout(copyFeedbackTimeout.current), []);
 
   useEffect(() => {
-    if (embedded || open || reducedMotion) return;
+    if (embedded || open || reducedMotion || dragging || placedPosition) return;
     if (routeIndex < 0) {
       const entrance = window.setTimeout(() => setRouteIndex(0), 120);
       return () => window.clearTimeout(entrance);
@@ -109,7 +134,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
       setRouteIndex((value) => value >= roamRoute.length - 1 ? 2 : value + 1);
     }, step.duration);
     return () => window.clearTimeout(advance);
-  }, [embedded, open, reducedMotion, routeIndex]);
+  }, [dragging, embedded, open, placedPosition, reducedMotion, routeIndex]);
 
   useEffect(() => {
     if (embedded || open) return;
@@ -117,8 +142,17 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
     return () => window.clearInterval(hints);
   }, [embedded, open]);
 
-  const step = reducedMotion ? roamRoute[0] : routeIndex < 0 ? entranceStart : roamRoute[routeIndex];
-  const animationName: AnimationName = open ? 'idle' : hovered ? 'wave' : embedded ? 'waiting' : step.animation;
+  const routeStep = reducedMotion ? roamRoute[0] : routeIndex < 0 ? entranceStart : roamRoute[routeIndex];
+  const restingStep: RoamStep | undefined = placedPosition ? {
+    id: 'placed', x: `${placedPosition.x}px`, y: `${placedPosition.y}px`, animation: 'resting', duration: 0, travelTime: 0,
+    side: placedPosition.x > window.innerWidth / 2 ? 'right' : 'left',
+  } : undefined;
+  const dragStep: RoamStep | undefined = dragPosition ? {
+    id: 'dragging', x: `${dragPosition.x}px`, y: `${dragPosition.y}px`, animation: dragDirection === 'right' ? 'runRight' : 'runLeft', duration: 0, travelTime: 0,
+    side: dragPosition.x > window.innerWidth / 2 ? 'right' : 'left',
+  } : undefined;
+  const step = dragStep ?? restingStep ?? routeStep;
+  const animationName: AnimationName = dragging ? step.animation : open ? 'idle' : placedPosition ? 'resting' : hovered ? 'wave' : embedded ? 'waiting' : step.animation;
   const animation = animations[animationName];
 
   useEffect(() => setFrameIndex(0), [animationName]);
@@ -163,12 +197,90 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
 
   const toggleOpen = () => open ? closeCompanion() : setOpen(true);
 
+  const avoidFloatingControls = ({ x, y }: Position): Position => {
+    const petWidth = 96;
+    const petHeight = 120;
+    const padding = 12;
+    let safe = {
+      x: Math.min(Math.max(8, x), window.innerWidth - petWidth - 8),
+      y: Math.min(Math.max(8, y), window.innerHeight - petHeight - 8),
+    };
+
+    for (const selector of ['#mute-toggle', '#back-to-top']) {
+      const obstacle = document.querySelector<HTMLElement>(selector);
+      if (!obstacle) continue;
+      const bounds = obstacle.getBoundingClientRect();
+      const overlaps = safe.x < bounds.right + padding && safe.x + petWidth > bounds.left - padding
+        && safe.y < bounds.bottom + padding && safe.y + petHeight > bounds.top - padding;
+      if (!overlaps) continue;
+
+      const leftOfControl = bounds.left - petWidth - padding;
+      const rightOfControl = bounds.right + padding;
+      safe.x = leftOfControl >= 8 ? leftOfControl : Math.min(rightOfControl, window.innerWidth - petWidth - 8);
+    }
+    return safe;
+  };
+
+  const beginDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (embedded || open || event.button !== 0) return;
+    const bounds = event.currentTarget.closest('aside')?.getBoundingClientRect();
+    if (!bounds) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragSession.current = {
+      pointerId: event.pointerId,
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top,
+      startX: event.clientX,
+      startY: event.clientY,
+      lastX: event.clientX,
+      moved: false,
+    };
+    setDragging(true);
+    setDragPosition({ x: bounds.left, y: bounds.top });
+    setHovered(false);
+  };
+
+  const moveDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const session = dragSession.current;
+    if (!session || session.pointerId !== event.pointerId) return;
+    const deltaX = event.clientX - session.lastX;
+    if (Math.abs(deltaX) > 1) setDragDirection(deltaX > 0 ? 'right' : 'left');
+    session.lastX = event.clientX;
+    session.moved ||= Math.hypot(event.clientX - session.startX, event.clientY - session.startY) > 6;
+    setDragPosition({
+      x: Math.min(Math.max(8, event.clientX - session.x), window.innerWidth - 104),
+      y: Math.min(Math.max(8, event.clientY - session.y), window.innerHeight - 128),
+    });
+  };
+
+  const endDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const session = dragSession.current;
+    if (!session || session.pointerId !== event.pointerId) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    if (session.moved && dragPosition) {
+      setPlacedPosition(avoidFloatingControls(dragPosition));
+      suppressClick.current = true;
+    }
+    setDragPosition(undefined);
+    setDragging(false);
+    dragSession.current = undefined;
+  };
+
+  const handlePetClick = () => {
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      return;
+    }
+    toggleOpen();
+  };
+
   return (
     <aside
       className={`${styles.companion} ${embedded ? styles.embedded : styles.roaming} ${atRight ? styles.atRight : ''}`}
       style={embedded ? undefined : motionStyle}
       data-motion={embedded ? 'embedded' : step.id}
       data-animation={animationName}
+      data-placement={placedPosition ? 'resting' : dragging ? 'dragging' : 'roaming'}
       aria-label="Kavana, the Caro project companion"
     >
       {open && (
@@ -197,12 +309,18 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
         type="button"
         className={styles.petButton}
         aria-label={open ? 'Kavana is listening' : 'Talk with Kavana'}
+        aria-description={embedded ? undefined : 'Drag Kavana to move her. Release to let her sit, or click to chat.'}
         aria-expanded={open}
-        onClick={toggleOpen}
+        title={embedded ? undefined : 'Drag Kavana to a new spot · click to chat'}
+        onClick={handlePetClick}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        onPointerDown={beginDrag}
+        onPointerMove={moveDrag}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
       >
-        {!open && <span className={styles.prompt}>{roamingHints[hintIndex]}</span>}
+        {!open && <span className={styles.prompt}>{placedPosition ? 'Comfy here — drag me anytime' : roamingHints[hintIndex]}</span>}
         <span className={styles.sprite} aria-hidden="true"><img src="/pets/kavana/spritesheet.webp" alt="" draggable={false} style={{ transform: `translate(${-frame.column * 96}px, ${-frame.row * 104}px)` }} /></span>
         <span className={styles.nameplate}>Kavana</span>
       </button>
