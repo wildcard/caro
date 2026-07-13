@@ -42,4 +42,5 @@
 .dialogue .disclaimer { margin-top: 13px; color: var(--quiet); font-size: 10px; }
 @keyframes bob { 50% { transform: translateY(-4px) rotate(-1deg); } }
 @media (max-width: 600px) { .roaming .dialogue { left: calc(14px - var(--kavana-x)); right: auto; bottom: 132px; width: calc(100vw - 28px); max-height: calc(100vh - 165px); overflow: auto; border-radius: 22px; } .prompt { right: -8px; top: -28px; } }
+@media (hover: none), (pointer: coarse) { .petControls { opacity: 1; transform: translateX(0); pointer-events: auto; } }
 @media (prefers-reduced-motion: reduce) { .roaming, .sprite img, .prompt, .petControls { transition: none; animation: none; } }

@@ -132,6 +132,8 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   const suppressClick = useRef(false);
   const sleepTimeout = useRef<number>();
   const companionRef = useRef<HTMLElement>(null);
+  const recallButtonRef = useRef<HTMLButtonElement>(null);
+  const focusRecallAfterMinimize = useRef(false);
 
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -183,6 +185,12 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
     }, reducedMotion ? 0 : EXIT_DURATION_MS);
     return () => window.clearTimeout(finishExit);
   }, [exitingSide, reducedMotion]);
+
+  useEffect(() => {
+    if (!minimizedSide || !focusRecallAfterMinimize.current) return;
+    recallButtonRef.current?.focus();
+    focusRecallAfterMinimize.current = false;
+  }, [minimizedSide]);
 
   useEffect(() => {
     window.clearTimeout(sleepTimeout.current);
@@ -331,7 +339,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   };
 
   const beginDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (embedded || open || event.button !== 0) return;
+    if (embedded || open || exitingSide || event.button !== 0) return;
     const bounds = event.currentTarget.closest('aside')?.getBoundingClientRect();
     if (!bounds) return;
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -377,6 +385,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   };
 
   const handlePetClick = () => {
+    if (exitingSide) return;
     if (suppressClick.current) {
       suppressClick.current = false;
       return;
@@ -397,19 +406,26 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   };
 
   const minimize = () => {
+    if (exitingSide) return;
     const bounds = companionRef.current?.getBoundingClientRect();
     const side: MinimizedSide = (bounds?.left ?? 0) + (bounds?.width ?? 96) / 2 > window.innerWidth / 2 ? 'right' : 'left';
     setOpen(false);
+    setHovered(false);
+    setDragging(false);
+    setDragPosition(undefined);
+    dragSession.current = undefined;
+    suppressClick.current = false;
     setAutoSleeping(false);
     setManualSleeping(false);
     setExitY(bounds?.top ?? window.innerHeight - 150);
+    focusRecallAfterMinimize.current = true;
     setExitingSide(side);
   };
 
   if (!embedded && minimizedSide) {
     return (
       <aside className={`${styles.companion} ${styles.minimizedDock} ${minimizedSide === 'right' ? styles.dockRight : styles.dockLeft}`} data-placement="minimized" aria-label="Kavana is tucked away">
-        <button className={styles.recallButton} type="button" onClick={() => setMinimizedSide(undefined)} aria-label="Bring Kavana back" title="Bring Kavana back">
+        <button ref={recallButtonRef} className={styles.recallButton} type="button" onClick={() => setMinimizedSide(undefined)} aria-label="Bring Kavana back" title="Bring Kavana back">
           <span className={styles.recallSprite} aria-hidden="true"><img src="/pets/kavana/spritesheet.webp" alt="" draggable={false} /></span>
         </button>
       </aside>

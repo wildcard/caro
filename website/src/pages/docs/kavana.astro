@@ -19,6 +19,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
   <div class="callout callout-info">
     <strong>A community add-on.</strong> Kavana now lives in her own
     <a href="https://github.com/wildcard/kavana-codex-pet" target="_blank" rel="noreferrer">standalone open-source project</a>
+    with an <a href="https://kavana.caro.sh/" target="_blank" rel="noreferrer">interactive field guide</a>,
     and is contributed back to the Caro community. She is not an official OpenAI pet.
     Codex is an OpenAI product.
   </div>
@@ -46,13 +47,24 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 
   <h2>3. Install the two files</h2>
 
-  <p>On macOS or Linux, clone the standalone project and run its installer:</p>
+  <p>Unzip the release, then copy its <code>kavana/</code> folder into your Codex pets directory. On macOS or Linux:</p>
+
+  <pre><code>mkdir -p "&#36;&#123;CODEX_HOME:-$HOME/.codex&#125;/pets"
+cp -R kavana "&#36;&#123;CODEX_HOME:-$HOME/.codex&#125;/pets/"</code></pre>
+
+  <p>On Windows PowerShell:</p>
+
+  <pre><code>$codexHome = if ($env:CODEX_HOME) &#123; $env:CODEX_HOME &#125; else &#123; Join-Path $HOME '.codex' &#125;
+New-Item -ItemType Directory -Force (Join-Path $codexHome 'pets') | Out-Null
+Copy-Item -Recurse -Force .\kavana (Join-Path $codexHome 'pets')</code></pre>
+
+  <p>Alternatively, clone the full project and use its installer:</p>
 
   <pre><code>git clone https://github.com/wildcard/kavana-codex-pet.git
 cd kavana-codex-pet
 ./scripts/install.sh</code></pre>
 
-  <p>On Windows PowerShell, run <code>.\scripts\install.ps1 -Select</code>.</p>
+  <p>On Windows PowerShell, clone the project and run <code>.\scripts\install.ps1 -Select</code>.</p>
 
   <p>
     Restart Codex after copying the files. Custom-pet loading is a Codex desktop
