@@ -17,8 +17,10 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
   </p>
 
   <div class="callout callout-info">
-    <strong>A community add-on.</strong> Kavana is artwork from the Caro project,
-    not an official OpenAI pet. Codex is an OpenAI product.
+    <strong>A community add-on.</strong> Kavana now lives in her own
+    <a href="https://github.com/wildcard/kavana-codex-pet" target="_blank" rel="noreferrer">standalone open-source project</a>
+    and is contributed back to the Caro community. She is not an official OpenAI pet.
+    Codex is an OpenAI product.
   </div>
 
   <h2>1. Get the official Codex desktop app</h2>
@@ -33,9 +35,9 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 
   <h2>2. Download Kavana</h2>
 
-  <p><a class="kavana-download" href="/pets/kavana/kavana-codex-pet.zip" download>Download Kavana’s pet package (.zip)</a></p>
+  <p><a class="kavana-download" href="https://github.com/wildcard/kavana-codex-pet/releases/latest" target="_blank" rel="noreferrer">Download Kavana’s latest release</a></p>
 
-  <p>Expand the archive. It contains exactly two runtime files:</p>
+  <p>The release archive contains one <code>kavana/</code> folder with exactly two runtime files:</p>
 
   <ul>
     <li><code>pet.json</code> — Kavana’s identity and Codex sprite-version metadata</li>
@@ -44,16 +46,20 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 
   <h2>3. Install the two files</h2>
 
-  <p>On macOS or Linux, run this command from the expanded download folder:</p>
+  <p>On macOS or Linux, clone the standalone project and run its installer:</p>
 
-  <pre><code>mkdir -p "$HOME/.codex/pets/kavana"
-cp pet.json spritesheet.webp "$HOME/.codex/pets/kavana/"</code></pre>
+  <pre><code>git clone https://github.com/wildcard/kavana-codex-pet.git
+cd kavana-codex-pet
+./scripts/install.sh</code></pre>
+
+  <p>On Windows PowerShell, run <code>.\scripts\install.ps1 -Select</code>.</p>
 
   <p>
     Restart Codex after copying the files. Custom-pet loading is a Codex desktop
     behavior and can change between app releases; if Kavana is not offered in
-    your pet controls, update Codex and keep the package in place for a future app
-    release. The two-file package does not execute code.
+    your pet controls, update Codex and use <strong>Refresh custom pets</strong>.
+    The standalone repository also includes checksums, verification, previews,
+    mobile-sync helpers, and public source frames.
   </p>
 
   <h2 id="hatch-your-own">Hatch your own Codex pet</h2>
@@ -86,10 +92,11 @@ and show me the final QA preview.</code></pre>
   <h2>Artwork terms</h2>
 
   <p>
-    Kavana may be installed for personal, noncommercial use as a Codex pet. Her
-    artwork is not public-domain or generally open-source; see the
-    <a href="https://github.com/wildcard/caro/tree/main/assets/kavana">Kavana asset notes</a>
-    before redistributing it.
+    Kavana may be installed and shared under the terms of her standalone project.
+    Code and documentation are MIT licensed; artwork is CC BY-NC 4.0. See
+    <a href="https://github.com/wildcard/kavana-codex-pet/blob/main/LICENSE.md" target="_blank" rel="noreferrer">Kavana’s license</a>
+    and <a href="https://github.com/wildcard/kavana-codex-pet/blob/main/ATTRIBUTION.md" target="_blank" rel="noreferrer">attribution</a>
+    before redistributing or adapting her artwork.
   </p>
 </DocsLayout>
 

@@ -4,33 +4,35 @@ Kavana is Karo reimagined as a small black-and-tan Shiba Inu companion for
 Codex. Her name means “intention” in Hebrew: she brings curiosity, focus, and
 a little warmth to every task.
 
-The ready-to-install Codex pet package is in [`codex-pet/`](codex-pet/). It
-uses the Codex v2 pet format: an 8-column by 11-row animated spritesheet with
-the standard task states and 16 look directions.
+Kavana’s ready-to-install package has migrated to her standalone public project:
+
+- https://github.com/wildcard/kavana-codex-pet
+- https://github.com/wildcard/kavana-codex-pet/releases/latest
+
+The Caro repository keeps only the website runtime copy required by its interactive
+companion. The canonical pet package, source frames, row strips, previews,
+checksums, install tools, metadata, licensing, and release history live in Kavana’s
+own repository.
 
 ## Install locally
 
-Copy the package into your Codex pets directory:
+Clone Kavana’s project and run the installer:
 
 ```sh
-mkdir -p "$HOME/.codex/pets/kavana"
-cp assets/kavana/codex-pet/pet.json assets/kavana/codex-pet/spritesheet.webp "$HOME/.codex/pets/kavana/"
+git clone https://github.com/wildcard/kavana-codex-pet.git
+cd kavana-codex-pet
+./scripts/install.sh
 ```
 
 Restart Codex if Kavana does not appear immediately, then select **Kavana** in
 the pet picker.
 
-## Package
-
-- `codex-pet/pet.json` — Codex pet metadata
-- `codex-pet/spritesheet.webp` — validated 1536×2288 v2 animation atlas
-
 ## Artwork and use
 
 Kavana was created for this project from Karo/Kyaro character direction. The
-artwork remains subject to the project-specific terms in
-[`../kyaro/README.md`](../kyaro/README.md). It may be installed for personal,
-noncommercial use as a Codex pet; it is not a general-purpose public-domain or
-open-source art asset.
+artwork is published from the standalone project under its split MIT and CC BY-NC
+4.0 license. See its
+[`LICENSE.md`](https://github.com/wildcard/kavana-codex-pet/blob/main/LICENSE.md)
+and [`ATTRIBUTION.md`](https://github.com/wildcard/kavana-codex-pet/blob/main/ATTRIBUTION.md).
 
 Made with intention and shared with love. ❤

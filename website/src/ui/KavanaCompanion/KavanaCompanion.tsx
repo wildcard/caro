@@ -442,7 +442,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
           </nav>
           <div className={styles.actions}>
             {topic === 'status' && <a href="/roadmap">See the public roadmap <span aria-hidden="true">→</span></a>}
-            {topic === 'adopt' && <><a href="https://openai.com/codex/" target="_blank" rel="noreferrer">Get the official Codex app <span aria-hidden="true">↗</span></a><a href="/pets/kavana/kavana-codex-pet.zip" download>Download Kavana <span aria-hidden="true">↓</span></a><a href="/docs/kavana">Installation guide <span aria-hidden="true">→</span></a></>}
+            {topic === 'adopt' && <><a href="https://openai.com/codex/" target="_blank" rel="noreferrer">Get the official Codex app <span aria-hidden="true">↗</span></a><a href="https://github.com/wildcard/kavana-codex-pet/releases/latest" target="_blank" rel="noreferrer">Download Kavana <span aria-hidden="true">↗</span></a><a href="/docs/kavana">Installation guide <span aria-hidden="true">→</span></a></>}
             {topic === 'hatch' && <><button type="button" onClick={copyHatchPrompt}>{copied ? 'Prompt copied!' : copyFailed ? 'Copy blocked — open guide' : 'Copy starter prompt'}</button><a href="/docs/kavana#hatch-your-own">Read the pet-making guide <span aria-hidden="true">→</span></a></>}
             {topic === 'welcome' && <button type="button" onClick={() => setTopic('adopt')}>Can I take you home?</button>}
           </div>
