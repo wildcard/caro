@@ -1,15 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { SpriteAnimator } from 'codex-pet-companion/animator';
 import styles from './KavanaCompanion.module.css';
 
 type Topic = 'welcome' | 'status' | 'adopt' | 'hatch';
 type AnimationName = 'idle' | 'runRight' | 'runLeft' | 'wave' | 'jump' | 'waiting' | 'resting' | 'sleeping' | 'working' | 'review' | 'lookAround';
 type MinimizedSide = 'left' | 'right';
-
-interface SpriteFrame {
-  row: number;
-  column: number;
-  duration: number;
-}
 
 interface RoamStep {
   id: string;
@@ -46,34 +41,20 @@ const topics: Record<Topic, { eyebrow: string; title: string; body: string }> = 
   hatch: { eyebrow: 'Make a companion', title: 'Or hatch your own pet.', body: 'Open a Codex task with your character idea or reference art and ask Codex to use the hatch-pet skill. It can assemble and validate the complete animated atlas.' },
 };
 
-const rowFrames = (row: number, durations: number[]): SpriteFrame[] => durations.map((duration, column) => ({ row, column, duration }));
+type SdkAnimationName = Parameters<SpriteAnimator['setState']>[0];
 
-const animations: Record<AnimationName, SpriteFrame[]> = {
-  idle: rowFrames(0, [280, 110, 110, 140, 140, 320]),
-  runRight: rowFrames(1, [120, 120, 120, 120, 120, 120, 120, 220]),
-  runLeft: rowFrames(2, [120, 120, 120, 120, 120, 120, 120, 220]),
-  wave: rowFrames(3, [140, 140, 140, 280]),
-  jump: rowFrames(4, [140, 140, 140, 140, 280]),
-  waiting: rowFrames(6, [150, 150, 150, 150, 150, 260]),
-  resting: [
-    { row: 6, column: 2, duration: 650 },
-    { row: 6, column: 3, duration: 220 },
-    { row: 6, column: 4, duration: 650 },
-    { row: 6, column: 3, duration: 220 },
-  ],
-  sleeping: [
-    { row: 5, column: 2, duration: 320 },
-    { row: 5, column: 3, duration: 420 },
-    { row: 5, column: 4, duration: 1400 },
-    { row: 5, column: 5, duration: 520 },
-    { row: 5, column: 4, duration: 1400 },
-  ],
-  working: rowFrames(7, [120, 120, 120, 120, 120, 220]),
-  review: rowFrames(8, [150, 150, 150, 150, 150, 280]),
-  lookAround: [
-    ...rowFrames(9, [190, 150, 150, 150, 190, 150, 150, 150]),
-    ...rowFrames(10, [190, 150, 150, 150, 190, 150, 150, 240]),
-  ],
+const sdkAnimations: Record<AnimationName, SdkAnimationName> = {
+  idle: 'idle',
+  runRight: 'running-right',
+  runLeft: 'running-left',
+  wave: 'waving',
+  jump: 'jumping',
+  waiting: 'waiting',
+  resting: 'resting',
+  sleeping: 'sleeping',
+  working: 'running',
+  review: 'review',
+  lookAround: 'look-around',
 };
 
 const entranceStart: RoamStep = {
@@ -111,7 +92,6 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   const [open, setOpen] = useState(initiallyOpen);
   const [topic, setTopic] = useState<Topic>('welcome');
   const [routeIndex, setRouteIndex] = useState(-1);
-  const [frameIndex, setFrameIndex] = useState(0);
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const [hintIndex, setHintIndex] = useState(0);
@@ -132,6 +112,8 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   const suppressClick = useRef(false);
   const sleepTimeout = useRef<number>();
   const companionRef = useRef<HTMLElement>(null);
+  const spriteRef = useRef<HTMLSpanElement>(null);
+  const animatorRef = useRef<SpriteAnimator>();
   const recallButtonRef = useRef<HTMLButtonElement>(null);
   const focusRecallAfterMinimize = useRef(false);
 
@@ -267,24 +249,30 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
   const step = exitStep ?? dragStep ?? restingStep ?? routeStep;
   const sleeping = manualSleeping || autoSleeping;
   const animationName: AnimationName = exitingSide ? step.animation : dragging ? step.animation : open ? 'idle' : sleeping ? 'sleeping' : placedPosition ? 'resting' : reducedMotion ? 'resting' : hovered ? 'wave' : embedded ? 'waiting' : step.animation;
-  const animation = animations[animationName];
-
-  useEffect(() => setFrameIndex(0), [animationName]);
 
   useEffect(() => {
-    if (reducedMotion) {
-      setFrameIndex(animationName === 'sleeping' ? animation.length - 1 : 0);
-      return;
-    }
-    if (animationName === 'sleeping' && frameIndex >= animation.length - 1) return;
-    const frame = animation[frameIndex % animation.length];
-    const advance = window.setTimeout(() => setFrameIndex((value) => (
-      animationName === 'sleeping' ? Math.min(value + 1, animation.length - 1) : (value + 1) % animation.length
-    )), frame.duration);
-    return () => window.clearTimeout(advance);
-  }, [animation, animationName, frameIndex, reducedMotion]);
+    const sprite = spriteRef.current;
+    if (!sprite) return;
+    const animator = new SpriteAnimator(sprite, {
+      atlasUrl: '/pets/kavana/spritesheet.webp',
+      scale: 0.5,
+      reducedMotion,
+    });
+    animatorRef.current = animator;
+    return () => {
+      animator.destroy();
+      if (animatorRef.current === animator) animatorRef.current = undefined;
+    };
+  }, [minimizedSide, reducedMotion]);
 
-  const frame = animation[frameIndex % animation.length];
+  useEffect(() => {
+    const animator = animatorRef.current;
+    if (!animator) return;
+    const state = sdkAnimations[animationName];
+    if (state === 'sleeping') animator.play(state, { loop: false });
+    else animator.setState(state);
+  }, [animationName, minimizedSide]);
+
   const content = topics[topic];
   const atRight = !embedded && step.side === 'right';
   const motionStyle = useMemo(() => ({
@@ -491,7 +479,7 @@ export function KavanaCompanion({ embedded = false, initiallyOpen = false }: Kav
         onPointerCancel={endDrag}
       >
         {!open && !exitingSide && <span className={styles.prompt}>{sleeping ? 'Zzz…' : placedPosition ? 'Comfy here — drag me anytime' : reducedMotion ? 'Keeping quiet company' : roamingHints[hintIndex]}</span>}
-        <span className={styles.sprite} aria-hidden="true"><img src="/pets/kavana/spritesheet.webp" alt="" draggable={false} style={{ transform: `translate(${-frame.column * 96}px, ${-frame.row * 104}px)` }} /></span>
+        <span ref={spriteRef} className={styles.sprite} data-kavana-sdk-sprite aria-hidden="true" />
         <span className={styles.nameplate}>Kavana</span>
       </button>
     </aside>

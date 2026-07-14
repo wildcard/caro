@@ -74,6 +74,23 @@ cd kavana-codex-pet
     mobile-sync helpers, and public source frames.
   </p>
 
+  <h2>Put any Codex pet on the web</h2>
+
+  <p>
+    This caro.sh companion now runs on the open-source
+    <a href="https://github.com/wildcard/codex-pet-companion" target="_blank" rel="noreferrer">Codex Pet Web SDK</a>.
+    It accepts any compatible <code>pet.json</code> and spritesheet, ships as an npm package and browser script,
+    and includes Kavana as the zero-configuration default. Try the
+    <a href="https://pets.caro.sh/" target="_blank" rel="noreferrer">live SDK field guide</a> or install it with npm:
+  </p>
+
+  <pre><code>npm install codex-pet-companion</code></pre>
+
+  <p>For a plain HTML site, one script and one custom element are enough:</p>
+
+  <pre><code>&lt;script src="https://unpkg.com/codex-pet-companion@0.1.0/dist/codex-pet-companion.global.js"&gt;&lt;/script&gt;
+&lt;codex-pet-companion&gt;&lt;/codex-pet-companion&gt;</code></pre>
+
   <h2 id="hatch-your-own">Hatch your own Codex pet</h2>
 
   <p>
