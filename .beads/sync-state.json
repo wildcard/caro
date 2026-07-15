@@ -1,7 +1,7 @@
 {
-  "last_failure": "2026-05-16T00:59:50.813459-07:00",
-  "failure_count": 6,
-  "backoff_until": "2026-05-16T01:29:50.813461-07:00",
+  "last_failure": "2026-07-14T00:25:33.636481-07:00",
+  "failure_count": 21,
+  "backoff_until": "2026-07-14T00:55:33.636481-07:00",
   "needs_manual_sync": true,
-  "failure_reason": "git pull failed: exit status 128\nFrom github.com:wildcard/caro\n * branch              main       -\u003e FETCH_HEAD\nhint: You have divergent branches and need to specify how to reconcile them.\nhint: You can do so by running one of the following commands sometime before\nhint: your next pull:\nhint:\nhint:   git config pull.rebase false  # merge\nhint:   git config pull.rebase true   # rebase\nhint:   git config pull.ff only       # fast-forward only\nhint:\nhint: You can replace \"git config\" with \"git config --global\" to set a default\nhint: preference for all repositories. You can also pass --rebase, --no-rebase,\nhint: or --ff-only on the command line to override the configured default per\nhint: invocation.\nfatal: Need to specify how to reconcile divergent branches.\n"
+  "failure_reason": "git pull failed: exit status 1\nFrom github.com:wildcard/caro\n * branch              integrator/20260711-postmerge -\u003e FETCH_HEAD\nThere are no candidates for merging among the refs that you just fetched.\nGenerally this means that you provided a wildcard refspec which had no\nmatches on the remote end.\n"
 }
