@@ -65,10 +65,13 @@ impl BackendStats {
     /// neither rewarded nor penalized.
     pub fn success_score(&self, label: &str) -> f32 {
         match self.by_backend.get(label) {
-            // Clamp so a semantically corrupt file (e.g. wins > attempts) can
-            // never push the signal outside `[0, 1]` and distort ranking.
-            Some(r) => (((r.wins as f64 + 1.0) / (r.attempts as f64 + 2.0)) as f32).clamp(0.0, 1.0),
-            None => 0.5,
+            // Treat a semantically corrupt entry (wins > attempts, only reachable
+            // via a hand-edited/garbled file) as unrated — the neutral 0.5 prior
+            // — rather than promoting it to a perfect score and distorting ranking.
+            Some(r) if r.wins <= r.attempts => {
+                ((r.wins as f64 + 1.0) / (r.attempts as f64 + 2.0)) as f32
+            }
+            _ => 0.5,
         }
     }
 
@@ -167,6 +170,15 @@ mod tests {
         assert_eq!(loaded.by_backend.get("mesh").unwrap().attempts, 2);
         assert_eq!(loaded.by_backend.get("mesh").unwrap().wins, 1);
         assert!((loaded.success_score("mesh") - stats.success_score("mesh")).abs() < 1e-6);
+    }
+
+    #[test]
+    fn corrupt_entry_falls_back_to_neutral() {
+        // wins > attempts is unreachable via record(); only a hand-edited or
+        // garbled file produces it. It must read as neutral, never a perfect 1.0.
+        let json = r#"{"by_backend":{"cheater":{"wins":99,"attempts":1,"latency_ewma_ms":0.0}}}"#;
+        let stats: BackendStats = serde_json::from_str(json).unwrap();
+        assert!((stats.success_score("cheater") - 0.5).abs() < 1e-6);
     }
 
     #[test]

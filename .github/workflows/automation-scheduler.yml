@@ -66,18 +66,6 @@ jobs:
           DRY_RUN: ${{ github.event.inputs.dry_run || 'true' }}
         run: python3 .github/scripts/automation_scheduler.py
 
-      # The ledger is written into the ephemeral checkout (the run_history dir is
-      # gitignored) and the job only has `contents: read`, so persist it as an
-      # artifact — otherwise the audit trail vanishes when the runner exits.
-      - name: Upload run-history ledger
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: automation-run-history-${{ github.run_id }}
-          path: .claude/automation/state/run_history/
-          if-no-files-found: ignore
-          retention-days: 30
-
       # Live dispatch — no-op until ANTHROPIC_API_KEY is set. When present (and
       # not a dry run), this is where the resolved harness (Claude Code action /
       # crush) is invoked for the due loop and the ledger outcome is updated to
@@ -87,3 +75,20 @@ jobs:
         run: |
           echo "::warning::Harness dispatch is not wired yet. Replace this step"
           echo "::warning::with the Claude Code action invocation for the resolved harness."
+
+      # The ledger is written into the ephemeral checkout (the run_history dir is
+      # gitignored) and the job only has `contents: read`, so persist it as an
+      # artifact — otherwise the audit trail vanishes when the runner exits.
+      # Uploaded last (after dispatch) with always() so the final outcome —
+      # including a `dispatched` update or a failure — is captured.
+      # include-hidden-files is required because the path lives under `.claude`
+      # and upload-artifact excludes dot-dir files by default.
+      - name: Upload run-history ledger
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: automation-run-history-${{ github.run_id }}
+          path: .claude/automation/state/run_history/
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 30
