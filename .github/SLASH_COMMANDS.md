@@ -7,6 +7,9 @@ workflow. Implemented by `.github/workflows/slash-router.yml`. Inspired by
 
 ## Available commands
 
+The command list is sourced from `.github/caro/config.yml::slash_router.commands`
+at runtime; this table is a mirror kept for readability.
+
 | Command | Description | Status |
 |---|---|---|
 | `/caro help` | Show the command list as a comment | ✅ available |
@@ -30,9 +33,16 @@ Unknown commands fall through to `help` with an "Unknown command" hint.
 
 ## Adding a new command
 
-1. **Whitelist** the command name in `slash-router.yml::parse::Parse command`
-   (the bash `case` statement). Without this it falls through to
-   `help-unknown`.
+1. **Flip the command to `available` in `.github/caro/config.yml`** under
+   `slash_router.commands`, e.g.:
+   ```yaml
+   slash_router:
+     commands:
+       spec: { status: available, handler: speckit-specify }
+   ```
+   The parse step in `slash-router.yml` reads this to decide whether the
+   command is real; a command with `status: planned` (or anything not
+   `available`) falls through to `help-unknown`.
 2. **Add a handler job** to `slash-router.yml`:
    ```yaml
    <name>:
@@ -43,8 +53,12 @@ Unknown commands fall through to `help` with an "Unknown command" hint.
      steps:
        - # … your handler …
    ```
-3. **Update this file's table** to document the command.
-4. **Reuse existing skills**: prefer mapping the slash command to an existing
+3. **Add a human-readable description** to the `descriptions` map in the
+   `help` job's `github-script` step — the help table pulls names + statuses
+   from `config.yml` but keeps descriptions local (they don't belong in a
+   structural config file).
+4. **Update this file's mirror table**.
+5. **Reuse existing skills**: prefer mapping the slash command to an existing
    `.claude/skills/<name>/SKILL.md` rather than implementing logic in the
    workflow. The handler should `gh workflow run`, `repository_dispatch`, or
    shell out to a runner script — keep YAML thin.
