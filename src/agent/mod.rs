@@ -210,18 +210,37 @@ impl AgentLoop {
         if let Some(ref matcher) = self.static_matcher {
             let request = CommandRequest::new(prompt, ShellType::Bash);
             match matcher.generate_command(&request).await {
-                Ok(command) => return Ok((command, Vec::new())),
+                Ok(command) => {
+                    // Preserve the same side effects as the non-ranked path so
+                    // enabling best-of isn't an observability/learning blind spot.
+                    crate::telemetry::emit_event(
+                        crate::telemetry::events::EventType::CommandGeneration {
+                            backend: "static".to_string(),
+                            duration_ms: start.elapsed().as_millis() as u64,
+                            success: true,
+                            error_category: None,
+                        },
+                    );
+                    #[cfg(feature = "knowledge")]
+                    self.record_success(prompt, &command.command).await;
+                    return Ok((command, Vec::new()));
+                }
                 Err(GeneratorError::BackendUnavailable { .. }) => {}
                 // Security rejections must not fall through to the backends.
                 Err(e) => return Err(e),
             }
         }
 
-        // Ranking not configured → single-backend behavior, no ranked set.
-        let Some(ref safety) = self.ranking_safety else {
+        // Ranking not configured (no extra sources) → single-backend behavior,
+        // matching `with_ranking`'s documented degrade-to-single contract.
+        if !self.ranking_enabled() {
             let cmd = self.generate_command(prompt).await?;
             return Ok((cmd, Vec::new()));
-        };
+        }
+        let safety = self
+            .ranking_safety
+            .as_ref()
+            .expect("ranking_enabled() implies ranking_safety is set");
 
         // Primary backend first (labelled by its backend type so per-backend
         // stats and the ranked display key on real backend identity), then the

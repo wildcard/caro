@@ -202,9 +202,14 @@ impl CliApp {
         force_llm: bool,
         best_of: bool,
     ) -> Result<Self, CliError> {
-        // The --best-of flag is a no-op unless the ranking feature is built in.
+        // --best-of is a no-op unless the ranking feature is built in; warn
+        // loudly so automation never assumes candidates were ranked.
         #[cfg(not(feature = "candidate-ranking"))]
-        let _ = best_of;
+        if best_of {
+            eprintln!(
+                "warning: --best-of ignored — this build lacks the `candidate-ranking` feature"
+            );
+        }
 
         // Load user configuration to determine backend preferences
         let config_manager =
@@ -295,11 +300,9 @@ impl CliApp {
         #[cfg(feature = "candidate-ranking")]
         let agent_loop = if best_of {
             let primary_type = backend_arc.backend_info().backend_type;
-            let extra: Vec<_> = Self::collect_ranking_sources(&user_config)
-                .await?
-                .into_iter()
-                .filter(|(b, _)| b.backend_info().backend_type != primary_type)
-                .collect();
+            // collect_ranking_sources dedups against the primary and enforces
+            // the Hybrid privacy rule internally.
+            let extra = Self::collect_ranking_sources(&user_config, primary_type).await?;
             let safety_config = crate::safety::SafetyConfig::from_user_config(
                 &user_config,
                 config_manager.config_path(),
@@ -357,73 +360,89 @@ impl CliApp {
         }
     }
 
-    /// Collect every currently-available backend as a best-of-N ranking source.
-    /// Always includes the embedded backend (the local, always-available
-    /// anchor); when `remote-backends` is built in, also builds each configured
-    /// remote (Mesh / Exo / Ollama / vLLM) and probes them concurrently,
-    /// including only the ones that answer. The caller drops whichever source
-    /// duplicates the already-selected primary.
+    /// Collect the distinct available backends to fan out across for best-of-N,
+    /// given the already-selected `primary` (added separately by the ranked
+    /// path). Includes the embedded anchor unless the primary is itself
+    /// embedded; then — when `remote-backends` is built in — probes each
+    /// configured remote concurrently and includes the reachable ones.
+    ///
+    /// Two backends are deliberately never added here:
+    /// - a remote whose type equals the primary's (so it isn't scored twice),
+    ///   and
+    /// - **any raw remote when the primary is Hybrid** — Hybrid is a privacy
+    ///   gateway that sanitizes the prompt before it reaches a remote; a direct
+    ///   remote source would bypass that sanitizer and leak the raw prompt.
     #[cfg(feature = "candidate-ranking")]
     async fn collect_ranking_sources(
         user_config: &crate::models::UserConfiguration,
+        primary: crate::models::BackendType,
     ) -> Result<Vec<(Arc<dyn CommandGenerator>, String)>, CliError> {
+        use crate::models::BackendType;
         let mut sources: Vec<(Arc<dyn CommandGenerator>, String)> = Vec::new();
 
-        // Embedded is always available and privacy-preserving — the local anchor.
-        let embedded = Self::build_embedded_source(user_config).await?;
-        sources.push((embedded, "embedded".to_string()));
+        // Embedded anchor — skip when the primary is already embedded so we
+        // never construct/run a second copy of the same local model.
+        if primary != BackendType::Embedded {
+            let embedded = Self::build_embedded_source(user_config).await?;
+            sources.push((embedded, "embedded".to_string()));
+        }
 
+        // Raw remotes bypass Hybrid's sanitizer, so never add them for a Hybrid
+        // primary. (No-op unless `remote-backends` is built in.)
         #[cfg(all(not(test), feature = "remote-backends"))]
-        {
+        if primary != BackendType::Hybrid {
             use crate::backends::remote::{ExoBackend, MeshBackend, OllamaBackend, VllmBackend};
             use reqwest::Url;
 
-            let backends_cfg = &user_config.backends;
-            let mesh_url_str = backends_cfg
-                .mesh_url
-                .as_deref()
-                .unwrap_or("http://localhost:9337");
-            let ollama_url_str = backends_cfg
-                .ollama_url
-                .as_deref()
-                .unwrap_or("http://localhost:11434");
-            let exo_url_str = backends_cfg
-                .exo_url
-                .as_deref()
-                .unwrap_or("http://localhost:52415");
-            let vllm_url_str = backends_cfg
-                .vllm_url
-                .as_deref()
-                .unwrap_or("http://localhost:8000");
-            let mesh_model = user_config
-                .model_name
-                .clone()
-                .unwrap_or_else(|| "mesh".to_string());
+            let cfg = &user_config.backends;
 
-            // Build each remote (no embedded fallback — embedded is its own
-            // source above, and an unreachable remote is simply dropped).
+            // Build each remote whose type differs from the primary (dedup),
+            // with no embedded fallback — an unreachable remote is dropped after
+            // the concurrent probe below.
             let mut candidates: Vec<(Arc<dyn CommandGenerator>, String)> = Vec::new();
-            if let Ok(u) = Url::parse(mesh_url_str) {
-                if let Ok(b) = MeshBackend::new(u, mesh_model) {
-                    candidates.push((Arc::new(b) as Arc<dyn CommandGenerator>, "mesh".to_string()));
+            if primary != BackendType::Mesh {
+                let url = cfg.mesh_url.as_deref().unwrap_or("http://localhost:9337");
+                let model = user_config
+                    .model_name
+                    .clone()
+                    .unwrap_or_else(|| "mesh".to_string());
+                if let Ok(u) = Url::parse(url) {
+                    if let Ok(b) = MeshBackend::new(u, model) {
+                        candidates
+                            .push((Arc::new(b) as Arc<dyn CommandGenerator>, "mesh".to_string()));
+                    }
                 }
             }
-            if let Ok(u) = Url::parse(exo_url_str) {
-                if let Ok(b) = ExoBackend::new(u, "llama-3.2-3b".to_string()) {
-                    candidates.push((Arc::new(b) as Arc<dyn CommandGenerator>, "exo".to_string()));
+            if primary != BackendType::Exo {
+                let url = cfg.exo_url.as_deref().unwrap_or("http://localhost:52415");
+                if let Ok(u) = Url::parse(url) {
+                    if let Ok(b) = ExoBackend::new(u, "llama-3.2-3b".to_string()) {
+                        candidates
+                            .push((Arc::new(b) as Arc<dyn CommandGenerator>, "exo".to_string()));
+                    }
                 }
             }
-            if let Ok(u) = Url::parse(ollama_url_str) {
-                if let Ok(b) = OllamaBackend::new(u, "codellama:7b".to_string()) {
-                    candidates.push((
-                        Arc::new(b) as Arc<dyn CommandGenerator>,
-                        "ollama".to_string(),
-                    ));
+            if primary != BackendType::Ollama {
+                let url = cfg
+                    .ollama_url
+                    .as_deref()
+                    .unwrap_or("http://localhost:11434");
+                if let Ok(u) = Url::parse(url) {
+                    if let Ok(b) = OllamaBackend::new(u, "codellama:7b".to_string()) {
+                        candidates.push((
+                            Arc::new(b) as Arc<dyn CommandGenerator>,
+                            "ollama".to_string(),
+                        ));
+                    }
                 }
             }
-            if let Ok(u) = Url::parse(vllm_url_str) {
-                if let Ok(b) = VllmBackend::new(u, "codellama/CodeLlama-7b-hf".to_string()) {
-                    candidates.push((Arc::new(b) as Arc<dyn CommandGenerator>, "vllm".to_string()));
+            if primary != BackendType::VLlm {
+                let url = cfg.vllm_url.as_deref().unwrap_or("http://localhost:8000");
+                if let Ok(u) = Url::parse(url) {
+                    if let Ok(b) = VllmBackend::new(u, "codellama/CodeLlama-7b-hf".to_string()) {
+                        candidates
+                            .push((Arc::new(b) as Arc<dyn CommandGenerator>, "vllm".to_string()));
+                    }
                 }
             }
 
@@ -1337,13 +1356,28 @@ mod tests {
     #[cfg(feature = "candidate-ranking")]
     #[tokio::test]
     async fn collect_ranking_sources_includes_embedded_anchor() {
+        use crate::models::BackendType;
         // Under cfg(test) the remote block is compiled out, so the result is
-        // exactly the embedded anchor — the same shape a real host sees when no
+        // exactly the embedded anchor — the shape a real host sees when no
         // remote backend is reachable.
         let cfg = crate::models::UserConfiguration::default();
-        let sources = CliApp::collect_ranking_sources(&cfg).await.unwrap();
+        let sources = CliApp::collect_ranking_sources(&cfg, BackendType::Ollama)
+            .await
+            .unwrap();
         assert_eq!(sources.len(), 1);
         assert_eq!(sources[0].1, "embedded");
+    }
+
+    #[cfg(feature = "candidate-ranking")]
+    #[tokio::test]
+    async fn collect_ranking_sources_skips_embedded_when_primary_is_embedded() {
+        use crate::models::BackendType;
+        // An embedded primary must not spawn a second embedded source.
+        let cfg = crate::models::UserConfiguration::default();
+        let sources = CliApp::collect_ranking_sources(&cfg, BackendType::Embedded)
+            .await
+            .unwrap();
+        assert!(sources.is_empty());
     }
 
     #[test]

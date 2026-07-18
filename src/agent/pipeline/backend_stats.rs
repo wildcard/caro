@@ -65,7 +65,9 @@ impl BackendStats {
     /// neither rewarded nor penalized.
     pub fn success_score(&self, label: &str) -> f32 {
         match self.by_backend.get(label) {
-            Some(r) => ((r.wins as f64 + 1.0) / (r.attempts as f64 + 2.0)) as f32,
+            // Clamp so a semantically corrupt file (e.g. wins > attempts) can
+            // never push the signal outside `[0, 1]` and distort ranking.
+            Some(r) => (((r.wins as f64 + 1.0) / (r.attempts as f64 + 2.0)) as f32).clamp(0.0, 1.0),
             None => 0.5,
         }
     }
