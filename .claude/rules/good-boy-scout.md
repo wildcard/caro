@@ -52,3 +52,14 @@ Applied to code:
 - Spot a formatting issue? Run `cargo fmt`.
 
 But don't camp out all day cleaning — leave it cleaner than you found it and move on.
+
+## See Also
+
+- [`.claude/agents/ponytail-reviewer.md`](../agents/ponytail-reviewer.md) —
+  the active, on-demand companion to this passive rule. Where this rule
+  *states* the KISS / "don't gold-plate" principle, the ponytail reviewer
+  *applies* it to a specific diff: a read-only skeptic that flags
+  over-engineering (surplus code, abstractions, dependencies, ceremony)
+  without ever trimming safety, security, accessibility, data-loss
+  handling, or the tests that guard them. Invoke via the `ponytail-review`
+  skill. Rationale: [`docs/adr/ADR-016`](../../docs/adr/ADR-016-ponytail-pragmatic-reviewer.md).
