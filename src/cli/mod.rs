@@ -185,7 +185,7 @@ impl CliApp {
     /// Uses configuration-driven backend selection with embedded model as primary
     /// and optional remote backend fallbacks.
     pub async fn new() -> Result<Self, CliError> {
-        Self::with_overrides(CliConfig::default(), None, None, false, None).await
+        Self::with_overrides(CliConfig::default(), None, None, false, false, None).await
     }
 
     /// Create CLI application with backend and model overrides from CLI args
@@ -200,8 +200,18 @@ impl CliApp {
         backend_override: Option<String>,
         model_name_override: Option<String>,
         force_llm: bool,
+        best_of: bool,
         advisor_override: Option<String>,
     ) -> Result<Self, CliError> {
+        // --best-of is a no-op unless the ranking feature is built in; warn
+        // loudly so automation never assumes candidates were ranked.
+        #[cfg(not(feature = "candidate-ranking"))]
+        if best_of {
+            eprintln!(
+                "warning: --best-of ignored — this build lacks the `candidate-ranking` feature"
+            );
+        }
+
         // Load user configuration to determine backend preferences
         let config_manager =
             crate::config::ConfigManager::new().map_err(|e| CliError::ConfigurationError {
@@ -290,6 +300,32 @@ impl CliApp {
             agent_loop = Self::maybe_attach_advisor(agent_loop, advisor_name).await;
         }
 
+        // Best-of-N ranking (opt-in via --best-of / CARO_BEST_OF). Adds every
+        // distinct available backend as an independent source so the pipeline
+        // can pick the best. Off by default → unchanged path. With only one
+        // distinct backend (e.g. embedded-only), `extra` is empty and the ranked
+        // path degrades to the single-backend result — nothing to compare. The
+        // advisor set above is preserved on the loop for that degrade case.
+        #[cfg(feature = "candidate-ranking")]
+        let agent_loop = if best_of {
+            let primary_type = backend_arc.backend_info().backend_type;
+            // collect_ranking_sources dedups against the primary and enforces
+            // the Hybrid privacy rule internally.
+            let extra = Self::collect_ranking_sources(&user_config, primary_type).await?;
+            let safety_config = crate::safety::SafetyConfig::from_user_config(
+                &user_config,
+                config_manager.config_path(),
+            );
+            let safety = Arc::new(SafetyValidator::new(safety_config).map_err(|e| {
+                CliError::ConfigurationError {
+                    message: format!("Failed to init ranking safety validator: {}", e),
+                }
+            })?);
+            agent_loop.with_ranking(extra, safety)
+        } else {
+            agent_loop
+        };
+
         Ok(Self {
             config,
             backend: backend_arc,
@@ -297,6 +333,148 @@ impl CliApp {
             validator,
             context,
         })
+    }
+
+    /// Build the embedded backend as an independent best-of-N ranking source.
+    /// Mirrors [`Self::create_backend`]'s embedded construction (mock under
+    /// `cfg(test)`) so ranking works in tests without loading a model.
+    #[cfg(feature = "candidate-ranking")]
+    async fn build_embedded_source(
+        user_config: &crate::models::UserConfiguration,
+    ) -> Result<Arc<dyn CommandGenerator>, CliError> {
+        #[cfg(test)]
+        {
+            let _ = user_config;
+            Ok(Arc::new(MockCommandGenerator::new()))
+        }
+
+        #[cfg(not(test))]
+        {
+            #[cfg(feature = "mock-backend")]
+            if std::env::var("CARO_MOCK_BACKEND").is_ok() {
+                return Ok(Arc::new(MockCommandGenerator::new()));
+            }
+
+            use crate::backends::embedded::EmbeddedModelBackend;
+            let safety_config = SafetyConfig::from_level(user_config.safety_level);
+            let embedded = EmbeddedModelBackend::new()
+                .map_err(|e| CliError::ConfigurationError {
+                    message: format!("Failed to create embedded ranking source: {}", e),
+                })?
+                .with_safety_config(safety_config)
+                .map_err(|e| CliError::ConfigurationError {
+                    message: format!("Failed to apply safety config to ranking source: {}", e),
+                })?;
+            Ok(Arc::new(embedded))
+        }
+    }
+
+    /// Collect the distinct available backends to fan out across for best-of-N,
+    /// given the already-selected `primary` (added separately by the ranked
+    /// path). Includes the embedded anchor unless the primary is itself
+    /// embedded; then — when `remote-backends` is built in — probes each
+    /// configured remote concurrently and includes the reachable ones.
+    ///
+    /// Two backends are deliberately never added here:
+    /// - a remote whose type equals the primary's (so it isn't scored twice),
+    ///   and
+    /// - **any raw remote when the primary is Hybrid** — Hybrid is a privacy
+    ///   gateway that sanitizes the prompt before it reaches a remote; a direct
+    ///   remote source would bypass that sanitizer and leak the raw prompt.
+    #[cfg(feature = "candidate-ranking")]
+    async fn collect_ranking_sources(
+        user_config: &crate::models::UserConfiguration,
+        primary: crate::models::BackendType,
+    ) -> Result<Vec<(Arc<dyn CommandGenerator>, String)>, CliError> {
+        use crate::models::BackendType;
+        let mut sources: Vec<(Arc<dyn CommandGenerator>, String)> = Vec::new();
+
+        // Embedded anchor — skip when the primary is already embedded so we
+        // never construct/run a second copy of the same local model.
+        if primary != BackendType::Embedded {
+            let embedded = Self::build_embedded_source(user_config).await?;
+            sources.push((embedded, "embedded".to_string()));
+        }
+
+        // Raw remotes bypass Hybrid's sanitizer, so never add them for a Hybrid
+        // primary. (No-op unless `remote-backends` is built in.)
+        #[cfg(all(not(test), feature = "remote-backends"))]
+        if primary != BackendType::Hybrid {
+            use crate::backends::remote::{ExoBackend, MeshBackend, OllamaBackend, VllmBackend};
+            use reqwest::Url;
+
+            let cfg = &user_config.backends;
+
+            // Build each remote whose type differs from the primary (dedup),
+            // with no embedded fallback — an unreachable remote is dropped after
+            // the concurrent probe below.
+            let mut candidates: Vec<(Arc<dyn CommandGenerator>, String)> = Vec::new();
+            if primary != BackendType::Mesh {
+                let url = cfg.mesh_url.as_deref().unwrap_or("http://localhost:9337");
+                let model = user_config
+                    .model_name
+                    .clone()
+                    .unwrap_or_else(|| "mesh".to_string());
+                if let Ok(u) = Url::parse(url) {
+                    if let Ok(b) = MeshBackend::new(u, model) {
+                        candidates
+                            .push((Arc::new(b) as Arc<dyn CommandGenerator>, "mesh".to_string()));
+                    }
+                }
+            }
+            if primary != BackendType::Exo {
+                let url = cfg.exo_url.as_deref().unwrap_or("http://localhost:52415");
+                if let Ok(u) = Url::parse(url) {
+                    if let Ok(b) = ExoBackend::new(u, "llama-3.2-3b".to_string()) {
+                        candidates
+                            .push((Arc::new(b) as Arc<dyn CommandGenerator>, "exo".to_string()));
+                    }
+                }
+            }
+            if primary != BackendType::Ollama {
+                let url = cfg
+                    .ollama_url
+                    .as_deref()
+                    .unwrap_or("http://localhost:11434");
+                if let Ok(u) = Url::parse(url) {
+                    if let Ok(b) = OllamaBackend::new(u, "codellama:7b".to_string()) {
+                        candidates.push((
+                            Arc::new(b) as Arc<dyn CommandGenerator>,
+                            "ollama".to_string(),
+                        ));
+                    }
+                }
+            }
+            if primary != BackendType::VLlm {
+                let url = cfg.vllm_url.as_deref().unwrap_or("http://localhost:8000");
+                if let Ok(u) = Url::parse(url) {
+                    if let Ok(b) = VllmBackend::new(u, "codellama/CodeLlama-7b-hf".to_string()) {
+                        candidates
+                            .push((Arc::new(b) as Arc<dyn CommandGenerator>, "vllm".to_string()));
+                    }
+                }
+            }
+
+            // Probe availability concurrently with a short timeout so a set of
+            // unreachable remotes can't stall startup.
+            let checks = candidates.iter().map(|(b, _)| {
+                let b = Arc::clone(b);
+                async move {
+                    tokio::time::timeout(std::time::Duration::from_millis(800), b.is_available())
+                        .await
+                        .unwrap_or(false)
+                }
+            });
+            let available = futures::future::join_all(checks).await;
+            for ((backend, label), ok) in candidates.into_iter().zip(available) {
+                if ok {
+                    tracing::info!("best-of: including {} backend as a ranking source", label);
+                    sources.push((backend, label));
+                }
+            }
+        }
+
+        Ok(sources)
     }
 
     /// Build the named frontier advisor and attach it to the agent loop, or
@@ -821,8 +999,29 @@ impl CliApp {
             backend_preference: None,
         };
 
-        // Generate command using agent loop (handles iterations internally)
+        // Generate command using agent loop (handles iterations internally).
+        // With best-of-N ranking enabled, fan out across backends and keep the
+        // full scored set for --dry-run / --explain display.
         let gen_start = Instant::now();
+        #[cfg(feature = "candidate-ranking")]
+        let (generated, ranked) = if self.agent_loop.ranking_enabled() {
+            self.agent_loop
+                .generate_command_ranked(&prompt)
+                .await
+                .map_err(|e| CliError::GenerationFailed {
+                    details: e.to_string(),
+                })?
+        } else {
+            let g = self
+                .agent_loop
+                .generate_command(&prompt)
+                .await
+                .map_err(|e| CliError::GenerationFailed {
+                    details: e.to_string(),
+                })?;
+            (g, Vec::new())
+        };
+        #[cfg(not(feature = "candidate-ranking"))]
         let generated = self
             .agent_loop
             .generate_command(&prompt)
@@ -831,6 +1030,25 @@ impl CliApp {
                 details: e.to_string(),
             })?;
         let generation_time = gen_start.elapsed();
+
+        // Surface the best-of-N ranking on inspection paths (stderr so it never
+        // pollutes json/plain stdout consumers).
+        #[cfg(feature = "candidate-ranking")]
+        if (args.dry_run() || args.explain()) && !args.quiet() && !ranked.is_empty() {
+            eprintln!("Best-of-{} ranking (* = selected):", ranked.len());
+            for c in &ranked {
+                let score = c
+                    .score
+                    .map(|s| format!("{:.3}", s))
+                    .unwrap_or_else(|| "reject".to_string());
+                let mark = if c.command == generated.command {
+                    "*"
+                } else {
+                    " "
+                };
+                eprintln!("  {} [{}] {:<12} {}", mark, score, c.source, c.command);
+            }
+        }
 
         // Validate command safety
         let validation = self
@@ -951,6 +1169,25 @@ impl CliApp {
             } else {
                 (None, None, None, None, 0)
             };
+
+        // Attribute the outcome to the winning backend so best-of-N ranking
+        // self-tunes. Only when a backend was actually chosen (ranked path) AND
+        // the command was actually executed — dry-run / declined give no signal.
+        // A win is real user acceptance (exit 0), never the scorer's own pick.
+        #[cfg(feature = "candidate-ranking")]
+        if !ranked.is_empty()
+            && (args.execute() || args.interactive())
+            && can_execute
+            && !args.dry_run()
+        {
+            if let Some(winner) = ranked.iter().find(|c| c.command == generated.command) {
+                crate::agent::pipeline::BackendStats::record_and_save(
+                    &winner.source,
+                    exit_code == Some(0),
+                    generation_time.as_millis() as u64,
+                );
+            }
+        }
 
         // The 'executed' field indicates whether safety checks passed (original behavior)
         let executed = can_execute;
@@ -1182,6 +1419,33 @@ impl CommandGenerator for MockCommandGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(feature = "candidate-ranking")]
+    #[tokio::test]
+    async fn collect_ranking_sources_includes_embedded_anchor() {
+        use crate::models::BackendType;
+        // Under cfg(test) the remote block is compiled out, so the result is
+        // exactly the embedded anchor — the shape a real host sees when no
+        // remote backend is reachable.
+        let cfg = crate::models::UserConfiguration::default();
+        let sources = CliApp::collect_ranking_sources(&cfg, BackendType::Ollama)
+            .await
+            .unwrap();
+        assert_eq!(sources.len(), 1);
+        assert_eq!(sources[0].1, "embedded");
+    }
+
+    #[cfg(feature = "candidate-ranking")]
+    #[tokio::test]
+    async fn collect_ranking_sources_skips_embedded_when_primary_is_embedded() {
+        use crate::models::BackendType;
+        // An embedded primary must not spawn a second embedded source.
+        let cfg = crate::models::UserConfiguration::default();
+        let sources = CliApp::collect_ranking_sources(&cfg, BackendType::Embedded)
+            .await
+            .unwrap();
+        assert!(sources.is_empty());
+    }
 
     #[test]
     fn test_validate_backend_name_valid() {
