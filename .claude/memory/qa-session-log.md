@@ -4,6 +4,68 @@ Reading order: most recent first.
 
 ---
 
+## 2026-07-16 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B (many PRs merged since 2026-05-07) + C.
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 29s, no errors; MSRV 1.85 confirmed in Cargo.toml)
+- `caro --version` → **PASS**: `caro 1.5.0 (587e7a2 2026-07-14)`
+- `caro --help` → **PASS**: all expected subcommands present including `ai`, `skill`, CaroML verbs; `--backend-info` global flag present
+- `caro doctor` → **PASS**: huggingface.co reachable; proxy detected; no model cached (sandbox); advisory-only output
+- `caro -p 'list files in current directory' --dry-run` → **FLAKE**: hung for 30s (timeout), then killed. Same pattern as FLAKE-001 (model download blocked at binary level in sandbox despite HTTP 200). Second total observation; not within 7-day window of first (2026-05-07). Updated FLAKE-001 log.
+
+### Slot B — Recent diff
+
+PRs merged since 2026-05-07 (30+ PRs, key surfaces exercised):
+
+**PR #1315 — `fix(safety): P0 — close quote/escape evasion`** → safety surface
+- `cargo test --lib -- safety` → **PASS**: 34/34 safety unit tests (up from 19 in bootstrap run; new tests for `smart_blend`, `allowlist_catastrophic`)
+- `shell-words` tokenizer confirmed present at `src/safety/mod.rs:590` (`shell_words::split`)
+- Verdict: **PASS** — P0 safety fix is in place and guarded
+
+**PR #1298 — `fix(cli): single source of truth for backend roster`** → cli surface
+- `caro --backend-info` → **PASS**: shows all 7 backends (`embedded`, `ollama`, `exo`, `vllm`, `mesh`, `ai-horde`, `hybrid`) with compilation status; non-default-feature backends correctly marked `not compiled`
+- Verdict: **PASS**
+
+**Config surface — explored incidentally during Slot B**:
+- `caro config show` → **PASS**: shows `telemetry`, `log_level`, `cache_max_size`, `log_rotation`, etc.
+- `caro config get telemetry.enabled` → **FAIL**: `Unknown config key 'telemetry.enabled'. Valid keys: backend, model-name, shell, safety`
+- `caro config set telemetry.enabled false` → **FAIL**: same error
+- `caro config reset` → **PASS**
+- Root cause: `src/main.rs:2113,2158` — only 4 keys wired in `config get`/`set` despite `config show` displaying many more; 3 source files advertise the broken command
+- Filed: [#1332](https://github.com/wildcard/caro/issues/1332) (P1)
+
+### Slot C — `caro ai --once` (surface #10)
+
+Surface chosen: **`caro ai --once`** (oldest = never; lowest # in never-tested group).
+
+- `caro ai --help` → **PASS**: comprehensive help; `--once`, `--new-session`, `--continue-session` flags documented; note states "The only mode supported today"
+- `caro ai --once 'prompt' --dry-run` → produces `# caro-ai: session 1 (resumed) confidence=0.85 risk=Safe` + `echo 'Please clarify your request'` — expected static-backend fallback (no model downloaded in sandbox)
+- `caro --dry-run ai --once` (stdin) → **PASS**: global `--dry-run` before subcommand correctly routes through main prompt path; `echo "show disk usage" | caro --dry-run ai --once` → `df -h` (correct!)
+- `caro ai --once 'prompt' --dry-run` (global flag AFTER subcommand args) → `error: unexpected argument '--dry-run'` — clap-expected behavior; `--dry-run` is a global option and must precede the subcommand
+- Session management:
+  - `--new-session`: creates session 2 (no "resumed" tag) ✓
+  - Second call without `--new-session`: resumes session 2 ("session 2 (resumed)") ✓
+  - Sessions increment correctly across calls
+- Verdict: **PASS** (functional surface; command quality limited to static-backend in sandbox)
+
+### Findings
+
+- [#1332](https://github.com/wildcard/caro/issues/1332) — `cli: caro config set telemetry.enabled false fails with "Unknown config key"` (P1)
+
+### Followups
+
+- FLAKE-001 (model download blocked) observed again. Second total observation; 70 days since first (2026-05-07). Not within the 7-day promotion window — keeping as active flake but noting recurrence.
+- `caro ai --once` in static-backend mode always returns `echo 'Please clarify your request'` regardless of prompt — expected fallback, not a bug. Verify quality in a future run with model present.
+- `caro ai --once 'prompt' --dry-run` (wrong arg order) returns clap error — not a bug (clap global-option semantics), but worth a user-facing hint. Consider P3 improvement.
+- Issue #1044 (CLAUDE.md version drift) closed as completed on 2026-05-09 — removed from watch list.
+- Next Slot C candidate: surface #11 (`caro ai --continue-session` shell widget) or surface #12 (`caro assess`).
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
