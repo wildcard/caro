@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-07-17 (23:00 PT fire) — roster unification: closed queue item 3 (#1115 follow-up)
+
+- **Validated:** published `caro 1.4.0` (crates.io, still the max version as of tonight — `updated_at 2026-05-09T17:49:24Z`).
+  - **#1115 backend-roster divergence** — ✓ VERIFIED still live in the shipped artifact. `caro --backend claude --dry-run "list pdf files"` → `Error: Invalid argument: Unknown backend 'claude'`; `caro --backend static ...` → same; yet `caro --backend-info` still lists `static` and `claude` as rows. Unchanged from the 2026-07-11 finding — this is purely a **release-cadence gap**, not a code gap (`main` fixed it via #1298).
+  - **Release-cadence gap now has a number** — `Cargo.toml` on `main` reads `version = "1.5.0"` while crates.io serves `1.4.0`. So 1.5.0 is *prepared but never cut*. That reframes the queue-item-4 escalation: this isn't "nobody bumped the version", it's "the tag/publish step never ran". Escalation target is release management, not integrator scope.
+  - **`caro test` roster** — ✓ VERIFIED FAIL (pre-fix). Help advertised `(static, mlx, ollama, or embedded)`; `caro test --backend mlx` → `Error running tests: Unknown backend: mlx. Supported: static, embedded`. Advertised-vs-actual divergence, same family as #1115.
+  - **`caro config set backend` roster** — ✓ VERIFIED FAIL (pre-fix). `caro config set backend hybrid` → `Invalid backend 'hybrid'. Valid options: embedded, ollama, exo, vllm` — a *third* roster, rejecting three backends (`mesh`/`ai-horde`/`hybrid`, shipped in #1209) that top-level `--backend` accepts. Net user-visible effect: you could run a backend you could not persist as your default.
+
+- **Shipped:** PR — `fix(cli): unify remaining backend rosters against CLI_SERVABLE_BACKENDS`.
+  - Extracted `validate_config_backend()` (`src/main.rs`) and pointed it at `caro::backends::CLI_SERVABLE_BACKENDS`, the #1298 single source of truth, replacing the hardcoded `["embedded","ollama","exo","vllm"]`.
+  - Corrected the `caro test` `--backend` doc comment to `(static or embedded)` to match `run_evaluation_tests`'s actual dispatch arms. Doc-only; the runtime error text was already honest.
+  - 4 regression guards in `src/main.rs` tests. The important one is `test_config_backend_rejects_unwired_and_unknown_names`, which pins `claude`/`openrouter`/`static`/`mlx` as **rejected** — so when #1081's wiring work lands, it cannot silently re-open the #1298 divergence on this surface without turning a test red.
+  - Evidence: `cargo test --bin caro` 26/26 pass; `cargo clippy --bin caro -- -D warnings` clean; `cargo fmt --check` clean. Before/after demo captured against the built binary (config file snapshotted to `/tmp` and restored afterward, so no stray state left in the operator's real config).
+
+- **Filed:** none. Dedup-checked `gh issue list --label integration --state all --search "roster config backend test"` → no existing home; the finding is small enough that the fix *is* the report, and it closes an already-tracked queue row rather than opening a new one. #1115 stays closed; #1081 remains the home for the wiring half.
+
+- **Discovered:**
+  - **Grok Build (xAI)** — launched 2026-07-08 alongside Grok 4.5, trained with Cursor, surfaced in Grok Build + Cursor + the xAI console. Added as a `not-yet` long-tail matrix row. Its Cursor path is already covered by the OpenAI shim (#929); the standalone surface is unassessed.
+  - **OpenAI GPT-5.6 family** (Sol / Terra / Luna) reached GA 2026-07-09. Model-tier news, not a new integration surface — reaches caro downstream through the same shim.
+  - **Process note:** tonight's pass ran 6 days after the previous one (2026-07-11), so the 23:00 nightly cron appears to have missed several fires. Worth checking `caro-integrator-nightly` scheduling health — a silently-not-firing nightly is indistinguishable from a quiet ecosystem, which is exactly the failure mode this log exists to make visible.
+
+- **Next pass should:** take **queue item 2 — [#1081](https://github.com/wildcard/caro/issues/1081)**, but open it with the *design* half, not the code half: decide how `CLI_SERVABLE_BACKENDS` gets a `#[cfg(feature = "remote-backends")]`-aware view. Every remaining roster surface now reads from that one constant (tonight closed the last two), so the gating decision is the single remaining blocker for wiring `claude`/`openrouter` — and it is now genuinely the only thing standing between the matrix and a consistent story. If the gating design won't fit one session, write it up as a short design note and ship that instead of code; a half-gated roster is worse than none.
+
+---
+
 ## 2026-07-11 (23:00 PT fire, post-merge pass) — #1298 landed; verify + close-the-loop, no code PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.4.0` (crates.io, 2026-05-09 — still newest). Confirmed **PR #1298 MERGED** (2026-07-12 UTC, commit `2a76cf90`) and **issue #1115 CLOSED**. Re-ran the #1115 repro on the shipped binary: `caro --backend-info` still advertises `static` (available) + `claude` (configurable), yet `caro --backend claude --dry-run -p "list pdf files"` → `Error: Invalid argument: Unknown backend 'claude'` and `--backend static` → identical. So the P0 divergence #1298 fixed on `main` is **still live in the shipped artifact** — this is now purely a release-cadence gap, not a code gap. PASS data point: `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls *.pdf` ✓. New-roster gap: `caro --backend ai-horde` → `Unknown backend` (main exposes it via #1209; published 1.4.0 knows only embedded/ollama/exo/vllm). Inspected `main` source: `CLI_SERVABLE_BACKENDS` (`src/backends/mod.rs:35`) now the single source of truth for `validate_backend_name`/`print_backend_info`/`available_backends`/help; `create_backend` (`src/cli/mod.rs:295`) still has no `claude`/`openrouter` arm (wiring half deferred, per the in-code comment).

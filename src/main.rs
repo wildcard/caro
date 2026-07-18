@@ -434,7 +434,7 @@ enum Commands {
     // },
     /// Run evaluation tests on command generation quality
     Test {
-        /// Backend to test (static, mlx, ollama, or embedded)
+        /// Backend to test (static or embedded)
         #[arg(short, long, default_value = "static")]
         backend: String,
 
@@ -2059,6 +2059,35 @@ fn build_knowledge_backend_config(
 // Configuration Commands
 // =============================================================================
 
+/// Validate a `caro config set backend <value>` argument.
+///
+/// Validates against [`CLI_SERVABLE_BACKENDS`] — the single source of truth
+/// shared with `--backend` and `--backend-info` (#1298). This surface
+/// previously carried its own hardcoded roster (`embedded, ollama, exo,
+/// vllm`), which had drifted: it rejected `mesh` / `ai-horde` / `hybrid`
+/// even though `--backend` accepts them, so a user could run a backend they
+/// could not persist as their default. Part of the #1115 roster-unification
+/// follow-up.
+fn validate_config_backend(value: &str) -> Result<(), String> {
+    use caro::backends::CLI_SERVABLE_BACKENDS;
+    let value_lc = value.to_lowercase();
+    if CLI_SERVABLE_BACKENDS
+        .iter()
+        .any(|(name, _)| *name == value_lc)
+    {
+        return Ok(());
+    }
+    let valid = CLI_SERVABLE_BACKENDS
+        .iter()
+        .map(|(name, _)| *name)
+        .collect::<Vec<_>>()
+        .join(", ");
+    Err(format!(
+        "Invalid backend '{}'. Valid options: {}",
+        value, valid
+    ))
+}
+
 /// Handle configuration subcommands
 fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
     use colored::Colorize;
@@ -2074,15 +2103,7 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
 
             match key.to_lowercase().as_str() {
                 "backend" => {
-                    // Validate backend name
-                    let valid_backends = ["embedded", "ollama", "exo", "vllm"];
-                    if !valid_backends.contains(&value.to_lowercase().as_str()) {
-                        return Err(format!(
-                            "Invalid backend '{}'. Valid options: {}",
-                            value,
-                            valid_backends.join(", ")
-                        ));
-                    }
+                    validate_config_backend(&value)?;
                     config.default_model = Some(value.to_lowercase());
                     println!(
                         "{} Set default backend to '{}'",
@@ -4136,6 +4157,57 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Roster-unification regression guards (#1115 follow-up, extends #1298).
+    //
+    // `caro config set backend` must accept exactly the roster that
+    // `--backend` accepts. It previously hardcoded its own list and drifted.
+
+    #[test]
+    fn test_config_backend_accepts_entire_cli_servable_roster() {
+        for (name, _note) in caro::backends::CLI_SERVABLE_BACKENDS {
+            assert!(
+                validate_config_backend(name).is_ok(),
+                "`config set backend {}` rejected a backend that `--backend` accepts",
+                name
+            );
+        }
+    }
+
+    #[test]
+    fn test_config_backend_accepts_previously_rejected_backends() {
+        // These three shipped in #1209 and were reachable via `--backend`
+        // but rejected by `config set backend` before this fix.
+        for name in ["mesh", "ai-horde", "hybrid"] {
+            assert!(
+                validate_config_backend(name).is_ok(),
+                "`config set backend {}` should be accepted",
+                name
+            );
+        }
+    }
+
+    #[test]
+    fn test_config_backend_is_case_insensitive() {
+        assert!(validate_config_backend("EMBEDDED").is_ok());
+        assert!(validate_config_backend("Hybrid").is_ok());
+    }
+
+    #[test]
+    fn test_config_backend_rejects_unwired_and_unknown_names() {
+        // `claude` / `openrouter` / `static` / `mlx` are BackendType variants
+        // that are NOT CLI-wired (see CLI_SERVABLE_BACKENDS docs, #1081).
+        // Accepting them here would re-open the #1298 divergence.
+        for name in ["claude", "openrouter", "static", "mlx", "not-a-backend"] {
+            let err = validate_config_backend(name)
+                .expect_err("expected rejection for non-CLI-servable backend");
+            assert!(
+                err.contains("Invalid backend"),
+                "unexpected error text: {}",
+                err
+            );
+        }
+    }
 
     // WP03: Prompt Source Resolution Tests
 
