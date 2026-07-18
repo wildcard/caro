@@ -378,6 +378,18 @@ impl CommandGenerator for ClaudeBackend {
         Ok(result)
     }
 
+    /// Act as a frontier advisor: produce Claude's own best command for the
+    /// request. The agent loop calls this only on a low-confidence local draft
+    /// and re-validates the result, so returning Claude's answer is safe even
+    /// without draft-informed prompting (a follow-up refinement).
+    async fn advise(
+        &self,
+        _draft: &GeneratedCommand,
+        request: &CommandRequest,
+    ) -> Option<GeneratedCommand> {
+        self.generate_command(request).await.ok()
+    }
+
     async fn is_available(&self) -> bool {
         // For Claude, we check if we have a valid API key format
         // Actual availability is checked on first request

@@ -52,6 +52,7 @@ Example: `ADR-001-enterprise-community-architecture.md`
 | [ADR-013](./ADR-013-pre-processing-pipeline.md) | Pre-Processing Pipeline Architecture | Proposed | 2026-01-01 |
 | [ADR-014](./ADR-014-serde-env-evaluation.md) | Environment Variable Deserialization with serde-env | Proposed | 2026-01-01 |
 | [ADR-015](./ADR-015-distributed-llm-backends-hybrid-privacy.md) | Distributed-LLM Backends (Mesh-LLM, AI-Horde) via a Hybrid Privacy Gateway | Accepted | 2026-06-07 |
+| [ADR-016](./ADR-016-ponytail-pragmatic-reviewer.md) | Ponytail Pragmatic-Skeptic Reviewer (Additive Adoption) | Accepted | 2026-06-14 |
 
 ## Contributing to ADRs
 

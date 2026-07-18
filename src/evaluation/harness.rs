@@ -17,6 +17,63 @@ use crate::evaluation::{
 };
 use crate::models::{CommandRequest, ShellType};
 
+/// Aggregated estimated cost over a set of evaluation results.
+///
+/// Shared by the per-backend (`run_backend`) and full-run aggregation paths so
+/// the rollup math lives in one place. `cost_per_passed_task` is the article's
+/// headline comparison axis — cost normalized by tasks actually passed.
+#[derive(Debug, Clone, Copy, Default)]
+struct CostRollup {
+    total_cost_usd: f64,
+    cost_per_passed_task: f64,
+    total_tokens_in: u64,
+    total_tokens_out: u64,
+}
+
+impl CostRollup {
+    /// Roll up cost/token totals from any iterator of results, normalizing cost
+    /// by the number that `passed`. Single-pass so it works with both owned
+    /// (`&[EvaluationResult]`) and borrowed (`Vec<&EvaluationResult>`) sets.
+    fn of<'a>(results: impl IntoIterator<Item = &'a EvaluationResult>, passed: usize) -> Self {
+        let mut total_cost_usd = 0.0_f64;
+        let mut total_tokens_in = 0_u64;
+        let mut total_tokens_out = 0_u64;
+        for r in results {
+            total_cost_usd += r.est_cost_usd;
+            total_tokens_in += r.est_tokens_in as u64;
+            total_tokens_out += r.est_tokens_out as u64;
+        }
+        let cost_per_passed_task = if passed > 0 {
+            total_cost_usd / passed as f64
+        } else {
+            0.0
+        };
+        Self {
+            total_cost_usd,
+            cost_per_passed_task,
+            total_tokens_in,
+            total_tokens_out,
+        }
+    }
+}
+
+/// Mean-score over a set of results: the average per-result `score()` (fraction
+/// of criteria passed). For single-criterion datasets this equals the all-pass
+/// rate; it diverges (sits above pass_rate) once multi-criterion results exist.
+fn mean_score_of<'a>(results: impl IntoIterator<Item = &'a EvaluationResult>) -> f32 {
+    let mut sum = 0.0_f32;
+    let mut n = 0_u32;
+    for r in results {
+        sum += r.score();
+        n += 1;
+    }
+    if n > 0 {
+        sum / n as f32
+    } else {
+        0.0
+    }
+}
+
 /// Configuration for the evaluation harness
 #[derive(Debug, Clone)]
 pub struct HarnessConfig {
@@ -197,6 +254,7 @@ impl EvaluationHarness {
             passed,
             failed,
             pass_rate,
+            mean_score: mean_score_of(all_results.iter()),
             avg_execution_time_ms: all_results.iter().map(|r| r.execution_time_ms).sum::<u64>()
                 / total.max(1) as u64,
         })
@@ -241,6 +299,8 @@ impl EvaluationHarness {
             all_results.push(result);
         }
 
+        self.enrich_costs(&mut all_results);
+
         // Calculate backend metrics
         let total = all_results.len();
         let passed = all_results.iter().filter(|r| r.passed).count();
@@ -250,10 +310,12 @@ impl EvaluationHarness {
         } else {
             0.0
         };
+        let cost = CostRollup::of(all_results.iter(), passed);
 
         Ok(BackendResult {
             backend_name: backend_name.to_string(),
             pass_rate,
+            mean_score: mean_score_of(all_results.iter()),
             total_tests: total,
             passed,
             failed,
@@ -264,6 +326,10 @@ impl EvaluationHarness {
             avg_execution_time_ms: all_results.iter().map(|r| r.execution_time_ms).sum::<u64>()
                 / total.max(1) as u64,
             category_breakdown: HashMap::new(), // TODO: Calculate per-category breakdown
+            total_cost_usd: cost.total_cost_usd,
+            cost_per_passed_task: cost.cost_per_passed_task,
+            total_tokens_in: cost.total_tokens_in,
+            total_tokens_out: cost.total_tokens_out,
         })
     }
 
@@ -354,7 +420,38 @@ impl EvaluationHarness {
             }
         }
 
+        self.enrich_costs(&mut results);
         Ok(results)
+    }
+
+    /// Populate estimated token/cost fields on each result.
+    ///
+    /// Implements the Fireworks "cost as a first-class metric" idea: every
+    /// generation gets an estimated USD figure so backends are comparable on
+    /// price-per-task, not just pass-rate. Local/self-hosted backends price to
+    /// $0; hosted frontier APIs price to a positive figure. Token counts are
+    /// estimated from text length — see [`crate::evaluation::pricing`].
+    fn enrich_costs(&self, results: &mut [EvaluationResult]) {
+        let input_by_id: HashMap<&str, &str> = self
+            .dataset
+            .test_cases()
+            .iter()
+            .map(|tc| (tc.id.as_str(), tc.input_request.as_str()))
+            .collect();
+
+        for r in results.iter_mut() {
+            let input = input_by_id.get(r.test_id.as_str()).copied().unwrap_or("");
+            let output = r.actual_command.as_deref().unwrap_or("");
+            let (tokens_in, tokens_out, cost) =
+                crate::evaluation::pricing::estimate_generation_cost(
+                    &r.backend_name,
+                    input,
+                    output,
+                );
+            r.est_tokens_in = tokens_in;
+            r.est_tokens_out = tokens_out;
+            r.est_cost_usd = cost;
+        }
     }
 
     /// Runs a single test case against a backend
@@ -380,6 +477,11 @@ impl EvaluationHarness {
                     execution_time_ms: 0,
                     timestamp: Utc::now(),
                     error_type: Some(ErrorType::ValidationFailure),
+                    est_tokens_in: 0,
+                    est_tokens_out: 0,
+                    est_cost_usd: 0.0,
+                    criteria_passed: 0,
+                    criteria_total: 0,
                 };
             }
         };
@@ -414,6 +516,11 @@ impl EvaluationHarness {
                 execution_time_ms: command_result.execution_time_ms,
                 timestamp: Utc::now(),
                 error_type: Some(ErrorType::ValidationFailure),
+                est_tokens_in: 0,
+                est_tokens_out: 0,
+                est_cost_usd: 0.0,
+                criteria_passed: 0,
+                criteria_total: 0,
             },
         }
     }
@@ -474,6 +581,8 @@ impl EvaluationHarness {
         } else {
             0.0
         };
+        let total_cost_usd: f64 = results.iter().map(|r| r.est_cost_usd).sum();
+        let overall_mean_score = mean_score_of(results.iter());
 
         // Group by category
         let mut category_results = HashMap::new();
@@ -509,6 +618,7 @@ impl EvaluationHarness {
                     passed,
                     failed,
                     pass_rate,
+                    mean_score: mean_score_of(category_tests.iter().copied()),
                     avg_execution_time_ms: if total > 0 {
                         category_tests
                             .iter()
@@ -548,6 +658,7 @@ impl EvaluationHarness {
                 .iter()
                 .filter(|r| r.error_type == Some(ErrorType::Timeout))
                 .count();
+            let cost = CostRollup::of(backend_tests.iter().copied(), passed);
 
             backend_results.insert(
                 backend_name.clone(),
@@ -557,6 +668,7 @@ impl EvaluationHarness {
                     passed,
                     failed,
                     pass_rate,
+                    mean_score: mean_score_of(backend_tests.iter().copied()),
                     avg_execution_time_ms: if total > 0 {
                         backend_tests
                             .iter()
@@ -568,6 +680,10 @@ impl EvaluationHarness {
                     },
                     timeouts,
                     category_breakdown: HashMap::new(), // TODO: Calculate per-category breakdown
+                    total_cost_usd: cost.total_cost_usd,
+                    cost_per_passed_task: cost.cost_per_passed_task,
+                    total_tokens_in: cost.total_tokens_in,
+                    total_tokens_out: cost.total_tokens_out,
                 },
             );
         }
@@ -585,11 +701,13 @@ impl EvaluationHarness {
             branch,
             commit_sha,
             overall_pass_rate,
+            overall_mean_score,
             total_tests,
             total_passed,
             total_failed,
             category_results,
             backend_results,
+            total_cost_usd,
             execution_time_ms,
             regression_detected,
             baseline_comparison: None,
@@ -732,6 +850,13 @@ mod tests {
         assert_eq!(report.total_tests, 2); // 2 tests × 1 backend
         assert!(report.overall_pass_rate >= 0.0);
         assert!(report.overall_pass_rate <= 1.0);
+        // Single-criterion dataset: mean-score equals the all-pass rate by
+        // construction (the article's two metrics coincide until multi-criterion
+        // cases exist).
+        assert!((report.overall_mean_score - report.overall_pass_rate).abs() < 1e-6);
+        for backend in report.backend_results.values() {
+            assert!((backend.mean_score - backend.pass_rate).abs() < 1e-6);
+        }
     }
 
     #[tokio::test]
@@ -753,6 +878,51 @@ mod tests {
 
         assert_eq!(report.total_tests, 4); // 2 tests × 2 backends
         assert_eq!(report.backend_results.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn test_hosted_backend_accrues_estimated_cost() {
+        let dataset = create_simple_dataset();
+        let mut harness = EvaluationHarness::new(dataset, HarnessConfig::default()).unwrap();
+        // Registered name resolves to a hosted (priced) backend in the pricing table.
+        harness.add_backend(
+            "claude-opus-eval".to_string(),
+            Arc::new(MockBackend::new("mock")),
+        );
+
+        let report = harness.run().await.unwrap();
+
+        assert!(
+            report.total_cost_usd > 0.0,
+            "hosted backend should accrue non-zero estimated cost"
+        );
+        let backend = report.backend_results.get("claude-opus-eval").unwrap();
+        assert!(backend.total_cost_usd > 0.0);
+        assert!(backend.total_tokens_in > 0);
+        assert!(backend.total_tokens_out > 0);
+        // cost_per_passed_task is cost normalized by passed count (>= 0 always).
+        assert!(backend.cost_per_passed_task >= 0.0);
+        if backend.passed > 0 {
+            assert!(backend.cost_per_passed_task > 0.0);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_local_backend_is_free_but_counts_tokens() {
+        let dataset = create_simple_dataset();
+        let mut harness = EvaluationHarness::new(dataset, HarnessConfig::default()).unwrap();
+        // "embedded" resolves to a local (free) backend in the pricing table.
+        harness.add_backend("embedded".to_string(), Arc::new(MockBackend::new("mock")));
+
+        let report = harness.run().await.unwrap();
+
+        assert_eq!(report.total_cost_usd, 0.0, "local backend must be free");
+        let backend = report.backend_results.get("embedded").unwrap();
+        assert_eq!(backend.total_cost_usd, 0.0);
+        // Tokens are still counted even though the cost is zero.
+        assert!(backend.total_tokens_in > 0);
+        assert!(backend.total_tokens_out > 0);
+        assert_eq!(backend.cost_per_passed_task, 0.0);
     }
 
     #[tokio::test]

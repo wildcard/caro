@@ -188,6 +188,25 @@ async fn show_events(storage_path: PathBuf, limit: usize, session: Option<String
                 println!("  {} {}", "Backend:".bright_white(), backend);
                 println!("  {} {}", "Category:".bright_white(), error_category);
             }
+            crate::telemetry::EventType::AdvisorInvoked {
+                advisor,
+                accepted,
+                duration_ms,
+            } => {
+                let outcome = if *accepted {
+                    "accepted".green()
+                } else {
+                    "rejected".yellow()
+                };
+                println!(
+                    "  {} {} ({})",
+                    "Type:".bright_white(),
+                    "AdvisorInvoked".cyan(),
+                    outcome
+                );
+                println!("  {} {}", "Advisor:".bright_white(), advisor);
+                println!("  {} {}ms", "Duration:".bright_white(), duration_ms);
+            }
         }
         println!();
     }

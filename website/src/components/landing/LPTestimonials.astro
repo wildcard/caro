@@ -69,19 +69,19 @@ const testimonials: Testimonial[] = [
 
     <div class="social-proof-bar">
       <div class="proof-item">
-        <span class="proof-icon">⭐</span>
+        <span class="proof-icon" aria-hidden="true">❯</span>
         <span class="proof-text">Open Source on GitHub</span>
       </div>
       <div class="proof-item">
-        <span class="proof-icon">🛡️</span>
+        <span class="proof-icon" aria-hidden="true">■</span>
         <span class="proof-text">MIT Licensed</span>
       </div>
       <div class="proof-item">
-        <span class="proof-icon">🔒</span>
+        <span class="proof-icon" aria-hidden="true">▸</span>
         <span class="proof-text">Zero Telemetry</span>
       </div>
       <div class="proof-item">
-        <span class="proof-icon">🚀</span>
+        <span class="proof-icon" aria-hidden="true">$</span>
         <span class="proof-text">Production Ready</span>
       </div>
     </div>
@@ -89,9 +89,12 @@ const testimonials: Testimonial[] = [
 </section>
 
 <style>
+  /* Per Claude Design's May 9 caro-l06 ruling: LPTestimonials sits on
+     stage-grey (--bg-stage), the light-but-distinct neutral that
+     separates it from the paper surfaces above and below. */
   .testimonials {
     padding: 100px 20px;
-    background: var(--bg);
+    background: var(--bg-stage);
   }
 
   .container {
@@ -140,8 +143,10 @@ const testimonials: Testimonial[] = [
     margin-bottom: 60px;
   }
 
+  /* Cards lift to --bg-raised (white in light mode) so they read as
+     elevated against the stage-grey section surface. */
   .testimonial-card {
-    background: var(--bg-stage);
+    background: var(--bg-raised);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: 32px;
@@ -222,7 +227,7 @@ const testimonials: Testimonial[] = [
     flex-wrap: wrap;
     gap: 32px;
     padding: 32px;
-    background: var(--bg-stage);
+    background: var(--bg-raised);
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
   }
@@ -235,8 +240,13 @@ const testimonials: Testimonial[] = [
     color: var(--fg);
   }
 
+  /* Terminal-glyph proof marks per v2.1 icon-system reframe (no emoji). */
   .proof-icon {
-    font-size: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
   }
 
   .proof-text {

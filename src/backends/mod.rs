@@ -15,6 +15,42 @@ use crate::models::{
     BackendType, CommandRequest, GeneratedCommand, RiskJudgeContext, RiskJudgment,
 };
 
+/// The set of backend names the CLI's `--backend <name>` flag actually routes
+/// to, each paired with a one-line note.
+///
+/// This is the **single source of truth** shared by
+/// [`crate::cli::CommandLineInterface::validate_backend_name`] (the acceptor +
+/// its error text) and `print_backend_info` in `main.rs` (the `--backend-info`
+/// table). Iterating the same slice in both places is what keeps the two
+/// user-facing rosters from drifting — the divergence tracked by
+/// [#1115](https://github.com/wildcard/caro/issues/1115), where `--backend-info`
+/// advertised `static`/`claude` while `--backend static`/`--backend claude`
+/// hard-errored "Unknown backend".
+///
+/// It lists only backends the CLI can route to today. Enum variants that exist
+/// in [`BackendType`] but are **not yet CLI-wired** (`claude`, `openrouter`,
+/// `mlx`, `static`) are intentionally excluded so no surface advertises a name
+/// that `--backend` rejects. Wiring those (and unifying the remaining help-text
+/// rosters) is the larger follow-up on #1115.
+pub const CLI_SERVABLE_BACKENDS: &[(&str, &str)] = &[
+    (
+        "embedded",
+        "local LLM (MLX/CPU); downloads model on first use, no setup",
+    ),
+    ("ollama", "remote Ollama HTTP API (requires: ollama serve)"),
+    ("exo", "Exo distributed cluster (requires: exo cluster)"),
+    ("vllm", "remote vLLM HTTP API (requires: vllm server)"),
+    (
+        "mesh",
+        "Mesh-LLM pooled mesh (requires: mesh node on :9337)",
+    ),
+    (
+        "ai-horde",
+        "AI-Horde volunteer cluster (free, public, no setup)",
+    ),
+    ("hybrid", "local sanitizer + remote enhancer (PII-safe)"),
+];
+
 /// Core trait that all command generation backends must implement
 #[async_trait]
 pub trait CommandGenerator: Send + Sync {
@@ -33,6 +69,26 @@ pub trait CommandGenerator: Send + Sync {
     /// always bounded by the hard floor in
     /// [`blend_smart_decision`](crate::safety::blend_smart_decision).
     async fn classify_risk(&self, _command: &str, _ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
+        None
+    }
+
+    /// Act as a "frontier advisor": review and improve a low-confidence draft.
+    ///
+    /// The default is a no-op (`None`): a backend opts out of advising, so a
+    /// local worker is never used as its own advisor. A stronger/hosted backend
+    /// implements this to return an improved command for the same request,
+    /// informed by the local draft.
+    ///
+    /// This mirrors [`CommandGenerator::classify_risk`]'s opt-in, fail-safe
+    /// shape. The agent loop calls it only on a low-confidence draft (sparse —
+    /// the Fireworks "frontier advisor" pattern), re-validates the result
+    /// through the safety validator, and keeps the local result if this returns
+    /// `None` (advisor unavailable, opted out, or errored).
+    async fn advise(
+        &self,
+        _draft: &GeneratedCommand,
+        _request: &CommandRequest,
+    ) -> Option<GeneratedCommand> {
         None
     }
 

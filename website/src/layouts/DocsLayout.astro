@@ -1,5 +1,6 @@
 ---
 import Analytics from '@vercel/analytics/astro';
+import { KavanaCompanion } from '../ui/KavanaCompanion/KavanaCompanion';
 
 interface Props {
   title: string;
@@ -73,6 +74,7 @@ const { title, description } = Astro.props;
             <li><a href="/docs">Overview</a></li>
             <li><a href="/docs/installation">Installation</a></li>
             <li><a href="/docs/quickstart">Quick Start</a></li>
+            <li><a href="/docs/kavana">Meet Kavana</a></li>
           </ul>
           <h3>Guides</h3>
           <ul>
@@ -93,6 +95,7 @@ const { title, description } = Astro.props;
         </article>
       </main>
     </div>
+    <KavanaCompanion client:load />
     <Analytics />
   </body>
 </html>
@@ -287,6 +290,7 @@ const { title, description } = Astro.props;
   .docs-content {
     margin-left: 260px;
     flex: 1;
+    min-width: 0;
     max-width: 900px;
     padding: 40px 60px;
   }
@@ -404,6 +408,8 @@ const { title, description } = Astro.props;
 
     .docs-content {
       margin-left: 0;
+      width: 100%;
+      max-width: 100%;
       padding: 24px 20px;
     }
   }

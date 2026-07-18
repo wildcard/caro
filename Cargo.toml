@@ -1,6 +1,6 @@
 [package]
 name = "caro"
-version = "1.4.0"
+version = "1.5.0"
 edition = "2021"
 rust-version = "1.85"
 description = "Convert natural language to shell commands using local LLMs"
@@ -79,6 +79,8 @@ chrono = { version = "0.4", features = ["serde"] }
 # Regex for safety validation
 regex = "1"
 once_cell = "1.21"
+# POSIX shell tokenization for quote/escape-normalizing the safety scan
+shell-words = "1.1"
 
 # CVE rule ruleset deserialization (see src/dogma/)
 # Pinned to 1.x because bincode 3.0.0 is an intentional compile_error! prank

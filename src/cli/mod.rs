@@ -185,7 +185,7 @@ impl CliApp {
     /// Uses configuration-driven backend selection with embedded model as primary
     /// and optional remote backend fallbacks.
     pub async fn new() -> Result<Self, CliError> {
-        Self::with_overrides(CliConfig::default(), None, None, false, false).await
+        Self::with_overrides(CliConfig::default(), None, None, false, false, None).await
     }
 
     /// Create CLI application with backend and model overrides from CLI args
@@ -201,6 +201,7 @@ impl CliApp {
         model_name_override: Option<String>,
         force_llm: bool,
         best_of: bool,
+        advisor_override: Option<String>,
     ) -> Result<Self, CliError> {
         // --best-of is a no-op unless the ranking feature is built in; warn
         // loudly so automation never assumes candidates were ranked.
@@ -289,14 +290,22 @@ impl CliApp {
 
         // Create agent loop with backend, context, and profile
         // If force_llm is true, disable the static matcher
-        let agent_loop = AgentLoop::new(backend_arc.clone(), context.clone(), profile)
+        #[allow(unused_mut)]
+        let mut agent_loop = AgentLoop::new(backend_arc.clone(), context.clone(), profile)
             .with_static_matcher(!force_llm);
 
-        // Best-of-N ranking (opt-in via --best-of / CARO_BEST_OF). Adds the
-        // every distinct available backend as an independent source so the
-        // pipeline can pick the best. Off by default → unchanged path. With only
-        // one distinct backend (e.g. embedded-only), `extra` is empty and the
-        // ranked path degrades to the single-backend result — nothing to compare.
+        // Optional frontier advisor (off by default). Consulted only on
+        // low-confidence drafts; its output is re-validated before use.
+        if let Some(advisor_name) = advisor_override.as_deref() {
+            agent_loop = Self::maybe_attach_advisor(agent_loop, advisor_name).await;
+        }
+
+        // Best-of-N ranking (opt-in via --best-of / CARO_BEST_OF). Adds every
+        // distinct available backend as an independent source so the pipeline
+        // can pick the best. Off by default → unchanged path. With only one
+        // distinct backend (e.g. embedded-only), `extra` is empty and the ranked
+        // path degrades to the single-backend result — nothing to compare. The
+        // advisor set above is preserved on the loop for that degrade case.
         #[cfg(feature = "candidate-ranking")]
         let agent_loop = if best_of {
             let primary_type = backend_arc.backend_info().backend_type;
@@ -466,6 +475,56 @@ impl CliApp {
         }
 
         Ok(sources)
+    }
+
+    /// Build the named frontier advisor and attach it to the agent loop, or
+    /// warn and return the loop unchanged.
+    ///
+    /// The advisor is a remote/hosted model, so enabling it means low-confidence
+    /// prompts are sent off-host — we warn explicitly. Only `claude` is wired
+    /// today (the article's advisor was Claude Opus); `openrouter` is a trivial
+    /// follow-up once it grows an env constructor.
+    async fn maybe_attach_advisor(agent_loop: AgentLoop, name: &str) -> AgentLoop {
+        #[cfg(feature = "remote-backends")]
+        match Self::create_advisor(name).await {
+            Some(advisor) => {
+                eprintln!(
+                    "⚠  Frontier advisor '{}' enabled — low-confidence prompts will be sent \
+                     off-host to a remote model.",
+                    name
+                );
+                agent_loop.with_advisor(advisor)
+            }
+            None => agent_loop,
+        }
+        #[cfg(not(feature = "remote-backends"))]
+        {
+            let _ = name;
+            eprintln!("⚠  --advisor requires the 'remote-backends' feature; ignoring.");
+            agent_loop
+        }
+    }
+
+    /// Resolve an advisor backend by name from the environment (API keys).
+    /// Returns `None` (with a warning) when the backend can't be built.
+    #[cfg(feature = "remote-backends")]
+    async fn create_advisor(name: &str) -> Option<Arc<dyn CommandGenerator>> {
+        match name.to_ascii_lowercase().as_str() {
+            "claude" | "anthropic" => match crate::backends::remote::ClaudeBackend::from_env() {
+                Ok(backend) => Some(Arc::new(backend)),
+                Err(e) => {
+                    eprintln!("⚠  advisor 'claude' unavailable: {}", e);
+                    None
+                }
+            },
+            other => {
+                eprintln!(
+                    "⚠  unknown advisor '{}': only 'claude' is supported today",
+                    other
+                );
+                None
+            }
+        }
     }
 
     /// Create appropriate backend based on user configuration
@@ -820,34 +879,37 @@ impl CliApp {
     ///
     /// Returns Ok(()) if valid, or a helpful error message if not.
     fn validate_backend_name(backend: &str) -> Result<(), CliError> {
-        const VALID_BACKENDS: &[&str] = &[
-            "embedded", "ollama", "exo", "vllm", "mesh", "ai-horde", "hybrid",
-        ];
+        // The accepted roster and the `--backend-info` table are driven by the
+        // same slice so the two user-facing surfaces cannot drift (#1115).
+        use crate::backends::CLI_SERVABLE_BACKENDS;
 
         let normalized = backend.to_lowercase();
-        if VALID_BACKENDS.contains(&normalized.as_str()) {
+        if CLI_SERVABLE_BACKENDS
+            .iter()
+            .any(|(name, _)| *name == normalized)
+        {
             return Ok(());
         }
 
         // Provide helpful error with suggestions
-        let suggestion = VALID_BACKENDS
+        let suggestion = CLI_SERVABLE_BACKENDS
             .iter()
-            .find(|&&v| v.starts_with(&normalized) || normalized.starts_with(v))
-            .map(|&v| format!(". Did you mean '{}'?", v))
+            .map(|(name, _)| *name)
+            .find(|v| v.starts_with(normalized.as_str()) || normalized.starts_with(v))
+            .map(|v| format!(". Did you mean '{}'?", v))
             .unwrap_or_default();
+
+        let available = CLI_SERVABLE_BACKENDS
+            .iter()
+            .map(|(name, note)| format!("  - {}: {}", name, note))
+            .collect::<Vec<_>>()
+            .join("\n");
 
         Err(CliError::InvalidArgument {
             message: format!(
-                "Unknown backend '{}'{}\n\nAvailable backends:\n  \
-                 - embedded: Local Qwen model (default, no setup required)\n  \
-                 - ollama: Ollama server (requires: ollama serve)\n  \
-                 - exo: Exo distributed cluster (requires: exo cluster)\n  \
-                 - vllm: vLLM HTTP API (requires: vllm server)\n  \
-                 - mesh: Mesh-LLM pooled mesh (requires: mesh node on :9337)\n  \
-                 - ai-horde: AI-Horde volunteer cluster (free, no setup; public)\n  \
-                 - hybrid: Local sanitizer + remote enhancer (PII-safe)\n\n\
+                "Unknown backend '{}'{}\n\nAvailable backends:\n{}\n\n\
                  Set via: --backend <name>, CARO_BACKEND env var, or config file",
-                backend, suggestion
+                backend, suggestion, available
             ),
         })
     }
@@ -876,8 +938,13 @@ impl CliApp {
     }
 
     /// Get list of available backend names
-    pub fn available_backends() -> &'static [&'static str] {
-        &["embedded", "ollama", "exo", "vllm"]
+    pub fn available_backends() -> Vec<&'static str> {
+        // Derived from the same source of truth as `validate_backend_name`
+        // and `--backend-info` so all three agree (#1115).
+        crate::backends::CLI_SERVABLE_BACKENDS
+            .iter()
+            .map(|(name, _)| *name)
+            .collect()
     }
 
     /// Run CLI with provided arguments
@@ -1421,6 +1488,33 @@ mod tests {
         assert!(backends.contains(&"ollama"));
         assert!(backends.contains(&"exo"));
         assert!(backends.contains(&"vllm"));
+    }
+
+    #[test]
+    fn test_validate_backend_name_matches_servable_roster() {
+        // Pins the acceptor to the single source of truth so the
+        // `--backend-info` table (which iterates the same slice) can never
+        // advertise a backend that `--backend <name>` rejects. This is the
+        // regression guard for issue #1115.
+        for (name, _note) in crate::backends::CLI_SERVABLE_BACKENDS {
+            assert!(
+                CliApp::validate_backend_name(name).is_ok(),
+                "advertised backend '{}' must be accepted by --backend",
+                name
+            );
+        }
+
+        // Enum variants that exist in `BackendType` but are NOT CLI-wired are
+        // intentionally rejected — advertising them was the #1115 bug. If a
+        // future PR wires one of these, add it to CLI_SERVABLE_BACKENDS (which
+        // updates every surface at once) rather than special-casing here.
+        for unwired in ["claude", "static", "openrouter", "mlx"] {
+            assert!(
+                CliApp::validate_backend_name(unwired).is_err(),
+                "'{}' is not CLI-wired yet and must not be silently accepted",
+                unwired
+            );
+        }
     }
 
     #[test]

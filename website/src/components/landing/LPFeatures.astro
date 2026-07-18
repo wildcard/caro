@@ -10,6 +10,12 @@ const { lang = 'en' } = Astro.props;
 
 // Load features from translation file
 const features = translations[lang].landing.features.items;
+
+// Per the v2.1 icon-system reframe (spec: claude.ai/design/p/332f73e9 May 9):
+// emoji are not feature icons. Terminal glyphs map 1:1 to feature ordering
+// across every locale — overriding the legacy `feature.icon` emoji from
+// the i18n payload without touching 15 locale JSON files.
+const featureGlyphs = ['■', '▸', '❯', '$'] as const;
 ---
 
 <section id="features">
@@ -18,9 +24,9 @@ const features = translations[lang].landing.features.items;
     <p class="section-subtitle">{t(lang, 'landing.features.subtitle')}</p>
 
     <div class="features">
-      {features.map((feature) => (
+      {features.map((feature, index) => (
         <div class={`feature ${feature.highlight ? 'feature-highlight' : ''}`}>
-          <div class="feature-icon">{feature.icon}</div>
+          <div class="feature-icon" aria-hidden="true">{featureGlyphs[index] ?? featureGlyphs[0]}</div>
           <h3>{feature.title}{feature.privacyLink && <a href="/telemetry" class="privacy-asterisk">*</a>}</h3>
           <p>{feature.description}</p>
         </div>
@@ -76,21 +82,27 @@ const features = translations[lang].landing.features.items;
 
   .feature:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    border-color: #ff8c42;
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
   }
 
   :global(.dark) .feature:hover {
-    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.15);
+    box-shadow: 0 10px 30px rgba(239, 51, 51, 0.15);
   }
 
   .feature-highlight {
-    border-color: rgba(255, 140, 66, 0.3);
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.03) 0%, var(--color-bg) 100%);
+    border-color: rgba(239, 51, 51, 0.3);
+    background: linear-gradient(135deg, rgba(239, 51, 51, 0.03) 0%, var(--color-bg) 100%);
   }
 
+  /* Terminal-glyph feature icon: monospaced ink at display weight, brand
+     red. Replaces the v1 emoji per Claude Design's icon-system reframe. */
   .feature-icon {
-    font-size: 40px;
+    font-family: var(--font-mono);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--accent);
     margin-bottom: 16px;
   }
 
@@ -120,7 +132,7 @@ const features = translations[lang].landing.features.items;
   }
 
   .cta-link {
-    color: #ff8c42;
+    color: var(--accent);
     font-weight: 600;
     text-decoration: none;
     font-size: 16px;
@@ -132,7 +144,7 @@ const features = translations[lang].landing.features.items;
   }
 
   .privacy-asterisk {
-    color: #ff8c42;
+    color: var(--accent);
     text-decoration: none;
     font-size: 0.8em;
     vertical-align: super;

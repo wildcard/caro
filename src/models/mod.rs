@@ -903,7 +903,7 @@ pub struct UserConfiguration {
     /// How accept/prompt/block decisions are made (`prompt`/`auto`/`smart`).
     #[serde(default)]
     pub approval_mode: ApprovalMode,
-    /// Default backend type (embedded, ollama, exo, vllm)
+    /// Default backend type (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid)
     #[serde(default)]
     pub default_model: Option<String>,
     /// Model name for the backend (e.g., codellama:7b for ollama)

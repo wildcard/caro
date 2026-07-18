@@ -715,7 +715,7 @@ struct Cli {
     #[arg(
         short = 'b',
         long,
-        help = "Inference backend (embedded, ollama, exo, vllm)"
+        help = "Inference backend (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid; see --backend-info)"
     )]
     backend: Option<String>,
 
@@ -726,6 +726,14 @@ struct Cli {
         help = "Model name for the backend (e.g., codellama:7b for ollama)"
     )]
     model_name: Option<String>,
+
+    /// Frontier advisor backend consulted only on low-confidence drafts
+    /// (off by default). Its output is re-validated for safety before use.
+    #[arg(
+        long = "advisor",
+        help = "Frontier advisor for low-confidence drafts (e.g., claude; sends prompts off-host)"
+    )]
+    advisor: Option<String>,
 
     /// Knowledge backend for command history and learning
     #[arg(
@@ -1102,6 +1110,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         cli.model_name.clone(),
         cli.force_llm,
         false, // CaroML runs its own task pipeline; best-of-N is for interactive queries
+        cli.advisor.clone(),
     )
     .await
     .map_err(|e| format!("initializing backend: {}", e))?;
@@ -3629,6 +3638,7 @@ async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
         cli.model_name.clone(),
         cli.force_llm,
         best_of,
+        cli.advisor.clone(),
     )
     .await?;
 
@@ -4026,24 +4036,20 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
 /// environment variables / typical endpoints set that would make them
 /// usable. This is a best-effort snapshot, not a live health check.
 fn print_backend_info() {
+    use caro::backends::CLI_SERVABLE_BACKENDS;
     use colored::Colorize;
 
-    // Status helpers. For remote backends we use environment variables as
-    // a lightweight "configured?" signal — probing each endpoint would
-    // turn `--backend-info` into a slow diagnostic command.
+    // For remote backends we use environment variables as a lightweight
+    // "configured?" signal — probing each endpoint would turn
+    // `--backend-info` into a slow diagnostic command.
     let env_or = |keys: &[&str]| keys.iter().any(|k| std::env::var(k).is_ok());
 
-    let status_for = |keys: &[&str]| {
-        if env_or(keys) {
-            "configured"
-        } else {
-            "not configured"
-        }
-    };
-
-    let row = |backend: &str, status: &str, notes: &str| {
-        println!("  {:<12}  {:<16}  {}", backend, status, notes);
-    };
+    // The roster is driven by `CLI_SERVABLE_BACKENDS` — the SAME slice that
+    // `validate_backend_name` accepts — so this table can never advertise a
+    // backend that `--backend <name>` would reject (the divergence tracked
+    // by #1115). `static`/`claude`/`openrouter` are intentionally absent
+    // because the CLI does not route to them yet.
+    let remote_backends_compiled = cfg!(feature = "remote-backends");
 
     println!("{}", "Available inference backends".bold());
     println!();
@@ -4053,35 +4059,38 @@ fn print_backend_info() {
         "Status".bold(),
         "Notes".bold()
     );
-    row("-------", "------", "-----");
+    println!("  {:<12}  {:<16}  {:<5}", "-------", "------", "-----");
 
-    // Built-in, always-available backends.
-    row("static", "available", "template-based; no model required");
-    row(
-        "embedded",
-        "available",
-        "local LLM (MLX/CPU); downloads model on first use",
-    );
-
-    // Remote backends: we report "configured" if a credential / endpoint
-    // env var is set, otherwise "not configured".
-    row(
-        "ollama",
-        status_for(&["OLLAMA_HOST", "CARO_OLLAMA_URL"]),
-        "remote Ollama HTTP API (OLLAMA_HOST)",
-    );
-    row(
-        "vllm",
-        status_for(&["VLLM_BASE_URL", "CARO_VLLM_URL"]),
-        "remote vLLM HTTP API (VLLM_BASE_URL)",
-    );
-    row(
-        "claude",
-        status_for(&["ANTHROPIC_API_KEY"]),
-        "Anthropic Claude API (ANTHROPIC_API_KEY)",
-    );
+    for (name, notes) in CLI_SERVABLE_BACKENDS {
+        let status: &str = if *name == "embedded" {
+            // Always compiled in; downloads its model on first use.
+            "available"
+        } else if !remote_backends_compiled {
+            // Every other servable backend lives behind `remote-backends`,
+            // which is NOT a default feature — so the published binary cannot
+            // route to it. Say so instead of implying it works.
+            "not compiled"
+        } else {
+            match *name {
+                "ai-horde" => "available", // free public cluster, no config
+                "ollama" if env_or(&["OLLAMA_HOST", "CARO_OLLAMA_URL"]) => "configured",
+                "vllm" if env_or(&["VLLM_BASE_URL", "CARO_VLLM_URL"]) => "configured",
+                "exo" if env_or(&["CARO_EXO_URL"]) => "configured",
+                "mesh" if env_or(&["CARO_MESH_URL"]) => "configured",
+                "hybrid" => "needs config",
+                _ => "default endpoint",
+            }
+        };
+        println!("  {:<12}  {:<16}  {}", name, status, notes);
+    }
 
     println!();
+    if !remote_backends_compiled {
+        println!(
+            "{}",
+            "Remote backends need: cargo install caro --features remote-backends".dimmed()
+        );
+    }
     println!(
         "{}",
         "Use --backend <name> to force a specific backend.".dimmed()
