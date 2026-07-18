@@ -114,7 +114,7 @@ const posts = [
   .hero h1 {
     font-size: 48px;
     margin-bottom: 20px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -155,7 +155,7 @@ const posts = [
   .blog-badge {
     display: inline-block;
     background: #fff3e6;
-    color: #ff8c42;
+    color: var(--accent);
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 12px;
@@ -164,14 +164,14 @@ const posts = [
   }
 
   .dark .blog-badge {
-    background: rgba(255, 140, 66, 0.2);
-    color: #ff8c42;
+    background: rgba(239, 51, 51, 0.2);
+    color: var(--accent);
   }
 
   .blog-meta {
     display: flex;
     gap: 20px;
-    color: #ff8c42;
+    color: var(--accent);
     font-size: 14px;
     font-weight: 600;
     text-transform: uppercase;
@@ -193,7 +193,7 @@ const posts = [
   }
 
   .read-more {
-    color: #ff8c42;
+    color: var(--accent);
     font-weight: 600;
     display: inline-flex;
     align-items: center;

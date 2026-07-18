@@ -1,6 +1,6 @@
 ---
 // LPPersonas.astro - Three personas section with interactive CTAs
-import Glyph from '../../ui/Glyph/Glyph.astro';
+import Icon from '../../components/Icon.astro';
 ---
 
 <section class="personas" id="personas">
@@ -14,7 +14,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
       <!-- The Accelerator -->
       <div class="persona-card accelerator" data-persona="accelerator">
         <div class="persona-icon">
-          <Glyph name="kyaro-mark" size={32} aria-label="Accelerator" />
+          <Icon name="Rocket" size={32} label="Accelerator" />
         </div>
         <h3 class="persona-title">The Accelerator</h3>
         <p class="persona-role">Individual Developer</p>
@@ -55,7 +55,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
       <!-- The Guardian -->
       <div class="persona-card guardian" data-persona="guardian">
         <div class="persona-icon">
-          <Glyph name="kyaro-mark" size={32} aria-label="Guardian" />
+          <Icon name="ShieldCheck" size={32} label="Guardian" />
         </div>
         <h3 class="persona-title">The Guardian</h3>
         <p class="persona-role">Security & Platform Lead</p>
@@ -100,7 +100,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
       <!-- The Operator -->
       <div class="persona-card operator" data-persona="operator">
         <div class="persona-icon">
-          <Glyph name="kyaro-mark" size={32} aria-label="Operator" />
+          <Icon name="Wrench" size={32} label="Operator" />
         </div>
         <h3 class="persona-title">The Operator</h3>
         <p class="persona-role">SRE / DevOps Engineer</p>
@@ -203,7 +203,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
 <style>
   .personas {
     padding: 100px 20px;
-    background: var(--bg);
+    background: var(--bg-raised);
   }
 
   .container {
@@ -235,7 +235,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
   }
 
   .persona-card {
-    background: var(--bg);
+    background: var(--bg-raised);
     border-radius: var(--radius-md);
     padding: 32px;
     border: 1px solid var(--border);
@@ -261,7 +261,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
   .persona-card.accelerator::before,
   .persona-card.guardian::before,
   .persona-card.operator::before {
-    background: var(--accent);
+    background: var(--accent-fill);
   }
 
   .persona-card:hover {
@@ -330,7 +330,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
 
   .label.solution {
     background: rgba(34, 197, 94, 0.15);
-    color: #15803d;
+    color: var(--status-safe-strong);
   }
 
   .persona-problem p, .persona-solution p {
@@ -414,14 +414,14 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
   }
 
   .use-case code.input {
-    background: var(--bg);
+    background: var(--bg-raised);
     color: var(--fg);
     border: 1px solid var(--border);
   }
 
   .use-case code.output {
     background: rgba(34, 197, 94, 0.12);
-    color: #15803d;
+    color: var(--status-safe-strong);
   }
 
   .use-case code.blocked {
@@ -463,7 +463,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
   .platform-item code {
     font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
     font-size: 0.75rem;
-    color: #15803d;
+    color: var(--status-safe-strong);
     background: rgba(34, 197, 94, 0.12);
     padding: 4px 8px;
     border-radius: 4px;
@@ -502,7 +502,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
   }
 
   .persona-cta[aria-expanded="true"] {
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--fg-inverse);
   }
 

@@ -5,7 +5,7 @@
  */
 import { SITE_CONFIG } from '../config/site';
 import { t } from '../i18n/config';
-import Glyph from '../ui/Glyph/Glyph.astro';
+import KyaroMark from './KyaroMark.astro';
 
 interface Props {
   lang: string;
@@ -23,7 +23,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
       <!-- Brand Column -->
       <div class="footer-brand">
         <a href="/" class="brand-link">
-          <Glyph name="kyaro-mark" size={20} class="brand-icon" aria-label="Kyaro mark" />
+          <KyaroMark size={32} class="brand-icon" />
           <span class="brand-name">Caro</span>
         </a>
         <p class="brand-tagline">{t(lang, 'landing.footer.brand.tagline')}</p>
@@ -59,7 +59,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
         <h3 class="column-title">{t(lang, 'landing.footer.columns.product.title')}</h3>
         <ul class="column-links">
           <li><a href="/#features">{t(lang, 'landing.footer.columns.product.features')}</a></li>
-          <li><a href="/#how-it-works">{t(lang, 'landing.footer.columns.product.howItWorks')}</a></li>
+          <li><a href="/#demo">{t(lang, 'landing.footer.columns.product.howItWorks')}</a></li>
           <li><a href="/explore">{t(lang, 'landing.footer.columns.product.explore')}</a></li>
           <li><a href="/#download">{t(lang, 'landing.footer.columns.product.download')}</a></li>
           <li><a href="/roadmap">{t(lang, 'landing.footer.columns.product.roadmap')}</a></li>
@@ -82,7 +82,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
       <div class="footer-column">
         <h3 class="column-title">{t(lang, 'landing.footer.columns.resources.title')}</h3>
         <ul class="column-links">
-          <li><a href="/#blog">{t(lang, 'landing.footer.columns.resources.blog')}</a></li>
+          <li><a href="/blog">{t(lang, 'landing.footer.columns.resources.blog')}</a></li>
           <li><a href="/faq">{t(lang, 'landing.footer.columns.resources.faq')}</a></li>
           <li><a href="/glossary">{t(lang, 'landing.footer.columns.resources.glossary')}</a></li>
           <li><a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">{t(lang, 'landing.footer.columns.resources.github')}</a></li>
@@ -105,7 +105,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     <!-- Kyaro Mascot Section -->
     <div class="kyaro-banner">
       <div class="kyaro-content">
-        <Glyph name="kyaro-mark" size={32} class="kyaro-emoji" aria-label="Kyaro mark" />
+        <img src="/kyaro/idle.gif" alt="Kyaro, the office Shiba" class="kyaro-emoji" width="48" height="48" loading="lazy" />
         <div class="kyaro-info">
           <p class="kyaro-title">{t(lang, 'landing.footer.kyaro.title')}</p>
           <p class="kyaro-text">
@@ -297,13 +297,15 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
   .kyaro-title {
     font-size: 15px;
     font-weight: 600;
-    color: var(--color-footer-text);
+    /* Adaptive ink: the banner surface is light in light mode / dark in dark
+       mode, so the text must flip too (was always-cream -> invisible on light). */
+    color: var(--fg-strong);
     margin-bottom: 4px;
   }
 
   .kyaro-text {
     font-size: 13px;
-    color: var(--color-footer-text-muted);
+    color: var(--fg-muted);
     line-height: 1.4;
   }
 

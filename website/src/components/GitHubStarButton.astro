@@ -43,7 +43,7 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 140, 66, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(239, 51, 51, 0.1), transparent);
     transition: left 0.5s;
   }
 
@@ -53,8 +53,8 @@
 
   .github-star-button:hover {
     transform: translateY(-2px);
-    border-color: #ff8c42;
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.25);
+    border-color: var(--accent);
+    box-shadow: 0 8px 20px rgba(239, 51, 51, 0.25);
   }
 
   .github-star-button:active {
@@ -63,7 +63,7 @@
 
   .star-icon {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .github-star-button:hover .star-icon {
@@ -81,7 +81,7 @@
     min-width: 32px;
     height: 24px;
     padding: 0 8px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     color: white;
     border-radius: 12px;
     font-size: 14px;
@@ -361,8 +361,8 @@
 
     // Color palettes for variety
     const colorPalettes = [
-      ['#ff8c42', '#ff6b35', '#ffd700', '#ff1493', '#00ff00', '#00bfff'], // Rainbow
-      ['#ff8c42', '#ff6b35', '#ff4500', '#ffa500', '#ffd700'], // Warm sunset
+      ['#ef3333', '#e63636', '#ffd700', '#ff1493', '#00ff00', '#00bfff'], // Rainbow
+      ['#ef3333', '#e63636', '#ff4500', '#ffa500', '#ffd700'], // Warm sunset
       ['#00bfff', '#1e90ff', '#4169e1', '#0000ff', '#8a2be2'], // Cool blues
       ['#ff1493', '#ff69b4', '#ff00ff', '#da70d6', '#ba55d3'], // Pink/purple
       ['#00ff00', '#32cd32', '#00fa9a', '#7fff00', '#adff2f'], // Green garden
@@ -602,16 +602,16 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0);
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     color: white;
     padding: 40px 56px;
     border-radius: 24px;
     font-weight: 800;
     font-size: 36px;
     text-align: center;
-    box-shadow: 0 30px 80px rgba(255, 140, 66, 0.9),
+    box-shadow: 0 30px 80px rgba(239, 51, 51, 0.9),
                 0 0 0 8px rgba(255, 255, 255, 0.5),
-                0 0 40px rgba(255, 140, 66, 0.6);
+                0 0 40px rgba(239, 51, 51, 0.6);
     opacity: 0;
     transition: all 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     z-index: 999999;

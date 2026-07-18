@@ -511,7 +511,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
 
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     transition: width 0.3s ease;
     width: 14.28%;
   }
@@ -548,8 +548,8 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .nav-btn:hover {
-    background: #ff8c42;
-    border-color: #ff8c42;
+    background: var(--accent-fill);
+    border-color: var(--accent);
     color: white;
   }
 
@@ -597,14 +597,14 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .tool-btn:hover {
-    background: #ff8c42;
-    border-color: #ff8c42;
+    background: var(--accent-fill);
+    border-color: var(--accent);
     color: white;
   }
 
   .tool-btn.active {
-    background: #ff8c42;
-    border-color: #ff8c42;
+    background: var(--accent-fill);
+    border-color: var(--accent);
     color: white;
   }
 
@@ -686,7 +686,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   /* Title Slide */
   .slide-title .title-badge {
     display: inline-block;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     color: white;
     padding: 8px 24px;
     border-radius: 20px;
@@ -713,7 +713,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   .title-logo {
     font-size: 96px;
     font-weight: 700;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -742,7 +742,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   .stat-value {
     font-size: 48px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .stat-label {
@@ -934,7 +934,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   .milestone-badge {
     display: inline-block;
     padding: 8px 20px;
-    background: var(--accent);
+    background: var(--accent-fill);
     color: white;
     border-radius: 20px;
     font-size: 14px;
@@ -980,7 +980,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
 
   .deliverable-group h4 {
     font-size: 14px;
-    color: var(--accent, #ff8c42);
+    color: var(--accent, var(--accent));
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 12px;
@@ -1145,9 +1145,9 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .tracking-link:hover {
-    border-color: #ff8c42;
+    border-color: var(--accent);
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.15);
+    box-shadow: 0 4px 15px rgba(239, 51, 51, 0.15);
   }
 
   .link-icon {
@@ -1191,7 +1191,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   .summary-value {
     font-size: 56px;
     font-weight: 700;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1224,23 +1224,23 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .cta-button.primary {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     color: white;
   }
 
   .cta-button.primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 8px 20px rgba(239, 51, 51, 0.3);
   }
 
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid #ff8c42;
-    color: #ff8c42;
+    border: 2px solid var(--accent);
+    color: var(--accent);
   }
 
   .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.1);
+    background: rgba(239, 51, 51, 0.1);
   }
 
   .contribution-note {
@@ -1302,19 +1302,19 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .overview-slide:hover {
-    border-color: #ff8c42;
+    border-color: var(--accent);
     transform: translateY(-2px);
   }
 
   .overview-slide.current {
-    border-color: #ff8c42;
-    background: rgba(255, 140, 66, 0.1);
+    border-color: var(--accent);
+    background: rgba(239, 51, 51, 0.1);
   }
 
   .overview-slide-number {
     font-size: 24px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent);
     margin-bottom: 8px;
   }
 
@@ -1337,8 +1337,8 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .close-overview:hover {
-    background: #ff8c42;
-    border-color: #ff8c42;
+    background: var(--accent-fill);
+    border-color: var(--accent);
     color: white;
   }
 

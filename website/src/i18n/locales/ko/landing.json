@@ -43,26 +43,26 @@
       "ctaLink": "안전 패턴 보기",
       "items": [
         {
-          "icon": "🛡️",
+          "icon": "ShieldCheck",
           "title": "다시는 프로덕션을 날려버리지 마세요",
           "description": "rm -rf /, 포크 폭탄, 그리고 50개 이상의 커리어를 끝낼 수 있는 명령어를 실행 전에 차단합니다. 새벽 2시의 당신이 감사할 겁니다.",
           "highlight": true
         },
         {
-          "icon": "🔒",
+          "icon": "Lock",
           "title": "당신의 데이터는 당신의 것",
           "description": "텔레메트리 제로. 클라우드 API 호출 제로. 에어갭 네트워크에서 실행 가능. 모든 컴플라이언스 감사 통과. 명령어가 절대 기기 밖으로 나가지 않습니다.",
           "highlight": true,
           "privacyLink": true
         },
         {
-          "icon": "✅",
+          "icon": "Check",
           "title": "실제로 작동하는 명령어",
           "description": "Mac, Linux 서버, 동료의 BSD 박스에서 작동하는 명령어를 생성합니다. 첫 시도에. 매번.",
           "highlight": false
         },
         {
-          "icon": "⚡",
+          "icon": "Zap",
           "title": "흐름을 방해하지 않을 만큼 빠름",
           "description": "Apple Silicon에서 2초 미만의 추론. 클라우드 API 대기 없음. 서버 다운 걱정 없음. 그냥 답변만.",
           "highlight": false

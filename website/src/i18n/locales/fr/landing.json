@@ -43,26 +43,26 @@
       "ctaLink": "Voir les motifs de sécurité",
       "items": [
         {
-          "icon": "🛡️",
+          "icon": "ShieldCheck",
           "title": "Ne détruisez plus jamais la production",
           "description": "Bloque rm -rf /, les bombes fork et plus de 50 autres commandes catastrophiques AVANT que vous ne puissiez les exécuter. Votre moi de 2 heures du matin vous remerciera.",
           "highlight": true
         },
         {
-          "icon": "🔒",
+          "icon": "Lock",
           "title": "Vos données vous appartiennent",
           "description": "Zéro télémétrie. Zéro appel API cloud. Fonctionne dans des réseaux isolés. Réussit tous les audits de conformité. Vos commandes ne quittent jamais votre machine.",
           "highlight": true,
           "privacyLink": true
         },
         {
-          "icon": "✅",
+          "icon": "Check",
           "title": "Des commandes qui fonctionnent réellement",
           "description": "Génère des commandes qui fonctionnent sur votre Mac, votre serveur Linux et la machine BSD de votre collègue. Du premier coup. À chaque fois.",
           "highlight": false
         },
         {
-          "icon": "⚡",
+          "icon": "Zap",
           "title": "Assez rapide pour ne pas interrompre votre flux",
           "description": "Inférence en moins de 2 secondes sur Apple Silicon. Pas d'attente d'API cloud. Pas de doute sur l'état du serveur. Juste des réponses.",
           "highlight": false

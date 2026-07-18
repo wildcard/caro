@@ -299,20 +299,20 @@ const iconPaths = {
   .faq-hero {
     text-align: center;
     padding: 100px 20px 60px;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    color: #fff;
+    background: var(--bg-inverse);
+    color: var(--fg-inverse);
   }
 
   .faq-hero h1 {
     font-size: 48px;
     font-weight: 800;
     margin: 0 0 16px;
-    color: #fff;
+    color: var(--fg-inverse);
   }
 
   .hero-subtitle {
     font-size: 20px;
-    color: #ff8c42;
+    color: var(--accent);
     margin: 0;
     font-weight: 500;
   }
@@ -347,10 +347,10 @@ const iconPaths = {
   }
 
   .quick-link:hover {
-    border-color: #ff8c42;
-    color: #ff8c42;
+    border-color: var(--accent);
+    color: var(--accent);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
+    box-shadow: 0 4px 12px rgba(239, 51, 51, 0.15);
   }
 
   .quick-link svg {
@@ -378,7 +378,7 @@ const iconPaths = {
   .category-header svg {
     width: 28px;
     height: 28px;
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .category-header h2 {
@@ -408,12 +408,12 @@ const iconPaths = {
   }
 
   .faq-item:hover {
-    border-color: rgba(255, 140, 66, 0.3);
+    border-color: rgba(239, 51, 51, 0.3);
   }
 
   .faq-item[open] {
-    border-color: #ff8c42;
-    box-shadow: 0 4px 20px rgba(255, 140, 66, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px rgba(239, 51, 51, 0.1);
   }
 
   .faq-question {
@@ -456,7 +456,7 @@ const iconPaths = {
 
   .faq-item[open] .faq-toggle {
     transform: rotate(180deg);
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .faq-answer {
@@ -476,11 +476,11 @@ const iconPaths = {
     border-radius: 4px;
     font-family: 'SF Mono', 'Fira Code', monospace;
     font-size: 13px;
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .faq-answer :global(a) {
-    color: #ff8c42;
+    color: var(--accent);
     text-decoration: none;
     font-weight: 500;
   }
@@ -497,18 +497,21 @@ const iconPaths = {
   /* Still Have Questions */
   .still-questions {
     padding: 80px 20px;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: var(--bg-inverse);
   }
 
   .questions-card {
     text-align: center;
-    color: #fff;
+    color: var(--fg-inverse);
   }
 
   .questions-card h2 {
     font-size: 32px;
     font-weight: 700;
     margin: 0 0 12px;
+    /* Direct color beats the global `section h2 { color: var(--color-text) }`,
+       which resolves == --bg-inverse on this panel and would vanish. */
+    color: var(--fg-inverse);
   }
 
   .questions-card > p {
@@ -529,10 +532,11 @@ const iconPaths = {
     align-items: center;
     gap: 10px;
     padding: 14px 24px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    /* Overlay derived from --fg-inverse so it adapts when --bg-inverse flips. */
+    background: color-mix(in srgb, var(--fg-inverse) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--fg-inverse) 25%, transparent);
     border-radius: 10px;
-    color: #fff;
+    color: var(--fg-inverse);
     text-decoration: none;
     font-weight: 600;
     font-size: 15px;
@@ -540,8 +544,8 @@ const iconPaths = {
   }
 
   .action-link:hover {
-    background: rgba(255, 140, 66, 0.2);
-    border-color: #ff8c42;
+    background: rgba(239, 51, 51, 0.2);
+    border-color: var(--accent);
     transform: translateY(-2px);
   }
 

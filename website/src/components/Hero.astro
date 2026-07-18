@@ -64,7 +64,7 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
     line-height: 1.1;
     margin-bottom: 20px;
     font-weight: 700;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -76,7 +76,7 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
 
   .companion-badge {
     display: inline-block;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     color: white;
     padding: 8px 20px;
     border-radius: 20px;
@@ -105,18 +105,18 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
   }
 
   .subtitle code {
-    background: rgba(255, 140, 66, 0.1);
+    background: rgba(239, 51, 51, 0.1);
     padding: 2px 8px;
     border-radius: 4px;
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 0.9em;
-    color: #ff8c42;
-    border: 1px solid rgba(255, 140, 66, 0.2);
+    color: var(--accent);
+    border: 1px solid rgba(239, 51, 51, 0.2);
   }
 
   :global(.dark) .subtitle code {
-    background: rgba(255, 140, 66, 0.15);
-    border-color: rgba(255, 140, 66, 0.3);
+    background: rgba(239, 51, 51, 0.15);
+    border-color: rgba(239, 51, 51, 0.3);
   }
 
   .plugin-install {
@@ -136,19 +136,19 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
   }
 
   .install-command {
-    background: rgba(255, 140, 66, 0.1);
+    background: rgba(239, 51, 51, 0.1);
     padding: 8px 16px;
     border-radius: 6px;
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 16px;
-    color: #ff8c42;
-    border: 1px solid rgba(255, 140, 66, 0.2);
+    color: var(--accent);
+    border: 1px solid rgba(239, 51, 51, 0.2);
     font-weight: 600;
   }
 
   :global(.dark) .install-command {
-    background: rgba(255, 140, 66, 0.15);
-    border-color: rgba(255, 140, 66, 0.3);
+    background: rgba(239, 51, 51, 0.15);
+    border-color: rgba(239, 51, 51, 0.3);
   }
 
   .github-star-wrapper {
@@ -168,7 +168,7 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
   .cta-button {
     display: inline-block;
     padding: 16px 40px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     color: white;
     text-decoration: none;
     border-radius: 8px;
@@ -179,22 +179,22 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
 
   .cta-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 10px 25px rgba(239, 51, 51, 0.3);
   }
 
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid #ff8c42;
-    color: #ff8c42;
+    border: 2px solid var(--accent);
+    color: var(--accent);
   }
 
   .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.1);
-    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.2);
+    background: rgba(239, 51, 51, 0.1);
+    box-shadow: 0 10px 25px rgba(239, 51, 51, 0.2);
   }
 
   :global(.dark) .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.15);
+    background: rgba(239, 51, 51, 0.15);
   }
 
   .pixel-art {

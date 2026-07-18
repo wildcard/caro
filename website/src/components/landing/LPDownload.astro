@@ -161,8 +161,14 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     opacity: 0.9;
   }
 
+  /* On the flipping --bg-inverse card, --accent (red) dropped to 2.02:1 — the
+     same failure class as the historical heading bug. Match the card's text
+     system (--fg-inverse, ~12.5:1 both themes); weight 600 keeps the ✓
+     distinct from the label. A green-tinted ✓ would need an inverse-polarity
+     safe-green token (tracked follow-up), which the standard --status-safe*
+     tokens can't provide here. */
   .check {
-    color: var(--accent);
+    color: var(--fg-inverse);
     font-weight: 600;
   }
 

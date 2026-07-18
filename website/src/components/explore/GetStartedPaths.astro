@@ -101,12 +101,12 @@ const paths = [
 
   .path-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.15);
-    border-color: #ff8c42;
+    box-shadow: 0 10px 30px rgba(239, 51, 51, 0.15);
+    border-color: var(--accent);
   }
 
   :global(.dark) .path-card:hover {
-    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.25);
+    box-shadow: 0 10px 30px rgba(239, 51, 51, 0.25);
   }
 
   .path-icon {
@@ -169,7 +169,7 @@ const paths = [
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     color: white;
     font-size: 12px;
     font-weight: bold;
@@ -186,7 +186,7 @@ const paths = [
   .cta-button {
     display: inline-block;
     padding: 12px 24px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     color: white;
     text-decoration: none;
     border-radius: 8px;
@@ -198,7 +198,7 @@ const paths = [
 
   .cta-button:hover {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 4px 12px rgba(239, 51, 51, 0.3);
   }
 
   @media (max-width: 768px) {

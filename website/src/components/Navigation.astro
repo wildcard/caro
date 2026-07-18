@@ -9,6 +9,8 @@
  */
 
 import { t, type Locale } from '../i18n/config';
+import KyaroMark from './KyaroMark.astro';
+import Icon from './Icon.astro';
 
 interface Props {
   variant?: 'default' | 'use-cases';
@@ -20,19 +22,19 @@ const { variant = 'default', currentPage, lang = 'en' } = Astro.props;
 
 // Use-cases personas for the dropdown
 const personas = [
-  { slug: 'sre', title: 'SRE & On-Call Engineers', icon: '🚨' },
-  { slug: 'air-gapped', title: 'Air-Gapped & Security', icon: '🔐' },
-  { slug: 'devops', title: 'DevOps & Platform', icon: '🔧' },
-  { slug: 'tech-lead', title: 'Tech Leads & Managers', icon: '👥' },
-  { slug: 'developer', title: 'Developers', icon: '💻' },
-];
+  { slug: 'sre', title: 'SRE & On-Call Engineers', icon: 'Shield' },
+  { slug: 'air-gapped', title: 'Air-Gapped & Security', icon: 'Lock' },
+  { slug: 'devops', title: 'DevOps & Platform', icon: 'Wrench' },
+  { slug: 'tech-lead', title: 'Tech Leads & Managers', icon: 'Users' },
+  { slug: 'developer', title: 'Developers', icon: 'Cpu' },
+] as const;
 ---
 
 <nav class="navigation" id="main-nav">
   <div class="nav-container">
     <!-- Logo -->
     <a href={lang === 'en' ? '/' : `/${lang}/`} class="nav-brand">
-      <span class="brand-icon">🐕</span>
+      <KyaroMark size={28} class="brand-icon" />
       <span class="brand-text">Caro</span>
     </a>
 
@@ -54,7 +56,7 @@ const personas = [
             <div class="dropdown-panel">
               {personas.map((persona) => (
                 <a href={`/use-cases/${persona.slug}`} class={`dropdown-item ${currentPage === persona.slug ? 'active' : ''}`}>
-                  <span class="item-icon">{persona.icon}</span>
+                  <span class="item-icon"><Icon name={persona.icon} size={20} /></span>
                   <div class="item-content">
                     <span class="item-title">{persona.title}</span>
                   </div>
@@ -81,28 +83,28 @@ const personas = [
             </button>
             <div class="dropdown-panel">
               <a href="/compare" class="dropdown-item">
-                <span class="item-icon">📊</span>
+                <span class="item-icon"><Icon name="BarChart" size={20} /></span>
                 <div class="item-content">
                   <span class="item-title">{t(lang, 'common.nav.dropdown.overview')}</span>
                   <span class="item-desc">{t(lang, 'common.nav.dropdown.seeAllComparisons')}</span>
                 </div>
               </a>
               <a href="/compare/warp" class="dropdown-item">
-                <span class="item-icon">⚡</span>
+                <span class="item-icon"><Icon name="Zap" size={20} /></span>
                 <div class="item-content">
                   <span class="item-title">{t(lang, 'common.nav.dropdown.vsWarp')}</span>
                   <span class="item-desc">{t(lang, 'common.nav.dropdown.aiNativeTerminal')}</span>
                 </div>
               </a>
               <a href="/compare/github-copilot-cli" class="dropdown-item">
-                <span class="item-icon">🤖</span>
+                <span class="item-icon"><Icon name="Bot" size={20} /></span>
                 <div class="item-content">
                   <span class="item-title">{t(lang, 'common.nav.dropdown.vsGitHubCopilot')}</span>
                   <span class="item-desc">{t(lang, 'common.nav.dropdown.aiPairProgrammer')}</span>
                 </div>
               </a>
               <a href="/compare/kiro-cli" class="dropdown-item">
-                <span class="item-icon">👻</span>
+                <span class="item-icon"><Icon name="Ghost" size={20} /></span>
                 <div class="item-content">
                   <span class="item-title">{t(lang, 'common.nav.dropdown.vsKiro')}</span>
                   <span class="item-desc">{t(lang, 'common.nav.dropdown.awsAssistant')}</span>
@@ -119,42 +121,42 @@ const personas = [
             </button>
             <div class="dropdown-panel">
               <a href={lang === 'en' ? '/#blog' : `/${lang}/#blog`} class="dropdown-item">
-                <span class="item-icon">📝</span>
+                <span class="item-icon"><Icon name="FileText" size={20} /></span>
                 <div class="item-content">
                   <span class="item-title">{t(lang, 'common.nav.dropdown.blog')}</span>
                   <span class="item-desc">{t(lang, 'common.nav.dropdown.newsAndTutorials')}</span>
                 </div>
               </a>
               <a href="/explore" class="dropdown-item">
-                <span class="item-icon">🔍</span>
+                <span class="item-icon"><Icon name="Search" size={20} /></span>
                 <div class="item-content">
                   <span class="item-title">{t(lang, 'common.nav.dropdown.explore')}</span>
                   <span class="item-desc">{t(lang, 'common.nav.dropdown.interactiveDemo')}</span>
                 </div>
               </a>
               <a href="/faq" class="dropdown-item">
-                <span class="item-icon">❓</span>
+                <span class="item-icon"><Icon name="HelpCircle" size={20} /></span>
                 <div class="item-content">
                   <span class="item-title">{t(lang, 'common.nav.dropdown.faq')}</span>
                   <span class="item-desc">{t(lang, 'common.nav.dropdown.commonQuestions')}</span>
                 </div>
               </a>
               <a href="/roadmap" class="dropdown-item">
-                <span class="item-icon">🗺️</span>
+                <span class="item-icon"><Icon name="Map" size={20} /></span>
                 <div class="item-content">
                   <span class="item-title">{t(lang, 'common.nav.dropdown.roadmap')}</span>
                   <span class="item-desc">{t(lang, 'common.nav.dropdown.whatsNext')}</span>
                 </div>
               </a>
               <a href="/glossary" class="dropdown-item">
-                <span class="item-icon">📖</span>
+                <span class="item-icon"><Icon name="BookOpen" size={20} /></span>
                 <div class="item-content">
                   <span class="item-title">{t(lang, 'common.nav.dropdown.glossary')}</span>
                   <span class="item-desc">{t(lang, 'common.nav.dropdown.terminalTerms')}</span>
                 </div>
               </a>
               <a href="https://github.com/wildcard/caro" class="dropdown-item" target="_blank" rel="noopener noreferrer">
-                <span class="item-icon">🐙</span>
+                <span class="item-icon"><Icon name="Github" size={20} /></span>
                 <div class="item-content">
                   <span class="item-title">{t(lang, 'common.nav.dropdown.github')}</span>
                   <span class="item-desc">{t(lang, 'common.nav.dropdown.sourceCode')}</span>
@@ -265,7 +267,7 @@ const personas = [
   <div class="drawer-panel">
     <div class="drawer-header">
       <a href={lang === 'en' ? '/' : `/${lang}/`} class="drawer-brand">
-        <span>🐕</span> Caro
+        <KyaroMark size={22} /> Caro
       </a>
       <div class="drawer-header-actions">
         <div id="nav-search-slot-mobile"></div>
@@ -293,7 +295,7 @@ const personas = [
             <div class="section-header">{t(lang, 'common.nav.useCases.byRole')}</div>
             {personas.map((persona) => (
               <a href={`/use-cases/${persona.slug}`} class={`drawer-link ${currentPage === persona.slug ? 'active' : ''}`}>
-                <span class="link-icon">{persona.icon}</span>
+                <span class="link-icon"><Icon name={persona.icon} size={18} /></span>
                 <span class="link-text">{persona.title}</span>
               </a>
             ))}
@@ -323,19 +325,19 @@ const personas = [
           <div class="drawer-section">
             <div class="section-header">{t(lang, 'common.nav.compare')}</div>
             <a href="/compare" class="drawer-link">
-              <span class="link-icon">📊</span>
+              <span class="link-icon"><Icon name="BarChart" size={18} /></span>
               <span class="link-text">{t(lang, 'common.nav.mobile.allComparisons')}</span>
             </a>
             <a href="/compare/warp" class="drawer-link">
-              <span class="link-icon">⚡</span>
+              <span class="link-icon"><Icon name="Zap" size={18} /></span>
               <span class="link-text">{t(lang, 'common.nav.dropdown.vsWarp')}</span>
             </a>
             <a href="/compare/github-copilot-cli" class="drawer-link">
-              <span class="link-icon">🤖</span>
+              <span class="link-icon"><Icon name="Bot" size={18} /></span>
               <span class="link-text">{t(lang, 'common.nav.dropdown.vsGitHubCopilot')}</span>
             </a>
             <a href="/compare/kiro-cli" class="drawer-link">
-              <span class="link-icon">👻</span>
+              <span class="link-icon"><Icon name="Ghost" size={20} /></span>
               <span class="link-text">{t(lang, 'common.nav.dropdown.vsKiro')}</span>
             </a>
           </div>
@@ -343,27 +345,27 @@ const personas = [
           <div class="drawer-section">
             <div class="section-header">{t(lang, 'common.nav.resources')}</div>
             <a href={lang === 'en' ? '/#blog' : `/${lang}/#blog`} class="drawer-link">
-              <span class="link-icon">📝</span>
+              <span class="link-icon"><Icon name="FileText" size={18} /></span>
               <span class="link-text">{t(lang, 'common.nav.dropdown.blog')}</span>
             </a>
             <a href="/explore" class="drawer-link">
-              <span class="link-icon">🔍</span>
+              <span class="link-icon"><Icon name="Search" size={18} /></span>
               <span class="link-text">{t(lang, 'common.nav.dropdown.explore')}</span>
             </a>
             <a href="/faq" class="drawer-link">
-              <span class="link-icon">❓</span>
+              <span class="link-icon"><Icon name="HelpCircle" size={18} /></span>
               <span class="link-text">{t(lang, 'common.nav.dropdown.faq')}</span>
             </a>
             <a href="/roadmap" class="drawer-link">
-              <span class="link-icon">🗺️</span>
+              <span class="link-icon"><Icon name="Map" size={18} /></span>
               <span class="link-text">{t(lang, 'common.nav.dropdown.roadmap')}</span>
             </a>
             <a href="/glossary" class="drawer-link">
-              <span class="link-icon">📖</span>
+              <span class="link-icon"><Icon name="BookOpen" size={18} /></span>
               <span class="link-text">{t(lang, 'common.nav.dropdown.glossary')}</span>
             </a>
             <a href="https://github.com/wildcard/caro" class="drawer-link" target="_blank" rel="noopener noreferrer">
-              <span class="link-icon">🐙</span>
+              <span class="link-icon"><Icon name="Github" size={18} /></span>
               <span class="link-text">{t(lang, 'common.nav.dropdown.github')}</span>
               <svg class="external-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M9 3L3 9M9 3H5M9 3V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -499,7 +501,7 @@ const personas = [
   }
 
   .brand-text {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -544,8 +546,8 @@ const personas = [
 
   .nav-item > a:hover,
   .dropdown-trigger:hover {
-    color: #ff8c42;
-    background: rgba(255, 140, 66, 0.08);
+    color: var(--accent);
+    background: rgba(239, 51, 51, 0.08);
   }
 
   .chevron {
@@ -630,7 +632,7 @@ const personas = [
   }
 
   .dropdown-item:hover {
-    background: rgba(255, 140, 66, 0.08);
+    background: rgba(239, 51, 51, 0.08);
   }
 
   .item-icon {
@@ -689,8 +691,8 @@ const personas = [
   }
 
   .icon-button:hover {
-    border-color: #ff8c42;
-    background: rgba(255, 140, 66, 0.08);
+    border-color: var(--accent);
+    background: rgba(239, 51, 51, 0.08);
   }
 
   .icon-button svg {
@@ -850,7 +852,7 @@ const personas = [
     gap: 8px;
     padding: 0 20px;
     height: var(--control-height-md, 40px);
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     color: white;
     text-decoration: none;
     font-weight: 600;
@@ -862,7 +864,7 @@ const personas = [
 
   .nav-cta:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 8px 20px rgba(239, 51, 51, 0.3);
   }
 
   .nav-cta svg {
@@ -1004,7 +1006,7 @@ const personas = [
     gap: 8px;
     font-size: 20px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent);
     text-decoration: none;
   }
 
@@ -1024,8 +1026,8 @@ const personas = [
   }
 
   .drawer-close:hover {
-    background: rgba(255, 107, 53, 0.1);
-    color: #ff6b35;
+    background: rgba(239, 51, 51, 0.1);
+    color: var(--accent-hover);
   }
 
   .drawer-content {
@@ -1069,13 +1071,13 @@ const personas = [
   }
 
   .drawer-link:hover {
-    background: rgba(255, 140, 66, 0.08);
-    color: #ff8c42;
+    background: rgba(239, 51, 51, 0.08);
+    color: var(--accent);
   }
 
   .drawer-link.active {
-    background: rgba(255, 140, 66, 0.12);
-    color: #ff8c42;
+    background: rgba(239, 51, 51, 0.12);
+    color: var(--accent);
   }
 
   .link-icon {
@@ -1171,14 +1173,14 @@ const personas = [
 
   /* Active state */
   .toggle-switch.active > .toggle-track {
-    background: #ff8c42;
-    border-color: #ff6b35;
+    background: var(--accent-fill);
+    border-color: var(--accent-hover);
   }
 
   .toggle-switch.active > .toggle-track > .toggle-thumb {
     transform: translateX(24px);
     background: #fff;
-    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.5);
+    box-shadow: 0 2px 8px rgba(239, 51, 51, 0.5);
   }
 
   /* Light mode */
@@ -1219,7 +1221,7 @@ const personas = [
     gap: 8px;
     width: 100%;
     padding: 16px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     color: white;
     text-decoration: none;
     font-size: 16px;
@@ -1230,7 +1232,7 @@ const personas = [
 
   .drawer-cta:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 8px 20px rgba(239, 51, 51, 0.3);
   }
 
   /* ========================================

@@ -43,26 +43,26 @@
       "ctaLink": "Tingnan ang safety patterns",
       "items": [
         {
-          "icon": "🛡️",
+          "icon": "ShieldCheck",
           "title": "Hindi Ka Na Mag-nuke ng Production",
           "description": "Bina-block ang rm -rf /, fork bombs, at 50+ pang career-ending commands BAGO mo pa sila ma-run. Pasasalamatan ka ng 2 AM version mo.",
           "highlight": true
         },
         {
-          "icon": "🔒",
+          "icon": "Lock",
           "title": "Ang Data Mo ay Sa'yo Lang",
           "description": "Zero telemetry. Zero cloud API calls. Pwedeng tumakbo sa air-gapped networks. Papasa sa kahit anong compliance audit. Hindi lumalabas ng machine mo ang commands mo.",
           "highlight": true,
           "privacyLink": true
         },
         {
-          "icon": "✅",
+          "icon": "Check",
           "title": "Commands na Talagang Gumagana",
           "description": "Gumagawa ng commands na gumagana sa Mac mo, sa Linux server mo, at sa BSD box ng coworker mo. First time. Every time.",
           "highlight": false
         },
         {
-          "icon": "⚡",
+          "icon": "Zap",
           "title": "Mabilis Para Hindi Mabagal ang Flow",
           "description": "Sub-2s inference sa Apple Silicon. Walang paghihintay sa cloud APIs. Walang pag-aalala kung down ang server. Sagot lang.",
           "highlight": false

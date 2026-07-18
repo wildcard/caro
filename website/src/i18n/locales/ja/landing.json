@@ -43,26 +43,26 @@
       "ctaLink": "安全パターンを見る",
       "items": [
         {
-          "icon": "🛡️",
+          "icon": "ShieldCheck",
           "title": "本番環境を二度と破壊しない",
           "description": "rm -rf /、フォーク爆弾、その他50以上のキャリアを終わらせるコマンドを実行前にブロック。午前2時のあなたが感謝するでしょう。",
           "highlight": true
         },
         {
-          "icon": "🔒",
+          "icon": "Lock",
           "title": "あなたのデータはあなたのもの",
           "description": "テレメトリーゼロ。クラウドAPI呼び出しゼロ。エアギャップネットワークで実行可能。あらゆるコンプライアンス監査に合格。コマンドはマシンから出ません。",
           "highlight": true,
           "privacyLink": true
         },
         {
-          "icon": "✅",
+          "icon": "Check",
           "title": "実際に動作するコマンド",
           "description": "あなたのMac、Linuxサーバー、同僚のBSDボックスで動作するコマンドを生成。一度で。毎回。",
           "highlight": false
         },
         {
-          "icon": "⚡",
+          "icon": "Zap",
           "title": "フローを妨げない速度",
           "description": "Apple Siliconで2秒未満の推論。クラウドAPIの待機なし。サーバーダウンの心配なし。ただ答えが得られます。",
           "highlight": false

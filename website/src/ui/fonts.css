@@ -1,0 +1,90 @@
+/**
+ * Caro Design System — Self-hosted web fonts
+ *
+ * Figtree (body face) is bundled under `website/public/fonts/` and declared
+ * here with @font-face so the `--font-family-base` / `--font-body` stacks in
+ * tokens.css actually resolve to Figtree instead of silently falling through
+ * to the system-sans fallback.
+ *
+ * Kept in a SEPARATE file from tokens.css on purpose: tokens.css is the
+ * single source of truth for design tokens and is edited by in-flight brand
+ * PRs; font-loading is orthogonal plumbing, so it lives here to avoid
+ * merge collisions. Import this wherever tokens.css is imported.
+ *
+ * Azeret Mono (display/mono face) is still loaded via the Google Fonts
+ * @import in tokens.css; self-hosting it is a follow-up (its TTFs are not
+ * bundled yet).
+ *
+ * Files are TTF as bundled; woff2 conversion is a follow-up optimisation.
+ */
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('/fonts/Figtree-Light.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Figtree-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Figtree';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Figtree-Italic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/Figtree-Medium.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Figtree';
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/Figtree-MediumItalic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/Figtree-SemiBold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/Figtree-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Figtree';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/Figtree-BoldItalic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('/fonts/Figtree-ExtraBold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('/fonts/Figtree-Black.ttf') format('truetype');
+}

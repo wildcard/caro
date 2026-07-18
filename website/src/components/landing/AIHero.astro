@@ -83,7 +83,7 @@
   }
 
   .highlight {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -158,23 +158,23 @@
   }
 
   .cta-button.primary {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     color: white;
   }
 
   .cta-button.primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 10px 25px rgba(239, 51, 51, 0.3);
   }
 
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid #ff8c42;
-    color: #ff8c42;
+    border: 2px solid var(--accent);
+    color: var(--accent);
   }
 
   .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.1);
+    background: rgba(239, 51, 51, 0.1);
     transform: translateY(-2px);
   }
 

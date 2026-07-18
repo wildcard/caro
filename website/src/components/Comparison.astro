@@ -237,13 +237,13 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   }
 
   .summary-card.highlight {
-    border-color: #ff8c42;
-    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(239, 51, 51, 0.1);
   }
 
   .summary-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 140, 66, 0.15);
+    box-shadow: 0 6px 20px rgba(239, 51, 51, 0.15);
   }
 
   .summary-card-link {
@@ -262,7 +262,7 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   .summary-stat {
     font-size: 24px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .summary-label {
@@ -338,8 +338,8 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   }
 
   .competitor-header.highlight {
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 140, 66, 0.05) 100%);
-    color: #ff8c42;
+    background: linear-gradient(135deg, rgba(239, 51, 51, 0.15) 0%, rgba(239, 51, 51, 0.05) 100%);
+    color: var(--accent);
   }
 
   .highlight-badge {
@@ -348,7 +348,7 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #ff8c42;
+    color: var(--accent);
     margin-bottom: 4px;
   }
 
@@ -380,7 +380,7 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   }
 
   .highlight-col {
-    background: rgba(255, 140, 66, 0.05);
+    background: rgba(239, 51, 51, 0.05);
   }
 
   .cell-icon {
@@ -413,9 +413,9 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
     text-align: center;
     margin: 50px 0 30px;
     padding: 40px;
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(239, 51, 51, 0.1) 0%, rgba(239, 51, 51, 0.05) 100%);
     border-radius: 16px;
-    border: 1px solid rgba(255, 140, 66, 0.2);
+    border: 1px solid rgba(239, 51, 51, 0.2);
   }
 
   .cta-text {
@@ -443,24 +443,24 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   }
 
   .cta-button.primary {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     color: white;
     border: none;
   }
 
   .cta-button.primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 8px 20px rgba(239, 51, 51, 0.3);
   }
 
   .cta-button.secondary {
     background: transparent;
-    color: #ff8c42;
-    border: 2px solid #ff8c42;
+    color: var(--accent);
+    border: 2px solid var(--accent);
   }
 
   .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.1);
+    background: rgba(239, 51, 51, 0.1);
   }
 
   /* Legend */

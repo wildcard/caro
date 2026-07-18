@@ -103,7 +103,7 @@
   /* ============================================
      LINKS
      Brand-aligned link family — resolves to signal red via --accent.
-     Legacy orange (`#ff8c42`) was deprecated in v2; remapping the alias
+     Legacy orange was deprecated in v2; remapping the alias
      here propagates the new red to every consumer (Layout, LandingPage,
      support, credits, etc.) without touching their call sites.
      ============================================ */
@@ -132,6 +132,11 @@
   --accent:        var(--caro-red-500);
   --accent-hover:  var(--caro-red-600);
   --accent-press:  var(--caro-red-700);
+  /* Solid fill for buttons/CTAs with white text. Stays the base signal-red in
+     BOTH themes — the dark-mode --accent is lightened (#ff6464) for text-on-dark
+     legibility, which fails WCAG as a white-text fill (2.89:1). Not overridden
+     in .dark. */
+  --accent-fill:   var(--caro-red-500);
   --highlight:     var(--caro-yellow-400);
 
   --border:        var(--caro-grey-300);
@@ -139,6 +144,10 @@
 
   /* Status / command-risk levels (mirrored in the Rust CLI palette) */
   --status-safe:     #3fa34d;
+  /* Success-green TEXT for use on a translucent-green tint badge. Darker than
+     --status-safe in light mode so it reads on the pale-green pill (which
+     --status-safe #3fa34d does not — 1.9:1); flips pale on dark tint. */
+  --status-safe-strong: #15803d;
   --status-warn:     var(--caro-yellow-400);
   --status-danger:   var(--caro-red-500);
   --status-critical: var(--caro-red-700);
@@ -342,6 +351,7 @@
 
   /* Status colours: keep semantic meaning but lift luminance for contrast */
   --status-safe:     #7cd389;
+  --status-safe-strong: #7cd389;  /* pale success green — reads on the dark-card green tint */
   --status-warn:     var(--caro-yellow-400);
   --status-danger:   #ff6464;
   --status-critical: var(--caro-red-500);
