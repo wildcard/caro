@@ -1,0 +1,61 @@
+{
+  "$schema_version": 1,
+  "$comment": [
+    "Evergreen model selection for the website translation pipeline.",
+    "Models are named here, never hardcoded in translate-multi-backend.js.",
+    "'chain' is tried in order; the first model whose API key is present AND",
+    "whose live probe succeeds wins. Bump 'last_verified' whenever you confirm",
+    "a model still answers — entries staler than policy.stale_after_days warn.",
+    "Costs are USD per million tokens, list price at last_verified."
+  ],
+
+  "chain": ["gemini-2.5-flash", "gpt-4o-mini", "claude-haiku-4-5"],
+
+  "models": {
+    "gemini-2.5-flash": {
+      "backend": "gemini",
+      "api_model": "gemini-2.5-flash",
+      "api_key_env": "GEMINI_API_KEY",
+      "cost_per_m_input_tokens_usd": 0.3,
+      "cost_per_m_output_tokens_usd": 2.5,
+      "languages": "100+",
+      "quality": { "comet": 0.871, "cost_per_m_words_usd": 1.05 },
+      "last_verified": "2026-07-18",
+      "notes": "Primary. Best cost-efficiency for translation per 2026-07 research."
+    },
+    "gpt-4o-mini": {
+      "backend": "openai",
+      "api_model": "gpt-4o-mini",
+      "api_key_env": "OPENAI_API_KEY",
+      "cost_per_m_input_tokens_usd": 0.15,
+      "cost_per_m_output_tokens_usd": 0.6,
+      "languages": "50+",
+      "quality": { "comet": null, "cost_per_m_words_usd": null },
+      "last_verified": "2026-07-18",
+      "notes": "First fallback. OPENAI_API_KEY is the secret already wired in CI."
+    },
+    "claude-haiku-4-5": {
+      "backend": "claude",
+      "api_model": "claude-haiku-4-5-20251001",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "cost_per_m_input_tokens_usd": 1.0,
+      "cost_per_m_output_tokens_usd": 5.0,
+      "languages": "50+",
+      "quality": { "comet": null, "cost_per_m_words_usd": null },
+      "last_verified": "2026-07-18",
+      "notes": "Last resort. Strongest on RTL/low-resource locales, priciest."
+    }
+  },
+
+  "policy": {
+    "stale_after_days": 30,
+    "retry": {
+      "max_retries": 3,
+      "base_delay_ms": 2000
+    },
+    "probe": {
+      "locale": "es",
+      "payload": { "greeting": "Hello" }
+    }
+  }
+}

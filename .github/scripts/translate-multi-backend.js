@@ -8,7 +8,10 @@ const crypto = require('crypto');
 
 const targetLocale = process.env.TARGET_LOCALE;
 const forceRetranslate = process.env.FORCE_RETRANSLATE === 'true';
-const translationBackend = process.env.TRANSLATION_BACKEND || 'openai'; // openai, libretranslate, claude, skill
+// 'auto' (the default) resolves the model from translation-config.json's chain.
+// Any explicit value (openai, gemini, claude, libretranslate, skill) pins that
+// backend and bypasses model selection — kept for manual workflow_dispatch runs.
+const translationBackend = process.env.TRANSLATION_BACKEND || 'auto';
 
 // Language metadata with cultural context
 const languageMetadata = {
@@ -135,10 +138,11 @@ class TranslationBackend {
 // ============================================
 
 class OpenAIBackend extends TranslationBackend {
-  constructor() {
+  constructor(model) {
     super();
     const OpenAI = require('openai');
     this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    this.model = model || process.env.OPENAI_MODEL || 'gpt-4o';
   }
 
   async initialize() {
@@ -148,7 +152,7 @@ class OpenAIBackend extends TranslationBackend {
   }
 
   getName() {
-    return 'OpenAI GPT-4';
+    return `OpenAI (${this.model})`;
   }
 
   async translate(enContent, locale, fileName) {
@@ -177,7 +181,7 @@ class OpenAIBackend extends TranslationBackend {
       console.log(`[${locale}] [OpenAI] Translating ${fileName}...`);
 
       const response = await this.openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4o',
+        model: this.model,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -301,10 +305,10 @@ class LibreTranslateBackend extends TranslationBackend {
 // ============================================
 
 class ClaudeBackend extends TranslationBackend {
-  constructor() {
+  constructor(model) {
     super();
     this.apiKey = process.env.ANTHROPIC_API_KEY;
-    this.model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929';
+    this.model = model || process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929';
   }
 
   async initialize() {
@@ -394,6 +398,103 @@ ${metadata.rtl ? '8. For RTL: translate text naturally, keep technical terms LTR
 }
 
 // ============================================
+// Gemini Backend
+// ============================================
+
+// Raw fetch against the Generative Language API rather than @google/genai:
+// the translate workflow only runs `npm install openai`, so adding an SDK
+// would mean a workflow change too. ClaudeBackend already sets the precedent.
+class GeminiBackend extends TranslationBackend {
+  constructor(model) {
+    super();
+    this.apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    this.model = model || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  }
+
+  async initialize() {
+    if (!this.apiKey) {
+      throw new Error('GEMINI_API_KEY (or GOOGLE_API_KEY) is required for Gemini backend');
+    }
+  }
+
+  getName() {
+    return `Gemini (${this.model})`;
+  }
+
+  async translate(enContent, locale, fileName) {
+    const metadata = languageMetadata[locale];
+
+    const systemPrompt = `You are a professional technical writer and translator specializing in ${metadata.name}.
+
+**Cultural Context:**
+- Target metro: ${metadata.metro}
+- Culture: ${metadata.culture}
+- Pop culture references: ${metadata.popCulture}
+
+**Critical Rules:**
+1. Translate ONLY string values, NEVER JSON keys
+2. PRESERVE placeholders: {count}, {name}, {var}, etc.
+3. PRESERVE brand names: "Caro", "Claude", "GitHub"
+4. PRESERVE technical terms: POSIX, shell, CLI, MLX, vLLM, Ollama, JSON, API, HTTP
+5. PRESERVE code blocks and commands
+6. PRESERVE emoji and special characters
+7. Return ONLY valid JSON, no explanations
+${metadata.rtl ? '8. For RTL: translate text naturally, keep technical terms LTR' : ''}
+
+**File:** ${fileName}`;
+
+    const userPrompt = `Translate this JSON to natural ${metadata.name} for developers in ${metadata.metro}:\n\n${JSON.stringify(enContent, null, 2)}`;
+
+    try {
+      console.log(`[${locale}] [Gemini] Translating ${fileName}...`);
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': this.apiKey
+        },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 8192,
+            responseMimeType: 'application/json'
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(`Gemini API error: ${response.status} ${response.statusText} — ${body.slice(0, 200)}`);
+      }
+
+      const result = await response.json();
+      const translatedText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (!translatedText) {
+        throw new Error(`Gemini returned no text (finishReason: ${result.candidates?.[0]?.finishReason ?? 'unknown'})`);
+      }
+
+      let jsonText = translatedText;
+      if (translatedText.startsWith('```')) {
+        const match = translatedText.match(/```(?:json)?\n?([\s\S]*?)\n?```/);
+        if (match) jsonText = match[1];
+      }
+
+      const translated = JSON.parse(jsonText);
+      console.log(`[${locale}] [Gemini] ✓ Successfully translated ${fileName}`);
+      return translated;
+
+    } catch (error) {
+      console.error(`[${locale}] [Gemini] ✗ Error: ${error.message}`);
+      throw error;
+    }
+  }
+}
+
+// ============================================
 // Skill Backend (uses /translator skill with sub-agents)
 // ============================================
 
@@ -413,21 +514,218 @@ class SkillBackend extends TranslationBackend {
 // Backend Factory
 // ============================================
 
-function createBackend(backendName) {
+function createBackend(backendName, model) {
   switch (backendName.toLowerCase()) {
     case 'openai':
-      return new OpenAIBackend();
+      return new OpenAIBackend(model);
     case 'libretranslate':
     case 'libre':
       return new LibreTranslateBackend();
     case 'claude':
     case 'anthropic':
-      return new ClaudeBackend();
+      return new ClaudeBackend(model);
+    case 'gemini':
+    case 'google':
+      return new GeminiBackend(model);
     case 'skill':
       return new SkillBackend();
     default:
-      throw new Error(`Unknown backend: ${backendName}. Use: openai, libretranslate, claude, or skill`);
+      throw new Error(`Unknown backend: ${backendName}. Use: openai, gemini, libretranslate, claude, or skill`);
   }
+}
+
+// ============================================
+// Model Selection (evergreen — see translation-config.json)
+// ============================================
+
+const MODEL_CONFIG_PATH = path.join(__dirname, 'translation-config.json');
+
+function loadModelConfig(configPath = MODEL_CONFIG_PATH) {
+  const raw = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+  if (!Array.isArray(raw.chain) || raw.chain.length === 0) {
+    throw new Error(`${configPath}: "chain" must be a non-empty array`);
+  }
+  for (const id of raw.chain) {
+    const entry = raw.models?.[id];
+    if (!entry) {
+      throw new Error(`${configPath}: chain references unknown model "${id}"`);
+    }
+    for (const field of ['backend', 'api_model', 'api_key_env', 'last_verified']) {
+      if (!entry[field]) {
+        throw new Error(`${configPath}: model "${id}" is missing required field "${field}"`);
+      }
+    }
+  }
+  return raw;
+}
+
+function daysSince(isoDate) {
+  const then = Date.parse(isoDate);
+  if (Number.isNaN(then)) return Infinity;
+  return Math.floor((Date.now() - then) / 86400000);
+}
+
+// Staleness is a WARNING, never a hard failure: a model that hasn't been
+// re-verified in 31 days is a maintenance smell, but blocking the pipeline on
+// a calendar date would replace one silent outage with a louder one.
+function warnIfStale(modelId, entry, staleAfterDays) {
+  const age = daysSince(entry.last_verified);
+  if (age > staleAfterDays) {
+    console.warn(
+      `⚠️  [model-config] "${modelId}" was last verified ${age} days ago ` +
+      `(threshold ${staleAfterDays}d). Confirm it is still live and bump ` +
+      `"last_verified" in translation-config.json.`
+    );
+  }
+  return age;
+}
+
+// Extract the HTTP status from an error, whichever backend raised it.
+// The OpenAI SDK sets `error.status`; the Claude and Gemini backends format
+// their own message as "<Provider> API error: <status> <text>". We anchor on
+// that "API error:" prefix rather than scanning for any 3-digit run, because
+// the Gemini message also carries a slice of the response body.
+function extractStatus(error) {
+  if (typeof error?.status === 'number') return error.status;
+  if (typeof error?.statusCode === 'number') return error.statusCode;
+  const match = /API error:\s*(\d{3})\b/.exec(error?.message ?? '');
+  return match ? Number(match[1]) : null;
+}
+
+const MODEL_GONE_PATTERN = /model[^.]*not\s*found|not\s*found[^.]*model|unsupported\s*model|invalid\s*model|does not exist|deprecated|decommissioned/i;
+
+// Classify a failure into the three cases the fallback policy cares about:
+//   'retry' — the model is fine, we're throttled or the server hiccuped.
+//             Backing off and retrying is cheaper (and better quality) than
+//             demoting to a weaker model for the whole run.
+//   'gone'  — the model is retired. Retrying cannot help; move down the chain
+//             immediately. This is the caro-z1rp failure mode.
+//   'other' — unknown (auth, malformed response, parse failure). Fall back
+//             rather than hang the pipeline, but don't waste retries on it.
+function classifyError(error) {
+  const status = extractStatus(error);
+
+  if (status === 429 || (status !== null && status >= 500 && status < 600)) {
+    return 'retry';
+  }
+  if (status === 404) return 'gone';
+  if (status === 400 && MODEL_GONE_PATTERN.test(error?.message ?? '')) return 'gone';
+
+  return 'other';
+}
+
+// Should this error advance to the next model in the chain *right now*?
+// Retryable errors say no — the caller backs off first, and only falls back
+// once retries are exhausted.
+function shouldFallback(error) {
+  return classifyError(error) !== 'retry';
+}
+
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// Retry with exponential backoff, but ONLY for errors that a retry can fix.
+// A 404 rethrows immediately so the caller can fall back without burning
+// ~14s of backoff on a model that no longer exists.
+async function withRetry(fn, { label, maxRetries = 3, baseDelayMs = 2000 } = {}) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+
+      if (classifyError(error) !== 'retry') throw error;
+      if (attempt > maxRetries) break;
+
+      const status = extractStatus(error);
+      const delay = baseDelayMs * Math.pow(2, attempt - 1);
+      console.warn(
+        `[retry] Retrying ${label} (attempt ${attempt}/${maxRetries}, got ${status ?? 'error'}) — waiting ${delay}ms`
+      );
+      await sleep(delay);
+    }
+  }
+
+  console.warn(`[retry] ${label}: retries exhausted after ${maxRetries} attempts`);
+  throw lastError;
+}
+
+// Probe the model with a real (tiny) translation. This exercises the exact path
+// a production call takes — auth, model name, JSON mode, fence stripping, parse
+// — instead of just proving the endpoint is reachable.
+async function probeModel(backend, probeCfg) {
+  const translated = await backend.translate(
+    probeCfg.payload,
+    probeCfg.locale,
+    'health-probe.json'
+  );
+  if (!translated || typeof translated !== 'object') {
+    throw new Error('probe returned a non-object response');
+  }
+  const keys = Object.keys(probeCfg.payload);
+  const missing = keys.filter(k => !(k in translated));
+  if (missing.length > 0) {
+    throw new Error(`probe response dropped key(s): ${missing.join(', ')}`);
+  }
+  return translated;
+}
+
+// Walk the chain and return the first model that has a key AND passes its probe.
+async function resolveBackend(config) {
+  const staleAfterDays = config.policy?.stale_after_days ?? 30;
+  const probeCfg = config.policy?.probe ?? { locale: 'es', payload: { greeting: 'Hello' } };
+  const retryCfg = config.policy?.retry ?? {};
+  const retryOpts = {
+    maxRetries: retryCfg.max_retries ?? 3,
+    baseDelayMs: retryCfg.base_delay_ms ?? 2000
+  };
+  const attempts = [];
+
+  for (const [index, modelId] of config.chain.entries()) {
+    const entry = config.models[modelId];
+    const nextModel = config.chain[index + 1] ?? 'none (chain exhausted)';
+
+    if (!process.env[entry.api_key_env]) {
+      console.log(`[model-config] ⊘ ${modelId}: ${entry.api_key_env} not set, skipping`);
+      attempts.push(`${modelId} (no ${entry.api_key_env})`);
+      continue;
+    }
+
+    warnIfStale(modelId, entry, staleAfterDays);
+
+    let backend;
+    try {
+      backend = createBackend(entry.backend, entry.api_model);
+      await backend.initialize();
+      console.log(`[model-config] … probing ${modelId} (${backend.getName()})`);
+      await withRetry(() => probeModel(backend, probeCfg), {
+        label: `probe ${modelId}`,
+        ...retryOpts
+      });
+    } catch (error) {
+      const status = extractStatus(error);
+      // Two distinct paths land here: a 'gone' error (immediate, no retries
+      // burned) or a retryable error whose retries withRetry already exhausted.
+      // Either way the next model is the right move — but say which happened.
+      const reason = shouldFallback(error)
+        ? `got ${status ?? 'error'}`
+        : `got ${status ?? 'error'}, retries exhausted`;
+      console.warn(
+        `[model-config] ✗ Falling back from ${modelId} to ${nextModel} (${reason}): ${error.message}`
+      );
+      attempts.push(`${modelId} (${reason})`);
+      continue;
+    }
+
+    console.log(`[model-config] ✓ Using ${modelId} via ${backend.getName()}`);
+    return { backend, modelId, entry };
+  }
+
+  throw new Error(
+    `[model-config] No usable translation model. Tried:\n  - ${attempts.join('\n  - ')}`
+  );
 }
 
 // ============================================
@@ -478,9 +776,28 @@ async function translateAllFiles() {
   const targetDir = path.join(process.cwd(), `website/src/i18n/locales/${targetLocale}`);
   const cacheDir = path.join(process.cwd(), 'website/src/i18n/locales');
 
-  // Create backend
-  const backend = createBackend(translationBackend);
-  await backend.initialize();
+  // Resolve the backend: either the configured chain (health-checked) or an
+  // explicitly pinned backend. `cacheTag` keys the cache so that switching
+  // models re-translates instead of serving another model's output.
+  let backend;
+  let cacheTag;
+  let retryOpts = { maxRetries: 3, baseDelayMs: 2000 };
+
+  if (translationBackend === 'auto') {
+    const config = loadModelConfig();
+    retryOpts = {
+      maxRetries: config.policy?.retry?.max_retries ?? retryOpts.maxRetries,
+      baseDelayMs: config.policy?.retry?.base_delay_ms ?? retryOpts.baseDelayMs
+    };
+    const resolved = await resolveBackend(config);
+    backend = resolved.backend;
+    cacheTag = resolved.modelId;
+  } else {
+    backend = createBackend(translationBackend);
+    await backend.initialize();
+    cacheTag = translationBackend;
+    console.log(`[model-config] Model selection bypassed: TRANSLATION_BACKEND=${translationBackend}`);
+  }
 
   console.log(`========================================`);
   console.log(`Translation Backend: ${backend.getName()}`);
@@ -520,27 +837,32 @@ async function translateAllFiles() {
     try {
       const sourceHash = computeFileHash(enFilePath);
 
-      if (!needsRetranslation(cache, targetLocale, file, sourceHash, forceRetranslate, translationBackend)) {
+      if (!needsRetranslation(cache, targetLocale, file, sourceHash, forceRetranslate, cacheTag)) {
         console.log(`[${targetLocale}] ⊘ Skipping ${file} (unchanged, cached)`);
         skippedCount++;
         continue;
       }
 
       const enContent = JSON.parse(fs.readFileSync(enFilePath, 'utf8'));
-      const translated = await backend.translate(enContent, targetLocale, file);
+      // Retry transient throttling here too — a 429 midway through a locale
+      // would otherwise drop that file and count it as a failure.
+      const translated = await withRetry(
+        () => backend.translate(enContent, targetLocale, file),
+        { label: `${targetLocale}/${file}`, ...retryOpts }
+      );
 
       fs.writeFileSync(targetFilePath, JSON.stringify(translated, null, 2) + '\n', 'utf8');
       console.log(`[${targetLocale}] ✓ Wrote ${file}`);
 
       // Update cache with backend-specific key
-      const cacheKey = `${translationBackend}-${targetLocale}`;
+      const cacheKey = `${cacheTag}-${targetLocale}`;
       if (!cache[cacheKey]) {
         cache[cacheKey] = {};
       }
       cache[cacheKey][file] = {
         sourceHash: sourceHash,
         timestamp: new Date().toISOString(),
-        backend: translationBackend
+        backend: cacheTag
       };
 
       translatedCount++;
@@ -580,18 +902,31 @@ async function translateAllFiles() {
 // Validation & Execution
 // ============================================
 
-if (!targetLocale) {
-  console.error('ERROR: TARGET_LOCALE environment variable is not set');
-  process.exit(1);
+// Only run as a CLI. Exported below so the selection/retry logic is testable.
+if (require.main === module) {
+  if (!targetLocale) {
+    console.error('ERROR: TARGET_LOCALE environment variable is not set');
+    process.exit(1);
+  }
+
+  if (!languageMetadata[targetLocale]) {
+    console.error(`ERROR: Unknown locale: ${targetLocale}`);
+    console.error(`Supported locales: ${Object.keys(languageMetadata).join(', ')}`);
+    process.exit(1);
+  }
+
+  translateAllFiles().catch(error => {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  });
 }
 
-if (!languageMetadata[targetLocale]) {
-  console.error(`ERROR: Unknown locale: ${targetLocale}`);
-  console.error(`Supported locales: ${Object.keys(languageMetadata).join(', ')}`);
-  process.exit(1);
-}
-
-translateAllFiles().catch(error => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-});
+module.exports = {
+  classifyError,
+  shouldFallback,
+  extractStatus,
+  withRetry,
+  loadModelConfig,
+  daysSince,
+  createBackend
+};
