@@ -196,8 +196,8 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
 
 <style>
   .humanity-event-banner {
-    --banner-accent: #ff8c42;
-    --banner-accent-secondary: #ff6b35;
+    --banner-accent: var(--accent);
+    --banner-accent-secondary: var(--accent-hover);
 
     background: linear-gradient(135deg, var(--banner-accent) 0%, var(--banner-accent-secondary, var(--banner-accent)) 100%);
     color: white;

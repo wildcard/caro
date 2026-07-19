@@ -76,7 +76,7 @@ const useCases = [
 <style>
   .use-cases-section {
     padding: 80px 20px;
-    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    background: var(--bg);
   }
 
   .container {
@@ -115,11 +115,11 @@ const useCases = [
   .use-case-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    border-color: #ff8c42;
+    border-color: var(--accent);
   }
 
   :global(.dark) .use-case-card:hover {
-    box-shadow: 0 8px 24px rgba(255, 140, 66, 0.1);
+    box-shadow: 0 8px 24px rgba(239, 51, 51, 0.1);
   }
 
   .use-case-header {
@@ -154,7 +154,7 @@ const useCases = [
   }
 
   .solution strong {
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   @media (max-width: 768px) {

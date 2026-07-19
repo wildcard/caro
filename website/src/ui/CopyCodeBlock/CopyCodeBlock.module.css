@@ -38,7 +38,7 @@
    ============================================ */
 
 .dark {
-  background: var(--terminal-bg, #1e1e1e);
+  background: var(--terminal-bg, var(--bg-inverse));
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -81,7 +81,7 @@
 }
 
 .light .code {
-  color: var(--color-text, #2c3e50);
+  color: var(--color-text, var(--bg-inverse));
 }
 
 .light .header {
@@ -101,7 +101,7 @@
 
 .light .copyButton:hover {
   background: var(--color-bg-tertiary, #e5e5e5);
-  color: var(--color-text, #2c3e50);
+  color: var(--color-text, var(--bg-inverse));
 }
 
 .light .lineNumber {
@@ -185,7 +185,7 @@
 }
 
 .copyButton:focus-visible {
-  outline: 2px solid var(--color-primary, #ff8c42);
+  outline: 2px solid var(--color-primary, var(--accent));
   outline-offset: 2px;
 }
 

@@ -34,15 +34,15 @@
    ============================================ */
 
 .primary {
-  background: rgba(255, 140, 66, 0.15);
+  background: rgba(239, 51, 51, 0.15);
   color: var(--color-primary-dark);
-  border: 1px solid rgba(255, 140, 66, 0.3);
+  border: 1px solid rgba(239, 51, 51, 0.3);
 }
 
 :global(.dark) .primary {
-  background: rgba(255, 140, 66, 0.2);
+  background: rgba(239, 51, 51, 0.2);
   color: var(--color-primary);
-  border-color: rgba(255, 140, 66, 0.4);
+  border-color: rgba(239, 51, 51, 0.4);
 }
 
 /* ============================================

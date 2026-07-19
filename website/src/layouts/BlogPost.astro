@@ -84,7 +84,7 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
 
   .blog-post-header {
     padding: 80px 20px 40px;
-    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    background: var(--bg);
     border-bottom: 1px solid var(--color-border);
     transition: background 0.3s ease, border-color 0.3s ease;
   }
@@ -92,7 +92,7 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
   .back-link {
     display: inline-flex;
     align-items: center;
-    color: #ff8c42;
+    color: var(--accent);
     text-decoration: none;
     font-weight: 500;
     margin-bottom: 30px;
@@ -167,7 +167,7 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
 
   .blog-post-content :global(blockquote) {
     background: var(--color-bg-tertiary);
-    border-left: 4px solid #ff8c42;
+    border-left: 4px solid var(--accent);
     padding: 20px 30px;
     margin: 30px 0;
     border-radius: 4px;
@@ -184,12 +184,12 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
     border-radius: 3px;
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 16px;
-    color: #ff8c42;
+    color: var(--accent);
     transition: background-color 0.3s ease;
   }
 
   .blog-post-content :global(pre) {
-    background: #1e1e1e;
+    background: var(--bg-inverse);
     padding: 20px;
     border-radius: 8px;
     overflow-x: auto;
@@ -204,14 +204,14 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
   }
 
   .blog-post-content :global(a) {
-    color: #ff8c42;
+    color: var(--accent);
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: border-color 0.2s;
   }
 
   .blog-post-content :global(a:hover) {
-    border-bottom-color: #ff8c42;
+    border-bottom-color: var(--accent);
   }
 
   .blog-post-content :global(img) {
@@ -222,8 +222,8 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
   }
 
   .blog-post-content :global(.highlight) {
-    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
-    border-left: 4px solid #ff8c42;
+    background: var(--bg);
+    border-left: 4px solid var(--accent);
     padding: 25px 30px;
     margin: 30px 0;
     border-radius: 8px;
@@ -251,7 +251,7 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
   .back-link-footer {
     display: inline-flex;
     align-items: center;
-    color: #ff8c42;
+    color: var(--accent);
     text-decoration: none;
     font-weight: 500;
     transition: transform 0.2s;

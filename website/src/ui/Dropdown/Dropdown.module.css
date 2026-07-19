@@ -24,7 +24,7 @@
   height: var(--control-height-md, 40px);
   font-size: 15px;
   font-weight: 500;
-  color: var(--color-text, #2c3e50);
+  color: var(--color-text, var(--bg-inverse));
   background: transparent;
   border: none;
   border-radius: 8px;
@@ -34,12 +34,12 @@
 }
 
 .trigger:hover {
-  color: var(--color-primary, #ff8c42);
-  background: rgba(255, 140, 66, 0.08);
+  color: var(--color-primary, var(--accent));
+  background: rgba(239, 51, 51, 0.08);
 }
 
 .trigger:focus-visible {
-  outline: 2px solid var(--color-primary, #ff8c42);
+  outline: 2px solid var(--color-primary, var(--accent));
   outline-offset: 2px;
 }
 
@@ -48,7 +48,7 @@
 }
 
 :global(.dark) .trigger:hover {
-  background: rgba(255, 140, 66, 0.15);
+  background: rgba(239, 51, 51, 0.15);
 }
 
 /* ============================================
@@ -106,7 +106,7 @@
 }
 
 :global(.dark) .panel {
-  background: var(--color-bg, #1e1e1e);
+  background: var(--color-bg, var(--bg-inverse));
   border-color: var(--color-border, #333);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
@@ -125,18 +125,18 @@
   background: transparent;
   border-radius: 8px;
   text-decoration: none;
-  color: var(--color-text, #2c3e50);
+  color: var(--color-text, var(--bg-inverse));
   text-align: left;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .item:hover {
-  background: rgba(255, 140, 66, 0.08);
+  background: rgba(239, 51, 51, 0.08);
 }
 
 .item:focus-visible {
-  outline: 2px solid var(--color-primary, #ff8c42);
+  outline: 2px solid var(--color-primary, var(--accent));
   outline-offset: -2px;
 }
 
@@ -145,7 +145,7 @@
 }
 
 :global(.dark) .item:hover {
-  background: rgba(255, 140, 66, 0.15);
+  background: rgba(239, 51, 51, 0.15);
 }
 
 /* ============================================
