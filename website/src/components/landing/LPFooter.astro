@@ -1,5 +1,5 @@
 ---
-import { type Locale } from '../../i18n/config';
+import { t, type Locale } from '../../i18n/config';
 
 interface Props {
   lang?: Locale;
@@ -13,7 +13,7 @@ const { lang = 'en' } = Astro.props;
     <div class="footer-main">
       <div class="footer-brand">
         <span class="brand-name">Caro</span>
-        <span class="brand-tagline">Safe shell commands, locally.</span>
+        <span class="brand-tagline">{t(lang, 'footer.brandTagline')}</span>
       </div>
       <div class="footer-links">
         <a href="https://github.com/wildcard/caro">GitHub</a>
