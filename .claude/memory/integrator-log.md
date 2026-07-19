@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-07-18 (23:00 fire) — 4th call site of the #1115 divergence class
+
+- **Validated:** three stalest rows re-smoke-tested against the **published `caro 1.4.0`** binary (`~/.cargo/bin/caro`, crates.io 2026-05-09).
+  - **Ollama / vLLM / Exo** — ⚠️ PARTIAL, unchanged. `caro --backend ollama --dry-run -p "list pdf files"` → `WARN caro::cli: Remote backends not compiled in` then silent fallback returning `ls -la` (note: the fallback also returns the *wrong* command for the prompt). Identical for `vllm` and `exo`. Root cause unchanged: `remote-backends` absent from default features.
+  - **MLX / embedded** — ✓ PASS. `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls *.pdf`.
+  - **Claude / static** — ❌ FAIL in the shipped artifact (`Unknown backend`), while `--backend-info` still advertises `claude`. Already fixed on `main` by #1298; purely a release-cadence gap now.
+  - **`caro mcp serve` / `caro serve --openai`** — ⏳ not-yet confirmed; both parse as natural-language prompts rather than subcommands (#928 / #929 remain unimplemented, as the matrix claims).
+
+- **Shipped:** [PR — `fix(config): unify caro config set backend roster with CLI_SERVABLE_BACKENDS`]. `caro config set backend` at `src/main.rs:2078` hardcoded `["embedded","ollama","exo","vllm"]`, so `mesh`, `ai-horde` and `hybrid` — accepted by `--backend` since #1209 and advertised by `--backend-info` — could not be persisted as the user's default. PR #1298 unified three surfaces onto `backends::CLI_SERVABLE_BACKENDS` but missed this fourth call site because it lives in `main.rs` command dispatch rather than `cli/mod.rs` backend plumbing, so the `VALID_BACKENDS` grep that drove #1298 never surfaced it. Fix extracts `validate_config_backend_name()` next to `print_backend_info()` and adds 5 regression tests including a parity test that iterates the whole roster.
+
+- **Filed:** `config set` has no config-dir override — `src/config/mod.rs:64` calls `dirs::config_dir()` unconditionally, so there is no way to exercise the config subcommand without writing the developer's real `~/Library/Application Support/caro/config.toml`. This bit during tonight's validation (see Discovered). Filed as a P2 test-isolation issue.
+
+- **Discovered:**
+  - **Self-inflicted, worth recording:** verifying the fix end-to-end wrote to the *real* user config, silently changing `default_model` to `ai-horde` — which would have routed the owner's generations to a public volunteer cluster. `CARO_CONFIG_DIR` was set but is not honoured. Restored by removing the `default_model` key (backup at `/tmp/caro-config-backup-20260718.toml`); the prior value was not recoverable. **Future passes must not run `caro config set` against a real HOME.** This is the direct motivation for the P2 above.
+  - The partial-refactor residue pattern is the real lesson: after #1298 the codebase *looks* like it has a single source of truth, which makes the surviving hardcoded list harder to find, not easier. Worth a grep sweep for any other literal backend-name arrays before declaring #1115's class closed.
+  - Published binary is still 1.4.0 (2026-05-09) with a `v1.5.0` **draft** release sitting since the same day. The release-cadence gap is now ~10 weeks. #1209, #1097, #1206, #1092, #1298 and tonight's fix are all stranded in `main`.
+
+- **Next pass should:** run the grep sweep for remaining hardcoded backend rosters (closing out the #1115 class), then re-assess [#1081](https://github.com/wildcard/caro/issues/1081)'s wiring half. The release-cadence gap remains out of integrator scope but should be escalated again — it is now the single highest-impact item on the matrix, and every integrator fix is invisible to users until it clears.
+
+---
+
 ## 2026-07-11 (23:00 PT fire, post-merge pass) — #1298 landed; verify + close-the-loop, no code PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.4.0` (crates.io, 2026-05-09 — still newest). Confirmed **PR #1298 MERGED** (2026-07-12 UTC, commit `2a76cf90`) and **issue #1115 CLOSED**. Re-ran the #1115 repro on the shipped binary: `caro --backend-info` still advertises `static` (available) + `claude` (configurable), yet `caro --backend claude --dry-run -p "list pdf files"` → `Error: Invalid argument: Unknown backend 'claude'` and `--backend static` → identical. So the P0 divergence #1298 fixed on `main` is **still live in the shipped artifact** — this is now purely a release-cadence gap, not a code gap. PASS data point: `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls *.pdf` ✓. New-roster gap: `caro --backend ai-horde` → `Unknown backend` (main exposes it via #1209; published 1.4.0 knows only embedded/ollama/exo/vllm). Inspected `main` source: `CLI_SERVABLE_BACKENDS` (`src/backends/mod.rs:35`) now the single source of truth for `validate_backend_name`/`print_backend_info`/`available_backends`/help; `create_backend` (`src/cli/mod.rs:295`) still has no `claude`/`openrouter` arm (wiring half deferred, per the in-code comment).
