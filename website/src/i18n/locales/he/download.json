@@ -1,11 +1,11 @@
 {
   "download": {
-    "title": "התחל עם Caro",
-    "subtitle": "הביאו את חבר השל הנאמן שלכם לטרמינל שלכם",
+    "title": "בוא נתחיל עם Caro",
+    "subtitle": "תביא את החבר הנאמן שלך ב-shell אל הטרמינל",
     "installCommand": "bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)",
     "copyButton": "העתק",
     "copiedButton": "הועתק!",
-    "binariesIntro": "או הורד בינארים מוכנים מראש:",
+    "binariesIntro": "או הורד קובץ בינארי מוכן:",
     "comingSoonBadge": "בקרוב",
     "platforms": {
       "macAppleSilicon": "macOS (Apple Silicon)",
@@ -14,7 +14,7 @@
       "windows": "Windows"
     },
     "usageModes": {
-      "title": "מספר דרכים להשתמש ב-Caro",
+      "title": "כמה דרכים להשתמש ב-Caro",
       "modes": [
         {
           "title": "🔧 CLI עצמאי",
@@ -22,21 +22,21 @@
         },
         {
           "title": "🔌 MCP עבור Claude",
-          "description": "הוסף את Caro כשרת MCP ל-Claude Desktop ותן לה לטפל בכל פקודות השל בחלקיות.",
+          "description": "הוסף את Caro כשרת MCP ל-Claude Desktop, ותן לה לטפל בכל פקודות ה-shell בצורה חלקה.",
           "comingSoon": true
         },
         {
-          "title": "✨ כישור מוקדש",
-          "description": "השתמש ב-Caro ככישור כדי להעביר את יצירת פקודות השל וביצוען בעוד Claude מתמקד בעבודה שלך.",
+          "title": "✨ Skill ייעודי",
+          "description": "השתמש ב-Caro כ-Skill כדי להעביר אליה את יצירת פקודות ה-shell וההרצה שלהן, בזמן ש-Claude מתמקד בעבודה שלך.",
           "comingSoon": true
         }
       ]
     },
     "quickStart": {
       "title": "התחלה מהירה",
-      "intro": "לאחר הרצת סקריפט ההתקנה למעלה, פשוט השתמשו ב-Caro:",
+      "intro": "אחרי שהרצת את סקריפט ההתקנה שלמעלה, פשוט תשתמש ב-Caro:",
       "exampleCommand": "caro \"find all python files modified in the last 7 days\"",
-      "description": "Caro תייצר את הפקודה ותשמור עליכם בטוחים. סקריפט ההתקנה טופל בכל הדרישות המוקדמות כולל קומפילציה של Rust."
+      "description": "Caro תייצר את הפקודה ותשמור עליך. סקריפט ההתקנה מטפל בכל הדרישות המוקדמות, כולל הקומפילציה של Rust."
     }
   }
 }
