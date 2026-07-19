@@ -49,13 +49,19 @@ if (!rawSvg) {
 const innerMatch = rawSvg.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
 const innerSvg = innerMatch ? innerMatch[1] : '';
 
+// Honour the source viewBox. Most of the pack is a 16×16 grid, but the brand
+// mark is drawn on the 15×15 grid its official artwork uses — hardcoding 16
+// would letterbox it off-centre and break the crispEdges alignment.
+const viewBoxMatch = rawSvg.match(/viewBox\s*=\s*["']([^"']+)["']/i);
+const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 16 16';
+
 const role = ariaLabel ? 'img' : undefined;
 const ariaHidden = ariaLabel ? undefined : 'true';
 ---
 
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  viewBox="0 0 16 16"
+  viewBox={viewBox}
   width={size}
   height={size}
   fill="currentColor"

@@ -1,14 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" shape-rendering="crispEdges">
+  <title>Caro</title>
+  <!--
+    Self-contained by design. The previous revision drew the mark with
+    <image href="/caro-pixel.png">, which never rendered: browsers refuse to
+    resolve external references inside an SVG favicon, so the tab fell back to
+    a 64px full-body sprite squashed into 16px. The mark below is the official
+    Caro Shiba, inlined on its native 15x15 pixel grid.
+  -->
   <defs>
     <linearGradient id="caroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ff8c42;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#ff6b35;stop-opacity:1" />
+      <stop offset="0%" stop-color="#ff8c42"/>
+      <stop offset="100%" stop-color="#ff6b35"/>
     </linearGradient>
   </defs>
-  <!-- Orange circle background -->
-  <circle cx="50" cy="50" r="48" fill="url(#caroGradient)"/>
-  <!-- Inner white circle for contrast -->
-  <circle cx="50" cy="50" r="42" fill="white"/>
-  <!-- Caro pixel art placeholder -->
-  <image href="/caro-pixel.png" x="25" y="25" width="50" height="50" style="image-rendering: pixelated;"/>
+  <rect width="15" height="15" rx="3" fill="#ffffff"/>
+  <g fill="url(#caroGradient)" transform="translate(1.5 1.5) scale(0.8)">
+    <rect x="0" y="0" width="1" height="1"/><rect x="2" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/>
+    <rect x="1" y="2" width="13" height="1"/>
+    <rect x="0" y="3" width="15" height="1"/>
+    <rect x="0" y="4" width="3" height="1"/><rect x="5" y="4" width="5" height="1"/><rect x="12" y="4" width="3" height="1"/>
+    <rect x="0" y="5" width="4" height="1"/><rect x="6" y="5" width="3" height="1"/><rect x="11" y="5" width="4" height="1"/>
+    <rect x="0" y="6" width="15" height="1"/>
+    <rect x="0" y="7" width="3" height="1"/><rect x="6" y="7" width="3" height="1"/><rect x="12" y="7" width="3" height="1"/>
+    <rect x="0" y="8" width="2" height="1"/><rect x="13" y="8" width="2" height="1"/>
+    <rect x="0" y="9" width="1" height="1"/><rect x="6" y="9" width="3" height="1"/><rect x="14" y="9" width="1" height="1"/>
+    <rect x="0" y="10" width="1" height="1"/><rect x="4" y="10" width="1" height="1"/><rect x="7" y="10" width="1" height="1"/><rect x="10" y="10" width="1" height="1"/><rect x="14" y="10" width="1" height="1"/>
+    <rect x="0" y="11" width="1" height="1"/><rect x="5" y="11" width="5" height="1"/><rect x="14" y="11" width="1" height="1"/>
+    <rect x="0" y="12" width="2" height="1"/><rect x="13" y="12" width="2" height="1"/>
+    <rect x="0" y="13" width="3" height="1"/><rect x="12" y="13" width="3" height="1"/>
+    <rect x="1" y="14" width="4" height="1"/><rect x="10" y="14" width="4" height="1"/>
+  </g>
 </svg>
