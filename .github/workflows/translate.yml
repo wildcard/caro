@@ -14,9 +14,11 @@ on:
         type: boolean
         default: false
       backend:
-        description: 'Translation backend to use'
+        description: 'Translation backend ("auto" = model chain in translation-config.json)'
         type: choice
         options:
+          - auto
+          - gemini
           - openai
           - libretranslate
           - claude
@@ -32,6 +34,7 @@ jobs:
     outputs:
       has-openai: ${{ steps.check.outputs.has-openai }}
       has-anthropic: ${{ steps.check.outputs.has-anthropic }}
+      has-gemini: ${{ steps.check.outputs.has-gemini }}
     steps:
       - name: Check available secrets
         id: check
@@ -47,12 +50,19 @@ jobs:
           else
             echo "has-anthropic=false" >> $GITHUB_OUTPUT
           fi
+          if [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then
+            echo "has-gemini=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-gemini=false" >> $GITHUB_OUTPUT
+            echo "⚠️ GEMINI_API_KEY secret not configured (primary model)"
+          fi
 
   translate:
     needs: check-secrets
     if: |
       needs.check-secrets.outputs.has-openai == 'true' ||
       needs.check-secrets.outputs.has-anthropic == 'true' ||
+      needs.check-secrets.outputs.has-gemini == 'true' ||
       github.event.inputs.backend == 'libretranslate'
     runs-on: ubuntu-latest
     strategy:
@@ -74,8 +84,13 @@ jobs:
       - name: Determine backend
         id: backend
         run: |
-          REQUESTED="${{ github.event.inputs.backend || 'openai' }}"
-          if [ "$REQUESTED" = "openai" ] && [ "${{ needs.check-secrets.outputs.has-openai }}" = "true" ]; then
+          REQUESTED="${{ github.event.inputs.backend || 'auto' }}"
+          if [ "$REQUESTED" = "auto" ]; then
+            # Model chain + health check in translation-config.json decides.
+            echo "selected=auto" >> $GITHUB_OUTPUT
+          elif [ "$REQUESTED" = "gemini" ]; then
+            echo "selected=gemini" >> $GITHUB_OUTPUT
+          elif [ "$REQUESTED" = "openai" ] && [ "${{ needs.check-secrets.outputs.has-openai }}" = "true" ]; then
             echo "selected=openai" >> $GITHUB_OUTPUT
           elif [ "$REQUESTED" = "claude" ] && [ "${{ needs.check-secrets.outputs.has-anthropic }}" = "true" ]; then
             echo "selected=claude" >> $GITHUB_OUTPUT
@@ -93,6 +108,7 @@ jobs:
         run: node .github/scripts/translate-multi-backend.js
         env:
           TRANSLATION_BACKEND: ${{ steps.backend.outputs.selected }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           LIBRETRANSLATE_URL: ${{ secrets.LIBRETRANSLATE_URL || 'https://libretranslate.com' }}
