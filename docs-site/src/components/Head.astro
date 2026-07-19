@@ -1,8 +1,33 @@
 ---
 import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/Head.astro';
-import Analytics from '@vercel/analytics/astro';
+
+// Cloudflare Web Analytics.
+//
+// Two supported deployment paths:
+//   1. Dashboard auto-injection — enable Web Analytics on the Pages project
+//      and Cloudflare injects the beacon into HTML responses. Leave the env
+//      var unset; this component then renders nothing.
+//   2. Explicit beacon — set PUBLIC_CF_BEACON_TOKEN in the Pages project's
+//      environment variables and the tag below is emitted at build time.
+//
+// The token is a public, write-only site identifier (it appears in page
+// source on every request), so inlining it via a PUBLIC_ var is safe.
+const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
+
+// Build the beacon payload in frontmatter rather than inline in the template:
+// esbuild treats a bare `{` in .astro template content as a JSX expression
+// boundary. See .claude/rules/astro-esbuild-shell-syntax.md.
+const beaconConfig = beaconToken ? JSON.stringify({ token: beaconToken }) : null;
 ---
 
 <Default {...Astro.props}><slot /></Default>
-<Analytics />
+{
+  beaconConfig && (
+    <script
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js"
+      data-cf-beacon={beaconConfig}
+    />
+  )
+}
