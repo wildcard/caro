@@ -9,17 +9,89 @@
  * Imported by Layout.astro (and any component that needs tokens directly).
  * Do NOT redefine these tokens elsewhere — that creates two-source drift.
  *
- * NOTE on Figtree: the persona spec calls for self-hosted Figtree under
- * `website/public/fonts/`. Those files have not yet been bundled, so the
- * `--font-display` / `--font-body` stacks fall through to system fonts.
- * Tracked as a follow-up: bundle Figtree locally before removing the
- * system-font fallback.
+ * FONTS: Figtree (body/UI) is self-hosted from `website/public/fonts/` via the
+ * @font-face block below. Azeret Mono (display/code) is still CDN-loaded — no
+ * local files are bundled for it yet. Both are bound to elements in the BASE
+ * TYPOGRAPHY section at the bottom of this file; a font token that nothing
+ * consumes renders as the fallback while still paying the download cost.
  */
 
-/* Azeret Mono — display / monospace face. Loaded from Google Fonts; the
-   system-font chain falls through gracefully if the CDN is unreachable.
-   Self-hosting is tracked as a follow-up. */
+/* Azeret Mono (display / mono) — still CDN-loaded; no local files bundled yet. */
 @import url('https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;500;600;700;800&display=swap');
+
+/* Figtree (body / UI) — self-hosted from public/fonts/. Serving locally means
+   body copy renders correctly offline and without a Google Fonts round-trip.
+   `font-display: swap` keeps first paint fast. */
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-MediumItalic.ttf') format('truetype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   /* ============================================
@@ -77,32 +149,32 @@
   /* ============================================
      BACKGROUNDS
      ============================================ */
-  --color-bg: #ffffff;
-  --color-bg-secondary: #f8f9fa;
-  --color-bg-tertiary: #fff8f0;
-  --color-bg-hover: rgba(255, 140, 66, 0.08);
+  --color-bg: var(--bg);              /* paper beige, not white */
+  --color-bg-secondary: var(--bg-subtle);
+  --color-bg-tertiary: var(--bg-raised);
+  --color-bg-hover: rgba(239, 51, 51, 0.08);
 
   /* ============================================
      TEXT COLORS
      ============================================ */
-  --color-text: #2c3e50;
-  --color-text-secondary: #7f8c8d;
-  --color-text-tertiary: #34495e;
-  --color-text-on-primary: #ffffff;
+  --color-text: var(--fg);
+  --color-text-secondary: var(--fg-muted);
+  --color-text-tertiary: var(--fg-strong);
+  --color-text-on-primary: var(--fg-inverse);
 
   /* ============================================
      BORDERS
      ============================================ */
-  --color-border: #e0e0e0;
-  --color-border-hover: #ff8c42;
+  --color-border: var(--border);
+  --color-border-hover: var(--accent);
 
   /* ============================================
      LINKS
      Use brand colors for links, with darker hover state
      ============================================ */
-  --color-link: #ff8c42;
-  --color-link-hover: #ff6b35;
-  --color-link-visited: #ff8c42;
+  --color-link: var(--accent);
+  --color-link-hover: var(--accent-hover);
+  --color-link-visited: var(--accent);
 
   /* ============================================
      CARO SEMANTIC TOKENS — brand-aligned aliases for new components
@@ -209,7 +281,7 @@
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
   --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
-  --shadow-primary: 0 8px 20px rgba(255, 140, 66, 0.3);
+  --shadow-primary: 0 8px 20px rgba(239, 51, 51, 0.3);
   --shadow-support: 0 8px 20px rgba(234, 74, 170, 0.3);
 
   /* ============================================
@@ -258,15 +330,15 @@
      These are overridden by the DistroPreferences component
      based on the user's selected OS/distro
      ============================================ */
-  --distro-accent: #ff8c42;
+  --distro-accent: var(--accent);
   --distro-secondary: #ea4aaa;
-  --distro-terminal-bg: #1e1e2e;
-  --distro-terminal-text: #cdd6f4;
+  --distro-terminal-bg: var(--term-bg);
+  --distro-terminal-text: var(--term-fg);
 
   /* Muted variants */
-  --color-surface: #ffffff;
-  --color-surface-secondary: #f8f9fa;
-  --color-text-muted: #6b7280;
+  --color-surface: var(--bg-raised);
+  --color-surface-secondary: var(--bg-subtle);
+  --color-text-muted: var(--fg-muted);
   --color-info-light: #e0f2fe;
 }
 
@@ -274,21 +346,26 @@
    DARK MODE OVERRIDES
    ============================================ */
 .dark {
-  --color-bg: #1a1a1a;
-  --color-bg-secondary: #2d2d2d;
-  --color-bg-tertiary: #252525;
-  --color-bg-hover: rgba(255, 140, 66, 0.12);
+  /* Dark surfaces are retro-console grey, never near-black. NOTE: this block
+     re-declares --bg-inverse to beige (paper panel on a dark page), so the
+     dark-page background must alias --bg, not --bg-inverse. */
+  --color-bg: var(--bg);
+  --color-bg-secondary: var(--caro-grey-800);
+  --color-bg-tertiary: var(--caro-grey-800);
+  --color-bg-hover: rgba(239, 51, 51, 0.12);
 
-  --color-text: #e0e0e0;
-  --color-text-secondary: #a0a0a0;
-  --color-text-tertiary: #c0c0c0;
+  --color-text: var(--caro-beige-100);
+  --color-text-secondary: var(--caro-grey-300);
+  --color-text-tertiary: var(--caro-beige-50);
 
-  --color-border: #3a3a3a;
+  --color-border: var(--caro-grey-500);
 
-  /* Lighter link colors for dark mode contrast */
-  --color-link: #ffa76c;
-  --color-link-hover: #ff8c42;
-  --color-link-visited: #ffa76c;
+  /* Signal red fails contrast on grey-700 (~2.4:1). Dark surfaces use
+     highlighter yellow for links — the same accent-on-dark precedent the
+     brand already sets with --term-prompt. */
+  --color-link: var(--highlight);
+  --color-link-hover: var(--caro-yellow-500);
+  --color-link-visited: var(--highlight);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
@@ -296,14 +373,14 @@
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.4);
 
   /* Dark mode surface variants */
-  --color-surface: #1e1e2e;
-  --color-surface-dark: #1e1e2e;
-  --color-surface-secondary: #16161e;
-  --color-surface-secondary-dark: #16161e;
-  --color-border-dark: #3a3a4a;
-  --color-text-dark: #f5f5f5;
-  --color-text-muted: #9ca3af;
-  --color-text-muted-dark: #9ca3af;
+  --color-surface: var(--caro-grey-800);
+  --color-surface-dark: var(--caro-grey-800);
+  --color-surface-secondary: var(--caro-grey-900);
+  --color-surface-secondary-dark: var(--caro-grey-900);
+  --color-border-dark: var(--caro-grey-500);
+  --color-text-dark: var(--caro-beige-50);
+  --color-text-muted: var(--caro-grey-300);
+  --color-text-muted-dark: var(--caro-grey-300);
 
   /* ============================================
      CARO SEMANTIC TOKENS — dark-mode parity
@@ -362,4 +439,20 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ============================================
+   BASE TYPOGRAPHY — bind the brand faces to elements
+
+   Defining --font-display is not enough: until something consumes it, every
+   heading falls back to the body face and Azeret Mono is downloaded but
+   never painted. These base rules are intentionally low-specificity so any
+   component can still override them.
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+code, pre, kbd, samp {
+  font-family: var(--font-mono);
 }

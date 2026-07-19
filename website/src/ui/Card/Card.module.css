@@ -183,7 +183,7 @@
 .title {
   font-size: 22px;
   margin-bottom: 12px;
-  color: var(--color-text, #2c3e50);
+  color: var(--color-text, var(--bg-inverse));
   line-height: 1.3;
   transition: color 0.3s ease;
 }
@@ -194,7 +194,7 @@
 }
 
 .titleLink {
-  color: var(--color-text, #2c3e50);
+  color: var(--color-text, var(--bg-inverse));
   text-decoration: none;
   transition: color 0.2s;
 }

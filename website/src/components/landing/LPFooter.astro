@@ -65,7 +65,7 @@ const { lang = 'en' } = Astro.props;
   .brand-name {
     font-size: 24px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--highlight);
   }
 
   .brand-tagline {
@@ -86,7 +86,7 @@ const { lang = 'en' } = Astro.props;
   }
 
   .footer-links a:hover {
-    color: #ff8c42;
+    color: var(--highlight);
   }
 
   .footer-bottom {
@@ -111,12 +111,12 @@ const { lang = 'en' } = Astro.props;
   }
 
   .mascot-tribute a:hover {
-    color: #ff8c42;
+    color: var(--highlight);
   }
 
   .story-link {
     margin-left: 8px;
-    color: #ff8c42 !important;
+    color: var(--highlight) !important;
   }
 
   .sponsor-link::before {
@@ -135,7 +135,7 @@ const { lang = 'en' } = Astro.props;
   }
 
   .footer-privacy-link:hover {
-    color: #ff8c42;
+    color: var(--highlight);
   }
 
   @media (max-width: 768px) {

@@ -499,10 +499,9 @@ const personas = [
   }
 
   .brand-text {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    /* Flat brand red. The old background-clip:text trick existed to paint a
+       gradient; with a flat token it only risks transparent text. */
+    color: var(--accent);
   }
 
   /* ========================================
@@ -544,8 +543,8 @@ const personas = [
 
   .nav-item > a:hover,
   .dropdown-trigger:hover {
-    color: #ff8c42;
-    background: rgba(255, 140, 66, 0.08);
+    color: var(--accent);
+    background: rgba(239, 51, 51, 0.08);
   }
 
   .chevron {
@@ -630,7 +629,7 @@ const personas = [
   }
 
   .dropdown-item:hover {
-    background: rgba(255, 140, 66, 0.08);
+    background: rgba(239, 51, 51, 0.08);
   }
 
   .item-icon {
@@ -689,8 +688,8 @@ const personas = [
   }
 
   .icon-button:hover {
-    border-color: #ff8c42;
-    background: rgba(255, 140, 66, 0.08);
+    border-color: var(--accent);
+    background: rgba(239, 51, 51, 0.08);
   }
 
   .icon-button svg {
@@ -850,7 +849,7 @@ const personas = [
     gap: 8px;
     padding: 0 20px;
     height: var(--control-height-md, 40px);
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     color: white;
     text-decoration: none;
     font-weight: 600;
@@ -862,7 +861,7 @@ const personas = [
 
   .nav-cta:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 8px 20px rgba(239, 51, 51, 0.3);
   }
 
   .nav-cta svg {
@@ -1004,7 +1003,7 @@ const personas = [
     gap: 8px;
     font-size: 20px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent);
     text-decoration: none;
   }
 
@@ -1024,8 +1023,8 @@ const personas = [
   }
 
   .drawer-close:hover {
-    background: rgba(255, 107, 53, 0.1);
-    color: #ff6b35;
+    background: rgba(239, 51, 51, 0.1);
+    color: var(--accent-hover);
   }
 
   .drawer-content {
@@ -1069,13 +1068,13 @@ const personas = [
   }
 
   .drawer-link:hover {
-    background: rgba(255, 140, 66, 0.08);
-    color: #ff8c42;
+    background: rgba(239, 51, 51, 0.08);
+    color: var(--accent);
   }
 
   .drawer-link.active {
-    background: rgba(255, 140, 66, 0.12);
-    color: #ff8c42;
+    background: rgba(239, 51, 51, 0.12);
+    color: var(--accent);
   }
 
   .link-icon {
@@ -1171,14 +1170,14 @@ const personas = [
 
   /* Active state */
   .toggle-switch.active > .toggle-track {
-    background: #ff8c42;
-    border-color: #ff6b35;
+    background: var(--accent);
+    border-color: var(--accent-hover);
   }
 
   .toggle-switch.active > .toggle-track > .toggle-thumb {
     transform: translateX(24px);
     background: #fff;
-    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.5);
+    box-shadow: 0 2px 8px rgba(239, 51, 51, 0.5);
   }
 
   /* Light mode */
@@ -1219,7 +1218,7 @@ const personas = [
     gap: 8px;
     width: 100%;
     padding: 16px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     color: white;
     text-decoration: none;
     font-size: 16px;
@@ -1230,7 +1229,7 @@ const personas = [
 
   .drawer-cta:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 8px 20px rgba(239, 51, 51, 0.3);
   }
 
   /* ========================================

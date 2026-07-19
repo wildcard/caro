@@ -128,7 +128,7 @@ const blogPosts = [
     position: absolute;
     top: 15px;
     left: 15px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     color: white;
     padding: 4px 12px;
     border-radius: 12px;
@@ -141,8 +141,8 @@ const blogPosts = [
 
   .blog-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.15);
-    border-color: #ff8c42;
+    box-shadow: 0 10px 30px rgba(239, 51, 51, 0.15);
+    border-color: var(--accent);
   }
 
   .blog-card-header {
@@ -175,7 +175,7 @@ const blogPosts = [
   }
 
   .blog-title a:hover {
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .blog-excerpt {
@@ -186,7 +186,7 @@ const blogPosts = [
   }
 
   .blog-read-more {
-    color: #ff8c42;
+    color: var(--accent);
     text-decoration: none;
     font-weight: 600;
     display: inline-flex;
@@ -199,7 +199,7 @@ const blogPosts = [
   }
 
   .view-all-link {
-    color: #ff8c42;
+    color: var(--accent);
     text-decoration: none;
     font-weight: 600;
     font-size: 18px;
@@ -207,7 +207,7 @@ const blogPosts = [
   }
 
   .view-all-link:hover {
-    color: #ff6b35;
+    color: var(--accent-hover);
   }
 
   @media (max-width: 768px) {

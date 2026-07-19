@@ -8,7 +8,7 @@
    ============================================ */
 
 .terminal {
-  background: var(--terminal-bg, #1e1e1e);
+  background: var(--terminal-bg, var(--bg-inverse));
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   overflow: hidden;
@@ -143,7 +143,7 @@
 
 /* Line type: caro */
 .caro .prefix {
-  color: var(--color-primary, #ff8c42);
+  color: var(--color-primary, var(--accent));
 }
 
 .caro .content {

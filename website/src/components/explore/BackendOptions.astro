@@ -268,12 +268,12 @@ const backends = [
 
   .backend-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 36px rgba(255, 140, 66, 0.15);
-    border-color: #ff8c42;
+    box-shadow: 0 12px 36px rgba(239, 51, 51, 0.15);
+    border-color: var(--accent);
   }
 
   :global(.dark) .backend-card:hover {
-    box-shadow: 0 12px 36px rgba(255, 140, 66, 0.25);
+    box-shadow: 0 12px 36px rgba(239, 51, 51, 0.25);
   }
 
   .backend-header {
@@ -304,7 +304,7 @@ const backends = [
 
   .tagline {
     font-size: 14px;
-    color: #ff8c42;
+    color: var(--accent);
     font-weight: 600;
     margin: 0;
   }
@@ -381,7 +381,7 @@ const backends = [
     content: "→";
     position: absolute;
     left: 0;
-    color: #ff8c42;
+    color: var(--accent);
     font-weight: bold;
   }
 
@@ -413,7 +413,7 @@ const backends = [
   .metric-value {
     font-size: 18px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent);
   }
 
   .setup-guide ol {
@@ -456,13 +456,13 @@ const backends = [
 
   .tag:hover {
     background: var(--color-bg-tertiary);
-    border-color: #ff8c42;
+    border-color: var(--accent);
     transform: translateY(-1px);
   }
 
   .comparison-note {
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
-    border: 2px solid rgba(255, 140, 66, 0.3);
+    background: rgba(239, 51, 51, 0.1);
+    border: 2px solid rgba(239, 51, 51, 0.3);
     border-radius: 12px;
     padding: 30px;
     margin-top: 50px;

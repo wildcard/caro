@@ -186,7 +186,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
   .brand-tagline {
     font-size: 16px;
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--color-footer-text);
     margin-bottom: 8px;
   }
 
@@ -297,13 +297,15 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
   .kyaro-title {
     font-size: 15px;
     font-weight: 600;
-    color: var(--color-footer-text);
+    /* This card sits on --color-bg-secondary (paper), not the dark footer —
+       it needs light-surface foregrounds, not the footer's inverse ones. */
+    color: var(--fg-strong);
     margin-bottom: 4px;
   }
 
   .kyaro-text {
     font-size: 13px;
-    color: var(--color-footer-text-muted);
+    color: var(--fg-muted);
     line-height: 1.4;
   }
 
@@ -369,8 +371,9 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
 
   .version {
     font-size: 13px;
-    color: var(--color-footer-text-muted);
-    font-family: 'Monaco', 'Menlo', monospace;
+    /* Own background is paper, so the foreground must be a light-surface one. */
+    color: var(--fg);
+    font-family: var(--font-mono);
     background: var(--color-bg-secondary);
     padding: 4px 10px;
     border-radius: 6px;

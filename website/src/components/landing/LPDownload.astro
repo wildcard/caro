@@ -57,7 +57,7 @@ const copiedLabel = t(lang, 'common.buttons.copied');
 
 <style>
   .download-section {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     color: white;
     text-align: center;
     padding: 80px 20px;
@@ -71,6 +71,9 @@ const copiedLabel = t(lang, 'common.buttons.copied');
   h2 {
     font-size: 36px;
     margin-bottom: 12px;
+    /* Explicit: the layout's global `h2 { color: var(--color-text) }` outranks
+       the inherited white from .section, leaving grey-on-red at ~2:1. */
+    color: #fff;
   }
 
   .section-subtitle {

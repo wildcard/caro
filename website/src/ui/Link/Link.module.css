@@ -17,7 +17,7 @@
 }
 
 .link:focus-visible {
-  outline: 2px solid var(--color-primary, #ff8c42);
+  outline: 2px solid var(--color-primary, var(--accent));
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -35,7 +35,7 @@
 }
 
 .default:hover {
-  color: var(--color-primary, #ff8c42);
+  color: var(--color-primary, var(--accent));
 }
 
 :global(.dark) .default {
@@ -43,7 +43,7 @@
 }
 
 :global(.dark) .default:hover {
-  color: var(--color-primary, #ff8c42);
+  color: var(--color-primary, var(--accent));
 }
 
 /* ============================================
@@ -64,12 +64,12 @@
    ============================================ */
 
 .arrow {
-  color: var(--color-primary, #ff8c42);
+  color: var(--color-primary, var(--accent));
   font-weight: 600;
 }
 
 .arrow:hover {
-  color: var(--color-primary-dark, #ff6b35);
+  color: var(--color-primary-dark, var(--accent-hover));
 }
 
 .arrow:hover .arrow {
@@ -90,7 +90,7 @@
 }
 
 .external:hover {
-  color: var(--color-primary, #ff8c42);
+  color: var(--color-primary, var(--accent));
 }
 
 .externalIcon {
@@ -112,14 +112,14 @@
    ============================================ */
 
 .nav {
-  color: var(--color-text, #2c3e50);
+  color: var(--color-text, var(--bg-inverse));
   font-weight: 500;
   font-size: 15px;
   padding: 8px 0;
 }
 
 .nav:hover {
-  color: var(--color-primary, #ff8c42);
+  color: var(--color-primary, var(--accent));
 }
 
 :global(.dark) .nav {
@@ -127,7 +127,7 @@
 }
 
 :global(.dark) .nav:hover {
-  color: var(--color-primary, #ff8c42);
+  color: var(--color-primary, var(--accent));
 }
 
 /* ============================================

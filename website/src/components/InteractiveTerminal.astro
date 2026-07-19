@@ -88,7 +88,7 @@
 
 <style>
   .demo-section {
-    background: linear-gradient(180deg, var(--color-bg) 0%, #0a0a12 100%);
+    background: var(--bg);
     padding: 80px 20px;
   }
 
@@ -116,7 +116,7 @@
   }
 
   .os-btn {
-    background: #1e1e2e;
+    background: var(--term-bg);
     border: 2px solid #333;
     color: #888;
     padding: 8px 16px;
@@ -136,9 +136,9 @@
   }
 
   .os-btn.active {
-    border-color: #ff8c42;
+    border-color: var(--accent);
     color: #fff;
-    background: #252535;
+    background: var(--caro-grey-800);
   }
 
   .os-icon {
@@ -159,7 +159,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #1a1a2a;
+    border-bottom: 1px solid var(--bg-inverse);
   }
 
   .terminal-buttons {
@@ -198,7 +198,7 @@
   }
 
   .install-btn {
-    background: linear-gradient(180deg, #ff8c42 0%, #e67635 100%);
+    background: var(--accent);
     border: none;
     color: #fff;
     padding: 6px 14px;
@@ -211,12 +211,12 @@
     align-items: center;
     gap: 6px;
     transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 2px 8px rgba(239, 51, 51, 0.3);
   }
 
   .install-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+    box-shadow: 0 4px 12px rgba(239, 51, 51, 0.4);
   }
 
   .install-btn.installed {
@@ -234,19 +234,19 @@
 
   #terminal-container {
     height: 400px;
-    background: #0d0d14;
+    background: var(--term-bg);
     padding: 0;
   }
 
   .status-bar {
-    background: #1a1a2a;
+    background: var(--bg-inverse);
     padding: 8px 16px;
     display: flex;
     gap: 20px;
     font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
     font-size: 12px;
     color: #888;
-    border-top: 1px solid #252535;
+    border-top: 1px solid var(--caro-grey-800);
   }
 
   .status-bar.hidden {
@@ -263,9 +263,9 @@
     max-width: 900px;
     margin: 20px auto 0;
     padding: 20px;
-    background: #1a1a2a;
+    background: var(--bg-inverse);
     border-radius: 12px;
-    border: 1px solid #252535;
+    border: 1px solid var(--caro-grey-800);
   }
 
   .sample-prompts.hidden {
@@ -287,7 +287,7 @@
   }
 
   .prompt-chip {
-    background: #252535;
+    background: var(--caro-grey-800);
     border: 1px solid #333;
     color: #aaa;
     padding: 8px 16px;
@@ -299,7 +299,7 @@
   }
 
   .prompt-chip:hover {
-    border-color: #ff8c42;
+    border-color: var(--accent);
     color: #fff;
     background: #2a2a3f;
   }
@@ -312,10 +312,10 @@
   }
 
   .instructions code {
-    background: #1a1a2a;
+    background: var(--bg-inverse);
     padding: 2px 8px;
     border-radius: 4px;
-    color: #ff8c42;
+    color: var(--accent);
     font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
   }
 
@@ -1328,13 +1328,16 @@ module.exports = { formatDate, sleep, retry };
       cursorBlink: true,
       fontSize: 14,
       fontFamily: '"SF Mono", "Monaco", "Menlo", "Courier New", monospace',
+      // xterm renders to <canvas>; CSS custom properties do NOT resolve here,
+      // so these must stay literal. Values mirror the terminal tokens in
+      // tokens.css (--term-bg / --term-fg / --accent).
       theme: {
-        background: '#0d0d14',
-        foreground: '#e0e0e0',
-        cursor: '#ff8c42',
-        cursorAccent: '#0d0d14',
-        selectionBackground: '#ff8c4244',
-        black: '#0d0d14',
+        background: '#4f4f4f',
+        foreground: '#f4f1df',
+        cursor: '#ef3333',
+        cursorAccent: '#4f4f4f',
+        selectionBackground: '#ef333344',
+        black: '#4f4f4f',
         red: '#ff5555',
         green: '#50fa7b',
         yellow: '#f1fa8c',

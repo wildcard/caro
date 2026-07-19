@@ -2,7 +2,7 @@
 
 > Your loyal shell companion - A privacy-first AI CLI assistant that converts natural language to safe shell commands
 
-**Version**: 1.3.0
+**Version**: 1.4.0
 **License**: AGPL-3.0
 **Repository**: https://github.com/wildcard/caro
 **Website**: https://caro.sh
@@ -365,6 +365,14 @@ Caro comes to Claude Code! Generate safe, POSIX-compliant shell commands directl
 
 ---
 
+## Caro's founder arc: adopting Anthropic's playbook with a safety-first execution layer
+
+**URL**: https://caro.sh/blog/founders-playbook-adaptation
+
+We adapted Anthropic's Founder's Playbook into Caro's codebase as a stage map, a validation-discipline rule, and a retroactive audit that downgraded five v2.0 features. Here's what changed and why.
+
+---
+
 ## How Kyaro Guides Us: The Soul Behind Every Decision
 
 **URL**: https://caro.sh/blog/how-kyaro-guides-us
@@ -503,11 +511,43 @@ Safety Approach
 
 ---
 
+## Integrations — Caro
+
+**URL**: https://caro.sh/integrations
+
+Use Caro from Claude Code, Codex, Cursor, Continue, Aider, Tabby, opencode, crush, and more. Caro speaks Claude Code skills, MCP, and the OpenAI Chat Completions API.
+
+---
+
 ## Open Source AI Shell Commands
 
 **URL**: https://caro.sh/open-source-shell-ai
 
 Caro is the open-source CLI that converts natural language to safe shell commands. 100% local inference, community-driven, zero telemetry. Join the movement.
+
+---
+
+## The Caro Playbook — Where we are, where we're going
+
+**URL**: https://caro.sh/playbook
+
+Caro's founder-arc stage map adapted from Anthropic's Founder's Playbook. We're at late MVP heading into Launch. The next gate is retention, not features.
+
+Stage 1 — Idea
+
+Stage 2 — MVP
+
+Stage 3 — Launch
+
+Stage 4 — Scale
+
+---
+
+## Pricing (preview) — Caro
+
+**URL**: https://caro.sh/pricing
+
+Caro is free forever under AGPL-3.0. An Enterprise plugin suite for fleet-wide governance, audit-trail forwarding, and IT rollout is in preview — pricing finalizes with v2.0.
 
 ---
 
@@ -983,4 +1023,4 @@ Yes! Caro is licensed under AGPL-3.0. You can read, modify, and distribute the s
 
 ---
 
-*Generated on 2026-04-29*
+*Generated on 2026-07-19*
