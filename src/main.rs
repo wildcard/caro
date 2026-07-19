@@ -2074,15 +2074,7 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
 
             match key.to_lowercase().as_str() {
                 "backend" => {
-                    // Validate backend name
-                    let valid_backends = ["embedded", "ollama", "exo", "vllm"];
-                    if !valid_backends.contains(&value.to_lowercase().as_str()) {
-                        return Err(format!(
-                            "Invalid backend '{}'. Valid options: {}",
-                            value,
-                            valid_backends.join(", ")
-                        ));
-                    }
+                    validate_config_backend_name(value.as_str())?;
                     config.default_model = Some(value.to_lowercase());
                     println!(
                         "{} Set default backend to '{}'",
@@ -4014,6 +4006,41 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     Ok(())
 }
 
+/// Validate a backend name supplied to `caro config set backend <name>`.
+///
+/// Driven by `CLI_SERVABLE_BACKENDS` — the SAME slice behind `--backend`,
+/// `--backend-info` and `available_backends()` — so any name the CLI accepts
+/// at invocation time can also be persisted as the default. Before this was
+/// shared, the config path hardcoded a four-name roster and rejected `mesh`,
+/// `ai-horde` and `hybrid` even though `--backend <name>` accepted them
+/// (the divergence class tracked by #1115 / fixed for the other surfaces
+/// in #1298).
+///
+/// Membership is deliberately NOT feature-gated: persisting a preference is
+/// not the same as instantiating a backend, and a binary built without
+/// `remote-backends` already emits a dedicated error at generation time.
+fn validate_config_backend_name(value: &str) -> Result<(), String> {
+    use caro::backends::CLI_SERVABLE_BACKENDS;
+
+    let normalized = value.to_lowercase();
+    if CLI_SERVABLE_BACKENDS
+        .iter()
+        .any(|(name, _)| *name == normalized)
+    {
+        return Ok(());
+    }
+
+    Err(format!(
+        "Invalid backend '{}'. Valid options: {}",
+        value,
+        CLI_SERVABLE_BACKENDS
+            .iter()
+            .map(|(name, _)| *name)
+            .collect::<Vec<_>>()
+            .join(", ")
+    ))
+}
+
 /// Print the list of inference backends along with their current status.
 ///
 /// Invoked by the `--backend-info` meta flag. Exits the caller with code 0.
@@ -4136,6 +4163,62 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Backend roster parity: `caro config set backend` must accept exactly
+    // what `--backend` accepts (#1115 divergence class).
+
+    #[test]
+    fn test_config_backend_accepts_every_cli_servable_backend() {
+        for (name, _) in caro::backends::CLI_SERVABLE_BACKENDS {
+            assert!(
+                validate_config_backend_name(name).is_ok(),
+                "`config set backend {}` rejected a name that `--backend` accepts",
+                name
+            );
+        }
+    }
+
+    #[test]
+    fn test_config_backend_accepts_backends_added_after_the_hardcoded_roster() {
+        // Regression guard: these three shipped in #1209 and were rejected by
+        // the previously-hardcoded ["embedded","ollama","exo","vllm"] list.
+        for name in ["mesh", "ai-horde", "hybrid"] {
+            assert!(
+                validate_config_backend_name(name).is_ok(),
+                "`config set backend {}` should be accepted",
+                name
+            );
+        }
+    }
+
+    #[test]
+    fn test_config_backend_is_case_insensitive() {
+        assert!(validate_config_backend_name("EMBEDDED").is_ok());
+        assert!(validate_config_backend_name("Ai-Horde").is_ok());
+    }
+
+    #[test]
+    fn test_config_backend_rejects_unknown_and_lists_full_roster() {
+        let err = validate_config_backend_name("definitely-not-a-backend")
+            .expect_err("unknown backend must be rejected");
+        // The error must enumerate the live roster, not a stale subset.
+        assert!(
+            err.contains("mesh"),
+            "error should list current roster: {err}"
+        );
+        assert!(
+            err.contains("hybrid"),
+            "error should list current roster: {err}"
+        );
+    }
+
+    #[test]
+    fn test_config_backend_rejects_names_the_cli_does_not_route_to() {
+        // `static`/`claude` are advertised nowhere in CLI_SERVABLE_BACKENDS
+        // because `create_backend` has no arm for them yet (#1081).
+        assert!(validate_config_backend_name("static").is_err());
+        assert!(validate_config_backend_name("claude").is_err());
+    }
 
     // WP03: Prompt Source Resolution Tests
 
