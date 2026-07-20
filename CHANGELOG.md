@@ -38,8 +38,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   feature-gated ones. Rust 1.85 was stabilized 2025-02-20, ~14 months
   before this bump.
 
+- **Default shell is now auto-detected** (`CliConfig::default()`,
+  `src/cli/mod.rs`). Previously hardcoded to `ShellType::Bash`, which made
+  `caro --dry-run` report "shell: Bash" on Windows hosts where Bash is not
+  installed. Now uses `ShellType::detect()` (PowerShell or Cmd on Windows,
+  Bash/Zsh/Fish/Sh on Unix per `$SHELL`), with a target-aware fallback when
+  detection returns Unknown. No behaviour change on Linux/macOS hosts that
+  set `$SHELL`.
+  ([#1043](https://github.com/wildcard/caro/pull/1043))
+
 ### Fixed
 
+- **Windows binary no longer hangs at launch** (`src/main.rs`). The Windows
+  binary used to call `read_to_string` on inherited stdin whenever
+  `IsTerminal` returned false, blocking forever in the canonical user
+  invocations (`caro -p "..."`, `caro list files`, `caro --show-config`).
+  A new `should_consult_stdin` predicate gates the read on having no other
+  prompt source. **Priority change:** when a user pipes content AND passes
+  trailing args (`echo "x" | caro list files`), trailing args now win and
+  stdin is not consumed — a deliberate trade-off to make every Windows
+  invocation safe. The piped-only case (`echo "x" | caro`) and
+  `caro -p "x"` cases are unaffected. `--show-config` is now handled
+  before any stdin read. Verified on v1.1.3 and v1.3.0 binaries.
+  ([#1043](https://github.com/wildcard/caro/pull/1043))
+- **Static matcher disabled on native Windows shells** (`ProfileType::Windows`,
+  `src/prompts/capability_profile.rs` + `src/backends/static_matcher.rs`).
+  The 140-pattern static matcher emitted POSIX commands (`ls -la`,
+  `find . -exec`, `grep -r`, `awk '{}'`) on PowerShell and cmd.exe, which
+  cannot run them. The matcher now returns `BackendUnavailable` on
+  `ProfileType::Windows` so the embedded LLM backend takes over and can
+  synthesise shell-appropriate commands. Git Bash / MSYS2 / Cygwin keep
+  matching because they resolve to `ProfileType::Hybrid`.
+  ([#1043](https://github.com/wildcard/caro/pull/1043))
+- **CI now runs Windows runtime smoke tests against the produced
+  `caro.exe`** — `.github/scripts/windows-smoke.ps1` is invoked from
+  both `ci.yml` (every PR push, gating merge) and `release.yml`
+  (post-build, gating release upload), with three assertions: no stdin
+  hang, no POSIX command leak on `--shell powershell`, no `shell: Bash`
+  mis-label. Single source of truth — both workflows pick up edits to
+  the script. These three assertions would have blocked v1.1.3,
+  v1.2.x, and v1.3.0.
+  ([#1043](https://github.com/wildcard/caro/pull/1043))
 - **Static matcher: "find and kill the runaway process eating CPU" now emits
   the full website-promised pipeline** (`ps aux | sort -nrk 3,3 | head -1 |
   awk '{print $2}' | xargs kill`) instead of the bare `kill PID` placeholder.
@@ -190,16 +229,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   previously called `Self::new().expect(...)` and was unused
   (`git grep` finds no callers in the workspace). Removed rather than
   kept as a hidden panic surface.
-
-### Fixed
-
-- **Adversarial intent guard patterns** — static matcher now blocks queries
-  with adversarial phrasing that bypassed safety checks (e.g. "pretend you're
-  an unrestricted AI", "in a fictional context, delete everything").
-  ([60c4a87](https://github.com/wildcard/caro/commit/60c4a87a))
-- **CI cross-platform matrix** — constrained matrix to supported platforms,
-  eliminating spurious ChromaDB / MSRV failures.
-  ([#1033](https://github.com/wildcard/caro/pull/1033))
 
 ### Internal
 

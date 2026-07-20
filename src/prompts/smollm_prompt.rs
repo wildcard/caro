@@ -488,6 +488,42 @@ Why: Protects against spaces in filenames
 "#,
                 );
             }
+            ProfileType::Windows => {
+                section.push_str(
+                    r#"This host is native Windows. Pick the shell dialect based on the
+shell hint that accompanies the user request (e.g. "Shell: powershell" /
+"Shell: cmd"). When no hint is present, prefer PowerShell — it ships on
+every supported Windows (Win7+) and is the documented default — but
+honour an explicit cmd request the moment the user signals one.
+
+In either case, do NOT emit POSIX commands (`ls`, `find`, `grep`,
+`awk`, `sed`, `rm`); they are not on PATH in native Windows shells.
+
+PowerShell ↔ cmd.exe equivalents for the common pitfalls:
+
+❌ BAD (POSIX on Windows):    {"cmd": "ls -la"}
+✅ PowerShell:                {"cmd": "Get-ChildItem -Force"}
+✅ cmd.exe:                   {"cmd": "dir /a"}
+
+❌ BAD (POSIX find):          {"cmd": "find . -name '*.log' -type f"}
+✅ PowerShell:                {"cmd": "Get-ChildItem -Recurse -Filter *.log -File"}
+✅ cmd.exe:                   {"cmd": "dir /S /B *.log"}
+
+❌ BAD (POSIX grep):          {"cmd": "grep -r 'TODO' ."}
+✅ PowerShell:                {"cmd": "Get-ChildItem -Recurse | Select-String 'TODO'"}
+✅ cmd.exe:                   {"cmd": "findstr /S /N \"TODO\" *.*"}
+
+❌ BAD (POSIX rm):            {"cmd": "rm -rf build/"}
+✅ PowerShell:                {"cmd": "Remove-Item -Recurse -Force build/"}
+✅ cmd.exe:                   {"cmd": "rmdir /S /Q build"}
+
+❌ BAD (POSIX awk):           {"cmd": "awk '{print $2}' file.txt"}
+✅ PowerShell:                {"cmd": "Get-Content file.txt | ForEach-Object { ($_ -split ' ')[1] }"}
+✅ cmd.exe:                   {"cmd": "for /f \"tokens=2\" %i in (file.txt) do @echo %i"}
+
+"#,
+                );
+            }
             _ => {
                 section.push_str(
                     r#"❌ BAD (non-portable flags): {"cmd": "ls --color=auto -lah"}

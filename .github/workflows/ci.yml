@@ -414,3 +414,17 @@ jobs:
             echo "✅ Binary size ($SIZE bytes) is within 50MB limit"
           fi
         fi
+
+    # Windows runtime smoke test — gates every PR on the three regressions
+    # fixed in PR #1043 (stdin hang, POSIX leak on Windows, shell
+    # mis-detection). Reuses the same script invoked from release.yml
+    # post-build, so smoke logic has a single source of truth at
+    # .github/scripts/windows-smoke.ps1. Each assertion would have blocked
+    # v1.3.0. Compile-time `cargo test` cannot catch these — they only
+    # manifest when the produced caro.exe is invoked as a subprocess.
+    - name: Windows runtime smoke test
+      if: runner.os == 'Windows'
+      shell: pwsh
+      env:
+        CARO_EXE: target/${{ matrix.target }}/release/caro.exe
+      run: pwsh ./.github/scripts/windows-smoke.ps1 -ExePath "$env:CARO_EXE"

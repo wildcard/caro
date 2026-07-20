@@ -248,6 +248,17 @@ jobs:
         env:
           CARO_RELEASE: 1  # Mark as official release build for version info
 
+      # Windows runtime smoke test — guards against three field-confirmed
+      # regressions in caro-1.3.0-windows-amd64.exe (PR #1043). Assertions
+      # live in .github/scripts/windows-smoke.ps1, which is also invoked
+      # from ci.yml so the same smoke gates every PR push AND every
+      # release build. Edits to the smoke logic must happen in that
+      # script; both workflows pick them up automatically.
+      - name: Windows runtime smoke test (full mode — includes LLM-dependent Bug #2 assertion)
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        shell: pwsh
+        run: pwsh ./.github/scripts/windows-smoke.ps1 -ExePath target/x86_64-pc-windows-msvc/release/caro.exe -Mode full
+
       - name: Prepare release artifact
         run: |
           VERSION="${{ needs.prepare-release.outputs.version }}"

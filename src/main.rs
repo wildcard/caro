@@ -33,13 +33,24 @@ pub struct ResolvedPrompt {
     pub source: PromptSource,
 }
 
-/// Resolve prompt from multiple input sources following priority order
+/// Resolve prompt from multiple input sources following priority order.
 ///
-/// Priority: -p/--prompt flag > stdin > trailing arguments
+/// **Within `resolve_prompt`** the priority is: `-p/--prompt flag > stdin >
+/// trailing arguments`. So if `stdin` is `Some(_)`, it beats trailing args.
+///
+/// **However, the call sites no longer always read stdin.** See
+/// [`should_consult_stdin`]: stdin is only read when neither `-p` nor
+/// trailing args were supplied. As a deliberate consequence, when a user
+/// pipes content AND passes trailing args, trailing args win and stdin is
+/// not consumed at all. This trade-off was made to repair a
+/// Windows-specific `read_to_string` hang where `IsTerminal` lies for
+/// inherited stdin handles; the alternative — read stdin first and risk
+/// hanging on every Windows invocation — was untenable.
 ///
 /// # Arguments
 /// * `flag` - Optional prompt from -p/--prompt flag
-/// * `stdin` - Optional prompt from piped stdin
+/// * `stdin` - Optional prompt from piped stdin (`None` when caller chose
+///   not to read stdin per `should_consult_stdin`'s gate)
 /// * `trailing_args` - Prompt from command-line trailing words
 ///
 /// # Returns
@@ -69,10 +80,36 @@ fn resolve_prompt(
 
 /// Check if stdin has available input (pipe or redirect)
 ///
-/// Returns true if stdin is not a terminal (i.e., piped or redirected)
+/// Returns true if stdin is not a terminal (i.e., piped or redirected).
+///
+/// NOTE: On Windows, `IsTerminal` can return false for inherited stdin handles
+/// that are *not* console handles but also have no data ready (e.g. when caro
+/// is launched from PowerShell hosts, IDE terminals, or as a child process).
+/// Callers MUST gate reads on having no other prompt source — see
+/// `should_consult_stdin` — otherwise `read_stdin()` will block forever
+/// waiting for an EOF that never arrives. (Bug history: caro #800-class
+/// "binary hangs on Windows".)
 fn is_stdin_available() -> bool {
     use std::io::IsTerminal;
     !std::io::stdin().is_terminal()
+}
+
+/// Decide whether to attempt a stdin read for the prompt.
+///
+/// Returns true ONLY when:
+/// 1. No `-p`/`--prompt` flag was given, AND
+/// 2. No trailing positional args were given, AND
+/// 3. stdin appears to be redirected/piped (not a terminal).
+///
+/// Skipping the read when (1) or (2) hold prevents the Windows hang where
+/// `IsTerminal` mis-identifies an inherited handle as non-terminal and
+/// `read_to_string` then blocks waiting for EOF. The user clearly already
+/// supplied a prompt source, so stdin is not needed. This preserves the
+/// documented priority `flag > stdin > trailing` *whenever stdin actually
+/// has data* — the only behaviour change is for the contradictory case
+/// of "user piped AND used -p", where the flag now wins outright.
+fn should_consult_stdin(flag: &Option<String>, trailing_args: &[String]) -> bool {
+    flag.is_none() && trailing_args.is_empty() && is_stdin_available()
 }
 
 /// Read all content from stdin
@@ -1077,8 +1114,9 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     use std::str::FromStr;
     use std::sync::Arc;
 
-    // Resolve prompt (flag > stdin > trailing).
-    let stdin_text = if is_stdin_available() {
+    // Resolve prompt (flag > stdin > trailing). Skip stdin read entirely if
+    // any other prompt source is present — see `should_consult_stdin`.
+    let stdin_text = if should_consult_stdin(&cli.prompt, &trailing) {
         read_stdin().ok().filter(|s| !s.is_empty())
     } else {
         None
@@ -3293,8 +3331,27 @@ async fn main() {
     // Truncate trailing args at shell operators (handles edge cases)
     cli.trailing_args = truncate_at_shell_operator(cli.trailing_args);
 
-    // Resolve prompt from multiple sources (flag > stdin > trailing args)
-    let stdin_content = if is_stdin_available() {
+    // Handle --show-config BEFORE any stdin read. show_configuration() only
+    // needs `cli.config_file`, never `cli.prompt`, so resolving the prompt
+    // (and potentially blocking on stdin) for a flag-only invocation is
+    // wasted work and was a contributing factor to the Windows-hang bug.
+    if cli.show_config {
+        match show_configuration(&cli).await {
+            Ok(config_info) => {
+                println!("{}", config_info);
+                process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Error showing configuration: {}", e);
+                process::exit(1);
+            }
+        }
+    }
+
+    // Resolve prompt from multiple sources (flag > stdin > trailing args).
+    // Skip stdin read entirely if any other prompt source is present —
+    // see `should_consult_stdin` for the Windows-hang context.
+    let stdin_content = if should_consult_stdin(&cli.prompt, &cli.trailing_args) {
         match read_stdin() {
             Ok(content) if !content.is_empty() => Some(content),
             _ => None,
@@ -3491,19 +3548,9 @@ async fn main() {
         }
     }
 
-    // Handle --show-config
-    if cli.show_config {
-        match show_configuration(&cli).await {
-            Ok(config_info) => {
-                println!("{}", config_info);
-                process::exit(0);
-            }
-            Err(e) => {
-                eprintln!("Error showing configuration: {}", e);
-                process::exit(1);
-            }
-        }
-    }
+    // Note: --show-config is handled earlier (before stdin resolution) so
+    // that flag-only invocations don't pay the cost of a stdin read or
+    // risk the Windows-hang scenario.
 
     // Validate prompt and show help/warnings/hints as needed
     let prompt_text = cli.prompt.as_deref().unwrap_or("");
@@ -4186,6 +4233,36 @@ mod tests {
         let resolved = resolve_prompt(None, None, vec!["version".into()]);
         assert_eq!(resolved.text, "version");
         assert_eq!(resolved.source, PromptSource::TrailingArgs);
+    }
+
+    // Stdin gating regression — guards the Windows-hang fix.
+    //
+    // The Windows binary used to call `read_to_string` on inherited stdin
+    // whenever `IsTerminal` returned false, blocking forever in the most
+    // common user invocations (`caro -p "..."`, `caro list files`,
+    // `caro --show-config`). `should_consult_stdin` short-circuits before
+    // the read whenever any other prompt source is present, so a stdin
+    // mis-detection can no longer wedge those flows.
+
+    #[test]
+    fn test_stdin_skipped_when_prompt_flag_present() {
+        assert!(!should_consult_stdin(&Some("list files".into()), &[]));
+    }
+
+    #[test]
+    fn test_stdin_skipped_when_trailing_args_present() {
+        assert!(!should_consult_stdin(
+            &None,
+            &["list".into(), "files".into()]
+        ));
+    }
+
+    #[test]
+    fn test_stdin_skipped_when_both_sources_present() {
+        assert!(!should_consult_stdin(
+            &Some("via flag".into()),
+            &["list".into()]
+        ));
     }
 
     // WP05: Prompt Validation Tests
