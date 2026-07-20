@@ -1,0 +1,39 @@
+---
+interface Props {
+  state?: 'idle' | 'happy' | 'shocked';
+  size?: number;
+  label?: string;
+  class?: string;
+}
+
+const {
+  state = 'idle',
+  size = 64,
+  label = 'Kyaro, Caro’s pixel-art Shiba companion',
+  class: className = '',
+} = Astro.props;
+
+const sources = {
+  idle: '/brand/caro/kyaro/idle.gif',
+  happy: '/brand/caro/kyaro/happy-bounce.gif',
+  shocked: '/brand/caro/kyaro/shocked.gif',
+};
+---
+
+<img
+  src={sources[state]}
+  alt={label}
+  width={size}
+  height={size}
+  class:list={['kyaro-sprite', className]}
+  loading="eager"
+  decoding="sync"
+/>
+
+<style>
+  .kyaro-sprite {
+    display: block;
+    object-fit: contain;
+    image-rendering: pixelated;
+  }
+</style>

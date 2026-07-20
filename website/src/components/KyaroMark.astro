@@ -1,0 +1,50 @@
+---
+/**
+ * KyaroMark — high-resolution generated Kyaro icon family.
+ *
+ * The assets are grounded in all 99 source frames under assets/kyaro and
+ * rendered as 1024×1024 transparent PNGs. This wrapper intentionally contains
+ * no hand-drawn SVG; future vector work belongs to the Claude design workflow.
+ */
+interface Props {
+  size?: number;
+  class?: string;
+  label?: string;
+  variant?: 'idle' | 'happy' | 'alert';
+  loading?: 'eager' | 'lazy';
+}
+
+const {
+  size = 32,
+  class: className = '',
+  label = 'Kyaro, Caro’s black-and-tan Shiba mascot',
+  variant = 'idle',
+  loading = 'eager',
+} = Astro.props;
+
+const sources = {
+  idle: '/brand/kyaro/kyaro-idle-web.png',
+  happy: '/brand/kyaro/kyaro-happy-web.png',
+  alert: '/brand/kyaro/kyaro-alert-web.png',
+} as const;
+---
+
+<img
+  src={sources[variant]}
+  width={size}
+  height={size}
+  alt={label}
+  class:list={['kyaro-mark', className]}
+  loading={loading}
+  decoding="sync"
+  data-variant={variant}
+/>
+
+<style>
+  .kyaro-mark {
+    display: inline-block;
+    flex: none;
+    object-fit: contain;
+    vertical-align: middle;
+  }
+</style>

@@ -1,0 +1,344 @@
+/* =========================================================================
+   CARO DESIGN SYSTEM — Colors & Type
+   The friendly terminal companion.
+   ========================================================================= */
+
+/* Azeret Mono — display/title face for the brand. Not shipped in the Claude
+   handoff, so it remains the one externally loaded family. */
+@import url('https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;600;700;800&display=swap');
+
+/* ---------- Web fonts ---------- */
+@font-face { font-family:'Figtree'; font-weight:300; font-style:normal; src:url('/fonts/Figtree-Light.ttf')        format('truetype'); font-display:swap; }
+@font-face { font-family:'Figtree'; font-weight:400; font-style:normal; src:url('/fonts/Figtree-Regular.ttf')      format('truetype'); font-display:swap; }
+@font-face { font-family:'Figtree'; font-weight:500; font-style:normal; src:url('/fonts/Figtree-Medium.ttf')       format('truetype'); font-display:swap; }
+@font-face { font-family:'Figtree'; font-weight:600; font-style:normal; src:url('/fonts/Figtree-SemiBold.ttf')     format('truetype'); font-display:swap; }
+@font-face { font-family:'Figtree'; font-weight:700; font-style:normal; src:url('/fonts/Figtree-Bold.ttf')         format('truetype'); font-display:swap; }
+@font-face { font-family:'Figtree'; font-weight:800; font-style:normal; src:url('/fonts/Figtree-ExtraBold.ttf')    format('truetype'); font-display:swap; }
+@font-face { font-family:'Figtree'; font-weight:900; font-style:normal; src:url('/fonts/Figtree-Black.ttf')        format('truetype'); font-display:swap; }
+@font-face { font-family:'Figtree'; font-weight:400; font-style:italic; src:url('/fonts/Figtree-Italic.ttf')       format('truetype'); font-display:swap; }
+@font-face { font-family:'Figtree'; font-weight:500; font-style:italic; src:url('/fonts/Figtree-MediumItalic.ttf') format('truetype'); font-display:swap; }
+@font-face { font-family:'Figtree'; font-weight:700; font-style:italic; src:url('/fonts/Figtree-BoldItalic.ttf')   format('truetype'); font-display:swap; }
+
+:root {
+  /* =========================================================================
+     PRIMITIVES — the raw palette from the brand guideline.
+     ========================================================================= */
+
+  /* Retro-console greys */
+  --caro-grey-950: #1a1a1a;      /* near-black accent */
+  --caro-grey-900: #2b2b2b;
+  --caro-grey-800: #3a3a3a;
+  --caro-grey-700: #4f4f4f;      /* PRIMARY — "retro console grey" */
+  --caro-grey-500: #7a7a7a;
+  --caro-grey-400: #a0a0a0;      /* seen in stationery (FOUNDER label) */
+  --caro-grey-300: #c9c7c1;
+  --caro-grey-200: #d1cfc9;      /* business-card back field */
+  --caro-grey-100: #e7e4d5;
+
+  /* Beige / "paper" — the second primary */
+  --caro-beige-50:  #faf8ec;
+  --caro-beige-100: #f4f1df;     /* PRIMARY — "retro console beige" */
+  --caro-beige-200: #e9e4c8;
+  --caro-beige-300: #ddd6ab;
+
+  /* Signal red */
+  --caro-red-500: #ef3333;       /* SECONDARY */
+  --caro-red-600: #e63636;       /* used in social kit */
+  --caro-red-700: #c02020;
+
+  /* Highlighter yellow */
+  --caro-yellow-400: #fcfc62;    /* SECONDARY */
+  --caro-yellow-500: #f0ed3b;
+
+  --caro-black: #000000;
+  --caro-white: #ffffff;
+
+  /* =========================================================================
+     SEMANTIC TOKENS
+     ========================================================================= */
+
+  /* Surfaces — paper-first */
+  --bg:            var(--caro-beige-100);   /* app background */
+  --bg-subtle:     var(--caro-beige-50);    /* softer panels */
+  --bg-raised:     var(--caro-white);       /* cards on paper */
+  --bg-inverse:    var(--caro-grey-700);    /* dark terminal window */
+  --bg-stage:      var(--caro-grey-200);    /* business-card-back grey */
+
+  /* Foregrounds */
+  --fg:            var(--caro-grey-700);    /* body text on paper */
+  --fg-strong:     var(--caro-grey-900);    /* headings */
+  --fg-muted:      var(--caro-grey-500);
+  --fg-subtle:     var(--caro-grey-400);    /* eyebrow / meta labels */
+  --fg-inverse:    var(--caro-beige-100);   /* text on dark terminal */
+
+  /* Accents */
+  --accent:        var(--caro-red-500);     /* CTA / danger signal */
+  --accent-hover:  var(--caro-red-600);
+  --highlight:     var(--caro-yellow-400);  /* marker highlight */
+
+  /* Borders */
+  --border:        var(--caro-grey-300);
+  --border-strong: var(--caro-grey-700);
+
+  /* =========================================================================
+     STATUS — strictly for command-risk levels in the CLI / agent UI.
+     If you're labelling something that ISN'T a command's risk level, use the
+     general info/success/warning/error tokens below instead.
+     ========================================================================= */
+  --status-safe:     #3fa34d;     /* green — "safe to run" */
+  --status-warn:     var(--caro-yellow-400);
+  --status-danger:   var(--caro-red-500);
+  --status-critical: var(--caro-red-700);
+
+  /* =========================================================================
+     SEMANTIC FEEDBACK — for general UI messaging (toasts, banners, form
+     validation, log levels). Distinct from --status-* by intent.
+     ========================================================================= */
+  --info:           #2f6fb3;      /* dusky blue — sits on paper without screaming */
+  --info-tint:      #e3eef9;
+  --success:        #2f7a3d;      /* darker than status-safe; for non-CLI contexts */
+  --success-tint:   #dff0e3;
+  --warning:        #b88500;      /* amber — readable on paper, distinct from yellow highlight */
+  --warning-tint:   #fbf0d4;
+  --error:          var(--caro-red-600);
+  --error-tint:     #fbe0e0;
+
+  /* Lighter accent tint — card-hover surface, focus rings, callouts. */
+  --accent-tint:   #fde4e4;       /* tinted brand red on paper */
+  --accent-light:  #f56565;       /* lighter brand red, for dark surfaces */
+
+  /* Third surface — code blocks, accent panels still on paper. */
+  --bg-tertiary:   var(--caro-beige-50);   /* #faf8ec — sits between bg and bg-raised */
+
+  /* =========================================================================
+     LINKS — visited must be visually distinct (WCAG 1.4.1).
+     ========================================================================= */
+  --link:          var(--caro-red-500);
+  --link-hover:    var(--caro-red-600);
+  --link-visited:  #8a3a8a;        /* desaturated plum — distinct from brand red */
+
+  /* =========================================================================
+     CHART / DATA-VIZ — categorical (8 hues) + sequential (paper→ink).
+     Categorical hues are tuned to be color-blind friendly and read against
+     paper (--bg). Sequential is monochrome, brand-grey ramp.
+     ========================================================================= */
+  --chart-1: #ef3333;   /* brand red */
+  --chart-2: #2f6fb3;   /* info blue */
+  --chart-3: #b88500;   /* amber */
+  --chart-4: #2f7a3d;   /* forest */
+  --chart-5: #6b4ea0;   /* plum */
+  --chart-6: #1a1a1a;   /* near-black */
+  --chart-7: #d97a4a;   /* clay (only color outside the brand swatch — for 7th series) */
+  --chart-8: #4a8a8a;   /* teal-grey */
+  /* Sequential: light-paper to deep-ink */
+  --chart-seq-0: #faf8ec;
+  --chart-seq-1: #e9e4c8;
+  --chart-seq-2: #c9c7c1;
+  --chart-seq-3: #a0a0a0;
+  --chart-seq-4: #4f4f4f;
+  --chart-seq-5: #1a1a1a;
+
+  /* =========================================================================
+     PER-DISTRO ACCENTS — caro.sh themes per OS. The CONTRACT:
+     --distro-accent overrides ONLY decorative chrome (per-OS download tile
+     border, OS pill, OS-specific install command icon). It MUST NOT replace
+     --accent for primary CTAs, status colors, or the brandmark — those stay
+     brand red across every distro. Default value falls back to --accent.
+     ========================================================================= */
+  --distro-accent: var(--accent);
+
+  /* =========================================================================
+     SHADOWS — brand is paper-first. Shadows are minimal, NEVER coloured.
+     If you need lift on a card hover, use --shadow-card-hover (canonical).
+     ========================================================================= */
+
+  /* Terminal-window semantic colors (for pixel window chrome) */
+  --term-bg:        var(--caro-grey-700);
+  --term-fg:        var(--caro-beige-100);
+  --term-prompt:    var(--caro-yellow-400);
+  --term-dim:       var(--caro-grey-400);
+
+  /* =========================================================================
+     TYPE FAMILIES
+     ========================================================================= */
+  --font-display: 'Azeret Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --font-body:    'Figtree', -apple-system, 'Segoe UI', system-ui, sans-serif;
+  --font-mono:    'Azeret Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  /* =========================================================================
+     TYPE SCALE — tuned for the monospace display / geometric-sans body pair.
+     ========================================================================= */
+  --text-xs:   12px;
+  --text-sm:   14px;
+  --text-base: 16px;
+  --text-md:   18px;
+  --text-lg:   22px;
+  --text-xl:   28px;
+  --text-2xl:  36px;
+  --text-3xl:  48px;
+  --text-4xl:  64px;
+  --text-5xl:  84px;
+
+  /* =========================================================================
+     TRACKING — brand uses WIDE tracking on caps labels (200–300‰).
+     ========================================================================= */
+  --track-tight:   -0.01em;
+  --track-normal:   0;            /* @kind font */
+  --track-wide:     0.1em;
+  --track-wider:    0.2em;   /* FOUNDER — 14px Figtree Bold 200‰ */
+  --track-widest:   0.3em;   /* CARO.SH — 12px Figtree Bold 300‰ */
+
+  /* =========================================================================
+     SPACING — 4px base.
+     ========================================================================= */
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10:40px;
+  --space-12:48px;
+  --space-16:64px;
+  --space-20:80px;
+  --space-24:96px;
+
+  /* =========================================================================
+     RADII — pixel-art brand uses very small radii or none at all.
+     ========================================================================= */
+  --radius-0:    0;
+  --radius-sm:   2px;    /* pixel-nudge */
+  --radius-md:   4px;    /* buttons */
+  --radius-lg:   8px;    /* cards, terminal window */
+  --radius-pill: 999px;  /* eyebrow badges */
+
+  /* =========================================================================
+     ELEVATION — understated, paper-and-ink.
+     ========================================================================= */
+  --shadow-1: 0 1px 0 rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-2: 0 2px 8px rgba(0,0,0,.06);
+  --shadow-3: 0 10px 30px rgba(0,0,0,.08);
+  --shadow-pixel: 4px 4px 0 var(--caro-grey-900);   /* chunky pixel drop */
+  /* Canonical card hover-lift. Use this — do not invent rgba shadows. */
+  --shadow-card-hover: 0 6px 18px rgba(26, 26, 26, .08), 0 2px 4px rgba(26, 26, 26, .04);
+  /* Focus ring — wraps any focused interactive element. */
+  --focus-ring: 0 0 0 3px rgba(239, 51, 51, .25);
+
+  /* =========================================================================
+     MOTION — snappy, pixel-steppy, never soft.
+     ========================================================================= */
+  --ease:      cubic-bezier(.2,.8,.2,1);     /* @kind other */
+  --ease-step: steps(4, end);                /* @kind other */ /* sprite-style animations */
+  --dur-fast:  120ms;                          /* @kind other */
+  --dur-med:   220ms;                          /* @kind other */
+  --dur-slow:  420ms;                          /* @kind other */
+}
+
+/* ===========================================================================
+   DARK MODE — opt-in via `<html class="dark">` or `data-theme="dark"`.
+   The brand is paper-and-ink first; dark mode is a SECOND surface, not a
+   default. Token names match light mode so consumers don't fork. Only
+   semantic tokens are remapped — primitives stay constant.
+   =========================================================================== */
+.dark, [data-theme="dark"] {
+  --bg:            var(--caro-grey-900);   /* deep ink */
+  --bg-subtle:     var(--caro-grey-800);
+  --bg-raised:     var(--caro-grey-800);   /* cards on ink */
+  --bg-tertiary:   var(--caro-grey-700);
+  --bg-inverse:    var(--caro-beige-100);  /* "paper" panels feel inverted */
+  --bg-stage:      var(--caro-grey-950);
+
+  --fg:            var(--caro-beige-100);
+  --fg-strong:     var(--caro-white);
+  --fg-muted:      var(--caro-grey-300);
+  --fg-subtle:     var(--caro-grey-400);
+  --fg-inverse:    var(--caro-grey-900);
+
+  /* Brand red lifts to a higher-luminance variant for AA contrast on ink. */
+  --accent:        var(--accent-light);     /* #f56565 */
+  --accent-hover:  #ff7a7a;
+  --accent-tint:   rgba(245,101,101,.12);
+
+  --border:        var(--caro-grey-700);
+  --border-strong: var(--caro-grey-400);
+
+  /* Semantic feedback — re-tinted for ink */
+  --info:          #6aa3e0;
+  --info-tint:     rgba(106,163,224,.12);
+  --success:       #5fbf6f;
+  --success-tint:  rgba(95,191,111,.12);
+  --warning:       #e8b94a;
+  --warning-tint:  rgba(232,185,74,.12);
+  --error:         var(--accent-light);
+  --error-tint:    rgba(245,101,101,.12);
+
+  --link:          var(--accent-light);
+  --link-hover:    #ff7a7a;
+  --link-visited:  #c896d6;
+
+  --shadow-1: 0 1px 0 rgba(0,0,0,.4),  0 1px 2px rgba(0,0,0,.3);
+  --shadow-2: 0 2px 8px rgba(0,0,0,.4);
+  --shadow-3: 0 10px 30px rgba(0,0,0,.5);
+  --shadow-card-hover: 0 6px 18px rgba(0,0,0,.45), 0 2px 4px rgba(0,0,0,.35);
+  --focus-ring: 0 0 0 3px rgba(245, 101, 101, .35);
+}
+
+/* ===========================================================================
+   SEMANTIC ELEMENT DEFAULTS
+   =========================================================================== */
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--fg-strong);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: var(--track-tight);
+}
+
+h1 { font-size: var(--text-4xl); }
+h2 { font-size: var(--text-3xl); }
+h3 { font-size: var(--text-2xl); }
+h4 { font-size: var(--text-xl);  letter-spacing: var(--track-normal); }
+h5 { font-size: var(--text-lg);  letter-spacing: var(--track-normal); font-family: var(--font-body); font-weight: 700; }
+h6 { font-size: var(--text-md);  letter-spacing: var(--track-wide); font-family: var(--font-body); font-weight: 700; text-transform: uppercase; }
+
+p  { font-size: var(--text-base); color: var(--fg); max-width: 66ch; text-wrap: pretty; }
+p + p { margin-top: var(--space-4); }
+
+small, .eyebrow {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-widest);
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+code, kbd, pre {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+}
+code { background: var(--caro-grey-100); padding: 0 .3em; border-radius: var(--radius-sm); color: var(--fg-strong); }
+pre  { background: var(--term-bg); color: var(--term-fg); padding: var(--space-5); border-radius: var(--radius-lg); overflow-x: auto; }
+
+hr   { border: 0; border-top: 1px solid var(--border); margin: var(--space-8) 0; }
+
+::selection { background: var(--caro-yellow-400); color: var(--fg-strong); }
+
+/* Helpful utility */
+.mono { font-family: var(--font-mono); }
+.serif-display, .display { font-family: var(--font-display); font-weight: 800; letter-spacing: var(--track-tight); }

@@ -1,0 +1,79 @@
+---
+import '../ui/caro-brand.css';
+import Analytics from '@vercel/analytics/astro';
+import PostHog from '../components/PostHog.astro';
+import SEO from '../components/SEO.astro';
+import { getAllLocales } from '../i18n/config';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <SEO title={title} description={description} />
+    {getAllLocales().map(locale => (
+      <link
+        rel="alternate"
+        hreflang={locale.code}
+        href={`https://caro.sh/${locale.code === 'en' ? '' : locale.code + '/'}`}
+      />
+    ))}
+    <script is:inline>
+      const savedTheme = localStorage.getItem('caro-theme');
+      if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+    </script>
+  </head>
+  <body>
+    <slot />
+    <Analytics />
+    <PostHog />
+  </body>
+</html>
+
+<style is:global>
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background: var(--bg);
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    overflow-x: hidden;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>

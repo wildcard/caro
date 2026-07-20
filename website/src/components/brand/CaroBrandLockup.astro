@@ -1,0 +1,33 @@
+---
+interface Props {
+  inverse?: boolean;
+  class?: string;
+}
+
+const { inverse = false, class: className = '' } = Astro.props;
+---
+
+<img
+  src="/brand/caro/logo-caro-horizontal.png"
+  alt="Caro"
+  width="1105"
+  height="383"
+  class:list={['caro-lockup', inverse && 'is-inverse', className]}
+  loading="eager"
+  decoding="sync"
+/>
+
+<style>
+  .caro-lockup {
+    display: block;
+    width: auto;
+    height: 36px;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+
+  .caro-lockup.is-inverse {
+    filter: invert(1);
+    mix-blend-mode: screen;
+  }
+</style>

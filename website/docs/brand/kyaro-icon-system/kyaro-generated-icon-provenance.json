@@ -1,0 +1,74 @@
+{
+  "generator": "gpt-image-1.5",
+  "assets": {
+    "idle": {
+      "source": "/Users/kobik-private/.codex/generated_images/019f794d-e6b0-7f11-86b4-3a3fc9c59732/call_PZjDO4an1oflu7IXS4Od41WY.png",
+      "output": "website/public/brand/kyaro/kyaro-idle.png",
+      "web_output": "website/public/brand/kyaro/kyaro-idle-web.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "web_size": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "foreground_bbox": [
+        172,
+        72,
+        851,
+        952
+      ]
+    },
+    "happy": {
+      "source": "/Users/kobik-private/.codex/generated_images/019f794d-e6b0-7f11-86b4-3a3fc9c59732/call_EMoDVerL9tLJ4xkVbFnGCTdj.png",
+      "output": "website/public/brand/kyaro/kyaro-happy.png",
+      "web_output": "website/public/brand/kyaro/kyaro-happy-web.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "web_size": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "foreground_bbox": [
+        172,
+        72,
+        851,
+        952
+      ]
+    },
+    "alert": {
+      "source": "/Users/kobik-private/.codex/generated_images/019f794d-e6b0-7f11-86b4-3a3fc9c59732/call_0zNO4RCtDjIu3b2yiZX1Tsb2.png",
+      "output": "website/public/brand/kyaro/kyaro-alert.png",
+      "web_output": "website/public/brand/kyaro/kyaro-alert-web.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "web_size": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "foreground_bbox": [
+        175,
+        72,
+        848,
+        952
+      ]
+    }
+  }
+}
