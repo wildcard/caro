@@ -430,7 +430,14 @@ impl CliApp {
             if let Some(model) = model_preference {
                 tracing::info!("User requested backend: {}", model);
 
-                match model {
+                // `validate_backend_name` lowercases before checking against
+                // CLI_SERVABLE_BACKENDS, so a mixed-case name like `Claude`
+                // or `CARO_BACKEND=OpenRouter` passes validation. Match on
+                // the same normalized form here so a validated request is
+                // never silently dropped to the `_ => auto-detect` arm.
+                let model_normalized = model.to_lowercase();
+
+                match model_normalized.as_str() {
                     "embedded" => {
                         tracing::info!("Using embedded backend (user preference)");
                         return match std::sync::Arc::try_unwrap(embedded_arc) {
@@ -611,8 +618,58 @@ impl CliApp {
                             }
                         }
                     }
+                    #[cfg(feature = "remote-backends")]
+                    "claude" => {
+                        use crate::backends::remote::ClaudeBackend;
+
+                        let claude_backend = ClaudeBackend::from_env()
+                            .map_err(|e| CliError::ConfigurationError {
+                                message: format!("Failed to create Claude backend: {}", e),
+                            })?
+                            .with_embedded_fallback(embedded_arc.clone());
+
+                        if claude_backend.is_available().await {
+                            tracing::info!("Using Claude backend (user preference)");
+                        } else {
+                            tracing::warn!(
+                                "Claude API key looks malformed; will attempt anyway with embedded fallback"
+                            );
+                        }
+                        return Ok(Box::new(claude_backend));
+                    }
+                    #[cfg(feature = "remote-backends")]
+                    "openrouter" => {
+                        use crate::backends::remote::{OpenRouterBackend, OpenRouterConfig};
+
+                        let api_key = std::env::var("OPENROUTER_API_KEY").map_err(|_| {
+                            CliError::ConfigurationError {
+                                message: "OpenRouter backend requires the OPENROUTER_API_KEY \
+                                          environment variable."
+                                    .to_string(),
+                            }
+                        })?;
+                        let config = OpenRouterConfig {
+                            api_key,
+                            ..OpenRouterConfig::default()
+                        };
+                        let openrouter_backend = OpenRouterBackend::new(config)
+                            .map_err(|e| CliError::ConfigurationError {
+                                message: format!("Failed to create OpenRouter backend: {}", e),
+                            })?
+                            .with_embedded_fallback(embedded_arc.clone());
+
+                        if openrouter_backend.is_available().await {
+                            tracing::info!("Using OpenRouter backend (user preference)");
+                        } else {
+                            tracing::warn!(
+                                "OpenRouter API not reachable; will attempt anyway with embedded fallback"
+                            );
+                        }
+                        return Ok(Box::new(openrouter_backend));
+                    }
                     #[cfg(not(feature = "remote-backends"))]
-                    "mesh" | "ollama" | "exo" | "vllm" | "ai-horde" | "hybrid" => {
+                    "mesh" | "ollama" | "exo" | "vllm" | "ai-horde" | "hybrid" | "claude"
+                    | "openrouter" => {
                         return Err(Self::remote_backend_unavailable_error(model));
                     }
                     _ => {
@@ -1189,6 +1246,8 @@ mod tests {
         assert!(CliApp::validate_backend_name("ollama").is_ok());
         assert!(CliApp::validate_backend_name("exo").is_ok());
         assert!(CliApp::validate_backend_name("vllm").is_ok());
+        assert!(CliApp::validate_backend_name("claude").is_ok());
+        assert!(CliApp::validate_backend_name("openrouter").is_ok());
     }
 
     #[test]
@@ -1197,6 +1256,8 @@ mod tests {
         assert!(CliApp::validate_backend_name("Ollama").is_ok());
         assert!(CliApp::validate_backend_name("EXO").is_ok());
         assert!(CliApp::validate_backend_name("VLLM").is_ok());
+        assert!(CliApp::validate_backend_name("Claude").is_ok());
+        assert!(CliApp::validate_backend_name("OpenRouter").is_ok());
     }
 
     #[test]
@@ -1244,7 +1305,8 @@ mod tests {
         // intentionally rejected — advertising them was the #1115 bug. If a
         // future PR wires one of these, add it to CLI_SERVABLE_BACKENDS (which
         // updates every surface at once) rather than special-casing here.
-        for unwired in ["claude", "static", "openrouter", "mlx"] {
+        // `claude` and `openrouter` were wired and moved out of this list.
+        for unwired in ["static", "mlx"] {
             assert!(
                 CliApp::validate_backend_name(unwired).is_err(),
                 "'{}' is not CLI-wired yet and must not be silently accepted",

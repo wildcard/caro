@@ -4032,8 +4032,8 @@ fn print_backend_info() {
     // The roster is driven by `CLI_SERVABLE_BACKENDS` — the SAME slice that
     // `validate_backend_name` accepts — so this table can never advertise a
     // backend that `--backend <name>` would reject (the divergence tracked
-    // by #1115). `static`/`claude`/`openrouter` are intentionally absent
-    // because the CLI does not route to them yet.
+    // by #1115). `static`/`mlx` are intentionally absent because the CLI
+    // does not route to them yet.
     let remote_backends_compiled = cfg!(feature = "remote-backends");
 
     println!("{}", "Available inference backends".bold());
@@ -4063,6 +4063,13 @@ fn print_backend_info() {
                 "exo" if env_or(&["CARO_EXO_URL"]) => "configured",
                 "mesh" if env_or(&["CARO_MESH_URL"]) => "configured",
                 "hybrid" => "needs config",
+                // Claude/OpenRouter have no usable default endpoint — unlike
+                // ollama/vllm/exo/mesh they cannot work without a key, so say
+                // so explicitly instead of implying a free default applies.
+                "claude" if env_or(&["ANTHROPIC_API_KEY"]) => "configured",
+                "claude" => "needs API key",
+                "openrouter" if env_or(&["OPENROUTER_API_KEY"]) => "configured",
+                "openrouter" => "needs API key",
                 _ => "default endpoint",
             }
         };
