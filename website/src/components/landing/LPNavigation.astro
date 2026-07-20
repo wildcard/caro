@@ -1,5 +1,6 @@
 ---
 import { t, type Locale } from '../../i18n/config';
+import KyaroMark from '../KyaroMark.astro';
 
 interface Props {
   lang?: Locale;
@@ -10,7 +11,10 @@ const { lang = 'en' } = Astro.props;
 
 <nav class="lp-nav">
   <div class="container">
-<a href={lang === 'en' ? '/' : `/${lang}/`} class="nav-brand">{t(lang, 'landing.navigation.brand')}</a>
+    <a href={lang === 'en' ? '/' : `/${lang}/`} class="nav-brand">
+      <KyaroMark size={30} />
+      <span>{t(lang, 'landing.navigation.brand')}</span>
+    </a>
     <div class="nav-links">
       <a href="/use-cases" class="nav-link">Use Cases</a>
       <a href="/docs" class="nav-link">Docs</a>
@@ -59,6 +63,10 @@ const { lang = 'en' } = Astro.props;
   }
 
   .nav-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-family: var(--font-display);
     font-size: 22px;
     font-weight: 700;
     color: var(--fg-strong);
@@ -99,7 +107,7 @@ const { lang = 'en' } = Astro.props;
     background: var(--accent);
     color: var(--caro-white);
     padding: 10px 24px;
-    border-radius: var(--radius-md);
+    border-radius: 6px;
     font-weight: 600;
     font-size: 14px;
     text-decoration: none;
@@ -168,5 +176,11 @@ const { lang = 'en' } = Astro.props;
     cta.addEventListener('click', () => {
       track('cta_click', { location: 'navigation', action: 'get_started' });
     });
+  });
+
+  const themeToggle = document.getElementById('theme-toggle');
+  themeToggle?.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
   });
 </script>

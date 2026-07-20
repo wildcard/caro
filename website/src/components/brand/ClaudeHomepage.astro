@@ -1,0 +1,1363 @@
+---
+import CaroBrandLockup from './CaroBrandLockup.astro';
+import KyaroSprite from './KyaroSprite.astro';
+
+const features = [
+  {
+    eyebrow: '01 · Safety',
+    title: 'Risk-gated execution',
+    body: 'Every generated command is classified before it touches your shell. Destructive operations pause for confirmation.',
+    meta: 'Review before run',
+  },
+  {
+    eyebrow: '02 · Local',
+    title: 'On-device by default',
+    body: 'Prompts and shell context stay on your machine. Caro works with local models and keeps your infrastructure private.',
+    meta: 'Zero telemetry',
+    inverse: true,
+  },
+  {
+    eyebrow: '03 · Fast',
+    title: 'Native Rust speed',
+    body: 'A small native binary starts quickly and feels at home beside the commands you already use every day.',
+    meta: 'Built in Rust',
+  },
+  {
+    eyebrow: '04 · Aware',
+    title: 'Platform-aware output',
+    body: 'Caro accounts for your operating system and shell instead of handing you generic syntax that fails at the prompt.',
+    meta: 'macOS · Linux · BSD · WSL',
+  },
+  {
+    eyebrow: '05 · Honest',
+    title: 'Commands you can inspect',
+    body: 'You see the proposed command and its risk before anything runs. No hidden execution and no mystery side effects.',
+    meta: 'You stay in control',
+  },
+  {
+    eyebrow: '06 · Open',
+    title: 'Open source and extensible',
+    body: 'Read the implementation, contribute safety patterns, or adapt Caro to the tools and policies your team already uses.',
+    meta: 'AGPL-3.0',
+  },
+];
+---
+
+<a class="skip-link" href="#main-content">Skip to content</a>
+
+<div class="announcement">
+  <span class="announcement-label">OPEN SOURCE</span>
+  <span aria-hidden="true">·</span>
+  <span>Local-first command safety, built with the pack.</span>
+  <a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">View on GitHub ↗</a>
+</div>
+
+<header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="/" aria-label="Caro home">
+      <CaroBrandLockup class="nav-logo" />
+    </a>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
+      <span>Menu</span>
+      <span class="menu-glyph" aria-hidden="true">+</span>
+    </button>
+
+    <div class="nav-links" id="nav-links">
+      <a href="#features">Features</a>
+      <a href="#demo">Live demo</a>
+      <a href="/docs">Docs</a>
+      <a class="mono-link" href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+    </div>
+
+    <div class="nav-actions">
+      <button class="theme-toggle" type="button" aria-label="Switch to dark mode" title="Change theme">
+        <span aria-hidden="true">◐</span>
+      </button>
+      <a class="button button-primary button-small" href="#install">Install Caro</a>
+    </div>
+  </nav>
+</header>
+
+<main id="main-content">
+  <section class="hero shell">
+    <div class="hero-copy">
+      <p class="eyebrow">Companion agent · On-device · Rust</p>
+      <h1>Your loyal <span>shell companion.</span></h1>
+      <p class="hero-lead">
+        Caro turns natural language into safe POSIX commands using local models.
+        She helps you move quickly while keeping every consequential decision in
+        your hands.
+      </p>
+      <div class="hero-actions">
+        <a class="button button-primary button-large" href="#install">
+          <span class="button-prompt" aria-hidden="true">$</span>
+          Install Caro
+        </a>
+        <a class="button button-secondary button-large" href="#demo">See it run →</a>
+      </div>
+      <dl class="hero-facts">
+        <div>
+          <dt>Private</dt>
+          <dd>Runs locally</dd>
+        </div>
+        <div>
+          <dt>Native</dt>
+          <dd>Built in Rust</dd>
+        </div>
+        <div>
+          <dt>Portable</dt>
+          <dd>macOS · Linux · BSD · WSL</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="hero-stage" aria-label="Kyaro, Caro’s pixel-art Shiba companion">
+      <div class="supergraphic" aria-hidden="true">&gt;_</div>
+      <div class="stage-label">KYARO · COMPANION ONLINE</div>
+      <KyaroSprite state="idle" size={256} label="Kyaro idling beside Caro" class="hero-kyaro" />
+      <div class="stage-prompt" aria-hidden="true">
+        <span class="prompt-sign">❯</span>
+        <span>What are we solving?</span>
+        <span class="cursor"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="demo-section" id="demo">
+    <div class="shell demo-shell">
+      <header class="section-heading section-heading-centered">
+        <p class="eyebrow">Live demo</p>
+        <h2>Ask. Review. Run.</h2>
+        <p>Caro shows you the real command and its risk before anything happens.</p>
+      </header>
+
+      <div class="terminal" data-terminal-demo>
+        <div class="terminal-chrome">
+          <span class="chrome-block"></span>
+          <span class="chrome-block"></span>
+          <span class="chrome-block"></span>
+          <span class="terminal-title">caro · ~/projects/acme</span>
+          <span class="terminal-state">LOCAL</span>
+        </div>
+        <div class="terminal-body" aria-live="polite">
+          <div class="terminal-line">
+            <span class="prompt-sign">$</span>
+            <span>caro "</span><span data-terminal-prompt>find PDFs over 5MB from this week</span><span>"</span>
+          </div>
+          <div class="terminal-companion">
+            <img src="/brand/caro/kyaro/idle.gif" width="32" height="32" alt="" data-terminal-mascot />
+            <span data-terminal-intro>Here’s what I’d run:</span>
+          </div>
+          <code class="terminal-command" data-terminal-command>find ~ -type f -name "*.pdf" -mtime -7 -size +5M</code>
+          <div class="terminal-risk is-safe" data-terminal-risk>
+            <span class="risk-square" aria-hidden="true"></span>
+            <span data-terminal-risk-text>Safe · read-only search</span>
+          </div>
+          <div class="terminal-decision">
+            <span>Execute?</span>
+            <kbd>y</kbd><span>yes</span>
+            <span aria-hidden="true">·</span>
+            <kbd>n</kbd><span>no</span>
+            <span aria-hidden="true">·</span>
+            <kbd>e</kbd><span>edit</span>
+            <span class="cursor"></span>
+          </div>
+        </div>
+        <div class="terminal-tabs" aria-label="Demo examples">
+          <button type="button" class="is-active" data-demo-index="0">Find files</button>
+          <button type="button" data-demo-index="1">Clean project</button>
+          <button type="button" data-demo-index="2">Inspect a port</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features shell" id="features">
+    <header class="section-heading">
+      <p class="eyebrow">The product</p>
+      <h2>Built like a shell.<br />Feels like a friend.</h2>
+      <p>Concrete, local-first, and careful by default. No marketing magic—just a companion who reads the command before you run it.</p>
+    </header>
+
+    <div class="feature-grid">
+      {features.map(feature => (
+        <article class:list={['feature-card', feature.inverse && 'feature-card-inverse']}>
+          <p class="eyebrow">{feature.eyebrow}</p>
+          <h3>{feature.title}</h3>
+          <p>{feature.body}</p>
+          <span class="feature-meta">{feature.meta}</span>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="ink-section">
+    <div class="shell ink-grid">
+      <div class="ink-copy">
+        <p class="eyebrow eyebrow-on-ink">Decision moment</p>
+        <h2>She pauses on the dangerous stuff.</h2>
+        <p>
+          When a command could delete, overwrite, or escalate, Caro stops and asks.
+          You stay in control of your own machine.
+        </p>
+        <span class="decision-badge">CONFIRM TO RUN</span>
+      </div>
+
+      <div class="terminal terminal-compact">
+        <div class="terminal-chrome">
+          <span class="chrome-block"></span>
+          <span class="chrome-block"></span>
+          <span class="chrome-block"></span>
+          <span class="terminal-title">caro ❯ review</span>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-line"><span class="prompt-sign">$</span> caro "remove every node_modules in this repo"</div>
+          <div class="terminal-companion">
+            <KyaroSprite state="shocked" size={32} label="" />
+            <span>Here’s what I’d run:</span>
+          </div>
+          <code class="terminal-command">find . -name node_modules -type d -prune -exec rm -rf &#123;&#125; +</code>
+          <div class="terminal-risk is-high">
+            <span class="risk-square" aria-hidden="true"></span>
+            <span>High risk · destructive · recursive delete</span>
+          </div>
+          <div class="terminal-decision">
+            <span>Execute?</span>
+            <kbd>y</kbd><span>yes</span>
+            <span aria-hidden="true">·</span>
+            <kbd>n</kbd><span>no</span>
+            <span aria-hidden="true">·</span>
+            <kbd>e</kbd><span>edit</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="install-section" id="install">
+    <div class="shell install-grid">
+      <div class="install-mascot">
+        <KyaroSprite state="happy" size={192} label="Kyaro celebrating beside the Caro install command" />
+      </div>
+      <div class="install-copy">
+        <p class="eyebrow eyebrow-on-ink">Get Caro</p>
+        <h2>One line to get started.</h2>
+        <p>Use the installer, install from crates.io, or download a signed release for your platform.</p>
+
+        <div class="copy-command">
+          <span class="prompt-sign">$</span>
+          <code>curl -fsSL https://setup.caro.sh | bash</code>
+          <button type="button" data-copy-command="curl -fsSL https://setup.caro.sh | bash">
+            <span data-copy-label>Copy</span>
+          </button>
+        </div>
+
+        <div class="install-links">
+          <a href="https://crates.io/crates/caro" target="_blank" rel="noopener noreferrer">cargo install caro ↗</a>
+          <a href="https://github.com/wildcard/caro/releases/latest" target="_blank" rel="noopener noreferrer">Pre-built releases ↗</a>
+          <a href="/docs/installation">Installation docs →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="shell footer-grid">
+    <div class="footer-brand">
+      <CaroBrandLockup inverse class="footer-logo" />
+      <p>Your loyal shell companion.</p>
+    </div>
+    <div class="footer-column">
+      <h2>Product</h2>
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="/changelog">Changelog</a>
+    </div>
+    <div class="footer-column">
+      <h2>Learn</h2>
+      <a href="/docs">Docs</a>
+      <a href="/blog">Blog</a>
+      <a href="/telemetry">Privacy</a>
+    </div>
+    <div class="footer-column">
+      <h2>Source</h2>
+      <a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+      <a href="https://crates.io/crates/caro" target="_blank" rel="noopener noreferrer">crates.io ↗</a>
+      <a href="https://github.com/wildcard/caro/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">Contribute ↗</a>
+    </div>
+  </div>
+  <div class="shell footer-bottom">
+    <p>In memory of Kyaro—Kyarorain Kadosh. Inspired by Portal’s Caroline.</p>
+    <p>Built with Rust · AGPL-3.0 · 2026</p>
+  </div>
+</footer>
+
+<script>
+  const demos = [
+    {
+      prompt: 'find PDFs over 5MB from this week',
+      command: 'find ~ -type f -name "*.pdf" -mtime -7 -size +5M',
+      risk: 'Safe · read-only search',
+      riskClass: 'is-safe',
+      mascot: '/brand/caro/kyaro/idle.gif',
+    },
+    {
+      prompt: 'remove every node_modules folder in this repo',
+      command: 'find . -name node_modules -type d -prune -exec rm -rf {} +',
+      risk: 'High risk · destructive · confirm to run',
+      riskClass: 'is-high',
+      mascot: '/brand/caro/kyaro/shocked.gif',
+    },
+    {
+      prompt: 'tell me what is using port 3000',
+      command: 'lsof -nP -iTCP:3000 -sTCP:LISTEN',
+      risk: 'Safe · inspects listening sockets only',
+      riskClass: 'is-safe',
+      mascot: '/brand/caro/kyaro/idle.gif',
+    },
+  ];
+
+  const terminal = document.querySelector<HTMLElement>('[data-terminal-demo]');
+  const prompt = terminal?.querySelector<HTMLElement>('[data-terminal-prompt]');
+  const command = terminal?.querySelector<HTMLElement>('[data-terminal-command]');
+  const risk = terminal?.querySelector<HTMLElement>('[data-terminal-risk]');
+  const riskText = terminal?.querySelector<HTMLElement>('[data-terminal-risk-text]');
+  const mascot = terminal?.querySelector<HTMLImageElement>('[data-terminal-mascot]');
+  const tabs = [...(terminal?.querySelectorAll<HTMLButtonElement>('[data-demo-index]') ?? [])];
+
+  function selectDemo(index: number) {
+    const demo = demos[index];
+    if (!demo || !prompt || !command || !risk || !riskText || !mascot) return;
+    prompt.textContent = demo.prompt;
+    command.textContent = demo.command;
+    riskText.textContent = demo.risk;
+    risk.classList.remove('is-safe', 'is-high');
+    risk.classList.add(demo.riskClass);
+    mascot.src = demo.mascot;
+    tabs.forEach((tab, tabIndex) => {
+      tab.classList.toggle('is-active', tabIndex === index);
+      tab.setAttribute('aria-pressed', String(tabIndex === index));
+    });
+  }
+
+  tabs.forEach((tab, index) => tab.addEventListener('click', () => selectDemo(index)));
+  selectDemo(0);
+
+  const themeToggle = document.querySelector<HTMLButtonElement>('.theme-toggle');
+  themeToggle?.addEventListener('click', () => {
+    const dark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('caro-theme', dark ? 'dark' : 'light');
+    themeToggle.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+  });
+
+  const menuToggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
+  const navLinks = document.querySelector<HTMLElement>('.nav-links');
+  menuToggle?.addEventListener('click', () => {
+    const expanded = menuToggle.getAttribute('aria-expanded') === 'true';
+    menuToggle.setAttribute('aria-expanded', String(!expanded));
+    navLinks?.classList.toggle('is-open', !expanded);
+  });
+
+  navLinks?.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      menuToggle?.setAttribute('aria-expanded', 'false');
+      navLinks.classList.remove('is-open');
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-copy-command]').forEach(button => {
+    button.addEventListener('click', async () => {
+      const value = button.dataset.copyCommand;
+      const label = button.querySelector<HTMLElement>('[data-copy-label]');
+      if (!value || !label) return;
+      try {
+        await navigator.clipboard.writeText(value);
+        label.textContent = 'Copied';
+      } catch {
+        label.textContent = 'Select';
+      }
+      window.setTimeout(() => {
+        label.textContent = 'Copy';
+      }, 1800);
+    });
+  });
+</script>
+
+<style>
+  .skip-link {
+    position: fixed;
+    inset: 8px auto auto 8px;
+    z-index: 1000;
+    transform: translateY(-140%);
+    padding: 10px 14px;
+    border: 2px solid var(--fg-strong);
+    background: var(--highlight);
+    color: var(--fg-strong);
+    font-weight: 700;
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+
+  .shell {
+    width: min(100% - 48px, 1040px);
+    margin-inline: auto;
+  }
+
+  .announcement {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 38px;
+    padding: 8px 24px;
+    background: var(--caro-grey-900);
+    color: var(--caro-beige-100);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .announcement-label {
+    color: var(--caro-yellow-400);
+    font-weight: 700;
+    letter-spacing: var(--track-wide);
+  }
+
+  .announcement a {
+    color: var(--caro-yellow-400);
+    font-family: var(--font-body);
+    font-weight: 700;
+  }
+
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg) 94%, transparent);
+    backdrop-filter: saturate(1.1) blur(6px);
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    min-height: 70px;
+    gap: 28px;
+  }
+
+  .brand {
+    display: inline-flex;
+    color: var(--fg-strong);
+  }
+
+  :global(.nav-logo) {
+    width: 104px;
+    height: auto;
+  }
+
+  :global(.dark .nav-logo) {
+    filter: invert(1);
+    mix-blend-mode: screen;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    margin-left: auto;
+  }
+
+  .nav-links a {
+    color: var(--fg-strong);
+    font-size: 14px;
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .nav-links a:hover {
+    color: var(--accent);
+  }
+
+  .mono-link {
+    font-family: var(--font-mono);
+    font-weight: 500 !important;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .theme-toggle,
+  .menu-toggle {
+    min-width: 42px;
+    min-height: 42px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+    color: var(--fg-strong);
+    cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+
+  .theme-toggle:hover,
+  .menu-toggle:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+
+  .theme-toggle:active,
+  .menu-toggle:active {
+    transform: translateY(1px);
+  }
+
+  .theme-toggle {
+    display: grid;
+    place-items: center;
+    font-family: var(--font-mono);
+    font-size: 22px;
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 44px;
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    padding: 11px 20px;
+    font-weight: 750;
+    text-decoration: none;
+    transition:
+      transform var(--dur-fast) var(--ease),
+      background var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
+  }
+
+  .button:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+  }
+
+  .button:active {
+    transform: translateY(1px) scale(0.98);
+  }
+
+  .button-primary {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--caro-white);
+  }
+
+  .button-primary:hover {
+    border-color: var(--accent-hover);
+    background: var(--accent-hover);
+    color: var(--caro-white);
+  }
+
+  .button-secondary {
+    border-color: var(--border-strong);
+    background: transparent;
+    color: var(--fg-strong);
+  }
+
+  .button-secondary:hover {
+    background: var(--fg-strong);
+    color: var(--bg);
+  }
+
+  .button-large {
+    min-height: 52px;
+    padding: 13px 24px;
+    font-size: 16px;
+  }
+
+  .button-small {
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .button-prompt {
+    font-family: var(--font-mono);
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
+    align-items: center;
+    gap: 64px;
+    min-height: calc(100vh - 108px);
+    padding-block: 82px 96px;
+  }
+
+  .eyebrow {
+    margin: 0;
+    color: var(--fg-subtle);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 750;
+    letter-spacing: var(--track-widest);
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    max-width: 10ch;
+    margin: 20px 0 24px;
+    font-size: clamp(48px, 6.3vw, 84px);
+    line-height: 0.98;
+  }
+
+  .hero h1 span {
+    color: var(--accent);
+  }
+
+  .hero-lead {
+    max-width: 52ch;
+    margin: 0;
+    font-size: clamp(18px, 2vw, 20px);
+    line-height: 1.6;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 32px;
+  }
+
+  .hero-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    margin: 38px 0 0;
+  }
+
+  .hero-facts div {
+    display: grid;
+    gap: 3px;
+  }
+
+  .hero-facts dt {
+    color: var(--fg-strong);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .hero-facts dd {
+    margin: 0;
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .hero-stage {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    min-height: 520px;
+    place-items: center;
+    overflow: hidden;
+    border: 2px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--bg-stage);
+    box-shadow: var(--shadow-pixel);
+  }
+
+  .supergraphic {
+    position: absolute;
+    inset: 18px auto auto 24px;
+    z-index: -1;
+    color: color-mix(in srgb, var(--fg-strong) 13%, transparent);
+    font-family: var(--font-display);
+    font-size: clamp(140px, 22vw, 260px);
+    font-weight: 800;
+    letter-spacing: -0.16em;
+    line-height: 1;
+  }
+
+  .stage-label {
+    position: absolute;
+    inset: 18px 18px auto auto;
+    padding: 6px 9px;
+    background: var(--caro-grey-900);
+    color: var(--caro-yellow-400);
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: var(--track-wider);
+  }
+
+  :global(.hero-kyaro) {
+    width: 280px;
+    height: 280px;
+    transform: translateY(-24px);
+  }
+
+  .stage-prompt {
+    position: absolute;
+    inset: auto 18px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 12px 14px;
+    border: 2px solid var(--caro-grey-900);
+    border-radius: var(--radius-sm);
+    background: var(--caro-grey-700);
+    color: var(--caro-beige-100);
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .prompt-sign {
+    color: var(--caro-yellow-400);
+    font-family: var(--font-mono);
+    font-weight: 800;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    background: var(--caro-yellow-400);
+    animation: blink 1s steps(2, end) infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  .demo-section {
+    border-block: 1px solid var(--border);
+    background: var(--bg-subtle);
+  }
+
+  .demo-shell,
+  .features {
+    padding-block: 96px;
+  }
+
+  .section-heading {
+    max-width: 720px;
+    margin-bottom: 44px;
+  }
+
+  .section-heading-centered {
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .section-heading h2 {
+    margin: 12px 0 14px;
+    font-size: clamp(38px, 5vw, 56px);
+  }
+
+  .section-heading p:last-child {
+    max-width: 58ch;
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: 18px;
+  }
+
+  .section-heading-centered p:last-child {
+    margin-inline: auto;
+  }
+
+  .terminal {
+    overflow: hidden;
+    border: 2px solid var(--caro-grey-900);
+    border-radius: var(--radius-lg);
+    background: var(--caro-grey-700);
+    box-shadow: var(--shadow-3);
+    color: var(--caro-beige-100);
+    font-family: var(--font-mono);
+  }
+
+  .terminal-chrome {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 46px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--caro-grey-950);
+    background: var(--caro-grey-800);
+  }
+
+  .chrome-block {
+    width: 10px;
+    height: 10px;
+    background: var(--caro-grey-500);
+  }
+
+  .terminal-title,
+  .terminal-state {
+    color: var(--caro-grey-400);
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: var(--track-wider);
+    text-transform: uppercase;
+  }
+
+  .terminal-title {
+    margin-left: 8px;
+  }
+
+  .terminal-state {
+    margin-left: auto;
+    color: var(--caro-yellow-400);
+  }
+
+  .terminal-body {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    min-height: 300px;
+    padding: 28px 30px;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .terminal-line {
+    white-space: pre-wrap;
+  }
+
+  .terminal-companion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--caro-grey-300);
+  }
+
+  .terminal-companion img {
+    image-rendering: pixelated;
+  }
+
+  .terminal-command {
+    display: block;
+    overflow-wrap: anywhere;
+    border: 1px solid var(--caro-grey-500);
+    border-radius: var(--radius-sm);
+    background: var(--caro-grey-800);
+    color: var(--caro-white);
+    padding: 12px 14px;
+  }
+
+  .terminal-risk {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 750;
+  }
+
+  .terminal-risk.is-safe {
+    color: #7cd389;
+  }
+
+  .terminal-risk.is-high {
+    color: #ff7a7a;
+  }
+
+  .risk-square {
+    width: 9px;
+    height: 9px;
+    background: currentColor;
+  }
+
+  .terminal-decision {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: var(--caro-grey-300);
+  }
+
+  kbd {
+    min-width: 24px;
+    border: 1px solid var(--caro-grey-500);
+    border-radius: var(--radius-sm);
+    background: var(--caro-grey-900);
+    color: var(--caro-beige-100);
+    padding: 1px 6px;
+    text-align: center;
+  }
+
+  .terminal-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--caro-grey-950);
+    background: var(--caro-grey-800);
+  }
+
+  .terminal-tabs button {
+    min-height: 48px;
+    border: 0;
+    border-right: 1px solid var(--caro-grey-950);
+    background: transparent;
+    color: var(--caro-grey-300);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: var(--track-wide);
+    text-transform: uppercase;
+  }
+
+  .terminal-tabs button:last-child {
+    border-right: 0;
+  }
+
+  .terminal-tabs button:hover,
+  .terminal-tabs button.is-active {
+    background: var(--caro-grey-900);
+    color: var(--caro-yellow-400);
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .feature-card {
+    display: flex;
+    min-height: 260px;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 28px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-raised);
+    box-shadow: var(--shadow-1);
+    transition:
+      transform var(--dur-med) var(--ease),
+      border-color var(--dur-med) var(--ease),
+      box-shadow var(--dur-med) var(--ease);
+  }
+
+  .feature-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .feature-card h3 {
+    margin: 22px 0 12px;
+    font-size: 22px;
+    line-height: 1.15;
+  }
+
+  .feature-card > p:not(.eyebrow) {
+    margin: 0;
+    color: var(--fg);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .feature-meta,
+  .decision-badge {
+    margin-top: auto;
+    border-radius: var(--radius-pill);
+    background: var(--caro-grey-900);
+    color: var(--caro-yellow-400);
+    padding: 6px 11px;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: var(--track-wider);
+    text-transform: uppercase;
+  }
+
+  .feature-card-inverse {
+    border-color: var(--caro-grey-900);
+    background: var(--caro-grey-900);
+  }
+
+  .feature-card-inverse h3 {
+    color: var(--caro-white);
+  }
+
+  .feature-card-inverse .eyebrow {
+    color: var(--caro-yellow-400);
+  }
+
+  .feature-card-inverse > p:not(.eyebrow) {
+    color: var(--caro-grey-300);
+  }
+
+  .feature-card-inverse .feature-meta {
+    background: var(--caro-yellow-400);
+    color: var(--caro-grey-900);
+  }
+
+  .ink-section,
+  .install-section,
+  .footer {
+    background: var(--caro-grey-900);
+    color: var(--caro-beige-100);
+  }
+
+  .ink-grid,
+  .install-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+    gap: 56px;
+    padding-block: 96px;
+  }
+
+  .ink-section {
+    border-bottom: 1px solid var(--caro-grey-700);
+  }
+
+  .eyebrow-on-ink {
+    color: var(--caro-yellow-400);
+  }
+
+  .ink-copy h2,
+  .install-copy h2 {
+    margin: 14px 0 18px;
+    color: var(--caro-beige-100);
+    font-size: clamp(38px, 4.5vw, 52px);
+  }
+
+  .ink-copy > p:not(.eyebrow),
+  .install-copy > p:not(.eyebrow) {
+    margin: 0;
+    color: var(--caro-grey-300);
+    font-size: 18px;
+    line-height: 1.65;
+  }
+
+  .decision-badge {
+    display: inline-block;
+    margin-top: 24px;
+    background: var(--caro-yellow-400);
+    color: var(--caro-grey-900);
+  }
+
+  .terminal-compact {
+    box-shadow: none;
+  }
+
+  .terminal-compact .terminal-body {
+    min-height: auto;
+    padding: 24px;
+  }
+
+  .install-section {
+    background: var(--caro-grey-800);
+  }
+
+  .install-grid {
+    grid-template-columns: 0.7fr 1.3fr;
+  }
+
+  .install-mascot {
+    display: grid;
+    place-items: center;
+    min-height: 300px;
+    border: 2px solid var(--caro-grey-500);
+    background: var(--caro-grey-700);
+    box-shadow: var(--shadow-pixel);
+  }
+
+  .copy-command {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    margin-top: 30px;
+    border: 2px solid var(--caro-grey-950);
+    border-radius: var(--radius-md);
+    background: var(--caro-grey-700);
+    padding: 12px 14px;
+  }
+
+  .copy-command code {
+    overflow-x: auto;
+    background: transparent;
+    color: var(--caro-white);
+    padding: 0;
+    white-space: nowrap;
+  }
+
+  .copy-command button {
+    min-height: 34px;
+    border: 1px solid var(--caro-grey-400);
+    border-radius: var(--radius-md);
+    background: var(--caro-grey-900);
+    color: var(--caro-beige-100);
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .copy-command button:hover {
+    background: var(--accent);
+  }
+
+  .install-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 18px;
+  }
+
+  .install-links a {
+    color: var(--caro-beige-100);
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  .footer {
+    padding-block: 72px 32px;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr repeat(3, 1fr);
+    gap: 40px;
+  }
+
+  :global(.footer-logo) {
+    width: 132px;
+    height: auto;
+  }
+
+  .footer-brand p {
+    margin: 14px 0 0;
+    color: var(--caro-grey-400);
+    font-size: 14px;
+  }
+
+  .footer-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 9px;
+  }
+
+  .footer-column h2 {
+    margin: 0 0 8px;
+    color: var(--caro-yellow-400);
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: var(--track-wider);
+    text-transform: uppercase;
+  }
+
+  .footer-column a {
+    color: var(--caro-beige-100);
+    font-size: 14px;
+  }
+
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: 48px;
+    border-top: 1px solid var(--caro-grey-700);
+    padding-top: 24px;
+  }
+
+  .footer-bottom p {
+    margin: 0;
+    color: var(--caro-grey-400);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  @media (max-width: 900px) {
+    .nav-links {
+      position: absolute;
+      inset: 70px 0 auto;
+      display: none;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      padding: 16px 24px;
+    }
+
+    .nav-links.is-open {
+      display: flex;
+    }
+
+    .nav-links a {
+      min-height: 48px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .menu-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      padding: 8px 12px;
+      font-weight: 700;
+    }
+
+    .menu-glyph {
+      font-family: var(--font-mono);
+      font-size: 18px;
+    }
+
+    .hero {
+      grid-template-columns: 1fr;
+      min-height: auto;
+      gap: 48px;
+    }
+
+    .hero h1 {
+      max-width: 11ch;
+    }
+
+    .hero-stage {
+      min-height: 460px;
+    }
+
+    .feature-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ink-grid,
+    .install-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .install-mascot {
+      min-height: 260px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .shell {
+      width: min(100% - 32px, 1040px);
+    }
+
+    .announcement {
+      flex-wrap: wrap;
+      gap: 5px 8px;
+      padding-inline: 16px;
+    }
+
+    .nav {
+      min-height: 64px;
+      gap: 8px;
+    }
+
+    .nav-links {
+      inset-block-start: 64px;
+    }
+
+    :global(.nav-logo) {
+      width: 88px;
+    }
+
+    .nav-actions .button {
+      display: none;
+    }
+
+    .hero {
+      padding-block: 64px 72px;
+    }
+
+    .hero h1 {
+      font-size: clamp(42px, 14vw, 60px);
+    }
+
+    .hero-actions {
+      display: grid;
+    }
+
+    .hero-actions .button {
+      width: 100%;
+    }
+
+    .hero-facts {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hero-stage {
+      min-height: 380px;
+      box-shadow: 3px 3px 0 var(--caro-grey-900);
+    }
+
+    :global(.hero-kyaro) {
+      width: 220px;
+      height: 220px;
+    }
+
+    .demo-shell,
+    .features,
+    .ink-grid,
+    .install-grid {
+      padding-block: 72px;
+    }
+
+    .terminal-body {
+      min-height: 330px;
+      padding: 22px 18px;
+      font-size: 12px;
+    }
+
+    .terminal-tabs {
+      grid-template-columns: 1fr;
+    }
+
+    .terminal-tabs button {
+      border-right: 0;
+      border-bottom: 1px solid var(--caro-grey-950);
+    }
+
+    .feature-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .feature-card {
+      min-height: 230px;
+    }
+
+    .copy-command {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .copy-command code {
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+
+    .copy-command button {
+      grid-column: 1 / -1;
+    }
+
+    .footer-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .footer-brand {
+      grid-column: 1 / -1;
+    }
+
+    .footer-bottom {
+      flex-direction: column;
+    }
+  }
+</style>

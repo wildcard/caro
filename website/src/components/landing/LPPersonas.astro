@@ -1,6 +1,6 @@
 ---
 // LPPersonas.astro - Three personas section with interactive CTAs
-import Glyph from '../../ui/Glyph/Glyph.astro';
+import KyaroMark from '../KyaroMark.astro';
 ---
 
 <section class="personas" id="personas">
@@ -14,7 +14,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
       <!-- The Accelerator -->
       <div class="persona-card accelerator" data-persona="accelerator">
         <div class="persona-icon">
-          <Glyph name="kyaro-mark" size={32} aria-label="Accelerator" />
+          <KyaroMark size={44} variant="happy" label="Happy Kyaro representing the Accelerator" />
         </div>
         <h3 class="persona-title">The Accelerator</h3>
         <p class="persona-role">Individual Developer</p>
@@ -55,7 +55,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
       <!-- The Guardian -->
       <div class="persona-card guardian" data-persona="guardian">
         <div class="persona-icon">
-          <Glyph name="kyaro-mark" size={32} aria-label="Guardian" />
+          <KyaroMark size={44} variant="alert" label="Alert Kyaro representing the Guardian" />
         </div>
         <h3 class="persona-title">The Guardian</h3>
         <p class="persona-role">Security & Platform Lead</p>
@@ -100,7 +100,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
       <!-- The Operator -->
       <div class="persona-card operator" data-persona="operator">
         <div class="persona-icon">
-          <Glyph name="kyaro-mark" size={32} aria-label="Operator" />
+          <KyaroMark size={44} variant="idle" label="Steady Kyaro representing the Operator" />
         </div>
         <h3 class="persona-title">The Operator</h3>
         <p class="persona-role">SRE / DevOps Engineer</p>

@@ -1,0 +1,34 @@
+{
+  "source": "All opaque pixels from all Kyaro PNG animation frames",
+  "frame_count": 99,
+  "top_colours": [
+    {
+      "hex": "#343434",
+      "pixels": 25466
+    },
+    {
+      "hex": "#000000",
+      "pixels": 20004
+    },
+    {
+      "hex": "#FFFFFF",
+      "pixels": 17840
+    },
+    {
+      "hex": "#D9A066",
+      "pixels": 4328
+    },
+    {
+      "hex": "#D95763",
+      "pixels": 90
+    },
+    {
+      "hex": "#8F563B",
+      "pixels": 57
+    },
+    {
+      "hex": "#7E6851",
+      "pixels": 28
+    }
+  ]
+}

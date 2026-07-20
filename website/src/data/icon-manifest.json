@@ -15,8 +15,10 @@
     "rocket":     { "path": "icons/rocket.svg",     "category": "trust-badge",   "replaces_emoji": "🚀",                "tier": "secondary" },
     "shield":     { "path": "icons/shield.svg",     "category": "trust-badge",   "replaces_emoji": "🛡️",          "tier": "secondary" },
     "lightning":  { "path": "icons/lightning.svg",  "category": "trust-badge",   "replaces_emoji": "⚡",                      "tier": "secondary" },
-    "brain":      { "path": "icons/brain.svg",      "category": "feature",       "replaces_emoji": "🧠",                "tier": "secondary" },
-    "kyaro-mark": { "path": "icons/kyaro-mark.svg", "category": "brand",         "replaces_emoji": "🐕",                "tier": "brand", "version": "2.1.1", "notes": "Redrawn 2026-05-09 to fix horned-demon read at 16-32 px (caro-bsi)" }
+    "brain":      { "path": "icons/brain.svg",      "category": "feature",       "replaces_emoji": "🧠",                "tier": "secondary" }
+  },
+  "retired": {
+    "kyaro-mark": "Retired: the single-colour glyph failed the small-size readability audit. Use the full-colour KyaroMark component backed by the approved Kyaro asset family."
   },
   "deferred_v3": [
     "git", "terminal", "package", "model", "gear", "doc", "search", "spinner", "check", "cross",
