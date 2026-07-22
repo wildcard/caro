@@ -36,14 +36,14 @@ Reading order: most recent first.
 - [#1366](https://github.com/wildcard/caro/issues/1366) — `docs: CLAUDE.md version banner shows 1.4.0 (GA) instead of 1.5.0` (P2) — **NEW, filed this pass**
 - [#1277](https://github.com/wildcard/caro/issues/1277) — CPU backend stub always returns wrong output — **STILL OPEN, REPRODUCED in v1.5.0**
 - [#1334](https://github.com/wildcard/caro/issues/1334) — `caro ai --once` broken (CPU stub) — **STILL OPEN, REPRODUCED**
-- [#1181](https://github.com/wildcard/caro/issues/1181) / [#1274](https://github.com/wildcard/caro/issues/1274) / [#1362](https://github.com/wildcard/caro/issues/1362) — static matcher Pattern 43 too strict — **STILL OPEN, REPRODUCED**
+- [#1181](https://github.com/wildcard/caro/issues/1181) / [#1274](https://github.com/wildcard/caro/issues/1274) / [#1362](https://github.com/wildcard/caro/issues/1362) — static matcher Pattern 43 too strict — **STILL OPEN, NOT TESTED IN THIS PASS** (Slot C used `caro ai --once` which bypasses static-matcher; smoke test timed out before pattern matching could be observed)
 
 ### Followups
 
 - FLAKE-001 observed again: model download (~1.1 GB) takes >60s; agent loop times out on first invocation. Model completes eventually. Dates: 2026-05-07, 2026-07-22 (>7 days apart; 3×/7-day threshold not met — remains flake).
 - `--backend static` silently removed from public CLI (PR #1298). No removal notice found.
 - Next Slot C candidate: surface #11 (`caro ai --continue-session`) — never tested.
-- #1277 and #1334 are P1, unresolved across v1.4.0 → v1.5.0. If still open at next release, escalate to epic tracker.
+- #1277 and #1334 are P1, unresolved in v1.5.0. If still open at next release, escalate to epic tracker.
 
 ---
 

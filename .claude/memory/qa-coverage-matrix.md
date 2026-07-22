@@ -64,7 +64,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | closed 2026-05-09 |
 | [#1366](https://github.com/wildcard/caro/issues/1366) | CLAUDE.md version shows 1.4.0 instead of 1.5.0 | docs | 2026-07-22 | open |
 
 ---
