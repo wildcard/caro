@@ -13,7 +13,8 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **Context**: Remote CI/QA sandbox where `https://huggingface.co/` returns HTTP 200 but binary blob downloads time out or are blocked at a lower network layer.  
 **Impact**: Slot A `--dry-run` smoke check cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:
-- 2026-05-07: observed once
+- 2026-05-07: model download blocked after 3 retries (binary blocked at network layer)
+- 2026-07-22: model download succeeded (~1.1 GB) but took >60s; agent loop timed out before completion; first invocation returned wrong output; model was available on second invocation but CPU stub bug (#1277) dominated
 
 **Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Workaround**: Run `caro -p "..." --dry-run` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama installed as fallback backend.
