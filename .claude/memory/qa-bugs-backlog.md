@@ -8,7 +8,8 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1277](https://github.com/wildcard/caro/issues/1277) | P1 | embedded | CPU placeholder misfires on non-static-matched queries via `caro -p` and all queries via `caro ai --once` (system prompt contains "rm", triggers danger branch) | open | — |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version stale (1.4.0 vs 1.5.0); 5 additional tracking issues: #1319, #1335, #1359, #1366, #1368 | open | 2026-05-07 |
 
 ---
 
