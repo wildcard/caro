@@ -1,26 +1,36 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import AnnouncementBanner from '../../components/AnnouncementBanner.astro';
-import Navigation from '../../components/Navigation.astro';
-import Hero from '../../components/Hero.astro';
-import Terminal from '../../components/Terminal.astro';
-import Story from '../../components/Story.astro';
-import Video from '../../components/Video.astro';
-import Features from '../../components/Features.astro';
-import Comparison from '../../components/Comparison.astro';
-import CaroGame from '../../components/CaroGame.astro';
-import Blog from '../../components/Blog.astro';
-import Download from '../../components/Download.astro';
-import Footer from '../../components/Footer.astro';
+import LPNavigation from '../../components/landing/LPNavigation.astro';
+import LPHero from '../../components/landing/LPHero.astro';
+import LPVideoDemo from '../../components/landing/LPVideoDemo.astro';
+import InteractiveTerminal from '../../components/InteractiveTerminal.astro';
+import LPPersonas from '../../components/landing/LPPersonas.astro';
+import LPMoments from '../../components/landing/LPMoments.astro';
+import LPTestimonials from '../../components/landing/LPTestimonials.astro';
+import LPFeatures from '../../components/landing/LPFeatures.astro';
+import LPWaitlist from '../../components/landing/LPWaitlist.astro';
+import LPDownload from '../../components/landing/LPDownload.astro';
+import LPFooter from '../../components/landing/LPFooter.astro';
 import { languages, t, type Locale } from '../../i18n/config';
 
+// Generate one static page per non-English locale. English keeps the site
+// root (src/pages/index.astro); every other locale renders here. This file
+// MUST mirror the root landing composition (index.astro) so translated pages
+// stay in lock-step with English — historically it forked and drifted six
+// months behind (the pre-LP Story/Comparison/CaroGame layout). Keep the
+// component list identical to index.astro and only thread `lang` through.
 export function getStaticPaths() {
   return Object.keys(languages)
-    .filter(lang => lang !== 'en')  // English stays at /
-    .map(lang => ({ params: { lang } }));
+    .filter((lang) => lang !== 'en') // English stays at /
+    .map((lang) => ({ params: { lang } }));
 }
 
 const { lang } = Astro.params as { lang: Locale };
+
+// LPPersonas, LPMoments, LPTestimonials, and InteractiveTerminal are not yet
+// locale-aware; they render English until their strings are extracted into
+// landing.json. The per-key t() fallback in i18n/config.ts means every other
+// key degrades gracefully to English when a translation is missing.
 ---
 
 <Layout
@@ -28,16 +38,71 @@ const { lang } = Astro.params as { lang: Locale };
   description={t(lang, 'common.meta.description')}
   lang={lang}
 >
-  <AnnouncementBanner lang={lang} />
-  <Navigation lang={lang} />
-  <Hero lang={lang} />
-  <Terminal lang={lang} />
-  <Story lang={lang} />
-  <Video lang={lang} />
-  <Features lang={lang} />
-  <Comparison lang={lang} />
-  <CaroGame lang={lang} />
-  <Blog lang={lang} />
-  <Download lang={lang} />
-  <Footer lang={lang} />
+  <LPNavigation lang={lang} />
+  <main>
+    <LPHero lang={lang} />
+    <LPVideoDemo
+      videoUrl="/caro-demo.mp4"
+      posterUrl="/caro-demo-poster.png"
+    />
+    <section id="demo" class="demo-section">
+      <div class="demo-container">
+        <h2 class="demo-title">Try It Yourself</h2>
+        <p class="demo-subtitle">
+          Experience the difference. Start in vanilla mode, then install Caro to unlock natural language commands.
+        </p>
+        <InteractiveTerminal />
+      </div>
+    </section>
+    <LPPersonas />
+    <LPMoments />
+    <LPTestimonials />
+    <LPFeatures lang={lang} />
+    <LPWaitlist lang={lang} />
+    <LPDownload lang={lang} />
+  </main>
+  <LPFooter lang={lang} />
 </Layout>
+
+<style>
+  main {
+    padding-top: 64px; /* Account for fixed navigation */
+  }
+
+  .demo-section {
+    padding: 80px 20px;
+    background: #0a0a0f;
+  }
+
+  .demo-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .demo-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 16px;
+  }
+
+  .demo-subtitle {
+    font-size: 1.125rem;
+    color: #888;
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 640px) {
+    .demo-section {
+      padding: 60px 16px;
+    }
+
+    .demo-title {
+      font-size: 1.75rem;
+    }
+  }
+</style>

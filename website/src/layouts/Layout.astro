@@ -1391,6 +1391,23 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
     font-family: 'Noto Nastaliq Urdu', serif;
   }
 
+  /* Keep shell commands and code left-to-right inside RTL pages.
+     Without this, the Unicode bidi algorithm reorders leading/trailing
+     punctuation in commands like `rm -rf /tmp` or `git push -u origin`,
+     which is a correctness bug for a product whose whole value is showing
+     shell commands accurately. `unicode-bidi: isolate` scopes the override
+     so surrounding RTL text is unaffected; `text-align: left` anchors the
+     block visually. Inline `code` also gets `direction: ltr` directly so
+     single tokens read correctly mid-sentence. */
+  [dir='rtl'] code,
+  [dir='rtl'] pre,
+  [dir='rtl'] kbd,
+  [dir='rtl'] samp {
+    direction: ltr;
+    unicode-bidi: isolate;
+    text-align: left;
+  }
+
   /* ============================================
      OVERSCROLL EASTER EGG
      ============================================ */
