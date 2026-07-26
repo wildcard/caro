@@ -154,7 +154,7 @@
 }
 
 .readMore {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
   font-weight: 600;
   display: inline-flex;
@@ -200,7 +200,7 @@
 }
 
 .titleLink:hover {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 :global(.dark) .title,
@@ -209,7 +209,7 @@
 }
 
 :global(.dark) .titleLink:hover {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .description {

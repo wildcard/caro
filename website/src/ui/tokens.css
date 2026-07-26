@@ -197,6 +197,15 @@
   --accent:        var(--caro-red-500);
   --accent-hover:  var(--caro-red-600);
   --accent-press:  var(--caro-red-700);
+  /* Accessible red for TEXT. Signal red (#ef3333) is only ~3.6:1 on paper
+     and ~2:1 on grey — below WCAG AA for normal-size text. Use --accent for
+     fills/borders/icons; use --accent-text wherever red is the foreground of
+     readable copy (links, labels, inline code). #c02020 → 6.1:1 on paper. */
+  --accent-text:   var(--caro-red-700);
+  /* NOTE: red as small body text on a DARK panel cannot meet WCAG AA — on the
+     spec's #4f4f4f surface every red tops out below 3:1 (a compliant red would
+     be a washed-out pink). The brand's accent-on-dark is --highlight (yellow),
+     which clears ~7:1 on grey-700; dark-panel accents use that, not a red. */
   --highlight:     var(--caro-yellow-400);
 
   --border:        var(--caro-grey-300);
@@ -403,6 +412,9 @@
   --accent:        #ff6464;                 /* lighter brand red for dark-mode contrast */
   --accent-hover:  var(--caro-red-500);
   --accent-press:  var(--caro-red-600);
+  /* In dark mode the whole page is dark, so red text uses the lightened red
+     (mirrors --accent above). The dark #c02020 would be ~1.5:1 here. */
+  --accent-text:   #ff6464;
   --highlight:     var(--caro-yellow-400);
 
   --border:        var(--caro-grey-800);
