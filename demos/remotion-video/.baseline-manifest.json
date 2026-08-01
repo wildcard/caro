@@ -45,7 +45,7 @@
     },
     {
       "path": "website/src/components/landing/LPDemo.astro",
-      "sha256": "7d65f66ddd4a817a177ec33dd81c337bbf7d1ede61eb0806fb87ab9bb79a10da",
+      "sha256": "0a52a2e7b97101aab273aede09cf7cf9411b8afe00f63f1a3b0c72676305f51b",
       "purpose": "macOS terminal chrome design (traffic-light dots, title bar). The Remotion TerminalWindow component copies this look. If the website's terminal styling changes, the video must follow."
     },
     {

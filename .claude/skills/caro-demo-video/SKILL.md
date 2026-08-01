@@ -76,7 +76,7 @@ macOS traffic-light dots:
 | Minimize | `#ffbd2e` |
 | Maximize | `#27c93f` |
 
-Title bar background `#16161c`, 12px padding, dot diameter 12px, gap 8px.
+Title bar background `#1a1a1a`, 12px padding, dot diameter 12px, gap 8px.
 
 ### Authenticity rules
 
