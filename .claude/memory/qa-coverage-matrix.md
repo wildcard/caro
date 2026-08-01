@@ -33,7 +33,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-08-01 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
 | 10 | `caro ai --once` scripted conversational mode | ai | 2026-08-01 | FAIL | [#1387](https://github.com/wildcard/caro/issues/1387) |
-| 11 | `caro ai --continue-session` shell widget | ai | 2026-08-01 | FAIL | [#1387](https://github.com/wildcard/caro/issues/1387) |
+| 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
 | 14 | `caro config get/set/show/reset` | cli | never | — | — |
@@ -75,4 +75,5 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 - Slot C tie-break: when multiple surfaces share 'never', pick lowest `#` number unless context suggests a riskier surface is more valuable to exercise.
 - Website surfaces (#25, #26) can be tested with `curl` + Python parsing alone — no caro build needed.
 - Surfaces requiring model download (#19, #20) should be tested from an environment with a pre-downloaded model; note in session log if sandbox blocks download.
-- **Next Slot C recommendation**: surface #12 (`caro assess`) — oldest untested after #10/#11 now covered. Alternatively prioritize #25 (website) given recent i18n/website PRs.
+- **Slot B search**: use perPage:100 and paginate to avoid missing PRs when the window is large (>20 PRs). A 20-result cap silently drops older-in-window PRs from spot-checking.
+- **Next Slot C recommendation**: surface #11 (`caro ai --continue-session`) — oldest untested after #10. Alternatively prioritize #25/#31 (website/i18n) given recent PRs #1325/#1351/#1352.
