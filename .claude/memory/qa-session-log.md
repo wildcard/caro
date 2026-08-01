@@ -4,6 +4,50 @@ Reading order: most recent first.
 
 ---
 
+## 2026-08-01 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B (20 PRs since 2026-05-07) + C (surface #10: `caro ai --once`).
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 07s, no errors)
+- `caro --version` → **PASS**: `caro 1.5.0 (be07b22 2026-07-18)`
+- `caro --help` → **PASS**: all subcommands listed including all CaroML verbs and `skill` command
+- `caro doctor` → **PASS**: advisory only (no model, proxy detected; expected in fresh sandbox)
+- `caro -p 'list files in current directory' --dry-run` → **FLAKE**: FLAKE-001 reproduced; telemetry consent appeared then model download blocked (sandbox restriction)
+
+### Slot B — Recent diff
+
+20 PRs merged since 2026-05-07. Representative surfaces tested:
+
+- **#1315** `fix(safety): P0 close quote/escape evasion` → `cargo test --lib -- safety` → **PASS**: 34 safety tests (up from 19 in bootstrap; reflects new patterns from the P0 fix)
+- **#1298** `fix(cli): single source of truth for backend roster` → `caro --backend-info` → **PASS**: 7 backends with correct statuses
+- **#1346/#1351/#1352** (website/ci/i18n) → not testable via CLI in sandbox; flagged for next website Slot C rotation (#25, #31)
+- Full library test suite → **PASS**: 597 tests (up from 513 in bootstrap run), 0 failures
+
+### Slot C — `caro ai --once` (surface #10)
+
+- `caro ai --help` → **PASS**: documents `--once`, `--new-session`, `--continue-session`; prompt is positional not `-p`
+- **P1 BUG**: `caro ai --once 'ANY PROMPT'` always returns `echo 'Please clarify your request'` with `confidence=0.85` — identical wrong output for every prompt including 'show current directory', 'show disk usage', 'list files'
+- Comparison: `caro -p 'show current directory' --dry-run` → `pwd` (static matcher works on regular path)
+- Root cause confirmed in source: `run_ai_once` (`src/main.rs:1109`) calls `cli_app.backend_arc()` directly, bypassing the `AgentLoop` that applies the static matcher (`src/cli/mod.rs:284-285`). The raw embedded backend returns its hardcoded fallback (`src/backends/embedded/cpu.rs`) when it can't download a model.
+- `caro ai --once -p 'prompt'` rejects `-p` with an error — minor UX inconsistency vs main `caro` path; not filed separately since help text is clear.
+
+### Findings
+
+- [#1387](https://github.com/wildcard/caro/issues/1387) — `ai: caro ai --once bypasses static matcher, always returns fallback when LLM unavailable` (P1)
+- [#1388](https://github.com/wildcard/caro/issues/1388) — `docs: CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (recurrence of #1044)` (P2)
+
+### Followups
+
+- FLAKE-001 reproduced (2026-08-01, second observation; first was 2026-05-07). Gap of 85 days — not within 3-in-7-days promotion threshold. Remains a flake.
+- Issue #1044 was fixed for the v1.3.0 cycle but the systemic checklist fix (add CLAUDE.md to release-version-alignment.md) did not land, causing recurrence as #1388. Fix direction in #1388 includes the systemic fix.
+- Website/i18n surfaces (#25, #31) are high priority for next Slot C given recent PRs #1325/#1351/#1352 touching those areas.
+- `caro ai --continue-session` (surface #11) shares the same code path and P1 bug; can be grouped with #1387 fix rather than tested separately.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
