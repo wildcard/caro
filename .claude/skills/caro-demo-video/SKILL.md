@@ -203,7 +203,7 @@ explicitly extending scope.
 ## Drift Detection
 
 The video bakes in mutable facts: brand colors, terminal chrome design,
-real CLI output strings, the "52+" pattern count, install commands.
+real CLI output strings, the "67+" pattern count, install commands.
 These come from 7 specific files. Drift between those files and the
 shipped MP4 means the video is lying about the product.
 
@@ -228,7 +228,7 @@ is the source of truth. It records:
 | `website/src/components/landing/LPDemo.astro` | Terminal chrome design | All scenes |
 | `src/main.rs` (lines ~1014–1023) | CLI block-message string | Scene 3 |
 | `.claude/beta-testing/test-cases.yaml` | Verified caro queries + outputs | Scene 2 |
-| `src/safety/patterns.rs` | Pattern count (currently 52) | Scene 3 caption |
+| `src/safety/patterns.rs` | Pattern count (currently 67) | Scene 3 caption |
 | `homebrew-tap/README.md` | Install command | Scene 4 |
 | `install.sh` | Curl-pipe install | Scene 4 |
 
@@ -263,7 +263,7 @@ The re-rendered MP4 is a public-facing marketing asset. Two paths:
 | Drift type | Examples | Required action |
 |---|---|---|
 | **Output-equivalent** | tokens.css color literal renames (e.g. variable rename, same hex value); whitespace-only changes in LPDemo.astro; install.sh comment edits | Agent re-renders and ships directly. Visual diff against the prior poster.png must be within ±5% pixel delta. |
-| **Cosmetic but visible** | Hex color value changes; LPDemo chrome restyle; new pattern count claim ("52+" → "60+") | Agent renders, opens a PR with the new MP4 + poster, requests human review. |
+| **Cosmetic but visible** | Hex color value changes; LPDemo chrome restyle; new pattern count claim ("67+" → "80+") | Agent renders, opens a PR with the new MP4 + poster, requests human review. |
 | **Semantic** | Scene 2 query strings drift; block message changes; install command changes | Agent renders, opens a PR with side-by-side commentary (old vs new strings), requests human review. **Do not auto-ship.** |
 
 The agent decides which bucket applies by reading the
