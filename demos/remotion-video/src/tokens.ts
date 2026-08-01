@@ -10,7 +10,7 @@
 
 export const colors = {
   bgDeep: "#1a1a1a",        // --caro-grey-950
-  bgTerminal: "#2b2b2b",    // --caro-grey-900 (dark terminal body)
+  bgTerminal: "#4f4f4f",    // --caro-grey-700 = --term-bg (retro console grey)
   bgChrome: "#1a1a1a",      // --caro-grey-950 (title bar)
   borderSubtle: "#3a3a3a",  // --caro-grey-800
   accent: "#ef3333",        // --caro-red-500 (signal red, replaces orange)

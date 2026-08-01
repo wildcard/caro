@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "comment": "Tripwire manifest for the caro-demo landing-page video. Each entry records the SHA-256 of a source file the video depends on at the moment of the last shipped render. scripts/check-drift.sh compares the working tree to this manifest. When drift is detected the skill at .claude/skills/caro-demo-video/SKILL.md takes over. DO NOT EDIT BY HAND — regenerate with `scripts/render-and-ship.sh` (it rewrites this file on a successful render).",
-  "rendered_at": "2026-08-01T12:12:27Z",
-  "rendered_commit": "be07b22",
+  "rendered_at": "2026-08-01T12:24:03Z",
+  "rendered_commit": "d60d1b6",
   "caro_version_at_render": "1.5.0",
   "video_output": {
     "path": "website/public/caro-demo.mp4",

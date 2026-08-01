@@ -41,21 +41,21 @@ These are caro-specific and not covered by `remotion-best-practices`.
 
 ### Visual tokens (mirror of `website/src/ui/tokens.css`)
 
-| Token | Hex | Use |
-|---|---|---|
-| `bgDeep` | `#0a0a0f` | Composition background |
-| `bgTerminal` | `#1a1a2e` | Terminal window body |
-| `bgChrome` | `#16161c` | Terminal title bar |
-| `borderSubtle` | `#1e1e24` | Window border |
-| `accent` | `#ff8c42` | Caro suggestions, primary CTA |
-| `accentDark` | `#ff6b35` | Hover states, secondary brand |
-| `prompt` | `#4ec9b0` | Shell prompt `$` |
-| `command` | `#9cdcfe` | Typed command text |
-| `success` | `#22c55e` | Safe / passed indicator |
-| `danger` | `#ef4444` | Blocked / error indicator |
-| `warning` | `#f59e0b` | High-risk warning |
-| `textPrimary` | `#e0e0e0` | Body text on dark bg |
-| `textMuted` | `#a0a0a0` | Captions, secondary text |
+| Token | Hex | CSS source | Use |
+|---|---|---|---|
+| `bgDeep` | `#1a1a1a` | `--caro-grey-950` | Composition background |
+| `bgTerminal` | `#4f4f4f` | `--caro-grey-700` = `--term-bg` | Terminal window body |
+| `bgChrome` | `#1a1a1a` | `--caro-grey-950` | Terminal title bar |
+| `borderSubtle` | `#3a3a3a` | `--caro-grey-800` | Window border |
+| `accent` | `#ef3333` | `--caro-red-500` = `--accent` | Caro suggestions, primary CTA |
+| `accentDark` | `#e63636` | `--caro-red-600` | Hover states, secondary brand |
+| `prompt` | `#fcfc62` | `--caro-yellow-400` = `--term-prompt` | Shell prompt `$` |
+| `command` | `#f4f1df` | `--caro-beige-100` = `--term-fg` | Typed command text |
+| `success` | `#22c55e` | `--color-success` | Safe / passed indicator |
+| `danger` | `#ef3333` | `--status-danger` | Blocked / error indicator |
+| `warning` | `#f59e0b` | `--color-warning` | High-risk warning |
+| `textPrimary` | `#f4f1df` | `--caro-beige-100` | Body text on dark bg |
+| `textMuted` | `#a0a0a0` | `--caro-grey-400` | Captions, secondary text |
 
 Mirror these in `demos/remotion-video/src/tokens.ts`. Do **not** import
 the website CSS — the Remotion build is isolated.
@@ -123,7 +123,7 @@ Total duration: 900 frames @ 30fps = **30 seconds**.
 |---|---|---|---|---|---|
 | 1 | ScenePain | 0–119 | 4s | "Forgot the syntax. Again." | Cursor blinks; `# how do I find...` types in then trails off |
 | 2 | SceneQueries | 120–539 | 14s | Per-query badge: `0.3s · 100% local` | 3 caro queries from test-cases.yaml render back-to-back, ~4.5s each |
-| 3 | SceneSafety | 540–779 | 8s | "52+ patterns. Blocked before damage." | `caro "delete everything in the current directory"` → red `✗ command blocked by safety validator (Critical)` |
+| 3 | SceneSafety | 540–779 | 8s | "67+ patterns. Blocked before damage." | `caro "delete everything in the current directory"` → red `✗ command blocked by safety validator (Critical)` |
 | 4 | SceneCloser | 780–899 | 4s | "Local. Private. No API key." | Logo + `cargo install caro` install line |
 
 Scene 2 queries (verified against `.claude/beta-testing/test-cases.yaml`):
