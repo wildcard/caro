@@ -11,7 +11,7 @@ use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError
 use crate::models::{CommandRequest, GeneratedCommand, RiskLevel};
 
 /// Default Claude model - Haiku 4.5 for fast, efficient command generation
-pub const DEFAULT_CLAUDE_MODEL: &str = "claude-haiku-4-5-20251101";
+pub const DEFAULT_CLAUDE_MODEL: &str = "claude-haiku-4-5-20251001";
 
 /// Claude API base URL
 pub const CLAUDE_API_URL: &str = "https://api.anthropic.com";
@@ -471,7 +471,7 @@ mod tests {
 
     #[test]
     fn test_default_model() {
-        assert_eq!(DEFAULT_CLAUDE_MODEL, "claude-haiku-4-5-20251101");
+        assert_eq!(DEFAULT_CLAUDE_MODEL, "claude-haiku-4-5-20251001");
     }
 
     #[tokio::test]

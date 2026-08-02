@@ -67,7 +67,7 @@ Located at `~/.config/shai/config.yaml`:
 ```yaml
 api:
   provider: anthropic  # or openai, ovh
-  model: claude-sonnet-4-20250514
+  model: claude-sonnet-4-6
 
 shell:
   default: zsh
