@@ -62,7 +62,7 @@ Example `config.toml`:
 ```toml
 [model]
 provider = "anthropic"
-name = "claude-sonnet-4-20250514"
+name = "claude-sonnet-4-6"
 
 [safety]
 validate_commands = true
