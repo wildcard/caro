@@ -218,8 +218,12 @@ in this PR's companion commit):
    (main.rs:179–182). Three of four matrix legs evaluated nothing.
 3. ✅ `benches/performance.rs` was never declared `harness = false`, so its
    `criterion_main!` never executed.
-4. 25 of 101 dataset cases are MultiBackend and structurally unpassable with
-   one registered backend — a large share of the 31% baseline story.
+4. The 25 MultiBackend cases cannot be meaningfully evaluated with one
+   registered backend. Measured on this branch (2026-08-16): 78.2% overall,
+   and **21 of the 22 failures are MultiBackend** (4 pass vacuously);
+   Correctness and Safety are at 100%, POSIX at 96%. The CI regression floor
+   still said 31.0 — **stale by 47 points**, which is its own finding: nobody
+   was reading the number. ✅ The companion commit raises the floor to 75.0.
 5. `BaselineStore` (store/compare/list, `src/evaluation/baseline.rs`) is
    exported but never called; `branch`/`commit_sha` are hardcoded `"unknown"`;
    no run's results are persisted anywhere (CI keeps a 30-day text log).
@@ -278,9 +282,10 @@ user-facing feature specs; of the list below only P5 crosses that line.
   `run_all_tests` (permit spans generate+evaluate), with a regression-guard
   test (`test_max_concurrency_bounds_in_flight_generations`); reduce the CI
   matrix to the one leg that evaluates anything (`static_matcher`) with a
-  comment explaining what restores the other legs; declare
-  `benches/performance.rs` as a criterion bench; fix CLAUDE.md's nonexistent
-  `caro-eval` reference and stale version banner.
+  comment explaining what restores the other legs; raise the stale regression
+  floor 31.0 → 75.0 (measured 78.2%); declare `benches/performance.rs` as a
+  criterion bench; fix CLAUDE.md's nonexistent `caro-eval` reference and stale
+  version banner.
 - **dsh principle**: honest CI signal (§1.7).
 - **What would prove it wrong**: nothing plausible — these were dead configs
   and no-op legs; the guard test pins the one behavior change.
@@ -524,9 +529,9 @@ branch.
 | A2 ✅ | CI matrix legs pass rejected/ignored backend names; masked by `\|\| true` | `.github/workflows/evaluation.yml`; `tests/evaluation/main.rs:107,172,179–182` |
 | A3 ✅ | `benches/performance.rs` never declared → criterion never runs | `Cargo.toml` `[[bench]]` block |
 | A4 | `--backend` filtering unimplemented; only `static_matcher` registered | `tests/evaluation/main.rs:171–182` |
-| A5 | 25/101 MultiBackend cases unpassable with one backend | `tests/evaluation/main.rs:184–193` TODO |
+| A5 | MultiBackend (25 cases) needs ≥2 backends; with one: 21 fail, 4 pass vacuously (measured 2026-08-16) | `tests/evaluation/main.rs:184–193` TODO |
 | A6 | `BaselineStore` never called by any runner | `src/evaluation/baseline.rs` |
-| A7 | `branch`/`commit_sha` hardcoded `"unknown"` → baseline files collide | `src/evaluation/harness.rs` (`aggregate_results`) |
+| A7 | `branch`/`commit_sha` hardcoded `"unknown"` → baseline files collide (every run prints `Branch: unknown / Commit: unknown`) | `src/evaluation/harness.rs` (`aggregate_results`) |
 | A8 | No result persistence; CI keeps a 30-day text log only | `tests/evaluation/results/` (`.gitkeep`) |
 | A9 | No trend/time-series regression tracking; baselines hardcoded in YAML | `evaluation.yml` threshold step |
 | A10 | No generation caching across runs | (orphan crate had `execution_cache.rs`) |
@@ -542,7 +547,7 @@ branch.
 | A20 | `sft_export` unreachable (no caller) | `src/evaluation/sft_export.rs` |
 | A21 | Orphaned sub-crate: 6,400 LOC, own lockfile, checked-in `target/`, never compiled | `tests/evaluation/src/` |
 | A22 | `tests/evaluation/README.md` documents commands that cannot work | not a workspace member |
-| A23 | Exit code 1 on any failure contradicts the 31% baseline model | `tests/evaluation/main.rs:231` |
+| A23 | Exit code 1 on any failure contradicts the below-100% baseline model (78.2% today ⇒ always exit 1, forcing CI's `\|\| true`) | `tests/evaluation/main.rs:231` |
 | A24 | Doc drift: nonexistent `caro-eval` (✅ fixed), untraceable "93.1%" (README.md:34, CLAUDE.md:119 — P7's seed case) | CLAUDE.md, README.md |
 
 ## Appendix B: Orphaned Sub-Crate — Salvage Ideas Before Deletion
