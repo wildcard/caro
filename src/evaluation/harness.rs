@@ -7,6 +7,7 @@ use chrono::Utc;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use tokio::sync::Semaphore;
 use tokio::time::timeout;
 
 use crate::backends::{CommandGenerator, GeneratorError};
@@ -346,12 +347,15 @@ impl EvaluationHarness {
         available
     }
 
-    /// Runs all tests across all backends in parallel
+    /// Runs all tests across all backends in parallel, holding total in-flight
+    /// (case × backend) work to `HarnessConfig::max_concurrency` — a local LLM
+    /// backend must never see the whole dataset at once.
     async fn run_all_tests(
         &self,
         backends: &[(String, Arc<dyn CommandGenerator>)],
     ) -> Result<Vec<EvaluationResult>> {
         let mut tasks = Vec::new();
+        let semaphore = Arc::new(Semaphore::new(self.config.max_concurrency.max(1)));
 
         // Outer loop: test cases
         for test_case in self.dataset.test_cases() {
@@ -371,9 +375,16 @@ impl EvaluationHarness {
                     })?
                     .clone();
                 let timeout_ms = self.config.backend_timeout_ms;
+                let semaphore = semaphore.clone();
 
                 // Spawn parallel task for this backend
                 let task = tokio::spawn(async move {
+                    // Permit spans generate + evaluate; the semaphore is never
+                    // closed, so acquire_owned cannot fail.
+                    let _permit = semaphore
+                        .acquire_owned()
+                        .await
+                        .expect("harness concurrency semaphore closed");
                     let _start = Instant::now();
 
                     // Run backend with timeout
@@ -981,5 +992,107 @@ mod tests {
 
         assert_eq!(result.backend_name, "test-backend");
         assert_eq!(result.total_tests, 2); // 2 tests for this backend
+    }
+
+    /// Backend that records the peak number of in-flight `generate_command`
+    /// calls, to pin the `max_concurrency` semaphore bound.
+    struct ConcurrencyProbe {
+        current: Arc<std::sync::atomic::AtomicUsize>,
+        max_seen: Arc<std::sync::atomic::AtomicUsize>,
+    }
+
+    #[async_trait]
+    impl CommandGenerator for ConcurrencyProbe {
+        async fn generate_command(
+            &self,
+            request: &CommandRequest,
+        ) -> std::result::Result<GeneratedCommand, GeneratorError> {
+            use std::sync::atomic::Ordering;
+            let now = self.current.fetch_add(1, Ordering::SeqCst) + 1;
+            self.max_seen.fetch_max(now, Ordering::SeqCst);
+            // Hold the slot long enough for the other tasks to pile up behind
+            // the semaphore if the bound were broken.
+            tokio::time::sleep(Duration::from_millis(20)).await;
+            self.current.fetch_sub(1, Ordering::SeqCst);
+
+            Ok(GeneratedCommand {
+                command: format!("echo {}", request.input),
+                explanation: "Probe command".to_string(),
+                safety_level: crate::models::RiskLevel::Safe,
+                estimated_impact: "No impact - probe command".to_string(),
+                alternatives: Vec::new(),
+                backend_used: "probe".to_string(),
+                generation_time_ms: 20,
+                confidence_score: 0.95,
+            })
+        }
+
+        async fn is_available(&self) -> bool {
+            true
+        }
+
+        fn backend_info(&self) -> BackendInfo {
+            BackendInfo {
+                backend_type: BackendType::Embedded,
+                model_name: "probe".to_string(),
+                supports_streaming: false,
+                max_tokens: 100,
+                typical_latency_ms: 20,
+                memory_usage_mb: 1,
+                version: "probe-1.0".to_string(),
+            }
+        }
+
+        async fn shutdown(&self) -> std::result::Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn test_max_concurrency_bounds_in_flight_generations() {
+        use crate::evaluation::{Difficulty, ValidationRule};
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        // 12 cases × 1 backend with max_concurrency = 2: without the semaphore
+        // all 12 generations run at once and this test fails.
+        let cases: Vec<TestCase> = (0..12)
+            .map(|i| TestCase {
+                id: format!("cc-{i:03}"),
+                category: TestCategory::Correctness,
+                input_request: "list files".to_string(),
+                expected_command: Some("ls".to_string()),
+                expected_behavior: None,
+                validation_rule: ValidationRule::PatternMatch,
+                validation_pattern: Some("ls|echo".to_string()),
+                tags: vec![],
+                difficulty: Some(Difficulty::Easy),
+                source: None,
+                notes: None,
+            })
+            .collect();
+        let config = HarnessConfig {
+            max_concurrency: 2,
+            ..Default::default()
+        };
+
+        let mut harness = EvaluationHarness::new(Dataset::from_tests(cases), config).unwrap();
+        let current = Arc::new(AtomicUsize::new(0));
+        let max_seen = Arc::new(AtomicUsize::new(0));
+        harness.add_backend(
+            "probe".to_string(),
+            Arc::new(ConcurrencyProbe {
+                current: current.clone(),
+                max_seen: max_seen.clone(),
+            }),
+        );
+
+        let report = harness.run().await.unwrap();
+
+        assert_eq!(report.total_tests, 12);
+        let observed = max_seen.load(Ordering::SeqCst);
+        assert!(
+            (1..=2).contains(&observed),
+            "observed {observed} concurrent generations, expected 1..=2"
+        );
     }
 }

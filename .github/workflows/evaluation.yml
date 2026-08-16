@@ -12,21 +12,18 @@ jobs:
     strategy:
       fail-fast: false  # Continue testing other backends even if one fails
       matrix:
+        # static_matcher is currently the ONLY leg that evaluates anything:
+        # tests/evaluation/main.rs registers just StaticMatcher, and its
+        # --backend flag does not filter yet. The former mlx / embedded-smollm /
+        # embedded-qwen legs passed names the runner either rejects (exit 2,
+        # masked by `|| true`) or ignores, so they silently produced no signal.
+        # Re-add legs here once backend registration lands (see the TODOs in
+        # tests/evaluation/main.rs) and give each a baseline in the
+        # threshold-check step below.
         backend:
           - static_matcher
-          - mlx
-          - embedded-smollm
-          - embedded-qwen
         include:
-          # MLX requires macOS (Apple Silicon)
-          - backend: mlx
-            runner: macos-latest
-          # Other backends can run on Ubuntu
           - backend: static_matcher
-            runner: ubuntu-latest
-          - backend: embedded-smollm
-            runner: ubuntu-latest
-          - backend: embedded-qwen
             runner: ubuntu-latest
 
     runs-on: ${{ matrix.runner }}
@@ -61,12 +58,14 @@ jobs:
           PASS_RATE: ${{ steps.evaluation.outputs.pass_rate }}
           BACKEND: ${{ matrix.backend }}
         run: |
-          # Per-backend baselines (will be loaded from JSON files in future)
+          # Per-backend baselines (will be loaded from JSON files in future).
+          # A 0.0 baseline means "not yet measured" and skips the check —
+          # measure one before re-adding a matrix leg.
+          # static_matcher measured 78.2% on the 101-case dataset (2026-08-16);
+          # floor set just below so dataset edits don't trip the -5% gate. The
+          # previous 31.0 floor was stale by 47 points — nobody was reading it.
           case "$BACKEND" in
-            static_matcher) BASELINE="31.0" ;;
-            mlx) BASELINE="0.0" ;;  # TBD - not yet measured
-            embedded-smollm) BASELINE="0.0" ;;  # TBD
-            embedded-qwen) BASELINE="0.0" ;;  # TBD
+            static_matcher) BASELINE="75.0" ;;
             *) BASELINE="0.0" ;;
           esac
 
