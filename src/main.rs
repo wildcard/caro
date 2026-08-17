@@ -1065,16 +1065,16 @@ fn handle_shell_init(shell: &str, disable_ai: bool) -> Result<(), String> {
     Ok(())
 }
 
-/// One-shot execution of `caro ai` — generate a command, run safety, persist session.
-///
-/// stdout is the command text only (so shell widgets can inject it directly).
-/// Status, warnings, and errors go to stderr.
 const AI_ONCE_INITIALIZATION_MESSAGE: &str = "Initializing backend…";
 
 fn ai_once_initialization_message() -> &'static str {
     AI_ONCE_INITIALIZATION_MESSAGE
 }
 
+/// One-shot execution of `caro ai` — generate a command, run safety, persist session.
+///
+/// stdout is the command text only (so shell widgets can inject it directly).
+/// Status, warnings, and errors go to stderr.
 async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Result<(), String> {
     use caro::ai::{run_once, AiInvocation};
     use caro::backends::CommandGenerator;
