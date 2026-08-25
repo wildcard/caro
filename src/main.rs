@@ -1067,10 +1067,6 @@ fn handle_shell_init(shell: &str, disable_ai: bool) -> Result<(), String> {
 
 const AI_ONCE_INITIALIZATION_MESSAGE: &str = "Initializing backend…";
 
-fn ai_once_initialization_message() -> &'static str {
-    AI_ONCE_INITIALIZATION_MESSAGE
-}
-
 /// One-shot execution of `caro ai` — generate a command, run safety, persist session.
 ///
 /// stdout is the command text only (so shell widgets can inject it directly).
@@ -1103,7 +1099,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     }
 
     // Build a backend via the normal CLI path so the feature respects --backend, env var, config.
-    eprintln!("{}", ai_once_initialization_message());
+    eprintln!("{}", AI_ONCE_INITIALIZATION_MESSAGE);
     let cli_app = caro::cli::CliApp::with_overrides(
         caro::cli::CliConfig::default(),
         cli.backend.clone(),
@@ -4143,11 +4139,6 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn ai_once_initialization_message_is_stable() {
-        assert_eq!(ai_once_initialization_message(), "Initializing backend…");
-    }
 
     // WP03: Prompt Source Resolution Tests
 
