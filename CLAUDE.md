@@ -6,7 +6,13 @@ A Rust CLI that converts natural language descriptions into safe POSIX shell com
 
 - **Language**: Rust (edition 2021, MSRV 1.83)
 - **License**: AGPL-3.0
-- **Version**: 1.4.0 (GA)
+- **Version**: **1.4.0 (GA — latest published)**, `Cargo.toml` declares `1.5.0` (unreleased)
+  - This mismatch is **known and intentional to leave as-is**: `1.5.0` was bumped in-repo
+    but never tagged, so `publish.yml` never fired and `cargo install caro` still yields
+    `1.4.0` (crates.io, 2026-05-09). Both numbers are accurate for what they describe.
+  - Tracked in [#1419](https://github.com/wildcard/caro/issues/1419). It is closed by
+    *cutting the release*, not by editing this line. Please do not file another
+    "CLAUDE.md version banner is stale" issue — ~26 duplicates already exist.
 - **Crate**: [crates.io/crates/caro](https://crates.io/crates/caro)
 
 ## Key Architecture
