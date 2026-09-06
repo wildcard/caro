@@ -36,7 +36,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-06 | PASS | — |
-| 14 | `caro config get/set/show/reset` | cli | 2026-09-06 | PASS | — |
+| 14 | `caro config get/set/show/reset` | cli | 2026-09-06 | PARTIAL | — (show only; get/set/reset untested in this pass) |
 | 15 | `caro --output json` format correctness | cli | never | — | — |
 | 16 | `caro --output yaml` format correctness | cli | never | — | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
@@ -66,7 +66,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
-| [#1440](https://github.com/wildcard/caro/issues/1440) | HTTP timeout on embedded model download (`HfHubClient`) | embedded | 2026-09-06 | open |
+| [#1440](https://github.com/wildcard/caro/issues/1440) | HTTP timeout on embedded model download (`ModelLoader` / `hf_hub` API) | embedded | 2026-09-06 | open |
 
 ---
 
@@ -75,5 +75,4 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 - Slot C tie-break: when multiple surfaces share 'never', pick lowest `#` number unless context suggests a riskier surface is more valuable to exercise.
 - Website surfaces (#25, #26) can be tested with `curl` + Python parsing alone — no caro build needed.
 - Surfaces requiring model download (#19, #20) should be tested from an environment with a pre-downloaded model; note in session log if sandbox blocks download.
-- Surfaces requiring `--features remote-backends` (#11 ai sessions, remote LLM backends): not testable from default build; note in session log.
-- **Next Slot C candidate**: surface #11 (`caro ai --continue-session`) is blocked on #1440; prefer surface #12 (`caro assess`) which does not require LLM backend.
+- **Next Slot C candidate**: surface #11 (`caro ai --continue-session`) uses the embedded backend and is testable once #1440 is resolved; prefer surface #12 (`caro assess`) in the meantime.

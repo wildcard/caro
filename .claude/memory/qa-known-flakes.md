@@ -12,7 +12,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **Last observed**: 2026-09-06  
 **Symptom (v1.3.0, 2026-05-07)**: `caro -p "..." --dry-run` fails with `Backend is not available: Failed to download model after 3 attempts` after 3 retries (2s, 4s backoff).  
 **Symptom (v1.5.0, 2026-09-06)**: `caro -p "..." --dry-run` and `caro ai --once` hang **indefinitely** with ZERO output. No error, no retry, no progress bar (indicatif suppressed in non-TTY env). Process enters sleeping state (6 threads) blocked on model binary download.  
-**Behavior change**: The v1.3.0 retry-with-backoff path is gone in v1.5.0. The root cause is `HfHubClient` (`src/cache/http_client.rs:42`) building a reqwest client with no `.timeout()` or `.connect_timeout()`. Filed as [#1440](https://github.com/wildcard/caro/issues/1440) (P1 regression).  
+**Behavior change**: The v1.3.0 retry-with-backoff path is gone in v1.5.0. The root cause is `ModelLoader::download_model_attempt` (`src/model_loader.rs:214-240`) calling `hf_hub::api::tokio::Api::new()` with no timeout configured. The `hf_hub` API constructs its own reqwest client internally; when the blob download stalls at the proxy layer, `repo.get().await` never returns and the retry loop in `download_model_with_retry` (lines 167-211) can never advance. Filed as [#1440](https://github.com/wildcard/caro/issues/1440) (P1 regression).  
 **Context**: Remote CI/QA sandbox where `https://huggingface.co/` returns HTTP 200 but binary blob downloads stall at the proxy layer.  
 **Impact**: Slot A `--dry-run` smoke check cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:
