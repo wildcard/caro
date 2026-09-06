@@ -1,6 +1,6 @@
 # QA Known Flakes
 
-Document flaky behaviours observed during QA runs. A flake observed 3+ times in 7 days should be reclassified as a regression and filed as a GitHub issue.
+Document flaky behaviours observed during QA runs. A flake observed 3+ times in 7 days should be reclassified as a regression and filed as a GitHub issue. A behavior change between versions is also grounds for immediate reclassification regardless of observation count.
 
 ---
 
@@ -36,4 +36,5 @@ _(none yet)_
 |------------------------|--------|
 | 1-2 | Log here as flake, note in session-log Followups |
 | 3+ | Reclassify as regression, file GitHub issue with `bug` + `qa` labels, link from this file |
-| Behavior change between versions | Reclassify as regression regardless of observation count |
+
+**Note**: A behavior change between versions (same symptom that previously errored now silently hangs, or vice versa) is grounds for immediate reclassification as a regression regardless of observation count — behavior changes are not flukes.
