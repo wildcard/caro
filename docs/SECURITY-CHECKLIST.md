@@ -20,7 +20,7 @@ green, not by trust but by grep.
 | 3 | **Secret scanning** — no API keys / tokens / credentials in source | GitHub secret scanning + pre-commit hook | `grep -E '(api[_-]?key\|token\|secret)\s*[:=]\s*["'\''][a-zA-Z0-9]{20,}' -r src/ website/src/ docs/` finds nothing real |
 | 4 | **No bundled credentials in binaries** — release artifacts contain no defaults that grant network access | `cargo dist` build + spot-check | `strings target/release/caro \| grep -iE '(sk-\|ghp_\|api[_-]key)'` returns nothing |
 | 5 | **Safety pattern coverage** — 52+ dangerous-command patterns, zero false positives in regression suite | `cargo test --features safety` | `cargo test --features safety` green |
-| 6 | **Sandbox boundary on execution** — bubblewrap on Linux (ADR-010), explicit user confirmation otherwise | `tests/integration/safety/` | Integration tests under `tests/safety/` green |
+| 6 | **Sandbox boundary on execution** — local bwrap sandbox is ADR-010 (Proposed, unimplemented); until it lands, the boundary is explicit user confirmation + the detonation-verified pattern corpus | `tests/red_team/` (nightly, ADR-017) | Latest `detonation-nightly` run green with no risk-label contradictions in the evidence artifact |
 | 7 | **Telemetry redaction** — no command content / paths / env vars / PII leak | Privacy audit + redaction-pattern tests | `cargo test redaction` green; `docs/TELEMETRY.md` audit current |
 | 8 | **Supply-chain signing** — release binaries reproducibly buildable, SHA256s published | `.github/workflows/release.yml` | `gh release view vX.Y.Z` shows checksums |
 | 9 | **Constitution review** — release PR touches every file in `.claude/rules/release-version-alignment.md` | Manual PR review | All 6 release files modified |
@@ -84,8 +84,9 @@ strings target/release/caro | grep -iE '(sk-|ghp_|api[_-]key)=[a-zA-Z0-9]' \
   | (! grep . > /dev/null) && echo "✓ Gate 4"
 # 5. Safety suite
 cargo test --features safety && echo "✓ Gate 5"
-# 6. Sandbox tests
-cargo test --test 'safety_*' && echo "✓ Gate 6"
+# 6. Detonation lane (requires deployed worker + secrets; see tools/exec-harness/worker/README.md)
+CARO_DETONATION_URL=... CARO_DETONATION_TOKEN=... \
+  cargo test --test red_team -- --ignored && echo "✓ Gate 6"
 # 7. Redaction tests
 cargo test redaction && echo "✓ Gate 7"
 # 8. Release checksums (post-tag)

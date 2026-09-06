@@ -34,10 +34,17 @@
 - Smoke tests with SmolLM 135M on macOS + Linux
 - Evaluation suite for embedded models
 
-### Website Deploy (GitHub Pages + Vercel)
+### Website Deploy (Vercel + Cloudflare Pages)
 - **caro-foss-website** → Vercel (primary website at caro.sh)
-- **caro-docs** → Vercel (documentation)
+- **docs-site + Storybook** → Cloudflare Pages (migrated in PR #1351;
+  cold-build guard: `static-sites-build.yml`)
 - **GitHub Pages** → `deploy-website.yml` workflow (secondary)
+
+### Cloudflare compute (dev harness only — ADR-017)
+- `tools/exec-harness/worker/` → Workers + Sandbox containers
+  (`detonation-nightly.yml`, dormant until secrets exist)
+- `website/e2e/` → Browser Run/Kitesurf structural QA
+  (`website-qa-kitesurf.yml`, dormant until secrets exist)
 
 ### Release Workflow
 ```bash

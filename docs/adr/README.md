@@ -53,6 +53,7 @@ Example: `ADR-001-enterprise-community-architecture.md`
 | [ADR-014](./ADR-014-serde-env-evaluation.md) | Environment Variable Deserialization with serde-env | Proposed | 2026-01-01 |
 | [ADR-015](./ADR-015-distributed-llm-backends-hybrid-privacy.md) | Distributed-LLM Backends (Mesh-LLM, AI-Horde) via a Hybrid Privacy Gateway | Accepted | 2026-06-07 |
 | [ADR-016](./ADR-016-ponytail-pragmatic-reviewer.md) | Ponytail Pragmatic-Skeptic Reviewer (Additive Adoption) | Accepted | 2026-06-14 |
+| [ADR-017](./ADR-017-cloud-assisted-verification.md) | Cloud-Assisted Verification (execution-grounded eval, detonation, browser QA) | Proposed | 2026-09-06 |
 
 ## Contributing to ADRs
 
