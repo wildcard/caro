@@ -113,6 +113,7 @@ mod tests {
             difficulty: None,
             source: None,
             notes: None,
+            execution: None,
         }
     }
 

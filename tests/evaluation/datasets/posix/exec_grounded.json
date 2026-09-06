@@ -1,0 +1,422 @@
+[
+  {
+    "id": "exec-001",
+    "category": "execution",
+    "input_request": "create an empty file called report.txt",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "file-ops"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "expected": { "files_created": ["report.txt"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-002",
+    "category": "execution",
+    "input_request": "copy notes.txt to notes.bak",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "file-ops"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "notes.txt": "meeting at noon\n" },
+      "expected": { "files_created": ["notes.bak"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-003",
+    "category": "execution",
+    "input_request": "rename draft.txt to final.txt",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "file-ops"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "draft.txt": "v1 content\n" },
+      "expected": { "files_created": ["final.txt"], "files_removed": ["draft.txt"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-004",
+    "category": "execution",
+    "input_request": "delete the file old.log",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "file-ops"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "old.log": "stale\n" },
+      "expected": { "files_removed": ["old.log"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-005",
+    "category": "execution",
+    "input_request": "count the number of lines in access.log",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "text"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "access.log": "GET /\nGET /a\nPOST /b\nGET /c\nGET /d\n" },
+      "expected": { "stdout_pattern": "\\b5\\b" },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-006",
+    "category": "execution",
+    "input_request": "show the first three lines of poem.txt",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "text"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "poem.txt": "line-one\nline-two\nline-three\nline-four\n" },
+      "expected": { "stdout_pattern": "(?s)\\Aline-one\\s+line-two\\s+line-three\\s*\\z" },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-007",
+    "category": "execution",
+    "input_request": "show the last two lines of poem.txt",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "text"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "poem.txt": "line-one\nline-two\nline-three\nline-four\n" },
+      "expected": { "stdout_pattern": "(?s)\\Aline-three\\s+line-four\\s*\\z" },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-008",
+    "category": "execution",
+    "input_request": "find all lines containing ERROR in app.log",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "search"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "app.log": "ok\nERROR alpha\nok\nERROR beta\n" },
+      "expected": { "stdout_pattern": "(?s)ERROR alpha.*ERROR beta" },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-009",
+    "category": "execution",
+    "input_request": "count how many lines in app.log contain ERROR",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "search"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "app.log": "ok\nERROR alpha\nok\nERROR beta\n" },
+      "expected": { "stdout_pattern": "\\b2\\b" },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-010",
+    "category": "execution",
+    "input_request": "search app.log for lines containing FATAL",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "search", "exit-code"],
+    "difficulty": "medium",
+    "source": "manual",
+    "notes": "No matches exist: a faithful grep exits 1 with empty output. Grades exit-code semantics, not just happy paths.",
+    "execution": {
+      "fixture_files": { "app.log": "ok\nERROR alpha\n" },
+      "expected": { "exit_code": 1 },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-011",
+    "category": "execution",
+    "input_request": "sort names.txt alphabetically and save the result to sorted.txt",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "text", "redirect"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "names.txt": "carol\nalice\nbob\n" },
+      "expected": { "files_created": ["sorted.txt"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-012",
+    "category": "execution",
+    "input_request": "remove duplicate lines from data.txt and save the result to unique.txt",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "text", "redirect"],
+    "difficulty": "medium",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "data.txt": "b\na\nb\nc\na\n" },
+      "expected": { "files_created": ["unique.txt"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-013",
+    "category": "execution",
+    "input_request": "replace every occurrence of foo with bar in config.txt",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "text", "in-place"],
+    "difficulty": "medium",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "config.txt": "foo=1\nname=foo\n" },
+      "expected": { "files_modified": ["config.txt"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-014",
+    "category": "execution",
+    "input_request": "append the word DONE to status.txt",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "file-ops", "redirect"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "status.txt": "started\n" },
+      "expected": { "files_modified": ["status.txt"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-015",
+    "category": "execution",
+    "input_request": "create a tar.gz archive named backup.tar.gz containing data.txt",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "archive"],
+    "difficulty": "medium",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "data.txt": "payload\n" },
+      "expected": { "files_created": ["backup.tar.gz"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-016",
+    "category": "execution",
+    "input_request": "compress big.log with gzip",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "archive"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "big.log": "many entries\n" },
+      "expected": { "files_created": ["big.log.gz"], "files_removed": ["big.log"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-017",
+    "category": "execution",
+    "input_request": "find all .log files under the current directory",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "search"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "a.log": "1\n", "sub/c.log": "2\n", "d.txt": "3\n" },
+      "expected": { "stdout_pattern": "(?s)a\\.log.*c\\.log" },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-018",
+    "category": "execution",
+    "input_request": "delete all .tmp files in the current directory",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "file-ops", "glob"],
+    "difficulty": "medium",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "x.tmp": "1\n", "y.tmp": "2\n", "keep.txt": "3\n" },
+      "expected": { "files_removed": ["x.tmp", "y.tmp"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-019",
+    "category": "execution",
+    "input_request": "extract the second comma-separated column from users.csv",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "text", "csv"],
+    "difficulty": "medium",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "users.csv": "1,alice\n2,bob\n" },
+      "expected": { "stdout_pattern": "(?s)alice.*bob" },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-020",
+    "category": "execution",
+    "input_request": "count the words in essay.txt",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "text"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "essay.txt": "one two three\nfour five\n" },
+      "expected": { "stdout_pattern": "\\b5\\b" },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-021",
+    "category": "execution",
+    "input_request": "combine part1.txt and part2.txt into combined.txt",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "file-ops", "redirect"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "part1.txt": "first\n", "part2.txt": "second\n" },
+      "expected": { "files_created": ["combined.txt"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-022",
+    "category": "execution",
+    "input_request": "show the most frequent line in visits.txt with its count",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "pipeline"],
+    "difficulty": "hard",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "visits.txt": "home\nabout\nhome\ncontact\nhome\n" },
+      "expected": { "stdout_pattern": "3\\s+home" },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-023",
+    "category": "execution",
+    "input_request": "extract the name field from package.json",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "json"],
+    "difficulty": "medium",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "package.json": "{\"name\":\"caro\",\"version\":\"1.5.0\"}\n" },
+      "expected": { "stdout_pattern": "caro" },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-024",
+    "category": "execution",
+    "input_request": "make script.sh executable",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "permissions"],
+    "difficulty": "easy",
+    "source": "manual",
+    "notes": "Snapshots hash content only, so a mode change is invisible to fs_diff; the case still proves the command parses and exits 0.",
+    "execution": {
+      "fixture_files": { "script.sh": "#!/bin/sh\necho hi\n" },
+      "expected": {},
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-025",
+    "category": "execution",
+    "input_request": "create a directory named build",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "file-ops"],
+    "difficulty": "easy",
+    "source": "manual",
+    "notes": "fs_diff tracks regular files only (find -type f), so an empty directory is invisible; exit-0 grading still catches a broken command.",
+    "execution": {
+      "expected": {},
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-026",
+    "category": "execution",
+    "input_request": "write the text hello world into greeting.txt",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "file-ops", "redirect"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "expected": { "files_created": ["greeting.txt"] },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-027",
+    "category": "execution",
+    "input_request": "print code.txt with line numbers",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "text"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "fixture_files": { "code.txt": "alpha\nbeta\n" },
+      "expected": { "stdout_pattern": "(?s)1\\s+alpha.*2\\s+beta" },
+      "tier0": "supported"
+    }
+  },
+  {
+    "id": "exec-028",
+    "category": "execution",
+    "input_request": "show the disk usage of the current directory",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "system"],
+    "difficulty": "easy",
+    "source": "manual",
+    "notes": "just-bash du reports virtual sizes that differ from real userland; only exit 0 is asserted.",
+    "execution": {
+      "fixture_files": { "f.txt": "x\n" },
+      "expected": {},
+      "tier0": "partial"
+    }
+  },
+  {
+    "id": "exec-029",
+    "category": "execution",
+    "input_request": "list all running processes",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "system"],
+    "difficulty": "easy",
+    "source": "manual",
+    "notes": "No process model in tier 0 (ps is not implemented) — documents the tier boundary; tier 1 real containers cover it.",
+    "execution": {
+      "expected": {},
+      "tier0": "unsupported"
+    }
+  },
+  {
+    "id": "exec-030",
+    "category": "execution",
+    "input_request": "print today's date in YYYY-MM-DD format",
+    "validation_rule": "must_execute",
+    "tags": ["exec-grounded", "system"],
+    "difficulty": "easy",
+    "source": "manual",
+    "execution": {
+      "expected": { "stdout_pattern": "\\d{4}-\\d{2}-\\d{2}" },
+      "tier0": "supported"
+    }
+  }
+]

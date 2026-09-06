@@ -1,0 +1,67 @@
+# Nightly red-team detonation lane (ADR-017 phase P2).
+#
+# Executes the dangerous-command corpus in disposable Cloudflare Sandbox
+# containers via tools/exec-harness/worker and uploads the blast-radius
+# evidence. DORMANT until the worker is deployed and secrets exist
+# (CARO_DETONATION_URL, CARO_DETONATION_TOKEN — human-created per decision
+# D5): without them the job skips green. Non-blocking by design: beta/GA
+# cloud services may never gate merges (ADR-017 preview-API policy).
+name: Detonation Nightly
+
+on:
+  schedule:
+    - cron: "17 3 * * *" # 03:17 UTC nightly
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  detonate:
+    name: Detonate safety corpus (tier 1)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 45
+    steps:
+      - name: Gate on secrets
+        id: gate
+        env:
+          DETONATION_URL: ${{ secrets.CARO_DETONATION_URL }}
+          DETONATION_TOKEN: ${{ secrets.CARO_DETONATION_TOKEN }}
+        run: |
+          if [ -n "$DETONATION_URL" ] && [ -n "$DETONATION_TOKEN" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Detonation lane dormant: CARO_DETONATION_URL / CARO_DETONATION_TOKEN secrets not set (see tools/exec-harness/worker/README.md)"
+          fi
+
+      - name: Checkout
+        if: steps.gate.outputs.enabled == 'true'
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        if: steps.gate.outputs.enabled == 'true'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        if: steps.gate.outputs.enabled == 'true'
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run detonation suite
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          CARO_DETONATION_URL: ${{ secrets.CARO_DETONATION_URL }}
+          CARO_DETONATION_TOKEN: ${{ secrets.CARO_DETONATION_TOKEN }}
+        run: |
+          cargo test --no-default-features --features embedded-cpu \
+            --test red_team -- --ignored --nocapture
+
+      - name: Upload evidence
+        if: steps.gate.outputs.enabled == 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detonation-evidence-${{ github.run_id }}
+          path: tests/red_team/evidence/*.json
+          if-no-files-found: warn
+          retention-days: 90

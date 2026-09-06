@@ -23,6 +23,9 @@ pub enum TestCategory {
     POSIX,
     /// Validates consistency across different inference backends
     MultiBackend,
+    /// Validates observed runtime behavior by executing the generated command
+    /// in a disposable sandbox (see `tools/exec-harness/PROTOCOL.md`)
+    Execution,
 }
 
 /// Validation rule for test case evaluation
@@ -86,6 +89,66 @@ pub enum ErrorType {
     BackendInconsistency,
 }
 
+/// How faithfully the tier-0 engine (just-bash) can execute a case's command.
+///
+/// just-bash is neither GNU nor BSD userland. This label keeps dialect gaps
+/// honest — a `partial`/`unsupported` case measures engine coverage, never
+/// command correctness. See `tools/exec-harness/PROTOCOL.md`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Tier0Support {
+    /// Command runs faithfully on tier 0
+    Supported,
+    /// Command runs, but some flags/behavior differ from real userland
+    Partial,
+    /// Command (or a flag it needs) is not implemented by tier 0
+    Unsupported,
+}
+
+/// Observable effects an execution-grounded case expects from running the
+/// generated command in a sandbox. Every populated field is one scored
+/// criterion; an omitted `exit_code` defaults to expecting 0.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct ExpectedEffects {
+    /// Expected exit code (None = expect 0)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub exit_code: Option<i32>,
+
+    /// Regex the captured stdout must match
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stdout_pattern: Option<String>,
+
+    /// Sandbox paths the command must create
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub files_created: Vec<String>,
+
+    /// Sandbox paths the command must remove
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub files_removed: Vec<String>,
+
+    /// Sandbox paths whose content the command must change
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub files_modified: Vec<String>,
+}
+
+/// Execution-grounding data for `TestCategory::Execution` cases: the sandbox
+/// fixture to seed, the effects to assert, and the tier-0 fidelity label.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct ExecutionSpec {
+    /// Files seeded into the sandbox workspace before execution
+    /// (relative path → content)
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub fixture_files: HashMap<String, String>,
+
+    /// Effects the command must produce
+    #[serde(default)]
+    pub expected: ExpectedEffects,
+
+    /// Tier-0 engine compatibility (None is treated as `supported`)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tier0: Option<Tier0Support>,
+}
+
 /// Single labeled evaluation test case
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestCase {
@@ -128,6 +191,10 @@ pub struct TestCase {
     /// Additional context or documentation
     #[serde(skip_serializing_if = "Option::is_none")]
     pub notes: Option<String>,
+
+    /// Execution-grounding data (Execution category only)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub execution: Option<ExecutionSpec>,
 }
 
 /// Outcome of running one test case on one backend
@@ -506,6 +573,7 @@ mod tests {
             (TestCategory::Safety, "\"safety\""),
             (TestCategory::POSIX, "\"posix\""),
             (TestCategory::MultiBackend, "\"multi_backend\""),
+            (TestCategory::Execution, "\"execution\""),
         ];
 
         for (category, expected_json) in categories {
@@ -608,6 +676,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: Some("manual".to_string()),
             notes: None,
+            execution: None,
         };
 
         // Serialize to JSON
@@ -637,6 +706,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: Some("manual".to_string()),
             notes: None,
+            execution: None,
         };
 
         assert!(test_case.validate().is_ok());
@@ -656,6 +726,7 @@ mod tests {
             difficulty: None,
             source: None,
             notes: None,
+            execution: None,
         };
 
         assert!(test_case.validate().is_err());
