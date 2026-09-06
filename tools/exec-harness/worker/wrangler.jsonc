@@ -1,0 +1,35 @@
+// Tier-1 exec-harness worker — DORMANT SCAFFOLDING (ADR-017 phase P2).
+// Deploys only after a human creates the Cloudflare account and secrets
+// (decision D5): wrangler secret put HARNESS_TOKEN, then `npm run deploy`.
+// Activation checklist: ../worker/README.md.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "caro-exec-harness",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "observability": { "enabled": true },
+  "containers": [
+    {
+      "class_name": "Sandbox",
+      "image": "./Dockerfile",
+      // lite is enough: each request runs one shell command in a throwaway
+      // container; the nightly detonation corpus is ~100 short-lived runs.
+      "instance_type": "lite",
+      "max_instances": 4
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "class_name": "Sandbox",
+        "name": "Sandbox"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["Sandbox"]
+    }
+  ]
+}
