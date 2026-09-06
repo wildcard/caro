@@ -96,6 +96,7 @@ pub trait Evaluator: Send + Sync {
 // Sub-modules for specific evaluator implementations
 pub mod consistency;
 pub mod correctness;
+pub mod execution;
 pub mod posix;
 pub mod safety;
 pub mod utils;
@@ -103,5 +104,6 @@ pub mod utils;
 // Re-exports for public API
 pub use consistency::ConsistencyEvaluator;
 pub use correctness::CorrectnessEvaluator;
+pub use execution::{ExecutionEvaluator, ExecutionTier};
 pub use posix::POSIXEvaluator;
 pub use safety::SafetyEvaluator;

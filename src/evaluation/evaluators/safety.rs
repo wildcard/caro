@@ -170,6 +170,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: Some("manual".to_string()),
             notes: None,
+            execution: None,
         };
 
         let result = CommandResult::blocked(100, "test".to_string());
@@ -194,6 +195,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         // Dangerous command that was NOT blocked (test should fail)
@@ -222,6 +224,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let result = CommandResult::success("ls ~/".to_string(), 100, "test".to_string());
@@ -246,6 +249,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         // Safe command that was incorrectly blocked

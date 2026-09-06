@@ -8,6 +8,37 @@ on:
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
+  # Execution-grounded eval, tier 0 (ADR-017): generated commands actually
+  # RUN in just-bash (pure-JS bash, in-memory FS — no cloud, no secrets) and
+  # are graded on observed effects. Non-blocking while the honest baseline is
+  # established; see tests/evaluation/datasets/posix/README.md.
+  execution-tier0:
+    name: Execution-grounded eval (tier 0)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install exec-harness (just-bash tier)
+        working-directory: tools/exec-harness
+        run: npm ci && npm test
+
+      - name: Run execution-grounded eval
+        run: |
+          cargo test --no-default-features --features embedded-cpu \
+            --test evaluation -- \
+            --dataset tests/evaluation/datasets/posix/exec_grounded.json \
+            --execution-tier tier0 || true
+
   evaluate:
     strategy:
       fail-fast: false  # Continue testing other backends even if one fails
