@@ -61,11 +61,12 @@ jobs:
           # Per-backend baselines (will be loaded from JSON files in future).
           # A 0.0 baseline means "not yet measured" and skips the check —
           # measure one before re-adding a matrix leg.
-          # static_matcher measured 78.2% on the 101-case dataset (2026-08-16);
-          # floor set just below so dataset edits don't trip the -5% gate. The
-          # previous 31.0 floor was stale by 47 points — nobody was reading it.
+          # static_matcher measured 78.2% on the 101-case dataset (2026-08-16).
+          # BASELINE is the measured rate: the -5 rule below makes 73.2 the
+          # blocking line and anything under 78.2 a warning. The previous 31.0
+          # floor was stale by 47 points — nobody was reading it.
           case "$BACKEND" in
-            static_matcher) BASELINE="75.0" ;;
+            static_matcher) BASELINE="78.2" ;;
             *) BASELINE="0.0" ;;
           esac
 

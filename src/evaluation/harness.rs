@@ -375,16 +375,20 @@ impl EvaluationHarness {
                     })?
                     .clone();
                 let timeout_ms = self.config.backend_timeout_ms;
-                let semaphore = semaphore.clone();
+
+                // Acquire before spawning so at most `max_concurrency` tasks —
+                // and the clones they capture — exist at once, not merely run
+                // at once. The semaphore is never closed, so this cannot fail.
+                let permit = semaphore
+                    .clone()
+                    .acquire_owned()
+                    .await
+                    .expect("harness concurrency semaphore closed");
 
                 // Spawn parallel task for this backend
                 let task = tokio::spawn(async move {
-                    // Permit spans generate + evaluate; the semaphore is never
-                    // closed, so acquire_owned cannot fail.
-                    let _permit = semaphore
-                        .acquire_owned()
-                        .await
-                        .expect("harness concurrency semaphore closed");
+                    // Held for the full generate + evaluate span.
+                    let _permit = permit;
                     let _start = Instant::now();
 
                     // Run backend with timeout
