@@ -281,9 +281,11 @@ Tier 2 = medium, each behind a flag or config default-off. Tier 3 = large
 enough to need its own spec first. Per
 `.claude/rules/validation-discipline.md`, the five evidence gates bind
 user-facing feature specs; of the list below only P5 crosses that line *as
-proposed*. Every Tier 2 item ships default-off behind a flag or config key;
-flipping any of them to default-on is a user-facing change and re-enters the
-gates at that point.
+proposed*. Tier 2 items that ship as new capabilities (P1) are default-off
+behind a flag or config key; refactors that preserve today's behavior (P2, P3,
+pinned by contract tests) and consolidation (P6b) are not gated. Flipping any
+default-off item to default-on is a user-facing change and re-enters the gates
+at that point.
 
 ### 4.1 Tier 1 — quick wins
 
@@ -577,7 +579,7 @@ branch.
 ## Appendix B: Orphaned Sub-Crate — Salvage Ideas Before Deletion
 
 `tests/evaluation/src/` should be deleted under P6b (it has never compiled
-in-tree; keeping 4,800 LOC of dead reference code misleads every future
+in-tree; keeping 4,812 LOC of dead reference code misleads every future
 reader). Ideas worth re-implementing in `src/evaluation/` first — as designs,
 not code copies:
 
