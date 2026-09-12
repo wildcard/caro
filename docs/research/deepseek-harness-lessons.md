@@ -4,8 +4,9 @@
 > plugin-first agent architecture, mapped against caro's `AgentLoop`, validator
 > stack, and evaluation harness, with tiered adoption proposals. The forcing
 > function is local: `Cargo.toml` gated the `candidate-ranking` default flip on
-> "the eval harness shows ranking wins" *in v1.4.0* — we are at v1.5.0 and the
-> harness cannot yet render that verdict.
+> "the eval harness shows ranking wins" *in v1.4.0* — we are at v1.5.0, the
+> pipeline was never wired into `AgentLoop`, and the harness cannot yet render
+> that verdict. Both prerequisites are still open.
 
 **Status**: Research (proposals; not a spec). **Date**: 2026-08-16.
 **Companion commit**: the Tier-1 eval repairs in this PR (§4.2, P6a).
@@ -171,7 +172,10 @@ feature's own comment in `Cargo.toml` (`[features]`) reads:
 > ranking wins. See PR #1108 for design and rollout phases.
 
 We are at v1.5.0. The flip is two minor versions overdue — not because ranking
-lost, but because the eval harness cannot render the verdict (§2.5).
+lost, but because neither prerequisite was ever met: the pipeline was authored
+but never integrated into `AgentLoop` (P4 is that work), and the eval harness
+that was supposed to judge it cannot render a verdict (§2.5, P6a/P6b). The two
+blockers are independent; repairing the harness alone flips nothing.
 
 ### 2.3 Backends: the seam caro already has right
 
@@ -276,7 +280,10 @@ eval-gated default flip**. Tier 1 = small, unambiguous, no flag needed.
 Tier 2 = medium, each behind a flag or config default-off. Tier 3 = large
 enough to need its own spec first. Per
 `.claude/rules/validation-discipline.md`, the five evidence gates bind
-user-facing feature specs; of the list below only P5 crosses that line.
+user-facing feature specs; of the list below only P5 crosses that line *as
+proposed*. Every Tier 2 item ships default-off behind a flag or config key;
+flipping any of them to default-on is a user-facing change and re-enters the
+gates at that point.
 
 ### 4.1 Tier 1 — quick wins
 
@@ -331,11 +338,17 @@ user-facing feature specs; of the list below only P5 crosses that line.
   existing cache/config dir, off by default behind config until the privacy
   story is reviewed (queries may contain paths/secrets — the hybrid gateway's
   sanitizer sets the precedent for redaction).
-- **Why it pays three times**: (1) `sft_export.rs` finally gets a caller —
-  the fine-tune pipeline's dataset hook falls out of the journal for free;
-  (2) bug reports/beta cycles get replayable transcripts instead of prose
-  reconstruction; (3) safety audits can answer "which validator vetoed and
-  why" from the record.
+- **Why it pays three times** (in priority order): (1) `sft_export.rs`
+  finally gets a caller — the fine-tune pipeline's dataset hook falls out of
+  the journal for free; (2) safety audits can answer "which validator vetoed
+  and why" from the record; (3) bug reports/beta cycles get transcripts
+  instead of prose reconstruction. "Replay" here means *reconstructing what
+  the model saw and produced*, not re-executing it — caro's LLM backends are
+  non-deterministic, so the journal is an audit record, not a determinism
+  guarantee. If (1) and (2) are the only funded goals, ship them as a
+  narrower `P1a` (SFT + verdict record) and leave the debug transcript for
+  later. Default-on is gated on the privacy review, not on the feature
+  flag.
 - **Insertion**: new `src/agent/journal.rs`; emit points already enumerated —
   `generate_command_impl` (mod.rs:226), `generate_initial` (:479),
   `refine_command` (:549), `repair_command` (:582), `try_advisor` (:422);
@@ -426,11 +439,19 @@ user-facing feature specs; of the list below only P5 crosses that line.
 
 ## 5. What We Should NOT Adopt
 
+These are not abstract disagreements with dsh; each one fixes a design
+choice in the proposals above — §5.1 and §5.2 are why P1 is a *closed* enum
+and P3 a *fixed-order* chain rather than an extension surface, §5.3 is why the
+safety floor is pinned first and unregisterable, §5.4 is why the advisor stays
+a plain backend.
+
 ### 5.1 Runtime plugin loading (the Cordis model itself)
 
-Rust has no stable ABI; "mount a plugin beside the others" means `dlopen`
-hazards or an embedded interpreter, both hostile to the <50MB single-binary
-target — and fatally, to the safety story: the catastrophic-floor allowlist is
+dsh can hot-mount and unload plugins because it is a TypeScript runtime —
+module loading is a language affordance. A Rust port of that idea has no such
+affordance: Rust has no stable ABI, so "mount a plugin beside the others"
+means `dlopen` hazards or an embedded interpreter, both hostile to the <50MB
+single-binary target — and fatally, to the safety story: the catastrophic-floor allowlist is
 trustworthy *because* it is compiled in and nothing can load in beside it and
 shadow the validator. Caro's translation of "everything is a plugin" already
 exists and is idiomatic: trait objects behind seams (`Arc<dyn
