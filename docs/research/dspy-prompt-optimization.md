@@ -138,27 +138,49 @@ The live exceptions are `build_minimal_prompt`, `ExplainerPromptBuilder`, and
 - **Data (~290 cases)**: `tests/evaluation/dataset.yaml` (101: correctness 26,
   safety 25, posix 25, multi_backend 25; `validation_rule ∈ exact_match |
   command_equivalence | pattern_match | must_be_blocked | must_execute`;
-  `difficulty` tagged), `tests/evaluation/test_cases.toml` (56),
-  `datasets/**/*.json` (80), `.claude/beta-testing/test-cases.yaml` (~58).
+  `difficulty` tagged), `tests/evaluation/test_cases.toml` (55),
+  `tests/evaluation/datasets/**/*.json` (5 files, 80 cases: 30 correctness,
+  30 dangerous, 20 false-positive), `.claude/beta-testing/test-cases.yaml` (~58).
 - **Harness**: `src/evaluation/` (harness, models, correctness/safety/posix/
   consistency evaluators, `baseline.rs`, `sft_export.rs`). Invoked as
   `cargo test --test evaluation -- --backend <b> --format json --baseline <p>`.
-  The `caro-eval` binary is still commented out ("WP07").
-- **Metric**: `tests/evaluation/src/evaluator.rs::evaluate_correctness` is a
-  string ladder — 1.0 exact / 0.95 whitespace-normalized / 0.90 flag-order /
-  0.0. Nothing executes commands; nothing is semantic.
+  The `caro-eval` binary is still commented out ("WP07"). Three parallel
+  implementations exist: `src/eval/` (lightweight, 11 built-in cases),
+  `src/evaluation/` (what CI runs), and the unlinked `caro-evaluation` crate
+  under `tests/evaluation/src/`.
+- **The harness can only score the static matcher.**
+  `tests/evaluation/main.rs::validate_args` accepts `static_matcher | mlx |
+  ollama | vllm` and rejects the CI matrix's `embedded-smollm` / `embedded-qwen`
+  as `Invalid backend`; for the accepted names, `run_evaluation` prints
+  "Backend filtering is not yet implemented" and registers only `StaticMatcher`.
+  Every "Evaluate <backend>" CI job therefore either dies at argument
+  validation or measures the static matcher. **No LLM backend has ever been
+  scored by the CI eval workflow.**
+- **Metric**: the CI target imports `caro::evaluation`, so scoring is
+  `src/evaluation/evaluators/correctness.rs` — per-rule **boolean** pass/fail
+  (`evaluate_exact_match`, `evaluate_command_equivalence`,
+  `evaluate_pattern_match` over `evaluators/utils.rs`). Nothing executes
+  commands; nothing is semantic. A second, graded implementation — the
+  1.0 / 0.95 / 0.90 ladder in `tests/evaluation/src/evaluator.rs` — belongs to
+  the separate `caro-evaluation` crate (`tests/evaluation/Cargo.toml`), which
+  the CI target never links.
   `EvaluationResult.failure_reason` (`src/evaluation/models.rs:155`) exists and
   the rule evaluators fill it, but the strings are for humans reading a report,
   not for a reflection model — and nothing exports them.
 - **A/B infrastructure**: `tests/evaluation/src/prompt_comparison.rs` has
   `chi_square_test`, `find_winner`, `should_rollback`, `generate_report` — used
-  only by its own unit tests. `tests/evaluation/prompts/v1.0/` is a versioned
+  only by its own unit tests, inside that same unlinked `caro-evaluation` crate.
+  Its chi-square test treats two aggregate pass/fail totals as independent
+  samples; a before/after run on the *same* held-out cases is paired data and
+  needs McNemar's test (or a paired bootstrap) instead.
+  `tests/evaluation/prompts/v1.0/` is a versioned
   registry (`metadata.yaml`: `target_models: [smollm, qwen, static_matcher]`,
   `baseline_pass_rate: 0.31`) whose prompts **do not match production**.
 - **CI gate** (`.github/workflows/evaluation.yml`): baselines are hardcoded —
   static_matcher 31.0%, every LLM backend `0.0` "TBD", which *skips the check*
   (:78–:81). The harness runs under `|| true` (:45) and a crashed run reports
-  `backend_available=false` and passes.
+  `backend_available=false` and passes — which is exactly what happens to both
+  `embedded-*` jobs on every run, because the harness rejects those names.
 - **Prior intent**: issue [#517](https://github.com/wildcard/caro/issues/517)
   "WP10-11: Prompt Engineering Framework" envisioned exactly this —
   `--compare-prompts v1.0,v1.1,v1.2`, semantic-versioned prompts, automated
@@ -168,6 +190,12 @@ The live exceptions are `build_minimal_prompt`, `ExplainerPromptBuilder`, and
   hard-coded in backends, no version control, no systematic comparison — is
   still true on `main` today. The deliverables shipped; disconnected from
   production, the goal did not.
+- **Open umbrella issue**: [#798](https://github.com/wildcard/caro/issues/798)
+  "Improve embedded model command generation quality" (open since 2026-03-26,
+  target pass rate ~30% → 45%+) names `ls -la` as the embedded model's failure
+  mode on common queries — while `correctness-001` in the dataset *expects*
+  `ls -la`. The issue tracker, the dataset, the shipped prompt, and the few-shot
+  library each hold a different ground truth.
   `src/prompts/minimal.rs` records the only documented A/B run (default 45.5% vs
   minimal 18.2% on 11 cases, discarded) and cites `data/evals/default.yaml`,
   which does not exist.
@@ -284,7 +312,7 @@ failure reports immediately. The `sft_export.rs` module already proves the
 
 **Change**: `tools/dspy-harness/` (beside the existing `tools/mlx-finetune/`),
 Python, dev-time only. It (a) loads `dataset.yaml` into `dspy.Example`s, (b)
-mirrors the Rust scoring ladder as the metric with L2-style feedback, (c) runs
+mirrors the CI metric (`src/evaluation/evaluators/`) with L2-style feedback, (c) runs
 `BootstrapFewShot` first (cheap, no reflection model) and `GEPA` second, against
 a **local** student via Ollama, and (d) writes an L1 artifact. Sketch —
 **untested, illustrative only**; the real script lands in Phase 2 with a recorded
@@ -310,7 +338,9 @@ def load_cases(path="tests/evaluation/dataset.yaml"):
                                ).with_inputs("request", "shell", "platform")
 
 def metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
-    # Same ladder as tests/evaluation/src/evaluator.rs, plus feedback text.
+    # Mirror src/evaluation/evaluators/{correctness,utils}.rs — the metric the CI
+    # gate actually runs — plus feedback text. NOT the unlinked ladder in
+    # tests/evaluation/src/evaluator.rs.
     got, want = normalize(pred.cmd), normalize(gold.cmd)
     if got == want:
         return dspy.Prediction(score=1.0, feedback="exact match")
@@ -442,29 +472,33 @@ prompt-level behavior rather than the hand-tuned one. Not before L1–L3 exist.
 | Phase | Scope | PR shape | Touchpoints |
 |---|---|---|---|
 | **0** | This document. | `docs:` PR, one file. | `docs/research/dspy-prompt-optimization.md` |
-| **1** — Rust-only quick wins | ADR-017 (artifact architecture, *Proposed*); L2 diagnostic feedback + JSONL export; L4 bounded safety regeneration; L7 derived confidence; `split:` tags in `dataset.yaml`; CI gate hygiene (drop `\|\| true`, fail on crashed runs). | 4–5 small independent PRs, each with a regression-guard test per `.claude/rules/feature-evidence.md`. | `docs/adr/ADR-017-*.md`, `src/evaluation/evaluators/*`, `src/agent/mod.rs`, `src/cli/mod.rs`, `src/backends/*` (confidence), `.github/workflows/evaluation.yml` |
-| **2** — Harness | `tools/dspy-harness/` (loader, metric, exporter); migrate L5 demos to data; first `BootstrapFewShot` run per model with **recorded before/after held-out numbers**; replace the `0.0 TBD` CI baselines with those numbers; wire `prompt_comparison.rs` to two real artifacts. | One tooling PR + one data PR. Successor to #517 (closed 2026-01-17, goal unmet). Python dev tooling, not a runtime SDK — no build-spike needed. | `tools/dspy-harness/`, `tests/evaluation/prompts/`, `src/prompts/smollm_prompt.rs` (delete dead sets) |
+| **1** — Rust-only quick wins | ADR-017 (artifact architecture, *Proposed*); L2 diagnostic feedback + JSONL export; L4 bounded safety regeneration; L7 derived confidence; `split:` tags in `dataset.yaml`; CI gate hygiene (drop `\|\| true`, fail on crashed runs); **harness backend registration** — make `tests/evaluation/main.rs` accept and actually run `embedded-smollm` / `embedded-qwen` / `mlx` (it registers only `StaticMatcher` today), because nothing downstream can produce a per-model baseline without it. | 5–6 small independent PRs, each with a regression-guard test per `.claude/rules/feature-evidence.md`. | `docs/adr/ADR-017-*.md`, `src/evaluation/evaluators/*`, `src/agent/mod.rs`, `src/cli/mod.rs`, `src/backends/*` (confidence), `.github/workflows/evaluation.yml`, `tests/evaluation/main.rs` |
+| **2** — Harness | `tools/dspy-harness/` (loader, metric, exporter); migrate L5 demos to data; first `BootstrapFewShot` run per model with **recorded before/after held-out numbers**; replace the `0.0 TBD` CI baselines with those numbers; extend `prompt_comparison.rs` with a paired McNemar test and wire it to two real artifacts. | One tooling PR + one data PR. Successor to #517 (closed 2026-01-17, goal unmet). Python dev tooling, not a runtime SDK — no build-spike needed. | `tools/dspy-harness/`, `tests/evaluation/prompts/`, `src/prompts/smollm_prompt.rs` (delete dead sets) |
 | **3** — Runtime | `PromptArtifact` loader (`include_str!` default + `--prompt-artifact` override) replacing the eight `create_system_prompt` bodies; L6 shared adapter; artifact id surfaced in `caro --version`; GEPA run once L2 feedback is diagnostic. | 2–3 PRs behind a feature flag until the compiled artifact beats the hand-tuned prompt on held-out. | `src/backends/mod.rs`, `src/backends/*/`, `src/model_catalog.rs` |
 | **3b** — Optional | `dspy-rs` build-spike if a Rust-native optimizer ever becomes worth it; L8 `BootstrapFinetune` tie-in. | Per `.claude/rules/external-sdk-integration.md`. | `Cargo.toml` (optional dep, off by default) |
 
 **Exit criterion for Phase 3**: the compiled artifact for `qwen-1.5b-q4` beats the
 current hand-tuned embedded prompt on the *held-out* split, on the same machine,
-same seed, with the gap reported by `prompt_comparison::chi_square_test`. Until
-then the hand-tuned prompt stays the default and the artifact is opt-in.
+same seed, with per-case outcomes retained and significance from a **paired**
+test (McNemar's, or a paired bootstrap) — not the unpaired `chi_square_test` in
+`prompt_comparison.rs` as it stands. Until then the hand-tuned prompt stays the
+default and the artifact is opt-in.
 
 ### Proposed follow-up issues (not yet filed)
 
 1. `eval: emit diagnostic failure_reason + JSONL feedback export from all evaluators` (L2)
-2. `agent: bounded regeneration when the final safety pass blocks` (L4)
-3. `backends: derive confidence_score from parse tier and validation outcome` (L7)
-4. `eval: add split: train|heldout tags to dataset.yaml (stratified)` (hygiene)
-5. `ci: evaluation.yml — fail on crashed runs; replace TBD baselines` (hygiene)
-6. `adr: ADR-017 versioned prompt artifacts` (L1)
-7. `tools: dspy-harness phase 2 — BootstrapFewShot/GEPA against dataset.yaml` (L3, successor to #517)
-8. `prompts: migrate platform demo sets from smollm_prompt.rs into artifact data` (L5)
-9. `backends: shared CommandOutputAdapter replacing per-backend parse ladders` (L6)
-10. `skills: repair prompt-tuner SKILL.md (truncated fence, stale dataset path, cover all backends)` (boy-scout)
-11. `ml: feed compiled demos/instructions into sft_export positive set` (L8)
+2. `eval: register LLM backends and implement --backend filtering in tests/evaluation/main.rs` (Phase 1 prerequisite — CI scores only the static matcher today)
+3. `agent: bounded regeneration when the final safety pass blocks` (L4)
+4. `backends: derive confidence_score from parse tier and validation outcome` (L7)
+5. `eval: add split: train|heldout tags to dataset.yaml (stratified)` (hygiene)
+6. `ci: evaluation.yml — fail on crashed runs and rejected --backend values; replace TBD baselines` (hygiene)
+7. `adr: ADR-017 versioned prompt artifacts` (L1)
+8. `tools: dspy-harness phase 2 — BootstrapFewShot/GEPA against dataset.yaml` (L3, successor to #517; umbrella #798)
+9. `eval: add a paired McNemar test to prompt_comparison.rs` (Phase 3 exit criterion)
+10. `prompts: migrate platform demo sets from smollm_prompt.rs into artifact data` (L5)
+11. `backends: shared CommandOutputAdapter replacing per-backend parse ladders` (L6)
+12. `skills: repair prompt-tuner SKILL.md (truncated fence, stale dataset path, cover all backends)` (boy-scout)
+13. `ml: feed compiled demos/instructions into sft_export positive set` (L8)
 
 ---
 
@@ -478,8 +512,8 @@ then the hand-tuned prompt stays the default and the artifact is opt-in.
 - **Running DSPy at runtime (Python sidecar).** Violates the single-binary,
   offline, no-Python promise. Never.
 - **Replacing `src/evaluation/` with `dspy.Evaluate`.** The Rust harness is the
-  CI gate and must stay Rust. The harness *mirrors* the metric; it does not
-  replace it. Metric drift between the two is a real risk — mitigate with a
+  CI gate and must stay Rust. The Python harness *mirrors* the CI metric
+  (`src/evaluation/evaluators/`); it does not replace it. Metric drift between the two is a real risk — mitigate with a
   fixture of ~20 `(actual, expected, score)` triples asserted on both sides.
 - **Big-bang rewrite of `src/prompts/`.** The dead machinery is large and
   well-intended, but resurrecting it wholesale re-creates the two-parallel-
