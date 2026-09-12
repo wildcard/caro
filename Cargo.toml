@@ -176,6 +176,12 @@ harness = false
 name = "logging"
 harness = false
 
+# Without this declaration cargo auto-discovers performance.rs with the default
+# libtest harness, and its criterion_main! never executes.
+[[bench]]
+name = "performance"
+harness = false
+
 # Custom test harness for evaluation
 [[test]]
 name = "evaluation"
