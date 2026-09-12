@@ -202,9 +202,9 @@ them from the DSL layer into the main generation path** (P1, P3).
 
 | Generation | Location | Status |
 |---|---|---|
-| Live | `src/evaluation/` (3,285 LOC) + `tests/evaluation/main.rs` + `dataset.yaml` (101 cases) | Active; from PR #1245 "apply Fireworks hybrid-harness learnings" |
+| Live | `src/evaluation/` (5,267 LOC incl. `evaluators/`) + `tests/evaluation/main.rs` + `dataset.yaml` (101 cases) | Active; from PR #1245 "apply Fireworks hybrid-harness learnings" |
 | Legacy | `src/eval/` (483 LOC), powers `caro test` | Active in CI (`safety-validation.yml`, informational-only) and beta cycles; exact-string-containment scoring |
-| Orphaned | `tests/evaluation/src/` (~6,400 LOC, 20 modules) | Not a workspace member; never compiled by anything |
+| Orphaned | `tests/evaluation/src/` (4,812 LOC, 26 modules) | Not a workspace member; never compiled by anything |
 
 Top defects (full 24-item inventory in Appendix A; items marked ✅ are fixed
 in this PR's companion commit):
@@ -223,10 +223,13 @@ in this PR's companion commit):
    and **21 of the 22 failures are MultiBackend** (4 pass vacuously);
    Correctness and Safety are at 100%, POSIX at 96%. The CI regression floor
    still said 31.0 — **stale by 47 points**, which is its own finding: nobody
-   was reading the number. ✅ The companion commit raises the floor to 75.0.
-5. `BaselineStore` (store/compare/list, `src/evaluation/baseline.rs`) is
-   exported but never called; `branch`/`commit_sha` are hardcoded `"unknown"`;
-   no run's results are persisted anywhere (CI keeps a 30-day text log).
+   was reading the number. ✅ The companion commit sets the floor to the
+   measured 78.2 (the workflow's −5 rule then blocks below 73.2).
+5. `BaselineStore::store()` has no caller — no baseline file is ever written.
+   `load()`/`compare()` are reachable only via the `--baseline` CLI flag
+   (`tests/evaluation/main.rs:203–212`), which CI never passes; `branch`/
+   `commit_sha` are hardcoded `"unknown"`; no run's results are persisted
+   anywhere (CI keeps a 30-day text log).
 6. `sft_export.rs` (passing trajectories → JSONL SFT records) has **no
    caller**, while `docs/fine-tune-pipeline.md` and the ml-ds-engineer agent
    wait on exactly that data.
@@ -283,9 +286,9 @@ user-facing feature specs; of the list below only P5 crosses that line.
   test (`test_max_concurrency_bounds_in_flight_generations`); reduce the CI
   matrix to the one leg that evaluates anything (`static_matcher`) with a
   comment explaining what restores the other legs; raise the stale regression
-  floor 31.0 → 75.0 (measured 78.2%); declare `benches/performance.rs` as a
-  criterion bench; fix CLAUDE.md's nonexistent `caro-eval` reference and stale
-  version banner.
+  floor 31.0 → 78.2 (the measured rate; the workflow's −5 rule blocks below
+  73.2); declare `benches/performance.rs` as a criterion bench; fix CLAUDE.md's
+  nonexistent `caro-eval` reference and stale version banner.
 - **dsh principle**: honest CI signal (§1.7).
 - **What would prove it wrong**: nothing plausible — these were dead configs
   and no-op legs; the guard test pins the one behavior change.
@@ -381,7 +384,7 @@ user-facing feature specs; of the list below only P5 crosses that line.
   engine); wire `BaselineStore` into the runner with real
   branch/commit_sha; converge the four dataset schemas on the
   `src/evaluation` one (converters for the beta YAML and JSON sets);
-  **delete** the orphaned `tests/evaluation/src/` sub-crate (6,400 LOC that
+  **delete** the orphaned `tests/evaluation/src/` sub-crate (4,812 LOC that
   has never compiled in-tree) after harvesting ideas per Appendix B.
 - **Effort**: M–L. **Risk**: the legacy `caro test` YAML is CI-consumed by
   `safety-validation.yml` and the beta-cycle skill — migrate those callers in
@@ -530,7 +533,7 @@ branch.
 | A3 ✅ | `benches/performance.rs` never declared → criterion never runs | `Cargo.toml` `[[bench]]` block |
 | A4 | `--backend` filtering unimplemented; only `static_matcher` registered | `tests/evaluation/main.rs:171–182` |
 | A5 | MultiBackend (25 cases) needs ≥2 backends; with one: 21 fail, 4 pass vacuously (measured 2026-08-16) | `tests/evaluation/main.rs:184–193` TODO |
-| A6 | `BaselineStore` never called by any runner | `src/evaluation/baseline.rs` |
+| A6 | `BaselineStore::store()` never called (no baseline ever written); `load()`/`compare()` only via the `--baseline` CLI flag, never in CI; hardcoded `tests/evaluation/baselines` dir | `tests/evaluation/main.rs:203–212`; `src/evaluation/baseline.rs` |
 | A7 | `branch`/`commit_sha` hardcoded `"unknown"` → baseline files collide (every run prints `Branch: unknown / Commit: unknown`) | `src/evaluation/harness.rs` (`aggregate_results`) |
 | A8 | No result persistence; CI keeps a 30-day text log only | `tests/evaluation/results/` (`.gitkeep`) |
 | A9 | No trend/time-series regression tracking; baselines hardcoded in YAML | `evaluation.yml` threshold step |
@@ -545,7 +548,7 @@ branch.
 | A18 | No shellcheck; hand-rolled POSIX heuristics | `src/evaluation/evaluators/utils.rs:180` |
 | A19 | Cost computed but never budget-enforced; price table hardcoded | `src/evaluation/pricing.rs` |
 | A20 | `sft_export` unreachable (no caller) | `src/evaluation/sft_export.rs` |
-| A21 | Orphaned sub-crate: 6,400 LOC, own lockfile, checked-in `target/`, never compiled | `tests/evaluation/src/` |
+| A21 | Orphaned sub-crate: 4,812 LOC / 26 modules, own lockfile, checked-in `target/`, never compiled | `tests/evaluation/src/` |
 | A22 | `tests/evaluation/README.md` documents commands that cannot work | not a workspace member |
 | A23 | Exit code 1 on any failure contradicts the below-100% baseline model (78.2% today ⇒ always exit 1, forcing CI's `\|\| true`) | `tests/evaluation/main.rs:231` |
 | A24 | Doc drift: nonexistent `caro-eval` (✅ fixed), untraceable "93.1%" (README.md:34, CLAUDE.md:119 — P7's seed case) | CLAUDE.md, README.md |
@@ -553,7 +556,7 @@ branch.
 ## Appendix B: Orphaned Sub-Crate — Salvage Ideas Before Deletion
 
 `tests/evaluation/src/` should be deleted under P6b (it has never compiled
-in-tree; keeping 6,400 LOC of dead reference code misleads every future
+in-tree; keeping 4,800 LOC of dead reference code misleads every future
 reader). Ideas worth re-implementing in `src/evaluation/` first — as designs,
 not code copies:
 
