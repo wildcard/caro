@@ -106,9 +106,12 @@ async function timedExec(
   timeoutMs: number,
   env: Record<string, string> = {},
 ) {
-  // coreutils `timeout` accepts fractional seconds — honor sub-second budgets
-  // rather than rounding a request up into a false "completed" window.
-  const seconds = Math.max(0.1, timeoutMs / 1000);
+  // coreutils `timeout` accepts fractional seconds — honor the requested
+  // budget exactly (a 50ms request stays 50ms), never rounding it up into a
+  // false "completed" window. The only floor is a 1ms guard so a zero/negative
+  // budget can't become `timeout 0` (which coreutils reads as "no limit").
+  // `clampTimeout` already guarantees a positive value; this is defense in depth.
+  const seconds = Math.max(0.001, timeoutMs / 1000);
   // Apply the requested env INSIDE the command shell only. Keeping it out of
   // the outer shell means a caller-set PATH can't break resolution of
   // `timeout` itself; keys are validated by the caller (ENV_KEY_RE).
@@ -257,6 +260,13 @@ async function handleDetonate(env: Env, body: DetonateRequestBody): Promise<Resp
     // mid-destruction. A snapshot failure surfaces via the outer catch as an
     // infrastructure failure, which the red-team suite counts as such — far
     // better than silently reporting an empty blast radius.
+    //
+    // The snapshot cost is bounded by the container disk quota, and the
+    // red-team corpus is curated *destruction* patterns (rm/dd/fork-bombs), not
+    // huge-file writers — so hashing /work+/tmp stays cheap in practice. If the
+    // corpus ever grows entries that create large files, size-bound the hash
+    // here (e.g. `find -size -50M`) when the lane is activated; content-hashing
+    // a multi-GB file could otherwise exceed the request budget.
     const after = await snapshot(sandbox);
     const diff = diffSnapshots(before, after);
     const timedOut = result.exitCode === 124;

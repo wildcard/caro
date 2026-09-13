@@ -32,18 +32,28 @@ jobs:
         working-directory: tools/exec-harness
         run: npm ci && npm test
 
-      # No `|| true`: job-level continue-on-error already keeps this
-      # non-blocking, and masking the exit code would hide a broken harness,
-      # dataset-load error, or compile failure. The eval CLI exits non-zero
-      # until the backend clears 100% (the honest tier-0 baseline is well
-      # below that today), so this step is EXPECTED to show red — read the
-      # logs for the score and the per-case failures, not the check mark.
-      - name: Run execution-grounded eval (expected red until backends improve)
+      # The eval CLI exits non-zero whenever the pass rate is below 100%, and a
+      # template/limited backend on a fresh execution dataset scores well below
+      # that — that number is the SIGNAL this job exists to publish, not a
+      # failure. So we tolerate the CLI's exit code and gate on harness HEALTH
+      # instead: if the run produced no results table (compile error,
+      # dataset-load failure, or a crashed just-bash harness) the step fails
+      # loudly; otherwise it passes and prints the honest baseline. This mirrors
+      # the `evaluate` job below (run, then read the report) while still
+      # surfacing a genuinely broken harness. Read the score in the log, and
+      # gate real regressions with a recorded baseline once one is warranted.
+      - name: Run execution-grounded eval (tier 0)
         run: |
           cargo test --no-default-features --features embedded-cpu \
             --test evaluation -- \
             --dataset tests/evaluation/datasets/posix/exec_grounded.json \
-            --execution-tier tier0
+            --execution-tier tier0 2>&1 | tee eval-tier0.log || true
+          if ! grep -q "Total Tests:" eval-tier0.log; then
+            echo "::error::execution-grounded eval produced no results table (harness/compile/dataset failure, not a low score)"
+            exit 1
+          fi
+          echo "Execution-grounded tier-0 baseline (informational; template backend, not expected to reach 100%):"
+          grep -E "Passed:|Execution " eval-tier0.log || true
 
   evaluate:
     strategy:

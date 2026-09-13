@@ -26,8 +26,12 @@ coreutils `timeout`. No repo secrets are ever mounted into containers.
    `CARO_CF_API_TOKEN` (used by nightly workflows), and keep a personal copy
    for local wrangler.
 3. `cd tools/exec-harness/worker && npm ci && npm run typecheck` (the committed
-   `package-lock.json` pins the full transitive tree so Dependency Review can
-   audit it before activation).
+   `package-lock.json` pins the full transitive tree so it can be audited
+   before activation — run `npm audit` here and review the tree by hand). Note
+   the repo-level Dependency Review workflow is not currently wired to this
+   nested lockfile, so it is not an automatic gate; the human activating the
+   lane owns the audit (including any copyleft transitive, e.g. the LGPL-3.0
+   `@img/sharp-*` deps pulled in by tooling).
 4. Verify the container base image tag in `Dockerfile` matches the
    `@cloudflare/sandbox` version in `package.json` (SDK and image must be in
    lockstep — check the [sandbox-sdk docs](https://developers.cloudflare.com/sandbox/)).
