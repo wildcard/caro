@@ -7,7 +7,9 @@ use reqwest::{header, Client, Url};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::sync::OnceCell;
 
+use crate::backends::remote::context_length_warning;
 use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError};
 
 /// Regex pattern to extract command from malformed JSON with unescaped quotes
@@ -68,6 +70,24 @@ struct VllmUsage {
     total_tokens: u32,
 }
 
+/// Response shape for `GET /v1/models`, used only to check the context
+/// length actually in effect for the configured model.
+#[derive(Debug, Deserialize)]
+struct VllmModelsResponse {
+    data: Vec<VllmModelEntry>,
+}
+
+/// One entry in vLLM's OpenAI-compatible model list. `max_model_len` is a
+/// vLLM extension beyond the plain OpenAI schema — absent means the server
+/// didn't report it.
+#[derive(Debug, Deserialize)]
+struct VllmModelEntry {
+    #[serde(default)]
+    id: String,
+    #[serde(default)]
+    max_model_len: Option<u32>,
+}
+
 /// vLLM backend for remote vLLM server
 pub struct VllmBackend {
     base_url: Url,
@@ -75,6 +95,9 @@ pub struct VllmBackend {
     client: Client,
     api_key: Option<String>,
     embedded_fallback: Option<Arc<dyn CommandGenerator>>,
+    /// Ensures the served-context-length probe (`/v1/models`) and its log
+    /// line fire at most once per backend instance, not on every request.
+    checked_context: OnceCell<()>,
 }
 
 impl VllmBackend {
@@ -93,6 +116,7 @@ impl VllmBackend {
             client,
             api_key: None,
             embedded_fallback: None,
+            checked_context: OnceCell::new(),
         })
     }
 
@@ -253,11 +277,61 @@ Request: {}
         }
     }
 
+    /// Fetch the context length vLLM is actually serving for
+    /// `self.model_name`, via its OpenAI-compatible `/v1/models` endpoint.
+    ///
+    /// Best-effort only: any transport error, non-2xx status, or unexpected
+    /// body shape yields `None` rather than an error — this is a diagnostic
+    /// nicety, not something that should ever block generation.
+    async fn fetch_vllm_context_length(&self) -> Option<u32> {
+        let url = self.base_url.join("/v1/models").ok()?;
+        let mut req_builder = self.client.get(url);
+        if let Some(api_key) = &self.api_key {
+            req_builder = req_builder.header(header::AUTHORIZATION, format!("Bearer {}", api_key));
+        }
+
+        let response = req_builder.send().await.ok()?;
+        if !response.status().is_success() {
+            return None;
+        }
+
+        let models: VllmModelsResponse = response.json().await.ok()?;
+        models
+            .data
+            .iter()
+            .find(|entry| entry.id == self.model_name)
+            .or_else(|| models.data.first())
+            .and_then(|entry| entry.max_model_len)
+    }
+
+    /// Probe the served context length once and log a warning if it looks
+    /// undersized. Never surfaces as a `GeneratorError` — see
+    /// `fetch_vllm_context_length`.
+    async fn warn_on_context_length(&self) {
+        match self.fetch_vllm_context_length().await {
+            Some(served) => {
+                if let Some(warning) = context_length_warning(served, None) {
+                    tracing::warn!("vLLM ({}): {}", self.model_name, warning);
+                }
+            }
+            None => {
+                tracing::debug!(
+                    "vLLM ({}): could not determine served context length via /v1/models",
+                    self.model_name
+                );
+            }
+        }
+    }
+
     /// Attempt inference with fallback to embedded backend
     async fn generate_with_fallback(
         &self,
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
+        self.checked_context
+            .get_or_init(|| self.warn_on_context_length())
+            .await;
+
         // Try vLLM first
         match self
             .call_vllm_api(&self.create_system_prompt(request))
@@ -360,12 +434,107 @@ impl CommandGenerator for VllmBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
 
     #[test]
     fn test_vllm_backend_creation() {
         let url = Url::parse("https://api.example.com").unwrap();
         let backend = VllmBackend::new(url, "codellama/CodeLlama-7b-hf".to_string());
         assert!(backend.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_fetch_vllm_context_length_from_models_endpoint() {
+        let server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/v1/models"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "data": [ { "id": "test-model", "max_model_len": 2048 } ]
+            })))
+            .mount(&server)
+            .await;
+
+        let backend =
+            VllmBackend::new(Url::parse(&server.uri()).unwrap(), "test-model".to_string()).unwrap();
+
+        assert_eq!(backend.fetch_vllm_context_length().await, Some(2048));
+    }
+
+    #[tokio::test]
+    async fn test_fetch_vllm_context_length_falls_back_to_first_entry() {
+        let server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/v1/models"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "data": [ { "id": "some-other-model", "max_model_len": 4096 } ]
+            })))
+            .mount(&server)
+            .await;
+
+        let backend = VllmBackend::new(
+            Url::parse(&server.uri()).unwrap(),
+            "requested-model".to_string(),
+        )
+        .unwrap();
+
+        assert_eq!(backend.fetch_vllm_context_length().await, Some(4096));
+    }
+
+    #[tokio::test]
+    async fn test_fetch_vllm_context_length_none_on_server_error() {
+        let server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/v1/models"))
+            .respond_with(ResponseTemplate::new(500))
+            .mount(&server)
+            .await;
+
+        let backend =
+            VllmBackend::new(Url::parse(&server.uri()).unwrap(), "test-model".to_string()).unwrap();
+
+        assert_eq!(backend.fetch_vllm_context_length().await, None);
+    }
+
+    #[tokio::test]
+    async fn test_context_length_probe_failure_does_not_block_generation() {
+        // /v1/models is broken, but /v1/chat/completions works fine —
+        // generation must still succeed. This is the guard against the
+        // diagnostic probe ever turning into a user-facing error.
+        let server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/v1/models"))
+            .respond_with(ResponseTemplate::new(500))
+            .mount(&server)
+            .await;
+
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "choices": [
+                    { "message": { "role": "assistant", "content": "{\"cmd\": \"ls -la\"}" } }
+                ]
+            })))
+            .mount(&server)
+            .await;
+
+        let backend =
+            VllmBackend::new(Url::parse(&server.uri()).unwrap(), "test-model".to_string()).unwrap();
+
+        let request = crate::models::CommandRequest {
+            input: "list files".to_string(),
+            shell: crate::models::ShellType::Bash,
+            safety_level: crate::models::SafetyLevel::Moderate,
+            context: None,
+            backend_preference: None,
+        };
+
+        let result = backend.generate_command(&request).await.unwrap();
+        assert_eq!(result.command, "ls -la");
     }
 
     #[test]
