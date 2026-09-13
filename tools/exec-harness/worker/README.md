@@ -30,9 +30,10 @@ coreutils `timeout`. No repo secrets are ever mounted into containers.
    before activation — run `npm audit` here and review the tree by hand). Note
    the repo-level Dependency Review workflow is not currently wired to this
    nested lockfile, so it is not an automatic gate; the human activating the
-   lane owns the audit (including copyleft transitives — notably the
-   `@img/sharp-libvips-*` packages under LGPL-3.0-or-later, pulled in by
-   tooling; the `@img/sharp-*` platform packages themselves are Apache-2.0).
+   lane owns the audit (`npm audit` + manual review), checking the copyleft
+   transitives specifically — the `@img/sharp-libvips-*` packages are
+   LGPL-3.0-or-later and several `@img/sharp-*` platform builds also carry
+   LGPL-3.0-or-later (see the lockfile for the exact per-package licenses).
 4. Verify the container base image tag in `Dockerfile` matches the
    `@cloudflare/sandbox` version in `package.json` (SDK and image must be in
    lockstep — check the [sandbox-sdk docs](https://developers.cloudflare.com/sandbox/)).
