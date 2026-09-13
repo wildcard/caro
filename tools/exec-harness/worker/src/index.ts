@@ -6,11 +6,12 @@
 // observed blast radius, turning safety risk levels from assertions into
 // measurements (tests/red_team/).
 //
-// Security posture: bearer-token auth on every route; one fresh sandbox per
-// request, destroyed in `finally`; commands run under `timeout` inside the
-// container; no repo secrets are ever mounted. Egress policy is enforced at
-// the Cloudflare layer — verifying it is an activation-checklist item
-// (README.md) before the first detonation run.
+// Security posture: constant-time bearer-token auth on every route; one fresh
+// sandbox per request, destroyed in `finally`; commands run under `timeout`
+// inside the container; no repo secrets are ever mounted; error responses are
+// generic (details are logged server-side, never returned to the caller).
+// Egress policy is enforced at the Cloudflare layer — verifying it is an
+// activation-checklist item (README.md) before the first detonation run.
 
 import { getSandbox, type Sandbox } from "@cloudflare/sandbox";
 export { Sandbox } from "@cloudflare/sandbox";
@@ -26,6 +27,7 @@ interface ExecRequestBody {
   shell?: string;
   fixture_files?: Record<string, string>;
   env?: Record<string, string>;
+  read_files?: string[];
   timeout_ms?: number;
 }
 
@@ -37,14 +39,17 @@ interface DetonateRequestBody {
 }
 
 const WORKSPACE = "/work";
-const DEFAULT_TIMEOUT_MS = 10_000;
-const MAX_TIMEOUT_MS = 60_000;
-const OUTPUT_CAP = 64 * 1024;
+// Shared protocol contract (PROTOCOL.md): 5s default budget, 30s ceiling.
+const DEFAULT_TIMEOUT_MS = 5_000;
+const MAX_TIMEOUT_MS = 30_000;
+const STDOUT_CAP = 64 * 1024;
+const STDERR_CAP = 16 * 1024;
 
 const shellQuote = (s: string): string => `'${s.replaceAll("'", `'\\''`)}'`;
 
-const truncate = (s: string): string =>
-  s.length > OUTPUT_CAP ? `${s.slice(0, OUTPUT_CAP)}\n…[truncated]` : s;
+function truncate(s: string, cap: number): string {
+  return s.length > cap ? `${s.slice(0, cap)}\n…[truncated]` : s;
+}
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -53,11 +58,29 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-function authorized(request: Request, env: Env): boolean {
-  const header = request.headers.get("authorization") ?? "";
-  const token = header.replace(/^Bearer\s+/i, "");
-  // Deployed-with-no-secret must fail closed.
-  return env.HARNESS_TOKEN !== undefined && env.HARNESS_TOKEN !== "" && token === env.HARNESS_TOKEN;
+/** Constant-time comparison of two equal-length byte arrays. */
+function timingSafeEqualBytes(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) diff |= a[i] ^ b[i];
+  return diff === 0;
+}
+
+/**
+ * Bearer-token auth. Both sides are SHA-256 hashed to a fixed 32 bytes before
+ * comparison, so the compare is constant-time and leaks neither the token's
+ * length nor a byte-prefix via response timing. Deployed-with-no-secret fails
+ * closed.
+ */
+async function authorized(request: Request, env: Env): Promise<boolean> {
+  if (!env.HARNESS_TOKEN) return false;
+  const presented = (request.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const enc = new TextEncoder();
+  const [a, b] = await Promise.all([
+    crypto.subtle.digest("SHA-256", enc.encode(presented)),
+    crypto.subtle.digest("SHA-256", enc.encode(env.HARNESS_TOKEN)),
+  ]);
+  return timingSafeEqualBytes(new Uint8Array(a), new Uint8Array(b));
 }
 
 function clampTimeout(ms: number | undefined): number {
@@ -65,15 +88,35 @@ function clampTimeout(ms: number | undefined): number {
   return Math.min(value, MAX_TIMEOUT_MS);
 }
 
-/** Runs `command` inside the sandbox under coreutils `timeout` (exit 124). */
-async function timedExec(sandbox: Sandbox, command: string, timeoutMs: number) {
+function resolvePath(raw: string): string {
+  return raw.startsWith("/") ? raw : `${WORKSPACE}/${raw}`;
+}
+
+/**
+ * Runs `command` inside the sandbox under coreutils `timeout` (exit 124 on
+ * deadline), applying any per-request environment first.
+ */
+async function timedExec(
+  sandbox: Sandbox,
+  command: string,
+  timeoutMs: number,
+  env: Record<string, string> = {},
+) {
   const seconds = Math.max(1, Math.ceil(timeoutMs / 1000));
+  const exports = Object.entries(env)
+    .map(([k, v]) => `export ${k}=${shellQuote(String(v))};`)
+    .join(" ");
   return sandbox.exec(
-    `cd ${WORKSPACE} 2>/dev/null; timeout ${seconds}s sh -c ${shellQuote(command)}`,
+    `cd ${WORKSPACE} 2>/dev/null; ${exports} timeout ${seconds}s sh -c ${shellQuote(command)}`,
   );
 }
 
-/** Content-hash snapshot of the observable workspace (same technique as tier 0). */
+/**
+ * Content-hash snapshot of the observable workspace. Tier 1 scopes this to the
+ * writable roots (/work + /tmp) for performance — hashing a full container
+ * rootfs every request is impractical; catastrophic out-of-scope destruction
+ * is instead caught by the /detonate system-intact probe. See PROTOCOL.md.
+ */
 async function snapshot(sandbox: Sandbox): Promise<Map<string, string>> {
   const result = await sandbox.exec(
     `find ${WORKSPACE} /tmp -type f -exec sha256sum {} + 2>/dev/null | sort; true`,
@@ -103,11 +146,27 @@ function diffSnapshots(before: Map<string, string>, after: Map<string, string>) 
 async function seedFixtures(sandbox: Sandbox, fixtures: Record<string, string>) {
   await sandbox.exec(`mkdir -p ${WORKSPACE}`);
   for (const [rawPath, content] of Object.entries(fixtures)) {
-    const path = rawPath.startsWith("/") ? rawPath : `${WORKSPACE}/${rawPath}`;
+    const path = resolvePath(rawPath);
     const dir = path.slice(0, path.lastIndexOf("/"));
     if (dir) await sandbox.exec(`mkdir -p ${shellQuote(dir)}`);
     await sandbox.writeFile(path, content);
   }
+}
+
+async function readBackFiles(
+  sandbox: Sandbox,
+  paths: string[] | undefined,
+): Promise<Record<string, string>> {
+  const files: Record<string, string> = {};
+  for (const raw of Array.isArray(paths) ? paths : []) {
+    try {
+      const res = await sandbox.readFile(resolvePath(String(raw)));
+      files[String(raw)] = truncate(res.content, STDOUT_CAP);
+    } catch {
+      // omit missing/unreadable files; the caller treats absence as failure
+    }
+  }
+  return files;
 }
 
 /** PROTOCOL.md /exec: one command, fresh container, protocol-shaped response. */
@@ -121,23 +180,33 @@ async function handleExec(env: Env, body: ExecRequestBody): Promise<Response> {
     await seedFixtures(sandbox, body.fixture_files ?? {});
     const before = await snapshot(sandbox);
     const started = Date.now();
-    const result = await timedExec(sandbox, body.command, timeoutMs);
+    const result = await timedExec(sandbox, body.command, timeoutMs, body.env ?? {});
     const durationMs = Date.now() - started;
-    const after = await snapshot(sandbox);
+    const timedOut = result.exitCode === 124 || durationMs >= timeoutMs;
+
+    let fs_diff = { created: [] as string[], removed: [] as string[], modified: [] as string[] };
+    let files: Record<string, string> = {};
+    if (!timedOut) {
+      const after = await snapshot(sandbox);
+      fs_diff = diffSnapshots(before, after);
+      files = await readBackFiles(sandbox, body.read_files);
+    }
 
     return json({
       id: body.id,
       ok: true,
       exit_code: result.exitCode,
-      stdout: truncate(result.stdout),
-      stderr: truncate(result.stderr),
+      stdout: truncate(result.stdout, STDOUT_CAP),
+      stderr: truncate(result.stderr, STDERR_CAP),
       duration_ms: durationMs,
       unsupported: result.exitCode === 127 && /command not found|not found/.test(result.stderr),
-      timed_out: result.exitCode === 124,
-      fs_diff: diffSnapshots(before, after),
+      timed_out: timedOut,
+      fs_diff,
+      files,
     });
   } catch (error) {
-    return json({ id: body.id, ok: false, error: String(error) }, 500);
+    console.error("exec failed", body.id, error);
+    return json({ id: body.id, ok: false, error: "internal error" }, 500);
   } finally {
     await sandbox.destroy();
   }
@@ -164,11 +233,14 @@ async function handleDetonate(env: Env, body: DetonateRequestBody): Promise<Resp
     const started = Date.now();
     const result = await timedExec(sandbox, body.command, timeoutMs);
     const durationMs = Date.now() - started;
-    const after = await snapshot(sandbox);
+    const timedOut = result.exitCode === 124 || durationMs >= timeoutMs;
+    const after = timedOut ? before : await snapshot(sandbox);
     const diff = diffSnapshots(before, after);
 
     // Did the userland itself survive? (e.g. rm -rf /, dd onto a device)
-    const probe = await sandbox.exec("ls /usr/bin >/dev/null 2>&1 && cat /etc/os-release >/dev/null 2>&1; echo $?");
+    const probe = await sandbox.exec(
+      "ls /usr/bin >/dev/null 2>&1 && cat /etc/os-release >/dev/null 2>&1; echo $?",
+    );
     const systemIntact = probe.stdout.trim().endsWith("0");
     const canariesDestroyed = diff.removed.filter((p) => p.includes("/canary/"));
 
@@ -178,9 +250,9 @@ async function handleDetonate(env: Env, body: DetonateRequestBody): Promise<Resp
       risk_level: body.risk_level ?? null,
       exit_code: result.exitCode,
       duration_ms: durationMs,
-      timed_out: result.exitCode === 124,
-      stdout: truncate(result.stdout),
-      stderr: truncate(result.stderr),
+      timed_out: timedOut,
+      stdout: truncate(result.stdout, STDOUT_CAP),
+      stderr: truncate(result.stderr, STDERR_CAP),
       blast: {
         canaries_destroyed: canariesDestroyed,
         files_removed: diff.removed.length,
@@ -190,7 +262,8 @@ async function handleDetonate(env: Env, body: DetonateRequestBody): Promise<Resp
       },
     });
   } catch (error) {
-    return json({ id: body.id, ok: false, error: String(error) }, 500);
+    console.error("detonate failed", body.id, error);
+    return json({ id: body.id, ok: false, error: "internal error" }, 500);
   } finally {
     await sandbox.destroy();
   }
@@ -203,7 +276,7 @@ export default {
     if (url.pathname === "/healthz") {
       return json({ ok: true, service: "caro-exec-harness", protocol: 0 });
     }
-    if (!authorized(request, env)) {
+    if (!(await authorized(request, env))) {
       return json({ ok: false, error: "unauthorized" }, 401);
     }
     if (request.method !== "POST") {
@@ -215,6 +288,10 @@ export default {
       body = await request.json();
     } catch {
       return json({ ok: false, error: "invalid JSON body" }, 400);
+    }
+    // A valid JSON scalar (null, number, string) is not a request object.
+    if (typeof body !== "object" || body === null) {
+      return json({ ok: false, error: "request must be a JSON object" }, 400);
     }
 
     switch (url.pathname) {

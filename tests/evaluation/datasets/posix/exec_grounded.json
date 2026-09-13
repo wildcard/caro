@@ -22,7 +22,7 @@
     "source": "manual",
     "execution": {
       "fixture_files": { "notes.txt": "meeting at noon\n" },
-      "expected": { "files_created": ["notes.bak"] },
+      "expected": { "files_created": ["notes.bak"], "file_content": { "notes.bak": "meeting at noon" } },
       "tier0": "supported"
     }
   },
@@ -36,7 +36,7 @@
     "source": "manual",
     "execution": {
       "fixture_files": { "draft.txt": "v1 content\n" },
-      "expected": { "files_created": ["final.txt"], "files_removed": ["draft.txt"] },
+      "expected": { "files_created": ["final.txt"], "files_removed": ["draft.txt"], "file_content": { "final.txt": "v1 content" } },
       "tier0": "supported"
     }
   },
@@ -149,7 +149,7 @@
     "source": "manual",
     "execution": {
       "fixture_files": { "names.txt": "carol\nalice\nbob\n" },
-      "expected": { "files_created": ["sorted.txt"] },
+      "expected": { "files_created": ["sorted.txt"], "file_content": { "sorted.txt": "(?s)alice.*bob.*carol" } },
       "tier0": "supported"
     }
   },
@@ -177,7 +177,7 @@
     "source": "manual",
     "execution": {
       "fixture_files": { "config.txt": "foo=1\nname=foo\n" },
-      "expected": { "files_modified": ["config.txt"] },
+      "expected": { "files_modified": ["config.txt"], "file_content": { "config.txt": "(?s)bar=1.*name=bar" } },
       "tier0": "supported"
     }
   },
@@ -191,7 +191,7 @@
     "source": "manual",
     "execution": {
       "fixture_files": { "status.txt": "started\n" },
-      "expected": { "files_modified": ["status.txt"] },
+      "expected": { "files_modified": ["status.txt"], "file_content": { "status.txt": "(?s)started.*DONE" } },
       "tier0": "supported"
     }
   },
@@ -233,7 +233,7 @@
     "source": "manual",
     "execution": {
       "fixture_files": { "a.log": "1\n", "sub/c.log": "2\n", "d.txt": "3\n" },
-      "expected": { "stdout_pattern": "(?s)a\\.log.*c\\.log" },
+      "expected": { "stdout_pattern": "(?s)(a\\.log.*c\\.log|c\\.log.*a\\.log)" },
       "tier0": "supported"
     }
   },
@@ -289,7 +289,7 @@
     "source": "manual",
     "execution": {
       "fixture_files": { "part1.txt": "first\n", "part2.txt": "second\n" },
-      "expected": { "files_created": ["combined.txt"] },
+      "expected": { "files_created": ["combined.txt"], "file_content": { "combined.txt": "(?s)first.*second" } },
       "tier0": "supported"
     }
   },
@@ -359,7 +359,7 @@
     "difficulty": "easy",
     "source": "manual",
     "execution": {
-      "expected": { "files_created": ["greeting.txt"] },
+      "expected": { "files_created": ["greeting.txt"], "file_content": { "greeting.txt": "hello world" } },
       "tier0": "supported"
     }
   },

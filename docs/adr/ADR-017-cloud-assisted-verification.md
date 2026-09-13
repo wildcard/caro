@@ -166,6 +166,31 @@ experimental lane only); sandbox blind spots hiding real blast radius
 spots surface as findings, and the canary tree + system-intact probe cover
 the common classes).
 
+## Alternatives Considered
+
+- **Status quo (string-match eval only).** Cheapest, but it is exactly the gap
+  this ADR exists to close: it can never see a command that looks right and
+  does the wrong thing. Rejected.
+- **bubblewrap / local sandbox only (ADR-010).** The right answer for the
+  *product's* on-device execution boundary, and still the plan there — but it
+  is Linux-only and unimplemented, so it cannot serve the dev harness's
+  cross-platform verification or the detonation lane today. Kept as
+  complementary, not a substitute.
+- **E2B / Daytona / Firecracker microVMs.** Viable disposable-sandbox
+  providers. Not chosen as the first implementation because caro already has a
+  Cloudflare relationship (Pages), tier 0 (just-bash) needs no provider at all,
+  and the provider-neutral `PROTOCOL.md` seam lets any of these slot in later
+  without touching evaluators or tests. Explicitly named here so the seam is a
+  real hedge, not a fig leaf.
+- **Local Docker for CI execution.** Rejected as the primary path for the same
+  reason ADR-010 rejected it (daemon requirement, heavier runners); a remote
+  API needs no local daemon. Local Docker remains a possible future
+  `PROTOCOL.md` server for contributors who prefer it.
+- **A GitHub-hosted service instead of Cloudflare Workers** (e.g. a container
+  job doing the exec inline). Simpler wiring, but loses the disposable-per-
+  request isolation and the egress-off guarantee the detonation lane needs, and
+  couples verification to the CI runner. Rejected.
+
 ## Activation
 
 Human steps (D5): create the Cloudflare account, Workers Paid, API token;

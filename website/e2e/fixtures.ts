@@ -3,6 +3,9 @@
 // drops the query parameter and the exact same endpoint serves real Chromium
 // (paid) — the trivial fallback ADR-017 relies on.
 import { test as base, chromium, type Browser } from "@playwright/test";
+import { readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 
 export function credentials(): { accountId: string; apiToken: string } | null {
   const accountId = process.env.CARO_CF_ACCOUNT_ID;
@@ -48,20 +51,21 @@ export const KEY_ROUTES = [
   "/glossary",
 ];
 
-/** Non-default locales served under /[lang]/ (mirror of src/i18n/locales/). */
-export const LOCALES = [
-  "ar",
-  "de",
-  "es",
-  "fil",
-  "fr",
-  "he",
-  "hi",
-  "id",
-  "ja",
-  "ko",
-  "pt",
-  "ru",
-  "uk",
-  "ur",
-];
+/**
+ * Non-default locales served under /[lang]/. Derived from
+ * `src/i18n/locales/` at load time (excluding the `en` default, which lives at
+ * the root) so adding a locale can't silently drop it from the leak/structure
+ * scans — the same disk-derived approach `i18n-leaks.spec.ts` uses for
+ * namespaces.
+ */
+const localesDir = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "src",
+  "i18n",
+  "locales",
+);
+export const LOCALES = readdirSync(localesDir, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory() && entry.name !== "en")
+  .map((entry) => entry.name)
+  .sort();

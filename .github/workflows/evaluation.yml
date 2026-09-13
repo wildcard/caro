@@ -32,12 +32,18 @@ jobs:
         working-directory: tools/exec-harness
         run: npm ci && npm test
 
-      - name: Run execution-grounded eval
+      # No `|| true`: job-level continue-on-error already keeps this
+      # non-blocking, and masking the exit code would hide a broken harness,
+      # dataset-load error, or compile failure. The eval CLI exits non-zero
+      # until the backend clears 100% (the honest tier-0 baseline is well
+      # below that today), so this step is EXPECTED to show red — read the
+      # logs for the score and the per-case failures, not the check mark.
+      - name: Run execution-grounded eval (expected red until backends improve)
         run: |
           cargo test --no-default-features --features embedded-cpu \
             --test evaluation -- \
             --dataset tests/evaluation/datasets/posix/exec_grounded.json \
-            --execution-tier tier0 || true
+            --execution-tier tier0
 
   evaluate:
     strategy:

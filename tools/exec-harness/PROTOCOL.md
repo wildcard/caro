@@ -39,6 +39,7 @@ Callers should ping once at startup and treat a failed handshake as
   "shell": "bash",
   "fixture_files": { "data.txt": "b\na\nb\n" },
   "env": { "LANG": "C" },
+  "read_files": ["out/sorted.txt"],
   "timeout_ms": 5000
 }
 ```
@@ -50,7 +51,10 @@ Callers should ping once at startup and treat a failed handshake as
 - `fixture_files` (optional): map of path → content seeded before execution.
   Relative paths land under the workspace (`/work`, the starting cwd);
   absolute paths are honored as given.
-- `env` (optional): extra environment variables.
+- `env` (optional): extra environment variables applied to the command.
+- `read_files` (optional): paths whose post-execution content the caller wants
+  returned in `files`, so results can be verified by content, not just by a
+  filename appearing in `fs_diff`. Same path resolution as `fixture_files`.
 - `timeout_ms` (optional): wall-clock budget, default 5000, capped at 30000.
 
 ## Exec response
@@ -64,28 +68,42 @@ Callers should ping once at startup and treat a failed handshake as
   "stderr": "",
   "duration_ms": 12,
   "unsupported": false,
+  "timed_out": false,
   "fs_diff": {
     "created": ["/work/out/sorted.txt"],
     "removed": [],
     "modified": []
-  }
+  },
+  "files": { "out/sorted.txt": "a\nb\n" }
 }
 ```
 
 - `ok: false` + `error` means the harness itself failed (bad JSON, internal
   error) — callers must treat this as infrastructure failure, not a command
-  result.
+  result. The `error` string is a generic reason, never a stack trace.
 - `exit_code`: the command's exit code (127 for unknown commands).
-- `stdout` / `stderr`: truncated to 64 KiB / 16 KiB; when truncated the field
-  ends with `"\n…[truncated]"`.
-- `unsupported: true`: the engine could not interpret the command
-  (tier 0: exit 127 with a `command not found` diagnostic). Evaluators MUST
-  score this as SKIP, never FAIL — it measures the engine's dialect coverage,
-  not the command's correctness.
-- `timed_out: true` is set (with `exit_code: 124`) when the budget elapsed.
+- `stdout` / `stderr`: truncated to 64 KiB / 16 KiB respectively; when
+  truncated the field ends with `"\n…[truncated]"`.
+- `unsupported: true`: the engine could not interpret the command (tier 0:
+  exit 127 with a `command not found` diagnostic). This is a *signal*, not a
+  skip instruction: a command that comes back unsupported still failed to run,
+  so an evaluator fails it. Only cases a maintainer has pre-labeled as a known
+  engine gap are skipped, and that decision is made from the dataset's `tier0`
+  label, never from this flag.
+- `timed_out: true`: the command reached its budget — the engine surfaced
+  `exit_code: 124`, or the wall clock reached `timeout_ms`. A timed-out run
+  still returns `ok: true` (it is a command outcome, not a harness failure)
+  with a best-effort/empty `fs_diff` and `files`, so a post-deadline snapshot
+  failure is never misreported as `ok: false`.
 - `fs_diff`: file paths created/removed/modified relative to the pre-execution
-  snapshot, sorted. Engine pseudo-files (`/bin`, `/usr`, `/proc`, `/dev`) are
-  excluded from snapshots.
+  snapshot, sorted. Tier 0 covers the whole in-memory filesystem minus engine
+  pseudo-files (`/bin`, `/usr`, `/proc`, `/dev`); **tier 1 scopes `fs_diff` to
+  the writable roots `/work` and `/tmp`** (hashing a full container rootfs per
+  request is impractical — catastrophic out-of-scope destruction is caught by
+  the `/detonate` system-intact probe instead).
+- `files`: content of each path named in the request's `read_files`, keyed by
+  the exact requested path and truncated to 64 KiB. Missing/unreadable files
+  are omitted, so a caller can distinguish "absent" from "present but wrong".
 
 ## Fidelity caveat (tier 0)
 

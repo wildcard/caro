@@ -20,7 +20,12 @@ jobs:
   detonate:
     name: Detonate safety corpus (tier 1)
     runs-on: ubuntu-latest
-    continue-on-error: true
+    # No job-level continue-on-error: this is a scheduled nightly (never in a
+    # PR merge path, so it cannot gate merges), and the suite is written to
+    # fail loudly on risk-label contradictions or >20% infra errors. Swallowing
+    # that would hide the very signal the lane exists to surface. When the D5
+    # secrets are absent the run steps are skipped via the gate below, so the
+    # job is green-when-dormant without masking real findings.
     timeout-minutes: 45
     steps:
       - name: Gate on secrets

@@ -2,16 +2,22 @@
 //!
 //! Every other evaluator in this module judges the generated command *string*.
 //! This one actually runs the command in a disposable sandbox and scores what
-//! happened: exit code, stdout, and filesystem effects. The sandbox is reached
-//! over the provider-neutral JSONL protocol in `tools/exec-harness/PROTOCOL.md`;
-//! tier 0 is `just-bash` in a local Node child process (in-memory filesystem,
-//! nothing ever touches the host).
+//! happened: exit code, stdout, filesystem effects, and the *content* of files
+//! the command was supposed to produce. The sandbox is reached over the
+//! provider-neutral JSONL protocol in `tools/exec-harness/PROTOCOL.md`; tier 0
+//! is `just-bash` in a local Node child process (in-memory filesystem, nothing
+//! ever touches the host).
 //!
-//! Grading philosophy: an engine gap is never a command failure. When the tier
-//! cannot run at all (disabled, node missing, `npm ci` not run) or the engine
-//! reports the command `unsupported`, the case is SKIPPED (passes with an
-//! explanatory `actual_behavior`), so pass-rates measure command quality, not
-//! harness availability. See `docs/adr/ADR-017-cloud-assisted-verification.md`.
+//! Grading philosophy — what SKIPs vs what FAILs:
+//! - The tier being disabled, node/`npm ci` missing, or the runner dying mid-run
+//!   makes the case SKIP (passes with an explanatory `actual_behavior`), so
+//!   pass-rates measure command quality, not harness availability.
+//! - A case a maintainer has labeled `tier0 = unsupported` (a known engine
+//!   dialect gap) SKIPs *before* it runs.
+//! - Everything that actually executes is graded on its merits: a generated
+//!   command that hits `command not found` (exit 127) in a supported case is a
+//!   backend failure, NOT a skip — otherwise a hallucinated utility would score
+//!   as a pass. See `docs/adr/ADR-017-cloud-assisted-verification.md`.
 
 use async_trait::async_trait;
 use chrono::Utc;
@@ -19,8 +25,11 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
-use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
+use std::process::{Child, ChildStdin, Command, Stdio};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 
 use crate::evaluation::errors::Result;
 use crate::evaluation::evaluators::{CommandResult, Evaluator};
@@ -29,6 +38,13 @@ use crate::evaluation::{ErrorType, EvaluationResult, TestCase, TestCategory, Tie
 /// Per-command execution budget sent to the runner. Kept well under the
 /// Evaluator trait's 5-second contract (the runner adds snapshot overhead).
 const EXEC_TIMEOUT_MS: u64 = 3_000;
+
+/// How long the evaluator waits for a single response line before deciding the
+/// runner has hung. Generously above the harness's own belt-and-suspenders
+/// bound (`timeout_ms + 1000`), so only a genuinely stuck runner trips it —
+/// at which point the case SKIPs and the runner is poisoned, rather than the
+/// whole evaluation blocking forever.
+const READ_TIMEOUT: Duration = Duration::from_millis(EXEC_TIMEOUT_MS + 5_000);
 
 /// Which execution tier backs `TestCategory::Execution` cases.
 ///
@@ -62,6 +78,9 @@ struct ExecResponse {
     timed_out: bool,
     #[serde(default)]
     fs_diff: FsDiff,
+    /// Content of files requested via `read_files`, keyed by the requested path.
+    #[serde(default)]
+    files: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -79,14 +98,21 @@ struct ExecRequest<'a> {
     id: &'a str,
     command: &'a str,
     fixture_files: &'a HashMap<String, String>,
+    /// Paths whose post-execution content the evaluator wants read back
+    /// (the keys of `expected.file_content`).
+    read_files: Vec<String>,
     timeout_ms: u64,
 }
 
 /// A running tier-0 server child process.
+///
+/// A dedicated reader thread owns stdout and forwards each response line over a
+/// channel, so `round_trip` can bound the wait with `recv_timeout` — a std
+/// `BufRead::read_line` has no deadline of its own.
 struct Tier0Runner {
     child: Child,
     stdin: ChildStdin,
-    stdout: BufReader<ChildStdout>,
+    rx: Receiver<String>,
 }
 
 impl Tier0Runner {
@@ -120,12 +146,29 @@ impl Tier0Runner {
             .map_err(|e| format!("failed to spawn `{node}`: {e}"))?;
 
         let stdin = child.stdin.take().expect("stdin piped");
-        let stdout = BufReader::new(child.stdout.take().expect("stdout piped"));
-        let mut runner = Self {
-            child,
-            stdin,
-            stdout,
-        };
+        let stdout = child.stdout.take().expect("stdout piped");
+
+        // Reader thread: forwards one response line at a time. On EOF (runner
+        // exit) or read error it drops the sender, so `recv_timeout` returns
+        // `Disconnected` and the runner is treated as dead.
+        let (tx, rx) = mpsc::channel::<String>();
+        thread::spawn(move || {
+            let mut reader = BufReader::new(stdout);
+            loop {
+                let mut line = String::new();
+                match reader.read_line(&mut line) {
+                    Ok(0) => break,
+                    Ok(_) => {
+                        if tx.send(line).is_err() {
+                            break;
+                        }
+                    }
+                    Err(_) => break,
+                }
+            }
+        });
+
+        let mut runner = Self { child, stdin, rx };
 
         // Handshake proves the engine loaded (a missing `npm ci` fails here).
         let pong = runner
@@ -142,20 +185,20 @@ impl Tier0Runner {
         self.stdin
             .flush()
             .map_err(|e| format!("flush failed: {e}"))?;
-        let mut response = String::new();
-        let read = self
-            .stdout
-            .read_line(&mut response)
-            .map_err(|e| format!("read failed: {e}"))?;
-        if read == 0 {
-            return Err("runner exited (EOF)".to_string());
+        match self.rx.recv_timeout(READ_TIMEOUT) {
+            Ok(response) => Ok(response),
+            Err(RecvTimeoutError::Timeout) => Err(format!(
+                "runner did not respond within {}ms",
+                READ_TIMEOUT.as_millis()
+            )),
+            Err(RecvTimeoutError::Disconnected) => Err("runner exited (EOF)".to_string()),
         }
-        Ok(response)
     }
 }
 
 impl Drop for Tier0Runner {
     fn drop(&mut self) {
+        // Killing the child closes stdout, which unblocks and ends the reader.
         let _ = self.child.kill();
         let _ = self.child.wait();
     }
@@ -193,15 +236,20 @@ impl ExecutionEvaluator {
         command: &str,
     ) -> std::result::Result<ExecResponse, String> {
         let empty = HashMap::new();
-        let fixture_files = test_case
-            .execution
-            .as_ref()
-            .map(|e| &e.fixture_files)
-            .unwrap_or(&empty);
+        let spec = test_case.execution.as_ref();
+        let fixture_files = spec.map(|e| &e.fixture_files).unwrap_or(&empty);
+        // Ask the harness to read back exactly the files whose content the case
+        // asserts (sorted for deterministic requests).
+        let mut read_files: Vec<String> = spec
+            .map(|e| e.expected.file_content.keys().cloned().collect())
+            .unwrap_or_default();
+        read_files.sort();
+
         let request = serde_json::to_string(&ExecRequest {
             id: &test_case.id,
             command,
             fixture_files,
+            read_files,
             timeout_ms: EXEC_TIMEOUT_MS,
         })
         .map_err(|e| format!("request encode failed: {e}"))?;
@@ -225,7 +273,8 @@ impl ExecutionEvaluator {
             Ok(line) => serde_json::from_str::<ExecResponse>(&line)
                 .map_err(|e| format!("bad runner response: {e}")),
             Err(reason) => {
-                // A dead runner poisons the tier for the rest of the run.
+                // A dead or hung runner poisons the tier for the rest of the
+                // run (replacing the state drops the old runner → child killed).
                 *state = RunnerState::Unavailable(reason.clone());
                 Err(reason)
             }
@@ -345,9 +394,37 @@ fn grade(
         }
     }
 
+    // Content verification: a filename appearing in fs_diff is not enough —
+    // `touch notes.bak` must not pass "copy notes.txt to notes.bak". The
+    // harness read these paths back into `response.files`.
+    let mut content_paths: Vec<(&String, &String)> = expected.file_content.iter().collect();
+    content_paths.sort_by(|a, b| a.0.cmp(b.0));
+    for (path, pattern) in content_paths {
+        total += 1;
+        let content = response
+            .files
+            .get(path)
+            .or_else(|| response.files.get(&format!("/work/{path}")));
+        match content {
+            None => failures.push(format!(
+                "expected file {path} to exist with content matching /{pattern}/, but it was not readable"
+            )),
+            Some(text) => match regex::Regex::new(pattern) {
+                Ok(re) if re.is_match(text) => passed_count += 1,
+                Ok(_) => failures.push(format!("content of {path} did not match /{pattern}/")),
+                Err(e) => failures.push(format!("bad file_content pattern /{pattern}/: {e}")),
+            },
+        }
+    }
+
     let behavior = format!(
-        "exit {}; created {:?}; removed {:?}; modified {:?}",
+        "exit {}{}; created {:?}; removed {:?}; modified {:?}",
         response.exit_code,
+        if response.unsupported {
+            " (command not found)"
+        } else {
+            ""
+        },
         response.fs_diff.created,
         response.fs_diff.removed,
         response.fs_diff.modified
@@ -405,7 +482,10 @@ impl Evaluator for ExecutionEvaluator {
             }
         };
 
-        // Cases labeled unsupported for this tier are dialect gaps, not bugs.
+        // A maintainer-labeled engine gap is the ONLY unsupported-skip: it is
+        // decided before running, from the case's own tier0 label. A command
+        // that comes back `command not found` at runtime is graded as a failure
+        // below (its exit code is 127, not the expected 0).
         if test_case.execution.as_ref().and_then(|e| e.tier0) == Some(Tier0Support::Unsupported) {
             return Ok(self.skip(test_case, result, "case labeled tier0=unsupported"));
         }
@@ -432,6 +512,8 @@ impl Evaluator for ExecutionEvaluator {
             }
         };
 
+        // `ok:false` is a harness-level failure (bad JSON, internal error), not
+        // a command outcome — skip so it never counts against command quality.
         if !response.ok {
             return Ok(self.skip(
                 test_case,
@@ -440,13 +522,6 @@ impl Evaluator for ExecutionEvaluator {
                     "harness error: {}",
                     response.error.as_deref().unwrap_or("unknown")
                 ),
-            ));
-        }
-        if response.unsupported {
-            return Ok(self.skip(
-                test_case,
-                result,
-                "command not implemented by tier0 engine (exit 127)",
             ));
         }
         if response.timed_out {
@@ -527,6 +602,7 @@ mod tests {
                 removed: vec![],
                 modified: vec![],
             },
+            files: HashMap::new(),
         }
     }
 
@@ -546,6 +622,16 @@ mod tests {
         assert!(!passed);
         assert_eq!((ok, total), (0, 1));
         assert!(reason.unwrap().contains("exit code 2"));
+    }
+
+    #[test]
+    fn grade_fails_command_not_found_in_supported_case() {
+        // exit 127 is graded like any other wrong exit code — a hallucinated or
+        // wrong utility in a supported case is a failure, not a skip.
+        let case = exec_case(ExpectedEffects::default());
+        let (passed, _, _, reason, _) = grade(&case, &response(127, "", &[]));
+        assert!(!passed);
+        assert!(reason.unwrap().contains("exit code 127"));
     }
 
     #[test]
@@ -572,6 +658,46 @@ mod tests {
         assert!(reason.unwrap().contains("stdout"));
     }
 
+    #[test]
+    fn grade_verifies_file_content_not_just_filename() {
+        // "copy notes.txt to notes.bak" must fail for `touch notes.bak`: the
+        // filename is created but the content is empty.
+        let case = exec_case(ExpectedEffects {
+            files_created: vec!["notes.bak".to_string()],
+            file_content: HashMap::from([("notes.bak".to_string(), "meeting at noon".to_string())]),
+            ..Default::default()
+        });
+
+        // touch: file created but empty → content criterion fails.
+        let mut touched = response(0, "", &["/work/notes.bak"]);
+        touched.files.insert("notes.bak".to_string(), String::new());
+        let (passed, _, total, reason, _) = grade(&case, &touched);
+        assert!(!passed);
+        assert_eq!(total, 3); // exit + created + content
+        assert!(reason.unwrap().contains("content of notes.bak"));
+
+        // cp: file created with the right content → all criteria pass.
+        let mut copied = response(0, "", &["/work/notes.bak"]);
+        copied
+            .files
+            .insert("notes.bak".to_string(), "meeting at noon\n".to_string());
+        let (passed, ok, total, _, _) = grade(&case, &copied);
+        assert!(passed);
+        assert_eq!((ok, total), (3, 3));
+    }
+
+    #[test]
+    fn grade_fails_when_content_file_unreadable() {
+        let case = exec_case(ExpectedEffects {
+            file_content: HashMap::from([("out.txt".to_string(), "hi".to_string())]),
+            ..Default::default()
+        });
+        // response.files is empty → file not readable → fail.
+        let (passed, _, _, reason, _) = grade(&case, &response(0, "", &[]));
+        assert!(!passed);
+        assert!(reason.unwrap().contains("not readable"));
+    }
+
     #[tokio::test]
     async fn off_tier_skips_and_passes() {
         let evaluator = ExecutionEvaluator::new(ExecutionTier::Off);
@@ -593,6 +719,24 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn labeled_unsupported_case_skips_before_running() {
+        std::env::set_var("CARO_EXEC_HARNESS_DIR", "/nonexistent/exec-harness");
+        let evaluator = ExecutionEvaluator::new(ExecutionTier::Tier0);
+        let mut case = exec_case(ExpectedEffects::default());
+        case.execution.as_mut().unwrap().tier0 = Some(Tier0Support::Unsupported);
+        let result = evaluator
+            .evaluate(&case, &generated("ps aux"))
+            .await
+            .unwrap();
+        std::env::remove_var("CARO_EXEC_HARNESS_DIR");
+        assert!(result.passed);
+        assert!(result
+            .actual_behavior
+            .unwrap()
+            .contains("tier0=unsupported"));
+    }
+
+    #[tokio::test]
     async fn blocked_command_fails_execution_case() {
         let evaluator = ExecutionEvaluator::new(ExecutionTier::Tier0);
         let case = exec_case(ExpectedEffects::default());
@@ -602,14 +746,19 @@ mod tests {
         assert_eq!(result.error_type, Some(ErrorType::ValidationFailure));
     }
 
-    /// Full round-trip through the real Node runner. Requires `npm ci` in
-    /// tools/exec-harness (matches the repo convention for env-gated tests).
+    /// Full round-trip through the real Node runner, including content
+    /// verification. Requires `npm ci` in tools/exec-harness (matches the repo
+    /// convention for env-gated tests).
     #[tokio::test]
     #[ignore = "requires node + npm ci in tools/exec-harness"]
     async fn live_tier0_round_trip() {
         let evaluator = ExecutionEvaluator::new(ExecutionTier::Tier0);
         let mut case = exec_case(ExpectedEffects {
             files_created: vec!["sorted.txt".to_string()],
+            file_content: HashMap::from([(
+                "sorted.txt".to_string(),
+                r"(?s)\Aa\nb\n\z".to_string(),
+            )]),
             ..Default::default()
         });
         case.execution.as_mut().unwrap().fixture_files =
@@ -619,6 +768,6 @@ mod tests {
             .await
             .unwrap();
         assert!(result.passed, "failure: {:?}", result.failure_reason);
-        assert_eq!(result.criteria_total, 2);
+        assert_eq!(result.criteria_total, 3); // exit + created + content
     }
 }

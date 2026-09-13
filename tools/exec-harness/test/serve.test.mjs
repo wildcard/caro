@@ -1,6 +1,10 @@
 // Self-tests for the tier-0 exec-harness server. Spawns serve.mjs as a child
 // process and drives it over the real JSONL transport, so what passes here is
 // exactly what the Rust ExecutionEvaluator sees.
+//
+// Watchdog: every request has a per-response timeout and the child's `exit` is
+// wired to reject any in-flight waiter, so a crashed or hung server fails the
+// suite fast with a clear error instead of burning the CI job's wall-clock.
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { createInterface } from "node:readline";
@@ -9,23 +13,60 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const serverPath = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "serve.mjs");
+const RESPONSE_TIMEOUT_MS = 5_000;
 
 const child = spawn(process.execPath, [serverPath], {
   stdio: ["pipe", "pipe", "inherit"],
 });
-const responses = [];
-const waiters = [];
+
+let childExited = false;
+const waiters = []; // { resolve, reject }
+const responses = []; // buffered lines received with no waiter queued
+
+child.on("exit", (code) => {
+  childExited = true;
+  while (waiters.length) {
+    waiters.shift().reject(new Error(`server exited (code ${code}) with a request pending`));
+  }
+});
+
 createInterface({ input: child.stdout }).on("line", (line) => {
   const value = JSON.parse(line);
-  const waiter = waiters.shift();
-  if (waiter) waiter(value);
+  const w = waiters.shift();
+  if (w) w.resolve(value);
   else responses.push(value);
 });
 
-function send(request) {
-  child.stdin.write(`${JSON.stringify(request)}\n`);
+function expectResponse(timeoutMs = RESPONSE_TIMEOUT_MS) {
   if (responses.length > 0) return Promise.resolve(responses.shift());
-  return new Promise((resolve) => waiters.push(resolve));
+  if (childExited) return Promise.reject(new Error("server already exited"));
+  return new Promise((resolve, reject) => {
+    const entry = {};
+    const timer = setTimeout(() => {
+      const i = waiters.indexOf(entry);
+      if (i >= 0) waiters.splice(i, 1);
+      reject(new Error(`no response within ${timeoutMs}ms`));
+    }, timeoutMs);
+    entry.resolve = (v) => {
+      clearTimeout(timer);
+      resolve(v);
+    };
+    entry.reject = (e) => {
+      clearTimeout(timer);
+      reject(e);
+    };
+    waiters.push(entry);
+  });
+}
+
+function send(request, timeoutMs) {
+  child.stdin.write(`${JSON.stringify(request)}\n`);
+  return expectResponse(timeoutMs);
+}
+
+function sendRaw(text, timeoutMs) {
+  child.stdin.write(`${text}\n`);
+  return expectResponse(timeoutMs);
 }
 
 let failures = 0;
@@ -52,6 +93,7 @@ await check("basic exec with exit code and stdout", async () => {
   assert.equal(r.exit_code, 0);
   assert.equal(r.stdout, "hello");
   assert.equal(r.unsupported, false);
+  assert.equal(r.timed_out, false);
 });
 
 await check("fixture files are seeded and readable", async () => {
@@ -76,12 +118,34 @@ await check("fs_diff reports created, modified, removed", async () => {
   assert.deepEqual(r.fs_diff.removed, ["/work/old.txt"]);
 });
 
+await check("read_files returns post-execution content, keyed by requested path", async () => {
+  const r = await send({
+    id: "t3b",
+    command: "cp notes.txt notes.bak",
+    fixture_files: { "notes.txt": "meeting at noon\n" },
+    read_files: ["notes.bak", "missing.txt"],
+  });
+  assert.equal(r.exit_code, 0);
+  assert.equal(r.files["notes.bak"], "meeting at noon\n");
+  // Missing files are omitted so the caller can tell absent from wrong.
+  assert.equal("missing.txt" in r.files, false);
+});
+
+await check("read_files exposes empty content for a touched-but-not-filled file", async () => {
+  const r = await send({
+    id: "t3c",
+    command: "touch notes.bak",
+    read_files: ["notes.bak"],
+  });
+  assert.equal(r.files["notes.bak"], "");
+});
+
 await check("nonzero exit codes pass through", async () => {
   const r = await send({ id: "t4", command: "grep needle /dev/null" });
   assert.equal(r.exit_code, 1);
 });
 
-await check("unknown command is unsupported, not a failure", async () => {
+await check("unknown command is unsupported and exit 127", async () => {
   const r = await send({ id: "t5", command: "systemctl restart nginx" });
   assert.equal(r.ok, true);
   assert.equal(r.exit_code, 127);
@@ -103,12 +167,28 @@ await check("pipelines and quoting survive the wire", async () => {
   assert.match(r.stdout, /2 x/);
 });
 
-await check("malformed request yields ok:false, server survives", async () => {
-  child.stdin.write("this is not json\n");
-  const bad = await (responses.length ? responses.shift() : new Promise((res) => waiters.push(res)));
+await check("a JSON null line is rejected, server survives", async () => {
+  const bad = await sendRaw("null");
   assert.equal(bad.ok, false);
+  assert.match(bad.error, /object/);
   const r = await send({ id: "t8", command: "true" });
   assert.equal(r.exit_code, 0);
+});
+
+await check("malformed request yields ok:false, server survives", async () => {
+  const bad = await sendRaw("this is not json");
+  assert.equal(bad.ok, false);
+  const r = await send({ id: "t9", command: "true" });
+  assert.equal(r.exit_code, 0);
+});
+
+await check("a runaway command returns a well-formed response, never hangs", async () => {
+  // The watchdog would reject if the server hung; the assertion only pins that
+  // the response is well-formed (engine-internal bounding may surface as a
+  // timeout or a nonzero exit depending on which limit trips first).
+  const r = await send({ id: "t10", command: "while true; do :; done", timeout_ms: 500 }, 8_000);
+  assert.equal(r.ok, true);
+  assert.equal(typeof r.timed_out, "boolean");
 });
 
 child.stdin.end();

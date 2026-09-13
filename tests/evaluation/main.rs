@@ -175,6 +175,20 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
     let filtered_dataset = if let Some(ref category_str) = args.category {
         let category = parse_category(category_str)?;
         let test_cases = dataset.get_by_category(category);
+        // A zero-case selection would otherwise run "successfully" with a 0.0
+        // pass rate and exit 1 — indistinguishable from a real failure. Say
+        // clearly that the selection is empty instead (config error, exit 2).
+        if test_cases.is_empty() {
+            eprintln!(
+                "No '{}' test cases in {}. \
+                 (The 'execution' category's cases live in \
+                 tests/evaluation/datasets/posix/exec_grounded.json — \
+                 select it with --dataset <path>.)",
+                category_str,
+                args.dataset.display()
+            );
+            return Ok(2);
+        }
         Dataset::from_tests(test_cases.into_iter().cloned().collect())
     } else {
         dataset

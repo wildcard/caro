@@ -129,6 +129,14 @@ pub struct ExpectedEffects {
     /// Sandbox paths whose content the command must change
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub files_modified: Vec<String>,
+
+    /// Regex each named file's post-execution content must match
+    /// (path → regex). Verifies the *result*, not just that a filename shows
+    /// up in `fs_diff` — so `touch notes.bak` cannot pass "copy notes.txt to
+    /// notes.bak". The harness reads these paths back via the protocol's
+    /// `read_files`.
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub file_content: HashMap<String, String>,
 }
 
 /// Execution-grounding data for `TestCategory::Execution` cases: the sandbox
@@ -531,6 +539,26 @@ impl TestCase {
                     self.id, tag
                 ));
             }
+        }
+
+        // Execution-category cases must carry an `execution` spec: grading a
+        // spec-less case against `ExpectedEffects::default()` would pass any
+        // exit-0 command and silently inflate execution pass-rates. Conversely,
+        // an `execution` spec on a non-execution case is a category mistake.
+        match self.category {
+            TestCategory::Execution if self.execution.is_none() => {
+                return Err(format!(
+                    "Test {} is category 'execution' but has no `execution` spec",
+                    self.id
+                ));
+            }
+            cat if cat != TestCategory::Execution && self.execution.is_some() => {
+                return Err(format!(
+                    "Test {} carries an `execution` spec but its category is {:?}, not 'execution'",
+                    self.id, cat
+                ));
+            }
+            _ => {}
         }
 
         Ok(())

@@ -1,6 +1,6 @@
 # Caro as a Company
 
-**Last Updated**: 2026-07-12
+**Last Updated**: 2026-09-13
 **Companion docs**: [`MISSION.md`](./MISSION.md) (values),
 [`playbook/STAGE_MAP.md`](./playbook/STAGE_MAP.md) (where we are),
 [`docs/PITCH_DECK.md`](./docs/PITCH_DECK.md) (long-form pitch)

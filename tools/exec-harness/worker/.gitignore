@@ -1,3 +1,9 @@
+# The worker is dormant scaffolding and its wrangler dev-tree carries licenses
+# (e.g. MPL-2.0) and OpenSSF-scorecard noise that GitHub Dependency Review
+# flags — none of which ship in caro's AGPL-3.0 binary. The lockfile is
+# regenerated at activation (npm install); package.json pins exact versions
+# meanwhile. See tools/exec-harness/worker/README.md.
+package-lock.json
 node_modules/
 .wrangler/
 .dev.vars
