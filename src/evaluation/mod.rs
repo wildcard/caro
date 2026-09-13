@@ -69,6 +69,6 @@ pub mod sft_export;
 pub use baseline::BaselineStore;
 pub use dataset::*;
 pub use errors::*;
-pub use evaluators::{CommandResult, Evaluator};
+pub use evaluators::{CommandResult, Evaluator, ExecutionEvaluator, ExecutionTier};
 pub use harness::{EvaluationHarness, HarnessConfig};
 pub use models::*;

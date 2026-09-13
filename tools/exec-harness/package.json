@@ -1,0 +1,18 @@
+{
+  "name": "caro-exec-harness",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tier-0 execution harness: runs generated shell commands in just-bash (pure-JS bash, in-memory FS) and reports exit code + filesystem effects over a provider-neutral JSONL protocol. See PROTOCOL.md.",
+  "type": "module",
+  "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=20.18.1"
+  },
+  "scripts": {
+    "serve": "node src/serve.mjs",
+    "test": "node test/serve.test.mjs"
+  },
+  "dependencies": {
+    "just-bash": "3.4.2"
+  }
+}

@@ -38,10 +38,22 @@ A hypothesis graduates from `unvalidated` only when:
 | `self-healing` | Users want commands to retry/recover automatically on certain failure classes | 0 | 0 | `unvalidated` | 2026-05-25 | none |
 | `local-context-indexing` | Users want Caro to know about their repo / shell history / open files when generating commands | 0 | 0 | `unvalidated` | 2026-05-25 | none |
 | `enterprise-dashboard` | CISOs want a centralized policy + audit-trail surface for Caro deployments | 0 | 0 | `unvalidated` (**next priority** — calibrated script at [`interview-enterprise-dashboard.md`](./interview-enterprise-dashboard.md)) | 2026-06-13 | none |
+| `sandbox-preview-ux` | Users want a "verified preview" (run the command in a disposable sandbox, show the effects) instead of a bare y/N confirmation for risky commands | 0 | 0 | `unvalidated` | 2026-09-06 | none |
+| `live-playground` | Prospects want to try real Caro in the browser (execution-backed try-caro, replacing the scripted mock) before installing | 0 | 0 | `unvalidated` | 2026-09-06 | none |
+| `agentic-loop` | Users want Caro to execute→observe→retry multi-step tasks autonomously in a sandboxed environment | 0 | 0 | `unvalidated` | 2026-09-06 | none |
 
 The `caro-core` row is grandfathered because the rule applies forward
 from May 25, 2026. The full retroactive audit for each v2.0 hypothesis
 is in [`v2.0-validation-audit.md`](./v2.0-validation-audit.md).
+
+The three `sandbox-*`/`live-playground`/`agentic-loop` rows were coined
+by [ADR-017](../adr/ADR-017-cloud-assisted-verification.md)
+(cloud-assisted verification). Note what is deliberately NOT under
+them: the dev-harness execution tiers (internal tooling, exempt) and
+CaroML cross-platform runbook verification (extends the shipped CaroML
+loop — an *extension of the validated core* per the
+[audit's exemption principle](./v2.0-validation-audit.md), same class
+as ROADMAP's Handy.Computer #662).
 
 ## Synthesis entries
 
@@ -80,6 +92,22 @@ First synthesis entry will appear here after 5 interviews; per
 this is the next-highest-priority discovery target because the
 pricing-enterprise waitlist CTA gives it a defined outreach
 surface.*
+
+### `sandbox-preview-ux` synthesis
+
+*No transcripts logged yet. Candidate probe questions: what do users do
+today before running a command they don't fully trust? Has anyone been
+burned by a confirmed-then-regretted command?*
+
+### `live-playground` synthesis
+
+*No transcripts logged yet. The existing scripted mock at
+`/try-caro` provides a measurement surface (visits, chip clicks →
+waitlist conversions) before any interview.*
+
+### `agentic-loop` synthesis
+
+*No transcripts logged yet.*
 
 ## Pain pattern slugs
 

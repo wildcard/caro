@@ -1,0 +1,5 @@
+# Generated blast-radius evidence from local `cargo test --test red_team` runs.
+# The nightly workflow uploads these as CI artifacts; they must never be
+# committed (they'd leak the command corpus + measured blast radius into git).
+# The directory itself is kept via .gitkeep.
+*.json

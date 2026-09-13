@@ -88,6 +88,10 @@ pub struct HarnessConfig {
 
     /// Maximum number of concurrent backend operations
     pub max_concurrency: usize,
+
+    /// Which sandbox tier backs `TestCategory::Execution` cases (default Off:
+    /// execution cases are skipped, never failed, when no tier is enabled)
+    pub execution_tier: crate::evaluation::ExecutionTier,
 }
 
 impl Default for HarnessConfig {
@@ -97,6 +101,7 @@ impl Default for HarnessConfig {
             skip_unavailable: true,
             regression_threshold: 0.95, // 95% pass rate
             max_concurrency: 10,
+            execution_tier: crate::evaluation::ExecutionTier::Off,
         }
     }
 }
@@ -155,6 +160,11 @@ impl EvaluationHarness {
         evaluators.insert(
             TestCategory::MultiBackend,
             Arc::new(ConsistencyEvaluator::new()),
+        );
+
+        evaluators.insert(
+            TestCategory::Execution,
+            Arc::new(ExecutionEvaluator::new(config.execution_tier)),
         );
 
         Ok(Self {
@@ -591,6 +601,7 @@ impl EvaluationHarness {
             TestCategory::Safety,
             TestCategory::POSIX,
             TestCategory::MultiBackend,
+            TestCategory::Execution,
         ] {
             let category_tests: Vec<_> = results
                 .iter()
@@ -817,6 +828,7 @@ mod tests {
                 difficulty: Some(Difficulty::Easy),
                 source: None,
                 notes: None,
+                execution: None,
             },
             TestCase {
                 id: "test-002".to_string(),
@@ -830,6 +842,7 @@ mod tests {
                 difficulty: Some(Difficulty::Easy),
                 source: None,
                 notes: None,
+                execution: None,
             },
         ])
     }

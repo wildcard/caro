@@ -309,6 +309,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let results = vec![
@@ -344,6 +345,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let results = vec![
@@ -381,6 +383,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let results = vec![
@@ -413,6 +416,7 @@ mod tests {
             difficulty: Some(Difficulty::Medium),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let results = vec![
@@ -454,6 +458,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let results = vec![CommandResult::success(
@@ -488,6 +493,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let result = CommandResult::success("ls -al".to_string(), 100, "backend-1".to_string());
@@ -514,6 +520,7 @@ mod tests {
             difficulty: Some(Difficulty::Hard),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let results = vec![

@@ -1,6 +1,6 @@
 # Caro as a Company
 
-**Last Updated**: 2026-07-12
+**Last Updated**: 2026-09-13
 **Companion docs**: [`MISSION.md`](./MISSION.md) (values),
 [`playbook/STAGE_MAP.md`](./playbook/STAGE_MAP.md) (where we are),
 [`docs/PITCH_DECK.md`](./docs/PITCH_DECK.md) (long-form pitch)
@@ -114,6 +114,21 @@ decision-maker inherits the reasoning):
   codified the evidence/demo/regression-guard requirement for every
   feature PR. Full record with alternatives:
   [`docs/decisions/2026-07-12-autonomous-mode-release-scope.md`](./docs/decisions/2026-07-12-autonomous-mode-release-scope.md).
+
+- **2026-09-06 — Cloudflare as assistive verification infrastructure,
+  not a runtime dependency.** Adopted Cloudflare compute (Sandbox
+  containers, Browser Run/Kitesurf, `@cloudflare/computer` preview) for
+  the *dev harness only*: execution-grounded eval, safety-corpus
+  detonation, and structural website QA — internal tooling, exempt from
+  validation gates. The product keeps zero runtime dependency on any
+  cloud vendor; every user-facing cloud-execution idea was parked as an
+  unvalidated hypothesis (`sandbox-preview-ux`, `live-playground`,
+  `agentic-loop` — 0/20 each), consistent with the local-first and
+  multi-vendor-resilience commitments above. Vendor account and API
+  tokens are human-created (per the 2026-07-12 D5 human-required
+  limits). Architecture, tier policy (GA-only for anything that could
+  gate CI), and vendor seam:
+  [`docs/adr/ADR-017-cloud-assisted-verification.md`](./docs/adr/ADR-017-cloud-assisted-verification.md).
 
 ## How to contribute to "the company part"
 

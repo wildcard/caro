@@ -166,7 +166,11 @@ impl Dataset {
         let distribution = self.category_distribution();
         let total = self.len() as f32;
 
-        let expected_per_category = total / 4.0; // 4 categories
+        // Balance is measured across the categories actually present, not a
+        // hardcoded count — otherwise adding a category (e.g. Execution) makes
+        // an evenly-balanced dataset read as imbalanced.
+        let category_count = distribution.len().max(1) as f32;
+        let expected_per_category = total / category_count;
 
         for (category, count) in distribution {
             let actual = count as f32;

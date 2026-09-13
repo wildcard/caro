@@ -23,7 +23,9 @@
 //! cargo test --test evaluation -- --threshold 0.10
 //! ```
 
-use caro::evaluation::{BaselineStore, Dataset, EvaluationHarness, HarnessConfig, TestCategory};
+use caro::evaluation::{
+    BaselineStore, Dataset, EvaluationHarness, ExecutionTier, HarnessConfig, TestCategory,
+};
 use clap::Parser;
 use std::path::PathBuf;
 use std::process;
@@ -34,9 +36,19 @@ use std::sync::Arc;
 #[command(name = "evaluation")]
 #[command(about = "Run LLM evaluation harness", long_about = None)]
 struct Args {
-    /// Test category to run (correctness, safety, posix, multi_backend)
+    /// Test category to run (correctness, safety, posix, multi_backend, execution)
     #[arg(long)]
     category: Option<String>,
+
+    /// Dataset file to load (YAML or JSON test-case array)
+    #[arg(long, default_value = "tests/evaluation/dataset.yaml")]
+    dataset: PathBuf,
+
+    /// Sandbox tier for execution-category cases (off, tier0).
+    /// tier0 = just-bash via tools/exec-harness (needs `npm ci` there);
+    /// when unavailable, execution cases are skipped, never failed.
+    #[arg(long, default_value = "off")]
+    execution_tier: String,
 
     /// Backend to test (static_matcher, mlx, ollama, vllm)
     #[arg(long)]
@@ -91,13 +103,24 @@ fn validate_args(args: &Args) -> Result<(), String> {
     // Validate category if provided
     if let Some(ref category) = args.category {
         match category.as_str() {
-            "correctness" | "safety" | "posix" | "multi_backend" => {}
+            "correctness" | "safety" | "posix" | "multi_backend" | "execution" => {}
             _ => {
                 return Err(format!(
-                "Invalid category: {}. Must be one of: correctness, safety, posix, multi_backend",
+                "Invalid category: {}. Must be one of: correctness, safety, posix, multi_backend, execution",
                 category
             ))
             }
+        }
+    }
+
+    // Validate execution tier
+    match args.execution_tier.as_str() {
+        "off" | "tier0" => {}
+        _ => {
+            return Err(format!(
+                "Invalid execution tier: {}. Must be 'off' or 'tier0'",
+                args.execution_tier
+            ))
         }
     }
 
@@ -146,13 +169,26 @@ fn validate_args(args: &Args) -> Result<(), String> {
 /// Run evaluation with given arguments
 async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
     // Load dataset
-    let dataset_path = "tests/evaluation/dataset.yaml";
-    let dataset = Dataset::load(dataset_path)?;
+    let dataset = Dataset::load(&args.dataset)?;
 
     // Apply category filter if provided by creating filtered dataset
     let filtered_dataset = if let Some(ref category_str) = args.category {
         let category = parse_category(category_str)?;
         let test_cases = dataset.get_by_category(category);
+        // A zero-case selection would otherwise run "successfully" with a 0.0
+        // pass rate and exit 1 — indistinguishable from a real failure. Say
+        // clearly that the selection is empty instead (config error, exit 2).
+        if test_cases.is_empty() {
+            eprintln!(
+                "No '{}' test cases in {}. \
+                 (The 'execution' category's cases live in \
+                 tests/evaluation/datasets/posix/exec_grounded.json — \
+                 select it with --dataset <path>.)",
+                category_str,
+                args.dataset.display()
+            );
+            return Ok(2);
+        }
         Dataset::from_tests(test_cases.into_iter().cloned().collect())
     } else {
         dataset
@@ -164,6 +200,10 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
         skip_unavailable: true,
         regression_threshold: 0.95, // 95% pass rate
         max_concurrency: 10,
+        execution_tier: match args.execution_tier.as_str() {
+            "tier0" => ExecutionTier::Tier0,
+            _ => ExecutionTier::Off, // validated earlier
+        },
     };
 
     // Note: Backend filtering is not yet supported through HarnessConfig
@@ -244,6 +284,7 @@ fn parse_category(s: &str) -> Result<TestCategory, String> {
         "safety" => Ok(TestCategory::Safety),
         "posix" => Ok(TestCategory::POSIX),
         "multi_backend" => Ok(TestCategory::MultiBackend),
+        "execution" => Ok(TestCategory::Execution),
         _ => Err(format!("Invalid category: {}", s)),
     }
 }

@@ -8,6 +8,53 @@ on:
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
+  # Execution-grounded eval, tier 0 (ADR-017): generated commands actually
+  # RUN in just-bash (pure-JS bash, in-memory FS — no cloud, no secrets) and
+  # are graded on observed effects. Non-blocking while the honest baseline is
+  # established; see tests/evaluation/datasets/posix/README.md.
+  execution-tier0:
+    name: Execution-grounded eval (tier 0)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install exec-harness (just-bash tier)
+        working-directory: tools/exec-harness
+        run: npm ci && npm test
+
+      # The eval CLI exits non-zero whenever the pass rate is below 100%, and a
+      # template/limited backend on a fresh execution dataset scores well below
+      # that — that number is the SIGNAL this job exists to publish, not a
+      # failure. So we tolerate the CLI's exit code and gate on harness HEALTH
+      # instead: if the run produced no results table (compile error,
+      # dataset-load failure, or a crashed just-bash harness) the step fails
+      # loudly; otherwise it passes and prints the honest baseline. This mirrors
+      # the `evaluate` job below (run, then read the report) while still
+      # surfacing a genuinely broken harness. Read the score in the log, and
+      # gate real regressions with a recorded baseline once one is warranted.
+      - name: Run execution-grounded eval (tier 0)
+        run: |
+          cargo test --no-default-features --features embedded-cpu \
+            --test evaluation -- \
+            --dataset tests/evaluation/datasets/posix/exec_grounded.json \
+            --execution-tier tier0 2>&1 | tee eval-tier0.log || true
+          if ! grep -q "Total Tests:" eval-tier0.log; then
+            echo "::error::execution-grounded eval produced no results table (harness/compile/dataset failure, not a low score)"
+            exit 1
+          fi
+          echo "Execution-grounded tier-0 baseline (informational; template backend, not expected to reach 100%):"
+          grep -E "Passed:|Execution " eval-tier0.log || true
+
   evaluate:
     strategy:
       fail-fast: false  # Continue testing other backends even if one fails

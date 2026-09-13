@@ -1,0 +1,81 @@
+# Nightly structural QA of caro.sh via Cloudflare Browser Run (Kitesurf).
+#
+# DORMANT until CARO_CF_ACCOUNT_ID / CARO_CF_API_TOKEN repo secrets exist
+# (human-created per decision D5) — without them the job skips green.
+# Non-blocking while Kitesurf is beta (ADR-017: beta services never gate
+# merges). BROWSER_MODE=chromium on manual dispatch uses the same endpoint
+# with real Chromium (paid) as the fallback engine.
+name: Website QA (Kitesurf)
+
+on:
+  schedule:
+    - cron: "43 4 * * *" # 04:43 UTC nightly, after the site's daily deploys
+  workflow_dispatch:
+    inputs:
+      browser_mode:
+        description: "Browser engine (kitesurf = free beta, chromium = paid fallback)"
+        type: choice
+        default: kitesurf
+        options: [kitesurf, chromium]
+      base_url:
+        description: "Base URL to test"
+        default: "https://caro.sh"
+
+permissions:
+  contents: read
+
+jobs:
+  structural-qa:
+    name: Structural QA via Browser Run
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 30
+    steps:
+      - name: Gate on secrets
+        id: gate
+        env:
+          CF_ACCOUNT: ${{ secrets.CARO_CF_ACCOUNT_ID }}
+          CF_TOKEN: ${{ secrets.CARO_CF_API_TOKEN }}
+        run: |
+          if [ -n "$CF_ACCOUNT" ] && [ -n "$CF_TOKEN" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Kitesurf QA dormant: CARO_CF_ACCOUNT_ID / CARO_CF_API_TOKEN secrets not set (see website/e2e/README.md)"
+          fi
+
+      - name: Checkout
+        if: steps.gate.outputs.enabled == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: steps.gate.outputs.enabled == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install e2e deps
+        if: steps.gate.outputs.enabled == 'true'
+        working-directory: website/e2e
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1" # remote CDP browser — nothing local needed
+        run: npm ci
+
+      - name: Run structural QA
+        if: steps.gate.outputs.enabled == 'true'
+        working-directory: website/e2e
+        env:
+          CARO_CF_ACCOUNT_ID: ${{ secrets.CARO_CF_ACCOUNT_ID }}
+          CARO_CF_API_TOKEN: ${{ secrets.CARO_CF_API_TOKEN }}
+          BROWSER_MODE: ${{ inputs.browser_mode || 'kitesurf' }}
+          CARO_QA_BASE_URL: ${{ inputs.base_url || 'https://caro.sh' }}
+        run: npm test
+
+      - name: Upload results
+        if: steps.gate.outputs.enabled == 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-qa-${{ github.run_id }}
+          path: website/e2e/test-results/
+          if-no-files-found: ignore
+          retention-days: 30
