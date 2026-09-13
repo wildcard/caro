@@ -40,11 +40,12 @@ use crate::evaluation::{ErrorType, EvaluationResult, TestCase, TestCategory, Tie
 const EXEC_TIMEOUT_MS: u64 = 3_000;
 
 /// How long the evaluator waits for a single response line before deciding the
-/// runner has hung. Generously above the harness's own belt-and-suspenders
-/// bound (`timeout_ms + 1000`), so only a genuinely stuck runner trips it —
-/// at which point the case SKIPs and the runner is poisoned, rather than the
-/// whole evaluation blocking forever.
-const READ_TIMEOUT: Duration = Duration::from_millis(EXEC_TIMEOUT_MS + 5_000);
+/// runner has hung. Sits above the harness's own belt-and-suspenders bound
+/// (`timeout_ms + 1000` = 4000ms, after which it always writes a response) with
+/// ~500ms of margin, yet stays under the `Evaluator` trait's 5-second contract:
+/// a genuinely stuck runner trips it, the case SKIPs, and the runner is
+/// poisoned — the evaluation never blocks past the contract.
+const READ_TIMEOUT: Duration = Duration::from_millis(EXEC_TIMEOUT_MS + 1_500);
 
 /// Which execution tier backs `TestCategory::Execution` cases.
 ///

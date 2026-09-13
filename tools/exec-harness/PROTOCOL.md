@@ -90,11 +90,16 @@ Callers should ping once at startup and treat a failed handshake as
   so an evaluator fails it. Only cases a maintainer has pre-labeled as a known
   engine gap are skipped, and that decision is made from the dataset's `tier0`
   label, never from this flag.
-- `timed_out: true`: the command reached its budget — the engine surfaced
-  `exit_code: 124`, or the wall clock reached `timeout_ms`. A timed-out run
-  still returns `ok: true` (it is a command outcome, not a harness failure)
-  with a best-effort/empty `fs_diff` and `files`, so a post-deadline snapshot
-  failure is never misreported as `ok: false`.
+- `timed_out: true`: the deadline mechanism fired — the sandbox `timeout`
+  wrapper (tier 1) or the engine / outer race timer (tier 0) surfaced
+  `exit_code: 124`. It is derived from exit 124 alone, never from transport or
+  wall-clock latency (which would misclassify a slow-but-complete command). A
+  timed-out run still returns `ok: true` (it is a command outcome, not a
+  harness failure) with a best-effort/empty `fs_diff` and `files`, so a
+  post-deadline snapshot failure is never misreported as `ok: false`. Caveat: a
+  command that *itself* exits 124 is indistinguishable from a timeout and is
+  reported `timed_out: true` — a rare, documented limitation, so read 124 as
+  "deadline or a self-exit-124", not as proof of a hang.
 - `fs_diff`: file paths created/removed/modified relative to the pre-execution
   snapshot, sorted. Tier 0 covers the whole in-memory filesystem minus engine
   pseudo-files (`/bin`, `/usr`, `/proc`, `/dev`); **tier 1 scopes `fs_diff` to

@@ -84,7 +84,9 @@ function diffSnapshots(before, after) {
 // exact path string the caller asked for. Missing/unreadable files are omitted
 // so the caller can distinguish "absent" from "present but wrong".
 async function readBackFiles(bash, paths) {
-  const files = {};
+  // Null-prototype map so a requested filename like `__proto__` is recorded
+  // as its own key rather than colliding with Object.prototype.
+  const files = Object.create(null);
   for (const raw of paths ?? []) {
     try {
       files[String(raw)] = truncate(await bash.readFile(resolvePath(raw)), STDOUT_CAP);
@@ -139,10 +141,11 @@ async function handleExec(request) {
   }
 
   const durationMs = Math.round(performance.now() - started);
-  // A command that hit the deadline — the engine surfaces exit 124, or the
-  // wall clock reached the budget — is reported as a timeout so consumers can
-  // rely on `timed_out` (see PROTOCOL.md).
-  const timedOut = result.exitCode === 124 || durationMs >= timeoutMs;
+  // The deadline signal is exit 124: the outer race timer and engine-abort
+  // paths above both set it, so a genuine timeout is caught without using
+  // wall-clock elapsed time (which would misclassify a slow-but-complete
+  // command). See PROTOCOL.md.
+  const timedOut = result.exitCode === 124;
 
   // Only snapshot / read files when the command actually completed: a timed-out
   // run may have left the engine mid-operation, and a post-timeout snapshot

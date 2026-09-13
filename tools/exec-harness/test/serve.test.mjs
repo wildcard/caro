@@ -23,6 +23,11 @@ let childExited = false;
 const waiters = []; // { resolve, reject }
 const responses = []; // buffered lines received with no waiter queued
 
+// Capture the exit promise at startup: `events.once` does not replay an
+// already-emitted event, so awaiting it only at the end would hang forever in
+// exactly the crash cases this watchdog exists to catch.
+const exitPromise = once(child, "exit").catch(() => {});
+
 child.on("exit", (code) => {
   childExited = true;
   while (waiters.length) {
@@ -192,7 +197,9 @@ await check("a runaway command returns a well-formed response, never hangs", asy
 });
 
 child.stdin.end();
-await once(child, "exit");
+// Terminate within a bounded window whether the child exits cleanly, already
+// exited, or hangs — the failure (if any) is already recorded above.
+await Promise.race([exitPromise, new Promise((r) => setTimeout(r, 3_000))]);
 
 if (failures > 0) {
   console.error(`\n${failures} test(s) failed`);

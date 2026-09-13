@@ -25,10 +25,9 @@ coreutils `timeout`. No repo secrets are ever mounted into containers.
 2. **Human**: add GitHub repo secrets `CARO_CF_ACCOUNT_ID`,
    `CARO_CF_API_TOKEN` (used by nightly workflows), and keep a personal copy
    for local wrangler.
-3. `cd tools/exec-harness/worker && npm install && npm run typecheck`
-   (`npm install`, not `npm ci`: the lockfile is intentionally gitignored —
-   see `.gitignore` — so this regenerates it from the exact-pinned
-   `package.json`).
+3. `cd tools/exec-harness/worker && npm ci && npm run typecheck` (the committed
+   `package-lock.json` pins the full transitive tree so Dependency Review can
+   audit it before activation).
 4. Verify the container base image tag in `Dockerfile` matches the
    `@cloudflare/sandbox` version in `package.json` (SDK and image must be in
    lockstep — check the [sandbox-sdk docs](https://developers.cloudflare.com/sandbox/)).

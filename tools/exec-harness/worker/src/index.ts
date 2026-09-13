@@ -47,6 +47,10 @@ const STDERR_CAP = 16 * 1024;
 
 const shellQuote = (s: string): string => `'${s.replaceAll("'", `'\\''`)}'`;
 
+// A shell-identifier env key. Anything else could break out of the `export`
+// and run outside the `timeout` wrapper, so it is rejected up front.
+const ENV_KEY_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
 function truncate(s: string, cap: number): string {
   return s.length > cap ? `${s.slice(0, cap)}\n…[truncated]` : s;
 }
@@ -102,12 +106,17 @@ async function timedExec(
   timeoutMs: number,
   env: Record<string, string> = {},
 ) {
-  const seconds = Math.max(1, Math.ceil(timeoutMs / 1000));
+  // coreutils `timeout` accepts fractional seconds — honor sub-second budgets
+  // rather than rounding a request up into a false "completed" window.
+  const seconds = Math.max(0.1, timeoutMs / 1000);
+  // Apply the requested env INSIDE the command shell only. Keeping it out of
+  // the outer shell means a caller-set PATH can't break resolution of
+  // `timeout` itself; keys are validated by the caller (ENV_KEY_RE).
   const exports = Object.entries(env)
-    .map(([k, v]) => `export ${k}=${shellQuote(String(v))};`)
-    .join(" ");
+    .map(([k, v]) => `export ${k}=${shellQuote(String(v))}; `)
+    .join("");
   return sandbox.exec(
-    `cd ${WORKSPACE} 2>/dev/null; ${exports} timeout ${seconds}s sh -c ${shellQuote(command)}`,
+    `cd ${WORKSPACE} 2>/dev/null; timeout ${seconds}s sh -c ${shellQuote(exports + command)}`,
   );
 }
 
@@ -157,7 +166,8 @@ async function readBackFiles(
   sandbox: Sandbox,
   paths: string[] | undefined,
 ): Promise<Record<string, string>> {
-  const files: Record<string, string> = {};
+  // Null-prototype map so a requested filename like `__proto__` is its own key.
+  const files: Record<string, string> = Object.create(null);
   for (const raw of Array.isArray(paths) ? paths : []) {
     try {
       const res = await sandbox.readFile(resolvePath(String(raw)));
@@ -174,18 +184,27 @@ async function handleExec(env: Env, body: ExecRequestBody): Promise<Response> {
   if (typeof body.id !== "string" || typeof body.command !== "string") {
     return json({ id: body.id ?? null, ok: false, error: "id and command are required" }, 400);
   }
+  const requestEnv = body.env ?? {};
+  for (const key of Object.keys(requestEnv)) {
+    if (!ENV_KEY_RE.test(key)) {
+      return json({ id: body.id, ok: false, error: "invalid environment variable name" }, 400);
+    }
+  }
   const timeoutMs = clampTimeout(body.timeout_ms);
   const sandbox = getSandbox(env.Sandbox, `exec-${crypto.randomUUID()}`);
   try {
     await seedFixtures(sandbox, body.fixture_files ?? {});
     const before = await snapshot(sandbox);
     const started = Date.now();
-    const result = await timedExec(sandbox, body.command, timeoutMs, body.env ?? {});
+    const result = await timedExec(sandbox, body.command, timeoutMs, requestEnv);
     const durationMs = Date.now() - started;
-    const timedOut = result.exitCode === 124 || durationMs >= timeoutMs;
+    // The deadline signal is coreutils `timeout` returning 124 — never
+    // transport latency, which would misclassify a fast command on a
+    // sub-second budget as timed out.
+    const timedOut = result.exitCode === 124;
 
     let fs_diff = { created: [] as string[], removed: [] as string[], modified: [] as string[] };
-    let files: Record<string, string> = {};
+    let files: Record<string, string> = Object.create(null);
     if (!timedOut) {
       const after = await snapshot(sandbox);
       fs_diff = diffSnapshots(before, after);
@@ -233,9 +252,14 @@ async function handleDetonate(env: Env, body: DetonateRequestBody): Promise<Resp
     const started = Date.now();
     const result = await timedExec(sandbox, body.command, timeoutMs);
     const durationMs = Date.now() - started;
-    const timedOut = result.exitCode === 124 || durationMs >= timeoutMs;
-    const after = timedOut ? before : await snapshot(sandbox);
+    // Always snapshot after a detonation: the whole point is to measure what a
+    // destructive command destroyed, even (especially) when it timed out
+    // mid-destruction. A snapshot failure surfaces via the outer catch as an
+    // infrastructure failure, which the red-team suite counts as such — far
+    // better than silently reporting an empty blast radius.
+    const after = await snapshot(sandbox);
     const diff = diffSnapshots(before, after);
+    const timedOut = result.exitCode === 124;
 
     // Did the userland itself survive? (e.g. rm -rf /, dd onto a device)
     const probe = await sandbox.exec(

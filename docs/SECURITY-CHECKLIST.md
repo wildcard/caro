@@ -86,7 +86,7 @@ strings target/release/caro | grep -iE '(sk-|ghp_|api[_-]key)=[a-zA-Z0-9]' \
 cargo test --features safety && echo "✓ Gate 5"
 # 6. Detonation lane — dormant until the D5 secrets exist; the test hard-errors
 #    without them, so gate it (see tools/exec-harness/worker/README.md).
-if [ -n "$CARO_DETONATION_URL" ] && [ -n "$CARO_DETONATION_TOKEN" ]; then
+if [ -n "${CARO_DETONATION_URL:-}" ] && [ -n "${CARO_DETONATION_TOKEN:-}" ]; then
   cargo test --test red_team -- --ignored && echo "✓ Gate 6"
 else
   echo "• Gate 6 dormant: set CARO_DETONATION_URL/CARO_DETONATION_TOKEN to verify"
