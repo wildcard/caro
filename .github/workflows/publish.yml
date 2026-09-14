@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # On tag push inputs.tag is empty and github.ref is the tag;
           # on dispatch we check out the input tag explicitly.
