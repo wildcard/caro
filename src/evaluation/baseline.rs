@@ -336,6 +336,10 @@ mod tests {
                 cost_per_passed_task: 0.0,
                 total_tokens_in: 0,
                 total_tokens_out: 0,
+                brier: None,
+                ece: None,
+                p50_execution_time_ms: 100,
+                p95_execution_time_ms: 100,
             },
         );
 

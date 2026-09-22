@@ -24,6 +24,13 @@ pub struct CommandResult {
 
     /// Backend that generated this result
     pub backend_name: String,
+
+    /// Backend-reported confidence in the generated command (`0.0..=1.0`),
+    /// `None` when generation failed or the backend reported nothing.
+    ///
+    /// Carried through to [`EvaluationResult::confidence`] so the harness can
+    /// score calibration (Brier / ECE) — see [`crate::evaluation::calibration`].
+    pub confidence: Option<f64>,
 }
 
 impl CommandResult {
@@ -35,6 +42,7 @@ impl CommandResult {
             error: None,
             execution_time_ms,
             backend_name,
+            confidence: None,
         }
     }
 
@@ -46,6 +54,7 @@ impl CommandResult {
             error: None,
             execution_time_ms,
             backend_name,
+            confidence: None,
         }
     }
 
@@ -57,6 +66,7 @@ impl CommandResult {
             error: Some(error),
             execution_time_ms,
             backend_name,
+            confidence: None,
         }
     }
 }

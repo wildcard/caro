@@ -193,6 +193,15 @@ pub struct EvaluationResult {
     /// Total rubric criteria evaluated for this case (0 = single-criterion).
     #[serde(default)]
     pub criteria_total: u32,
+
+    /// Backend-reported confidence for this generation (`0.0..=1.0`).
+    ///
+    /// `None` when the backend reported nothing or generation failed. Joined
+    /// with `passed` by [`crate::evaluation::calibration`] to compute Brier
+    /// score and ECE per backend. `serde(default)` keeps older baseline JSON
+    /// loadable.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub confidence: Option<f64>,
 }
 
 impl EvaluationResult {
@@ -324,6 +333,28 @@ pub struct BackendResult {
     /// Total estimated output tokens across all tests for this backend.
     #[serde(default)]
     pub total_tokens_out: u64,
+
+    /// Brier score over results that reported a confidence (lower is better,
+    /// 0.0 = perfectly calibrated and always right). `None` when no result
+    /// carried a confidence. See [`crate::evaluation::calibration`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub brier: Option<f32>,
+
+    /// Expected Calibration Error over results that reported a confidence
+    /// (lower is better). A backend that always reports a constant confidence
+    /// `c` has `ECE == |c - pass_rate|`, which is how hardcoded confidence
+    /// constants show up in the report.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ece: Option<f32>,
+
+    /// Median per-test generation time (milliseconds).
+    #[serde(default)]
+    pub p50_execution_time_ms: u64,
+
+    /// 95th-percentile per-test generation time (milliseconds). The tail is
+    /// what a user feels; the mean hides it.
+    #[serde(default)]
+    pub p95_execution_time_ms: u64,
 }
 
 /// Aggregated results from a complete evaluation run
@@ -677,6 +708,7 @@ mod tests {
             est_cost_usd: 0.0,
             criteria_passed,
             criteria_total,
+            confidence: None,
         }
     }
 

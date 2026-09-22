@@ -1,0 +1,313 @@
+//! Typed decision primitives — "decisions, not text".
+//!
+//! Borrowed from TypeSafe AI's System One framing (Jev): most steps in an
+//! automation pipeline are not free-text generation but bounded decisions
+//! that deserve a *probability*, not a paragraph. Jev exposes three
+//! primitives; caro adopts the same vocabulary for its gates:
+//!
+//! | Primitive | Question shape | caro gate |
+//! |---|---|---|
+//! | [`Noul`] | yes / no with `p(yes)` | "needs clarification?", "platform fix needed?" |
+//! | [`Choice`] | one of N labels with a distribution | risk level, intent category |
+//! | [`Score`] | a value on a declared scale with confidence | candidate ranking |
+//!
+//! Two invariants, unchanged from `crate::safety::blend_smart_decision`:
+//!
+//! 1. A decision is **advisory above the deterministic safety floor**. It can
+//!    never relax a static `Critical` match.
+//! 2. A decision that fails to parse or whose confidence sits below a gate's
+//!    floor is `None` — the caller falls back to its default path.
+//!
+//! Parsing is deliberately strict about *types* (an unknown label is a
+//! parse failure, not a guess) and lenient about *packaging* (surrounding
+//! prose is tolerated). That is the local, no-training equivalent of Jev's
+//! "never makes type errors" guarantee. See
+//! `docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md`.
+
+use std::fmt::Debug;
+use std::str::FromStr;
+
+/// A yes/no decision with a calibrated probability of "yes".
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Noul {
+    /// Probability of "yes", clamped to `0.0..=1.0`.
+    pub p_yes: f64,
+}
+
+impl Noul {
+    /// Build a Noul, clamping into range (NaN → 0.0, the fail-safe "no").
+    pub fn new(p_yes: f64) -> Self {
+        let p = if p_yes.is_nan() { 0.0 } else { p_yes };
+        Self {
+            p_yes: p.clamp(0.0, 1.0),
+        }
+    }
+
+    /// Whether "yes" is the more likely answer.
+    pub fn is_yes(&self) -> bool {
+        self.p_yes >= 0.5
+    }
+
+    /// Confidence in the majority answer: `max(p, 1 − p)`.
+    pub fn confidence(&self) -> f64 {
+        self.p_yes.max(1.0 - self.p_yes)
+    }
+}
+
+/// A choice among a bounded set of labels, as a normalised distribution.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Choice<T> {
+    /// `(label, probability)` pairs; probabilities sum to 1.0 (or all 0.0
+    /// when the input had no mass, in which case [`Choice::argmax`] is `None`).
+    pub dist: Vec<(T, f64)>,
+}
+
+impl<T: Clone + PartialEq> Choice<T> {
+    /// Build a distribution from raw non-negative weights, normalising to 1.
+    /// Negative or NaN weights are treated as 0.
+    pub fn from_weights(pairs: Vec<(T, f64)>) -> Self {
+        let cleaned: Vec<(T, f64)> = pairs
+            .into_iter()
+            .map(|(t, w)| (t, if w.is_nan() || w < 0.0 { 0.0 } else { w }))
+            .collect();
+        let total: f64 = cleaned.iter().map(|(_, w)| w).sum();
+        let dist = if total > 0.0 {
+            cleaned.into_iter().map(|(t, w)| (t, w / total)).collect()
+        } else {
+            cleaned
+        };
+        Self { dist }
+    }
+
+    /// A degenerate distribution: `label` with `confidence`, the remaining
+    /// mass spread evenly over the other `allowed` labels. This is the
+    /// "discrete" answer mode of the System One adapter.
+    pub fn discrete(label: T, confidence: f64, allowed: &[T]) -> Self {
+        let c = if confidence.is_nan() {
+            0.0
+        } else {
+            confidence.clamp(0.0, 1.0)
+        };
+        let others: Vec<&T> = allowed.iter().filter(|a| **a != label).collect();
+        let mut pairs = vec![(label, c)];
+        if !others.is_empty() {
+            let share = (1.0 - c) / others.len() as f64;
+            pairs.extend(others.into_iter().map(|o| (o.clone(), share)));
+        }
+        Self::from_weights(pairs)
+    }
+
+    /// The most probable label and its probability. Ties resolve to the
+    /// first label in `dist` order, so callers should list labels in
+    /// fail-safe order (e.g. highest risk first) when that matters.
+    pub fn argmax(&self) -> Option<(&T, f64)> {
+        let mut best: Option<(&T, f64)> = None;
+        for (t, p) in &self.dist {
+            match best {
+                Some((_, bp)) if *p <= bp => {}
+                _ if *p > 0.0 => best = Some((t, *p)),
+                _ => {}
+            }
+        }
+        best
+    }
+
+    /// Probability of the argmax label; `0.0` for an empty distribution.
+    pub fn confidence(&self) -> f64 {
+        self.argmax().map(|(_, p)| p).unwrap_or(0.0)
+    }
+}
+
+/// A rating on a declared scale, with a separate confidence in that rating.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Score {
+    /// The rated value (on whatever scale the caller declared).
+    pub value: f64,
+    /// Confidence in `value`, clamped to `0.0..=1.0`.
+    pub confidence: f64,
+}
+
+impl Score {
+    /// Build a Score, clamping confidence (NaN → 0.0).
+    pub fn new(value: f64, confidence: f64) -> Self {
+        let c = if confidence.is_nan() {
+            0.0
+        } else {
+            confidence.clamp(0.0, 1.0)
+        };
+        Self {
+            value,
+            confidence: c,
+        }
+    }
+}
+
+/// Extract the first balanced-looking `{...}` JSON object from arbitrary
+/// model output. Lenient about packaging: prose before/after is ignored.
+pub fn extract_json_object(raw: &str) -> Option<String> {
+    let start = raw.find('{')?;
+    let end = raw.rfind('}')?;
+    (end > start).then(|| raw[start..=end].to_string())
+}
+
+/// Parse a [`Choice`] from model output.
+///
+/// Accepts both answer modes of the System One adapter:
+///
+/// - discrete: `{"<key>": "<label>", "confidence": 0.9}` — `key` is the
+///   caller's field name (e.g. `"risk"`), and a missing confidence is `0.0`
+///   (→ ignored by any floor), never a guess;
+/// - probabilities: `{"probabilities": {"<label>": p, ...}}` — normalised.
+///
+/// Returns `None` on any *type* error: unparsable JSON, a label outside
+/// `allowed`, a non-string label, or a probability that is not a number.
+pub fn parse_choice_json<T>(raw: &str, key: &str, allowed: &[T]) -> Option<Choice<T>>
+where
+    T: FromStr + Clone + PartialEq + Debug,
+{
+    let json = extract_json_object(raw)?;
+    let value: serde_json::Value = serde_json::from_str(&json).ok()?;
+
+    if let Some(probs) = value.get("probabilities") {
+        let map = probs.as_object()?;
+        let mut pairs = Vec::with_capacity(map.len());
+        for (label, p) in map {
+            let t = parse_label(label, allowed)?;
+            let p = p.as_f64()?;
+            pairs.push((t, p));
+        }
+        let choice = Choice::from_weights(pairs);
+        return choice.argmax().is_some().then_some(choice);
+    }
+
+    let label = value.get(key)?.as_str()?;
+    let t = parse_label(label, allowed)?;
+    let confidence = value
+        .get("confidence")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0);
+    Some(Choice::discrete(t, confidence, allowed))
+}
+
+/// Parse a label case-insensitively and require it to be in `allowed`.
+fn parse_label<T>(s: &str, allowed: &[T]) -> Option<T>
+where
+    T: FromStr + Clone + PartialEq,
+{
+    let t = T::from_str(s.trim().to_lowercase().as_str()).ok()?;
+    allowed.contains(&t).then_some(t)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    enum Lvl {
+        Low,
+        High,
+    }
+    impl FromStr for Lvl {
+        type Err = ();
+        fn from_str(s: &str) -> Result<Self, ()> {
+            match s {
+                "low" => Ok(Lvl::Low),
+                "high" => Ok(Lvl::High),
+                _ => Err(()),
+            }
+        }
+    }
+    const ALL: [Lvl; 2] = [Lvl::High, Lvl::Low];
+
+    #[test]
+    fn noul_clamps_and_reports() {
+        assert_eq!(Noul::new(1.7).p_yes, 1.0);
+        assert_eq!(Noul::new(-0.2).p_yes, 0.0);
+        assert_eq!(Noul::new(f64::NAN).p_yes, 0.0);
+        let n = Noul::new(0.3);
+        assert!(!n.is_yes());
+        assert!((n.confidence() - 0.7).abs() < 1e-12);
+    }
+
+    #[test]
+    fn choice_normalises_weights() {
+        let c = Choice::from_weights(vec![(Lvl::High, 3.0), (Lvl::Low, 1.0)]);
+        assert!((c.dist[0].1 - 0.75).abs() < 1e-12);
+        assert_eq!(c.argmax(), Some((&Lvl::High, 0.75)));
+        assert!((c.confidence() - 0.75).abs() < 1e-12);
+    }
+
+    #[test]
+    fn choice_zero_mass_has_no_argmax() {
+        let c = Choice::from_weights(vec![(Lvl::High, 0.0), (Lvl::Low, -1.0)]);
+        assert_eq!(c.argmax(), None);
+        assert_eq!(c.confidence(), 0.0);
+    }
+
+    #[test]
+    fn choice_ties_resolve_to_first_label() {
+        let c = Choice::from_weights(vec![(Lvl::High, 1.0), (Lvl::Low, 1.0)]);
+        assert_eq!(c.argmax().unwrap().0, &Lvl::High);
+    }
+
+    #[test]
+    fn discrete_spreads_remaining_mass() {
+        let c = Choice::discrete(Lvl::Low, 0.8, &ALL);
+        assert_eq!(c.argmax(), Some((&Lvl::Low, 0.8)));
+        let high = c.dist.iter().find(|(t, _)| *t == Lvl::High).unwrap().1;
+        assert!((high - 0.2).abs() < 1e-12);
+    }
+
+    #[test]
+    fn score_clamps_confidence_only() {
+        let s = Score::new(42.0, 9.0);
+        assert_eq!(s.value, 42.0);
+        assert_eq!(s.confidence, 1.0);
+    }
+
+    #[test]
+    fn parses_discrete_mode_with_prose() {
+        let c = parse_choice_json::<Lvl>(
+            r#"verdict: {"risk": "HIGH", "confidence": 0.9} ok"#,
+            "risk",
+            &ALL,
+        )
+        .unwrap();
+        assert_eq!(c.argmax(), Some((&Lvl::High, 0.9)));
+    }
+
+    #[test]
+    fn discrete_mode_missing_confidence_is_zero() {
+        let c = parse_choice_json::<Lvl>(r#"{"risk": "low"}"#, "risk", &ALL).unwrap();
+        // With zero confidence the mass moves entirely to the other label,
+        // so the reported label is *not* the argmax — the caller's floor
+        // (confidence == 0.0) is what protects it. Check the raw entry.
+        let low = c.dist.iter().find(|(t, _)| *t == Lvl::Low).unwrap().1;
+        assert_eq!(low, 0.0);
+        assert_eq!(c.argmax(), Some((&Lvl::High, 1.0)));
+    }
+
+    #[test]
+    fn parses_probabilities_mode() {
+        let c =
+            parse_choice_json::<Lvl>(r#"{"probabilities": {"low": 1, "high": 3}}"#, "risk", &ALL)
+                .unwrap();
+        assert_eq!(c.argmax(), Some((&Lvl::High, 0.75)));
+    }
+
+    #[test]
+    fn type_errors_return_none() {
+        assert!(parse_choice_json::<Lvl>("not json", "risk", &ALL).is_none());
+        assert!(parse_choice_json::<Lvl>(r#"{"risk": "bogus"}"#, "risk", &ALL).is_none());
+        assert!(parse_choice_json::<Lvl>(r#"{"risk": 3}"#, "risk", &ALL).is_none());
+        assert!(
+            parse_choice_json::<Lvl>(r#"{"probabilities": {"low": "x"}}"#, "risk", &ALL).is_none()
+        );
+        assert!(
+            parse_choice_json::<Lvl>(r#"{"probabilities": {"nope": 1}}"#, "risk", &ALL).is_none()
+        );
+        assert!(
+            parse_choice_json::<Lvl>(r#"{"probabilities": {"low": 0}}"#, "risk", &ALL).is_none()
+        );
+    }
+}

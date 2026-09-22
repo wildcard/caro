@@ -126,9 +126,30 @@ None identified. All operations exceed performance requirements.
 
 4. Check CI report on PR for regression analysis
 
+## Decision Latency & Calibration (eval harness)
+
+Every `BackendResult` in the evaluation harness (`src/evaluation/`) now carries
+four fields borrowed from the "System One" framing (see
+`docs/research/jev-system-one-gap-analysis.md` and ADR-017):
+
+| Field | Meaning |
+|-------|---------|
+| `p50_execution_time_ms` | median per-test generation time |
+| `p95_execution_time_ms` | tail latency — what a user actually feels |
+| `brier` | mean squared error between reported confidence and pass/fail (lower is better; `None` = backend reports no confidence) |
+| `ece` | expected calibration error over 10 confidence buckets (lower is better) |
+
+A backend that reports a constant confidence `c` shows `ece == |c − pass_rate|`.
+That is the signature of a hardcoded confidence, and today every backend has
+one (static 1.0, embedded 0.85, ollama 0.8, …). Treat a non-trivial ECE on a
+backend as a bug in its confidence reporting, not in the model.
+
+Jev's published decision-latency band is 70–500 ms end-to-end; use it as the
+budget reference when comparing `p95_execution_time_ms` across backends.
+
 ## Future Work
 
 - Add memory allocation tracking (alloc-benchmarks crate)
 - Profile real-world workloads (not just microbenchmarks)
-- Benchmark MLX inference latency
+- Benchmark MLX inference latency (the harness now records p50/p95 per backend; publish numbers here)
 - Benchmark safety pattern matching performance

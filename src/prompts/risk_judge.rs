@@ -6,6 +6,7 @@
 //! [`crate::safety::blend_smart_decision`], which never lets it relax a
 //! `Critical` static match.
 
+use crate::decision::{extract_json_object, parse_choice_json, Choice};
 use crate::models::{RiskJudgeContext, RiskJudgment, RiskLevel};
 
 /// Build the judge prompt. Asks for a strict JSON verdict and instructs the
@@ -58,50 +59,51 @@ Command:
 /// Parse a judge verdict from raw model output. Tolerates surrounding prose by
 /// extracting the first `{...}` object. Returns `None` on any parse failure so
 /// the caller fails safe to the static decision.
+///
+/// The verdict is a typed [`Choice`] over [`RiskLevel`] (see
+/// [`crate::decision`]): an unknown label is a type error, never a guess, and
+/// a missing confidence is `0.0` (→ ignored by the smart-approval floor).
 pub fn parse_risk_judgment(raw: &str) -> Option<RiskJudgment> {
+    const LEVELS: [RiskLevel; 4] = [
+        RiskLevel::Critical,
+        RiskLevel::High,
+        RiskLevel::Moderate,
+        RiskLevel::Safe,
+    ];
+    let choice: Choice<RiskLevel> = parse_choice_json(raw, "risk", &LEVELS)?;
+
+    // The judge's own label is authoritative (the discrete answer mode); the
+    // distribution only carries its confidence. Fall back to argmax when the
+    // model answered in probabilities mode instead.
     let json = extract_json_object(raw)?;
     let value: serde_json::Value = serde_json::from_str(&json).ok()?;
-
-    let risk = parse_risk_level(value.get("risk")?.as_str()?)?;
+    let (risk, confidence) = match value.get("risk").and_then(|v| v.as_str()) {
+        Some(label) => {
+            let risk: RiskLevel = label.parse().ok()?;
+            let confidence = value
+                .get("confidence")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.0)
+                .clamp(0.0, 1.0);
+            (risk, confidence)
+        }
+        None => {
+            let (risk, p) = choice.argmax()?;
+            (*risk, p)
+        }
+    };
     let reason = value
         .get("reason")
         .and_then(|v| v.as_str())
         .unwrap_or("")
         .trim()
         .to_string();
-    // Default to a low confidence (→ ignored) if the field is missing/garbled.
-    let confidence = value
-        .get("confidence")
-        .and_then(|v| v.as_f64())
-        .unwrap_or(0.0)
-        .clamp(0.0, 1.0);
 
     Some(RiskJudgment {
         risk,
         reason,
         confidence,
     })
-}
-
-fn parse_risk_level(s: &str) -> Option<RiskLevel> {
-    match s.trim().to_lowercase().as_str() {
-        "safe" => Some(RiskLevel::Safe),
-        "moderate" => Some(RiskLevel::Moderate),
-        "high" => Some(RiskLevel::High),
-        "critical" => Some(RiskLevel::Critical),
-        _ => None,
-    }
-}
-
-/// Extract the first balanced `{...}` JSON object from arbitrary text.
-fn extract_json_object(raw: &str) -> Option<String> {
-    let start = raw.find('{')?;
-    let end = raw.rfind('}')?;
-    if end > start {
-        Some(raw[start..=end].to_string())
-    } else {
-        None
-    }
 }
 
 #[cfg(test)]
@@ -147,6 +149,17 @@ mod tests {
     fn missing_confidence_defaults_to_ignored() {
         let j = parse_risk_judgment(r#"{"risk":"moderate","reason":"x"}"#).unwrap();
         assert_eq!(j.confidence, 0.0);
+    }
+
+    #[test]
+    fn parses_probabilities_mode_via_argmax() {
+        let j = parse_risk_judgment(
+            r#"{"probabilities": {"safe": 0.1, "moderate": 0.2, "high": 0.7}, "reason": "rm"}"#,
+        )
+        .unwrap();
+        assert_eq!(j.risk, RiskLevel::High);
+        assert!((j.confidence - 0.7).abs() < 1e-9);
+        assert_eq!(j.reason, "rm");
     }
 
     #[test]

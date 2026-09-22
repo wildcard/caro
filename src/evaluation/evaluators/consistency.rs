@@ -74,6 +74,7 @@ impl ConsistencyEvaluator {
                 est_cost_usd: 0.0,
                 criteria_passed: 0,
                 criteria_total: 0,
+                confidence: None,
             });
         }
 
@@ -177,6 +178,7 @@ impl ConsistencyEvaluator {
             est_cost_usd: 0.0,
             criteria_passed: 0,
             criteria_total: 0,
+            confidence: None,
         })
     }
 
@@ -285,6 +287,7 @@ impl Evaluator for ConsistencyEvaluator {
             est_cost_usd: 0.0,
             criteria_passed: 0,
             criteria_total: 0,
+            confidence: result.confidence,
         })
     }
 }

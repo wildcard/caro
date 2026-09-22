@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Calibration and tail-latency metrics in the evaluation harness.**
+  `EvaluationResult` now records the backend's reported `confidence`, and
+  every `BackendResult` carries `brier`, `ece`, `p50_execution_time_ms` and
+  `p95_execution_time_ms` (`src/evaluation/calibration.rs`). A backend that
+  reports a constant confidence shows `ece == |constant − pass_rate|`, which
+  is how today's hardcoded confidence values become visible. Older baseline
+  JSON stays loadable (`serde(default)`).
+- **`caro::decision` typed-decision primitives** — `Noul`, `Choice<T>`,
+  `Score` and `parse_choice_json` — borrowed from TypeSafe AI's "System One"
+  framing. The `--approval smart` risk judge now parses its verdict through
+  `Choice<RiskLevel>` (behaviour unchanged; also accepts a
+  `{"probabilities": {...}}` answer). `RiskLevel` implements `FromStr`.
+
+### Documentation
+
+- `docs/research/jev-system-one-gap-analysis.md` — what caro can learn from
+  Jev / System One models and what not to copy.
+- ADR-017 — Typed Decisions and Calibrated Confidence for Pipeline Gates
+  (Proposed).
+- `docs/PERFORMANCE.md` — new "Decision Latency & Calibration" section.
+
 ## [1.5.0] - 2026-07-12
 
 ### Added
