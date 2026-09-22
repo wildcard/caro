@@ -1788,15 +1788,38 @@ impl StaticMatcher {
         patterns
     }
 
-    /// Try to match the query against known patterns
-    fn try_match(&self, query: &str) -> Option<&PatternEntry> {
+    /// Confidence assigned to a regex match: the pattern was written for
+    /// this phrasing.
+    const REGEX_MATCH_CONFIDENCE: f64 = 1.0;
+    /// Floor for a keyword-only match (all required keywords, no optional).
+    const KEYWORD_BASE_CONFIDENCE: f64 = 0.6;
+
+    /// Measured confidence for a keyword match: `0.6 + 0.4 × coverage`, where
+    /// coverage is the fraction of the pattern's optional keywords present.
+    /// A pattern with no optional keywords scores the base. This replaces the
+    /// previous constant `1.0`, which made the static matcher's ECE equal to
+    /// its error rate (ADR-017, #1461).
+    fn keyword_confidence(optional_hits: usize, optional_total: usize) -> f64 {
+        if optional_total == 0 {
+            return Self::KEYWORD_BASE_CONFIDENCE;
+        }
+        let coverage = optional_hits as f64 / optional_total as f64;
+        (Self::KEYWORD_BASE_CONFIDENCE + (1.0 - Self::KEYWORD_BASE_CONFIDENCE) * coverage)
+            .clamp(0.0, 1.0)
+    }
+
+    /// Try to match the query against known patterns.
+    ///
+    /// Returns the first matching pattern (first-match-wins, ordering rules in
+    /// the module docs) together with a measured confidence in `0.0..=1.0`.
+    fn try_match(&self, query: &str) -> Option<(&PatternEntry, f64)> {
         let query_lower = query.to_lowercase();
 
         for pattern in self.patterns.iter() {
             // Check regex pattern first (most precise)
             if let Some(ref regex) = pattern.regex_pattern {
                 if regex.is_match(&query_lower) {
-                    return Some(pattern);
+                    return Some((pattern, Self::REGEX_MATCH_CONFIDENCE));
                 }
             }
 
@@ -1807,7 +1830,7 @@ impl StaticMatcher {
                 .all(|kw| query_lower.contains(kw));
 
             if all_required {
-                // Count optional keywords for confidence boost
+                // Optional-keyword coverage is the confidence signal
                 let optional_count = pattern
                     .optional_keywords
                     .iter()
@@ -1816,7 +1839,9 @@ impl StaticMatcher {
 
                 // Require at least some optional keywords for keyword-only match
                 if optional_count > 0 || pattern.regex_pattern.is_none() {
-                    return Some(pattern);
+                    let confidence =
+                        Self::keyword_confidence(optional_count, pattern.optional_keywords.len());
+                    return Some((pattern, confidence));
                 }
             }
         }
@@ -1851,7 +1876,7 @@ impl CommandGenerator for StaticMatcher {
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
         // Try to match the query
-        if let Some(pattern) = self.try_match(&request.input) {
+        if let Some((pattern, confidence)) = self.try_match(&request.input) {
             let command = self.select_command(pattern);
 
             // ADVERSARIAL INTENT CHECK: Adversarial guard patterns generate a marker
@@ -1888,7 +1913,15 @@ impl CommandGenerator for StaticMatcher {
 
             Ok(GeneratedCommand {
                 command: command.clone(),
-                explanation: format!("Matched pattern: {}", pattern.description),
+                explanation: format!(
+                    "Matched pattern: {} ({})",
+                    pattern.description,
+                    if confidence >= Self::REGEX_MATCH_CONFIDENCE {
+                        "regex".to_string()
+                    } else {
+                        format!("keywords, confidence {:.2}", confidence)
+                    }
+                ),
                 safety_level: safety_result.risk_level, // Use actual risk level from validation
                 estimated_impact: if safety_result.warnings.is_empty() {
                     "Safe to execute".to_string()
@@ -1897,8 +1930,8 @@ impl CommandGenerator for StaticMatcher {
                 },
                 alternatives: vec![],
                 backend_used: "static-matcher".to_string(),
-                generation_time_ms: 0, // Instant - no LLM call
-                confidence_score: 1.0, // Deterministic match
+                generation_time_ms: 0,        // Instant - no LLM call
+                confidence_score: confidence, // Measured: regex 1.0, keywords 0.6..1.0
             })
         } else {
             // No match - return error so we can fall through to LLM
@@ -1934,6 +1967,42 @@ impl CommandGenerator for StaticMatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn confidence_reflects_keyword_coverage() {
+        // Regression guard for #1461: the static matcher must not report a
+        // constant confidence.
+        assert_eq!(StaticMatcher::keyword_confidence(0, 0), 0.6);
+        assert_eq!(StaticMatcher::keyword_confidence(0, 4), 0.6);
+        assert!((StaticMatcher::keyword_confidence(2, 4) - 0.8).abs() < 1e-12);
+        assert_eq!(StaticMatcher::keyword_confidence(4, 4), 1.0);
+        assert!(StaticMatcher::keyword_confidence(9, 4) <= 1.0);
+    }
+
+    #[test]
+    fn regex_match_scores_one_keyword_match_scores_less() {
+        let matcher = StaticMatcher::new(CapabilityProfile::ubuntu());
+        let (_, regex_conf) = matcher
+            .try_match("list all files")
+            .expect("regex pattern should match");
+        assert_eq!(regex_conf, 1.0);
+
+        // A keyword-only entry must score by coverage, not a constant.
+        let keyword_only = StaticMatcher {
+            patterns: Arc::new(vec![PatternEntry {
+                required_keywords: vec!["frobnicate".into()],
+                optional_keywords: vec!["quickly".into(), "safely".into()],
+                regex_pattern: None,
+                gnu_command: "true".into(),
+                bsd_command: None,
+                description: "test".into(),
+            }]),
+            profile: matcher.profile.clone(),
+            safety_validator: matcher.safety_validator.clone(),
+        };
+        let (_, kw_conf) = keyword_only.try_match("frobnicate quickly").unwrap();
+        assert!((kw_conf - 0.8).abs() < 1e-12);
+    }
     use crate::{RiskLevel, ShellType};
 
     #[tokio::test]

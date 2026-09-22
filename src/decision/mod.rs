@@ -142,6 +142,97 @@ impl Score {
     }
 }
 
+/// A clarification decision: should we ask the user a question instead of
+/// answering? (`Noul`), and if so which one.
+///
+/// Replaces two ad-hoc conventions (#1462): the embedded prompt's
+/// `QUESTION: <text>` prefix and the remote prompts'
+/// `echo 'Please clarify your request'` command. Both are mapped onto this
+/// type by [`clarification_from_raw`] so every backend surfaces the same
+/// [`crate::backends::GeneratorError::NeedsClarification`].
+#[derive(Debug, Clone, PartialEq)]
+pub struct Clarification {
+    /// Probability that a clarifying question is needed.
+    pub needed: Noul,
+    /// The question to ask, if the model supplied one.
+    pub question: Option<String>,
+}
+
+/// Gate floor: below this `p(yes)` the pipeline proceeds to generation
+/// (fail toward answering — the safety layer still gates execution).
+pub const CLARIFICATION_MIN_CONFIDENCE: f64 = 0.7;
+
+/// Confidence assigned to the legacy `QUESTION:` prefix, which is an
+/// unambiguous but unquantified signal from the model.
+const LEGACY_QUESTION_PREFIX_P: f64 = 0.9;
+
+impl Clarification {
+    /// Whether the gate should fire: needed, and above the floor.
+    pub fn should_ask(&self) -> bool {
+        self.needed.is_yes() && self.needed.p_yes >= CLARIFICATION_MIN_CONFIDENCE
+    }
+}
+
+/// Detect a clarification request in raw model output.
+///
+/// Accepts, in order:
+/// 1. the legacy `QUESTION: <text>` prefix (p = 0.9);
+/// 2. JSON with `"needs_clarification": true` and optional `"p"` (default
+///    0.9) and `"question"`;
+/// 3. the legacy `echo 'Please clarify your request'` command (p = 0.9, no
+///    question) — a backend that still emits it gets a typed decision
+///    instead of a runnable command.
+///
+/// Returns `None` when the output is an ordinary answer.
+pub fn clarification_from_raw(raw: &str) -> Option<Clarification> {
+    let trimmed = raw.trim();
+    if let Some(q) = trimmed.strip_prefix("QUESTION:") {
+        return Some(Clarification {
+            needed: Noul::new(LEGACY_QUESTION_PREFIX_P),
+            question: Some(q.trim().to_string()).filter(|q| !q.is_empty()),
+        });
+    }
+    if let Some(json) = extract_json_object(trimmed) {
+        if let Ok(value) = serde_json::from_str::<serde_json::Value>(&json) {
+            if value
+                .get("needs_clarification")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false)
+            {
+                let p = value
+                    .get("p")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(LEGACY_QUESTION_PREFIX_P);
+                let question = value
+                    .get("question")
+                    .and_then(|v| v.as_str())
+                    .map(|q| q.trim().to_string())
+                    .filter(|q| !q.is_empty());
+                return Some(Clarification {
+                    needed: Noul::new(p),
+                    question,
+                });
+            }
+            if let Some(cmd) = value.get("cmd").and_then(|v| v.as_str()) {
+                if is_legacy_clarify_command(cmd) {
+                    return Some(Clarification {
+                        needed: Noul::new(LEGACY_QUESTION_PREFIX_P),
+                        question: None,
+                    });
+                }
+            }
+        }
+    }
+    None
+}
+
+/// The pre-#1462 remote-backend convention, kept only so old model outputs
+/// map onto a typed decision rather than a runnable `echo`.
+fn is_legacy_clarify_command(cmd: &str) -> bool {
+    let c = cmd.trim().to_lowercase();
+    c.starts_with("echo") && c.contains("please clarify")
+}
+
 /// Extract the first balanced-looking `{...}` JSON object from arbitrary
 /// model output. Lenient about packaging: prose before/after is ignored.
 pub fn extract_json_object(raw: &str) -> Option<String> {
@@ -293,6 +384,35 @@ mod tests {
             parse_choice_json::<Lvl>(r#"{"probabilities": {"low": 1, "high": 3}}"#, "risk", &ALL)
                 .unwrap();
         assert_eq!(c.argmax(), Some((&Lvl::High, 0.75)));
+    }
+
+    #[test]
+    fn clarification_question_prefix() {
+        let c = clarification_from_raw("QUESTION: Delete which directory?").unwrap();
+        assert!(c.should_ask());
+        assert_eq!(c.question.as_deref(), Some("Delete which directory?"));
+    }
+
+    #[test]
+    fn clarification_json_mode_with_floor() {
+        let c = clarification_from_raw(
+            r#"{"needs_clarification": true, "p": 0.95, "question": "Which port?"}"#,
+        )
+        .unwrap();
+        assert!(c.should_ask());
+        assert_eq!(c.question.as_deref(), Some("Which port?"));
+
+        let low = clarification_from_raw(r#"{"needs_clarification": true, "p": 0.4}"#).unwrap();
+        assert!(!low.should_ask());
+        assert!(clarification_from_raw(r#"{"needs_clarification": false, "cmd": "ls"}"#).is_none());
+    }
+
+    #[test]
+    fn clarification_legacy_echo_is_typed() {
+        let c = clarification_from_raw(r#"{"cmd": "echo 'Please clarify your request'"}"#).unwrap();
+        assert!(c.should_ask());
+        assert_eq!(c.question, None);
+        assert!(clarification_from_raw(r#"{"cmd": "echo hello"}"#).is_none());
     }
 
     #[test]

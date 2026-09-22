@@ -827,8 +827,13 @@ impl CliApp {
             .agent_loop
             .generate_command(&prompt)
             .await
-            .map_err(|e| CliError::GenerationFailed {
-                details: e.to_string(),
+            .map_err(|e| match e {
+                GeneratorError::NeedsClarification { question, p } => {
+                    CliError::NeedsClarification { question, p }
+                }
+                other => CliError::GenerationFailed {
+                    details: other.to_string(),
+                },
             })?;
         let generation_time = gen_start.elapsed();
 
@@ -1082,6 +1087,10 @@ pub enum CliError {
 
     #[error("Command generation failed: {details}")]
     GenerationFailed { details: String },
+
+    /// The pipeline's clarification gate fired: ask the user, do not run.
+    #[error("I need one more detail before generating a command: {}", question.as_deref().unwrap_or("could you rephrase the request?"))]
+    NeedsClarification { question: Option<String>, p: f64 },
 
     #[error("Command execution failed: {details}")]
     ExecutionFailed { details: String },

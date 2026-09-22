@@ -147,6 +147,26 @@ pub enum GeneratorError {
 
     #[error("Validation failed: {reason}")]
     ValidationFailed { reason: String },
+
+    /// The backend decided (a `Noul` gate, see `crate::decision`) that the
+    /// request needs a clarifying question before a command can be generated.
+    /// Not a failure: the CLI renders `question` and exits cleanly.
+    #[error("Clarification needed: {}", question.as_deref().unwrap_or("please rephrase the request"))]
+    NeedsClarification {
+        question: Option<String>,
+        /// Probability the model assigned to "needs clarification".
+        p: f64,
+    },
+}
+
+impl GeneratorError {
+    /// Build a `NeedsClarification` from a typed decision.
+    pub fn from_clarification(c: &crate::decision::Clarification) -> Self {
+        Self::NeedsClarification {
+            question: c.question.clone(),
+            p: c.needed.p_yes,
+        }
+    }
 }
 
 // Types are already public, no re-export needed

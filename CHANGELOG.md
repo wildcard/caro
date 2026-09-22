@@ -22,6 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Choice<RiskLevel>` (behaviour unchanged; also accepts a
   `{"probabilities": {...}}` answer). `RiskLevel` implements `FromStr`.
 
+- **Static matcher reports measured confidence** (#1461): regex matches
+  score 1.0; keyword matches score `0.6 + 0.4 × optional-keyword coverage`
+  instead of a constant 1.0. Pattern selection is unchanged. Eval ECE for the
+  static matcher moved from 0.156 to 0.137 on the bundled dataset.
+- **Typed clarification gate** (#1462): `caro::decision::Clarification` and
+  `clarification_from_raw` map the embedded `QUESTION:` prefix, a
+  `{"needs_clarification": true, "p": …, "question": …}` JSON answer, and the
+  legacy `echo 'Please clarify your request'` output onto one
+  `GeneratorError::NeedsClarification`. The CLI now prints the question
+  instead of offering an `echo` command; remote prompts ask for the JSON
+  form. Regression guard: `tests/clarification_gate_contract.rs`.
+
 ### Documentation
 
 - `docs/research/jev-system-one-gap-analysis.md` — what caro can learn from
