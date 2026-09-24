@@ -19,7 +19,7 @@ if [[ "$TOOL_NAME" != "Bash" ]]; then
   exit 0
 fi
 
-if [[ ! "$COMMAND" =~ git[[:space:]]+commit ]]; then
+if ! is_git_cmd commit; then
   exit 0
 fi
 
@@ -47,9 +47,10 @@ if [[ -z "$PROTECTED_FILES" ]]; then
 fi
 
 # Scan staged diff (added lines only) for sensitive patterns.
+# Added lines only: skip each file's header (up to its first @@ hunk), so a
+# content line that itself starts with "++" is still scanned.
 LEAK=$(git diff --cached --unified=0 -- $PROTECTED_FILES 2>/dev/null \
-  | grep -E '^\+' \
-  | grep -v '^+++' \
+  | awk '/^diff --git /{h=1; next} /^@@/{h=0; next} !h && /^\+/' \
   | grep -E -i "$SENSITIVE_RE" || true)
 
 if [[ -n "$LEAK" ]]; then

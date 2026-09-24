@@ -12,7 +12,7 @@ if [[ "$TOOL_NAME" != "Bash" ]]; then
 fi
 
 # Check if it's a git commit command
-if [[ ! "$COMMAND" =~ git[[:space:]]+commit ]]; then
+if ! is_git_cmd commit; then
   exit 0
 fi
 

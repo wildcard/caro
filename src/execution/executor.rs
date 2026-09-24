@@ -120,7 +120,13 @@ impl CommandExecutor {
                     Self::kill_tree(&mut child);
                     return Err(ExecutorError::Timeout(timeout_ms));
                 }
-                Err(mpsc::RecvTimeoutError::Disconnected) => break,
+                Err(mpsc::RecvTimeoutError::Disconnected) => {
+                    // Each drain thread sends exactly once, so this means one
+                    // died without delivering; don't report a truncated stream.
+                    return Err(ExecutorError::WaitError(
+                        "output drain thread exited without delivering output".to_string(),
+                    ));
+                }
             }
         }
 

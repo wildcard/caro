@@ -202,8 +202,10 @@ because our own harness has the same kind.
 
 - **Supervise the process group, not just the process.** The runner starts
   the command with `Setpgid: true`. On shutdown it sends SIGTERM to `-pid`,
-  waits 10s, then SIGKILLs the group (`runner/runner.go`). This PR does the
-  same in `CommandExecutor`.
+  waits 10s, then SIGKILLs the group (`runner/runner.go`). This PR copies
+  the process-group supervision into `CommandExecutor`, but not the shutdown
+  sequence: on timeout it sends SIGKILL immediately. Adding SIGTERM and a
+  grace period is a P1 follow-up.
 - **Stay inspectable after the command exits.** The runner remains PID 1 and
   keeps its metadata server up once the agent finishes, so you can still look
   at what happened. For our harness, a routine should leave its worktree and
@@ -287,8 +289,8 @@ full survey on 2026-09-24.
 | P1 | Budgets are part of the Task spec | `loop.sh` defaults to `RALPH_MAX_ITERATIONS=0` (unlimited). `schedule.yaml` has `timeout_minutes`, but nothing in the repo enforces it | Default `loop.sh` to a finite cap (e.g. 20) and wrap each iteration in `timeout`. Make a missing cap an error, not a default |
 | P1 | Status conditions written back | `.claude/automation/state/last_run.json` and `metrics.json` have been null since 2026-01-11 | Each routine appends one JSONL record per run: `{routine, started, finished, phase: Succeeded/Failed/TimedOut, reason, pr, issues}`, much like AX's phase plus conditions |
 | P1 | Never fabricate success | `evaluation.yml` runs the eval suite with `\|\| true` and then applies regex pass-rate gates | Keep the real exit code. Fail the job when the harness itself fails, as distinct from a low pass rate |
-| P2 | Workspace prepared once, with a marker | No SessionStart `startup` hook, so cloud sessions start cold (no `cargo fetch`, no `bd`, no node for the continuity hooks) | Add a `startup` hook that runs idempotent setup, keeps a marker in `target/` (durable), and skips on resume. The `session-start-hook` skill does exactly this |
-| P2 | Least privilege per role | 33 of 34 agents inherit every tool | Give every agent an explicit `tools:` line. The ones that file issues or run caro need Bash; reviewers and researchers don't |
+| P2 | Workspace prepared once, with a marker | No SessionStart `startup` hook, so cloud sessions start cold (no `cargo fetch`, no `bd`, no node for the continuity hooks) | Add a `startup` hook that runs idempotent setup, keeps a marker in `target/` (durable), and skips on resume. The existing `session-start-continuity.sh` only handles `resume\|compact\|clear` |
+| P2 | Least privilege per role | 31 of 34 agents inherit every tool | Give every agent an explicit `tools:` line. The ones that file issues or run caro need Bash; reviewers and researchers don't |
 | P2 | Gateway egress allowlist | No CI job restricts egress. Agents run the real `caro` binary with full Bash | Add `step-security/harden-runner` in audit mode to CI, then `block` for jobs with a known host set. Pair with open PR #1438 (sandboxed execution for verification) |
 | P2 | Runner contract document | Routines are prose. Their inputs, outputs and exit semantics aren't written down | A short `.claude/automation/CONTRACT.md` covering what a routine reads (env, schedule entry), what it must write (the status record above), how it signals failure, and a max runtime |
 | P2 | Model as named resource | `model: sonnet` is hard-coded in 33 agent files | One place to change it: prefer `inherit`, or a single profile for the default |

@@ -32,12 +32,32 @@ COMMAND="$(_json_field .tool_input.command)"
 HOOK_CWD="$(_json_field .cwd)"
 HOOK_CWD="${HOOK_CWD:-$PWD}"
 
+# One shell word: "double quoted", 'single quoted', or bare.
+_ARG_RE="(\"[^\"]*\"|'[^']*'|[^[:space:];&|]+)"
+
+_unquote() {
+  local v="$1"
+  if [[ "$v" == \"*\" || "$v" == \'*\' ]]; then
+    v="${v:1:${#v}-2}"
+  fi
+  printf '%s\n' "$v"
+}
+
+# is_git_cmd <subcommand...>: true when COMMAND runs `git [-C <dir>] <subcommand...>`.
+is_git_cmd() {
+  local sub re
+  sub="$(printf '%s[[:space:]]+' "$@")"
+  sub="${sub%\[\[:space:\]\]+}"
+  re="git[[:space:]]+(-C[[:space:]]+${_ARG_RE}[[:space:]]+)?${sub}"
+  [[ "$COMMAND" =~ $re ]]
+}
+
 effective_git_dir() {
-  local dir="$HOOK_CWD" re_cd='^[[:space:]]*cd[[:space:]]+([^;&|[:space:]]+)' re_c='git[[:space:]]+-C[[:space:]]+([^[:space:]]+)'
+  local dir="$HOOK_CWD" re_cd="^[[:space:]]*cd[[:space:]]+${_ARG_RE}" re_c="git[[:space:]]+-C[[:space:]]+${_ARG_RE}"
   if [[ "$COMMAND" =~ $re_cd ]]; then
-    dir="${BASH_REMATCH[1]}"
+    dir="$(_unquote "${BASH_REMATCH[1]}")"
   elif [[ "$COMMAND" =~ $re_c ]]; then
-    dir="${BASH_REMATCH[1]}"
+    dir="$(_unquote "${BASH_REMATCH[1]}")"
   fi
   dir="${dir/#\~/$HOME}"
   [[ "$dir" = /* ]] || dir="$HOOK_CWD/$dir"

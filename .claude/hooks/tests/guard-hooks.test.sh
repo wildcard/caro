@@ -18,8 +18,14 @@ fail=0
 
 payload() {
   # payload <tool> <command> <cwd>
-  jq -n --arg t "$1" --arg c "$2" --arg d "$3" \
-    '{hook_event_name:"PreToolUse", tool_name:$t, tool_input:{command:$c}, cwd:$d}'
+  if command -v jq >/dev/null 2>&1; then
+    jq -n --arg t "$1" --arg c "$2" --arg d "$3" \
+      '{hook_event_name:"PreToolUse", tool_name:$t, tool_input:{command:$c}, cwd:$d}'
+  else
+    python3 -c 'import json,sys
+t,c,d=sys.argv[1:4]
+print(json.dumps({"hook_event_name":"PreToolUse","tool_name":t,"tool_input":{"command":c},"cwd":d}))' "$1" "$2" "$3"
+  fi
 }
 
 expect() {
@@ -57,12 +63,23 @@ expect 0 block-main-commits.sh "non-commit command on main is allowed" \
   Bash "git status" "$REPO"
 expect 0 block-main-commits.sh "non-Bash tool is ignored" \
   Write "git commit -m x" "$REPO"
+expect 2 block-main-commits.sh "git -C <main checkout> commit is blocked" \
+  Bash "git -C $REPO commit -m x" "$REPO/.worktrees/feat"
+
+SPACED="$TMP/repo with spaces"
+git_init "$SPACED"
+expect 2 block-main-commits.sh "cd into a quoted path on main then commit is blocked" \
+  Bash "cd \"$SPACED\" && git commit -m x" "$REPO/.worktrees/feat"
+expect 2 block-main-commits.sh "git -C quoted path on main commit is blocked" \
+  Bash "git -C '$SPACED' commit -m x" "$REPO/.worktrees/feat"
 
 # --- worktree-protection.sh ------------------------------------------------
 expect 2 worktree-protection.sh "--force removal is blocked" \
   Bash "git worktree remove --force .worktrees/feat" "$REPO"
 expect 2 worktree-protection.sh "-f removal is blocked" \
   Bash "git worktree remove -f .worktrees/feat" "$REPO"
+expect 2 worktree-protection.sh "-ff removal is blocked" \
+  Bash "git worktree remove -ff .worktrees/feat" "$REPO"
 expect 0 worktree-protection.sh "plain removal of a path containing -f is allowed" \
   Bash "git worktree remove .worktrees/foo-feature" "$REPO"
 expect 0 worktree-protection.sh "unrelated command is allowed" \
@@ -76,6 +93,13 @@ mkdir -p "$LEAKY/.beads"
 echo 'spent $42 on inference' > "$LEAKY/.beads/notes.md"
 git -C "$LEAKY" add .beads/notes.md
 
+PLUSSY="$TMP/plussy"
+git_init "$PLUSSY"
+git -C "$PLUSSY" remote add origin https://github.com/wildcard/caro.git
+mkdir -p "$PLUSSY/.beads"
+echo '++ spent $42' > "$PLUSSY/.beads/notes.md"
+git -C "$PLUSSY" add .beads/notes.md
+
 CLEAN="$TMP/clean"
 git_init "$CLEAN"
 git -C "$CLEAN" remote add origin https://github.com/wildcard/caro.git
@@ -85,6 +109,10 @@ git -C "$CLEAN" add .beads/notes.md
 
 expect 2 block-budget-leaks.sh "dollar amount in .beads is blocked" \
   Bash "git commit -m x" "$LEAKY"
+expect 2 block-budget-leaks.sh "added line starting with ++ is still scanned" \
+  Bash "git commit -m x" "$PLUSSY"
+expect 2 block-budget-leaks.sh "git -C <dir> commit is scanned" \
+  Bash "git -C $LEAKY commit -m x" "$TMP"
 expect 0 block-budget-leaks.sh "clean .beads change is allowed" \
   Bash "git commit -m x" "$CLEAN"
 

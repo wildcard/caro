@@ -12,7 +12,7 @@ if [[ "$TOOL_NAME" != "Bash" ]]; then
 fi
 
 # Check if it's a git worktree remove command with --force flag
-if [[ "$COMMAND" =~ git[[:space:]]+worktree[[:space:]]+remove ]] && [[ "$COMMAND" =~ (^|[[:space:]])(--force|-f)([[:space:]]|$) ]]; then
+if is_git_cmd worktree remove && [[ "$COMMAND" =~ (^|[[:space:]])(--force|-f+)([[:space:]]|$) ]]; then
   cat >&2 <<'EOF'
 
 ⚠️ BLOCKED: Force-deleting worktree
@@ -36,7 +36,7 @@ the entire environment.
    - To discard: git checkout . && git clean -fd
 
 4. Return to main repo and remove normally:
-   cd "$(git rev-parse --show-toplevel)"
+   cd "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
    git worktree remove <path>  # WITHOUT --force
 
 **Only use --force if:**
