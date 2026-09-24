@@ -412,7 +412,7 @@ impl AgentLoop {
 
         // Emit telemetry event for successful LLM generation
         crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
-            backend: "embedded".to_string(),
+            backend: self.backend.backend_info().backend_type.to_string(),
             duration_ms: start.elapsed().as_millis() as u64,
             success: true,
             error_category: None,
