@@ -1,0 +1,75 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/kobik-private/workspace/caro/.codex/hooks/block-main-commits.sh'"
+          },
+          {
+            "type": "command",
+            "command": "'/Users/kobik-private/workspace/caro/.codex/hooks/worktree-protection.sh'"
+          },
+          {
+            "type": "command",
+            "command": "'/Users/kobik-private/workspace/caro/.codex/hooks/block-budget-leaks.sh'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/kobik-private/workspace/caro/.codex/hooks/handoff-index.sh'"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/kobik-private/workspace/caro/.codex/hooks/pre-compact-continuity.sh'"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "resume|compact|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/kobik-private/workspace/caro/.codex/hooks/session-start-continuity.sh'"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/kobik-private/workspace/caro/.codex/hooks/quick-actions-reminder.sh'"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/kobik-private/workspace/caro/.codex/hooks/subagent-stop-continuity.sh'"
+          }
+        ]
+      }
+    ]
+  }
+}

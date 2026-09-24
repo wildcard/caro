@@ -1,0 +1,117 @@
+# caro-research--scoping-process — Run Report
+
+**Date**: 2026-06-08  
+**Agent**: Automated scheduled task (`caro-research--scoping-process`)  
+**Status**: ✅ Completed — ADR-019 produced
+
+---
+
+## What Happened This Run
+
+The scheduled task's SKILL.md still contains an unfilled `[FEATURE NAME]` placeholder
+(P0 action outstanding since 2026-06-02). The agent autonomously resolved this by:
+
+1. Reading prior run reports (2026-06-02, 2026-06-05) to avoid re-scoping
+   ADR-015 through ADR-018.
+2. Auditing ROADMAP.md v2.0.0 for the next un-scoped, exempt feature.
+3. Confirming **vLLM Jukebox Multi-Model Server (#663)** had no existing ADR
+   and was tagged "extends caro-core, exempt" in `docs/discovery/v2.0-validation-audit.md`.
+4. Fetching live vLLM LoRA documentation from GitHub to anchor the Phase 1
+   research in current (2026-06) vLLM behaviour.
+
+---
+
+## New ADR Produced
+
+**ADR-019** — `docs/adr/ADR-019-vllm-jukebox-multi-model-routing.md`
+
+Summary of scope:
+- New `VllmJukeboxBackend` struct (one new file: `src/backends/remote/vllm_jukebox.rs`)
+- `GET /v1/models` discovery at `new()` — populates `discovered_models: Vec<String>`
+- Declarative `[[backend.vllm_jukebox.routes]]` routing in `caro.toml`
+- `ModelNotFound` variant added to `GeneratorError` (solves silent 404 on missing model)
+- `discovered_models` field added to `BackendInfo`
+- **No new crates** — `reqwest` + `regex` already in `Cargo.toml`
+- Under existing `remote-backends` feature flag
+- 5 files changed (1 new, 4 modified)
+- 8 deterministic integration tests via `wiremock` (already in dev-deps)
+
+---
+
+## Key Research Findings
+
+### Finding 1 — vLLM serves LoRA adapters as first-class models
+
+vLLM's `--lora-modules {name}={path}` flag causes each adapter to appear as an
+independent entry in `/v1/models`. Clients select it by setting `"model": "adapter-name"`
+in the chat completions request — identical wire format, no extra endpoint. Caro's
+existing vLLM HTTP plumbing requires no changes; only the `model` field value
+needs to become dynamic.
+
+**Source**: `vllm-project/vllm` → `docs/features/lora.md` (fetched 2026-06-08).
+
+### Finding 2 — Dynamic LoRA loading is explicitly security-restricted
+
+`POST /v1/load_lora_adapter` requires `VLLM_ALLOW_RUNTIME_LORA_UPDATING=True` and
+carries a vLLM-authored security warning ("not for production unless fully trusted
+environment"). ADR-019 defers this to v2 rather than expose it as a default path.
+
+### Finding 3 — Most common production failure: model name drift
+
+The most frequent support issue in vLLM deployments is `404 model not found` after
+a server restart changes which adapters are loaded. ADR-019 solves this at
+construction time: if any configured route model isn't in the discovered list,
+`VllmJukeboxBackend::new()` returns `Err(ModelNotFound { name, available })` —
+failing loudly before the first user request.
+
+---
+
+## ADR Status Inventory (as of 2026-06-08)
+
+| ADR | Feature | Status | Build started? | Days to v2.0.0 deadline |
+|-----|---------|--------|----------------|--------------------------|
+| ADR-015 | `caro-mcp-server` | Proposed | ❌ **Critical — 22 days left** | 22 |
+| ADR-016 | `caro fix` | Proposed | ❌ (Gate 4 pending) | 22 |
+| ADR-017 | Local context indexing | Proposed | ❌ (Gate 1: needs 20 transcripts) | 22 |
+| ADR-018 | Azure Foundry backend | Proposed | ❌ (just scoped 2026-06-05) | 22 |
+| ADR-019 | vLLM Jukebox routing | Proposed (this run) | ❌ (just scoped) | 22 |
+
+**P0 escalation carried forward**: ADR-015 (`caro-mcp-server`) build spike is
+now 6 days overdue (first flagged P1 on 2026-06-02, escalated to P0 on
+2026-06-05). With 22 days to the v2.0.0 deadline (June 30) and a minimum
+implementation time of ~6 days, this remains the highest-priority action for
+`caro-coder-loop`.
+
+---
+
+## Recommended Next Actions
+
+| Priority | Action | Owner |
+|----------|--------|-------|
+| **P0** | Start ADR-015 build spike: `rmcp = { version = "1", optional = true }` in `Cargo.toml`, `cargo check --features mcp-server` | caro-coder-loop |
+| **P0** | Fix `[FEATURE NAME]` placeholder in SKILL.md | Kobi |
+| P1 | Complete ADR-016 devil's-advocate review (Gate 4 of 5) | caro-coder-loop |
+| P2 | Open ADR-019 implementation PR (next exempt feature, no spike needed — no new crates) | caro-coder-loop |
+| P3 | Open ADR-018 implementation PR (Azure Foundry backend) | caro-coder-loop |
+
+---
+
+## Next Feature Candidate (ADR-020)
+
+The next un-scoped v2.0.0 exempt feature is **Handy.Computer Integration (#662)**.
+It is tagged "extends caro-core, exempt" in the validation audit. No existing ADR.
+Recommended for the next run of this scheduled task.
+
+---
+
+## Files Changed This Run
+
+| File | Change |
+|------|--------|
+| `docs/adr/ADR-019-vllm-jukebox-multi-model-routing.md` | New ADR — full scope, types, test table |
+| `docs/adr/README.md` | Added ADR-019 row |
+| `docs/research/caro-research-scoping-2026-06-08.md` | This report |
+
+---
+
+*Generated by `caro-research--scoping-process` · 2026-06-08*

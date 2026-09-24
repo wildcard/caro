@@ -1,0 +1,131 @@
+--- a/src/safety/patterns.rs
++++ b/src/safety/patterns.rs
+@@ -154,6 +154,54 @@
+             description: "Securely delete disk device".to_string(),
+             shell_specific: None,
+         },
++        // MODERATE/HIGH: GuardFall class E - destructive behaviour reached
++        // through a *flag* rather than a verb. The verb (`find`, `sed`,
++        // `truncate`, `shred`) is harmless on its own; `-delete`, `-i`,
++        // `-s 0` and a system-path operand are what make the invocation
++        // irreversible. Measured 2026-09-23: all four leaked as `Safe`.
++        // Corpus: tests/fixtures/guardfall/mutations-v1.yaml `flag_variants`.
++        DangerPattern {
++            pattern: r"\bfind\b[^|;&]*\s-(?:delete\b|exec\s+rm\b)".to_string(),
++            risk_level: RiskLevel::Moderate,
++            description: "Bulk deletion via find -delete or -exec rm".to_string(),
++            shell_specific: None,
++        },
++        DangerPattern {
++            // Same shape, rooted at a system directory (or at `/` itself),
++            // which is what caro.sh claims a High-risk warning for in
++            // EXAMPLE-DEMO-001, EXAMPLE-AI-002 and EXAMPLE-ROLE-SRE-002.
++            pattern: r"\bfind\s+/(?:etc|boot|sys|usr|bin|sbin|lib|var|opt|root)?(?:/\S*)?\s[^|;&]*\s-(?:delete\b|exec\s+rm\b)"
++                .to_string(),
++            risk_level: RiskLevel::High,
++            description: "Bulk deletion via find rooted at a system directory".to_string(),
++            shell_specific: None,
++        },
++        DangerPattern {
++            // `-i` is the whole risk: without it sed writes to stdout. The
++            // system path must be a bare whitespace-delimited operand, so
++            // `sed -i 's|/usr/local|/opt|' Makefile` stays Safe.
++            pattern: r"\bsed\s+[^|;&]*(?:-i|--in-place)\b[^|;&]*\s/(?:etc|boot|sys|usr|bin|sbin|lib|var|opt|root)(?:/|\s|$)"
++                .to_string(),
++            risk_level: RiskLevel::High,
++            description: "In-place edit of a system file".to_string(),
++            shell_specific: None,
++        },
++        DangerPattern {
++            pattern: r"\btruncate\s+(?:-\S+\s+)*(?:-s\s*|--size=?)0(?:\s|$)".to_string(),
++            risk_level: RiskLevel::Moderate,
++            description: "Truncate a file to zero length - unrecoverable data loss"
++                .to_string(),
++            shell_specific: None,
++        },
++        DangerPattern {
++            // Complements the existing `shred … /dev/(sd|hd|nvme)` rule,
++            // which only covers whole devices.
++            pattern: r"\bshred\b[^|;&]*\s/(?:etc|boot|sys|usr|bin|sbin|lib|var|opt|root)(?:/|\s|$)"
++                .to_string(),
++            risk_level: RiskLevel::High,
++            description: "Unrecoverable overwrite of a system file".to_string(),
++            shell_specific: None,
++        },
+         // MODERATE: Network operations
+         DangerPattern {
+             pattern: r"iptables\s+-F".to_string(),
+@@ -651,4 +699,73 @@
+             );
+         }
+     }
++
++    /// Returns true when at least one built-in pattern of risk `min` or
++    /// above matches `command`.
++    fn matches_at_least(command: &str, min: RiskLevel) -> bool {
++        DANGEROUS_PATTERNS.iter().any(|p| {
++            p.risk_level >= min
++                && regex::Regex::new(&p.pattern)
++                    .map(|r| r.is_match(command))
++                    .unwrap_or(false)
++        })
++    }
++
++    /// GuardFall class E: destructive behaviour reached through a flag
++    /// rather than a verb. Every case here returned `Safe` before
++    /// 2026-09-23; the corpus that measured it is
++    /// `tests/fixtures/guardfall/mutations-v1.yaml` (`flag_variants`).
++    #[test]
++    fn test_class_e_flag_variants_flagged() {
++        let cases: &[(&str, RiskLevel)] = &[
++            ("find /etc -name '*.conf' -delete", RiskLevel::High),
++            ("sed -i 's/.*//' /etc/passwd", RiskLevel::High),
++            ("truncate -s 0 /var/log/syslog", RiskLevel::Moderate),
++            ("shred -u /etc/shadow", RiskLevel::High),
++            // Website claims that currently under-report. Sources:
++            // EXAMPLE-DEMO-001, EXAMPLE-AI-002, EXAMPLE-ROLE-SRE-002.
++            (
++                "find /var/log -name '*.log' -mtime +30 -delete",
++                RiskLevel::High,
++            ),
++            ("find / -size +100M -delete", RiskLevel::High),
++            ("find . -name '*.log' -delete", RiskLevel::Moderate),
++        ];
++
++        for (cmd, min) in cases {
++            assert!(
++                matches_at_least(cmd, *min),
++                "command {cmd:?} must match a pattern of at least {min:?}"
++            );
++        }
++    }
++
++    /// The other half of the contract. A class-E rule that catches the
++    /// four leaks by over-matching has not fixed anything.
++    #[test]
++    fn test_class_e_no_false_positives() {
++        let must_stay_clean = [
++            "find /etc -name '*.conf'",          // read-only search
++            "find . -type f -name '*.rs'",       // read-only search
++            "sed -n '1,5p' /etc/passwd",         // reads, writes stdout
++            "sed -i 's/old/new/g' file.txt",     // in-place, user file
++            "sed -i '' 's/foo/bar/g' file.txt",  // BSD in-place, user file
++            "sed -i 's|/usr/local|/opt|' Makefile", // system path in script, not operand
++            "truncate -s 1G disk.img",           // grows a file
++            "truncate -s 100 file.txt",          // non-zero size
++            "shred -u secret.txt",               // user file: deliberate narrowing
++        ];
++        // Note: `grep -rn 'find . -delete' .` and `echo "find /etc -delete"`
++        // are NOT listed here. They match the raw regex and are suppressed one
++        // layer up by `is_dangerous_in_context`; they are owned by the
++        // `canaries` section of tests/fixtures/guardfall/mutations-v1.yaml,
++        // which exercises the validator rather than the pattern table.
++
++        for cmd in must_stay_clean {
++            assert!(
++                !matches_at_least(cmd, RiskLevel::Moderate),
++                "command {cmd:?} is safe and must not match any Moderate-or-above pattern"
++            );
++        }
++    }
+ }

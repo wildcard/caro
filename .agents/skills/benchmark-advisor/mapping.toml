@@ -1,0 +1,78 @@
+# Benchmark Mapping Configuration
+#
+# Maps source file patterns to Criterion benchmarks.
+# Used by the benchmark-advisor Claude skill to suggest relevant benchmarks based on code changes.
+
+# Cache benchmarks (FR1.1)
+[[mapping]]
+pattern = "src/cache/**/*.rs"
+benchmark = "cargo bench --bench cache"
+reason = "Cache implementation changes can affect cache operation performance (get, add, remove, eviction)"
+priority = "high"
+
+[[mapping]]
+pattern = "src/models/mod.rs"  # CachedModel struct
+benchmark = "cargo bench --bench cache"
+reason = "CachedModel struct changes impact all cache operations"
+priority = "high"
+
+# Config benchmarks (FR1.2)
+[[mapping]]
+pattern = "src/config/**/*.rs"
+benchmark = "cargo bench --bench config"
+reason = "Config loading, merging, and parsing performance may be impacted"
+priority = "high"
+
+# Context benchmarks (FR1.3)
+[[mapping]]
+pattern = "src/context/**/*.rs"
+benchmark = "cargo bench --bench context"
+reason = "Execution context capture performance may be affected"
+priority = "medium"
+
+[[mapping]]
+pattern = "src/shell/**/*.rs"  # Shell detection affects context
+benchmark = "cargo bench --bench context"
+reason = "Shell detection is part of context capture - verify performance"
+priority = "medium"
+
+# Logging benchmarks (FR1.4)
+[[mapping]]
+pattern = "src/logging/**/*.rs"
+benchmark = "cargo bench --bench logging"
+reason = "Logging throughput and latency may change with logging implementation updates"
+priority = "high"
+
+# Main entry point - affects startup time
+[[mapping]]
+pattern = "src/main.rs"
+benchmark = "cargo bench"
+reason = "Main entry point changes affect startup time - run full suite to validate"
+priority = "critical"
+
+# Library root - affects all benchmarks
+[[mapping]]
+pattern = "src/lib.rs"
+benchmark = "cargo bench"
+reason = "Library root changes can have widespread performance implications - full suite recommended"
+priority = "critical"
+
+# Cargo.toml - dependency changes
+[[mapping]]
+pattern = "Cargo.toml"
+benchmark = "cargo bench"
+reason = "Dependency updates may introduce performance regressions - full validation recommended"
+priority = "high"
+
+# Benchmarks themselves - validate they still work
+[[mapping]]
+pattern = "benches/**/*.rs"
+benchmark = "cargo bench"
+reason = "Benchmark code changes - run full suite to verify all benchmarks execute correctly"
+priority = "medium"
+
+# Note: Priority levels guide suggestion ordering:
+#   - critical: Always suggest, run immediately
+#   - high: Strongly recommend
+#   - medium: Optional but useful
+#   - low: Only if doing comprehensive testing
