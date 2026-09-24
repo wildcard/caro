@@ -10,17 +10,21 @@
 #   ./loop.sh         # Default: building mode
 #
 # Environment:
-#   RALPH_MAX_ITERATIONS  - Maximum iterations (default: unlimited)
-#   RALPH_PAUSE_SECONDS   - Pause between iterations (default: 2)
-#   RALPH_LOG_FILE        - Log file path (default: ralph.log)
+#   RALPH_MAX_ITERATIONS    - Maximum iterations (default: 20; 0 = unlimited, logged as a warning)
+#   RALPH_ITERATION_TIMEOUT - Max runtime of one iteration, as a `timeout` duration (default: 30m)
+#   RALPH_PAUSE_SECONDS     - Pause between iterations (default: 2)
+#   RALPH_RETRY_SECONDS     - Pause after a failed iteration (default: 5)
+#   RALPH_LOG_FILE          - Log file path (default: ralph.log)
 
 set -euo pipefail
 
 # Configuration
 MODE="${1:-build}"
 PROMPT_FILE="PROMPT_${MODE}.md"
-MAX_ITERATIONS="${RALPH_MAX_ITERATIONS:-0}"  # 0 = unlimited
+MAX_ITERATIONS="${RALPH_MAX_ITERATIONS:-20}"  # 0 = unlimited (explicit opt-in only)
+ITERATION_TIMEOUT="${RALPH_ITERATION_TIMEOUT:-30m}"
 PAUSE_SECONDS="${RALPH_PAUSE_SECONDS:-2}"
+RETRY_SECONDS="${RALPH_RETRY_SECONDS:-5}"
 LOG_FILE="${RALPH_LOG_FILE:-ralph.log}"
 ITERATION=0
 
@@ -62,6 +66,24 @@ check_prerequisites() {
         exit 1
     fi
 
+    if ! [[ "$MAX_ITERATIONS" =~ ^[0-9]+$ ]]; then
+        log ERROR "RALPH_MAX_ITERATIONS must be a non-negative integer (got: $MAX_ITERATIONS)"
+        exit 1
+    fi
+    if [[ "$MAX_ITERATIONS" -eq 0 ]]; then
+        log WARN "RALPH_MAX_ITERATIONS=0: running with NO iteration cap"
+    fi
+
+    # Per-iteration time limit (GNU timeout, or gtimeout from coreutils on macOS)
+    TIMEOUT_CMD=()
+    if command -v timeout &> /dev/null; then
+        TIMEOUT_CMD=(timeout --signal=TERM --kill-after=30s "$ITERATION_TIMEOUT")
+    elif command -v gtimeout &> /dev/null; then
+        TIMEOUT_CMD=(gtimeout --signal=TERM --kill-after=30s "$ITERATION_TIMEOUT")
+    else
+        log WARN "timeout/gtimeout not found: iterations run WITHOUT a time limit"
+    fi
+
     # Ensure we're in a git repo
     if ! git rev-parse --git-dir &> /dev/null; then
         log ERROR "Not in a git repository"
@@ -94,7 +116,7 @@ run_iteration() {
 
     # Feed prompt to Claude
     # Claude will study the codebase, select a task, implement it, and exit
-    if claude --print < "$PROMPT_FILE" 2>&1 | tee -a "$LOG_FILE"; then
+    if ${TIMEOUT_CMD[@]+"${TIMEOUT_CMD[@]}"} claude --print < "$PROMPT_FILE" 2>&1 | tee -a "$LOG_FILE"; then
         local end_time
         end_time=$(date +%s)
         local duration=$((end_time - start_time))
@@ -104,13 +126,16 @@ run_iteration() {
         log WARN "Claude exited with code $exit_code"
 
         # Check for common issues
+        if [[ $exit_code -eq 124 || $exit_code -eq 137 ]]; then
+            log WARN "Iteration $ITERATION timed out after $ITERATION_TIMEOUT"
+        fi
         if [[ $exit_code -eq 130 ]]; then
             log INFO "Interrupted by user"
             exit 0
         fi
 
-        log INFO "Waiting 5s before retry..."
-        sleep 5
+        log INFO "Waiting ${RETRY_SECONDS}s before retry..."
+        sleep "$RETRY_SECONDS"
     fi
 
     log INFO "=== Iteration $ITERATION finished ==="

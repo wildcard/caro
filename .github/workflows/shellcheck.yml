@@ -27,3 +27,6 @@ jobs:
         run: .claude/hooks/tests/guard-hooks.test.sh
         env:
           CARO_HOOKS_NO_JQ: "1"
+
+      - name: Test loop.sh budgets
+        run: tests/harness/loop.test.sh
