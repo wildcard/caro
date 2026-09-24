@@ -3,8 +3,10 @@
 //! Provides safe command execution with output capture and platform-specific handling.
 
 use crate::models::ShellType;
-use std::process::{Command, Output, Stdio};
-use std::time::Instant;
+use std::io::Read;
+use std::process::{Child, Command, Output, Stdio};
+use std::thread;
+use std::time::{Duration, Instant};
 
 /// Result of command execution
 #[derive(Debug, Clone)]
@@ -63,21 +65,73 @@ impl CommandExecutor {
         // Configure stdio
         cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
 
-        // Execute the command
-        let output = cmd
-            .output()
-            .map_err(|e| ExecutorError::SpawnError(format!("Failed to execute command: {}", e)))?;
+        let output = match self.timeout_ms {
+            Some(timeout) => Self::output_with_deadline(cmd, timeout)?,
+            None => cmd.output().map_err(|e| {
+                ExecutorError::SpawnError(format!("Failed to execute command: {}", e))
+            })?,
+        };
 
         let execution_time_ms = start_time.elapsed().as_millis() as u64;
 
-        // Check for timeout
-        if let Some(timeout) = self.timeout_ms {
-            if execution_time_ms > timeout {
-                return Err(ExecutorError::Timeout(timeout));
-            }
-        }
-
         Ok(self.process_output(output, execution_time_ms))
+    }
+
+    /// Run the command, killing it (and its whole process group on Unix)
+    /// once `timeout_ms` elapses.
+    fn output_with_deadline(mut cmd: Command, timeout_ms: u64) -> Result<Output, ExecutorError> {
+        // Put the shell in its own process group so a timeout also kills the
+        // grandchildren it forks (e.g. `sleep` in `sleep 5; echo done`).
+        #[cfg(unix)]
+        std::os::unix::process::CommandExt::process_group(&mut cmd, 0);
+
+        let mut child = cmd
+            .spawn()
+            .map_err(|e| ExecutorError::SpawnError(format!("Failed to execute command: {}", e)))?;
+
+        // Drain pipes on threads so a chatty command can't block on a full pipe.
+        let stdout = Self::drain(child.stdout.take());
+        let stderr = Self::drain(child.stderr.take());
+
+        let deadline = Instant::now() + Duration::from_millis(timeout_ms);
+        let status = loop {
+            match child.try_wait() {
+                Ok(Some(status)) => break status,
+                Ok(None) if Instant::now() >= deadline => {
+                    Self::kill_tree(&mut child);
+                    return Err(ExecutorError::Timeout(timeout_ms));
+                }
+                Ok(None) => thread::sleep(Duration::from_millis(10)),
+                Err(e) => return Err(ExecutorError::WaitError(e.to_string())),
+            }
+        };
+
+        Ok(Output {
+            status,
+            stdout: stdout.join().unwrap_or_default(),
+            stderr: stderr.join().unwrap_or_default(),
+        })
+    }
+
+    fn drain<R: Read + Send + 'static>(pipe: Option<R>) -> thread::JoinHandle<Vec<u8>> {
+        thread::spawn(move || {
+            let mut buf = Vec::new();
+            if let Some(mut pipe) = pipe {
+                let _ = pipe.read_to_end(&mut buf);
+            }
+            buf
+        })
+    }
+
+    fn kill_tree(child: &mut Child) {
+        #[cfg(unix)]
+        let _ = Command::new("kill")
+            .args(["-KILL", "--", &format!("-{}", child.id())])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
+        let _ = child.kill();
+        let _ = child.wait();
     }
 
     /// Create shell command based on platform and shell type
@@ -242,5 +296,30 @@ mod tests {
         let exec_result = result.unwrap();
         // Execution time should be at least 100ms
         assert!(exec_result.execution_time_ms >= 100);
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_timeout_kills_hung_command() {
+        // Regression guard: the timeout used to be checked only after the
+        // child exited, so a hung command was never killed. The compound
+        // command forces bash to fork `sleep` as a grandchild.
+        let executor = CommandExecutor::new(ShellType::Bash).with_timeout(300);
+        let start = Instant::now();
+        let result = executor.execute("sleep 5; echo done");
+
+        assert!(matches!(result, Err(ExecutorError::Timeout(300))));
+        assert!(start.elapsed().as_millis() < 2000);
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_timeout_not_triggered_for_fast_command() {
+        let executor = CommandExecutor::new(ShellType::Bash).with_timeout(5000);
+        let exec_result = executor.execute("echo fast; echo err >&2").unwrap();
+
+        assert!(exec_result.success);
+        assert!(exec_result.stdout.contains("fast"));
+        assert!(exec_result.stderr.contains("err"));
     }
 }
