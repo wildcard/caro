@@ -23,7 +23,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 
 | # | Surface | Domain | Last tested | Result | Linked issue(s) |
 |---|---------|--------|-------------|--------|-----------------|
-| 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-05-07 | PASS | — |
+| 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-09-24 | PASS | — |
 | 2 | `caro -p "..." --dry-run` command generation | cli | 2026-09-24 | FAIL | [#1473](https://github.com/wildcard/caro/issues/1473) |
 | 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
@@ -54,7 +54,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 29 | `caro --safety strict/moderate/permissive` modes | safety | never | — | — |
 | 30 | `caro --verbose` timing output | cli | never | — | — |
 | 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | never | — | — |
-| 32 | `caro doctor` advisory content accuracy | cli | 2026-05-07 | PASS | — |
+| 32 | `caro doctor` advisory content accuracy | cli | 2026-09-24 | PASS | — |
 
 ---
 
