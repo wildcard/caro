@@ -4,17 +4,15 @@
 
 set -euo pipefail
 
+source "$(dirname "$0")/lib/hook-input.sh"
+
 # Only check Bash tool usage
-TOOL_NAME="${CLAUDE_TOOL_NAME:-}"
 if [[ "$TOOL_NAME" != "Bash" ]]; then
   exit 0
 fi
 
-# Get the command being run
-COMMAND="${CLAUDE_TOOL_PARAMS_COMMAND:-}"
-
 # Check if it's a git worktree remove command with --force flag
-if [[ "$COMMAND" =~ git[[:space:]]+worktree[[:space:]]+remove ]] && [[ "$COMMAND" =~ (--force|-f) ]]; then
+if [[ "$COMMAND" =~ git[[:space:]]+worktree[[:space:]]+remove ]] && [[ "$COMMAND" =~ (^|[[:space:]])(--force|-f)([[:space:]]|$) ]]; then
   cat >&2 <<'EOF'
 
 ⚠️ BLOCKED: Force-deleting worktree
@@ -38,7 +36,7 @@ the entire environment.
    - To discard: git checkout . && git clean -fd
 
 4. Return to main repo and remove normally:
-   cd /Users/kobik-private/workspace/caro
+   cd "$(git rev-parse --show-toplevel)"
    git worktree remove <path>  # WITHOUT --force
 
 **Only use --force if:**
@@ -48,7 +46,7 @@ the entire environment.
 See the post-mortem in session transcript for details on why this matters.
 
 EOF
-  exit 1
+  exit "$BLOCK"
 fi
 
 # Allow all other commands

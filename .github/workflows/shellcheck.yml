@@ -19,3 +19,6 @@ jobs:
           SHELLCHECK_OPTS: -e SC2148
         with:
           ignore_paths: .specify
+
+      - name: Test Claude Code guard hooks
+        run: .claude/hooks/tests/guard-hooks.test.sh
