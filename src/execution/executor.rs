@@ -5,6 +5,7 @@
 use crate::models::ShellType;
 use std::io::Read;
 use std::process::{Child, Command, Output, Stdio};
+use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -90,8 +91,9 @@ impl CommandExecutor {
             .map_err(|e| ExecutorError::SpawnError(format!("Failed to execute command: {}", e)))?;
 
         // Drain pipes on threads so a chatty command can't block on a full pipe.
-        let stdout = Self::drain(child.stdout.take());
-        let stderr = Self::drain(child.stderr.take());
+        let (tx, rx) = mpsc::channel();
+        Self::drain(child.stdout.take(), true, tx.clone());
+        Self::drain(child.stderr.take(), false, tx);
 
         let deadline = Instant::now() + Duration::from_millis(timeout_ms);
         let status = loop {
@@ -106,30 +108,59 @@ impl CommandExecutor {
             }
         };
 
+        // The shell has exited, but a background descendant can still hold
+        // stdout/stderr open, so keep enforcing the deadline while draining.
+        let (mut stdout, mut stderr) = (None, None);
+        while stdout.is_none() || stderr.is_none() {
+            let remaining = deadline.saturating_duration_since(Instant::now());
+            match rx.recv_timeout(remaining) {
+                Ok((true, buf)) => stdout = Some(buf),
+                Ok((false, buf)) => stderr = Some(buf),
+                Err(mpsc::RecvTimeoutError::Timeout) => {
+                    Self::kill_tree(&mut child);
+                    return Err(ExecutorError::Timeout(timeout_ms));
+                }
+                Err(mpsc::RecvTimeoutError::Disconnected) => break,
+            }
+        }
+
         Ok(Output {
             status,
-            stdout: stdout.join().unwrap_or_default(),
-            stderr: stderr.join().unwrap_or_default(),
+            stdout: stdout.unwrap_or_default(),
+            stderr: stderr.unwrap_or_default(),
         })
     }
 
-    fn drain<R: Read + Send + 'static>(pipe: Option<R>) -> thread::JoinHandle<Vec<u8>> {
+    /// Read `pipe` to EOF on a thread and send `(is_stdout, bytes)` on `tx`.
+    fn drain<R: Read + Send + 'static>(
+        pipe: Option<R>,
+        is_stdout: bool,
+        tx: mpsc::Sender<(bool, Vec<u8>)>,
+    ) {
         thread::spawn(move || {
             let mut buf = Vec::new();
             if let Some(mut pipe) = pipe {
                 let _ = pipe.read_to_end(&mut buf);
             }
-            buf
-        })
+            let _ = tx.send((is_stdout, buf));
+        });
     }
 
+    /// SIGKILL the child's whole process group (Unix), then reap the child.
     fn kill_tree(child: &mut Child) {
         #[cfg(unix)]
-        let _ = Command::new("kill")
-            .args(["-KILL", "--", &format!("-{}", child.id())])
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status();
+        {
+            // The child leads its own group (process_group(0)), so its pid is
+            // the pgid. ESRCH means the group already exited, which is fine.
+            let pgid = child.id() as libc::pid_t;
+            // SAFETY: kill(2) takes plain integers and has no memory effects.
+            if unsafe { libc::kill(-pgid, libc::SIGKILL) } != 0 {
+                let err = std::io::Error::last_os_error();
+                if err.raw_os_error() != Some(libc::ESRCH) {
+                    eprintln!("caro: failed to kill process group {}: {}", pgid, err);
+                }
+            }
+        }
         let _ = child.kill();
         let _ = child.wait();
     }
@@ -307,6 +338,20 @@ mod tests {
         let executor = CommandExecutor::new(ShellType::Bash).with_timeout(300);
         let start = Instant::now();
         let result = executor.execute("sleep 5; echo done");
+
+        assert!(matches!(result, Err(ExecutorError::Timeout(300))));
+        assert!(start.elapsed().as_millis() < 2000);
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_timeout_kills_background_descendant_holding_pipes() {
+        // The shell exits at once, but the backgrounded `sleep` inherits
+        // stdout/stderr and keeps them open. The deadline must still apply
+        // while draining output.
+        let executor = CommandExecutor::new(ShellType::Bash).with_timeout(300);
+        let start = Instant::now();
+        let result = executor.execute("sleep 5 &");
 
         assert!(matches!(result, Err(ExecutorError::Timeout(300))));
         assert!(start.elapsed().as_millis() < 2000);
