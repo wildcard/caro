@@ -21,11 +21,13 @@ floor that a static `Critical` can never be relaxed
 (`src/safety/mod.rs::blend_smart_decision`).
 
 Every other gate is either free text (`QUESTION:` prefix, `echo 'Please
-clarify'`) or keyed on `GeneratedCommand.confidence_score`, which today is a
-constant per backend (static 1.0, embedded 0.85, claude 0.95, ollama 0.8,
-AI-Horde 0.75). The refinement gate at `src/agent/mod.rs:338`
-(`confidence_score < 0.8`) therefore cannot fire for most backends and is
-effectively a backend switch. The evaluation harness could not detect this
+clarify'`) or keyed on `GeneratedCommand.confidence_score`, which before this
+ADR was a constant per backend (static 1.0, embedded 0.85, claude 0.95,
+ollama 0.8, AI-Horde 0.75; the static matcher is measured as of #1461, the
+LLM backends remain constants until #1464). The refinement gate at
+`src/agent/mod.rs:338` (`confidence_score < 0.8`) therefore never fires for
+static, embedded, claude or ollama and always fires for AI-Horde: it is a
+backend switch, not a decision. The evaluation harness could not detect this
 because it never recorded confidence.
 
 TypeSafe AI's "System One" work (see
@@ -62,10 +64,11 @@ retrained for calibration in the near term.
    work and does not block this ADR.
 
 4. **Eval reports calibration and tail latency.** `EvaluationResult` carries
-   `confidence`; `BackendResult` carries `brier`, `ece`,
-   `p50_execution_time_ms`, `p95_execution_time_ms`
-   (`src/evaluation/calibration.rs`). Once a baseline exists, an ECE
-   regression is treated like a CSR regression.
+   `confidence`; `BackendResult` (`src/evaluation/models.rs`) carries
+   `brier`, `ece`, `confidence_coverage`, `p50_execution_time_ms`,
+   `p95_execution_time_ms`, computed by `CalibrationRollup` and
+   `LatencyPercentiles` in `src/evaluation/calibration.rs`. Once a baseline
+   exists, an ECE regression is treated like a CSR regression.
 
 5. **Migration order for gates** (one PR each, each carrying its own
    regression guard): `needs_clarification: Noul` → `intent_category:
@@ -145,7 +148,7 @@ in favour of shipping both.**
 - <https://typesafe.ai/blog/introducing-system-one-models-and-jev>
 - <https://evals.typesafe.ai/>
 - <https://github.com/typesafe-ai/system-one-adapter-python> (MIT)
-- ADR-015 — frontier advisor path used as the reference labeller
+- Frontier advisor path (`CommandGenerator::advise`, `src/backends/mod.rs`; `AgentLoop::try_advisor`, `src/agent/mod.rs`) proposed as the reference labeller
 - `src/prompts/risk_judge.rs`, `src/safety/mod.rs` (`blend_smart_decision`)
 - `docs/ml/sft-data-pipeline.md`
 

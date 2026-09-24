@@ -162,6 +162,9 @@ impl CommandGenerator for HybridBackend {
 
         match attempt {
             Ok(result) => Ok(result),
+            // A typed decision from the remote gate, not a failure: surface
+            // the question instead of letting the local model answer anyway.
+            Err(err @ GeneratorError::NeedsClarification { .. }) => Err(err),
             Err(err) => {
                 tracing::warn!("Hybrid remote enhancer error: {}", err);
                 self.fallback_local(request).await

@@ -21,8 +21,9 @@ narrow questions rather than one-shot prompts.
 
 **Key Finding:** caro already has one gate built exactly this way — the
 `--approval smart` risk judge — and every other gate is either free text or
-keyed on a *fake* number. `confidence_score` is a per-backend constant
-(static 1.0, embedded 0.85, claude 0.95, ollama 0.8, AI-Horde 0.75), so the
+keyed on a *fake* number. `confidence_score` was, when this analysis was
+written, a per-backend constant (static 1.0, embedded 0.85, claude 0.95,
+ollama 0.8, AI-Horde 0.75; the static matcher is measured as of #1461), so the
 agent loop's `confidence < 0.8` refinement gate, the advisor escalation and
 the candidate-ranking scorer's `llm_confidence` feature are all silently
 switching on *which backend answered*, not on *how sure it was*. Nothing in
@@ -63,14 +64,14 @@ around* that loop.
 
 | Jev | caro (as of this doc) |
 |---|---|
-| Every answer carries a probability the model was trained to make honest. | `GeneratedCommand.confidence_score` is validated to `0.0..=1.0` (`src/models/mod.rs:107`) but populated by constants: `src/backends/static_matcher.rs` (1.0 "deterministic match"), `src/backends/embedded/embedded_backend.rs` (0.85), `src/backends/remote/claude.rs` (0.95), `ollama.rs` (0.8), `ai_horde.rs` (0.75). |
+| Every answer carries a probability the model was trained to make honest. | `GeneratedCommand.confidence_score` is validated to `0.0..=1.0` (`src/models/mod.rs:107`) but was populated by constants: `src/backends/static_matcher.rs` (1.0 "deterministic match" — replaced by keyword-coverage scoring in #1461), `src/backends/embedded/embedded_backend.rs` (0.85), `src/backends/remote/claude.rs` (0.95), `ollama.rs` (0.8), `ai_horde.rs` (0.75). The LLM constants remain until #1464. |
 | Confidence is the product. | The agent refinement prompt asks for `{"cmd","confidence","changes"}` (`src/agent/mod.rs:~680`) but the parsed value is overwritten by the backend constant before anyone reads it. |
 | — | Consumers of the constant: `src/agent/mod.rs:338` (`low_confidence` → refine/advisor), `src/agent/pipeline/sources.rs:61` (`llm_confidence` feature), `src/safety/mod.rs` `blend_smart_decision` (the one place a *real* confidence is honoured, with a 0.7 floor). |
 
-**Consequence:** the 0.8 refinement threshold can never fire for the static
-matcher (1.0), always fires for Ollama (0.8 is not `< 0.8`, so actually never),
-and never fires for embedded (0.85). The gate is dead code dressed as a
-decision.
+**Consequence:** with those constants the 0.8 refinement threshold never
+fires for the static matcher (1.0), embedded (0.85), claude (0.95) or Ollama
+(0.8 is not `< 0.8`), and always fires for AI-Horde (0.75). The gate is a
+backend switch dressed as a decision.
 
 ### 2. Decisions, not text
 
@@ -90,7 +91,7 @@ decision.
 
 | Jev | caro |
 |---|---|
-| Accuracy vs cost vs latency Pareto; consensus labels from frontier models; disagreement views. | Three parallel harnesses (`src/eval/`, `src/evaluation/`, `tests/evaluation/`), all judged by string equality with flag normalisation; `src/evaluation/` already has cost-per-passed-task and a baseline/regression store. **No** Brier, ECE or reliability diagram anywhere; `EvaluationResult` had no confidence field, so the join was impossible. The 94.8 % CSR headline is 55 TOML cases under exact-match. |
+| Accuracy vs cost vs latency Pareto; consensus labels from frontier models; disagreement views. | Three parallel harnesses (`src/eval/`, `src/evaluation/`, `tests/evaluation/`), all judged by string equality with flag normalisation; `src/evaluation/` already has cost-per-passed-task and a baseline/regression store. **No** Brier, ECE or reliability diagram anywhere; `EvaluationResult` had no confidence field, so the join was impossible. The 94.8 % CSR headline (`tests/evaluation/harness.rs`, `csr >= 0.948`) is computed over the 55-case `tests/evaluation/test_cases.toml` by whitespace/flag-normalised string equality (`tests/evaluation/validators.rs`); the richer 101-case `tests/evaluation/dataset.yaml` with pattern/equivalence rules feeds `src/evaluation/`, not that headline. |
 
 ---
 
@@ -99,8 +100,10 @@ decision.
 1. **Measure calibration before changing anything.** Thread confidence into
    `EvaluationResult`; add Brier and ECE per backend; add p50/p95 latency.
    *Shipped in the PR that adds this document* — see
-   `src/evaluation/calibration.rs`. Expected first result: every backend's
-   ECE equals `|constant − pass_rate|`, which is the evidence for item 2.
+   `src/evaluation/calibration.rs`. Expected first result for every backend
+   still on a constant: ECE equals `|constant − pass_rate|`, which is the
+   evidence for item 2. (Observed for the static matcher before #1461:
+   Brier 0.156 / ECE 0.156 at constant 1.0; 0.137 after.)
 2. **Name the gates as typed decisions.** Introduce `caro::decision`
    (`Noul`, `Choice<T>`, `Score`) and make the risk judge the first consumer
    (*also shipped*). Then migrate, one per PR, in this order:

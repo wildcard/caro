@@ -347,7 +347,14 @@ pub struct BackendResult {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ece: Option<f32>,
 
-    /// Median per-test generation time (milliseconds).
+    /// Fraction of this backend's results that carried a usable confidence
+    /// (the population `brier`/`ece` are computed over). Low coverage means
+    /// the calibration numbers describe a subset, typically excluding
+    /// failures that reported no confidence.
+    #[serde(default)]
+    pub confidence_coverage: f32,
+
+    /// Median per-test generation time (milliseconds), timeouts excluded.
     #[serde(default)]
     pub p50_execution_time_ms: u64,
 

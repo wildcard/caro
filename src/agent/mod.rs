@@ -145,8 +145,17 @@ impl AgentLoop {
         let start = Instant::now();
         let result = self.generate_command_impl(prompt, start).await;
 
-        // Emit telemetry on error
-        if let Err(ref e) = result {
+        // Emit telemetry on error. A clarification request is a typed decision
+        // (ADR-017), not a failed generation: it is reported as a success with
+        // its own category so the failure rate is not biased by questions.
+        if let Err(GeneratorError::NeedsClarification { .. }) = result {
+            crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
+                backend: "embedded".to_string(),
+                duration_ms: start.elapsed().as_millis() as u64,
+                success: true,
+                error_category: Some("needs_clarification".to_string()),
+            });
+        } else if let Err(ref e) = result {
             let error_category = match e {
                 GeneratorError::Timeout { .. } => "timeout",
                 GeneratorError::ParseError { .. } => "parse_error",
@@ -157,7 +166,7 @@ impl AgentLoop {
                 GeneratorError::Internal { .. } => "internal_error",
                 GeneratorError::Unsafe { .. } => "unsafe_command",
                 GeneratorError::ValidationFailed { .. } => "validation_failed",
-                GeneratorError::NeedsClarification { .. } => "needs_clarification",
+                GeneratorError::NeedsClarification { .. } => unreachable!("handled above"),
             };
 
             crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {

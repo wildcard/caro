@@ -2,7 +2,7 @@
 
 Current performance metrics for Caro CLI tool.
 
-**Last Updated**: 2026-01-08 (after Issue #9 benchmark suite implementation)
+**Last Updated**: 2026-09-24 (decision latency & calibration section, ADR-017)
 **Platform**: M1 Mac (Apple Silicon)
 **Rust Version**: 1.75.0+
 **Criterion**: 0.7.0
@@ -140,9 +140,13 @@ four fields borrowed from the "System One" framing (see
 | `ece` | expected calibration error over 10 confidence buckets (lower is better) |
 
 A backend that reports a constant confidence `c` shows `ece == |c − pass_rate|`.
-That is the signature of a hardcoded confidence, and today every backend has
-one (static 1.0, embedded 0.85, ollama 0.8, …). Treat a non-trivial ECE on a
-backend as a bug in its confidence reporting, not in the model.
+That is the signature of a hardcoded confidence. The static matcher now
+measures its confidence (regex 1.0, keyword coverage 0.6–1.0); the LLM
+backends still report constants (embedded 0.85, claude 0.95, ollama 0.8,
+AI-Horde 0.75) until #1464 lands. Treat a non-trivial ECE on a backend as a
+bug in its confidence reporting, not in the model. `confidence_coverage`
+says what fraction of results the Brier/ECE numbers describe; p50/p95
+exclude timed-out results.
 
 Jev's published decision-latency band is 70–500 ms end-to-end; use it as the
 budget reference when comparing `p95_execution_time_ms` across backends.

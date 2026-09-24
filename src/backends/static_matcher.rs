@@ -1812,14 +1812,21 @@ impl StaticMatcher {
     ///
     /// Returns the first matching pattern (first-match-wins, ordering rules in
     /// the module docs) together with a measured confidence in `0.0..=1.0`.
+    #[cfg(test)]
     fn try_match(&self, query: &str) -> Option<(&PatternEntry, f64)> {
+        self.try_match_kind(query).map(|(p, c, _)| (p, c))
+    }
+
+    /// Like [`Self::try_match`] but also reports whether the match came from
+    /// the pattern's regex (`true`) or from keyword coverage (`false`).
+    fn try_match_kind(&self, query: &str) -> Option<(&PatternEntry, f64, bool)> {
         let query_lower = query.to_lowercase();
 
         for pattern in self.patterns.iter() {
             // Check regex pattern first (most precise)
             if let Some(ref regex) = pattern.regex_pattern {
                 if regex.is_match(&query_lower) {
-                    return Some((pattern, Self::REGEX_MATCH_CONFIDENCE));
+                    return Some((pattern, Self::REGEX_MATCH_CONFIDENCE, true));
                 }
             }
 
@@ -1841,7 +1848,7 @@ impl StaticMatcher {
                 if optional_count > 0 || pattern.regex_pattern.is_none() {
                     let confidence =
                         Self::keyword_confidence(optional_count, pattern.optional_keywords.len());
-                    return Some((pattern, confidence));
+                    return Some((pattern, confidence, false));
                 }
             }
         }
@@ -1876,7 +1883,7 @@ impl CommandGenerator for StaticMatcher {
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
         // Try to match the query
-        if let Some((pattern, confidence)) = self.try_match(&request.input) {
+        if let Some((pattern, confidence, via_regex)) = self.try_match_kind(&request.input) {
             let command = self.select_command(pattern);
 
             // ADVERSARIAL INTENT CHECK: Adversarial guard patterns generate a marker
@@ -1916,7 +1923,7 @@ impl CommandGenerator for StaticMatcher {
                 explanation: format!(
                     "Matched pattern: {} ({})",
                     pattern.description,
-                    if confidence >= Self::REGEX_MATCH_CONFIDENCE {
+                    if via_regex {
                         "regex".to_string()
                     } else {
                         format!("keywords, confidence {:.2}", confidence)

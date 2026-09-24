@@ -24,7 +24,6 @@
 //! "never makes type errors" guarantee. See
 //! `docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md`.
 
-use std::fmt::Debug;
 use std::str::FromStr;
 
 /// A yes/no decision with a calibrated probability of "yes".
@@ -82,6 +81,12 @@ impl<T: Clone + PartialEq> Choice<T> {
     /// A degenerate distribution: `label` with `confidence`, the remaining
     /// mass spread evenly over the other `allowed` labels. This is the
     /// "discrete" answer mode of the System One adapter.
+    ///
+    /// Note: [`Choice::argmax`] equals `label` only while `confidence` is at
+    /// least the share left for each other label; a low-confidence discrete
+    /// answer is a statement that *another* label is more likely. Callers
+    /// that want the reported label regardless should read it from their
+    /// own JSON (as the risk judge does) or gate on a confidence floor.
     pub fn discrete(label: T, confidence: f64, allowed: &[T]) -> Self {
         let c = if confidence.is_nan() {
             0.0
@@ -98,7 +103,8 @@ impl<T: Clone + PartialEq> Choice<T> {
     }
 
     /// The most probable label and its probability. Ties resolve to the
-    /// first label in `dist` order, so callers should list labels in
+    /// first label in `dist` order; [`parse_choice_json`] orders `dist` by
+    /// the caller's `allowed` slice in both answer modes, so list labels in
     /// fail-safe order (e.g. highest risk first) when that matters.
     pub fn argmax(&self) -> Option<(&T, f64)> {
         let mut best: Option<(&T, f64)> = None;
@@ -233,39 +239,95 @@ fn is_legacy_clarify_command(cmd: &str) -> bool {
     c.starts_with("echo") && c.contains("please clarify")
 }
 
-/// Extract the first balanced-looking `{...}` JSON object from arbitrary
-/// model output. Lenient about packaging: prose before/after is ignored.
+/// Extract the first *balanced* `{...}` JSON object from arbitrary model
+/// output. Lenient about packaging (prose before/after is ignored) but
+/// brace-aware: a response containing several objects yields the first
+/// complete one instead of a span from the first `{` to the last `}`.
+/// String literals are skipped so braces inside quoted text do not count.
 pub fn extract_json_object(raw: &str) -> Option<String> {
+    let bytes = raw.as_bytes();
     let start = raw.find('{')?;
-    let end = raw.rfind('}')?;
-    (end > start).then(|| raw[start..=end].to_string())
+    let mut depth = 0usize;
+    let mut in_str = false;
+    let mut escaped = false;
+    for (i, &b) in bytes.iter().enumerate().skip(start) {
+        if in_str {
+            match b {
+                b'\\' if !escaped => escaped = true,
+                b'"' if !escaped => in_str = false,
+                _ => escaped = false,
+            }
+            continue;
+        }
+        match b {
+            b'"' => in_str = true,
+            b'{' => depth += 1,
+            b'}' => {
+                depth = depth.saturating_sub(1);
+                if depth == 0 {
+                    return Some(raw[start..=i].to_string());
+                }
+            }
+            _ => {}
+        }
+    }
+    None
 }
+
+/// Tolerance for a probabilities map summing to 1.0.
+const PROBABILITY_SUM_TOLERANCE: f64 = 0.05;
 
 /// Parse a [`Choice`] from model output.
 ///
-/// Accepts both answer modes of the System One adapter:
+/// Accepts exactly one of the two answer modes of the System One adapter:
 ///
-/// - discrete: `{"<key>": "<label>", "confidence": 0.9}` — `key` is the
-///   caller's field name (e.g. `"risk"`), and a missing confidence is `0.0`
-///   (→ ignored by any floor), never a guess;
-/// - probabilities: `{"probabilities": {"<label>": p, ...}}` — normalised.
+/// - discrete: `{"<key>": "<label>", "confidence": c}` — `key` is the
+///   caller's field name (e.g. `"risk"`); `c` must be a finite number in
+///   `0.0..=1.0` (missing or malformed → `None`, never a guess);
+/// - probabilities: `{"probabilities": {"<label>": p, ...}}` — must name
+///   **every** allowed label, every `p` finite and non-negative, and the
+///   total within [`PROBABILITY_SUM_TOLERANCE`] of 1.0. Labels are ordered
+///   by `allowed` so [`Choice::argmax`] ties resolve in the caller's
+///   fail-safe order in both modes.
 ///
-/// Returns `None` on any *type* error: unparsable JSON, a label outside
-/// `allowed`, a non-string label, or a probability that is not a number.
+/// Returns `None` on any type error: unparsable JSON, both modes present,
+/// a label outside `allowed`, a non-string label, a missing/extra label in
+/// probabilities mode, or a probability that is not a finite number. This
+/// output relaxes safety decisions, so malformed input never becomes a
+/// confident verdict.
 pub fn parse_choice_json<T>(raw: &str, key: &str, allowed: &[T]) -> Option<Choice<T>>
 where
-    T: FromStr + Clone + PartialEq + Debug,
+    T: FromStr + Clone + PartialEq,
 {
     let json = extract_json_object(raw)?;
     let value: serde_json::Value = serde_json::from_str(&json).ok()?;
 
-    if let Some(probs) = value.get("probabilities") {
+    let has_label = value.get(key).is_some();
+    let probs = value.get("probabilities");
+    if has_label && probs.is_some() {
+        return None; // mixed answer modes are contradictory, not a verdict
+    }
+
+    if let Some(probs) = probs {
         let map = probs.as_object()?;
-        let mut pairs = Vec::with_capacity(map.len());
-        for (label, p) in map {
-            let t = parse_label(label, allowed)?;
+        if map.len() != allowed.len() {
+            return None;
+        }
+        let mut pairs: Vec<(T, f64)> = Vec::with_capacity(allowed.len());
+        let mut total = 0.0_f64;
+        for want in allowed {
+            let (_, p) = map
+                .iter()
+                .find(|(label, _)| parse_label::<T>(label, allowed).as_ref() == Some(want))?;
             let p = p.as_f64()?;
-            pairs.push((t, p));
+            if !p.is_finite() || p < 0.0 {
+                return None;
+            }
+            total += p;
+            pairs.push((want.clone(), p));
+        }
+        if (total - 1.0).abs() > PROBABILITY_SUM_TOLERANCE {
+            return None;
         }
         let choice = Choice::from_weights(pairs);
         return choice.argmax().is_some().then_some(choice);
@@ -273,10 +335,10 @@ where
 
     let label = value.get(key)?.as_str()?;
     let t = parse_label(label, allowed)?;
-    let confidence = value
-        .get("confidence")
-        .and_then(|v| v.as_f64())
-        .unwrap_or(0.0);
+    let confidence = value.get("confidence")?.as_f64()?;
+    if !confidence.is_finite() || !(0.0..=1.0).contains(&confidence) {
+        return None;
+    }
     Some(Choice::discrete(t, confidence, allowed))
 }
 
@@ -368,21 +430,97 @@ mod tests {
     }
 
     #[test]
-    fn discrete_mode_missing_confidence_is_zero() {
-        let c = parse_choice_json::<Lvl>(r#"{"risk": "low"}"#, "risk", &ALL).unwrap();
-        // With zero confidence the mass moves entirely to the other label,
-        // so the reported label is *not* the argmax — the caller's floor
-        // (confidence == 0.0) is what protects it. Check the raw entry.
-        let low = c.dist.iter().find(|(t, _)| *t == Lvl::Low).unwrap().1;
-        assert_eq!(low, 0.0);
-        assert_eq!(c.argmax(), Some((&Lvl::High, 1.0)));
+    fn discrete_mode_missing_or_invalid_confidence_is_none() {
+        assert!(parse_choice_json::<Lvl>(r#"{"risk": "low"}"#, "risk", &ALL).is_none());
+        assert!(
+            parse_choice_json::<Lvl>(r#"{"risk": "low", "confidence": "x"}"#, "risk", &ALL)
+                .is_none()
+        );
+        assert!(
+            parse_choice_json::<Lvl>(r#"{"risk": "low", "confidence": 1.7}"#, "risk", &ALL)
+                .is_none()
+        );
+        assert!(
+            parse_choice_json::<Lvl>(r#"{"risk": "low", "confidence": -0.1}"#, "risk", &ALL)
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn mixed_answer_modes_are_rejected() {
+        assert!(parse_choice_json::<Lvl>(
+            r#"{"risk": "low", "confidence": 0.9, "probabilities": {"low": 0.1, "high": 0.9}}"#,
+            "risk",
+            &ALL
+        )
+        .is_none());
+    }
+
+    #[test]
+    fn partial_or_unnormalised_probabilities_are_rejected() {
+        // Omitted label must not be renormalised into a confident verdict.
+        assert!(
+            parse_choice_json::<Lvl>(r#"{"probabilities": {"low": 0.6}}"#, "risk", &ALL).is_none()
+        );
+        // Does not sum to one.
+        assert!(parse_choice_json::<Lvl>(
+            r#"{"probabilities": {"low": 0.6, "high": 0.6}}"#,
+            "risk",
+            &ALL
+        )
+        .is_none());
+        // Negative / non-finite.
+        assert!(parse_choice_json::<Lvl>(
+            r#"{"probabilities": {"low": -0.2, "high": 1.2}}"#,
+            "risk",
+            &ALL
+        )
+        .is_none());
+        // Within tolerance is fine.
+        let c = parse_choice_json::<Lvl>(
+            r#"{"probabilities": {"low": 0.3, "high": 0.72}}"#,
+            "risk",
+            &ALL,
+        )
+        .unwrap();
+        assert_eq!(c.argmax().unwrap().0, &Lvl::High);
+    }
+
+    #[test]
+    fn probabilities_ties_resolve_in_allowed_order() {
+        // ALL = [High, Low]; lexical order would pick "high" anyway, so use a
+        // reversed allowed slice to prove ordering follows the caller.
+        let rev = [Lvl::Low, Lvl::High];
+        let c = parse_choice_json::<Lvl>(
+            r#"{"probabilities": {"high": 0.5, "low": 0.5}}"#,
+            "risk",
+            &rev,
+        )
+        .unwrap();
+        assert_eq!(c.argmax().unwrap().0, &Lvl::Low);
+    }
+
+    #[test]
+    fn extracts_first_balanced_object() {
+        assert_eq!(
+            extract_json_object(r#"a {"x": {"y": 1}} b {"z": 2}"#).as_deref(),
+            Some(r#"{"x": {"y": 1}}"#)
+        );
+        assert_eq!(
+            extract_json_object(r#"{"s": "br}ace"} tail"#).as_deref(),
+            Some(r#"{"s": "br}ace"}"#)
+        );
+        assert!(extract_json_object("{unterminated").is_none());
     }
 
     #[test]
     fn parses_probabilities_mode() {
-        let c =
-            parse_choice_json::<Lvl>(r#"{"probabilities": {"low": 1, "high": 3}}"#, "risk", &ALL)
-                .unwrap();
+        let c = parse_choice_json::<Lvl>(
+            r#"{"probabilities": {"low": 0.25, "high": 0.75}}"#,
+            "risk",
+            &ALL,
+        )
+        .unwrap();
         assert_eq!(c.argmax(), Some((&Lvl::High, 0.75)));
     }
 
@@ -426,8 +564,11 @@ mod tests {
         assert!(
             parse_choice_json::<Lvl>(r#"{"probabilities": {"nope": 1}}"#, "risk", &ALL).is_none()
         );
-        assert!(
-            parse_choice_json::<Lvl>(r#"{"probabilities": {"low": 0}}"#, "risk", &ALL).is_none()
-        );
+        assert!(parse_choice_json::<Lvl>(
+            r#"{"probabilities": {"low": 0, "high": 0}}"#,
+            "risk",
+            &ALL
+        )
+        .is_none());
     }
 }

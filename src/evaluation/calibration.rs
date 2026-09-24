@@ -16,11 +16,27 @@
 //!   compare mean confidence to observed accuracy in each bucket, weight by
 //!   bucket size. A constant-confidence backend has `ECE == |c − pass_rate|`.
 //! - **p50 / p95 latency** — the tail is what a user feels; the mean hides it.
+//!   Timed-out results are excluded: their `execution_time_ms` is the
+//!   harness's timeout cap, not a generation time.
+//! - **Coverage** — the fraction of results that carried a confidence at
+//!   all. Brier/ECE are computed over that subset, so a backend with low
+//!   coverage (e.g. failures that report no confidence) is flagged rather
+//!   than flattered.
+//!
+//! Non-finite confidences are treated as absent rather than poisoning the
+//! rollups with NaN.
 //!
 //! Everything here is pure over `&EvaluationResult` so it can be unit-tested
 //! with hand-computed numbers and reused by any report printer.
 
-use crate::evaluation::EvaluationResult;
+use crate::evaluation::{ErrorType, EvaluationResult};
+
+/// A usable confidence: present, finite, clamped to `0.0..=1.0`.
+fn usable_confidence(r: &EvaluationResult) -> Option<f64> {
+    r.confidence
+        .filter(|c| c.is_finite())
+        .map(|c| c.clamp(0.0, 1.0))
+}
 
 /// Number of equal-width confidence buckets used for ECE.
 pub const ECE_BINS: usize = 10;
@@ -33,9 +49,8 @@ pub fn brier<'a>(results: impl IntoIterator<Item = &'a EvaluationResult>) -> Opt
     let mut sum = 0.0_f64;
     let mut n = 0_usize;
     for r in results {
-        if let Some(c) = r.confidence {
+        if let Some(c) = usable_confidence(r) {
             let outcome = if r.passed { 1.0 } else { 0.0 };
-            let c = c.clamp(0.0, 1.0);
             sum += (c - outcome).powi(2);
             n += 1;
         }
@@ -58,8 +73,7 @@ pub fn ece<'a>(
     let mut n = 0_usize;
 
     for r in results {
-        if let Some(c) = r.confidence {
-            let c = c.clamp(0.0, 1.0);
+        if let Some(c) = usable_confidence(r) {
             let idx = ((c * bins as f64) as usize).min(bins - 1);
             conf_sum[idx] += c;
             hit_sum[idx] += if r.passed { 1.0 } else { 0.0 };
@@ -91,15 +105,29 @@ pub struct CalibrationRollup {
     pub brier: Option<f32>,
     /// See [`ece`] (with [`ECE_BINS`] buckets).
     pub ece: Option<f32>,
+    /// Fraction of results (0.0..=1.0) that carried a usable confidence and
+    /// therefore entered `brier`/`ece`. `0.0` for an empty set.
+    pub coverage: f32,
 }
 
 impl CalibrationRollup {
     /// Compute both metrics in one place so the per-backend and full-run
     /// aggregation paths in the harness agree by construction.
     pub fn of<'a>(results: impl IntoIterator<Item = &'a EvaluationResult> + Clone) -> Self {
+        let (total, with_conf) = results
+            .clone()
+            .into_iter()
+            .fold((0usize, 0usize), |(t, w), r| {
+                (t + 1, w + usize::from(usable_confidence(r).is_some()))
+            });
         Self {
             brier: brier(results.clone()).map(|v| v as f32),
             ece: ece(results, ECE_BINS).map(|v| v as f32),
+            coverage: if total > 0 {
+                with_conf as f32 / total as f32
+            } else {
+                0.0
+            },
         }
     }
 }
@@ -116,9 +144,15 @@ pub struct LatencyPercentiles {
 }
 
 impl LatencyPercentiles {
-    /// Nearest-rank percentiles; all zeros for an empty set.
+    /// Nearest-rank percentiles over results that actually generated (timed
+    /// out results carry the timeout cap, not a latency, and are excluded);
+    /// all zeros for an empty set.
     pub fn of<'a>(results: impl IntoIterator<Item = &'a EvaluationResult>) -> Self {
-        let mut times: Vec<u64> = results.into_iter().map(|r| r.execution_time_ms).collect();
+        let mut times: Vec<u64> = results
+            .into_iter()
+            .filter(|r| r.error_type != Some(ErrorType::Timeout))
+            .map(|r| r.execution_time_ms)
+            .collect();
         if times.is_empty() {
             return Self::default();
         }
@@ -193,7 +227,7 @@ mod tests {
     }
 
     #[test]
-    fn perfectly_calibrated_mixed_bins() {
+    fn ece_weights_bins_by_count() {
         // Bin [0.9,1.0]: two at 0.9, both pass → |0.9-1.0| = 0.1 weighted 2/4.
         // Bin [0.2,0.3): two at 0.2, none pass → |0.2-0.0| = 0.2 weighted 2/4.
         let rs = vec![
@@ -206,9 +240,42 @@ mod tests {
     }
 
     #[test]
-    fn confidence_is_clamped() {
+    fn confidence_is_clamped_and_nan_is_absent() {
         let rs = vec![result(true, Some(7.0), 1), result(false, Some(-3.0), 1)];
         assert!((brier(&rs).unwrap() - 0.0).abs() < 1e-9);
+
+        let nan = vec![
+            result(true, Some(f64::NAN), 1),
+            result(true, Some(f64::INFINITY), 1),
+        ];
+        assert_eq!(brier(&nan), None);
+        assert_eq!(ece(&nan, ECE_BINS), None);
+        assert_eq!(CalibrationRollup::of(&nan).coverage, 0.0);
+    }
+
+    #[test]
+    fn coverage_counts_results_without_confidence() {
+        // Two failures with no confidence + two passes at 0.9: Brier/ECE see
+        // only the passes (look calibrated-ish) but coverage exposes the gap.
+        let rs = vec![
+            result(false, None, 1),
+            result(false, None, 1),
+            result(true, Some(0.9), 1),
+            result(true, Some(0.9), 1),
+        ];
+        let c = CalibrationRollup::of(&rs);
+        assert!((c.coverage - 0.5).abs() < 1e-6);
+        assert!((c.ece.unwrap() - 0.1).abs() < 1e-6);
+    }
+
+    #[test]
+    fn latency_excludes_timeouts() {
+        let mut timed_out = result(false, None, 30_000);
+        timed_out.error_type = Some(ErrorType::Timeout);
+        let rs = vec![result(true, None, 10), result(true, None, 20), timed_out];
+        let p = LatencyPercentiles::of(&rs);
+        assert_eq!(p.p95_ms, 20);
+        assert_eq!(p.max_ms, 20);
     }
 
     #[test]

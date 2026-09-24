@@ -149,7 +149,7 @@ Rules:
 4. Target shell: {}
 5. NEVER generate destructive commands (rm -rf /, mkfs, dd, etc.)
 6. Keep commands simple and safe
-7. If the request is unclear, output ONLY: {"needs_clarification": true, "p": <0.0-1.0>, "question": "<one short question>"}
+7. If the request is unclear, output ONLY: {{"needs_clarification": true, "p": <0.0-1.0>, "question": "<one short question>"}}
 "#,
             request.shell
         )

@@ -7,21 +7,67 @@ use caro::decision::clarification_from_raw;
 
 #[test]
 fn no_backend_prompt_asks_for_echo_clarify() {
-    let offenders: Vec<_> = [
-        include_str!("../src/backends/remote/ai_horde.rs"),
-        include_str!("../src/backends/remote/claude.rs"),
-        include_str!("../src/backends/remote/exo.rs"),
-        include_str!("../src/backends/remote/mesh.rs"),
-        include_str!("../src/backends/remote/ollama.rs"),
-        include_str!("../src/backends/remote/openrouter.rs"),
-        include_str!("../src/backends/remote/vllm.rs"),
-        include_str!("../src/backends/embedded/cpu.rs"),
-    ]
-    .iter()
-    .enumerate()
-    .filter(|(_, src)| src.contains("generate \"echo 'Please clarify"))
-    .map(|(i, _)| i)
-    .collect();
+    // Every prompt-bearing source, remote and embedded. The banned phrase is
+    // the runnable command itself, however it is packaged.
+    let sources = [
+        (
+            "remote/ai_horde.rs",
+            include_str!("../src/backends/remote/ai_horde.rs"),
+        ),
+        (
+            "remote/claude.rs",
+            include_str!("../src/backends/remote/claude.rs"),
+        ),
+        (
+            "remote/exo.rs",
+            include_str!("../src/backends/remote/exo.rs"),
+        ),
+        (
+            "remote/mesh.rs",
+            include_str!("../src/backends/remote/mesh.rs"),
+        ),
+        (
+            "remote/ollama.rs",
+            include_str!("../src/backends/remote/ollama.rs"),
+        ),
+        (
+            "remote/openrouter.rs",
+            include_str!("../src/backends/remote/openrouter.rs"),
+        ),
+        (
+            "remote/vllm.rs",
+            include_str!("../src/backends/remote/vllm.rs"),
+        ),
+        (
+            "embedded/cpu.rs",
+            include_str!("../src/backends/embedded/cpu.rs"),
+        ),
+        (
+            "embedded/mlx.rs",
+            include_str!("../src/backends/embedded/mlx.rs"),
+        ),
+        (
+            "embedded/embedded_backend.rs",
+            include_str!("../src/backends/embedded/embedded_backend.rs"),
+        ),
+        (
+            "prompts/smollm_prompt.rs",
+            include_str!("../src/prompts/smollm_prompt.rs"),
+        ),
+        (
+            "prompts/minimal.rs",
+            include_str!("../src/prompts/minimal.rs"),
+        ),
+        (
+            "prompts/command_templates.rs",
+            include_str!("../src/prompts/command_templates.rs"),
+        ),
+    ];
+    let offenders: Vec<_> = sources
+        .iter()
+        .filter(|(_, src)| src.to_lowercase().contains("please clarify your request"))
+        .map(|(name, _)| *name)
+        .collect();
     assert!(
         offenders.is_empty(),
         "prompt still asks for an echo: {offenders:?}"

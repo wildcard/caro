@@ -335,6 +335,7 @@ impl EvaluationHarness {
             total_tokens_out: cost.total_tokens_out,
             brier: calibration.brier,
             ece: calibration.ece,
+            confidence_coverage: calibration.coverage,
             p50_execution_time_ms: latency.p50_ms,
             p95_execution_time_ms: latency.p95_ms,
         })
@@ -701,6 +702,7 @@ impl EvaluationHarness {
                     total_tokens_out: cost.total_tokens_out,
                     brier: calibration.brier,
                     ece: calibration.ece,
+                    confidence_coverage: calibration.coverage,
                     p50_execution_time_ms: latency.p50_ms,
                     p95_execution_time_ms: latency.p95_ms,
                 },

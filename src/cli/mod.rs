@@ -10,7 +10,7 @@ use std::time::Instant;
 
 use crate::{
     agent::AgentLoop,
-    backends::CommandGenerator,
+    backends::{CommandGenerator, GeneratorError},
     context::ExecutionContext,
     models::{ApprovalMode, CommandRequest, RiskJudgeContext, SafetyLevel, ShellType},
     prompts::CapabilityProfile,
@@ -25,7 +25,7 @@ use async_trait::async_trait;
 
 #[cfg(any(test, debug_assertions))]
 use crate::{
-    backends::{BackendInfo, GeneratorError},
+    backends::BackendInfo,
     models::{BackendType, GeneratedCommand, RiskLevel},
 };
 

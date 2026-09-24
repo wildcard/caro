@@ -3539,6 +3539,16 @@ async fn main() {
             // Exit with code 0 for successful or safe commands
             process::exit(if was_blocked { 1 } else { 0 })
         }
+        Err(CliError::NeedsClarification { question, .. }) => {
+            // Typed clarification gate (ADR-017): a question, not an error.
+            eprintln!(
+                "{}",
+                question
+                    .as_deref()
+                    .unwrap_or("Could you rephrase the request with a bit more detail?")
+            );
+            process::exit(0);
+        }
         Err(e) => {
             eprintln!("Error: {}", e);
             match e {

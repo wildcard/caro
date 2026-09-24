@@ -57,12 +57,13 @@ Command:
 }
 
 /// Parse a judge verdict from raw model output. Tolerates surrounding prose by
-/// extracting the first `{...}` object. Returns `None` on any parse failure so
-/// the caller fails safe to the static decision.
+/// extracting the first balanced `{...}` object. Returns `None` on any parse
+/// failure so the caller fails safe to the static decision.
 ///
 /// The verdict is a typed [`Choice`] over [`RiskLevel`] (see
-/// [`crate::decision`]): an unknown label is a type error, never a guess, and
-/// a missing confidence is `0.0` (→ ignored by the smart-approval floor).
+/// [`crate::decision`]): an unknown label, a missing/malformed confidence, a
+/// partial or unnormalised probabilities map, or a response mixing both
+/// answer modes is a type error and yields `None` — never a guess.
 pub fn parse_risk_judgment(raw: &str) -> Option<RiskJudgment> {
     const LEVELS: [RiskLevel; 4] = [
         RiskLevel::Critical,
@@ -72,21 +73,16 @@ pub fn parse_risk_judgment(raw: &str) -> Option<RiskJudgment> {
     ];
     let choice: Choice<RiskLevel> = parse_choice_json(raw, "risk", &LEVELS)?;
 
-    // The judge's own label is authoritative (the discrete answer mode); the
-    // distribution only carries its confidence. Fall back to argmax when the
-    // model answered in probabilities mode instead.
     let json = extract_json_object(raw)?;
     let value: serde_json::Value = serde_json::from_str(&json).ok()?;
     let (risk, confidence) = match value.get("risk").and_then(|v| v.as_str()) {
-        Some(label) => {
-            let risk: RiskLevel = label.parse().ok()?;
-            let confidence = value
-                .get("confidence")
-                .and_then(|v| v.as_f64())
-                .unwrap_or(0.0)
-                .clamp(0.0, 1.0);
-            (risk, confidence)
-        }
+        // Discrete mode: the judge's own label and confidence are the verdict
+        // (parse_choice_json already validated both).
+        Some(label) => (
+            label.parse().ok()?,
+            value.get("confidence")?.as_f64()?.clamp(0.0, 1.0),
+        ),
+        // Probabilities mode: argmax of a complete, normalised distribution.
         None => {
             let (risk, p) = choice.argmax()?;
             (*risk, p)
@@ -146,15 +142,27 @@ mod tests {
     }
 
     #[test]
-    fn missing_confidence_defaults_to_ignored() {
-        let j = parse_risk_judgment(r#"{"risk":"moderate","reason":"x"}"#).unwrap();
-        assert_eq!(j.confidence, 0.0);
+    fn missing_confidence_is_rejected() {
+        // A verdict without a confidence cannot clear the floor either way;
+        // rejecting it keeps the static decision (fail-safe) and never lets
+        // a zero-mass label masquerade as a distribution.
+        assert!(parse_risk_judgment(r#"{"risk":"moderate","reason":"x"}"#).is_none());
+    }
+
+    #[test]
+    fn partial_probabilities_cannot_relax_safety() {
+        // Omitting labels must not renormalise into a confident "safe".
+        assert!(parse_risk_judgment(r#"{"probabilities": {"safe": 0.6}}"#).is_none());
+        assert!(parse_risk_judgment(
+            r#"{"risk":"safe","confidence":0.9,"probabilities":{"safe":1,"moderate":0,"high":0,"critical":0}}"#
+        )
+        .is_none());
     }
 
     #[test]
     fn parses_probabilities_mode_via_argmax() {
         let j = parse_risk_judgment(
-            r#"{"probabilities": {"safe": 0.1, "moderate": 0.2, "high": 0.7}, "reason": "rm"}"#,
+            r#"{"probabilities": {"safe": 0.1, "moderate": 0.2, "high": 0.7, "critical": 0.0}, "reason": "rm"}"#,
         )
         .unwrap();
         assert_eq!(j.risk, RiskLevel::High);
