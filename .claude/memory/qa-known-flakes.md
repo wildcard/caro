@@ -11,9 +11,10 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **First observed**: 2026-05-07  
 **Symptom**: `caro -p "..." --dry-run` fails with `Backend is not available: Failed to download model after 3 attempts` after 3 retries (2s, 4s backoff).  
 **Context**: Remote CI/QA sandbox where `https://huggingface.co/` returns HTTP 200 but binary blob downloads time out or are blocked at a lower network layer.  
-**Impact**: Slot A `--dry-run` smoke check cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
+**Impact**: On 2026-05-07, Slot A `--dry-run` could not be completed in this environment due to download failure. On 2026-09-24 the download succeeded (1.1GB GGUF); the dry-run now completes but returns a wrong command due to #1473 (system-prompt contamination in the CPU stub) — a code bug, not a download flake. If this flake recurs, use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:
-- 2026-05-07: observed once
+- 2026-05-07: observed once (download blocked in sandbox)
+- 2026-09-24: NOT observed — model downloaded successfully (1.1GB GGUF); prior observation is 140 days old, outside 7-day window; streak reset
 
 **Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Workaround**: Run `caro -p "..." --dry-run` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama installed as fallback backend.
