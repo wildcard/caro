@@ -13,6 +13,18 @@ LOOP="$(cd "$(dirname "$0")/../.." && pwd)/loop.sh"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
+# The outer guard needs GNU timeout (gtimeout on macOS with coreutils). Without
+# either, loop.sh cannot enforce its per-iteration limit, so there is nothing
+# to test here.
+if command -v timeout >/dev/null 2>&1; then
+  TIMEOUT=timeout
+elif command -v gtimeout >/dev/null 2>&1; then
+  TIMEOUT=gtimeout
+else
+  echo "SKIP: loop.sh budget tests need timeout or gtimeout"
+  exit 0
+fi
+
 pass=0
 fail=0
 
@@ -45,7 +57,7 @@ run_loop() {
   shift
   (cd "$dir/work" && env PATH="$dir/bin:$PATH" RALPH_PAUSE_SECONDS=0 \
     RALPH_RETRY_SECONDS=0 RALPH_LOG_FILE="$dir/ralph.log" "$@" \
-    timeout 60 "$LOOP" build >"$dir/out.log" 2>&1)
+    "$TIMEOUT" 60 "$LOOP" build >"$dir/out.log" 2>&1)
 }
 
 iterations() {
@@ -63,6 +75,11 @@ check "default run stops after 20 iterations (got $(iterations "$d"))" test "$(i
 d="$(new_env capped 'echo ok')"
 run_loop "$d" RALPH_MAX_ITERATIONS=3
 check "RALPH_MAX_ITERATIONS=3 stops at 3 (got $(iterations "$d"))" test "$(iterations "$d")" = 3
+
+# A leading-zero cap is decimal, not octal ("08" is invalid octal in bash).
+d="$(new_env octal 'echo ok')"
+run_loop "$d" RALPH_MAX_ITERATIONS=08
+check "RALPH_MAX_ITERATIONS=08 stops at 8 (got $(iterations "$d"))" test "$(iterations "$d")" = 8
 
 # Per-iteration timeout kills a hung agent.
 d="$(new_env hung 'sleep 30')"

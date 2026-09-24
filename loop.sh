@@ -70,6 +70,8 @@ check_prerequisites() {
         log ERROR "RALPH_MAX_ITERATIONS must be a non-negative integer (got: $MAX_ITERATIONS)"
         exit 1
     fi
+    # Force base 10: bash would parse a leading-zero value such as 08 as octal.
+    MAX_ITERATIONS=$((10#$MAX_ITERATIONS))
     if [[ "$MAX_ITERATIONS" -eq 0 ]]; then
         log WARN "RALPH_MAX_ITERATIONS=0: running with NO iteration cap"
     fi
