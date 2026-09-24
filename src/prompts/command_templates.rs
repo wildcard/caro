@@ -128,22 +128,48 @@ impl TemplateLibrary {
             .collect()
     }
 
+    /// Minimum fraction of a template's signal words a request must cover
+    /// before that template is selected; below it the match is ambiguous
+    /// and `find_template` returns `None`.
+    pub const MIN_TEMPLATE_COVERAGE: f64 = 0.67;
+
     /// Find the template whose intent pattern best covers the request.
     ///
     /// Replaces the former substring match (`intent.contains(pattern)`) with
     /// the same word-coverage score that [`Self::classify_intent`] uses, so a
-    /// request like "list every file" still reaches "list files". Returns
-    /// `None` when no template shares a signal word with the request.
+    /// request like "list every file" still reaches "list files".
+    ///
+    /// Guards: a template needs at least [`Self::MIN_TEMPLATE_COVERAGE`] of
+    /// its signal words present, and a destructive template (one that
+    /// `requires_confirmation`) needs *all* of them, so "show permissions"
+    /// never resolves to `chmod`. Equal coverage is broken by specificity —
+    /// the pattern with more words wins — so "list all files" prefers the
+    /// "list all files" template over "list files", matching the old
+    /// substring behaviour.
     pub fn find_template(&self, intent: &str) -> Option<&CommandTemplate> {
         let query_words = super::intent::words(intent);
-        // Reverse so that on equal coverage the *earlier* template wins
-        // (`max_by` keeps the last maximum), preserving library order.
         self.templates
             .iter()
-            .rev()
             .map(|t| (t, super::intent::pattern_coverage(&query_words, t)))
-            .filter(|(_, cov)| *cov > 0.0)
-            .max_by(|a, b| a.1.total_cmp(&b.1))
+            .filter(|(t, cov)| {
+                let floor = if t.requires_confirmation {
+                    1.0
+                } else {
+                    Self::MIN_TEMPLATE_COVERAGE
+                };
+                *cov >= floor
+            })
+            // Reverse so that on a full tie the earlier template wins
+            // (`max_by` keeps the last maximum).
+            .rev()
+            .max_by(|a, b| {
+                a.1.total_cmp(&b.1).then_with(|| {
+                    a.0.intent_pattern
+                        .split_whitespace()
+                        .count()
+                        .cmp(&b.0.intent_pattern.split_whitespace().count())
+                })
+            })
             .map(|(t, _)| t)
     }
 
@@ -743,15 +769,23 @@ mod tests {
         let profile = CapabilityProfile::ubuntu();
         let library = TemplateLibrary::for_profile(&profile);
 
-        let template = library.find_template("list all files");
-        assert!(template.is_some());
-        assert!(template.unwrap().command_template.contains("ls"));
+        // Specificity: "list all files" beats "list files" on a coverage tie.
+        let template = library.find_template("list all files").unwrap();
+        assert_eq!(template.intent_pattern, "list all files");
+        assert!(template.command_template.contains("ls -a"));
 
         // Word coverage, not substring: reordered/extra words still match.
-        let template = library.find_template("please list every file");
-        assert!(template.is_some());
-        assert!(template.unwrap().command_template.contains("ls"));
+        let template = library.find_template("please list every file").unwrap();
+        assert!(template.command_template.starts_with("ls"));
         assert!(library.find_template("bake a sourdough loaf").is_none());
+
+        // A single shared word is not enough, and a destructive template
+        // needs every signal word: "show permissions" must not reach chmod.
+        assert!(library.find_template("show permissions").is_none());
+        let template = library
+            .find_template("change permissions on a file")
+            .unwrap();
+        assert!(template.requires_confirmation);
     }
 
     #[test]

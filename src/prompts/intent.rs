@@ -105,19 +105,35 @@ const STOPWORDS: &[&str] = &[
 ];
 
 /// Tokenise for intent matching: lowercase, alphanumeric words, stopwords
-/// removed, a trailing plural `s` stripped so "file" and "files" agree.
+/// removed, plurals singularised (see [`singularise`]) so "file" and
+/// "files" agree.
 pub(crate) fn words(text: &str) -> Vec<String> {
     text.to_lowercase()
         .split(|c: char| !c.is_alphanumeric())
         .filter(|w| w.len() > 1 && !STOPWORDS.contains(w))
-        .map(|w| {
-            if w.len() > 3 && w.ends_with('s') && !w.ends_with("ss") {
-                w[..w.len() - 1].to_string()
-            } else {
-                w.to_string()
-            }
-        })
+        .map(singularise)
         .collect()
+}
+
+/// Light plural normalisation so singular and plural forms agree:
+/// `directories` → `directory`, `processes` → `process`, `boxes` → `box`,
+/// `files` → `file`; `ss`/`us` words and short words are left alone.
+fn singularise(w: &str) -> String {
+    if w.len() > 4 && w.ends_with("ies") {
+        return format!("{}y", &w[..w.len() - 3]);
+    }
+    if w.len() > 4
+        && w.ends_with("es")
+        && ["ss", "x", "zz", "ch", "sh"]
+            .iter()
+            .any(|suf| w[..w.len() - 2].ends_with(suf))
+    {
+        return w[..w.len() - 2].to_string();
+    }
+    if w.len() > 3 && w.ends_with('s') && !w.ends_with("ss") && !w.ends_with("us") {
+        return w[..w.len() - 1].to_string();
+    }
+    w.to_string()
 }
 
 /// Fraction of a template's intent-pattern words present in the query.
@@ -197,6 +213,24 @@ mod tests {
         let total: f64 = c.dist.iter().map(|(_, p)| p).sum();
         assert!((total - 1.0).abs() < 1e-9);
         assert!(c.confidence() > 0.0 && c.confidence() <= 1.0);
+    }
+
+    #[test]
+    fn singularise_handles_common_plurals() {
+        for (plural, singular) in [
+            ("directories", "directory"),
+            ("processes", "process"),
+            ("boxes", "box"),
+            ("files", "file"),
+            ("sizes", "size"),
+            ("class", "class"),
+            ("status", "status"),
+            ("ls", "ls"),
+        ] {
+            assert_eq!(singularise(plural), singular, "{plural}");
+        }
+        let c = classify_intent("list directories", &templates());
+        assert_eq!(c.argmax().unwrap().0, &IntentCategory::Listing);
     }
 
     #[test]
