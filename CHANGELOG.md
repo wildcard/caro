@@ -34,6 +34,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   instead of offering an `echo` command; remote prompts ask for the JSON
   form. Regression guard: `tests/clarification_gate_contract.rs`.
 
+- **Typed intent categorisation** ([#1463](https://github.com/wildcard/caro/issues/1463)):
+  `caro::prompts::IntentCategory` (closed set mirroring the template
+  categories, `FromStr`) and `TemplateLibrary::classify_intent`, a
+  deterministic keyword-coverage prior returned as a `Choice`.
+  `find_template` now ranks by word coverage (plural-insensitive, earlier
+  template wins ties) instead of a raw substring match. Not yet wired into
+  the model prompt; that waits on eval evidence.
+
 ### Documentation
 
 - `docs/research/jev-system-one-gap-analysis.md` — what caro can learn from

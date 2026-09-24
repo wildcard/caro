@@ -31,6 +31,8 @@
 //! ```
 
 use super::capability_profile::{CapabilityProfile, ProfileType, StatFormat};
+use super::intent::IntentCategory;
+use crate::decision::Choice;
 
 /// A command template with intent pattern and command
 #[derive(Debug, Clone)]
@@ -126,12 +128,29 @@ impl TemplateLibrary {
             .collect()
     }
 
-    /// Find template matching an intent pattern
+    /// Find the template whose intent pattern best covers the request.
+    ///
+    /// Replaces the former substring match (`intent.contains(pattern)`) with
+    /// the same word-coverage score that [`Self::classify_intent`] uses, so a
+    /// request like "list every file" still reaches "list files". Returns
+    /// `None` when no template shares a signal word with the request.
     pub fn find_template(&self, intent: &str) -> Option<&CommandTemplate> {
-        let intent_lower = intent.to_lowercase();
+        let query_words = super::intent::words(intent);
+        // Reverse so that on equal coverage the *earlier* template wins
+        // (`max_by` keeps the last maximum), preserving library order.
         self.templates
             .iter()
-            .find(|t| intent_lower.contains(&t.intent_pattern.to_lowercase()))
+            .rev()
+            .map(|t| (t, super::intent::pattern_coverage(&query_words, t)))
+            .filter(|(_, cov)| *cov > 0.0)
+            .max_by(|a, b| a.1.total_cmp(&b.1))
+            .map(|(t, _)| t)
+    }
+
+    /// Typed intent decision for a request: a [`Choice`] over
+    /// [`IntentCategory`] from the deterministic keyword prior (#1463).
+    pub fn classify_intent(&self, intent: &str) -> Choice<IntentCategory> {
+        super::intent::classify_intent(intent, &self.templates)
     }
 
     fn template_compatible(template: &CommandTemplate, profile: &CapabilityProfile) -> bool {
@@ -727,5 +746,18 @@ mod tests {
         let template = library.find_template("list all files");
         assert!(template.is_some());
         assert!(template.unwrap().command_template.contains("ls"));
+
+        // Word coverage, not substring: reordered/extra words still match.
+        let template = library.find_template("please list every file");
+        assert!(template.is_some());
+        assert!(template.unwrap().command_template.contains("ls"));
+        assert!(library.find_template("bake a sourdough loaf").is_none());
+    }
+
+    #[test]
+    fn classify_intent_returns_a_distribution() {
+        let library = TemplateLibrary::for_profile(&CapabilityProfile::ubuntu());
+        let c = library.classify_intent("search for text in file");
+        assert_eq!(c.argmax().unwrap().0, &IntentCategory::TextSearch);
     }
 }
