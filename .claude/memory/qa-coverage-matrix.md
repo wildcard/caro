@@ -24,7 +24,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | # | Surface | Domain | Last tested | Result | Linked issue(s) |
 |---|---------|--------|-------------|--------|-----------------|
 | 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-05-07 | PASS | — |
-| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-05-07 | FLAKE | — |
+| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-09-24 | FAIL | [#1473](https://github.com/wildcard/caro/issues/1473) |
 | 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
@@ -41,7 +41,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 16 | `caro --output yaml` format correctness | cli | never | — | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
 | 18 | `caro test --backend static` eval harness | cli | never | — | — |
-| 19 | Embedded model backend command quality | embedded | never | — | — |
+| 19 | Embedded model backend command quality | embedded | 2026-09-24 | FAIL | [#1473](https://github.com/wildcard/caro/issues/1473) |
 | 20 | Ollama backend (requires ollama installed) | ollama | never | — | — |
 | 21 | CaroML: `caro run / generate / render / history` | cli | never | — | — |
 | 22 | CaroML: `caro experiment / adopt / why` | cli | never | — | — |

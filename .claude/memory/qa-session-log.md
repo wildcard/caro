@@ -13,9 +13,9 @@ Reading order: most recent first.
 
 - `cargo build --release --features embedded-cpu` → **PASS** (3m 09s, no errors)
 - `caro --version` → **PASS**: `caro 1.5.0 (be07b22 2026-07-18)`
-- `caro --help` → **PASS**: all subcommands listed including CaroML verbs and new `skill` subcommand
+- `caro --help` → **PASS**: all subcommands listed including CaroML verbs and the `skill` subcommand
 - `caro doctor` → **PASS**: proxy detected, HuggingFace reachable, no model on first check (model downloaded during dry-run)
-- `caro -p 'list files in current directory' --dry-run` → **PARTIAL** (exit 0): WARN `Timeout approaching, skipping refinement`; generated `echo 'Please clarify your request'` (root cause confirmed in Slot C, see #1473)
+- `caro -p 'list files in current directory' --dry-run` → **FAIL** (exit 0): WARN `Timeout approaching, skipping refinement`; generated `echo 'Please clarify your request'` (root cause confirmed in Slot C, see #1473)
 - FLAKE-001 status: model downloaded successfully this run (1.1GB GGUF present after run) — first successful download; FLAKE-001 occurrence streak NOT extended
 
 ### Slot B — Recent diff (110 PRs since 2026-05-07)
