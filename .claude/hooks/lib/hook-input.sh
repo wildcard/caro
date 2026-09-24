@@ -15,8 +15,9 @@ BLOCK=2
 
 _HOOK_JSON="$(cat)"
 
+# CARO_HOOKS_NO_JQ=1 forces the python3 fallback (used by the test suite in CI).
 _json_field() {
-  if command -v jq >/dev/null 2>&1; then
+  if [[ -z "${CARO_HOOKS_NO_JQ:-}" ]] && command -v jq >/dev/null 2>&1; then
     jq -r "$1 // empty" <<<"$_HOOK_JSON" 2>/dev/null
   else
     python3 -c 'import json,sys

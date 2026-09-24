@@ -22,3 +22,8 @@ jobs:
 
       - name: Test Claude Code guard hooks
         run: .claude/hooks/tests/guard-hooks.test.sh
+
+      - name: Test Claude Code guard hooks (python3 fallback, no jq)
+        run: .claude/hooks/tests/guard-hooks.test.sh
+        env:
+          CARO_HOOKS_NO_JQ: "1"

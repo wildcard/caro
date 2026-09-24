@@ -6,6 +6,7 @@
 # so a hook that silently stops enforcing (the pre-2026-09 state) fails here.
 #
 # Usage: .claude/hooks/tests/guard-hooks.test.sh
+#        CARO_HOOKS_NO_JQ=1 .claude/hooks/tests/guard-hooks.test.sh  # python3 path
 
 set -uo pipefail
 
@@ -18,7 +19,7 @@ fail=0
 
 payload() {
   # payload <tool> <command> <cwd>
-  if command -v jq >/dev/null 2>&1; then
+  if [[ -z "${CARO_HOOKS_NO_JQ:-}" ]] && command -v jq >/dev/null 2>&1; then
     jq -n --arg t "$1" --arg c "$2" --arg d "$3" \
       '{hook_event_name:"PreToolUse", tool_name:$t, tool_input:{command:$c}, cwd:$d}'
   else
