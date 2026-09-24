@@ -61,7 +61,7 @@ impl InferenceBackend for CpuBackend {
         // Simulate CPU inference (placeholder - actual Candle integration would use candle-transformers)
         // This simulates slower CPU inference with consistent JSON output
         let response = if prompt.contains("delete") || prompt.contains("rm") {
-            r#"{"cmd": "echo 'Please clarify your request'"}"#
+            r#"{"needs_clarification": true, "p": 0.9, "question": "What exactly should be deleted?"}"#
         } else if prompt.contains("list files") {
             r#"{"cmd": "ls -la"}"#
         } else if prompt.contains("find") {

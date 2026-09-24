@@ -2,7 +2,7 @@
 
 Current performance metrics for Caro CLI tool.
 
-**Last Updated**: 2026-01-08 (after Issue #9 benchmark suite implementation)
+**Last Updated**: 2026-09-24 (decision latency & calibration section, ADR-017)
 **Platform**: M1 Mac (Apple Silicon)
 **Rust Version**: 1.75.0+
 **Criterion**: 0.7.0
@@ -126,9 +126,35 @@ None identified. All operations exceed performance requirements.
 
 4. Check CI report on PR for regression analysis
 
+## Decision Latency & Calibration (eval harness)
+
+Every `BackendResult` in the evaluation harness (`src/evaluation/`) now carries
+four fields borrowed from the "System One" framing (see
+`docs/research/jev-system-one-gap-analysis.md` and ADR-017):
+
+| Field | Meaning |
+|-------|---------|
+| `p50_execution_time_ms` | median per-test generation time |
+| `p95_execution_time_ms` | tail latency — what a user actually feels |
+| `brier` | mean squared error between reported confidence and pass/fail (lower is better; `None` = backend reports no confidence) |
+| `ece` | expected calibration error over 10 confidence buckets (lower is better) |
+
+A backend that reports a constant confidence `c` shows `ece == |c − pass_rate|`.
+That is the signature of a hardcoded confidence. The static matcher now
+measures its confidence (regex 1.0, keyword coverage 0.6–1.0); the LLM
+backends still report constants (embedded 0.85; claude 0.95; ollama 0.8;
+exo, mesh, vLLM and OpenRouter 0.85; AI-Horde 0.75; hybrid 0.9) until #1464
+lands. Treat a non-trivial ECE on a backend as a
+bug in its confidence reporting, not in the model. `confidence_coverage`
+says what fraction of results the Brier/ECE numbers describe; p50/p95
+exclude timed-out results.
+
+Jev's published decision-latency band is 70–500 ms end-to-end; use it as the
+budget reference when comparing `p95_execution_time_ms` across backends.
+
 ## Future Work
 
 - Add memory allocation tracking (alloc-benchmarks crate)
 - Profile real-world workloads (not just microbenchmarks)
-- Benchmark MLX inference latency
+- Benchmark MLX inference latency (the harness now records p50/p95 per backend; publish numbers here)
 - Benchmark safety pattern matching performance

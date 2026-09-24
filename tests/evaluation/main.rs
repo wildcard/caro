@@ -348,6 +348,33 @@ fn output_table(
         }
         println!("└─────────────────┴───────┴────────┴────────┴───────────┴────────┘");
         println!();
+
+        // Calibration + tail latency (ADR-017). A backend that reports a
+        // constant confidence shows ECE == |constant - pass_rate|.
+        println!("┌────────────────────────────────────────────────────────────────┐");
+        println!("│ Calibration & Latency Tail by Backend                          │");
+        println!("├─────────────────┬────────┬────────┬─────────┬─────────┬────────┤");
+        println!("│ Backend         │  Brier │    ECE │  p50 ms │  p95 ms │  cover │");
+        println!("├─────────────────┼────────┼────────┼─────────┼─────────┼────────┤");
+        let mut backends: Vec<_> = report.backend_results.iter().collect();
+        backends.sort_by_key(|(name, _)| name.as_str());
+        for (backend_name, result) in backends {
+            let fmt_opt = |v: Option<f32>| {
+                v.map(|x| format!("{:.3}", x))
+                    .unwrap_or_else(|| "n/a".into())
+            };
+            println!(
+                "│ {:15} │ {:>6} │ {:>6} │ {:>7} │ {:>7} │ {:>5.0}% │",
+                backend_name,
+                fmt_opt(result.brier),
+                fmt_opt(result.ece),
+                result.p50_execution_time_ms,
+                result.p95_execution_time_ms,
+                result.confidence_coverage * 100.0,
+            );
+        }
+        println!("└─────────────────┴────────┴────────┴─────────┴─────────┴────────┘");
+        println!();
     }
 
     // Baseline comparison if available

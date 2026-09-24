@@ -336,6 +336,11 @@ mod tests {
                 cost_per_passed_task: 0.0,
                 total_tokens_in: 0,
                 total_tokens_out: 0,
+                brier: None,
+                ece: None,
+                confidence_coverage: 0.0,
+                p50_execution_time_ms: 100,
+                p95_execution_time_ms: 100,
             },
         );
 
@@ -378,6 +383,14 @@ mod tests {
         let loaded = store.load(filename).unwrap();
         assert_eq!(loaded.run_id, report.run_id);
         assert_eq!(loaded.overall_pass_rate, report.overall_pass_rate);
+
+        // Calibration / latency fields survive the round trip (ADR-017).
+        let loaded_backend = &loaded.backend_results["test-backend"];
+        assert_eq!(loaded_backend.brier, None);
+        assert_eq!(loaded_backend.ece, None);
+        assert_eq!(loaded_backend.confidence_coverage, 0.0);
+        assert_eq!(loaded_backend.p50_execution_time_ms, 100);
+        assert_eq!(loaded_backend.p95_execution_time_ms, 100);
 
         // Load from symlink
         let loaded_latest = store.load("main-latest.json").unwrap();

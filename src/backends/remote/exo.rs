@@ -219,7 +219,7 @@ Rules:
 4. Target shell: {}
 5. NEVER generate destructive commands (rm -rf /, mkfs, dd, etc.)
 6. Keep commands simple and safe
-7. If the request is unclear, generate "echo 'Please clarify your request'"
+7. If the request is unclear, output ONLY: {{"needs_clarification": true, "p": <0.0-1.0>, "question": "<one short question>"}}
 
 Request: {}
 "#,
@@ -229,6 +229,13 @@ Request: {}
 
     /// Parse JSON response from exo
     fn parse_command_response(&self, response: &str) -> Result<String, GeneratorError> {
+        // Typed clarification gate (#1462): never return a runnable command
+        // whose only purpose is to ask the user something.
+        if let Some(c) = crate::decision::clarification_from_raw(response) {
+            if c.should_ask() {
+                return Err(GeneratorError::from_clarification(&c));
+            }
+        }
         // Try structured JSON parsing first
         if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(response) {
             if let Some(cmd) = parsed.get("cmd").and_then(|v| v.as_str()) {
@@ -370,6 +377,10 @@ Request: {}
                             confidence_score: 0.85,
                         });
                     }
+                    // A typed clarification decision is not a parse failure:
+                    // surface the question instead of falling back to a
+                    // command from another backend (#1462).
+                    Err(err @ GeneratorError::NeedsClarification { .. }) => return Err(err),
                     Err(parse_error) => {
                         tracing::warn!("Failed to parse Exo response: {}", parse_error);
                         // Continue to fallback

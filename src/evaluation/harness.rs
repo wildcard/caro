@@ -10,6 +10,7 @@ use std::time::{Duration, Instant};
 use tokio::time::timeout;
 
 use crate::backends::{CommandGenerator, GeneratorError};
+use crate::evaluation::calibration::{CalibrationRollup, LatencyPercentiles};
 use crate::evaluation::errors::Result;
 use crate::evaluation::{
     BackendResult, BenchmarkReport, CategoryResult, CommandResult, Dataset, ErrorType,
@@ -311,6 +312,8 @@ impl EvaluationHarness {
             0.0
         };
         let cost = CostRollup::of(all_results.iter(), passed);
+        let calibration = CalibrationRollup::of(all_results.iter());
+        let latency = LatencyPercentiles::of(all_results.iter());
 
         Ok(BackendResult {
             backend_name: backend_name.to_string(),
@@ -330,6 +333,11 @@ impl EvaluationHarness {
             cost_per_passed_task: cost.cost_per_passed_task,
             total_tokens_in: cost.total_tokens_in,
             total_tokens_out: cost.total_tokens_out,
+            brier: calibration.brier,
+            ece: calibration.ece,
+            confidence_coverage: calibration.coverage,
+            p50_execution_time_ms: latency.p50_ms,
+            p95_execution_time_ms: latency.p95_ms,
         })
     }
 
@@ -392,6 +400,7 @@ impl EvaluationHarness {
                                 error: Some("Backend timeout".to_string()),
                                 execution_time_ms: timeout_ms,
                                 backend_name: backend_name.clone(),
+                                confidence: None,
                             }
                         }
                     };
@@ -482,6 +491,7 @@ impl EvaluationHarness {
                     est_cost_usd: 0.0,
                     criteria_passed: 0,
                     criteria_total: 0,
+                    confidence: None,
                 };
             }
         };
@@ -500,6 +510,7 @@ impl EvaluationHarness {
                 error: Some("Backend timeout".to_string()),
                 execution_time_ms: self.config.backend_timeout_ms,
                 backend_name: backend_name.to_string(),
+                confidence: None,
             },
         };
 
@@ -521,6 +532,7 @@ impl EvaluationHarness {
                 est_cost_usd: 0.0,
                 criteria_passed: 0,
                 criteria_total: 0,
+                confidence: command_result.confidence,
             },
         }
     }
@@ -547,6 +559,7 @@ impl EvaluationHarness {
                     error: None,
                     execution_time_ms,
                     backend_name: backend_name.to_string(),
+                    confidence: Some(generated.confidence_score),
                 }
             }
             Err(e) => {
@@ -561,6 +574,7 @@ impl EvaluationHarness {
                     error: Some(e.to_string()),
                     execution_time_ms,
                     backend_name: backend_name.to_string(),
+                    confidence: None,
                 }
             }
         }
@@ -659,6 +673,8 @@ impl EvaluationHarness {
                 .filter(|r| r.error_type == Some(ErrorType::Timeout))
                 .count();
             let cost = CostRollup::of(backend_tests.iter().copied(), passed);
+            let calibration = CalibrationRollup::of(backend_tests.iter().copied());
+            let latency = LatencyPercentiles::of(backend_tests.iter().copied());
 
             backend_results.insert(
                 backend_name.clone(),
@@ -684,6 +700,11 @@ impl EvaluationHarness {
                     cost_per_passed_task: cost.cost_per_passed_task,
                     total_tokens_in: cost.total_tokens_in,
                     total_tokens_out: cost.total_tokens_out,
+                    brier: calibration.brier,
+                    ece: calibration.ece,
+                    confidence_coverage: calibration.coverage,
+                    p50_execution_time_ms: latency.p50_ms,
+                    p95_execution_time_ms: latency.p95_ms,
                 },
             );
         }

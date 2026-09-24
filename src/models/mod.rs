@@ -230,6 +230,23 @@ impl std::fmt::Display for SuggestedRouting {
     }
 }
 
+/// Parse the lowercase serde names (`safe|moderate|high|critical`). Used by
+/// the typed-decision parser in [`crate::decision`]; anything else is a type
+/// error (`Err`), never a guess.
+impl std::str::FromStr for RiskLevel {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.trim().to_lowercase().as_str() {
+            "safe" => Ok(Self::Safe),
+            "moderate" => Ok(Self::Moderate),
+            "high" => Ok(Self::High),
+            "critical" => Ok(Self::Critical),
+            _ => Err(()),
+        }
+    }
+}
+
 impl std::fmt::Display for RiskLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use colored::Colorize;

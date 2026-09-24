@@ -62,6 +62,7 @@ impl Evaluator for CorrectnessEvaluator {
                     est_cost_usd: 0.0,
                     criteria_passed: 0,
                     criteria_total: 0,
+                    confidence: result.confidence,
                 });
             }
         };
@@ -105,6 +106,7 @@ impl Evaluator for CorrectnessEvaluator {
             est_cost_usd: 0.0,
             criteria_passed: 0,
             criteria_total: 0,
+            confidence: result.confidence,
         })
     }
 }
@@ -199,6 +201,36 @@ mod tests {
         let eval_result = evaluator.evaluate(&test_case, &result).await.unwrap();
         assert!(eval_result.passed);
         assert!(eval_result.failure_reason.is_none());
+    }
+
+    #[tokio::test]
+    async fn confidence_passes_through_on_success_and_failure() {
+        let evaluator = CorrectnessEvaluator::new();
+        let test_case = TestCase {
+            id: "test-conf".to_string(),
+            category: TestCategory::Correctness,
+            input_request: "list files".to_string(),
+            expected_command: Some("ls -la".to_string()),
+            expected_behavior: None,
+            validation_rule: ValidationRule::ExactMatch,
+            validation_pattern: None,
+            tags: vec![],
+            difficulty: Some(Difficulty::Easy),
+            source: None,
+            notes: None,
+        };
+
+        let mut ok = CommandResult::success("ls -la".to_string(), 1, "b".to_string());
+        ok.confidence = Some(0.42);
+        let r = evaluator.evaluate(&test_case, &ok).await.unwrap();
+        assert!(r.passed);
+        assert_eq!(r.confidence, Some(0.42));
+
+        let mut failed = CommandResult::failed("boom".to_string(), 1, "b".to_string());
+        failed.confidence = Some(0.13);
+        let r = evaluator.evaluate(&test_case, &failed).await.unwrap();
+        assert!(!r.passed);
+        assert_eq!(r.confidence, Some(0.13));
     }
 
     #[tokio::test]
