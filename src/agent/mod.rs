@@ -148,9 +148,10 @@ impl AgentLoop {
         // Emit telemetry on error. A clarification request is a typed decision
         // (ADR-017), not a failed generation: it is reported as a success with
         // its own category so the failure rate is not biased by questions.
+        let backend_name = self.backend.backend_info().backend_type.to_string();
         if let Err(GeneratorError::NeedsClarification { .. }) = result {
             crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
-                backend: "embedded".to_string(),
+                backend: backend_name,
                 duration_ms: start.elapsed().as_millis() as u64,
                 success: true,
                 error_category: Some("needs_clarification".to_string()),
@@ -170,7 +171,7 @@ impl AgentLoop {
             };
 
             crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
-                backend: "embedded".to_string(),
+                backend: backend_name,
                 duration_ms: start.elapsed().as_millis() as u64,
                 success: false,
                 error_category: Some(error_category.to_string()),

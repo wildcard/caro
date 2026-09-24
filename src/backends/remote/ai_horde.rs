@@ -364,6 +364,9 @@ Request: {}
                     confidence_score: 0.75,
                 });
             }
+            // A typed clarification decision is not a failure: surface the
+            // question instead of falling back to another backend (#1462).
+            Err(err @ GeneratorError::NeedsClarification { .. }) => return Err(err),
             Err(err) => {
                 tracing::warn!("AI-Horde failed: {}", err);
                 // Don't fall back on an explicit auth rejection.

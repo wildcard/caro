@@ -320,7 +320,7 @@ where
                 .iter()
                 .find(|(label, _)| parse_label::<T>(label, allowed).as_ref() == Some(want))?;
             let p = p.as_f64()?;
-            if !p.is_finite() || p < 0.0 {
+            if !p.is_finite() || !(0.0..=1.0).contains(&p) {
                 return None;
             }
             total += p;

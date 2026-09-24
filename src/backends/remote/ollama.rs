@@ -243,6 +243,10 @@ Request: {}
                             confidence_score: 0.8,
                         });
                     }
+                    // A typed clarification decision is not a parse failure:
+                    // surface the question instead of falling back to a
+                    // command from another backend (#1462).
+                    Err(err @ GeneratorError::NeedsClarification { .. }) => return Err(err),
                     Err(parse_error) => {
                         tracing::warn!("Failed to parse Ollama response: {}", parse_error);
                         // Continue to fallback

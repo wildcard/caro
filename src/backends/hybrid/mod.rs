@@ -101,7 +101,18 @@ impl HybridBackend {
             sanitized_req.input = format!("{}\n\n{}", briefing, sanitized_req.input);
         }
 
-        let mut result = self.remote.generate_command(&sanitized_req).await?;
+        let mut result = match self.remote.generate_command(&sanitized_req).await {
+            Ok(r) => r,
+            // A clarification question may echo placeholders; restore them so
+            // the user sees their real path/user, not a redaction token.
+            Err(GeneratorError::NeedsClarification { question, p }) => {
+                return Err(GeneratorError::NeedsClarification {
+                    question: question.map(|q| session.restore(&q)),
+                    p,
+                });
+            }
+            Err(e) => return Err(e),
+        };
 
         // Restore real values that the remote echoed back as placeholders.
         result.command = session.restore(&result.command);
