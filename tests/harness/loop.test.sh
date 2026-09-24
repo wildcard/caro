@@ -96,5 +96,12 @@ rc=$?
 check "non-integer RALPH_MAX_ITERATIONS exits non-zero (rc=$rc)" test "$rc" -ne 0
 check "non-integer cap runs no iterations" test "$(iterations "$d")" = 0
 
+# An out-of-range cap is rejected, not wrapped into a negative (= uncapped) value.
+d="$(new_env overflow 'echo ok')"
+run_loop "$d" RALPH_MAX_ITERATIONS=18446744073709551615
+rc=$?
+check "overflowing RALPH_MAX_ITERATIONS exits non-zero (rc=$rc)" test "$rc" -ne 0
+check "overflowing cap runs no iterations (got $(iterations "$d"))" test "$(iterations "$d")" = 0
+
 echo "loop.sh: $pass passed, $fail failed"
 [[ "$fail" == 0 ]]

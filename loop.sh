@@ -66,8 +66,10 @@ check_prerequisites() {
         exit 1
     fi
 
-    if ! [[ "$MAX_ITERATIONS" =~ ^[0-9]+$ ]]; then
-        log ERROR "RALPH_MAX_ITERATIONS must be a non-negative integer (got: $MAX_ITERATIONS)"
+    # At most 9 digits: larger values would overflow bash arithmetic (wrapping
+    # to a negative number, i.e. no cap).
+    if ! [[ "$MAX_ITERATIONS" =~ ^[0-9]{1,9}$ ]]; then
+        log ERROR "RALPH_MAX_ITERATIONS must be an integer from 0 to 999999999 (got: $MAX_ITERATIONS)"
         exit 1
     fi
     # Force base 10: bash would parse a leading-zero value such as 08 as octal.
