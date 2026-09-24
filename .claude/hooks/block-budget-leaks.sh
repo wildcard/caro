@@ -13,15 +13,17 @@
 
 set -euo pipefail
 
-TOOL_NAME="${CLAUDE_TOOL_NAME:-}"
+source "$(dirname "$0")/lib/hook-input.sh"
+
 if [[ "$TOOL_NAME" != "Bash" ]]; then
   exit 0
 fi
 
-COMMAND="${CLAUDE_TOOL_PARAMS_COMMAND:-}"
-if [[ ! "$COMMAND" =~ git[[:space:]]+commit ]]; then
+if ! is_git_cmd commit; then
   exit 0
 fi
+
+cd "$(effective_git_dir)" 2>/dev/null || exit 0
 
 # Only act inside caro repo (let other repos use their own rules).
 ORIGIN_URL=$(git config --get remote.origin.url 2>/dev/null || echo "")
@@ -45,9 +47,10 @@ if [[ -z "$PROTECTED_FILES" ]]; then
 fi
 
 # Scan staged diff (added lines only) for sensitive patterns.
+# Added lines only: skip each file's header (up to its first @@ hunk), so a
+# content line that itself starts with "++" is still scanned.
 LEAK=$(git diff --cached --unified=0 -- $PROTECTED_FILES 2>/dev/null \
-  | grep -E '^\+' \
-  | grep -v '^\+\+\+' \
+  | awk '/^diff --git /{h=1; next} /^@@/{h=0; next} !h && /^\+/' \
   | grep -E -i "$SENSITIVE_RE" || true)
 
 if [[ -n "$LEAK" ]]; then
@@ -74,7 +77,7 @@ private repo.
 See .claude/rules/git-workflow.md and the budget-watch feedback memory.
 
 EOF
-  exit 1
+  exit "$BLOCK"
 fi
 
 exit 0

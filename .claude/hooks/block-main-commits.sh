@@ -4,22 +4,20 @@
 
 set -euo pipefail
 
+source "$(dirname "$0")/lib/hook-input.sh"
+
 # Only check Bash tool usage
-TOOL_NAME="${CLAUDE_TOOL_NAME:-}"
 if [[ "$TOOL_NAME" != "Bash" ]]; then
   exit 0
 fi
 
-# Get the command being run
-COMMAND="${CLAUDE_TOOL_PARAMS_COMMAND:-}"
-
 # Check if it's a git commit command
-if [[ ! "$COMMAND" =~ git[[:space:]]+commit ]]; then
+if ! is_git_cmd commit; then
   exit 0
 fi
 
 # Check current branch
-CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
+CURRENT_BRANCH=$(git -C "$(effective_git_dir)" branch --show-current 2>/dev/null || echo "unknown")
 
 # Block commits on main branch
 if [[ "$CURRENT_BRANCH" == "main" ]]; then
@@ -47,7 +45,7 @@ Required workflow:
 See .claude/rules/git-workflow.md for details.
 
 EOF
-  exit 1
+  exit "$BLOCK"
 fi
 
 # Allow commits on feature/hotfix branches
