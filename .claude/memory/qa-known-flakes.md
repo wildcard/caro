@@ -9,14 +9,14 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 ### FLAKE-001: Model download failure in remote sandbox
 
 **First observed**: 2026-05-07  
-**Symptom**: `caro -p "..." --dry-run` fails with `Backend is not available: Failed to download model after 3 attempts` after 3 retries (2s, 4s backoff).  
+**Symptom**: Two manifestations — (A) `caro -p "..." --dry-run` fails with `Backend is not available: Failed to download model after 3 attempts` after 3 retries (2s, 4s backoff); (B) `caro ai --once` silently hangs for 60s+ with no stdout/stderr (async model download inside `CliApp::with_overrides()` blocks before any output). Both root to HuggingFace binary download being blocked at the network layer.  
 **Context**: Remote CI/QA sandbox where `https://huggingface.co/` returns HTTP 200 but binary blob downloads time out or are blocked at a lower network layer.  
-**Impact**: Slot A `--dry-run` smoke check cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
+**Impact**: Slot A `--dry-run` smoke check and Slot C `caro ai --once` cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:
-- 2026-05-07: observed once (bootstrap)
-- 2026-07-25: observed (PR #1373 branch, unmerged)
-- 2026-09-07: observed (PR #1443 branch, unmerged)
-- 2026-09-26: observed (today) — 4th total occurrence; no 7-day cluster; stays flake
+- 2026-05-07: observed once (bootstrap) — symptom A (`--dry-run` hard failure)
+- 2026-07-25: observed (PR #1373 branch, unmerged) — symptom A
+- 2026-09-07: observed (PR #1443 branch, unmerged) — symptom A
+- 2026-09-26: observed (today) — 4th total occurrence; no 7-day cluster; stays flake — symptom B (`caro ai --once` silent hang, Slot C)
 
 **Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Workaround**: Run `caro -p "..." --dry-run` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama installed as fallback backend.
