@@ -8,7 +8,10 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1375](https://github.com/wildcard/caro/issues/1375) | P1 | ai | `caro ai --once` CpuBackend always returns placeholder on Linux x86_64 | open | 2026-07-26 |
+| [#1442](https://github.com/wildcard/caro/issues/1442) | P2 | docs | CLAUDE.md version 1.4.0 vs 1.5.0; MSRV 1.83 vs 1.85 (recurrence #1044) | open | 2026-09-07 |
+| [#1372](https://github.com/wildcard/caro/issues/1372) | P2 | docs | CLAUDE.md version 1.4.0 vs 1.5.0 (recurrence #1044) | open | 2026-07-25 |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | closed | 2026-05-07 |
 
 ---
 
