@@ -103,3 +103,20 @@ Full i18n guide: `website/I18N_TRANSLATION_GUIDE.md`
 - Integration tests for safety validation
 - Website tests run via `vitest` in `website/`
 - No false positives in safety patterns (validated by extensive test suite)
+
+## Harness Changes (`CLAUDE.md`, `.claude/`)
+
+The agent harness is code: CI lints it with `scripts/check-harness.py`
+(Harness Lint; rationale in `docs/adr/ADR-017-autoharness-harness-hygiene.md`).
+Its `--max-warnings` budget only ever goes down.
+
+- **Compare first.** Before adding a skill, agent, command, or rule, extend
+  the closest existing one. Add a file only when nothing covers that class of
+  work. A new rule gets its `constitution.md` row in the same PR.
+- **Least privilege.** An agent that says it is read-only declares a `tools:`
+  allowlist without Write/Edit.
+- **No unwired promises.** Call a check "enforced" (hook, CI job, "blocks
+  pushes") only once it is wired. Until then, document it as manual.
+- **Retire, don't let rot.** Removal is a `git rm` whose commit body states
+  the reason and the evidence (git history is the archive). A deprecation
+  notice names a removal date, and the removal lands by then.
