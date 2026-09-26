@@ -112,7 +112,7 @@ Its `--max-warnings` budget only ever goes down.
 
 - **Compare first.** Before adding a skill, agent, command, or rule, extend
   the closest existing one. Add a file only when nothing covers that class of
-  work. A new rule gets its `constitution.md` row in the same PR.
+  work.
 - **Least privilege.** An agent that says it is read-only declares a `tools:`
   allowlist without Write/Edit.
 - **No unwired promises.** Call a check "enforced" (hook, CI job, "blocks

@@ -184,8 +184,10 @@ mechanisms additively, in phases:
 - `+ .github/workflows/harness-lint.yml`: runs the tests, then the linter with
   `--max-warnings 16`.
 - `~ .claude/agents/{devils-advocate,ponytail-reviewer}.md`: add
-  `tools: Read, Grep, Glob, Bash`. Bash stays for `git diff`/`git log`;
-  Write and Edit are gone.
+  `tools: Read, Grep, Glob, Bash`. Bash stays so the reviewers can inspect
+  diffs and run read-only commands. The shell can still write, so this closes
+  the accidental Write/Edit route, not every write. A PreToolUse deny
+  backstop, as autoharness uses, would close the rest if that is ever needed.
 - `~ .claude/rules/constitution.md`: index `design-dialogue-protocol.md`,
   appended to Tier 3 so no existing numbers shift.
 - `~ .claude/rules/dev-process.md`: new "Harness changes" section.

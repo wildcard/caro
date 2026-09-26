@@ -26,7 +26,6 @@ import sys
 from collections import namedtuple
 from datetime import date
 from pathlib import Path
-from urllib.parse import unquote
 
 # Agent Skills format maximum for `description`; autoharness enforces the same cap.
 SKILL_DESC_MAX = 1024
@@ -119,6 +118,7 @@ def check_skills(root):
         elif len(desc) > SKILL_DESC_MAX:
             out.append(Finding("error", "skill-description", where, None,
                                f"description is {len(desc)} chars (max {SKILL_DESC_MAX})"))
+        # name == directory keeps names unique, so a copied skill cannot shadow another.
         if fm.get("name") and fm["name"] != d.name:
             out.append(Finding("error", "skill-structure", where, None,
                                f"frontmatter name {fm['name']!r} != directory {d.name!r}"))
@@ -134,6 +134,8 @@ def check_agents(root):
         if fm is None:
             out.append(Finding("error", "agent-structure", where, None, "missing frontmatter"))
             continue
+        # `name` is required, and name == filename keeps names unique, so a
+        # copied agent file cannot shadow another agent.
         if fm.get("name") != f.stem:
             out.append(Finding("error", "agent-structure", where, None,
                                f"frontmatter name {fm.get('name')!r} != filename {f.stem!r}"))
@@ -205,7 +207,7 @@ def references(text):
         if fenced:
             continue
         for target in MD_LINK.findall(line):
-            target = unquote(re.split(r"[#?]", target, maxsplit=1)[0])
+            target = re.split(r"[#?]", target, maxsplit=1)[0]
             if target and not EXTERNAL.match(target) and not PLACEHOLDER.search(target):
                 yield n, target
         for target in TICK_PATH.findall(line):
