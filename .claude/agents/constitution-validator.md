@@ -1,6 +1,6 @@
 ---
 name: constitution-validator
-description: "Validates code changes against the project's consolidated knowledge and configuration rules (constitution). Use on git push to detect violations of agreed-upon standards like installation scripts, linking patterns, and configuration consistency."
+description: "Validates code changes against the project's consolidated knowledge and configuration rules (constitution). Run on demand (e.g. before a git push) to detect violations of agreed-upon standards like installation scripts, linking patterns, and configuration consistency."
 model: haiku
 ---
 

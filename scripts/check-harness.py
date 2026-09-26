@@ -11,8 +11,9 @@ Rationale: docs/adr/ADR-017-autoharness-harness-hygiene.md
 Levels:
   error   fails the run: a broken registry entry, or drift in a file that is
           loaded into every session (CLAUDE.md, .claude/rules/).
-  warn    legacy drift in on-demand files (skills, agents, commands). Counted
-          against --max-warnings, a ratchet: the count may fall, never rise.
+  warn    legacy drift in on-demand files (skills, agents, commands). The count
+          must equal --max-warnings, a ratchet: the PR that fixes a warning
+          lowers the budget, so the slack can never be spent again.
   notice  informational (overdue deprecations, context budget); never fails,
           so the calendar alone can never turn CI red.
 
@@ -29,7 +30,9 @@ from pathlib import Path
 
 # Agent Skills format maximum for `description`; autoharness enforces the same cap.
 SKILL_DESC_MAX = 1024
-WRITE_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
+# Bash counts: the shell can write, and scoped `Bash(...)` patterns are
+# documented for skills' allowed-tools, not for subagent `tools:`.
+WRITE_CAPABLE = {"Write", "Edit", "MultiEdit", "NotebookEdit", "Bash"}
 READ_ONLY_CLAIM = re.compile(r"(?i)\byou are read-only\b")
 # Directories under .claude/skills/ that are support material for a command,
 # not standalone skills. Claude Code ignores a skill dir without SKILL.md.
@@ -39,7 +42,8 @@ SUPPORT_DIRS = {
 
 FRONTMATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", re.S)
 TOP_KEY = re.compile(r"^([A-Za-z0-9_-]+):(.*)$")
-MD_LINK = re.compile(r"\]\(\s*<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\s*\)")
+# Link target may contain balanced parentheses: [x](./notes(1).md)
+MD_LINK = re.compile(r"\]\(\s*<?([^()\s>]*(?:\([^)]*\)[^()\s>]*)*)>?(?:\s+\"[^\"]*\")?\s*\)")
 TICK_PATH = re.compile(
     r"`((?:\.claude|\.github|\.hermes|docs|scripts|bin|src|tests|website|playbook)/[^`\s]+)`"
 )
@@ -145,11 +149,12 @@ def check_agents(root):
             if "tools" not in fm:
                 out.append(Finding("error", "agent-least-privilege", where, None,
                                    "says it is read-only but has no `tools:` allowlist, "
-                                   "so it inherits Write/Edit"))
-            elif tool_names(fm["tools"]) & WRITE_TOOLS:
-                granted = ", ".join(sorted(tool_names(fm["tools"]) & WRITE_TOOLS))
+                                   "so it inherits Write, Edit and Bash"))
+            elif tool_names(fm["tools"]) & WRITE_CAPABLE:
+                granted = ", ".join(sorted(tool_names(fm["tools"]) & WRITE_CAPABLE))
                 out.append(Finding("error", "agent-least-privilege", where, None,
-                                   f"says it is read-only but its allowlist grants {granted}"))
+                                   f"says it is read-only but its allowlist grants {granted}, "
+                                   "which can write"))
     return out
 
 
@@ -175,25 +180,45 @@ def check_hooks(root):
     if not settings.is_file():
         return []
     where = rel(root, settings)
+
+    def bad(message):
+        return Finding("error", "hooks-wired", where, None, message)
+
     try:
-        hooks = json.loads(read(settings)).get("hooks") or {}
+        data = json.loads(read(settings))
     except ValueError as exc:
-        return [Finding("error", "hooks-wired", where, None, f"invalid JSON: {exc}")]
+        return [bad(f"invalid JSON: {exc}")]
+    hooks = (data.get("hooks") or {}) if isinstance(data, dict) else None
+    if not isinstance(hooks, dict):
+        return [bad("expected an object whose `hooks` maps events to hook groups")]
     out = []
     for event, groups in hooks.items():
-        for group in groups or []:
-            for hook in group.get("hooks") or []:
-                parts = str(hook.get("command", "")).split()
-                script = PROJECT_DIR_VAR.sub("", parts[0]) if parts else ""
-                if not script.startswith(("./", ".claude/")):
-                    continue  # an interpreter or a binary on PATH, not a repo script
-                path = root / script
-                if not path.is_file():
-                    out.append(Finding("error", "hooks-wired", where, None,
-                                       f"{event} hook runs {script}, which does not exist"))
-                elif not os.access(path, os.X_OK):
-                    out.append(Finding("error", "hooks-wired", where, None,
-                                       f"{event} hook runs {script}, which is not executable"))
+        if not isinstance(groups, list) or not all(isinstance(g, dict) for g in groups):
+            out.append(bad(f"{event}: expected a list of hook groups"))
+            continue
+        for group in groups:
+            entries = group.get("hooks") or []
+            if not isinstance(entries, list) or not all(isinstance(h, dict) for h in entries):
+                out.append(bad(f"{event}: a group's `hooks` must be a list of objects"))
+                continue
+            for hook in entries:
+                out += check_hook_command(root, bad, event, str(hook.get("command", "")))
+    return out
+
+
+def check_hook_command(root, bad, event, command):
+    """Every repo script a hook command names must exist. Only the one it runs
+    directly (the first token) needs the exec bit: `bash ./x.sh` does not."""
+    out = []
+    for i, token in enumerate(command.split()):
+        script = PROJECT_DIR_VAR.sub("", token)
+        if not script.startswith(("./", ".claude/")):
+            continue  # an interpreter, a flag, or a binary on PATH
+        path = root / script
+        if not path.is_file():
+            out.append(bad(f"{event} hook runs {script}, which does not exist"))
+        elif i == 0 and not os.access(path, os.X_OK):
+            out.append(bad(f"{event} hook runs {script}, which is not executable"))
     return out
 
 
@@ -320,8 +345,11 @@ def main(argv=None):
             print("New drift: warnings rose above the budget. Fix the new one (or any listed above).")
             return 1
         if warnings < args.max_warnings:
+            # Unspent slack would let a later PR add drift for free, so the gain
+            # must be locked in by the PR that made it.
             print(f"Drift went down: lower --max-warnings to {warnings} in "
-                  ".github/workflows/harness-lint.yml to lock in the gain.")
+                  ".github/workflows/harness-lint.yml in this PR to lock in the gain.")
+            return 1
     return 0
 
 

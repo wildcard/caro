@@ -1,6 +1,6 @@
 ---
 name: "validate-constitution"
-description: "Validates code changes against the project's consolidated knowledge and configuration rules. Use on push to catch violations of agreed-upon standards like installation scripts, linking patterns, and configuration consistency."
+description: "Validates code changes against the project's consolidated knowledge and configuration rules. Run on demand (e.g. before pushing) to catch violations of agreed-upon standards like installation scripts, linking patterns, and configuration consistency."
 version: "1.0.0"
 allowed-tools: "Bash, Read, Grep, Glob, Task"
 license: "AGPL-3.0"
@@ -101,7 +101,7 @@ When triggered, the skill:
 1. **Identifies changed files** via `git diff` or staged changes
 2. **Scans for pattern violations** using grep/regex
 3. **Reports findings** with file:line, violation type, and fix
-4. **Returns status** (PASS/FAIL) for hookify
+4. **Returns status** (PASS/FAIL) to the caller
 
 ## Using the Sub-Agent
 

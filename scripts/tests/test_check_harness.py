@@ -8,6 +8,7 @@ of the live harness; CI runs the linter itself against the real repo.
 import contextlib
 import importlib.util
 import io
+import os
 import tempfile
 import unittest
 from datetime import date
@@ -49,6 +50,11 @@ class HarnessFixture(unittest.TestCase):
         found = [f for f in ch.run_checks(self.root, TODAY) if f.check != "context-budget"]
         return [f for f in found if check is None or f.check == check]
 
+    def run_main(self, *args):
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            code = ch.main(["--root", str(self.root), "--today", TODAY.isoformat(), *args])
+        return code, out.getvalue()
+
 
 class TestCleanTree(HarnessFixture):
     def test_minimal_harness_has_no_findings(self):
@@ -70,9 +76,15 @@ class TestSkills(HarnessFixture):
         self.write(".claude/skills/.archive/old/README.md", "# archived\n")
         self.assertEqual(self.findings(), [])
 
-    def test_description_over_budget_is_error(self):
-        long = "Use when " + "x" * ch.SKILL_DESC_MAX
-        self.write(".claude/skills/demo/SKILL.md", f"---\nname: demo\ndescription: {long}\n---\n")
+    def describe(self, length):
+        self.write(".claude/skills/demo/SKILL.md", f"---\nname: demo\ndescription: {'x' * length}\n---\n")
+
+    def test_description_at_budget_passes(self):
+        self.describe(ch.SKILL_DESC_MAX)
+        self.assertEqual(self.findings("skill-description"), [])
+
+    def test_description_one_over_budget_is_error(self):
+        self.describe(ch.SKILL_DESC_MAX + 1)
         [f] = self.findings("skill-description")
         self.assertIn(f"max {ch.SKILL_DESC_MAX}", f.message)
 
@@ -106,10 +118,17 @@ class TestAgents(HarnessFixture):
         [f] = self.findings("agent-least-privilege")
         self.assertIn("Edit", f.message)
 
+    def test_read_only_agent_granting_bash_is_error(self):
+        # The shell can write, and scoped Bash(...) is not documented for subagent `tools:`.
+        for tools in ("Read, Bash", "Read, Bash(git diff:*)"):
+            self.write(".claude/agents/critic.md",
+                       AGENT.format(name="critic", extra=f"tools: {tools}\n", body=self.READ_ONLY))
+            [f] = self.findings("agent-least-privilege")
+            self.assertIn("Bash", f.message)
+
     def test_read_only_agent_with_read_tools_passes(self):
         self.write(".claude/agents/critic.md",
-                   AGENT.format(name="critic", extra="tools: Read, Grep, Glob, Bash(git diff:*)\n",
-                                body=self.READ_ONLY))
+                   AGENT.format(name="critic", extra="tools: Read, Grep, Glob\n", body=self.READ_ONLY))
         self.assertEqual(self.findings(), [])
 
     def test_agent_that_does_not_claim_read_only_needs_no_allowlist(self):
@@ -144,11 +163,30 @@ class TestHooks(HarnessFixture):
         [f] = self.findings("hooks-wired")
         self.assertIn("does not exist", f.message)
 
+    @unittest.skipIf(os.name == "nt", "Windows has no exec bit; os.access(X_OK) is always true")
     def test_non_executable_hook_script_is_error(self):
         self.write(".claude/hooks/guard.sh", "#!/bin/sh\n")
         self.write(".claude/settings.json", self.SETTINGS % "./.claude/hooks/guard.sh")
         [f] = self.findings("hooks-wired")
         self.assertIn("not executable", f.message)
+
+    def test_script_behind_an_interpreter_is_still_checked(self):
+        self.write(".claude/settings.json", self.SETTINGS % "bash ./.claude/hooks/gone.sh")
+        [f] = self.findings("hooks-wired")
+        self.assertIn("gone.sh, which does not exist", f.message)
+
+    def test_script_behind_an_interpreter_needs_no_exec_bit(self):
+        self.write(".claude/hooks/guard.sh", "#!/bin/sh\n")
+        self.write(".claude/settings.json", self.SETTINGS % "bash ./.claude/hooks/guard.sh")
+        self.assertEqual(self.findings("hooks-wired"), [])
+
+    def test_malformed_settings_are_reported_not_raised(self):
+        for settings, expect in (("[]", "expected an object"),
+                                 ('{"hooks": {"Stop": {"hooks": []}}}', "list of hook groups"),
+                                 ('{"hooks": {"Stop": [{"hooks": "x.sh"}]}}', "list of objects")):
+            self.write(".claude/settings.json", settings)
+            [f] = self.findings("hooks-wired")
+            self.assertIn(expect, f.message)
 
     def test_wired_hook_passes_with_project_dir_prefix(self):
         self.write(".claude/hooks/guard.sh", "#!/bin/sh\n", executable=True)
@@ -179,6 +217,11 @@ class TestReferences(HarnessFixture):
                    "[file-relative](../../docs/guide.md) and [root-relative](docs/guide.md)\n")
         self.assertEqual(self.findings("dangling-ref"), [])
 
+    def test_link_target_with_parentheses_resolves(self):
+        self.write("docs/notes(1).md", "# notes\n")
+        self.write("CLAUDE.md", "See [notes](docs/notes(1).md).\n")
+        self.assertEqual(self.findings("dangling-ref"), [])
+
     def test_wrong_relative_depth_is_caught(self):
         # `../.claude/...` from .claude/commands/ resolves to .claude/.claude/...
         self.write(".claude/automation/specs/SPEC.md", "# spec\n")
@@ -207,6 +250,7 @@ class TestDeprecations(HarnessFixture):
         [f] = self.findings("overdue-removal")
         self.assertEqual(f.level, "notice")
         self.assertIn("still published", f.message)
+        self.assertEqual(self.run_main("--max-warnings", "0")[0], 0)  # the calendar never fails CI
 
     def test_future_removal_is_silent(self):
         self.write(".claude/skills/old/SKILL.md", self.DEPRECATED.format(day="2027-01-01"))
@@ -230,17 +274,12 @@ class TestFrontmatter(unittest.TestCase):
 
 
 class TestWarningRatchet(HarnessFixture):
-    def run_main(self, *args):
-        with contextlib.redirect_stdout(io.StringIO()) as out:
-            code = ch.main(["--root", str(self.root), "--today", TODAY.isoformat(), *args])
-        return code, out.getvalue()
-
     def setUp(self):
         super().setUp()
         self.write(".claude/agents/helper.md",
                    AGENT.format(name="helper", extra="", body="See `scripts/gone.sh`."))
 
-    def test_warnings_within_budget_pass(self):
+    def test_warnings_matching_budget_pass(self):
         self.assertEqual(self.run_main("--max-warnings", "1")[0], 0)
 
     def test_warnings_above_budget_fail(self):
@@ -248,8 +287,11 @@ class TestWarningRatchet(HarnessFixture):
         self.assertEqual(code, 1)
         self.assertIn("rose above the budget", out)
 
-    def test_budget_slack_suggests_lowering_it(self):
-        self.assertIn("lower --max-warnings to 1", self.run_main("--max-warnings", "3")[1])
+    def test_budget_slack_fails_until_lowered(self):
+        # Unspent slack would let a later PR add drift for free.
+        code, out = self.run_main("--max-warnings", "3")
+        self.assertEqual(code, 1)
+        self.assertIn("lower --max-warnings to 1", out)
 
     def test_any_error_fails_regardless_of_budget(self):
         self.write(".claude/skills/ghost/README.md", "#\n")

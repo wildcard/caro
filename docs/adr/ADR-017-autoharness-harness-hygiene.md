@@ -51,7 +51,7 @@ parallel sessions. **No automated check runs on any of it.** An audit on
 2. `devils-advocate` and `ponytail-reviewer` say "You are read-only" but had no
    `tools:` allowlist, so they inherited Write/Edit. ADR-016's safety argument
    ("read-only neutralizes the conflict") rested on prose alone.
-3. **Enforcement was claimed but not wired.** `consolidated-knowledge-rules.md`
+3. **Enforcement was claimed but not wired.** `.claude/memory/consolidated-knowledge-rules.md`
    cited a pre-push hook that "blocks pushes", and `validate-constitution`
    cited a hookify `PostPush` hook. Neither exists: Claude Code has no
    `PostPush` event, `settings.json` does not reference the script, and the
@@ -94,10 +94,10 @@ mechanisms additively, in phases:
 | autoharness mechanism | Caro adaptation (Phase 1) |
 |---|---|
 | Promoter lints every intent against one spec | CI lints the harness against `check-harness.py` |
-| Tests pin agent contracts (reflector has no write tools) | An agent that says "You are read-only" must declare a `tools:` allowlist without Write/Edit/MultiEdit/NotebookEdit |
-| Manifest tests: hooks route to files that exist | Every repo script in `settings.json` hooks must exist and be executable |
+| Tests pin agent contracts (reflector has no write tools) | An agent that says "You are read-only" must declare a `tools:` allowlist without Write, Edit, MultiEdit, NotebookEdit or Bash |
+| Manifest tests: hooks route to files that exist | Every repo script a `settings.json` hook names must exist; the one it runs directly must be executable |
 | Structure check: referenced files exist | Dangling references: **error** in always-loaded files (CLAUDE.md, rules), ratcheted **warning** in skills, agents and commands |
-| Rejected intents stay visible, never silent | Warnings print on every run; `--max-warnings` may fall, never rise |
+| Rejected intents stay visible, never silent | Warnings print on every run. Their count must equal `--max-warnings`, so the PR that fixes one also lowers the budget and the slack can't be spent again |
 | No wall-clock lifecycle ("a closed laptop ages no one out") | Overdue deprecations are **notices** and never fail CI, so the calendar alone cannot turn a PR red |
 | `metrics.py` is observation-only | A context-budget notice prints on every run |
 | Never promise a path that does not exist (their PRs #99 and #105) | Corrected enforcement claims, plus the rule "document a check as enforced only once it is wired" |
@@ -131,7 +131,8 @@ mechanisms additively, in phases:
 ### Trade-offs
 
 - One more CI job (about 10 seconds, stdlib Python and no dependencies).
-- The warning budget has to be lowered by hand when fixes land.
+- A PR that fixes a warning must also lower `--max-warnings` (CI says so and
+  fails until it does).
 - The checks are regex heuristics. A support directory occasionally needs an
   entry in `SUPPORT_DIRS`, with a stated reason.
 
@@ -184,15 +185,16 @@ mechanisms additively, in phases:
 - `+ .github/workflows/harness-lint.yml`: runs the tests, then the linter with
   `--max-warnings 16`.
 - `~ .claude/agents/{devils-advocate,ponytail-reviewer}.md`: add
-  `tools: Read, Grep, Glob, Bash`. Bash stays so the reviewers can inspect
-  diffs and run read-only commands. The shell can still write, so this closes
-  the accidental Write/Edit route, not every write. A PreToolUse deny
-  backstop, as autoharness uses, would close the rest if that is ever needed.
+  `tools: Read, Grep, Glob`, the same set as autoharness's reflector. Bash is
+  left out because the shell can write, and scoped `Bash(...)` patterns are
+  documented for skills' `allowed-tools`, not for subagent `tools:`. The
+  reviewers get the diff from their caller; the `ponytail-review` skill already
+  pastes it into the prompt.
 - `~ .claude/rules/constitution.md`: index `design-dialogue-protocol.md`,
   appended to Tier 3 so no existing numbers shift.
 - `~ .claude/rules/dev-process.md`: new "Harness changes" section.
-- `~ CLAUDE.md`, rules, the `validate-constitution` skill,
-  `consolidated-knowledge-rules.md`, six commands and one skill: the drift
+- `~ CLAUDE.md`, rules, the `validate-constitution` skill and agent,
+  `.claude/memory/consolidated-knowledge-rules.md`, six commands and one skill: the drift
   fixes listed in Context.
 
 **Phase 2 constraint.** Local logs (like `.claude/notifications.log`) do not
