@@ -20,14 +20,12 @@ This skill validates code changes against the caro project's **consolidated know
 
 ## When to Use This Skill
 
-This skill is **automatically triggered** via the PostPush hookify hook. It can also be manually invoked when:
+This skill runs **on demand only**; nothing triggers it automatically (see
+[Enforcement status](#enforcement-status)). Invoke it when:
 
 - You want to validate changes before committing
 - Reviewing a PR for constitutional compliance
 - Checking if documentation follows standards
-
-**Automatic Triggers:**
-- Every `git push` operation (via hookify PostPush)
 
 **Manual Triggers:**
 - "Validate my changes against the constitution"
@@ -119,28 +117,17 @@ Prompt: "Validate the staged changes against constitutional rules. Check for:
 Report all violations with file paths and suggested fixes."
 ```
 
-## Integration with Hookify
+## Enforcement status
 
-This skill is integrated with hookify via the `PostPush` hook. The hook:
+Nothing runs this automatically. An earlier version of this section described
+a hookify `PostPush` hook, but Claude Code has no `PostPush` event,
+`.claude/settings.json` does not reference `.claude/hooks/validate-constitution.sh`,
+and no git pre-push hook is installed. The script also ends in `exit 0`, so it
+warns and never blocks.
 
-1. Runs after `git push` is executed
-2. Invokes the constitution-validator agent
-3. Reports any violations found
-4. Warns the developer to fix issues
-
-**Hook Configuration** (in `.claude/settings.json`):
-```json
-{
-  "hooks": {
-    "PostPush": [{
-      "hooks": [{
-        "type": "command",
-        "command": "./.claude/hooks/validate-constitution.sh"
-      }]
-    }]
-  }
-}
-```
+Run it by hand: `bash .claude/hooks/validate-constitution.sh`. Before wiring it
+into CI, tune its greps. They currently match the forbidden patterns quoted as
+examples in this skill and in `.claude/memory/consolidated-knowledge-rules.md`.
 
 ## Manual Validation
 

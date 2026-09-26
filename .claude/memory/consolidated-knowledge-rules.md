@@ -68,11 +68,15 @@ For other options, see our <a href="/#download">installation guide</a>.
 
 ## Enforcement
 
-These rules are enforced by:
-1. **Git pre-push hook** - Blocks pushes with violations
+These rules are enforced **manually**; nothing blocks a push today:
+1. **Validation script** - `bash .claude/hooks/validate-constitution.sh` (run by hand; warns, never blocks)
 2. **Constitution validator agent** - Manual validation
-3. **Constitution validation skill** - Hookify integration
+3. **Constitution validation skill** - Manual invocation (`validate-constitution`)
 4. **PR reviews** - Human verification
+
+No git pre-push hook is installed, and the hookify integration this section
+used to cite does not exist (the skill documented it as a `PostPush` hook, an
+event Claude Code does not have).
 
 ## Remediation
 
