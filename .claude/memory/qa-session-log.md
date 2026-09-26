@@ -7,7 +7,7 @@ Reading order: most recent first.
 ## 2026-09-26 — Scheduled run (Slot A + Slot B + Slot C)
 
 **Trigger**: scheduled cron 14:00 UTC.
-**Rotation**: A + B (138 commits since last log entry on main) + C.
+**Rotation**: A + B (117 commits since last log entry on main; range c9a31a3..be07b22) + C.
 
 **Context note**: QA PRs #1373 (2026-07-25) and #1443 (2026-09-07) are still unmerged. Memory files on main reflect the 2026-05-07 bootstrap only. This entry is written against the main-branch state.
 
