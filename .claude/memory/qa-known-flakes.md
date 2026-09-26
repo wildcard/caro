@@ -9,7 +9,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 ### FLAKE-001: Model download failure in remote sandbox
 
 **First observed**: 2026-05-07  
-**Symptom**: Two manifestations — (A) `caro -p "..." --dry-run` fails with `Backend is not available: Failed to download model after 3 attempts` after 3 retries (2s, 4s backoff); (B) `caro ai --once` silently hangs for 60s+ with no stdout/stderr (async model download inside `CliApp::with_overrides()` blocks before any output). Both root to HuggingFace binary download being blocked at the network layer.  
+**Symptom**: Two manifestations — (A) `caro -p "..." --dry-run` fails with `Backend is not available: Failed to download model after 3 attempts` after 3 retries (2s, 4s backoff); (B) `caro ai --once` silently hangs for 60s+ with no stdout/stderr (async model download during `EmbeddedModelBackend::generate_command()` blocks before any output). Both root to HuggingFace binary download being blocked at the network layer.  
 **Context**: Remote CI/QA sandbox where `https://huggingface.co/` returns HTTP 200 but binary blob downloads time out or are blocked at a lower network layer.  
 **Impact**: Slot A `--dry-run` smoke check and Slot C `caro ai --once` cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:

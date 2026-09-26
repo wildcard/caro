@@ -20,7 +20,7 @@ Reading order: most recent first.
 - `caro -p 'list files in current directory' --dry-run` → **FLAKE** (FLAKE-001 4th occurrence: model download blocked in sandbox)
 - `caro --backend-info` → **PASS**: 7 backends listed consistently with `--help` roster
 
-### Slot B — Recent diff (138 commits since 2026-05-07)
+### Slot B — Recent diff (117 commits since 2026-05-07; range c9a31a3..be07b22)
 
 PRs merged since last log entry on main (note: #1373/#1443 branches also tested some of these; results consistent):
 
