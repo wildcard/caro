@@ -4,9 +4,9 @@ A Rust CLI that converts natural language descriptions into safe POSIX shell com
 
 ## Project Overview
 
-- **Language**: Rust (edition 2021, MSRV 1.83)
+- **Language**: Rust (edition 2021; MSRV is `rust-version` in `Cargo.toml`)
 - **License**: AGPL-3.0
-- **Version**: 1.4.0 (GA)
+- **Version**: `version` in `Cargo.toml` (single source; not repeated here so it cannot drift)
 - **Crate**: [crates.io/crates/caro](https://crates.io/crates/caro)
 
 ## Key Architecture
@@ -47,6 +47,7 @@ cargo build --release          # Release build
 cargo test                     # Run all tests
 cargo test safety              # Run safety tests only
 cargo clippy                   # Lint check
+python3 scripts/check-harness.py  # Lint the .claude/ harness (CI: harness-lint.yml)
 
 # Run locally
 cargo run -- "your query"      # Basic usage
@@ -123,7 +124,7 @@ skill: safety-pattern-developer
 
 ## Current Focus Areas
 
-Check `.claude/memory/current-tasks.md` for active work items.
+Run `bd ready` for the beads work queue; milestones live in `ROADMAP.md`.
 
 ## Code Style
 
@@ -194,7 +195,7 @@ Use the Task tool to launch these in parallel:
 
 ---
 
-*Last updated: 2026-01-14*
+*Last updated: 2026-09-26*
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,

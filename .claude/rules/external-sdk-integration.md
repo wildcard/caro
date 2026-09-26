@@ -76,5 +76,4 @@ medium-sized SDKs get integrated without the full checklist.
 - `~/.claude/rules/dev-process.md` — branch / PR / CI workflow; spike
   PRs follow normal branch+PR rules with no exceptions
 - caro precedent: [PR #1103](https://github.com/wildcard/caro/pull/1103)
-  (agentmesh build spike) + plan
-  `.claude/plans/intgrate-https-github-com-microsoft-agen-witty-scroll.md`
+  (agentmesh build spike); its plan file is not in the repo

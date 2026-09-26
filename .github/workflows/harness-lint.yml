@@ -1,0 +1,31 @@
+name: Harness Lint
+
+# Deterministic checks on the Claude Code harness (CLAUDE.md + .claude/):
+# skill dirs that silently fail to load, read-only agents that can write,
+# rules missing from the constitution index, unwired hooks, and dangling file
+# references. Rationale: docs/adr/ADR-017-autoharness-harness-hygiene.md
+# No path filter: renaming a file outside .claude/ can break a reference to it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  harness-lint:
+    name: Harness Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Test the linter
+        run: python3 -m unittest discover -s scripts/tests -p 'test_check_harness.py'
+
+      - name: Lint the harness
+        # --max-warnings ratchets legacy drift in skills/agents/commands:
+        # lower it whenever a fix lands; never raise it.
+        run: python3 scripts/check-harness.py --max-warnings 16

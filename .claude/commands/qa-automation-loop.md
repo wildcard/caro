@@ -204,4 +204,4 @@ qa_loop:
 
 - `/unbiased-beta-tester` - Individual tester skill
 - `/qa-bundle-validation` - Multi-profile testing
-- [QA_LOOP_DRS.md](../.claude/automation/specs/QA_LOOP_DRS.md)
+- [QA_LOOP_DRS.md](../automation/specs/QA_LOOP_DRS.md)

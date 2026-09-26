@@ -1,0 +1,327 @@
+#!/usr/bin/env python3
+"""Deterministic lint for Caro's Claude Code harness (CLAUDE.md + .claude/).
+
+Adapted from tigerless-labs/autoharness (MIT). There, a model may only
+*propose* skill changes; a deterministic promoter lints each proposal against
+one spec before anything lands, and tests pin the agents' contracts
+(least-privilege tools, hooks wired to files that exist). Caro's harness is
+hand-written by many parallel sessions, so the same checks run in CI instead.
+Rationale: docs/adr/ADR-017-autoharness-harness-hygiene.md
+
+Levels:
+  error   fails the run: a broken registry entry, or drift in a file that is
+          loaded into every session (CLAUDE.md, .claude/rules/).
+  warn    legacy drift in on-demand files (skills, agents, commands). Counted
+          against --max-warnings, a ratchet: the count may fall, never rise.
+  notice  informational (overdue deprecations, context budget); never fails,
+          so the calendar alone can never turn CI red.
+
+Stdlib only. Usage: python3 scripts/check-harness.py [--max-warnings N]
+"""
+import argparse
+import json
+import os
+import re
+import sys
+from collections import namedtuple
+from datetime import date
+from pathlib import Path
+from urllib.parse import unquote
+
+# Agent Skills format maximum for `description`; autoharness enforces the same cap.
+SKILL_DESC_MAX = 1024
+WRITE_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
+READ_ONLY_CLAIM = re.compile(r"(?i)\byou are read-only\b")
+# Directories under .claude/skills/ that are support material for a command,
+# not standalone skills. Claude Code ignores a skill dir without SKILL.md.
+SUPPORT_DIRS = {
+    "code-parts-syncer": "modules loaded by /caro.sync (.claude/commands/caro.sync.md)",
+}
+
+FRONTMATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", re.S)
+TOP_KEY = re.compile(r"^([A-Za-z0-9_-]+):(.*)$")
+MD_LINK = re.compile(r"\]\(\s*<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\s*\)")
+TICK_PATH = re.compile(
+    r"`((?:\.claude|\.github|\.hermes|docs|scripts|bin|src|tests|website|playbook)/[^`\s]+)`"
+)
+EXTERNAL = re.compile(r"^(?:[A-Za-z][A-Za-z0-9+.-]*:|#|/|~)")  # URLs, anchors, site routes, $HOME
+PLACEHOLDER = re.compile(r"[*<>{}$]|YYYY|X\.Y\.Z|\bvX\b|NNN|XXX")
+FILE_SHAPED = re.compile(r"\.[A-Za-z0-9]{1,6}$")  # bare dir refs are usually shorthand
+REMOVAL_DATE = re.compile(r"(?i)\bremoved after (\d{4}-\d{2}-\d{2})")
+PROJECT_DIR_VAR = re.compile(r'^"?\$\{?CLAUDE_PROJECT_DIR\}?"?/')
+
+Finding = namedtuple("Finding", "level check path line message")
+LEVELS = ("error", "warn", "notice")
+
+
+def read(path):
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def frontmatter(text):
+    """Top-level `key: value` pairs of a YAML frontmatter block, or None.
+
+    Deliberately tiny (no PyYAML): continuation lines and block scalars fold
+    into the previous key, which is all these files use."""
+    m = FRONTMATTER.match(text)
+    if not m:
+        return None
+    out, key = {}, None
+    for line in m.group(1).splitlines():
+        top = TOP_KEY.match(line)
+        if top:
+            key = top.group(1)
+            out[key] = top.group(2).strip()
+        elif key is not None and line.strip():
+            out[key] = (out[key] + " " + line.strip()).strip()
+    return {k: _scalar(v) for k, v in out.items()}
+
+
+def _scalar(value):
+    if value[:1] in ("|", ">"):
+        value = value[1:].lstrip("+-0123456789").strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+        value = value[1:-1]
+    return value
+
+
+def tool_names(value):
+    """Base names from a `tools:` value: 'Read, Bash(git diff:*)' -> {'Read', 'Bash'}."""
+    return {t.split("(", 1)[0] for t in re.findall(r"[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?", value)}
+
+
+def rel(root, path):
+    return path.relative_to(root).as_posix()
+
+
+def check_skills(root):
+    skills = root / ".claude" / "skills"
+    if not skills.is_dir():
+        return []
+    out = []
+    for d in sorted(p for p in skills.iterdir() if p.is_dir() and not p.name.startswith(".")):
+        where = rel(root, d)
+        skill_md = d / "SKILL.md"
+        if not skill_md.is_file():
+            if d.name not in SUPPORT_DIRS:
+                out.append(Finding("error", "skill-structure", where, None,
+                                   "no SKILL.md, so Claude Code silently ignores this directory"))
+            continue
+        fm = frontmatter(read(skill_md))
+        where = rel(root, skill_md)
+        if fm is None:
+            out.append(Finding("error", "skill-structure", where, None, "missing frontmatter"))
+            continue
+        desc = fm.get("description", "")
+        if not desc:
+            out.append(Finding("error", "skill-description", where, None,
+                               "empty description (it is the only text recall matches on)"))
+        elif len(desc) > SKILL_DESC_MAX:
+            out.append(Finding("error", "skill-description", where, None,
+                               f"description is {len(desc)} chars (max {SKILL_DESC_MAX})"))
+        if fm.get("name") and fm["name"] != d.name:
+            out.append(Finding("error", "skill-structure", where, None,
+                               f"frontmatter name {fm['name']!r} != directory {d.name!r}"))
+    return out
+
+
+def check_agents(root):
+    out = []
+    for f in sorted((root / ".claude" / "agents").glob("*.md")):
+        where = rel(root, f)
+        text = read(f)
+        fm = frontmatter(text)
+        if fm is None:
+            out.append(Finding("error", "agent-structure", where, None, "missing frontmatter"))
+            continue
+        if fm.get("name") != f.stem:
+            out.append(Finding("error", "agent-structure", where, None,
+                               f"frontmatter name {fm.get('name')!r} != filename {f.stem!r}"))
+        if not fm.get("description"):
+            out.append(Finding("error", "agent-structure", where, None, "empty description"))
+        if READ_ONLY_CLAIM.search(text):
+            if "tools" not in fm:
+                out.append(Finding("error", "agent-least-privilege", where, None,
+                                   "says it is read-only but has no `tools:` allowlist, "
+                                   "so it inherits Write/Edit"))
+            elif tool_names(fm["tools"]) & WRITE_TOOLS:
+                granted = ", ".join(sorted(tool_names(fm["tools"]) & WRITE_TOOLS))
+                out.append(Finding("error", "agent-least-privilege", where, None,
+                                   f"says it is read-only but its allowlist grants {granted}"))
+    return out
+
+
+def check_rules_indexed(root):
+    rules = root / ".claude" / "rules"
+    constitution = rules / "constitution.md"
+    if not constitution.is_file():
+        return []
+    index = read(constitution)
+    out = []
+    for f in sorted(rules.glob("*.md")):
+        if f.name == constitution.name:
+            continue
+        if not re.search(r"\]\(\s*(?:\./)?" + re.escape(f.name) + r"\s*\)", index):
+            out.append(Finding("error", "rules-indexed", rel(root, f), None,
+                               "not indexed in .claude/rules/constitution.md, "
+                               "so it has no precedence under conflict"))
+    return out
+
+
+def check_hooks(root):
+    settings = root / ".claude" / "settings.json"
+    if not settings.is_file():
+        return []
+    where = rel(root, settings)
+    try:
+        hooks = json.loads(read(settings)).get("hooks") or {}
+    except ValueError as exc:
+        return [Finding("error", "hooks-wired", where, None, f"invalid JSON: {exc}")]
+    out = []
+    for event, groups in hooks.items():
+        for group in groups or []:
+            for hook in group.get("hooks") or []:
+                parts = str(hook.get("command", "")).split()
+                script = PROJECT_DIR_VAR.sub("", parts[0]) if parts else ""
+                if not script.startswith(("./", ".claude/")):
+                    continue  # an interpreter or a binary on PATH, not a repo script
+                path = root / script
+                if not path.is_file():
+                    out.append(Finding("error", "hooks-wired", where, None,
+                                       f"{event} hook runs {script}, which does not exist"))
+                elif not os.access(path, os.X_OK):
+                    out.append(Finding("error", "hooks-wired", where, None,
+                                       f"{event} hook runs {script}, which is not executable"))
+    return out
+
+
+def references(text):
+    """(line, target) for local file references outside fenced code blocks."""
+    fenced = False
+    for n, line in enumerate(text.splitlines(), 1):
+        if line.lstrip().startswith(("```", "~~~")):
+            fenced = not fenced
+            continue
+        if fenced:
+            continue
+        for target in MD_LINK.findall(line):
+            target = unquote(re.split(r"[#?]", target, maxsplit=1)[0])
+            if target and not EXTERNAL.match(target) and not PLACEHOLDER.search(target):
+                yield n, target
+        for target in TICK_PATH.findall(line):
+            target = target.rstrip(".,:;")
+            if FILE_SHAPED.search(target) and not PLACEHOLDER.search(target):
+                yield n, target
+
+
+def check_references(root, files, level):
+    out = []
+    for f in files:
+        for n, target in references(read(f)):
+            # Agents read paths as repo-root-relative even where a renderer would not.
+            if not ((f.parent / target).exists() or (root / target).exists()):
+                out.append(Finding(level, "dangling-ref", rel(root, f), n, f"{target} does not exist"))
+    return out
+
+
+def always_loaded(root):
+    files = [root / "CLAUDE.md", root / ".claude" / "CLAUDE.md"]
+    files += sorted((root / ".claude" / "rules").glob("*.md"))
+    return [f for f in files if f.is_file()]
+
+
+def on_demand(root):
+    c = root / ".claude"
+    files = [c / "AGENTS.md"] if (c / "AGENTS.md").is_file() else []
+    return files + sorted(c.glob("skills/*/SKILL.md")) + sorted(c.glob("agents/*.md")) \
+        + sorted(c.glob("commands/*.md"))
+
+
+def check_deprecations(root, today):
+    marketplace = root / ".claude-plugin" / "marketplace.json"
+    published = read(marketplace) if marketplace.is_file() else ""
+    out = []
+    for f in on_demand(root):
+        m = REMOVAL_DATE.search((frontmatter(read(f)) or {}).get("description", ""))
+        try:
+            if not m or date.fromisoformat(m.group(1)) >= today:
+                continue
+        except ValueError:  # e.g. 2026-13-45: not a date, so not a promise we can check
+            continue
+        name = f.parent.name if f.name == "SKILL.md" else f.stem
+        tail = " and is still published in .claude-plugin/marketplace.json" \
+            if f'"{name}"' in published else ""
+        out.append(Finding("notice", "overdue-removal", rel(root, f), None,
+                           f"its deprecation notice promised removal after {m.group(1)}{tail}"))
+    return out
+
+
+def context_budget(root):
+    """Observation only (autoharness keeps metrics out of decisions too): how much
+    description text the harness lists in every session's context."""
+    c = root / ".claude"
+    kinds = (("agents", sorted(c.glob("agents/*.md"))),
+             ("skills", sorted(c.glob("skills/*/SKILL.md"))),
+             ("commands", sorted(c.glob("commands/*.md"))))
+    parts, agent_sizes = [], []
+    for kind, files in kinds:
+        sizes = [(len((frontmatter(read(f)) or {}).get("description", "")), f) for f in files]
+        total = sum(n for n, _ in sizes)
+        parts.append(f"{kind} {len(files)} ({total:,} chars)")
+        if kind == "agents":
+            agent_sizes = sorted(sizes, key=lambda s: -s[0])
+    longest = ", ".join(f"{f.stem} {n:,}" for n, f in agent_sizes[:5])
+    msg = "descriptions listed every session: " + "; ".join(parts)
+    return [Finding("notice", "context-budget", ".claude", None,
+                    msg + (f". Longest agent descriptions: {longest}" if longest else ""))]
+
+
+def run_checks(root, today):
+    return (check_skills(root) + check_agents(root) + check_rules_indexed(root)
+            + check_hooks(root)
+            + check_references(root, always_loaded(root), "error")
+            + check_references(root, on_demand(root), "warn")
+            + check_deprecations(root, today) + context_budget(root))
+
+
+def emit(f, github):
+    where = f.path + (f":{f.line}" if f.line else "")
+    print(f"{f.level:<6} [{f.check}] {where}: {f.message}")
+    if github:
+        loc = f"file={f.path}" + (f",line={f.line}" if f.line else "")
+        kind = {"warn": "warning"}.get(f.level, f.level)
+        print(f"::{kind} {loc}::[{f.check}] {f.message}")
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Lint Caro's Claude Code harness.")
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--max-warnings", type=int, default=None,
+                        help="fail when warnings exceed N (ratchet for legacy drift)")
+    parser.add_argument("--today", type=date.fromisoformat, default=date.today(),
+                        help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
+    root = args.root.resolve()
+    findings = sorted(run_checks(root, args.today),
+                      key=lambda f: (LEVELS.index(f.level), f.path, f.line or 0))
+    github = os.environ.get("GITHUB_ACTIONS") == "true"
+    for f in findings:
+        emit(f, github)
+    errors = sum(f.level == "error" for f in findings)
+    warnings = sum(f.level == "warn" for f in findings)
+    budget = "" if args.max_warnings is None else f" (budget {args.max_warnings})"
+    print(f"\nharness lint: {errors} error(s), {warnings} warning(s){budget}")
+    if errors:
+        return 1
+    if args.max_warnings is not None:
+        if warnings > args.max_warnings:
+            print("New drift: warnings rose above the budget. Fix the new one (or any listed above).")
+            return 1
+        if warnings < args.max_warnings:
+            print(f"Drift went down: lower --max-warnings to {warnings} in "
+                  ".github/workflows/harness-lint.yml to lock in the gain.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
