@@ -10,7 +10,6 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 |-------|----------|--------|---------|--------|-------|
 | [#1375](https://github.com/wildcard/caro/issues/1375) | P1 | ai | `caro ai --once` CpuBackend always returns placeholder on Linux x86_64 | open | 2026-07-26 |
 | [#1442](https://github.com/wildcard/caro/issues/1442) | P2 | docs | CLAUDE.md version drift 1.4.0 vs actual 1.5.0 | open | 2026-09-07 |
-| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | closed (2026-05-09) | 2026-05-07 |
 
 ---
 
@@ -51,3 +50,4 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 ## Resolved (closed issues)
 
 - **BUG-001**: Search highlight double-counting with global regex — Fixed 2026-01-02
+- **[#1044](https://github.com/wildcard/caro/issues/1044)**: CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 — Closed 2026-05-09
