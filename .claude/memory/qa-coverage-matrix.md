@@ -2,7 +2,7 @@
 
 **Last updated**: 2026-09-27
 
-This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
+This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest; skip rows where Last tested = N/A — disabled/unreachable surfaces). Tie-break: pick lowest `#` number unless context suggests a riskier surface is more valuable to exercise. See Notes below.
 
 ---
 
