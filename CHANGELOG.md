@@ -45,10 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 
 - `docs/research/jev-system-one-gap-analysis.md` — what caro can learn from
-- `docs/research/jev-of-execution-safety-strategy.md`: phased strategy for
+  Jev / System One models and what not to copy.
+- `docs/research/jev-of-execution-safety-strategy.md` — phased strategy for
   caro as the calibrated, deterministic-floored decision layer for execution
   safety (epic #1460 phases 1–5, docs/skills/rules impact).
-  Jev / System One models and what not to copy.
 - [ADR-017](docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md) — Typed Decisions and Calibrated Confidence for Pipeline Gates
   (Proposed).
 - `docs/PERFORMANCE.md` — new "Decision Latency & Calibration" section.
