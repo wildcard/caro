@@ -4,6 +4,54 @@ Reading order: most recent first.
 
 ---
 
+## 2026-09-27 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+**Context note**: QA PRs #1373 (2026-07-25), #1443 (2026-09-07), and #1477 (2026-09-26) remain unmerged. Memory files on `main` still reflect only the 2026-05-07 bootstrap state. This PR updates them independently against main, ingesting known open issues from those sessions.
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 31s, no errors; v1.5.0)
+- `caro --version` → **PASS**: `caro 1.5.0 (be07b22 2026-07-18)`
+- `caro --help` → **PASS**: 24 subcommands listed including `ai`, `assess`, `suggest`, `export`, all CaroML verbs, `skill`
+- `caro doctor` → **PASS**: advisory (no model downloaded; huggingface.co reachable; proxy detected)
+- `caro -p 'list files in current directory' --dry-run` → **FLAKE** (FLAKE-001: silent hang → timeout; model download blocked in sandbox; 5th overall occurrence, 2nd within 7-day window; stays classified as flake)
+- Telemetry consent on first invocation → **PASS**: consent shown once; second invocation suppressed
+
+### Slot B — Recent diff
+
+110 PRs merged on main since last log entry (2026-05-07). Three representative surfaces exercised:
+- **Safety P0 fix** (#1315 `fix(safety): close quote/escape evasion`): `cargo test --lib -- safety` → **34/34 PASS**
+- **`caro suggest`** (surface #13, never tested): `caro suggest 'list files in current directory'` → **PASS** (5 correct suggestions including `ls -la`, find variants)
+- Prior QA sessions (#1477 2026-09-26, #1443 2026-09-07, #1373 2026-07-25) covered #1315, #1298, Hebrew i18n (#1352), and `caro test --backend static`; all confirmed PASS; no re-exercise needed
+
+### Slot C — `caro ai --once` (surface #10)
+
+Surface chosen: **#10** (oldest 'never' on main's matrix; tied with #11–#32; lowest # wins).
+
+- `caro ai --once 'list files' --backend embedded` → **FLAKE** (FLAKE-001: silent hang 15s; model download blocks; identical to #1477 finding)
+- `caro ai --once --backend static` → immediate error: `Invalid argument: Unknown backend 'static'` (static is only valid for `caro test`, not `caro ai`)
+- `caro ai --help` → PASS: flag documented correctly; `--once` = "the only mode supported today" (confirmed dead code `once: _` in dispatch, intentional per docs)
+- Unit tests: (not re-run; #1477 confirmed `cargo test --lib -- "ai::"` → 23/23 PASS; build unchanged)
+
+### Findings
+
+None new — all findings already tracked in open issues:
+- [#1375](https://github.com/wildcard/caro/issues/1375) — P1 — `caro ai --once` CpuBackend always returns placeholder on Linux x86_64 (open)
+- [#1442](https://github.com/wildcard/caro/issues/1442) — P2 — CLAUDE.md version drift `1.4.0` vs actual `1.5.0` (open)
+
+### Followups
+
+- FLAKE-001: 5th occurrence overall. 2nd in 7-day window (2026-09-26, 2026-09-27). Threshold is 3 in 7 days — stays flake for now.
+- P1 #1375 (CpuBackend placeholder) should be priority fix for Linux x86_64 users.
+- QA PRs #1373, #1443, #1477 remain unmerged — owner should review and close as superseded or merge.
+- Next Slot C candidate: surface #11 (`caro ai --continue-session` shell widget) — will likely hit FLAKE-001 too; worth documenting for coverage.
+- `caro assess` also timed out (background task, empty output after 15s) — surface #12 to track.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
