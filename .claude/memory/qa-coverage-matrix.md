@@ -43,7 +43,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 15 | `caro --output json` format correctness | cli | never | — | — |
 | 16 | `caro --output yaml` format correctness | cli | never | — | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
-| 18 | `caro test --backend static` eval harness | cli | never | — | — |
+| 18 | `caro test --backend static` eval harness | cli | 2026-07-25 | PASS | (from prior session PR #1373, unmerged) |
 | 19 | Embedded model backend command quality | embedded | never | — | — |
 | 20 | Ollama backend (requires ollama installed) | ollama | never | — | — |
 | 21 | CaroML: `caro run / generate / render / history` | cli | never | — | — |

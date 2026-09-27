@@ -15,7 +15,7 @@ Reading order: most recent first.
 
 - `cargo build --release --features embedded-cpu` → **PASS** (2m 31s, no errors; v1.5.0)
 - `caro --version` → **PASS**: `caro 1.5.0 (be07b22 2026-07-18)`
-- `caro --help` → **PASS**: 24 subcommands listed including `ai`, `assess`, `suggest`, `export`, all CaroML verbs, `skill`
+- `caro --help` → **PASS**: 24 subcommands listed including `ai`, `suggest`, `export`, all CaroML verbs, `skill` (note: `assess` is commented out in source since v1.1.0-beta.1 and does not appear)
 - `caro doctor` → **PASS**: advisory (no model downloaded; huggingface.co reachable; proxy detected)
 - `caro -p 'list files in current directory' --dry-run` → **FLAKE** (FLAKE-001: silent hang → timeout; model download blocked in sandbox; 5th overall occurrence, 2nd within 7-day window; stays classified as flake)
 - Telemetry consent on first invocation → **PASS**: consent shown once; second invocation suppressed
@@ -29,7 +29,7 @@ Reading order: most recent first.
 
 ### Slot C — `caro ai --once` (surface #10)
 
-Surface chosen: **#10** (oldest 'never' on main's matrix; tied with #11–#32; lowest # wins).
+Surface chosen: **#10** (oldest 'never' on main's matrix; tied with #11–#31; lowest # wins; #32 was last tested 2026-05-07).
 
 - `caro ai --once 'list files' --backend embedded` → **FLAKE** (FLAKE-001: silent hang 15s; model download blocks; identical to #1477 finding)
 - `caro ai --once --backend static` → immediate error: `Invalid argument: Unknown backend 'static'` (static is only valid for `caro test`, not `caro ai`)
