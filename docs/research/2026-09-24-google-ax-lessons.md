@@ -299,7 +299,8 @@ full survey on 2026-09-24.
 
 ### Stale harness references
 
-Found during the survey. Each one is a small documentation or config fix:
+Found during the survey and handed off as #1479 (tracked as BW-003 in
+`.claude/memory/broken-windows.md`). Each one is a small documentation or config fix:
 
 - `CLAUDE.md` says `cargo run --bin caro-eval`, but no such binary exists; the
   eval runs as `caro test`.
