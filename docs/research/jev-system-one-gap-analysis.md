@@ -157,6 +157,9 @@ backend switch dressed as a decision.
 
 ## See also
 
+- `docs/research/jev-of-execution-safety-strategy.md` — the phased
+  strategy that follows from this analysis (vertical, components, docs,
+  skills, rules).
 - `docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md` — the
   decision record for items 1 and 2.
 - `docs/PERFORMANCE.md` — "Decision Latency & Calibration" section.
