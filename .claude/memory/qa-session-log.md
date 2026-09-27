@@ -48,7 +48,7 @@ None new — all findings already tracked in open issues:
 - P1 #1375 (CpuBackend placeholder) should be priority fix for Linux x86_64 users.
 - QA PRs #1373, #1443, #1477 remain unmerged — owner should review and close as superseded or merge.
 - Next Slot C candidate: surface #11 (`caro ai --continue-session` shell widget) — will likely hit FLAKE-001 too; worth documenting for coverage.
-- `caro assess` also timed out (background task, empty output after 15s) — surface #12 to track.
+- `caro assess` subcommand is commented out in source since v1.1.0-beta.1 (src/main.rs:422-434, 3048-3057); surface #12 marked N/A in matrix — cannot be exercised until re-enabled.
 
 ---
 

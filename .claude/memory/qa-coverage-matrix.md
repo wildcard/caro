@@ -37,7 +37,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
 | 10 | `caro ai --once` scripted conversational mode | ai | 2026-09-27 | FLAKE | [#1375](https://github.com/wildcard/caro/issues/1375) |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
-| 12 | `caro assess` system assessment | cli | 2026-09-27 | FAIL | [#1375](https://github.com/wildcard/caro/issues/1375) |
+| 12 | `caro assess` system assessment | cli | never | N/A | (cmd disabled/commented-out since v1.1.0-beta.1) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
 | 14 | `caro config get/set/show/reset` | cli | never | — | — |
 | 15 | `caro --output json` format correctness | cli | never | — | — |
