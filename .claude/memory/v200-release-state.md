@@ -35,9 +35,13 @@
 ## Next 3 Priority Items
 
 1. **Reset v2.0.0 target date** — D1 (2026-07-12) accepted the reset; proposed Q4 2026
-   absent owner input, but Q4 2026 has also passed; current proposal is Q1 2027; owner
+   absent owner input, but Q4 2026 starts 2026-10-01 (3 days away) and is unviable with
+   discovery still at 0/20 across all 5 features; current proposal is Q1 2027; owner
    sign-off needed
-2. **Start Self-Healing discovery (#1151)** — run `caro.discovery`, 20 interviews
+2. **Start discovery per audit sequencing** — enterprise-dashboard first (drives
+   dogma-rules scope), then local-context-indexing, karo-distributed, self-healing,
+   voice-synthesis (per `docs/discovery/v2.0-validation-audit.md` revised 2026-05-31);
+   run `caro.discovery` skill; 20 interviews per feature
 3. **Merge stale planning PRs** — #1173, #1350, #1437, #1452 are idempotent doc-only
 
 ## Weekly Reports

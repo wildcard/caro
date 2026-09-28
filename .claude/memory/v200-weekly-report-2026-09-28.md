@@ -116,8 +116,9 @@ No scope change to v2.0.0 is recorded in the roadmap since the July 6 planning r
    (revised 2026-05-31) sequences interview work as: enterprise-dashboard (drives
    dogma-rules scope), local-context-indexing, karo-distributed, self-healing,
    voice-synthesis. Self-Healing (#1151) is 4th; Voice (#160) is flagged highest
-   a-priori-risk. Before interview design begins for any feature, run the
-   devil's-advocate review gate the audit requires. Run `caro.discovery` skill; target 20
+   a-priori-risk. Before interview design begins for voice-synthesis and self-healing,
+   run the devil's-advocate review gate the audit requires for those two hypotheses. Run
+   `caro.discovery` skill; target 20
    interviews per feature. Store transcripts flat under `docs/discovery/transcripts/`
    using `YYYY-MM-DD-<anon-handle>-<hypothesis-slug>.md` (per transcripts/README.md).
 
