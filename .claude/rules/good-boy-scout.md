@@ -39,8 +39,9 @@ you notice is someone else's job, and you must make sure someone gets it:
 - **Red CI caused by something outside your diff:** say so once on your PR
   with the issue link, then stop. Don't fix `main` from a feature branch.
 
-The broken-window sweep routine picks entries up daily, dedups the issues and
-fixes one item per run. The register is how it finds them.
+The **caro broken-window sweep** routine (`trig_01Mus5RzYBtVoS7B8v2uDTjw`,
+daily 15:30 UTC, fresh session per run) dedups the issues, syncs the register,
+and fixes one `Needs human: no` item per run. The register is how it finds them.
 
 ## Triage by Mission-Criticality
 
