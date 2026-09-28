@@ -95,14 +95,19 @@ No scope change to v2.0.0 is recorded in the roadmap since the July 6 planning r
 
 **Top 3 unstarted items to work on next:**
 
-1. **Decide on v2.0.0 scope reset** — The milestone is 90 days overdue with 0/5 core
-   features started. Options: (A) Reset release date to Q1 2027 with mandatory discovery
-   start now; (B) Ship v2.0.0 on the 29 completed non-research items; move 5 discovery-
-   gated features to "v2.1.0 - Core AI Features". This decision should be made this week.
+1. **Reset v2.0.0 target date** — The 2026-07-12 decision record
+   (`docs/decisions/2026-07-12-autonomous-mode-release-scope.md` D1) already accepted this
+   path: keep the milestone for the validated distributed-autonomy features; set a new target
+   date (Q1 2027 proposed). Shipping the 29 completed items as "v2.0.0" was explicitly
+   rejected in D1 (semver violation; misrepresents the release to users). This decision
+   needs an owner sign-off and a ROADMAP update.
 
 2. **Start Self-Healing discovery (#1151)** — highest PMF potential of the 5 features;
-   failure recovery is a concrete, observable pain. Run `caro.discovery` skill; target 20
-   interviews. Track in `docs/discovery/transcripts/self-healing/`. This unblocks
+   failure recovery is a concrete, observable pain. Before interview design begins, run the
+   devil's-advocate review gate required by `docs/discovery/v2.0-validation-audit.md`. Then
+   run `caro.discovery` skill; target 20 interviews. Store transcripts flat under
+   `docs/discovery/transcripts/` using naming convention
+   `YYYY-MM-DD-<anon-handle>-self-healing.md` (per transcripts/README.md). This unblocks
    validation-discipline Gate 1 for #1151 first.
 
 3. **Merge or close stale planning PRs** — PRs #1173, #1350, #1437, #1452 are
@@ -119,5 +124,6 @@ any further implementation planning is meaningful.
 
 The 29 completed items represent real shipped value (v1.2.0–v1.5.0 features). The
 5 research-gated items are genuine future work that cannot start without user interviews.
-Shipping v2.0.0 on the 29 completed items now, and creating v2.1.0 for the 5 research
-items, is the recommended path.
+Per `docs/decisions/2026-07-12-autonomous-mode-release-scope.md` D1, the accepted path is
+to reset the v2.0.0 target date (Q4 2026/Q1 2027) and begin discovery work now; shipping
+the completed items as "v2.0.0" was explicitly rejected as a semver violation.
