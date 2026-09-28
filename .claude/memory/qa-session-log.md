@@ -4,6 +4,50 @@ Reading order: most recent first.
 
 ---
 
+## 2026-09-28 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B (110 PRs merged since last log entry on 2026-05-07) + C.
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 24s, no errors; caro 1.5.0 built)
+- `caro --version` → **PASS**: `caro 1.5.0 (be07b22 2026-07-18)`
+- `caro --help` → **PASS**: all subcommands present including full CaroML verb set and `ai`, `suggest`, `skill`, `completion`
+- `caro doctor` → **PASS**: advisory only (no model downloaded, expected; proxy detected at 127.0.0.1:43861)
+- `caro -p 'list files in current directory' --dry-run` → **FLAKE**: model not downloaded (FLAKE-001 second occurrence, 2026-09-28); fallback returns `echo 'Please clarify your request'`. Note: `caro -p 'list files' --dry-run` → **PASS** (`ls -la` via static matcher; shorter query hits Pattern 43 regex correctly)
+
+### Slot B — Recent diff
+
+110 PRs merged since 2026-05-07. Representative surface tested per the most safety-critical PR:
+
+- **PR #1315** (`fix(safety): P0 — close quote/escape evasion of the command scanner`): ran `cargo test --test safety_validator_contract test_quote_escape_evasion_is_caught_base` → **PASS** (1/1 test ok). The `shell-words`-based `destructive_unescaped()` normalization blocks `rm -rf \/`, `rm -rf "/tmp"/*/x`, and `rm -\rf \/etc` while keeping `echo 'rm -rf /'` safe.
+- **PR #1304** (`chore(release): v1.5.0`): version confirmed in binary (`1.5.0 (be07b22 2026-07-18)`) → **PASS**
+- i18n batch PRs (#816–#829): surfaces flagged for future Slot C coverage under surface #31 (i18n locale smoke)
+
+### Slot C — `caro ai --once` (surface #10)
+
+- `caro ai --once 'show disk usage'` → returns `# caro-ai: session 1 (resumed) confidence=0.85 risk=Safe\necho 'Please clarify your request'` — **FLAKE** (FLAKE-001 applies; no model available; same fallback as Slot A)
+- `caro ai --help` → **PASS**: subcommand documented correctly; `--once` flag described as "Run one turn and return — no TTY REPL. The only mode supported today"
+- `caro ai -p 'query'` → **FAIL** (expected): "unexpected argument '-p' found" — confirmed UX inconsistency; pre-existing as [#1422](https://github.com/wildcard/caro/issues/1422) (open)
+- `caro ai --once` without prompt → **PASS**: correctly errors "no prompt provided (pass text, pipe stdin, or use -p)" — though the hint says "use -p" but `-p` doesn't work (consistent with #1213)
+- Static matcher gap also confirmed for `caro ai` path: "list files in current directory" → fallback; pre-existing as [#1399](https://github.com/wildcard/caro/issues/1399) (open)
+- CLAUDE.md version drift: shows `1.4.0 (GA)`, binary reports `1.5.0`; pre-existing as [#1474](https://github.com/wildcard/caro/issues/1474) (open, multiple dupes filed by prior QA runs)
+
+### Findings
+
+- **None filed this pass** — all identified issues are pre-existing open GitHub issues (#1399, #1422, #1474, others). No new unique defects discovered.
+- Confirmed surfaces healthy: safety scanner P0 fix (PR #1315) verified; binary build and version alignment correct; doctor and help accurate.
+
+### Followups
+
+- FLAKE-001 (model download in sandbox) observed again: 2nd occurrence on 2026-09-28. Dates are far apart (May → Sep), so not 3× in 7 days; does NOT trigger regression reclassification. Occurrence log updated.
+- Multiple QA rotation PRs from prior runs (#1178, #1373, #1443, #1477) remain open/unmerged, keeping main's memory files at the 2026-05-07 state. This causes each new QA pass to re-encounter the same open issues from its perspective. Recommend merging the oldest open QA rotation PR (#1178) to unblock memory state progression.
+- i18n locale surfaces (#31) should be the next Slot C candidate after the `caro ai` surface is marked tested.
+- Surface #11 (`caro ai --continue-session`) not yet tested — schedule for next pass.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
