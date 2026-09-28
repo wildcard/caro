@@ -112,13 +112,14 @@ No scope change to v2.0.0 is recorded in the roadmap since the July 6 planning r
    rejected in D1 (semver violation; misrepresents the release to users). This decision
    needs an owner sign-off and a ROADMAP update.
 
-2. **Start Self-Healing discovery (#1151)** — highest PMF potential of the 5 features;
-   failure recovery is a concrete, observable pain. Before interview design begins, run the
-   devil's-advocate review gate required by `docs/discovery/v2.0-validation-audit.md`. Then
-   run `caro.discovery` skill; target 20 interviews. Store transcripts flat under
-   `docs/discovery/transcripts/` using naming convention
-   `YYYY-MM-DD-<anon-handle>-self-healing.md` (per transcripts/README.md). This unblocks
-   validation-discipline Gate 1 for #1151 first.
+2. **Start discovery per audit sequencing** — `docs/discovery/v2.0-validation-audit.md`
+   (revised 2026-05-31) sequences interview work as: enterprise-dashboard (drives
+   dogma-rules scope), local-context-indexing, karo-distributed, self-healing,
+   voice-synthesis. Self-Healing (#1151) is 4th; Voice (#160) is flagged highest
+   a-priori-risk. Before interview design begins for any feature, run the
+   devil's-advocate review gate the audit requires. Run `caro.discovery` skill; target 20
+   interviews per feature. Store transcripts flat under `docs/discovery/transcripts/`
+   using `YYYY-MM-DD-<anon-handle>-<hypothesis-slug>.md` (per transcripts/README.md).
 
 3. **Merge or close stale planning PRs** — PRs #1173, #1350, #1437, #1452 are
    documentation-only and idempotent. Bulk-merge all 4 to clear the backlog. This
