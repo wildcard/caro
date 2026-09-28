@@ -137,5 +137,5 @@ any further implementation planning is meaningful.
 The 29 completed items represent real shipped value (v1.2.0–v1.5.0 features). The
 5 research-gated items are genuine future work that cannot start without user interviews.
 Per `docs/decisions/2026-07-12-autonomous-mode-release-scope.md` D1, the accepted path is
-to reset the v2.0.0 target date (Q4 2026/Q1 2027) and begin discovery work now; shipping
+to reset the v2.0.0 target date (Q1 2027) and begin discovery work now; shipping
 the completed items as "v2.0.0" was explicitly rejected as a semver violation.
