@@ -27,7 +27,7 @@ Reading order: most recent first.
 
 ### Slot C — `caro ai --once` (surface #10)
 
-- `caro ai --once 'show disk usage'` → returns `# caro-ai: session 1 (resumed) confidence=0.85 risk=Safe\necho 'Please clarify your request'` — **FLAKE** (FLAKE-001 applies; no model available; same fallback as Slot A)
+- `caro ai --once 'show disk usage'` → returns two lines: `# caro-ai: session 1 (resumed) confidence=0.85 risk=Safe` then `echo 'Please clarify your request'` — **FLAKE** (FLAKE-001 applies; no model available; same fallback as Slot A)
 - `caro ai --help` → **PASS**: subcommand documented correctly; `--once` flag described as "Run one turn and return — no TTY REPL. The only mode supported today"
 - `caro ai -p 'query'` → **FAIL** (expected): "unexpected argument '-p' found" — confirmed UX inconsistency; pre-existing as [#1422](https://github.com/wildcard/caro/issues/1422) (open)
 - `caro ai --once` without prompt → **PASS**: correctly errors "no prompt provided (pass text, pipe stdin, or use -p)" — though the hint says "use -p" but `-p` doesn't work (consistent with #1213)

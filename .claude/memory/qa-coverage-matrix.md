@@ -32,7 +32,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-05-07 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-05-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | 2026-09-28 | FLAKE/PASS | [#1422](https://github.com/wildcard/caro/issues/1422) (pre-existing open) |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-09-28 | FLAKE/PASS | [#1422](https://github.com/wildcard/caro/issues/1422), [#1213](https://github.com/wildcard/caro/issues/1213), [#1399](https://github.com/wildcard/caro/issues/1399), [#1382](https://github.com/wildcard/caro/issues/1382) (pre-existing open) |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
