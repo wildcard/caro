@@ -10,14 +10,17 @@
 - **Core gantt feature completion: 0%** (0/5 implemented — all in research/blocked phase)
 - **Release date**: June 30, 2026 → **90 DAYS OVERDUE** as of 2026-09-28
 
-### Open items from 2026-07-06 report (18 — presumed unchanged)
+### Open items from 2026-07-06 report (18 — confirmed list, presumed unchanged)
+
+> **Note**: #1075, #1151, #1152 are v2.0.0 research items but were **not assigned** to
+> milestone #3 as of 2026-07-06 (per decision record D1, assignment was a follow-up that
+> required API access unavailable at that time). The confirmed open list below matches the
+> 2026-07-06 report exactly; total/completion figures (47 items, 61.7%) are consistent with
+> this list.
 
 | # | Title | Category |
 |---|-------|----------|
 | #1172 | [v2.0.0] Integrate Continuous Claude | Dev Experience |
-| #1152 | [v2.0.0] Local Context Indexing | Research (unvalidated) |
-| #1151 | [v2.0.0] Self-Healing Implementation | Research (unvalidated) |
-| #1075 | [v2.0.0] Research Dogma rule engine | Research (unvalidated) |
 | #672 | Interactive TUI Welcome Screen | Dev Experience |
 | #668 | [EPIC] Automated Development Flow System | Dev Experience |
 | #667 | [EPIC] Autocoder Integration | Dev Experience |
@@ -30,8 +33,11 @@
 | #162 | Add Exo cluster connection support | Backend |
 | #160 | Research voice synthesis for Caro character | Research (unvalidated) |
 | #154 | Plan Jazz integration for cross-device sync | Research (unvalidated) |
+| #153 | Research Yappus-Term project and features | Dev Experience |
 | #133 | Define Karo distributed terminal intelligence | Research (unvalidated) |
 | #6 | Security hardening: cache/manifest permissions | Code Quality |
+| #5 | Implement FromStr traits | Code Quality (stale) |
+| #4 | Align config/logging contract tests | Code Quality (stale) |
 
 ### Core gantt features — all blocked by validation-discipline
 
@@ -84,12 +90,16 @@ No scope change to v2.0.0 is recorded in the roadmap since the July 6 planning r
    discovery work started.
 2. **Release date 90 days overdue**: Target was June 30, 2026. v2.0.0 is in an
    indefinite research hold until discovery gates clear.
-3. **4 stale planning PRs**: PRs #1173, #1350, #1437, #1452 are all open and unmerged.
-   This run is the 5th consecutive planning cycle with no merge. The owner has not
+3. **5 stale planning PRs**: PRs #1173, #1350, #1437, #1452 are all open and unmerged
+   (4 with known numbers); the 2026-07-06 planning run's PR is also open and stale (PR
+   number not recorded in this session — see Weekly Reports table in release-state.md).
+   This run is the 6th consecutive planning cycle with no merge. The owner has not
    reviewed these reports.
 4. **No discovery progress**: The `discovery-debt-v2.0` beads epic shows 0/20
-   transcripts across all 5 features despite 126 days since the first tracking issue was
-   filed (2026-05-25).
+   transcripts across all 5 features. Note: #133 (Karo) and #160 (Voice) have had open
+   tracking issues since before May 2026 (gantt windows start Apr 1 and Apr 15); the
+   gating issues #1075, #1151, #1152 were filed 2026-05-25 by the planning agent (126 days
+   ago) with no discovery work started on any of them.
 
 ## Next milestone items
 

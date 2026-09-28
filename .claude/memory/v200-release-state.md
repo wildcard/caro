@@ -18,7 +18,7 @@
 1. **Validation discipline (CRITICAL)** — All 5 core features need 20 user interviews each;
    current count is 0/20 across all five features; 126 days since first tracking issue
 2. **Release date passed** — June 30, 2026 target, now September 28 (90 days overdue)
-3. **4 stale planning PRs** — #1173 (126d), #1350 (77d), #1437 (28d), #1452 (21d) all open
+3. **5 stale planning PRs** — #1173 (126d), #1350 (77d), #1437 (28d), #1452 (21d) plus the 2026-07-06 run's PR (no number recorded) all open
 4. **No discovery progress** — Zero transcripts collected for any of the 5 gated features
 
 ## Core Feature Issues
@@ -33,7 +33,7 @@
 
 ## Next 3 Priority Items
 
-1. **Scope decision** — ship v2.0.0 on 29 completed items OR reset date to Q1 2027
+1. **Reset v2.0.0 target date** — D1 (2026-07-12) accepted: reset to Q1 2027; owner sign-off needed
 2. **Start Self-Healing discovery (#1151)** — run `caro.discovery`, 20 interviews
 3. **Merge stale planning PRs** — #1173, #1350, #1437, #1452 are idempotent doc-only
 
@@ -53,5 +53,5 @@
 - GitHub milestone: "v2.0.0 - Distributed Autonomy" (milestone #3, due Jun 30 2026)
 - All 5 core gantt features blocked by `.claude/rules/validation-discipline.md` Gate 1
 - v1.5.0 shipped July 12, 2026 — roadmap explicitly keeps v2.0.0 open for discovery
-- Recommended scope decision: ship v2.0.0 on completed items, move 5 research features to v2.1.0
+- Accepted path (per 2026-07-12 decision D1): reset v2.0.0 target date; begin discovery work now; do NOT ship completed items as v2.0.0 (semver violation)
 - The `discovery-debt-v2.0` beads epic tracks discovery work needed
