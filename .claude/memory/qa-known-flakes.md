@@ -14,6 +14,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **Impact**: Slot A `--dry-run` smoke check cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:
 - 2026-05-07: observed once
+- 2026-09-29: observed (occurrence #2); `caro -p 'list files' --dry-run` timed out after 30s with exit code 124; same sandbox environment
 
 **Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Workaround**: Run `caro -p "..." --dry-run` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama installed as fallback backend.

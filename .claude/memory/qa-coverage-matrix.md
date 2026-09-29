@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-09-29
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -13,6 +13,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
+| 2026-09-29 | PASS | PASS (1.5.0) | PASS | PASS | FLAKE | FLAKE-001 occurrence #2; 597 lib tests all pass |
 
 ---
 
@@ -31,7 +32,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-05-07 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-05-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | never | — | — |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-09-29 | FAIL | [#1484](https://github.com/wildcard/caro/issues/1484) |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
@@ -63,7 +64,9 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | closed (2026-05-09) |
+| [#1483](https://github.com/wildcard/caro/issues/1483) | CLAUDE.md version banner regression (1.4.0 vs 1.5.0) | docs | 2026-09-29 | open |
+| [#1484](https://github.com/wildcard/caro/issues/1484) | caro ai --once silent hang — no progress when no backend | ai | 2026-09-29 | open |
 
 ---
 
