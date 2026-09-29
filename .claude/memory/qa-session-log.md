@@ -43,7 +43,7 @@ Surfaces flagged for future Slot C: website (PR #1325 `feat(website): adopt Code
 
 ### Followups
 
-- FLAKE-001 now observed twice. One more occurrence within 7 days triggers reclassification as regression.
+- FLAKE-001 observed on 2026-05-07 and 2026-09-29 — these two occurrences are 4+ months apart and NOT within the same 7-day rolling window. The promotion threshold requires 3+ observations within any 7-day window; the rolling window effectively resets with today's observation. A future QA run needs 2 more occurrences within 7 days of each other (not just of today) to trigger reclassification.
 - 4 previous QA rotation PRs (#1178, #1373, #1443, #1477) remain open and unmerged — their memory updates never landed on main. Main's coverage matrix still shows bootstrap state (2026-05-07). Recommend merging or closing these PRs so memory state converges.
 - #1044 fix direction step 2 ("Add CLAUDE.md to release checklist") was never implemented. #1483 refiles this structural fix.
 - Surface #10 (`caro ai --once`) result: FAIL (P2 UX bug filed as #1484). Slot C next candidate: surface #11 (`caro ai --continue-session`) — note it also requires a working backend.
