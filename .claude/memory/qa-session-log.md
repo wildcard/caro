@@ -13,7 +13,7 @@ Reading order: most recent first.
 
 - `cargo build --release --features embedded-cpu` → **PASS** (2m 24s, no errors; binary at `./target/release/caro`)
 - `caro --version` → **PASS**: `caro 1.5.0 (be07b22 2026-07-18)`
-- `caro --help` → **PASS**: all subcommands listed (including ai, suggest, assess, skill)
+- `caro --help` → **PASS**: all subcommands listed (including ai, suggest, skill)
 - `caro doctor` → **PASS**: advisory only (no model downloaded; expected in fresh sandbox)
 - `caro -p 'list files in current directory' --dry-run` → **FLAKE**: model download silently blocked (FLAKE-001, occurrence #2; same sandbox network limitation as 2026-05-07)
 - Full library test suite `cargo test --lib` → **PASS**: 597 passed, 0 failed, 1 ignored (up from 513 on 2026-05-07; new tests added across releases)
