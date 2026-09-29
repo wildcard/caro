@@ -22,9 +22,9 @@ Reading order: most recent first.
 
 Key surfaces exercised:
 
-- **Safety (P0 fix #1315** — `fix(safety): P0 — close quote/escape evasion of the command scanner`): `cargo test --lib -- safety` → **PASS** (34 safety tests, 0 failed). P0 regression closed.
-- **i18n (#1352** — `fix(i18n): load all locale JSON files; overhaul Hebrew translations`): Hebrew locale (`website/src/i18n/locales/he/`) → **PASS**: 9 JSON files present, all parse cleanly; 15 total locales confirmed.
-- **CLI backend roster (#1298** — `fix(cli): single source of truth for backend roster`): `caro --help` backend list → **PASS**: all expected backends visible (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid).
+- **Safety** (P0 fix #1315 — `fix(safety): P0 — close quote/escape evasion of the command scanner`): `cargo test --lib -- safety` → **PASS** (34 safety tests, 0 failed). P0 regression closed.
+- **i18n** (#1352 — `fix(i18n): load all locale JSON files; overhaul Hebrew translations`): Hebrew locale (`website/src/i18n/locales/he/`) → **PASS**: 9 JSON files present, all parse cleanly; 15 total locales confirmed.
+- **CLI backend roster** (#1298 — `fix(cli): single source of truth for backend roster`): `caro --help` backend list → **PASS**: all expected backends visible (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid).
 - **v1.5.0 release (#1304)**: `caro --version` confirms 1.5.0 shipped correctly.
 
 Surfaces flagged for future Slot C: website (PR #1325 `feat(website): adopt Codex Pet Web SDK`), docs site (#1351 Cloudflare Pages prep).
