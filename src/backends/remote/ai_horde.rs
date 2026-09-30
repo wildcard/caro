@@ -361,7 +361,8 @@ Request: {}
                     alternatives: vec![],
                     backend_used: "AI-Horde".to_string(),
                     generation_time_ms: 0, // set by caller
-                    confidence_score: 0.75,
+                    confidence_score: 0.0, // not measured (#1464)
+                    confidence_source: crate::models::ConfidenceSource::Unknown,
                 });
             }
             // A typed clarification decision is not a failure: surface the

@@ -57,8 +57,13 @@ impl CandidateSource for BackendSource {
             }
         })?;
 
+        let has_confidence = generated.has_confidence();
         let mut candidate = Candidate::new(generated.command, self.label.clone());
-        candidate.features.llm_confidence = generated.confidence_score as f32;
+        // Unknown confidence keeps the feature's neutral default (#1464)
+        // instead of scoring the candidate as if the model were sure it is wrong.
+        if has_confidence {
+            candidate.features.llm_confidence = generated.confidence_score as f32;
+        }
         candidate.features.latency_ms = generated.generation_time_ms;
         Ok(candidate)
     }
@@ -95,6 +100,7 @@ mod tests {
                 backend_used: "fake".into(),
                 generation_time_ms: self.latency_ms,
                 confidence_score: self.confidence,
+                confidence_source: crate::models::ConfidenceSource::Measured,
             })
         }
         async fn is_available(&self) -> bool {

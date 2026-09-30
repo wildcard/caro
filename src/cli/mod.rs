@@ -1162,6 +1162,7 @@ impl CommandGenerator for MockCommandGenerator {
             backend_used: "mock".to_string(),
             generation_time_ms: 50,
             confidence_score: 0.95,
+            confidence_source: crate::models::ConfidenceSource::Unknown,
         })
     }
 

@@ -173,3 +173,39 @@ impl GeneratorError {
 
 // Re-export static matcher
 pub use static_matcher::StaticMatcher;
+
+/// Turn per-token log-probabilities into a confidence in `0.0..=1.0`
+/// (ADR-017, #1464): the geometric-mean token probability, `exp(mean(logprob))`.
+///
+/// Non-finite entries are ignored; an empty (or all non-finite) slice yields
+/// `None` so the caller reports [`crate::models::ConfidenceSource::Unknown`]
+/// rather than a made-up number.
+pub fn mean_logprob_confidence(logprobs: &[f64]) -> Option<f64> {
+    let (sum, n) = logprobs
+        .iter()
+        .filter(|lp| lp.is_finite())
+        .fold((0.0_f64, 0usize), |(s, n), lp| (s + lp, n + 1));
+    (n > 0).then(|| (sum / n as f64).exp().clamp(0.0, 1.0))
+}
+
+#[cfg(test)]
+mod confidence_tests {
+    use super::mean_logprob_confidence;
+
+    #[test]
+    fn mean_logprob_confidence_hand_values() {
+        let half = 0.5_f64.ln();
+        let c = mean_logprob_confidence(&[half, half]).unwrap();
+        assert!((c - 0.5).abs() < 1e-9);
+        // 0.9 and 0.1 average to the geometric mean 0.3.
+        let c = mean_logprob_confidence(&[0.9_f64.ln(), 0.1_f64.ln()]).unwrap();
+        assert!((c - 0.3).abs() < 1e-9);
+        assert_eq!(mean_logprob_confidence(&[]), None);
+        assert_eq!(
+            mean_logprob_confidence(&[f64::NAN, f64::NEG_INFINITY]),
+            None
+        );
+        // Positive log-probs (malformed) still clamp to 1.0 rather than exceed it.
+        assert_eq!(mean_logprob_confidence(&[0.5]), Some(1.0));
+    }
+}

@@ -1939,6 +1939,7 @@ impl CommandGenerator for StaticMatcher {
                 backend_used: "static-matcher".to_string(),
                 generation_time_ms: 0,        // Instant - no LLM call
                 confidence_score: confidence, // Measured: regex 1.0, keywords 0.6..1.0
+                confidence_source: crate::models::ConfidenceSource::Measured,
             })
         } else {
             // No match - return error so we can fall through to LLM

@@ -147,6 +147,7 @@ impl Evaluator for SafetyEvaluator {
             criteria_passed: 0,
             criteria_total: 0,
             confidence: result.confidence,
+            confidence_source: result.confidence_source,
         })
     }
 }

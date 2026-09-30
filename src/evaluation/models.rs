@@ -202,6 +202,12 @@ pub struct EvaluationResult {
     /// loadable.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub confidence: Option<f64>,
+
+    /// Where `confidence` came from (#1464): measured, self-reported, or
+    /// unknown. `None` when generation failed. Lets the report separate
+    /// evidence-backed calibration from backends that report nothing.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub confidence_source: Option<crate::models::ConfidenceSource>,
 }
 
 impl EvaluationResult {
@@ -362,6 +368,13 @@ pub struct BackendResult {
     /// what a user feels; the mean hides it.
     #[serde(default)]
     pub p95_execution_time_ms: u64,
+
+    /// How many results came with each confidence provenance (#1464), keyed
+    /// by [`crate::models::ConfidenceSource`]'s display name (`measured`,
+    /// `self-reported`, `unknown`). Results that failed to generate are not
+    /// counted.
+    #[serde(default)]
+    pub confidence_sources: std::collections::BTreeMap<String, u32>,
 }
 
 /// Aggregated results from a complete evaluation run
@@ -716,6 +729,7 @@ mod tests {
             criteria_passed,
             criteria_total,
             confidence: None,
+            confidence_source: None,
         }
     }
 

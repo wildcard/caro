@@ -31,6 +31,10 @@ pub struct CommandResult {
     /// Carried through to [`EvaluationResult::confidence`] so the harness can
     /// score calibration (Brier / ECE) — see [`crate::evaluation::calibration`].
     pub confidence: Option<f64>,
+
+    /// Provenance of `confidence` (ADR-017, #1464). `None` when generation
+    /// failed; `Some(Unknown)` when the backend answered but cannot measure.
+    pub confidence_source: Option<crate::models::ConfidenceSource>,
 }
 
 impl CommandResult {
@@ -43,6 +47,7 @@ impl CommandResult {
             execution_time_ms,
             backend_name,
             confidence: None,
+            confidence_source: None,
         }
     }
 
@@ -55,6 +60,7 @@ impl CommandResult {
             execution_time_ms,
             backend_name,
             confidence: None,
+            confidence_source: None,
         }
     }
 
@@ -67,6 +73,7 @@ impl CommandResult {
             execution_time_ms,
             backend_name,
             confidence: None,
+            confidence_source: None,
         }
     }
 }

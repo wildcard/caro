@@ -63,6 +63,8 @@ struct ChatRequest {
     temperature: f32,
     max_tokens: u32,
     stream: bool,
+    /// Ask for per-token log-probs so confidence is measured, not constant (#1464).
+    logprobs: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -83,6 +85,28 @@ struct ChatChoice {
     message: ChatResponseMessage,
     #[allow(dead_code)]
     finish_reason: Option<String>,
+    #[serde(default)]
+    logprobs: Option<ChoiceLogprobs>,
+}
+
+/// OpenAI-compatible per-choice log-probabilities (`"logprobs": {"content": [...]}`).
+#[derive(Debug, Deserialize)]
+struct ChoiceLogprobs {
+    #[serde(default)]
+    content: Option<Vec<TokenLogprob>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct TokenLogprob {
+    logprob: f64,
+}
+
+/// Measured confidence for one choice: geometric-mean token probability over
+/// the returned `logprobs`, `None` when the server omitted them (#1464).
+fn confidence_from_logprobs(logprobs: Option<&ChoiceLogprobs>) -> Option<f64> {
+    let tokens = logprobs?.content.as_ref()?;
+    let lps: Vec<f64> = tokens.iter().map(|t| t.logprob).collect();
+    crate::backends::mean_logprob_confidence(&lps)
 }
 
 #[derive(Debug, Deserialize)]
@@ -203,7 +227,7 @@ Rules:
         &self,
         system_prompt: &str,
         user_input: &str,
-    ) -> Result<String, GeneratorError> {
+    ) -> Result<(String, Option<f64>), GeneratorError> {
         let request = ChatRequest {
             model: self.config.model.clone(),
             messages: vec![
@@ -219,6 +243,7 @@ Rules:
             temperature: self.config.temperature,
             max_tokens: self.config.max_tokens,
             stream: false,
+            logprobs: true,
         };
 
         let url = format!("{}/chat/completions", self.config.endpoint);
@@ -268,7 +293,8 @@ Rules:
                 })?;
 
         if let Some(choice) = chat_response.choices.first() {
-            Ok(choice.message.content.clone())
+            let confidence = confidence_from_logprobs(choice.logprobs.as_ref());
+            Ok((choice.message.content.clone(), confidence))
         } else {
             Err(GeneratorError::ParseError {
                 content: "OpenRouter response contained no choices".to_string(),
@@ -284,8 +310,12 @@ Rules:
             .call_api(&self.create_system_prompt(request), &request.input)
             .await
         {
-            Ok(response) => match self.parse_command_response(&response) {
+            Ok((response, measured)) => match self.parse_command_response(&response) {
                 Ok(command) => {
+                    let (confidence_score, confidence_source) = match measured {
+                        Some(c) => (c, crate::models::ConfidenceSource::Measured),
+                        None => (0.0, crate::models::ConfidenceSource::Unknown),
+                    };
                     return Ok(GeneratedCommand {
                         command,
                         explanation: "Generated using OpenRouter".to_string(),
@@ -294,7 +324,8 @@ Rules:
                         alternatives: vec![],
                         backend_used: format!("OpenRouter ({})", self.config.model),
                         generation_time_ms: 0,
-                        confidence_score: 0.85,
+                        confidence_score,
+                        confidence_source,
                     });
                 }
                 // A typed clarification decision is not a parse failure:
@@ -459,5 +490,29 @@ mod tests {
         let info = backend.backend_info();
         assert_eq!(info.backend_type, BackendType::OpenRouter);
         assert_eq!(info.model_name, "qwen/qwen3-coder");
+    }
+}
+
+#[cfg(test)]
+mod confidence_tests {
+    use super::*;
+
+    #[test]
+    fn logprobs_yield_measured_confidence() {
+        let body = r#"{"choices":[{"message":{"role":"assistant","content":"{\"cmd\":\"ls\"}"},
+            "logprobs":{"content":[{"token":"a","logprob":-0.10536051565782628}]}}]}"#;
+        let parsed: ChatResponse = serde_json::from_str(body).unwrap();
+        let c = confidence_from_logprobs(parsed.choices[0].logprobs.as_ref()).unwrap();
+        assert!((c - 0.9).abs() < 1e-9);
+    }
+
+    #[test]
+    fn missing_logprobs_yield_unknown() {
+        let body = r#"{"choices":[{"message":{"role":"assistant","content":"x"}}]}"#;
+        let parsed: ChatResponse = serde_json::from_str(body).unwrap();
+        assert_eq!(
+            confidence_from_logprobs(parsed.choices[0].logprobs.as_ref()),
+            None
+        );
     }
 }

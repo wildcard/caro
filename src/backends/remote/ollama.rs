@@ -240,7 +240,8 @@ Request: {}
                             alternatives: vec![],
                             backend_used: format!("Ollama ({})", self.model_name),
                             generation_time_ms: 0, // Will be set by caller
-                            confidence_score: 0.8,
+                            confidence_score: 0.0, // /api/generate exposes no logprobs (#1464)
+                            confidence_source: crate::models::ConfidenceSource::Unknown,
                         });
                     }
                     // A typed clarification decision is not a parse failure:

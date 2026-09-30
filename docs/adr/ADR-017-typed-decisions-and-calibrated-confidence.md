@@ -1,6 +1,6 @@
 # ADR-017: Typed Decisions and Calibrated Confidence for Pipeline Gates
 
-**Status**: Proposed
+**Status**: Accepted
 
 **Date**: 2026-09-22
 
@@ -157,3 +157,4 @@ in favour of shipping both.**
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-09-22 | Caro maintainers | Initial draft, Proposed |
+| 2026-09-30 | Caro maintainers | Accepted: decision 3 holds once #1464 replaced the last per-backend constants with `ConfidenceSource`-tagged measurements |

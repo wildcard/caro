@@ -155,6 +155,8 @@ impl AgentLoop {
                 duration_ms: start.elapsed().as_millis() as u64,
                 success: true,
                 error_category: Some("needs_clarification".to_string()),
+                confidence: None,
+                confidence_source: None,
             });
         } else if let Err(ref e) = result {
             let error_category = match e {
@@ -175,6 +177,8 @@ impl AgentLoop {
                 duration_ms: start.elapsed().as_millis() as u64,
                 success: false,
                 error_category: Some(error_category.to_string()),
+                confidence: None,
+                confidence_source: None,
             });
         }
 
@@ -261,6 +265,10 @@ impl AgentLoop {
                             duration_ms: start.elapsed().as_millis() as u64,
                             success: true,
                             error_category: None,
+                            confidence: command
+                                .has_confidence()
+                                .then_some(command.confidence_score as f32),
+                            confidence_source: Some(command.confidence_source.to_string()),
                         },
                     );
 
@@ -346,7 +354,11 @@ impl AgentLoop {
         }
 
         // Check confidence score - trigger refinement if low
-        let low_confidence = initial.confidence_score < self.confidence_threshold;
+        // Only evidence-backed confidence may drive this gate (#1464): a
+        // backend that cannot measure reports `Unknown` and 0.0, which must
+        // not read as "very unsure".
+        let low_confidence =
+            initial.has_confidence() && initial.confidence_score < self.confidence_threshold;
 
         if low_confidence {
             info!(
@@ -360,8 +372,8 @@ impl AgentLoop {
 
         if !low_confidence && !needs_platform_fix {
             info!(
-                "Refinement not needed (confidence: {:.2}, no platform issues)",
-                initial.confidence_score
+                "Refinement not needed (confidence: {:.2} [{}], no platform issues)",
+                initial.confidence_score, initial.confidence_source
             );
             return Ok(initial);
         }
@@ -416,6 +428,10 @@ impl AgentLoop {
             duration_ms: start.elapsed().as_millis() as u64,
             success: true,
             error_category: None,
+            confidence: refined
+                .has_confidence()
+                .then_some(refined.confidence_score as f32),
+            confidence_source: Some(refined.confidence_source.to_string()),
         });
 
         Ok(refined)
@@ -955,6 +971,15 @@ mod tests {
             backend_used: "mock".to_string(),
             generation_time_ms: 1,
             confidence_score: confidence,
+            confidence_source: crate::models::ConfidenceSource::Measured,
+        }
+    }
+
+    fn unsourced_command(command: &str) -> GeneratedCommand {
+        GeneratedCommand {
+            confidence_score: 0.0,
+            confidence_source: crate::models::ConfidenceSource::Unknown,
+            ..mock_command(command, 0.0)
         }
     }
 
@@ -1026,6 +1051,59 @@ mod tests {
             advise_returns: returns.map(|s| s.to_string()),
             advise_called: called,
         })
+    }
+
+    /// Mock whose draft carries no confidence evidence at all (#1464).
+    struct UnsourcedBackend;
+
+    #[async_trait]
+    impl CommandGenerator for UnsourcedBackend {
+        async fn generate_command(
+            &self,
+            _request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            Ok(unsourced_command("ls"))
+        }
+        async fn is_available(&self) -> bool {
+            true
+        }
+        fn backend_info(&self) -> BackendInfo {
+            BackendInfo {
+                backend_type: BackendType::Mock,
+                model_name: "unsourced".to_string(),
+                supports_streaming: false,
+                max_tokens: 100,
+                typical_latency_ms: 1,
+                memory_usage_mb: 0,
+                version: "test".to_string(),
+            }
+        }
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn unknown_confidence_does_not_trigger_refinement() {
+        // A 0.0 score with `ConfidenceSource::Unknown` is "no evidence", not
+        // "very unsure": the advisor must stay idle and the draft must pass
+        // through unchanged.
+        let called = Arc::new(AtomicBool::new(false));
+        let advisor = advisor_backend(Some("ls -la"), called.clone());
+        let ctx = ExecutionContext::detect();
+        let profile = CapabilityProfile::ubuntu();
+        let agent = AgentLoop::new(Arc::new(UnsourcedBackend), ctx, profile)
+            .with_static_matcher(false)
+            .with_advisor(advisor);
+
+        let result = agent.generate_command("list files").await.unwrap();
+
+        assert!(
+            !called.load(Ordering::SeqCst),
+            "advisor must not run without evidence"
+        );
+        assert_eq!(result.command, "ls");
+        assert!(!result.has_confidence());
     }
 
     #[tokio::test]

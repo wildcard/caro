@@ -132,6 +132,20 @@ impl CalibrationRollup {
     }
 }
 
+/// Count results per confidence provenance (#1464), keyed by the source's
+/// display name. Results that never generated (`None`) are not counted.
+pub fn source_counts<'a>(
+    results: impl IntoIterator<Item = &'a EvaluationResult>,
+) -> std::collections::BTreeMap<String, u32> {
+    let mut counts = std::collections::BTreeMap::new();
+    for r in results {
+        if let Some(src) = r.confidence_source {
+            *counts.entry(src.to_string()).or_insert(0) += 1;
+        }
+    }
+    counts
+}
+
 /// Latency percentiles (milliseconds) over a set of results.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct LatencyPercentiles {
@@ -194,6 +208,7 @@ mod tests {
             criteria_passed: 0,
             criteria_total: 0,
             confidence,
+            confidence_source: confidence.map(|_| crate::models::ConfidenceSource::Measured),
         }
     }
 
@@ -318,5 +333,22 @@ mod tests {
     fn latency_percentiles_empty() {
         let rs: Vec<EvaluationResult> = vec![];
         assert_eq!(LatencyPercentiles::of(&rs), LatencyPercentiles::default());
+    }
+
+    #[test]
+    fn excludes_unsourced_confidence() {
+        // A backend that cannot measure reports `Unknown` and the harness
+        // records no confidence for it: it must count toward coverage's
+        // denominator only, never toward Brier/ECE.
+        let mut unknown = result(true, None, 5);
+        unknown.confidence_source = Some(crate::models::ConfidenceSource::Unknown);
+        let measured = result(false, Some(0.2), 5);
+        let rows = [unknown, measured];
+        let roll = CalibrationRollup::of(rows.iter());
+        assert!((roll.coverage - 0.5).abs() < 1e-6);
+        assert!((roll.brier.unwrap() - 0.04).abs() < 1e-6);
+        let counts = source_counts(rows.iter());
+        assert_eq!(counts.get("unknown"), Some(&1));
+        assert_eq!(counts.get("measured"), Some(&1));
     }
 }

@@ -79,6 +79,14 @@ pub enum EventType {
         success: bool,
         /// Error category if failed (e.g., "timeout", "parse_error")
         error_category: Option<String>,
+        /// Backend confidence in the generated command (`0.0..=1.0`), when
+        /// the backend measured or self-reported one (#1464). Metadata only.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        confidence: Option<f32>,
+        /// Provenance of `confidence`: "measured", "self-reported" or
+        /// "unknown". `None` when generation failed.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        confidence_source: Option<String>,
     },
 
     /// Safety validation performed
@@ -187,6 +195,8 @@ mod tests {
                 duration_ms: 1500,
                 success: true,
                 error_category: None,
+                confidence: None,
+                confidence_source: None,
             },
         );
 

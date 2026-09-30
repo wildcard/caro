@@ -341,6 +341,7 @@ mod tests {
                 confidence_coverage: 0.0,
                 p50_execution_time_ms: 100,
                 p95_execution_time_ms: 100,
+                confidence_sources: [("measured".to_string(), 3)].into_iter().collect(),
             },
         );
 
@@ -391,6 +392,7 @@ mod tests {
         assert_eq!(loaded_backend.confidence_coverage, 0.0);
         assert_eq!(loaded_backend.p50_execution_time_ms, 100);
         assert_eq!(loaded_backend.p95_execution_time_ms, 100);
+        assert_eq!(loaded_backend.confidence_sources.get("measured"), Some(&3));
 
         // Load from symlink
         let loaded_latest = store.load("main-latest.json").unwrap();

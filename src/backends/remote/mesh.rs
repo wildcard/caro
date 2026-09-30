@@ -291,7 +291,8 @@ Request: {}
                         alternatives: vec![],
                         backend_used: format!("Mesh-LLM ({})", self.model_name),
                         generation_time_ms: 0, // set by caller
-                        confidence_score: 0.85,
+                        confidence_score: 0.0, // not measured (#1464)
+                        confidence_source: crate::models::ConfidenceSource::Unknown,
                     });
                 }
                 // A typed clarification decision is not a parse failure:

@@ -10,7 +10,7 @@ use std::time::{Duration, Instant};
 use tokio::time::timeout;
 
 use crate::backends::{CommandGenerator, GeneratorError};
-use crate::evaluation::calibration::{CalibrationRollup, LatencyPercentiles};
+use crate::evaluation::calibration::{source_counts, CalibrationRollup, LatencyPercentiles};
 use crate::evaluation::errors::Result;
 use crate::evaluation::{
     BackendResult, BenchmarkReport, CategoryResult, CommandResult, Dataset, ErrorType,
@@ -338,6 +338,7 @@ impl EvaluationHarness {
             confidence_coverage: calibration.coverage,
             p50_execution_time_ms: latency.p50_ms,
             p95_execution_time_ms: latency.p95_ms,
+            confidence_sources: source_counts(all_results.iter()),
         })
     }
 
@@ -401,6 +402,7 @@ impl EvaluationHarness {
                                 execution_time_ms: timeout_ms,
                                 backend_name: backend_name.clone(),
                                 confidence: None,
+                                confidence_source: None,
                             }
                         }
                     };
@@ -492,6 +494,7 @@ impl EvaluationHarness {
                     criteria_passed: 0,
                     criteria_total: 0,
                     confidence: None,
+                    confidence_source: None,
                 };
             }
         };
@@ -511,6 +514,7 @@ impl EvaluationHarness {
                 execution_time_ms: self.config.backend_timeout_ms,
                 backend_name: backend_name.to_string(),
                 confidence: None,
+                confidence_source: None,
             },
         };
 
@@ -533,6 +537,7 @@ impl EvaluationHarness {
                 criteria_passed: 0,
                 criteria_total: 0,
                 confidence: command_result.confidence,
+                confidence_source: command_result.confidence_source,
             },
         }
     }
@@ -553,13 +558,17 @@ impl EvaluationHarness {
             Ok(generated) => {
                 let execution_time_ms = start.elapsed().as_millis() as u64;
 
+                let confidence = generated
+                    .has_confidence()
+                    .then_some(generated.confidence_score);
                 CommandResult {
                     command: Some(generated.command),
                     blocked: false,
                     error: None,
                     execution_time_ms,
                     backend_name: backend_name.to_string(),
-                    confidence: Some(generated.confidence_score),
+                    confidence,
+                    confidence_source: Some(generated.confidence_source),
                 }
             }
             Err(e) => {
@@ -575,6 +584,7 @@ impl EvaluationHarness {
                     execution_time_ms,
                     backend_name: backend_name.to_string(),
                     confidence: None,
+                    confidence_source: None,
                 }
             }
         }
@@ -705,6 +715,7 @@ impl EvaluationHarness {
                     confidence_coverage: calibration.coverage,
                     p50_execution_time_ms: latency.p50_ms,
                     p95_execution_time_ms: latency.p95_ms,
+                    confidence_sources: source_counts(backend_tests.iter().copied()),
                 },
             );
         }
@@ -798,6 +809,7 @@ mod tests {
                 backend_used: self.name.clone(),
                 generation_time_ms: 10,
                 confidence_score: 0.95,
+                confidence_source: crate::models::ConfidenceSource::SelfReported,
             })
         }
 

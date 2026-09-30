@@ -118,7 +118,10 @@ backend switch dressed as a decision.
    150+ patterns); embedded/llama.cpp → mean log-prob of the emitted command
    tokens; remote OpenAI-compatible → `logprobs` where offered, else the
    model's self-reported figure through the `Choice` parser. A backend that
-   cannot measure reports `None`, never a constant.
+   cannot measure reports `None`, never a constant. *Shipped in #1464* as
+   `GeneratedCommand.confidence_source` (static matcher, vLLM and
+   OpenRouter measured; Claude self-reported; the rest `unknown`), with
+   MLX log-probs left as a follow-up.
 4. **Constrained decoding for decisions only.** Ollama `format: "json"` and
    vLLM `guided_json` for the Noul/Choice prompts, with the adapter's
    corrective-retry loop as the fallback. Keep the command prompt unconstrained.

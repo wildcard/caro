@@ -517,7 +517,8 @@ impl CommandGenerator for EmbeddedModelBackend {
             alternatives: vec![], // Embedded model generates single command
             backend_used: "embedded".to_string(),
             generation_time_ms: generation_time,
-            confidence_score: 0.85, // Default confidence for embedded model
+            confidence_score: 0.0, // Not measured (#1464): llama.cpp sampler exposes no log-probs yet
+            confidence_source: crate::models::ConfidenceSource::Unknown,
         })
     }
 

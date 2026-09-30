@@ -22,6 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Choice<RiskLevel>` (behaviour unchanged; also accepts a
   `{"probabilities": {...}}` answer). `RiskLevel` implements `FromStr`.
 
+- **Measured confidence for LLM backends** ([#1464](https://github.com/wildcard/caro/issues/1464)):
+  `GeneratedCommand.confidence_source` (`measured`, `self-reported`,
+  `unknown`) replaces the per-backend constants. vLLM and OpenRouter request
+  `logprobs` and report the geometric-mean token probability; Claude is asked
+  for a `confidence` alongside `cmd` and the value is validated to 0..=1;
+  backends that cannot measure (embedded, Ollama, Exo, Mesh, AI-Horde) report
+  `unknown` with score 0.0. The agent refinement gate and the candidate-ranking
+  `llm_confidence` feature ignore `unknown`; the eval harness records the
+  source per result and per backend (`confidence_sources`), and telemetry's
+  `CommandGeneration` event gains `confidence` / `confidence_source`
+  (metadata only). CLI output shows `Confidence: n/a` instead of `0%` when
+  there is no evidence. ADR-017 moves to Accepted.
 - **Static matcher reports measured confidence** ([#1461](https://github.com/wildcard/caro/issues/1461)): regex matches
   score 1.0; keyword matches score `0.6 + 0.4 × optional-keyword coverage`
   instead of a constant 1.0. Pattern selection is unchanged. Eval ECE for the

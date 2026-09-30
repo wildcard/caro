@@ -140,13 +140,23 @@ four fields borrowed from the "System One" framing (see
 | `ece` | expected calibration error over 10 confidence buckets (lower is better) |
 
 A backend that reports a constant confidence `c` shows `ece == |c − pass_rate|`.
-That is the signature of a hardcoded confidence. The static matcher now
-measures its confidence (regex 1.0, keyword coverage 0.6–1.0); the LLM
-backends still report constants (embedded 0.85; claude 0.95; ollama 0.8;
-exo, mesh, vLLM and OpenRouter 0.85; AI-Horde 0.75; hybrid 0.9) until #1464
-lands. Treat a non-trivial ECE on a backend as a
-bug in its confidence reporting, not in the model. `confidence_coverage`
-says what fraction of results the Brier/ECE numbers describe; p50/p95
+That is the signature of a hardcoded confidence, and as of #1464 no backend
+reports one: every `GeneratedCommand` carries a `confidence_source`, and a
+backend that cannot measure reports `unknown` (score 0.0, excluded from
+Brier/ECE and ignored by the agent's refinement gate).
+
+| Backend | Confidence signal | Source |
+|---------|-------------------|--------|
+| static matcher | regex 1.0; keyword coverage 0.6–1.0 | `measured` |
+| vLLM, OpenRouter | geometric-mean token probability from the server's `logprobs` | `measured` (or `unknown` when the server omits them) |
+| Claude | the model's own `{"confidence": …}` self-report, validated to 0..=1 | `self-reported` |
+| embedded (MLX / CPU), Ollama, Exo, Mesh, AI-Horde | none yet | `unknown` |
+
+MLX log-probs need a custom `llama_cpp` sampler and are tracked as a
+follow-up; the CPU path is a stub with no inference. Treat a non-trivial ECE
+on a backend as a bug in its confidence reporting, not in the model.
+`confidence_coverage` says what fraction of results the Brier/ECE numbers
+describe, `confidence_sources` counts results per provenance, and p50/p95
 exclude timed-out results.
 
 Jev's published decision-latency band is 70–500 ms end-to-end; use it as the
