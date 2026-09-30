@@ -32,14 +32,15 @@ call that the auto-mode classifier refuses without explicit maintainer approval.
 **Next step:** maintainer picks between #1472 and a suppression. Until then
 every PR shows a red `Security Audit` / `cargo-audit`; that is not the PR's fault.
 
-### BW-002: CLAUDE.md version/MSRV drift, filed ~15× as duplicates
+### BW-002: CLAUDE.md version/MSRV drift, filed 40× (canonical + 39 duplicates)
 
 **Found:** 2026-09-27, PR #1470 session
 **Issue:** canonical #1098 (oldest open); 39 duplicates, see "Dedup pending" below
-**Status:** claimed-by integrator/20260903 (#1432); also fixed in #1478
+**Status:** claimed-by integrator/20260903 (#1432). #1478 carries an overlapping
+fix; both are open and unmerged.
 **Needs human?:** no
-**Next step:** fix CLAUDE.md (version 1.5.0, MSRV from `Cargo.toml`
-`rust-version`), then close the duplicates as duplicates of the fixing issue.
+**Next step:** merge one of #1432 / #1478, then close the #1098 row of the
+"Dedup pending" table.
 Root cause: the daily QA routine (`trig_01Tk7DxyXV7LeYcFjgmTG1mZ`, 14:00 UTC)
 re-files instead of commenting on the existing issue, and nothing fixes.
 
