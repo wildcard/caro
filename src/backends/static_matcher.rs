@@ -764,7 +764,7 @@ impl StaticMatcher {
                 // Optional trailing qualifier names only the current directory (#1181);
                 // any other location must not collapse to a bare `ls -la`.
                 // `[^/~]` keeps a named path's last component ("/var/log/files") from satisfying `files?`.
-                regex_pattern: Some(Regex::new(r"(?i)^(list|show)[^/~]*\bfiles?(\s+(here|in\s+(the\s+)?(current|this)\s+(directory|dir|folder)))?\s*$").unwrap()),
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show)[^/~]*\bfiles?(\s+((in\s+)?here|in\s+(the\s+)?(current|this)\s+(directory|dir|folder)))?\s*$").unwrap()),
                 gnu_command: "ls -la".to_string(),
                 bsd_command: Some("ls -la".to_string()),
                 description: "List files (simple)".to_string(),
@@ -2167,6 +2167,7 @@ mod tests {
             "list files in the current directory",
             "list all files in this folder",
             "show files here",
+            "list files in here",
             "listing files in the current directory",
         ] {
             let request = CommandRequest::new(query, ShellType::Bash);
