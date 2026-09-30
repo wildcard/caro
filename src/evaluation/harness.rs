@@ -370,6 +370,12 @@ impl EvaluationHarness {
         backends: &[(String, Arc<dyn CommandGenerator>)],
     ) -> Result<Vec<EvaluationResult>> {
         let mut tasks = Vec::new();
+        // Bound in-flight backend work by `max_concurrency`: the permit is
+        // taken before spawning and held for generation, the optional judge
+        // pass (#1465) and evaluation.
+        let limiter = Arc::new(tokio::sync::Semaphore::new(
+            self.config.max_concurrency.max(1),
+        ));
 
         // Outer loop: test cases
         for test_case in self.dataset.test_cases() {
@@ -390,10 +396,15 @@ impl EvaluationHarness {
                     .clone();
                 let timeout_ms = self.config.backend_timeout_ms;
                 let judge_risk = self.config.judge_risk;
+                let permit = limiter
+                    .clone()
+                    .acquire_owned()
+                    .await
+                    .expect("semaphore is never closed");
 
                 // Spawn parallel task for this backend
                 let task = tokio::spawn(async move {
-                    let _start = Instant::now();
+                    let _permit = permit;
 
                     // Run backend with timeout
                     let mut command_result = match timeout(
