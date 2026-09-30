@@ -17,7 +17,7 @@ Reading order: most recent first.
 - `caro doctor` → **PASS**: advisory only (no model downloaded; proxy detected at 127.0.0.1:41305; HuggingFace reachable — expected in sandbox)
 - `caro -p 'list files in current directory' --dry-run` → **FLAKE**: telemetry consent shown then timeout (EXIT:124 at 30s); same FLAKE-001 as bootstrap run
 
-Side observation: `CLAUDE.md` line 9 still reads `- **Version**: 1.4.0 (GA)` but binary is `1.5.0`. Issue #1044 was fixed (1.1.0→1.3.0) but drift recurred for 1.4.0→1.5.0. 45+ open duplicate issues exist (#1442, #1469, #1474, #1476, #1483 etc.) — no new issue filed.
+Side observation: `CLAUDE.md` line 9 still reads `- **Version**: 1.4.0 (GA)` but binary is `1.5.0`. Issue #1044 (1.1.0→1.3.0) was partially addressed but drift recurred for 1.4.0→1.5.0 and the backlog still lists it as open. 45+ open duplicate issues exist (#1442, #1469, #1474, #1476, #1483 etc.) — no new issue filed.
 
 ### Slot B — Recent diff
 

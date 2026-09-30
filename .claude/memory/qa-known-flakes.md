@@ -14,7 +14,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **Impact**: Slot A `--dry-run` smoke check cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:
 - 2026-05-07: observed once (bootstrap run)
-- 2026-09-30: observed again (Slot A dry-run + Slot C `caro ai --once`); EXIT:124 (30s timeout); proxy at 127.0.0.1:41305 detected; HuggingFace HTTP 200 reachable but binary download still blocked
+- 2026-09-30: observed again (Slot A dry-run + Slot C `caro ai --once`); EXIT:124 (30s timeout, no error surfaced) — note: signature differs from documented symptom (silent hang vs. error after 3 retries); session log also maps this to hang issues #1404/#1393/#1455/#1468. Proxy at 127.0.0.1:41305 detected; HuggingFace HTTP 200 reachable but binary download still blocked.
 
 **Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Workaround**: Run `caro -p "..." --dry-run` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama installed as fallback backend.
