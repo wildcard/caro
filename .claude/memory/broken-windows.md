@@ -2,7 +2,7 @@
 
 Things an agent found broken **outside its own task**. The finder records the
 problem here and moves on. A fixer claims an entry and fixes it. The fixer is
-either the **caro broken-window sweep** routine (`trig_01Mus5RzYBtVoS7B8v2uDTjw`,
+either the **caro broken-window sweep** routine (`trig_01TAiuoMoZ6nofW3ceYL3Csy`,
 daily 15:30 UTC) or any agent already working in that area.
 
 Rules (see `.claude/rules/good-boy-scout.md` → "Stay in your lane"):
