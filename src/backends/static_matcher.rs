@@ -763,7 +763,8 @@ impl StaticMatcher {
                 optional_keywords: vec!["all".to_string()],
                 // Optional trailing qualifier names only the current directory (#1181);
                 // any other location must not collapse to a bare `ls -la`.
-                regex_pattern: Some(Regex::new(r"(?i)^(list|show).*(all)?.*(files?)(\s+(here|in\s+(the\s+)?(current|this)\s+(directory|dir|folder)))?\s*$").unwrap()),
+                // `[^/~]` keeps a named path's last component ("/var/log/files") from satisfying `files?`.
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show)\b[^/~]*\bfiles?(\s+(here|in\s+(the\s+)?(current|this)\s+(directory|dir|folder)))?\s*$").unwrap()),
                 gnu_command: "ls -la".to_string(),
                 bsd_command: Some("ls -la".to_string()),
                 description: "List files (simple)".to_string(),
@@ -2177,9 +2178,21 @@ mod tests {
 
         // Other locations must not collapse to a bare `ls -la`
         let request = CommandRequest::new("list files in /var/log", ShellType::Bash);
-        if let Ok(cmd) = matcher.generate_command(&request).await {
-            assert_ne!(cmd.command, "ls -la", "/var/log must not be dropped");
-        }
+        let result = matcher.generate_command(&request).await;
+        assert!(
+            result.is_err(),
+            "/var/log must not be statically matched, got {:?}",
+            result.map(|c| c.command)
+        );
+
+        // A path whose last component is "files" must not satisfy Pattern 43
+        let request = CommandRequest::new("list files in /var/log/files", ShellType::Bash);
+        let result = matcher.generate_command(&request).await;
+        assert_ne!(
+            result.ok().map(|c| c.command).as_deref(),
+            Some("ls -la"),
+            "/var/log/files must not be dropped"
+        );
     }
 
     /// Issue #411: Test GNU platform generates GNU syntax (du --max-depth)
