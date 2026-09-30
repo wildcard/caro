@@ -66,7 +66,7 @@ hardcoded `/Users/kobik-private` paths.
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1181 (dups #1274, #1362, #1396, #1399, #1412)
-**Status:** claimed-by sweep/2026-09-30-BW-005 (PR pending)
+**Status:** claimed-by sweep/2026-09-30-BW-005 (#1487)
 **Needs human?:** no
 **Next step:** review and merge the sweep PR.
 
