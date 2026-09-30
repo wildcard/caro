@@ -34,6 +34,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `CommandGeneration` event gains `confidence` / `confidence_source`
   (metadata only). CLI output shows `Confidence: n/a` instead of `0%` when
   there is no evidence. ADR-017 moves to Accepted.
+- **Constrained decoding for decision prompts** ([#1465](https://github.com/wildcard/caro/issues/1465)):
+  `decision::DecisionSchema` builds a JSON Schema from the same label list
+  the parser accepts, and `decision::decide_with_retry` adds the System One
+  adapter's loop: one corrective retry quoting the invalid reply and the
+  schema, then `None`. The `--approval smart` risk judge sends the schema as
+  Ollama `format` and vLLM `guided_json` (vLLM gains `classify_risk`);
+  command-generation requests stay unconstrained. The eval harness can run
+  the judge (`HarnessConfig::judge_risk`, `CARO_EVAL_JUDGE_RISK=1`) and
+  reports `decision_parse_failures` per backend.
 - **Static matcher reports measured confidence** ([#1461](https://github.com/wildcard/caro/issues/1461)): regex matches
   score 1.0; keyword matches score `0.6 + 0.4 × optional-keyword coverage`
   instead of a constant 1.0. Pattern selection is unchanged. Eval ECE for the

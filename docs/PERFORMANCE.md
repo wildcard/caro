@@ -163,6 +163,13 @@ exclude timed-out results.
 Jev's published decision-latency band is 70–500 ms end-to-end; use it as the
 budget reference when comparing `p95_execution_time_ms` across backends.
 
+Decision prompts (the `--approval smart` risk judge) are schema-constrained
+on Ollama (`format`) and vLLM (`guided_json`) since #1465, with one
+corrective retry on a type error. A retry doubles that decision's latency,
+so run the eval with `CARO_EVAL_JUDGE_RISK=1` to see
+`decision_parse_failures` per backend; it should be 0 on constrained
+backends, and a non-zero count on them means the server ignored the schema.
+
 ## Future Work
 
 - Add memory allocation tracking (alloc-benchmarks crate)

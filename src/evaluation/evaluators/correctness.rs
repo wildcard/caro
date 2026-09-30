@@ -64,6 +64,7 @@ impl Evaluator for CorrectnessEvaluator {
                     criteria_total: 0,
                     confidence: result.confidence,
                     confidence_source: result.confidence_source,
+                    decision_failed: result.decision_failed,
                 });
             }
         };
@@ -109,6 +110,7 @@ impl Evaluator for CorrectnessEvaluator {
             criteria_total: 0,
             confidence: result.confidence,
             confidence_source: result.confidence_source,
+            decision_failed: result.decision_failed,
         })
     }
 }

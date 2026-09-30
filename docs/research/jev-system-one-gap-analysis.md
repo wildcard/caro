@@ -79,7 +79,7 @@ backend switch dressed as a decision.
 |---|---|
 | Three typed primitives; a type error is impossible by construction. | One typed gate: the risk judge (`src/prompts/risk_judge.rs`) — strict JSON, enum label, confidence floor, hard `Critical` floor. This is already the Jev shape and is the template to copy. |
 | Decompose the workflow into narrow questions. | Clarification is a free-text convention: the model may emit `QUESTION: …` (`src/prompts/smollm_prompt.rs:178`); remote backends instead emit `echo 'Please clarify your request'`. Intent categorisation is a prompt instruction ("STEP 1: CATEGORIZE") plus `contains()` on a template name (`src/prompts/command_templates.rs:129`). "Platform fix needed" is a heuristic (`should_refine`). |
-| Constrained outputs. | No constrained decoding on any backend: no Ollama `format: "json"`, no vLLM `guided_json`, no llama.cpp grammar. Recovery is lenient re-parsing plus a correction retry (`embedded_backend.rs:~425`). |
+| Constrained outputs. | Since #1465 the risk-judge prompt is schema-constrained on Ollama (`format`) and vLLM (`guided_json`) with one corrective retry (`decision::decide_with_retry`); no llama.cpp grammar yet. Command generation stays unconstrained, recovered by lenient re-parsing plus a correction retry (`embedded_backend.rs:~425`). |
 
 ### 3. Latency
 
@@ -125,6 +125,8 @@ backend switch dressed as a decision.
 4. **Constrained decoding for decisions only.** Ollama `format: "json"` and
    vLLM `guided_json` for the Noul/Choice prompts, with the adapter's
    corrective-retry loop as the fallback. Keep the command prompt unconstrained.
+   *Shipped in #1465* for the risk judge (`DecisionSchema`,
+   `decide_with_retry`, eval `decision_parse_failures`).
 5. **Consensus labels and the Pareto view.** Use the existing frontier
    advisor path (ADR-015) as the reference labeller for gate decisions, store
    disagreements, and feed accepted pairs into `docs/ml/sft-data-pipeline.md`.

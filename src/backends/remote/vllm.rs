@@ -9,6 +9,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError};
+use crate::decision::decide_with_retry;
+use crate::models::{RiskJudgeContext, RiskJudgment};
+use crate::prompts::{build_risk_judge_prompt, parse_risk_judgment, risk_judge_schema};
 
 /// Regex pattern to extract command from malformed JSON with unescaped quotes
 /// Handles cases like: {"cmd": "find . -type f -name "*.txt""}
@@ -26,6 +29,9 @@ struct VllmRequest {
     stream: bool,
     /// Ask for per-token log-probs so confidence is measured, not constant (#1464).
     logprobs: bool,
+    /// JSON Schema for guided decoding; set on decision requests only (#1465).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    guided_json: Option<serde_json::Value>,
 }
 
 /// vLLM message format
@@ -229,6 +235,7 @@ Request: {}
     async fn call_vllm_api(
         &self,
         prompt: &str,
+        guided_json: Option<serde_json::Value>,
     ) -> Result<(String, Option<Vec<(String, f64)>>), GeneratorError> {
         let request = VllmRequest {
             model: self.model_name.clone(),
@@ -240,6 +247,7 @@ Request: {}
             max_tokens: 100,
             stream: false,
             logprobs: true,
+            guided_json,
         };
 
         let url = self.base_url.join("/v1/chat/completions").map_err(|e| {
@@ -305,7 +313,7 @@ Request: {}
     ) -> Result<GeneratedCommand, GeneratorError> {
         // Try vLLM first
         match self
-            .call_vllm_api(&self.create_system_prompt(request))
+            .call_vllm_api(&self.create_system_prompt(request), None)
             .await
         {
             Ok((response, tokens)) => {
@@ -381,6 +389,30 @@ impl CommandGenerator for VllmBackend {
         result.generation_time_ms = start_time.elapsed().as_millis() as u64;
 
         Ok(result)
+    }
+
+    async fn classify_risk(&self, command: &str, ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
+        // Guided decoding (`guided_json` = verdict schema) plus one corrective
+        // retry (#1465); fail safe to `None` so the caller falls back to the
+        // static decision.
+        let prompt = build_risk_judge_prompt(command, ctx);
+        let schema = risk_judge_schema();
+        let guided = schema.to_json();
+        decide_with_retry(
+            &prompt,
+            &schema,
+            |p| {
+                let guided = guided.clone();
+                async move {
+                    self.call_vllm_api(&p, Some(guided))
+                        .await
+                        .map(|(raw, _)| raw)
+                }
+            },
+            parse_risk_judgment,
+        )
+        .await
+        .value
     }
 
     async fn is_available(&self) -> bool {
@@ -506,5 +538,79 @@ mod confidence_tests {
             r#"{"choices":[{"message":{"role":"assistant","content":"x"},"logprobs":null}]}"#;
         let parsed: VllmResponse = serde_json::from_str(body).unwrap();
         assert_eq!(token_logprobs(parsed.choices[0].logprobs.as_ref()), None);
+    }
+
+    mod constrained_decoding {
+        use super::*;
+        use crate::models::{RiskJudgeContext, SafetyLevel, ShellType};
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, Request, ResponseTemplate};
+
+        fn ctx() -> RiskJudgeContext {
+            RiskJudgeContext {
+                shell: ShellType::Bash,
+                cwd: None,
+                static_risk: RiskLevel::Safe,
+                matched_patterns: vec![],
+            }
+        }
+
+        fn backend(server: &MockServer) -> VllmBackend {
+            VllmBackend::new(Url::parse(&server.uri()).unwrap(), "m".to_string()).unwrap()
+        }
+
+        fn body(req: &Request) -> serde_json::Value {
+            serde_json::from_slice(&req.body).unwrap()
+        }
+
+        fn reply(content: &str) -> serde_json::Value {
+            serde_json::json!({ "choices": [{ "message": { "role": "assistant", "content": content } }] })
+        }
+
+        #[tokio::test]
+        async fn decision_request_sets_guided_json() {
+            let server = MockServer::start().await;
+            Mock::given(method("POST"))
+                .and(path("/v1/chat/completions"))
+                .respond_with(ResponseTemplate::new(200).set_body_json(reply(
+                    r#"{"risk": "moderate", "reason": "writes", "confidence": 0.8}"#,
+                )))
+                .expect(1)
+                .mount(&server)
+                .await;
+
+            let judgment = backend(&server).classify_risk("touch x", &ctx()).await;
+            assert_eq!(judgment.map(|j| j.risk), Some(RiskLevel::Moderate));
+
+            let reqs = server.received_requests().await.unwrap();
+            let b = body(&reqs[0]);
+            assert_eq!(
+                b["guided_json"]["properties"]["risk"]["enum"],
+                serde_json::json!(["critical", "high", "moderate", "safe"])
+            );
+        }
+
+        #[tokio::test]
+        async fn generation_request_has_no_guided_json() {
+            let server = MockServer::start().await;
+            Mock::given(method("POST"))
+                .and(path("/v1/chat/completions"))
+                .respond_with(ResponseTemplate::new(200).set_body_json(reply(r#"{"cmd": "ls"}"#)))
+                .mount(&server)
+                .await;
+
+            let request = CommandRequest {
+                input: "list files".to_string(),
+                shell: ShellType::Bash,
+                safety_level: SafetyLevel::Moderate,
+                context: None,
+                backend_preference: None,
+            };
+            let generated = backend(&server).generate_command(&request).await.unwrap();
+            assert_eq!(generated.command, "ls");
+
+            let reqs = server.received_requests().await.unwrap();
+            assert!(body(&reqs[0]).get("guided_json").is_none());
+        }
     }
 }

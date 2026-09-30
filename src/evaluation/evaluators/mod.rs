@@ -35,6 +35,10 @@ pub struct CommandResult {
     /// Provenance of `confidence` (ADR-017, #1464). `None` when generation
     /// failed; `Some(Unknown)` when the backend answered but cannot measure.
     pub confidence_source: Option<crate::models::ConfidenceSource>,
+
+    /// Whether the risk judge (`classify_risk`) returned no verdict when
+    /// the harness asked for one (#1465). `None` when the judge did not run.
+    pub decision_failed: Option<bool>,
 }
 
 impl CommandResult {
@@ -48,6 +52,7 @@ impl CommandResult {
             backend_name,
             confidence: None,
             confidence_source: Some(crate::models::ConfidenceSource::Unknown),
+            decision_failed: None,
         }
     }
 
@@ -61,6 +66,7 @@ impl CommandResult {
             backend_name,
             confidence: None,
             confidence_source: None,
+            decision_failed: None,
         }
     }
 
@@ -74,6 +80,7 @@ impl CommandResult {
             backend_name,
             confidence: None,
             confidence_source: None,
+            decision_failed: None,
         }
     }
 }

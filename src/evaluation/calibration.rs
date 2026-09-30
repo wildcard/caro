@@ -146,6 +146,15 @@ pub fn source_counts<'a>(
     counts
 }
 
+/// Count results whose risk-judge decision failed (#1465). Results where
+/// the judge did not run (`None`) are not counted.
+pub fn decision_failure_count<'a>(results: impl IntoIterator<Item = &'a EvaluationResult>) -> u32 {
+    results
+        .into_iter()
+        .filter(|r| r.decision_failed == Some(true))
+        .count() as u32
+}
+
 /// Latency percentiles (milliseconds) over a set of results.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct LatencyPercentiles {
@@ -209,7 +218,22 @@ mod tests {
             criteria_total: 0,
             confidence,
             confidence_source: confidence.map(|_| crate::models::ConfidenceSource::Measured),
+            decision_failed: None,
         }
+    }
+
+    #[test]
+    fn counts_decision_failures() {
+        let mut rows = [
+            result(true, None, 1),
+            result(true, None, 1),
+            result(false, None, 1),
+        ];
+        rows[0].decision_failed = Some(true);
+        rows[1].decision_failed = Some(false);
+        // rows[2] never ran the judge
+        assert_eq!(decision_failure_count(rows.iter()), 1);
+        assert_eq!(decision_failure_count(std::iter::empty()), 0);
     }
 
     #[test]

@@ -76,6 +76,7 @@ impl ConsistencyEvaluator {
                 criteria_total: 0,
                 confidence: None,
                 confidence_source: None,
+                decision_failed: None,
             });
         }
 
@@ -181,6 +182,7 @@ impl ConsistencyEvaluator {
             criteria_total: 0,
             confidence: None,
             confidence_source: None,
+            decision_failed: None,
         })
     }
 
@@ -291,6 +293,7 @@ impl Evaluator for ConsistencyEvaluator {
             criteria_total: 0,
             confidence: result.confidence,
             confidence_source: result.confidence_source,
+            decision_failed: result.decision_failed,
         })
     }
 }

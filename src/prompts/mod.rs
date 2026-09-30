@@ -138,7 +138,7 @@ pub use profiles::{
     AlternativeCommand, CommandExplanation, GenerationProfile, OptionExplanation, ProfileConfig,
     UsageExample,
 };
-pub use risk_judge::{build_risk_judge_prompt, parse_risk_judgment};
+pub use risk_judge::{build_risk_judge_prompt, parse_risk_judgment, risk_judge_schema};
 pub use smollm_prompt::{CommandOutput, PromptResponse, RepairPromptBuilder, SmolLMPromptBuilder};
 pub use validation::{
     CommandValidator, RiskLevel, ValidationError, ValidationErrorCode, ValidationResult,

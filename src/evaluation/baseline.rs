@@ -344,6 +344,7 @@ mod tests {
                 confidence_sources: [(crate::models::ConfidenceSource::Measured, 3)]
                     .into_iter()
                     .collect(),
+                decision_parse_failures: 0,
             },
         );
 

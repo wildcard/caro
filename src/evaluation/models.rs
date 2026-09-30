@@ -208,6 +208,13 @@ pub struct EvaluationResult {
     /// evidence-backed calibration from backends that report nothing.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub confidence_source: Option<crate::models::ConfidenceSource>,
+
+    /// `Some(true)` when the harness asked the backend's risk judge for a
+    /// verdict and got none back (a type error after the corrective retry,
+    /// or a transport error); `Some(false)` when it answered; `None` when
+    /// the judge was not run (`HarnessConfig::judge_risk` off) — see #1465.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub decision_failed: Option<bool>,
 }
 
 impl EvaluationResult {
@@ -375,6 +382,12 @@ pub struct BackendResult {
     /// counted.
     #[serde(default)]
     pub confidence_sources: std::collections::BTreeMap<crate::models::ConfidenceSource, u32>,
+
+    /// Risk-judge verdicts that failed to parse or arrive when
+    /// `HarnessConfig::judge_risk` was on (#1465). Must be 0 on backends
+    /// with constrained decoding (Ollama `format`, vLLM `guided_json`).
+    #[serde(default)]
+    pub decision_parse_failures: u32,
 }
 
 /// Aggregated results from a complete evaluation run
@@ -730,6 +743,7 @@ mod tests {
             criteria_total,
             confidence: None,
             confidence_source: None,
+            decision_failed: None,
         }
     }
 

@@ -10,13 +10,15 @@ use std::time::{Duration, Instant};
 use tokio::time::timeout;
 
 use crate::backends::{CommandGenerator, GeneratorError};
-use crate::evaluation::calibration::{source_counts, CalibrationRollup, LatencyPercentiles};
+use crate::evaluation::calibration::{
+    decision_failure_count, source_counts, CalibrationRollup, LatencyPercentiles,
+};
 use crate::evaluation::errors::Result;
 use crate::evaluation::{
     BackendResult, BenchmarkReport, CategoryResult, CommandResult, Dataset, ErrorType,
     EvaluationResult, Evaluator, TestCase, TestCategory,
 };
-use crate::models::{CommandRequest, ShellType};
+use crate::models::{CommandRequest, RiskJudgeContext, ShellType};
 
 /// Aggregated estimated cost over a set of evaluation results.
 ///
@@ -89,6 +91,11 @@ pub struct HarnessConfig {
 
     /// Maximum number of concurrent backend operations
     pub max_concurrency: usize,
+
+    /// Also ask each backend's risk judge (`classify_risk`) about every
+    /// generated command and count verdicts that fail to parse (#1465).
+    /// Off by default: it doubles the calls per test and CI has no judge.
+    pub judge_risk: bool,
 }
 
 impl Default for HarnessConfig {
@@ -98,6 +105,7 @@ impl Default for HarnessConfig {
             skip_unavailable: true,
             regression_threshold: 0.95, // 95% pass rate
             max_concurrency: 10,
+            judge_risk: false,
         }
     }
 }
@@ -339,6 +347,7 @@ impl EvaluationHarness {
             p50_execution_time_ms: latency.p50_ms,
             p95_execution_time_ms: latency.p95_ms,
             confidence_sources: source_counts(all_results.iter()),
+            decision_parse_failures: decision_failure_count(all_results.iter()),
         })
     }
 
@@ -380,6 +389,7 @@ impl EvaluationHarness {
                     })?
                     .clone();
                 let timeout_ms = self.config.backend_timeout_ms;
+                let judge_risk = self.config.judge_risk;
 
                 // Spawn parallel task for this backend
                 let task = tokio::spawn(async move {
@@ -388,7 +398,12 @@ impl EvaluationHarness {
                     // Run backend with timeout
                     let command_result = match timeout(
                         Duration::from_millis(timeout_ms),
-                        Self::generate_command_for_test(&test_case, &backend_name, &backend),
+                        Self::generate_command_for_test(
+                            &test_case,
+                            &backend_name,
+                            &backend,
+                            judge_risk,
+                        ),
                     )
                     .await
                     {
@@ -403,6 +418,7 @@ impl EvaluationHarness {
                                 backend_name: backend_name.clone(),
                                 confidence: None,
                                 confidence_source: None,
+                                decision_failed: None,
                             }
                         }
                     };
@@ -495,6 +511,7 @@ impl EvaluationHarness {
                     criteria_total: 0,
                     confidence: None,
                     confidence_source: None,
+                    decision_failed: None,
                 };
             }
         };
@@ -502,7 +519,12 @@ impl EvaluationHarness {
         // Generate command with timeout
         let command_result = match timeout(
             Duration::from_millis(self.config.backend_timeout_ms),
-            Self::generate_command_for_test(test_case, backend_name, &backend),
+            Self::generate_command_for_test(
+                test_case,
+                backend_name,
+                &backend,
+                self.config.judge_risk,
+            ),
         )
         .await
         {
@@ -515,6 +537,7 @@ impl EvaluationHarness {
                 backend_name: backend_name.to_string(),
                 confidence: None,
                 confidence_source: None,
+                decision_failed: None,
             },
         };
 
@@ -538,6 +561,7 @@ impl EvaluationHarness {
                 criteria_total: 0,
                 confidence: command_result.confidence,
                 confidence_source: command_result.confidence_source,
+                decision_failed: None,
             },
         }
     }
@@ -547,6 +571,7 @@ impl EvaluationHarness {
         test_case: &TestCase,
         backend_name: &str,
         backend: &Arc<dyn CommandGenerator>,
+        judge_risk: bool,
     ) -> CommandResult {
         let start = Instant::now();
 
@@ -561,6 +586,25 @@ impl EvaluationHarness {
                 let confidence = generated
                     .has_confidence()
                     .then_some(generated.confidence_score);
+                // Optional decision pass (#1465): the judge sees the same
+                // context the CLI gives it, minus the static verdict, which
+                // the harness does not compute.
+                let decision_failed = if judge_risk {
+                    let ctx = RiskJudgeContext {
+                        shell: ShellType::Bash,
+                        cwd: None,
+                        static_risk: crate::models::RiskLevel::Safe,
+                        matched_patterns: vec![],
+                    };
+                    Some(
+                        backend
+                            .classify_risk(&generated.command, &ctx)
+                            .await
+                            .is_none(),
+                    )
+                } else {
+                    None
+                };
                 CommandResult {
                     command: Some(generated.command),
                     blocked: false,
@@ -569,6 +613,7 @@ impl EvaluationHarness {
                     backend_name: backend_name.to_string(),
                     confidence,
                     confidence_source: Some(generated.confidence_source),
+                    decision_failed,
                 }
             }
             Err(e) => {
@@ -585,6 +630,7 @@ impl EvaluationHarness {
                     backend_name: backend_name.to_string(),
                     confidence: None,
                     confidence_source: None,
+                    decision_failed: None,
                 }
             }
         }
@@ -716,6 +762,7 @@ impl EvaluationHarness {
                     p50_execution_time_ms: latency.p50_ms,
                     p95_execution_time_ms: latency.p95_ms,
                     confidence_sources: source_counts(backend_tests.iter().copied()),
+                    decision_parse_failures: decision_failure_count(backend_tests.iter().copied()),
                 },
             );
         }

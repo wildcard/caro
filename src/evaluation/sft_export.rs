@@ -139,6 +139,7 @@ mod tests {
             criteria_total: 0,
             confidence: None,
             confidence_source: None,
+            decision_failed: None,
         }
     }
 

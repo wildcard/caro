@@ -107,7 +107,9 @@ retrained for calibration in the near term.
 - Backends that still report `unknown` (embedded, Ollama, Exo, Mesh,
   AI-Horde) are excluded from Brier/ECE, so their coverage is 0 until a
   signal exists; readers must know that.
-- Constrained decoding is backend-specific and adds per-backend code.
+- Constrained decoding is backend-specific and adds per-backend code
+  (#1465: Ollama `format`, vLLM `guided_json`; the schema itself is built
+  once in `decision::DecisionSchema` from the parser's label list).
 
 ### Risks
 
@@ -160,3 +162,4 @@ in favour of shipping both.**
 |------|--------|--------|
 | 2026-09-22 | Caro maintainers | Initial draft, Proposed |
 | 2026-09-30 | Caro maintainers | Accepted: decision 3 holds once #1464 replaced the last per-backend constants with `ConfidenceSource`-tagged measurements |
+| 2026-09-30 | Caro maintainers | #1465: constrained decoding for decision prompts (Ollama `format`, vLLM `guided_json`) with one corrective retry; the last step of decision 5's migration order |

@@ -164,6 +164,7 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
         skip_unavailable: true,
         regression_threshold: 0.95, // 95% pass rate
         max_concurrency: 10,
+        judge_risk: std::env::var("CARO_EVAL_JUDGE_RISK").is_ok(),
     };
 
     // Note: Backend filtering is not yet supported through HarnessConfig
@@ -384,6 +385,15 @@ fn output_table(
             );
         }
         println!("└─────────────────┴────────┴────────┴─────────┴─────────┴────────┴──────────┘");
+        // Risk-judge decision failures (#1465), only when the judge ran.
+        for (backend_name, result) in &report.backend_results {
+            if result.decision_parse_failures > 0 {
+                println!(
+                    "  {}: {} risk-judge verdict(s) failed to parse",
+                    backend_name, result.decision_parse_failures
+                );
+            }
+        }
         println!();
     }
 

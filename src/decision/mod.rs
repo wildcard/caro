@@ -351,6 +351,132 @@ where
     allowed.contains(&t).then_some(t)
 }
 
+/// Maximum characters of an invalid reply quoted back in a corrective prompt.
+const CORRECTIVE_QUOTE_MAX: usize = 400;
+
+/// JSON Schema for a *discrete* [`Choice`] answer: `{"<key>": <one of
+/// labels>, "confidence": 0.0..=1.0, ...extra}`.
+///
+/// Built at runtime from the same `allowed` slice the parser receives, so
+/// the schema a backend enforces (Ollama `format`, vLLM `guided_json`) can
+/// never drift from what [`parse_choice_json`] accepts. Only the discrete
+/// answer mode is constrained; the probabilities mode stays available to
+/// unconstrained backends through the lenient parser (#1465).
+#[derive(Debug, Clone, PartialEq)]
+pub struct DecisionSchema {
+    /// The label field name (e.g. `"risk"`).
+    pub key: String,
+    /// Allowed label strings, in the caller's fail-safe order.
+    pub labels: Vec<String>,
+    /// Optional free-text string fields (e.g. `"reason"`).
+    pub optional_strings: Vec<&'static str>,
+}
+
+impl DecisionSchema {
+    /// Schema for a `Choice<T>` keyed by `key` over `allowed` labels.
+    /// Labels are rendered with `label_of`, which must produce the same
+    /// strings `T: FromStr` accepts (serde's lowercase names for caro's enums).
+    pub fn for_choice<T>(key: &str, allowed: &[T], label_of: impl Fn(&T) -> String) -> Self {
+        Self {
+            key: key.to_string(),
+            labels: allowed.iter().map(label_of).collect(),
+            optional_strings: Vec::new(),
+        }
+    }
+
+    /// Add an optional free-text field to the schema (e.g. `"reason"`).
+    pub fn with_optional_string(mut self, field: &'static str) -> Self {
+        self.optional_strings.push(field);
+        self
+    }
+
+    /// The JSON Schema object (draft-07 subset understood by Ollama's
+    /// structured outputs and vLLM's `guided_json`).
+    pub fn to_json(&self) -> serde_json::Value {
+        let mut properties = serde_json::Map::new();
+        properties.insert(
+            self.key.clone(),
+            serde_json::json!({ "type": "string", "enum": self.labels }),
+        );
+        properties.insert(
+            "confidence".to_string(),
+            serde_json::json!({ "type": "number", "minimum": 0.0, "maximum": 1.0 }),
+        );
+        for field in &self.optional_strings {
+            properties.insert(field.to_string(), serde_json::json!({ "type": "string" }));
+        }
+        serde_json::json!({
+            "type": "object",
+            "properties": properties,
+            "required": [self.key, "confidence"],
+        })
+    }
+
+    /// One corrective prompt: the original request, the invalid reply
+    /// (truncated) and the schema, asking for exactly one conforming object.
+    /// Mirrors the embedded backend's parse-retry prompt shape.
+    pub fn corrective_prompt(&self, original: &str, invalid: &str) -> String {
+        let quoted: String = invalid.chars().take(CORRECTIVE_QUOTE_MAX).collect();
+        format!(
+            "{original}\n\nYour previous reply was not a valid answer:\n{quoted}\n\n\
+             Reply with exactly one JSON object matching this schema and nothing else:\n{schema}\n",
+            original = original.trim_end(),
+            quoted = quoted,
+            schema = self.to_json(),
+        )
+    }
+}
+
+/// Outcome of [`decide_with_retry`]: the typed value (if any) plus how many
+/// model calls it took and how many replies failed to parse.
+#[derive(Debug, Clone, PartialEq)]
+pub struct DecisionOutcome<T> {
+    /// The parsed decision, `None` after the corrective retry also failed or
+    /// a call returned an error.
+    pub value: Option<T>,
+    /// Model calls made (1 or 2).
+    pub attempts: u8,
+    /// Replies that did not parse (0, 1 or 2).
+    pub parse_failures: u8,
+}
+
+/// Ask a decision prompt with **one** corrective retry (the System One
+/// adapter's loop): call `prompt`; if `parse` rejects the reply, call once
+/// more with [`DecisionSchema::corrective_prompt`]; if that also fails, or
+/// any call errors, the value is `None`. Transport errors are not retried:
+/// the retry is for type errors, and callers already fail safe on `None`.
+pub async fn decide_with_retry<T, E, C, F>(
+    prompt: &str,
+    schema: &DecisionSchema,
+    mut call: C,
+    parse: impl Fn(&str) -> Option<T>,
+) -> DecisionOutcome<T>
+where
+    C: FnMut(String) -> F,
+    F: std::future::Future<Output = Result<String, E>>,
+{
+    let mut outcome = DecisionOutcome {
+        value: None,
+        attempts: 0,
+        parse_failures: 0,
+    };
+    let mut next_prompt = prompt.to_string();
+    for _ in 0..2 {
+        outcome.attempts += 1;
+        let raw = match call(next_prompt).await {
+            Ok(raw) => raw,
+            Err(_) => return outcome,
+        };
+        if let Some(value) = parse(&raw) {
+            outcome.value = Some(value);
+            return outcome;
+        }
+        outcome.parse_failures += 1;
+        next_prompt = schema.corrective_prompt(prompt, &raw);
+    }
+    outcome
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -570,5 +696,103 @@ mod tests {
             &ALL
         )
         .is_none());
+    }
+
+    fn lvl_schema() -> DecisionSchema {
+        DecisionSchema::for_choice("level", &[Lvl::Low, Lvl::High], |l| {
+            format!("{:?}", l).to_lowercase()
+        })
+        .with_optional_string("reason")
+    }
+
+    #[test]
+    fn schema_labels_match_parser() {
+        let schema = lvl_schema();
+        let json = schema.to_json();
+        assert_eq!(
+            json["properties"]["level"]["enum"],
+            serde_json::json!(["low", "high"])
+        );
+        assert_eq!(json["required"], serde_json::json!(["level", "confidence"]));
+        assert_eq!(json["properties"]["reason"]["type"], "string");
+        // Every schema label is accepted by the parser with the same `allowed`.
+        for label in &schema.labels {
+            let raw = format!(r#"{{"level": "{label}", "confidence": 0.9}}"#);
+            assert!(parse_choice_json(&raw, "level", &[Lvl::Low, Lvl::High]).is_some());
+        }
+    }
+
+    #[test]
+    fn corrective_prompt_quotes_invalid_and_schema() {
+        let schema = lvl_schema();
+        let long_junk = "x".repeat(CORRECTIVE_QUOTE_MAX + 50);
+        let p = schema.corrective_prompt("Rate it.", &long_junk);
+        assert!(p.starts_with("Rate it."));
+        assert!(p.contains(&"x".repeat(CORRECTIVE_QUOTE_MAX)));
+        assert!(!p.contains(&"x".repeat(CORRECTIVE_QUOTE_MAX + 1)));
+        assert!(p.contains(r#""enum":["low","high"]"#));
+    }
+
+    #[tokio::test]
+    async fn corrective_retry_recovers_once_then_gives_up() {
+        let schema = lvl_schema();
+        let parse = |raw: &str| {
+            parse_choice_json(raw, "level", &[Lvl::Low, Lvl::High])
+                .and_then(|c| c.argmax().map(|(l, _)| *l))
+        };
+
+        // Garbage once, then a valid reply: recovered on attempt 2.
+        let replies = std::cell::RefCell::new(vec![
+            Ok::<_, String>("nope".to_string()),
+            Ok(r#"{"level": "high", "confidence": 0.8}"#.to_string()),
+        ]);
+        let prompts = std::cell::RefCell::new(Vec::new());
+        let out = decide_with_retry(
+            "Rate it.",
+            &schema,
+            |p| {
+                prompts.borrow_mut().push(p);
+                let r = replies.borrow_mut().remove(0);
+                async move { r }
+            },
+            parse,
+        )
+        .await;
+        assert_eq!(out.value, Some(Lvl::High));
+        assert_eq!((out.attempts, out.parse_failures), (2, 1));
+        let prompts = prompts.into_inner();
+        assert_eq!(prompts[0], "Rate it.");
+        assert!(prompts[1].contains("nope") && prompts[1].contains("\"enum\""));
+
+        // Garbage twice: exactly two attempts, then None.
+        let replies = std::cell::RefCell::new(vec![
+            Ok::<_, String>("nope".to_string()),
+            Ok("still nope".to_string()),
+            Ok(r#"{"level": "high", "confidence": 0.8}"#.to_string()),
+        ]);
+        let out = decide_with_retry(
+            "Rate it.",
+            &schema,
+            |_| {
+                let r = replies.borrow_mut().remove(0);
+                async move { r }
+            },
+            parse,
+        )
+        .await;
+        assert_eq!(out.value, None);
+        assert_eq!((out.attempts, out.parse_failures), (2, 2));
+        assert_eq!(replies.borrow().len(), 1, "no third call");
+
+        // Transport error is not retried.
+        let out = decide_with_retry(
+            "Rate it.",
+            &schema,
+            |_| async { Err::<String, _>("down".to_string()) },
+            parse,
+        )
+        .await;
+        assert_eq!(out.value, None);
+        assert_eq!((out.attempts, out.parse_failures), (1, 0));
     }
 }
