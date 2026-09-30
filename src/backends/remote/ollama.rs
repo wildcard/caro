@@ -300,6 +300,10 @@ impl CommandGenerator for OllamaBackend {
         Ok(result)
     }
 
+    fn supports_risk_judge(&self) -> bool {
+        true
+    }
+
     async fn classify_risk(&self, command: &str, ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
         // Constrained decoding (`format` = verdict schema) plus one corrective
         // retry (#1465); fail safe to `None` so the caller falls back to the

@@ -164,7 +164,10 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
         skip_unavailable: true,
         regression_threshold: 0.95, // 95% pass rate
         max_concurrency: 10,
-        judge_risk: std::env::var("CARO_EVAL_JUDGE_RISK").is_ok(),
+        judge_risk: matches!(
+            std::env::var("CARO_EVAL_JUDGE_RISK").as_deref(),
+            Ok("1" | "true")
+        ),
     };
 
     // Note: Backend filtering is not yet supported through HarnessConfig

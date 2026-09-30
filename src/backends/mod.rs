@@ -72,6 +72,13 @@ pub trait CommandGenerator: Send + Sync {
         None
     }
 
+    /// Whether [`classify_risk`](CommandGenerator::classify_risk) is
+    /// implemented. Lets callers (the eval harness, #1465) tell "cannot
+    /// judge" from "judged and failed", which both come back as `None`.
+    fn supports_risk_judge(&self) -> bool {
+        false
+    }
+
     /// Act as a "frontier advisor": review and improve a low-confidence draft.
     ///
     /// The default is a no-op (`None`): a backend opts out of advising, so a

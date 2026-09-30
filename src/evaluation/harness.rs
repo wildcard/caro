@@ -396,14 +396,9 @@ impl EvaluationHarness {
                     let _start = Instant::now();
 
                     // Run backend with timeout
-                    let command_result = match timeout(
+                    let mut command_result = match timeout(
                         Duration::from_millis(timeout_ms),
-                        Self::generate_command_for_test(
-                            &test_case,
-                            &backend_name,
-                            &backend,
-                            judge_risk,
-                        ),
+                        Self::generate_command_for_test(&test_case, &backend_name, &backend),
                     )
                     .await
                     {
@@ -422,6 +417,10 @@ impl EvaluationHarness {
                             }
                         }
                     };
+                    if judge_risk {
+                        Self::judge_command_for_test(&mut command_result, &backend, timeout_ms)
+                            .await;
+                    }
 
                     // Run evaluator
                     evaluator.evaluate(&test_case, &command_result).await
@@ -517,14 +516,9 @@ impl EvaluationHarness {
         };
 
         // Generate command with timeout
-        let command_result = match timeout(
+        let mut command_result = match timeout(
             Duration::from_millis(self.config.backend_timeout_ms),
-            Self::generate_command_for_test(
-                test_case,
-                backend_name,
-                &backend,
-                self.config.judge_risk,
-            ),
+            Self::generate_command_for_test(test_case, backend_name, &backend),
         )
         .await
         {
@@ -540,6 +534,14 @@ impl EvaluationHarness {
                 decision_failed: None,
             },
         };
+        if self.config.judge_risk {
+            Self::judge_command_for_test(
+                &mut command_result,
+                &backend,
+                self.config.backend_timeout_ms,
+            )
+            .await;
+        }
 
         // Run evaluator
         match evaluator.evaluate(test_case, &command_result).await {
@@ -566,12 +568,43 @@ impl EvaluationHarness {
         }
     }
 
+    /// Optional decision pass (#1465): ask the backend's risk judge about a
+    /// generated command under its own `timeout_ms` budget, separate from
+    /// generation's, and record `decision_failed`. Backends without a judge
+    /// (`supports_risk_judge() == false`) are left at `None` so they never
+    /// count as failures; a judge timeout counts as one. The judge sees the
+    /// same context the CLI gives it, minus the static verdict, which the
+    /// harness does not compute.
+    async fn judge_command_for_test(
+        result: &mut CommandResult,
+        backend: &Arc<dyn CommandGenerator>,
+        timeout_ms: u64,
+    ) {
+        let Some(command) = result.command.as_deref() else {
+            return;
+        };
+        if !backend.supports_risk_judge() {
+            return;
+        }
+        let ctx = RiskJudgeContext {
+            shell: ShellType::Bash,
+            cwd: None,
+            static_risk: crate::models::RiskLevel::Safe,
+            matched_patterns: vec![],
+        };
+        let verdict = timeout(
+            Duration::from_millis(timeout_ms),
+            backend.classify_risk(command, &ctx),
+        )
+        .await;
+        result.decision_failed = Some(!matches!(verdict, Ok(Some(_))));
+    }
+
     /// Generates a command for a test case using a backend
     async fn generate_command_for_test(
         test_case: &TestCase,
         backend_name: &str,
         backend: &Arc<dyn CommandGenerator>,
-        judge_risk: bool,
     ) -> CommandResult {
         let start = Instant::now();
 
@@ -586,25 +619,6 @@ impl EvaluationHarness {
                 let confidence = generated
                     .has_confidence()
                     .then_some(generated.confidence_score);
-                // Optional decision pass (#1465): the judge sees the same
-                // context the CLI gives it, minus the static verdict, which
-                // the harness does not compute.
-                let decision_failed = if judge_risk {
-                    let ctx = RiskJudgeContext {
-                        shell: ShellType::Bash,
-                        cwd: None,
-                        static_risk: crate::models::RiskLevel::Safe,
-                        matched_patterns: vec![],
-                    };
-                    Some(
-                        backend
-                            .classify_risk(&generated.command, &ctx)
-                            .await
-                            .is_none(),
-                    )
-                } else {
-                    None
-                };
                 CommandResult {
                     command: Some(generated.command),
                     blocked: false,
@@ -613,7 +627,7 @@ impl EvaluationHarness {
                     backend_name: backend_name.to_string(),
                     confidence,
                     confidence_source: Some(generated.confidence_source),
-                    decision_failed,
+                    decision_failed: None,
                 }
             }
             Err(e) => {
@@ -807,6 +821,9 @@ mod tests {
         available: bool,
         should_fail: bool,
         should_timeout: bool,
+        /// `Some(verdict)` = judge supported (`None` inside = judge failed);
+        /// `None` = no judge at all.
+        judge: Option<Option<crate::models::RiskJudgment>>,
     }
 
     impl MockBackend {
@@ -816,6 +833,7 @@ mod tests {
                 available: true,
                 should_fail: false,
                 should_timeout: false,
+                judge: None,
             }
         }
 
@@ -825,6 +843,14 @@ mod tests {
                 available: false,
                 should_fail: false,
                 should_timeout: false,
+                judge: None,
+            }
+        }
+
+        fn with_judge(name: &str, verdict: Option<crate::models::RiskJudgment>) -> Self {
+            Self {
+                judge: Some(verdict),
+                ..Self::new(name)
             }
         }
     }
@@ -858,6 +884,18 @@ mod tests {
                 confidence_score: 0.95,
                 confidence_source: crate::models::ConfidenceSource::SelfReported,
             })
+        }
+
+        fn supports_risk_judge(&self) -> bool {
+            self.judge.is_some()
+        }
+
+        async fn classify_risk(
+            &self,
+            _command: &str,
+            _ctx: &RiskJudgeContext,
+        ) -> Option<crate::models::RiskJudgment> {
+            self.judge.clone().flatten()
         }
 
         async fn is_available(&self) -> bool {
@@ -1027,6 +1065,42 @@ mod tests {
 
         assert_eq!(report.total_tests, 2); // 2 tests × 1 available backend
         assert_eq!(report.backend_results.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn judge_failures_counted_only_for_backends_with_a_judge() {
+        let dataset = create_simple_dataset();
+        let config = HarnessConfig {
+            judge_risk: true,
+            ..Default::default()
+        };
+
+        let mut harness = EvaluationHarness::new(dataset, config).unwrap();
+        harness.add_backend(
+            "no_judge".to_string(),
+            Arc::new(MockBackend::new("no_judge")),
+        );
+        harness.add_backend(
+            "judge_ok".to_string(),
+            Arc::new(MockBackend::with_judge(
+                "judge_ok",
+                Some(crate::models::RiskJudgment {
+                    risk: crate::models::RiskLevel::Safe,
+                    reason: "mock".to_string(),
+                    confidence: 0.9,
+                }),
+            )),
+        );
+        harness.add_backend(
+            "judge_fails".to_string(),
+            Arc::new(MockBackend::with_judge("judge_fails", None)),
+        );
+
+        let report = harness.run().await.unwrap();
+        let failures = |name: &str| report.backend_results[name].decision_parse_failures;
+        assert_eq!(failures("no_judge"), 0, "no judge is not a failed judge");
+        assert_eq!(failures("judge_ok"), 0);
+        assert_eq!(failures("judge_fails"), 2, "one per test case");
     }
 
     #[tokio::test]
