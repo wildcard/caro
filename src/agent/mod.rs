@@ -258,19 +258,7 @@ impl AgentLoop {
                         command.command
                     );
 
-                    // Emit telemetry event for successful static match
-                    crate::telemetry::emit_event(
-                        crate::telemetry::events::EventType::CommandGeneration {
-                            backend: "static".to_string(),
-                            duration_ms: start.elapsed().as_millis() as u64,
-                            success: true,
-                            error_category: None,
-                            confidence: command
-                                .has_confidence()
-                                .then_some(command.confidence_score as f32),
-                            confidence_source: Some(command.confidence_source.to_string()),
-                        },
-                    );
+                    Self::emit_generation_success("static", &command, start);
 
                     return Ok(command);
                 }
@@ -375,7 +363,8 @@ impl AgentLoop {
                 "Refinement not needed (confidence: {:.2} [{}], no platform issues)",
                 initial.confidence_score, initial.confidence_source
             );
-            self.emit_generation_success(&initial, start);
+            let backend = self.backend.backend_info().backend_type.to_string();
+            Self::emit_generation_success(&backend, &initial, start);
             return Ok(initial);
         }
 
@@ -423,16 +412,17 @@ impl AgentLoop {
                 .await;
         }
 
-        self.emit_generation_success(&refined, start);
+        let backend = self.backend.backend_info().backend_type.to_string();
+        Self::emit_generation_success(&backend, &refined, start);
 
         Ok(refined)
     }
 
     /// Telemetry for a successful LLM generation, with the command's
     /// confidence provenance (#1464). Metadata only.
-    fn emit_generation_success(&self, command: &GeneratedCommand, start: Instant) {
+    fn emit_generation_success(backend: &str, command: &GeneratedCommand, start: Instant) {
         crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
-            backend: self.backend.backend_info().backend_type.to_string(),
+            backend: backend.to_string(),
             duration_ms: start.elapsed().as_millis() as u64,
             success: true,
             error_category: None,

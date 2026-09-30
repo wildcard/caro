@@ -68,8 +68,10 @@ struct ChoiceLogprobs {
 
 #[derive(Debug, Deserialize)]
 struct TokenLogprob {
+    /// Token text; absent in incomplete logprob metadata, which then yields
+    /// no measured confidence rather than an all-token fallback.
     #[serde(default)]
-    token: String,
+    token: Option<String>,
     logprob: f64,
 }
 
@@ -78,12 +80,10 @@ struct TokenLogprob {
 /// [`crate::backends::command_token_confidence`].
 fn token_logprobs(logprobs: Option<&ChoiceLogprobs>) -> Option<Vec<(String, f64)>> {
     let tokens = logprobs?.content.as_ref()?;
-    Some(
-        tokens
-            .iter()
-            .map(|t| (t.token.clone(), t.logprob))
-            .collect(),
-    )
+    tokens
+        .iter()
+        .map(|t| t.token.clone().map(|text| (text, t.logprob)))
+        .collect()
 }
 
 /// vLLM response message
@@ -536,6 +536,16 @@ mod confidence_tests {
         assert_eq!(token_logprobs(parsed.choices[0].logprobs.as_ref()), None);
         let body =
             r#"{"choices":[{"message":{"role":"assistant","content":"x"},"logprobs":null}]}"#;
+        let parsed: VllmResponse = serde_json::from_str(body).unwrap();
+        assert_eq!(token_logprobs(parsed.choices[0].logprobs.as_ref()), None);
+    }
+
+    #[test]
+    fn missing_token_text_yields_unknown() {
+        // Incomplete logprob metadata (a token without text) must not become
+        // measured confidence through the all-token fallback.
+        let body = r#"{"choices":[{"message":{"role":"assistant","content":"{\"cmd\":\"ls\"}"},
+            "logprobs":{"content":[{"token":"{\"cmd","logprob":-0.1},{"logprob":-0.2}]}}]}"#;
         let parsed: VllmResponse = serde_json::from_str(body).unwrap();
         assert_eq!(token_logprobs(parsed.choices[0].logprobs.as_ref()), None);
     }
