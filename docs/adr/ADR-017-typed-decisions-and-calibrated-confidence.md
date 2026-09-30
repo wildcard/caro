@@ -60,8 +60,9 @@ retrained for calibration in the near term.
 3. **Confidence is measured or absent.** `confidence_score` must come from
    evidence (keyword coverage, token log-probs, provider `logprobs`, or a
    parsed self-report through `Choice`) or be reported as `None`. A constant
-   is a defect. Migration of the existing constants is tracked as follow-up
-   work and does not block this ADR.
+   is a defect. The per-backend constants were replaced in #1464: every
+   `GeneratedCommand` carries a `confidence_source` (`measured`,
+   `self-reported`, `unknown`), and consumers ignore `unknown`.
 
 4. **Eval reports calibration and tail latency.** `EvaluationResult` carries
    `confidence`; `BackendResult` (`src/evaluation/models.rs`) carries
@@ -103,8 +104,9 @@ retrained for calibration in the near term.
 ### Trade-offs
 
 - One more module and two more report fields to maintain.
-- Until constants are replaced, Brier/ECE describe the constants, not the
-  models; readers must know that.
+- Backends that still report `unknown` (embedded, Ollama, Exo, Mesh,
+  AI-Horde) are excluded from Brier/ECE, so their coverage is 0 until a
+  signal exists; readers must know that.
 - Constrained decoding is backend-specific and adds per-backend code.
 
 ### Risks

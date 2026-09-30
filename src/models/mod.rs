@@ -105,7 +105,9 @@ pub struct GeneratedCommand {
 }
 
 /// Provenance of a [`GeneratedCommand::confidence_score`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum ConfidenceSource {
     /// Derived from evidence: keyword coverage, token log-probs, provider

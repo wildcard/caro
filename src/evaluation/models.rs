@@ -369,12 +369,12 @@ pub struct BackendResult {
     #[serde(default)]
     pub p95_execution_time_ms: u64,
 
-    /// How many results came with each confidence provenance (#1464), keyed
-    /// by [`crate::models::ConfidenceSource`]'s display name (`measured`,
-    /// `self-reported`, `unknown`). Results that failed to generate are not
+    /// How many results came with each confidence provenance (#1464).
+    /// Serialised with the enum's snake_case names (`measured`,
+    /// `self_reported`, `unknown`). Results that failed to generate are not
     /// counted.
     #[serde(default)]
-    pub confidence_sources: std::collections::BTreeMap<String, u32>,
+    pub confidence_sources: std::collections::BTreeMap<crate::models::ConfidenceSource, u32>,
 }
 
 /// Aggregated results from a complete evaluation run

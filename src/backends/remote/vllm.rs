@@ -62,15 +62,22 @@ struct ChoiceLogprobs {
 
 #[derive(Debug, Deserialize)]
 struct TokenLogprob {
+    #[serde(default)]
+    token: String,
     logprob: f64,
 }
 
-/// Measured confidence for one choice: geometric-mean token probability over
-/// the returned `logprobs`, `None` when the server omitted them (#1464).
-fn confidence_from_logprobs(logprobs: Option<&ChoiceLogprobs>) -> Option<f64> {
+/// Per-token `(text, logprob)` pairs for one choice, `None` when the server
+/// omitted `logprobs` (#1464). Scored against the parsed command with
+/// [`crate::backends::command_token_confidence`].
+fn token_logprobs(logprobs: Option<&ChoiceLogprobs>) -> Option<Vec<(String, f64)>> {
     let tokens = logprobs?.content.as_ref()?;
-    let lps: Vec<f64> = tokens.iter().map(|t| t.logprob).collect();
-    crate::backends::mean_logprob_confidence(&lps)
+    Some(
+        tokens
+            .iter()
+            .map(|t| (t.token.clone(), t.logprob))
+            .collect(),
+    )
 }
 
 /// vLLM response message
@@ -219,7 +226,10 @@ Request: {}
     /// Call vLLM API for inference
     /// Returns the reply text and, when the server returned `logprobs`, the
     /// measured confidence of that reply.
-    async fn call_vllm_api(&self, prompt: &str) -> Result<(String, Option<f64>), GeneratorError> {
+    async fn call_vllm_api(
+        &self,
+        prompt: &str,
+    ) -> Result<(String, Option<Vec<(String, f64)>>), GeneratorError> {
         let request = VllmRequest {
             model: self.model_name.clone(),
             messages: vec![VllmMessage {
@@ -279,8 +289,8 @@ Request: {}
                 })?;
 
         if let Some(choice) = vllm_response.choices.first() {
-            let confidence = confidence_from_logprobs(choice.logprobs.as_ref());
-            Ok((choice.message.content.clone(), confidence))
+            let tokens = token_logprobs(choice.logprobs.as_ref());
+            Ok((choice.message.content.clone(), tokens))
         } else {
             Err(GeneratorError::ParseError {
                 content: "vLLM response contained no choices".to_string(),
@@ -298,9 +308,12 @@ Request: {}
             .call_vllm_api(&self.create_system_prompt(request))
             .await
         {
-            Ok((response, measured)) => {
+            Ok((response, tokens)) => {
                 match self.parse_command_response(&response) {
                     Ok(command) => {
+                        let measured = tokens
+                            .as_deref()
+                            .and_then(|t| crate::backends::command_token_confidence(t, &command));
                         let (confidence_score, confidence_source) = match measured {
                             Some(c) => (c, crate::models::ConfidenceSource::Measured),
                             None => (0.0, crate::models::ConfidenceSource::Unknown),
@@ -463,24 +476,35 @@ mod confidence_tests {
             "finish_reason":"stop","logprobs":{"content":[{"token":"a","logprob":-0.6931471805599453},
             {"token":"b","logprob":-0.6931471805599453}]}}]}"#;
         let parsed: VllmResponse = serde_json::from_str(body).unwrap();
-        let c = confidence_from_logprobs(parsed.choices[0].logprobs.as_ref()).unwrap();
+        let tokens = token_logprobs(parsed.choices[0].logprobs.as_ref()).unwrap();
+        let c = crate::backends::mean_logprob_confidence(
+            &tokens.iter().map(|(_, lp)| *lp).collect::<Vec<_>>(),
+        )
+        .unwrap();
         assert!((c - 0.5).abs() < 1e-9);
+    }
+
+    #[test]
+    fn command_tokens_are_scored_not_the_wrapper() {
+        let half = 0.5_f64.ln();
+        let body = format!(
+            r#"{{"choices":[{{"message":{{"role":"assistant","content":"{{\"cmd\":\"ls\"}}"}},
+            "logprobs":{{"content":[{{"token":"{{\"cmd\":\"","logprob":0.0}},{{"token":"ls","logprob":{half}}},{{"token":"\"}}","logprob":0.0}}]}}}}]}}"#
+        );
+        let parsed: VllmResponse = serde_json::from_str(&body).unwrap();
+        let tokens = token_logprobs(parsed.choices[0].logprobs.as_ref()).unwrap();
+        let c = crate::backends::command_token_confidence(&tokens, "ls").unwrap();
+        assert!((c - 0.5).abs() < 1e-9, "{c}");
     }
 
     #[test]
     fn missing_logprobs_yield_unknown() {
         let body = r#"{"choices":[{"message":{"role":"assistant","content":"{\"cmd\":\"ls\"}"},"finish_reason":"stop"}]}"#;
         let parsed: VllmResponse = serde_json::from_str(body).unwrap();
-        assert_eq!(
-            confidence_from_logprobs(parsed.choices[0].logprobs.as_ref()),
-            None
-        );
+        assert_eq!(token_logprobs(parsed.choices[0].logprobs.as_ref()), None);
         let body =
             r#"{"choices":[{"message":{"role":"assistant","content":"x"},"logprobs":null}]}"#;
         let parsed: VllmResponse = serde_json::from_str(body).unwrap();
-        assert_eq!(
-            confidence_from_logprobs(parsed.choices[0].logprobs.as_ref()),
-            None
-        );
+        assert_eq!(token_logprobs(parsed.choices[0].logprobs.as_ref()), None);
     }
 }

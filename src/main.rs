@@ -1957,7 +1957,7 @@ impl caro::backends::CommandGenerator for InlineMockBackend {
             backend_used: "mock-inline".into(),
             generation_time_ms: 1,
             confidence_score: 0.5,
-            confidence_source: caro::models::ConfidenceSource::Unknown,
+            confidence_source: caro::models::ConfidenceSource::Measured,
         })
     }
 

@@ -188,9 +188,52 @@ pub fn mean_logprob_confidence(logprobs: &[f64]) -> Option<f64> {
     (n > 0).then(|| (sum / n as f64).exp().clamp(0.0, 1.0))
 }
 
+/// Like [`mean_logprob_confidence`], restricted to the tokens that spell the
+/// generated `command` inside the full completion (#1464). The JSON wrapper
+/// tokens (`{"cmd": "`) are near-certain and would otherwise inflate the
+/// score. Falls back to all tokens when the command cannot be located in the
+/// concatenated token text (tokenisers that split mid-escape, for example).
+pub fn command_token_confidence(tokens: &[(String, f64)], command: &str) -> Option<f64> {
+    let text: String = tokens.iter().map(|(t, _)| t.as_str()).collect();
+    let selected: Vec<f64> = match text.find(command).filter(|_| !command.is_empty()) {
+        Some(start) => {
+            let end = start + command.len();
+            let mut offset = 0usize;
+            tokens
+                .iter()
+                .filter_map(|(t, lp)| {
+                    let (tok_start, tok_end) = (offset, offset + t.len());
+                    offset = tok_end;
+                    (tok_start < end && tok_end > start).then_some(*lp)
+                })
+                .collect()
+        }
+        None => tokens.iter().map(|(_, lp)| *lp).collect(),
+    };
+    mean_logprob_confidence(&selected)
+}
+
 #[cfg(test)]
 mod confidence_tests {
-    use super::mean_logprob_confidence;
+    use super::{command_token_confidence, mean_logprob_confidence};
+
+    #[test]
+    fn command_token_confidence_ignores_json_wrapper() {
+        // Wrapper tokens are certain (logprob 0); the command tokens are 0.5 each.
+        let half = 0.5_f64.ln();
+        let tokens = vec![
+            ("{\"cmd\": \"".to_string(), 0.0),
+            ("ls".to_string(), half),
+            (" -la".to_string(), half),
+            ("\"}".to_string(), 0.0),
+        ];
+        let c = command_token_confidence(&tokens, "ls -la").unwrap();
+        assert!((c - 0.5).abs() < 1e-9, "{c}");
+        // Not found in the token text → fall back to every token.
+        let c = command_token_confidence(&tokens, "pwd").unwrap();
+        assert!(c > 0.5 && c < 1.0);
+        assert_eq!(command_token_confidence(&[], "ls"), None);
+    }
 
     #[test]
     fn mean_logprob_confidence_hand_values() {

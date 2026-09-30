@@ -259,7 +259,7 @@ mod tests {
                 backend_used: self.name.clone(),
                 generation_time_ms: 0,
                 confidence_score: 0.9,
-                confidence_source: crate::models::ConfidenceSource::Unknown,
+                confidence_source: crate::models::ConfidenceSource::Measured,
             })
         }
         async fn is_available(&self) -> bool {

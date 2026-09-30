@@ -132,15 +132,15 @@ impl CalibrationRollup {
     }
 }
 
-/// Count results per confidence provenance (#1464), keyed by the source's
-/// display name. Results that never generated (`None`) are not counted.
+/// Count results per confidence provenance (#1464). Results that never
+/// generated (`None`) are not counted.
 pub fn source_counts<'a>(
     results: impl IntoIterator<Item = &'a EvaluationResult>,
-) -> std::collections::BTreeMap<String, u32> {
+) -> std::collections::BTreeMap<crate::models::ConfidenceSource, u32> {
     let mut counts = std::collections::BTreeMap::new();
     for r in results {
         if let Some(src) = r.confidence_source {
-            *counts.entry(src.to_string()).or_insert(0) += 1;
+            *counts.entry(src).or_insert(0) += 1;
         }
     }
     counts
@@ -348,7 +348,13 @@ mod tests {
         assert!((roll.coverage - 0.5).abs() < 1e-6);
         assert!((roll.brier.unwrap() - 0.04).abs() < 1e-6);
         let counts = source_counts(rows.iter());
-        assert_eq!(counts.get("unknown"), Some(&1));
-        assert_eq!(counts.get("measured"), Some(&1));
+        assert_eq!(
+            counts.get(&crate::models::ConfidenceSource::Unknown),
+            Some(&1)
+        );
+        assert_eq!(
+            counts.get(&crate::models::ConfidenceSource::Measured),
+            Some(&1)
+        );
     }
 }

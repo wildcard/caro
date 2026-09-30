@@ -375,6 +375,7 @@ impl AgentLoop {
                 "Refinement not needed (confidence: {:.2} [{}], no platform issues)",
                 initial.confidence_score, initial.confidence_source
             );
+            self.emit_generation_success(&initial, start);
             return Ok(initial);
         }
 
@@ -422,19 +423,24 @@ impl AgentLoop {
                 .await;
         }
 
-        // Emit telemetry event for successful LLM generation
+        self.emit_generation_success(&refined, start);
+
+        Ok(refined)
+    }
+
+    /// Telemetry for a successful LLM generation, with the command's
+    /// confidence provenance (#1464). Metadata only.
+    fn emit_generation_success(&self, command: &GeneratedCommand, start: Instant) {
         crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
             backend: self.backend.backend_info().backend_type.to_string(),
             duration_ms: start.elapsed().as_millis() as u64,
             success: true,
             error_category: None,
-            confidence: refined
+            confidence: command
                 .has_confidence()
-                .then_some(refined.confidence_score as f32),
-            confidence_source: Some(refined.confidence_source.to_string()),
+                .then_some(command.confidence_score as f32),
+            confidence_source: Some(command.confidence_source.to_string()),
         });
-
-        Ok(refined)
     }
 
     /// Generate initial command with platform context

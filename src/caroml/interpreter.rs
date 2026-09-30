@@ -568,7 +568,7 @@ mod tests {
             backend_used: "scripted".into(),
             generation_time_ms: 1,
             confidence_score: 0.9,
-            confidence_source: crate::models::ConfidenceSource::Unknown,
+            confidence_source: crate::models::ConfidenceSource::Measured,
         }
     }
 

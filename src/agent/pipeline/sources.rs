@@ -46,6 +46,11 @@ impl BackendSource {
     }
 }
 
+/// `llm_confidence` feature value for a backend whose confidence is
+/// [`crate::models::ConfidenceSource::Unknown`]: neutral, neither a vote for
+/// nor against the candidate.
+pub const UNKNOWN_CONFIDENCE_FEATURE: f32 = 0.5;
+
 #[async_trait]
 impl CandidateSource for BackendSource {
     async fn produce(&self, prompt: &str) -> Result<Candidate, PipelineError> {
@@ -59,11 +64,13 @@ impl CandidateSource for BackendSource {
 
         let has_confidence = generated.has_confidence();
         let mut candidate = Candidate::new(generated.command, self.label.clone());
-        // Unknown confidence keeps the feature's neutral default (#1464)
-        // instead of scoring the candidate as if the model were sure it is wrong.
-        if has_confidence {
-            candidate.features.llm_confidence = generated.confidence_score as f32;
-        }
+        // Unknown confidence maps to a neutral 0.5 (#1464) instead of scoring
+        // the candidate as if the model were sure it is wrong.
+        candidate.features.llm_confidence = if has_confidence {
+            generated.confidence_score as f32
+        } else {
+            UNKNOWN_CONFIDENCE_FEATURE
+        };
         candidate.features.latency_ms = generated.generation_time_ms;
         Ok(candidate)
     }
@@ -83,6 +90,7 @@ mod tests {
         confidence: f64,
         latency_ms: u64,
         cmd: String,
+        source: crate::models::ConfidenceSource,
     }
 
     #[async_trait]
@@ -100,7 +108,7 @@ mod tests {
                 backend_used: "fake".into(),
                 generation_time_ms: self.latency_ms,
                 confidence_score: self.confidence,
-                confidence_source: crate::models::ConfidenceSource::Measured,
+                confidence_source: self.source,
             })
         }
         async fn is_available(&self) -> bool {
@@ -128,6 +136,7 @@ mod tests {
             confidence: 0.73,
             latency_ms: 250,
             cmd: "ls -la".into(),
+            source: crate::models::ConfidenceSource::Measured,
         });
         let source = BackendSource::new(backend, "test-backend");
         let c = source.produce("list files").await.unwrap();
@@ -135,6 +144,19 @@ mod tests {
         assert_eq!(c.source, "test-backend");
         assert!((c.features.llm_confidence - 0.73).abs() < 1e-5);
         assert_eq!(c.features.latency_ms, 250);
+    }
+
+    #[tokio::test]
+    async fn unknown_confidence_maps_to_neutral_feature() {
+        let backend = Arc::new(FakeBackend {
+            confidence: 0.0,
+            latency_ms: 1,
+            cmd: "ls".into(),
+            source: crate::models::ConfidenceSource::Unknown,
+        });
+        let source = BackendSource::new(backend, "test-backend");
+        let c = source.produce("list files").await.unwrap();
+        assert!((c.features.llm_confidence - UNKNOWN_CONFIDENCE_FEATURE).abs() < 1e-6);
     }
 
     #[tokio::test]

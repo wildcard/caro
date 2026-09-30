@@ -156,7 +156,8 @@ MLX log-probs need a custom `llama_cpp` sampler and are tracked as a
 follow-up; the CPU path is a stub with no inference. Treat a non-trivial ECE
 on a backend as a bug in its confidence reporting, not in the model.
 `confidence_coverage` says what fraction of results the Brier/ECE numbers
-describe, `confidence_sources` counts results per provenance, and p50/p95
+describe, `confidence_sources` counts results per provenance (serialised as
+`measured` / `self_reported` / `unknown`), and p50/p95
 exclude timed-out results.
 
 Jev's published decision-latency band is 70–500 ms end-to-end; use it as the

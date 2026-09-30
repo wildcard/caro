@@ -368,7 +368,7 @@ fn output_table(
             let source = match result.confidence_sources.iter().max_by_key(|(_, n)| **n) {
                 None => "n/a".to_string(),
                 Some((name, n)) if result.confidence_sources.values().sum::<u32>() == *n => {
-                    name.replace("self-reported", "self-rep")
+                    name.to_string().replace("self-reported", "self-rep")
                 }
                 Some(_) => "mixed".to_string(),
             };

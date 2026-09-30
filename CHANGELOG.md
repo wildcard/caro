@@ -62,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caro as the calibrated, deterministic-floored decision layer for execution
   safety (epic #1460 phases 1–5, docs/skills/rules impact).
 - [ADR-017](docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md) — Typed Decisions and Calibrated Confidence for Pipeline Gates
-  (Proposed).
+  (Accepted).
 - `docs/PERFORMANCE.md` — new "Decision Latency & Calibration" section.
 
 ## [1.5.0] - 2026-07-12

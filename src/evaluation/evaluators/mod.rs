@@ -47,7 +47,7 @@ impl CommandResult {
             execution_time_ms,
             backend_name,
             confidence: None,
-            confidence_source: None,
+            confidence_source: Some(crate::models::ConfidenceSource::Unknown),
         }
     }
 
