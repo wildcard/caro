@@ -120,7 +120,12 @@ run_iteration() {
 
     # Feed prompt to Claude
     # Claude will study the codebase, select a task, implement it, and exit
-    if ${TIMEOUT_CMD[@]+"${TIMEOUT_CMD[@]}"} claude --print < "$PROMPT_FILE" 2>&1 | tee -a "$LOG_FILE"; then
+    # Run in the background and wait: `timeout` puts claude in its own process
+    # group, so Ctrl+C never reaches it. A trap only fires during `wait`, and
+    # the INT/TERM trap below forwards the stop to ITER_PID.
+    ${TIMEOUT_CMD[@]+"${TIMEOUT_CMD[@]}"} claude --print < "$PROMPT_FILE" > >(tee -a "$LOG_FILE") 2>&1 &
+    ITER_PID=$!
+    if wait "$ITER_PID"; then
         local end_time
         end_time=$(date +%s)
         local duration=$((end_time - start_time))
@@ -183,7 +188,8 @@ main() {
 }
 
 # Handle Ctrl+C gracefully
-trap 'echo ""; log INFO "Interrupted by user after $ITERATION iterations"; exit 0' INT TERM
+ITER_PID=""
+trap 'echo ""; [[ -n "$ITER_PID" ]] && kill -TERM "$ITER_PID" 2>/dev/null; log INFO "Interrupted by user after $ITERATION iterations"; exit 0' INT TERM
 
 # Run main
 main

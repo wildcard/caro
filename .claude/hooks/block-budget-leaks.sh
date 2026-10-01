@@ -23,7 +23,7 @@ if ! is_git_cmd commit; then
   exit 0
 fi
 
-cd "$(effective_git_dir)" 2>/dev/null || exit 0
+cd "$(effective_git_dir commit)" 2>/dev/null || exit 0
 
 # Only act inside caro repo (let other repos use their own rules).
 ORIGIN_URL=$(git config --get remote.origin.url 2>/dev/null || echo "")

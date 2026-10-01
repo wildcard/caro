@@ -66,6 +66,8 @@ expect 0 block-main-commits.sh "non-Bash tool is ignored" \
   Write "git commit -m x" "$REPO"
 expect 2 block-main-commits.sh "git -C <main checkout> commit is blocked" \
   Bash "git -C $REPO commit -m x" "$REPO/.worktrees/feat"
+expect 2 block-main-commits.sh "-C on an earlier git command doesn't redirect the commit" \
+  Bash "git -C .worktrees/feat status && git commit -m x" "$REPO"
 
 SPACED="$TMP/repo with spaces"
 git_init "$SPACED"

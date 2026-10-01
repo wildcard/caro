@@ -17,7 +17,7 @@ if ! is_git_cmd commit; then
 fi
 
 # Check current branch
-CURRENT_BRANCH=$(git -C "$(effective_git_dir)" branch --show-current 2>/dev/null || echo "unknown")
+CURRENT_BRANCH=$(git -C "$(effective_git_dir commit)" branch --show-current 2>/dev/null || echo "unknown")
 
 # Block commits on main branch
 if [[ "$CURRENT_BRANCH" == "main" ]]; then

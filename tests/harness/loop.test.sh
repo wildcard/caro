@@ -89,6 +89,24 @@ elapsed=$(( $(date +%s) - start ))
 check "hung iteration is killed by RALPH_ITERATION_TIMEOUT (took ${elapsed}s)" test "$elapsed" -lt 20
 check "timeout is logged" grep -q 'timed out' "$d/ralph.log"
 
+# Stopping loop.sh also stops the agent. `timeout` runs claude in its own
+# process group, so Ctrl+C used to leave it running in the background. (TERM,
+# because a background job here starts with SIGINT ignored; same trap.)
+d="$(new_env stopped 'echo $$ > "$STUB_PID_FILE"; sleep 30')"
+(cd "$d/work" && exec env PATH="$d/bin:$PATH" STUB_PID_FILE="$d/stub.pid" \
+  RALPH_LOG_FILE="$d/ralph.log" RALPH_ITERATION_TIMEOUT=60s \
+  "$LOOP" build >"$d/out.log" 2>&1) &
+loop_pid=$!
+for _ in $(seq 50); do [[ -s "$d/stub.pid" ]] && break; sleep 0.1; done
+stub_pid="$(cat "$d/stub.pid" 2>/dev/null)"
+kill -TERM "$loop_pid"
+sleep 2
+check "stub agent started" test -n "$stub_pid"
+not_running() { ! kill -0 "$1" 2>/dev/null; }
+check "stopping loop.sh stops the agent within 2s" not_running "${stub_pid:-0}"
+[[ -n "$stub_pid" ]] && kill "$stub_pid" 2>/dev/null
+wait "$loop_pid" 2>/dev/null
+
 # Invalid cap is rejected, not treated as unlimited.
 d="$(new_env invalid 'echo ok')"
 run_loop "$d" RALPH_MAX_ITERATIONS=lots

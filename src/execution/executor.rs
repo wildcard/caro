@@ -85,6 +85,9 @@ impl CommandExecutor {
         // grandchildren it forks (e.g. `sleep` in `sleep 5; echo done`).
         #[cfg(unix)]
         std::os::unix::process::CommandExt::process_group(&mut cmd, 0);
+        // A background process group can't read the terminal (it would stop
+        // on SIGTTIN and hang until the deadline), so give it no stdin.
+        cmd.stdin(Stdio::null());
 
         let mut child = cmd
             .spawn()
@@ -360,6 +363,19 @@ mod tests {
         let result = executor.execute("sleep 5 &");
 
         assert!(matches!(result, Err(ExecutorError::Timeout(300))));
+        assert!(start.elapsed().as_millis() < 2000);
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_timeout_gives_command_no_stdin() {
+        // A prompt (`read`, `rm -i`, sudo) must see EOF at once, not stall
+        // on the terminal until the deadline kills it.
+        let executor = CommandExecutor::new(ShellType::Bash).with_timeout(5000);
+        let start = Instant::now();
+        let exec_result = executor.execute("read -r x; echo \"got:$x\"").unwrap();
+
+        assert!(exec_result.stdout.contains("got:"));
         assert!(start.elapsed().as_millis() < 2000);
     }
 

@@ -8,8 +8,9 @@
 #   HOOK_CWD    session working directory
 #   BLOCK       exit code that blocks the call (2)
 #
-# effective_git_dir resolves where a git command will actually run, following a
-# leading `cd <dir> &&` or `git -C <dir>`, so guards judge the right checkout.
+# effective_git_dir <subcommand...> resolves where that git command will actually
+# run, following a leading `cd <dir> &&` or its own `git -C <dir>`, so guards
+# judge the right checkout. A `-C` on a different git command doesn't count.
 
 BLOCK=2
 
@@ -54,7 +55,10 @@ is_git_cmd() {
 }
 
 effective_git_dir() {
-  local dir="$HOOK_CWD" re_cd="^[[:space:]]*cd[[:space:]]+${_ARG_RE}" re_c="git[[:space:]]+-C[[:space:]]+${_ARG_RE}"
+  local sub dir="$HOOK_CWD" re_cd="^[[:space:]]*cd[[:space:]]+${_ARG_RE}" re_c
+  sub="$(printf '%s[[:space:]]+' "$@")"
+  sub="${sub%\[\[:space:\]\]+}"
+  re_c="git[[:space:]]+-C[[:space:]]+${_ARG_RE}[[:space:]]+${sub}"
   if [[ "$COMMAND" =~ $re_cd ]]; then
     dir="$(_unquote "${BASH_REMATCH[1]}")"
   elif [[ "$COMMAND" =~ $re_c ]]; then
