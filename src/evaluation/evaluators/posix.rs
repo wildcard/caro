@@ -63,6 +63,8 @@ impl Evaluator for POSIXEvaluator {
                     confidence: result.confidence,
                     confidence_source: result.confidence_source,
                     decision_failed: result.decision_failed,
+                    local_risk: result.local_risk.clone(),
+                    reference_risk: result.reference_risk.clone(),
                 });
             }
         };
@@ -120,6 +122,8 @@ impl Evaluator for POSIXEvaluator {
             confidence: result.confidence,
             confidence_source: result.confidence_source,
             decision_failed: result.decision_failed,
+            local_risk: result.local_risk.clone(),
+            reference_risk: result.reference_risk.clone(),
         })
     }
 }

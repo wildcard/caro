@@ -168,7 +168,9 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
             std::env::var("CARO_EVAL_JUDGE_RISK").as_deref(),
             Ok("1" | "true")
         ),
+        ece_regression_threshold: caro::evaluation::baseline::DEFAULT_ECE_REGRESSION_THRESHOLD,
     };
+    let ece_regression_threshold = config.ece_regression_threshold;
 
     // Note: Backend filtering is not yet supported through HarnessConfig
     // This would require modifying the harness initialization
@@ -177,6 +179,16 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
     }
 
     let mut harness = EvaluationHarness::new(filtered_dataset, config)?;
+
+    // Reference labeller for consensus risk labels (#1466), opt-in because
+    // it costs a model call per generated command:
+    //   CARO_EVAL_REFERENCE_JUDGE=ollama:<model>[@<url>] | vllm:<model>@<url>
+    if let Ok(spec) = std::env::var("CARO_EVAL_REFERENCE_JUDGE") {
+        match reference_judge_from_spec(&spec) {
+            Ok(judge) => harness.set_reference_judge(judge),
+            Err(e) => eprintln!("Warning: ignoring CARO_EVAL_REFERENCE_JUDGE: {}", e),
+        }
+    }
 
     // Register backends
     // Always register static_matcher as it's always available
@@ -213,7 +225,12 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
                 .ok_or("Invalid baseline filename")?,
         )?;
 
-        let delta = BaselineStore::compare(&report, &baseline, args.threshold);
+        let delta = BaselineStore::compare_with_ece(
+            &report,
+            &baseline,
+            args.threshold,
+            ece_regression_threshold,
+        );
 
         // Check for regressions
         if !delta.significant_regressions.is_empty() {
@@ -242,6 +259,44 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
 }
 
 /// Parse category string to enum
+/// Build the reference labeller named by `CARO_EVAL_REFERENCE_JUDGE` (#1466).
+#[cfg(feature = "remote-backends")]
+fn reference_judge_from_spec(
+    spec: &str,
+) -> Result<Arc<dyn caro::backends::CommandGenerator>, String> {
+    use caro::backends::remote::{OllamaBackend, VllmBackend};
+    let (kind, rest) = spec
+        .split_once(':')
+        .ok_or_else(|| format!("expected <kind>:<model>[@<url>], got {spec:?}"))?;
+    let (model, url) = match rest.split_once('@') {
+        Some((m, u)) => (m, Some(u)),
+        None => (rest, None),
+    };
+    let parse_url = |u: &str| reqwest::Url::parse(u).map_err(|e| format!("bad url {u:?}: {e}"));
+    match kind {
+        "ollama" => {
+            let url = parse_url(url.unwrap_or("http://localhost:11434"))?;
+            OllamaBackend::new(url, model.to_string())
+                .map(|b| Arc::new(b) as Arc<dyn caro::backends::CommandGenerator>)
+                .map_err(|e| e.to_string())
+        }
+        "vllm" => {
+            let url = parse_url(url.ok_or("vllm needs <model>@<url>")?)?;
+            VllmBackend::new(url, model.to_string())
+                .map(|b| Arc::new(b) as Arc<dyn caro::backends::CommandGenerator>)
+                .map_err(|e| e.to_string())
+        }
+        other => Err(format!("unknown reference judge kind {other:?}")),
+    }
+}
+
+#[cfg(not(feature = "remote-backends"))]
+fn reference_judge_from_spec(
+    _spec: &str,
+) -> Result<Arc<dyn caro::backends::CommandGenerator>, String> {
+    Err("built without the remote-backends feature".to_string())
+}
+
 fn parse_category(s: &str) -> Result<TestCategory, String> {
     match s {
         "correctness" => Ok(TestCategory::Correctness),
@@ -398,6 +453,38 @@ fn output_table(
             }
         }
         println!();
+
+        // Pareto view (#1466): accuracy vs calibration vs cost vs tail latency.
+        // "Up and to the left" is better; agreement is with the reference
+        // labeller's risk verdicts, not with ground truth.
+        println!("┌───────────────────────────────────────────────────────────────────────────┐");
+        println!("│ Pareto View by Backend (pass ↑, ECE ↓, cost ↓, p95 ↓, agree ↑)            │");
+        println!("├─────────────────┬────────┬────────┬────────────┬─────────┬────────────────┤");
+        println!("│ Backend         │  pass  │    ECE │ $/pass     │  p95 ms │ risk agreement │");
+        println!("├─────────────────┼────────┼────────┼────────────┼─────────┼────────────────┤");
+        let mut backends: Vec<_> = report.backend_results.iter().collect();
+        backends.sort_by_key(|(name, _)| name.as_str());
+        for (backend_name, result) in backends {
+            let ece = result
+                .ece
+                .map(|x| format!("{:.3}", x))
+                .unwrap_or_else(|| "n/a".into());
+            let agreement = match result.risk_agreement {
+                Some(a) => format!("{:>4.0}% ({} off)", a * 100.0, result.risk_disagreements),
+                None => "n/a".to_string(),
+            };
+            println!(
+                "│ {:15} │ {:>5.1}% │ {:>6} │ {:>10.4} │ {:>7} │ {:>14} │",
+                backend_name,
+                result.pass_rate * 100.0,
+                ece,
+                result.cost_per_passed_task,
+                result.p95_execution_time_ms,
+                agreement,
+            );
+        }
+        println!("└─────────────────┴────────┴────────┴────────────┴─────────┴────────────────┘");
+        println!();
     }
 
     // Baseline comparison if available
@@ -420,6 +507,10 @@ fn output_table(
         println!(
             "│ Threshold:      {:>5.1}%                                        │",
             delta.regression_threshold * 100.0
+        );
+        println!(
+            "│ ECE Threshold:  {:>5.3}                                         │",
+            delta.ece_regression_threshold
         );
         println!(
             "│ Overall Delta:  {:>+6.1}%                                       │",

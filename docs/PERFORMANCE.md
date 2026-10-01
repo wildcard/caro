@@ -170,6 +170,12 @@ so run the eval with `CARO_EVAL_JUDGE_RISK=1` to see
 `decision_parse_failures` per backend; it should be 0 on constrained
 backends, and a non-zero count on them means the server ignored the schema.
 
+With `CARO_EVAL_REFERENCE_JUDGE` set, each generated command also gets a
+reference risk verdict and the table reports per-backend agreement (#1466).
+Once a baseline carries a measured ECE, `compare_with_ece` fails the run
+when a backend's ECE rises by more than 0.05: calibration regressions block
+the same way pass-rate regressions do.
+
 ## Future Work
 
 - Add memory allocation tracking (alloc-benchmarks crate)

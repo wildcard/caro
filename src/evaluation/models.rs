@@ -215,9 +215,27 @@ pub struct EvaluationResult {
     /// the judge was not run (`HarnessConfig::judge_risk` off) — see #1465.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub decision_failed: Option<bool>,
+
+    /// The evaluated backend's own risk verdict for its command, when the
+    /// harness ran its judge (#1466).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub local_risk: Option<crate::models::RiskJudgment>,
+
+    /// The reference labeller's verdict for the same command, when
+    /// `EvaluationHarness::with_reference_judge` was set (#1466). This is a
+    /// model's label, not ground truth: agreement measures consensus, not
+    /// correctness.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reference_risk: Option<crate::models::RiskJudgment>,
 }
 
 impl EvaluationResult {
+    /// Whether the local and reference risk labels agree; `None` unless both
+    /// verdicts exist (#1466).
+    pub fn risk_agreement(&self) -> Option<bool> {
+        Some(self.local_risk.as_ref()?.risk == self.reference_risk.as_ref()?.risk)
+    }
+
     /// Mean-score for this result: the fraction of rubric criteria passed.
     ///
     /// Single-criterion results (`criteria_total == 0`) score 1.0 when
@@ -388,6 +406,17 @@ pub struct BackendResult {
     /// with constrained decoding (Ollama `format`, vLLM `guided_json`).
     #[serde(default)]
     pub decision_parse_failures: u32,
+
+    /// Fraction of results whose local risk verdict matched the reference
+    /// labeller's, over results that have both (#1466). `None` when no
+    /// result had both labels.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub risk_agreement: Option<f32>,
+
+    /// Results where the local and reference risk verdicts differed (#1466):
+    /// the interesting rows.
+    #[serde(default)]
+    pub risk_disagreements: u32,
 }
 
 /// Aggregated results from a complete evaluation run
@@ -463,6 +492,15 @@ pub struct BaselineDelta {
 
     /// Threshold for regression detection (e.g., 0.05)
     pub regression_threshold: f32,
+
+    /// Change in ECE per backend (current − baseline), only where both runs
+    /// measured it (#1466). Positive means calibration got worse.
+    #[serde(default)]
+    pub ece_deltas: HashMap<String, f32>,
+
+    /// ECE rise that counts as a regression (e.g. 0.05) (#1466).
+    #[serde(default)]
+    pub ece_regression_threshold: f32,
 
     /// Categories/backends with significant drops
     pub significant_regressions: Vec<String>,
@@ -744,6 +782,8 @@ mod tests {
             confidence: None,
             confidence_source: None,
             decision_failed: None,
+            local_risk: None,
+            reference_risk: None,
         }
     }
 

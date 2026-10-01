@@ -10,6 +10,9 @@ use crate::evaluation::{BaselineDelta, BenchmarkReport, DatasetResult};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+/// Default ECE rise over a baseline that counts as a regression (#1466).
+pub const DEFAULT_ECE_REGRESSION_THRESHOLD: f32 = 0.05;
+
 /// Baseline storage manager
 pub struct BaselineStore {
     /// Directory for storing baselines
@@ -214,6 +217,24 @@ impl BaselineStore {
         baseline: &BenchmarkReport,
         threshold: f32,
     ) -> BaselineDelta {
+        Self::compare_with_ece(
+            current,
+            baseline,
+            threshold,
+            DEFAULT_ECE_REGRESSION_THRESHOLD,
+        )
+    }
+
+    /// [`compare`](Self::compare) plus the calibration gate (#1466): a
+    /// backend whose ECE rose by more than `ece_threshold` over the baseline
+    /// is a regression, the same way a pass-rate drop is. Only backends with
+    /// a measured ECE in both runs are compared.
+    pub fn compare_with_ece(
+        current: &BenchmarkReport,
+        baseline: &BenchmarkReport,
+        threshold: f32,
+        ece_threshold: f32,
+    ) -> BaselineDelta {
         // Calculate overall delta
         let overall_delta = current.overall_pass_rate - baseline.overall_pass_rate;
 
@@ -232,6 +253,20 @@ impl BaselineStore {
             if let Some(baseline_result) = baseline.backend_results.get(backend_name) {
                 let delta = current_result.pass_rate - baseline_result.pass_rate;
                 backend_deltas.insert(backend_name.clone(), delta);
+            }
+        }
+
+        // Calibration deltas (#1466): positive = worse
+        let mut ece_deltas = std::collections::HashMap::new();
+        for (backend_name, current_result) in &current.backend_results {
+            if let (Some(cur), Some(base)) = (
+                current_result.ece,
+                baseline
+                    .backend_results
+                    .get(backend_name)
+                    .and_then(|b| b.ece),
+            ) {
+                ece_deltas.insert(backend_name.clone(), cur - base);
             }
         }
 
@@ -284,6 +319,19 @@ impl BaselineStore {
             }
         }
 
+        // Check calibration regressions (#1466)
+        let mut ece_rises: Vec<_> = ece_deltas
+            .iter()
+            .filter(|(_, delta)| **delta > ece_threshold)
+            .collect();
+        ece_rises.sort_by(|a, b| a.0.cmp(b.0));
+        for (backend_name, delta) in ece_rises {
+            significant_regressions.push(format!(
+                "{}: ECE rose {:.3} (threshold {:.3})",
+                backend_name, delta, ece_threshold
+            ));
+        }
+
         BaselineDelta {
             baseline_run_id: baseline.run_id.clone(),
             baseline_commit_sha: baseline.commit_sha.clone(),
@@ -291,6 +339,8 @@ impl BaselineStore {
             category_deltas,
             backend_deltas,
             regression_threshold: threshold,
+            ece_deltas,
+            ece_regression_threshold: ece_threshold,
             significant_regressions,
         }
     }
@@ -345,6 +395,8 @@ mod tests {
                     .into_iter()
                     .collect(),
                 decision_parse_failures: 0,
+                risk_agreement: None,
+                risk_disagreements: 0,
             },
         );
 
@@ -472,6 +524,38 @@ mod tests {
         let delta2 = BaselineStore::compare(&current2, &baseline, 0.05);
         assert!((delta2.overall_delta + 0.06).abs() < 0.01);
         assert!(!delta2.significant_regressions.is_empty());
+    }
+
+    #[test]
+    fn ece_regression_flags_run() {
+        let mut baseline = create_test_report(0.90, "main");
+        let mut current = create_test_report(0.90, "main");
+        baseline
+            .backend_results
+            .get_mut("test-backend")
+            .unwrap()
+            .ece = Some(0.10);
+        current.backend_results.get_mut("test-backend").unwrap().ece = Some(0.20);
+
+        // Pass rate unchanged, calibration worse by 0.10 > 0.05: regression.
+        let delta = BaselineStore::compare(&current, &baseline, 0.05);
+        assert!((delta.ece_deltas["test-backend"] - 0.10).abs() < 1e-6);
+        assert_eq!(delta.significant_regressions.len(), 1);
+        assert!(delta.significant_regressions[0].contains("ECE rose"));
+
+        // A looser calibration threshold lets the same run through.
+        let delta = BaselineStore::compare_with_ece(&current, &baseline, 0.05, 0.15);
+        assert!(delta.significant_regressions.is_empty());
+
+        // No ECE on one side: nothing to compare, nothing flagged.
+        baseline
+            .backend_results
+            .get_mut("test-backend")
+            .unwrap()
+            .ece = None;
+        let delta = BaselineStore::compare(&current, &baseline, 0.05);
+        assert!(delta.ece_deltas.is_empty());
+        assert!(delta.significant_regressions.is_empty());
     }
 
     #[test]

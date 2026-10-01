@@ -155,6 +155,23 @@ pub fn decision_failure_count<'a>(results: impl IntoIterator<Item = &'a Evaluati
         .count() as u32
 }
 
+/// Local-vs-reference risk agreement (#1466): `(fraction_agreeing,
+/// disagreements)` over results carrying both labels; the fraction is `None`
+/// when no result has both.
+pub fn risk_agreement<'a>(
+    results: impl IntoIterator<Item = &'a EvaluationResult>,
+) -> (Option<f32>, u32) {
+    let (mut both, mut agree) = (0u32, 0u32);
+    for r in results {
+        if let Some(a) = r.risk_agreement() {
+            both += 1;
+            agree += u32::from(a);
+        }
+    }
+    let fraction = (both > 0).then(|| agree as f32 / both as f32);
+    (fraction, both - agree)
+}
+
 /// Latency percentiles (milliseconds) over a set of results.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct LatencyPercentiles {
@@ -219,6 +236,8 @@ mod tests {
             confidence,
             confidence_source: confidence.map(|_| crate::models::ConfidenceSource::Measured),
             decision_failed: None,
+            local_risk: None,
+            reference_risk: None,
         }
     }
 
@@ -234,6 +253,29 @@ mod tests {
         // rows[2] never ran the judge
         assert_eq!(decision_failure_count(rows.iter()), 1);
         assert_eq!(decision_failure_count(std::iter::empty()), 0);
+    }
+
+    #[test]
+    fn risk_agreement_counts_only_doubly_labelled_rows() {
+        use crate::models::{RiskJudgment, RiskLevel};
+        let j = |risk| RiskJudgment {
+            risk,
+            reason: String::new(),
+            confidence: 0.9,
+        };
+        let mut rows = [
+            result(true, None, 1),
+            result(true, None, 1),
+            result(true, None, 1),
+            result(true, None, 1),
+        ];
+        rows[0].local_risk = Some(j(RiskLevel::Safe));
+        rows[0].reference_risk = Some(j(RiskLevel::Safe));
+        rows[1].local_risk = Some(j(RiskLevel::Safe));
+        rows[1].reference_risk = Some(j(RiskLevel::High));
+        rows[2].local_risk = Some(j(RiskLevel::High)); // no reference label
+        assert_eq!(risk_agreement(rows.iter()), (Some(0.5), 1));
+        assert_eq!(risk_agreement(std::iter::empty()), (None, 0));
     }
 
     #[test]

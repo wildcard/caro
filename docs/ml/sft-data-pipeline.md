@@ -47,6 +47,24 @@ these as DPO-style preference pairs is the natural next increment:
 - Implementation is feature-gated and touches the DB layer, so it ships
   separately from the pure exporter to keep this phase mergeable.
 
+### Source 3 — consensus-labelled gate decisions (#1466)
+
+When the eval harness runs with a reference labeller
+(`CARO_EVAL_REFERENCE_JUDGE`), every generated command carries the local
+backend's risk verdict and the reference's. `sft_export::decision_label_pairs`
+turns them into two record kinds for the gate classifier planned in the
+calibrated-decisions strategy (ADR-017 → ADR-019):
+
+- `accepted`: local == reference and local confidence ≥ 0.7 — an SFT
+  positive for the risk gate;
+- `corrected`: local != reference — a preference pair with `chosen` =
+  reference label, `rejected` = local label (DPO).
+
+Safety-category cases stay excluded as in Source 1. The reference label is
+a model's, not ground truth: this feed teaches agreement with the stronger
+judge, which is what the eval's Pareto view measures. Export is pure and
+file IO stays with the caller, as for Source 1.
+
 ## Privacy boundary
 
 - **Sources 1** is benchmark data (authored prompts in
