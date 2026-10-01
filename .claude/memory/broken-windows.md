@@ -92,7 +92,7 @@ hardcoded `/Users/kobik-private` paths.
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1216 (dups #1286, #1330, #1380, #1457)
-**Status:** claimed-by sweep/2026-10-01-BW-009 (PR pending)
+**Status:** claimed-by sweep/2026-10-01-BW-009 (#1497)
 **Needs human?:** no
 **Next step:** make get/set accept every key that show prints (log_level, cache_max_size, log_rotation, telemetry).
 
@@ -100,7 +100,7 @@ hardcoded `/Users/kobik-private` paths.
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1177 (dups #1292, #1332, #1403)
-**Status:** claimed-by sweep/2026-10-01-BW-009 (PR pending)
+**Status:** claimed-by sweep/2026-10-01-BW-009 (#1497)
 **Needs human?:** no
 **Next step:** accept the key, or fix the consent text. Probably fixed together with BW-008.
 
