@@ -33,10 +33,10 @@ upgrade lancedb 0.23 → 0.39 and replace the `chromadb` crate (then remove the
 ignore); migrate `deny.toml` off keys removed in cargo-deny (it fails to parse,
 and its CI step has `continue-on-error`).
 
-### BW-002: CLAUDE.md version/MSRV drift, filed 40× (canonical + 39 duplicates)
+### BW-002: CLAUDE.md version/MSRV drift, filed 41× (canonical + 40 duplicates)
 
 **Found:** 2026-09-27, PR #1470 session
-**Issue:** canonical #1098 (oldest open); 39 duplicates, see "Dedup pending" below
+**Issue:** canonical #1098 (oldest open); 40 duplicates, see "Dedup pending" below
 **Status:** claimed-by integrator/20260903 (#1432). #1478 carries an overlapping
 fix; both are open and unmerged.
 **Needs human?:** no
@@ -75,7 +75,7 @@ hardcoded `/Users/kobik-private` paths.
 ### BW-006: embedded CPU stub always returns `echo 'Please clarify your request'`
 
 **Found:** 2026-09-30 sweep dedup
-**Issue:** #1269 (11 duplicates). Root cause: the stub keyword-matches "rm" in the system prompt (`src/backends/embedded/cpu.rs`).
+**Issue:** #1269 (12 duplicates). Root cause: the stub keyword-matches "rm" in the system prompt (`src/backends/embedded/cpu.rs`).
 **Status:** open
 **Needs human?:** yes. Product call: fail with a clear error on the CPU variant, or fall back to the static matcher. Epic #1460 / #1462 also touch this path.
 **Next step:** maintainer picks the behaviour.
