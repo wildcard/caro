@@ -2113,7 +2113,7 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                     config.safety_level = level;
                     println!("{} Set safety level to '{:?}'", "✓".green(), level);
                 }
-                "telemetry" | "telemetry.enabled" => {
+                "telemetry" | "telemetry.enabled" | "telemetry-enabled" => {
                     let enabled: bool = value.to_lowercase().parse().map_err(|_| {
                         format!("Invalid telemetry value '{}': use true or false", value)
                     })?;
@@ -2134,6 +2134,7 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                             value
                         )
                     })?;
+                    config.validate()?;
                     println!(
                         "{} Set cache max size to {} GB",
                         "✓".green(),
@@ -2147,6 +2148,7 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                             value
                         )
                     })?;
+                    config.validate()?;
                     println!(
                         "{} Set log rotation to {} days",
                         "✓".green(),
@@ -2198,7 +2200,7 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 "safety" => {
                     println!("{}: {:?}", "safety".bold(), config.safety_level);
                 }
-                "telemetry" | "telemetry.enabled" => {
+                "telemetry" | "telemetry.enabled" | "telemetry-enabled" => {
                     println!(
                         "{}: {}",
                         "telemetry.enabled".bold(),

@@ -1,6 +1,11 @@
 //! Regression guard for #1177 / #1216: every key `caro config show` prints
 //! must be settable and readable through `caro config set/get`, including the
 //! `telemetry.enabled` command the first-run consent screen tells users to run.
+//!
+//! Unix-only: on Windows `dirs::config_dir()` resolves the roaming AppData
+//! folder via the known-folder API, ignoring env vars, so the test could not
+//! be isolated from the runner's real config.
+#![cfg(unix)]
 
 use std::path::Path;
 use std::process::{Command, Output};
@@ -42,6 +47,10 @@ fn consent_screen_command_disables_telemetry() {
     ok(dir.path(), &["config", "set", "telemetry", "true"]);
     let got = ok(dir.path(), &["config", "get", "telemetry"]);
     assert!(got.contains("true"), "got: {got}");
+
+    ok(dir.path(), &["config", "set", "telemetry-enabled", "false"]);
+    let got = ok(dir.path(), &["config", "get", "telemetry-enabled"]);
+    assert!(got.contains("false"), "got: {got}");
 }
 
 #[test]
@@ -51,6 +60,10 @@ fn keys_shown_by_config_show_are_settable() {
         ("log_level", "debug"),
         ("cache_max_size", "20"),
         ("log_rotation", "14"),
+        ("log-level", "debug"),
+        ("cache-max-size", "20"),
+        ("log-rotation", "14"),
+        ("model_name", "test-model"),
     ] {
         ok(dir.path(), &["config", "set", key, value]);
         let got = ok(dir.path(), &["config", "get", key]).to_lowercase();
@@ -74,6 +87,11 @@ fn invalid_values_are_rejected() {
         assert!(
             !out.status.success(),
             "`config set {key} {value}` should fail"
+        );
+        // No success check mark for a value that is then rejected.
+        assert!(
+            !String::from_utf8_lossy(&out.stdout).contains('✓'),
+            "`config set {key} {value}` printed success"
         );
         // The key must be recognised: the rejection is about the value.
         assert!(
