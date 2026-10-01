@@ -14,7 +14,7 @@
   },
   "claims_baked_into_video": {
     "pattern_count": 67,
-    "pattern_count_claim_text": "52+ patterns. Blocked before damage.",
+    "pattern_count_claim_text": "67+ patterns. Blocked before damage.",
     "install_command": "cargo install caro",
     "block_message": "✗ command blocked by safety validator (Critical)",
     "block_reason_text": "Recursive deletion of root, home, current, or parent directory",
