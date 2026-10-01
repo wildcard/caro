@@ -34,6 +34,10 @@ fn consent_screen_command_disables_telemetry() {
     ok(dir.path(), &["config", "set", "telemetry.enabled", "false"]);
     let got = ok(dir.path(), &["config", "get", "telemetry.enabled"]);
     assert!(got.contains("false"), "got: {got}");
+    // The explicit choice must count as consent so the first-run prompt
+    // cannot later overwrite it.
+    let saved = std::fs::read_to_string(dir.path().join("caro/config.toml")).unwrap();
+    assert!(saved.contains("first_run = false"), "config: {saved}");
 
     ok(dir.path(), &["config", "set", "telemetry", "true"]);
     let got = ok(dir.path(), &["config", "get", "telemetry"]);

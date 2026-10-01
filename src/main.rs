@@ -2118,6 +2118,8 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                         format!("Invalid telemetry value '{}': use true or false", value)
                     })?;
                     config.telemetry.enabled = enabled;
+                    // An explicit choice counts as consent; don't re-prompt over it.
+                    config.telemetry.first_run = false;
                     println!("{} Set telemetry.enabled to '{}'", "✓".green(), enabled);
                 }
                 "log_level" | "log-level" => {
