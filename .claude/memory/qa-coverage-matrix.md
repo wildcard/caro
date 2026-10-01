@@ -55,6 +55,8 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 30 | `caro --verbose` timing output | cli | never | — | — |
 | 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | never | — | — |
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-05-07 | PASS | — |
+| 33 | `caro ai` decision gates (clarification, Jev gap, constrained decoding) (#1459) | ai | never | — | — |
+| 34 | Executor timeout / guard hooks / loop budget enforcement (#1470) | cli | never | — | — |
 
 ---
 
