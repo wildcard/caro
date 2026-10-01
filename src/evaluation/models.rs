@@ -498,12 +498,17 @@ pub struct BaselineDelta {
     #[serde(default)]
     pub ece_deltas: HashMap<String, f32>,
 
-    /// ECE rise that counts as a regression (e.g. 0.05) (#1466).
-    #[serde(default)]
+    /// ECE rise that counts as a regression (e.g. 0.05) (#1466). A baseline
+    /// stored before this field existed loads with the default threshold.
+    #[serde(default = "default_ece_regression_threshold")]
     pub ece_regression_threshold: f32,
 
     /// Categories/backends with significant drops
     pub significant_regressions: Vec<String>,
+}
+
+fn default_ece_regression_threshold() -> f32 {
+    crate::evaluation::baseline::DEFAULT_ECE_REGRESSION_THRESHOLD
 }
 
 impl TestCase {

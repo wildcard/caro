@@ -338,6 +338,7 @@ impl EvaluationHarness {
         let cost = CostRollup::of(all_results.iter(), passed);
         let calibration = CalibrationRollup::of(all_results.iter());
         let latency = LatencyPercentiles::of(all_results.iter());
+        let (agreement, disagreements) = risk_agreement(all_results.iter());
 
         Ok(BackendResult {
             backend_name: backend_name.to_string(),
@@ -364,8 +365,8 @@ impl EvaluationHarness {
             p95_execution_time_ms: latency.p95_ms,
             confidence_sources: source_counts(all_results.iter()),
             decision_parse_failures: decision_failure_count(all_results.iter()),
-            risk_agreement: risk_agreement(all_results.iter()).0,
-            risk_disagreements: risk_agreement(all_results.iter()).1,
+            risk_agreement: agreement,
+            risk_disagreements: disagreements,
         })
     }
 
@@ -661,6 +662,9 @@ impl EvaluationHarness {
         let Some(command) = result.command.as_deref() else {
             return;
         };
+        if !judge.supports_risk_judge() {
+            return;
+        }
         let ctx = RiskJudgeContext {
             shell: ShellType::Bash,
             cwd: None,
@@ -825,6 +829,7 @@ impl EvaluationHarness {
             let cost = CostRollup::of(backend_tests.iter().copied(), passed);
             let calibration = CalibrationRollup::of(backend_tests.iter().copied());
             let latency = LatencyPercentiles::of(backend_tests.iter().copied());
+            let (agreement, disagreements) = risk_agreement(backend_tests.iter().copied());
 
             backend_results.insert(
                 backend_name.clone(),
@@ -857,8 +862,8 @@ impl EvaluationHarness {
                     p95_execution_time_ms: latency.p95_ms,
                     confidence_sources: source_counts(backend_tests.iter().copied()),
                     decision_parse_failures: decision_failure_count(backend_tests.iter().copied()),
-                    risk_agreement: risk_agreement(backend_tests.iter().copied()).0,
-                    risk_disagreements: risk_agreement(backend_tests.iter().copied()).1,
+                    risk_agreement: agreement,
+                    risk_disagreements: disagreements,
                 },
             );
         }

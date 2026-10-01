@@ -174,9 +174,10 @@ With `CARO_EVAL_BACKENDS=ollama:<model>` (a backend that has a judge; the
 static matcher does not) and `CARO_EVAL_REFERENCE_JUDGE` set, each generated
 command also gets a reference risk verdict and the table reports per-backend
 agreement (#1466).
-Once a baseline carries a measured ECE, `compare_with_ece` fails the run
-when a backend's ECE rises by more than 0.05: calibration regressions block
-the same way pass-rate regressions do.
+For every backend with a measured ECE in both the baseline and the current
+run, `compare_with_ece` fails the run when that ECE rose by more than 0.05:
+calibration regressions block the same way pass-rate regressions do. A
+backend with no ECE on either side (confidence `unknown`) is not compared.
 
 ## Future Work
 

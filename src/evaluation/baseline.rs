@@ -559,6 +559,19 @@ mod tests {
     }
 
     #[test]
+    fn old_baseline_delta_loads_with_default_ece_threshold() {
+        let json = r#"{"baseline_run_id":"r","baseline_commit_sha":"c","overall_delta":0.0,
+            "category_deltas":{},"backend_deltas":{},"regression_threshold":0.05,
+            "significant_regressions":[]}"#;
+        let delta: crate::evaluation::BaselineDelta = serde_json::from_str(json).unwrap();
+        assert_eq!(
+            delta.ece_regression_threshold,
+            DEFAULT_ECE_REGRESSION_THRESHOLD
+        );
+        assert!(delta.ece_deltas.is_empty());
+    }
+
+    #[test]
     fn test_load_nonexistent_baseline() {
         let temp_dir = TempDir::new().unwrap();
         let store = BaselineStore::new(temp_dir.path());
