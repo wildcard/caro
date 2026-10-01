@@ -8,8 +8,8 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
-| [#1494](https://github.com/wildcard/caro/issues/1494) | P1 | ai | `caro ai --once` CPU backend always returns deletion-clarification (system prompt contains "rm") | open | 2026-10-01 |
-| [#1495](https://github.com/wildcard/caro/issues/1495) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (regression of #1044) | open | 2026-10-01 |
+| [#1494](https://github.com/wildcard/caro/issues/1494) | P1 | ai | `caro ai --once` CPU backend always returns deletion-clarification (system prompt contains "rm") — duplicate of canonical [#1269](https://github.com/wildcard/caro/issues/1269) (BW-006) | open | 2026-10-01 |
+| [#1495](https://github.com/wildcard/caro/issues/1495) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 — duplicate of canonical [#1098](https://github.com/wildcard/caro/issues/1098) (BW-002); QA agent re-filed instead of commenting | open | 2026-10-01 |
 
 ---
 
