@@ -30,3 +30,6 @@ jobs:
 
       - name: Test loop.sh budgets
         run: tests/harness/loop.test.sh
+
+      - name: Test SessionStart readiness hook
+        run: tests/harness/session-start.test.sh
