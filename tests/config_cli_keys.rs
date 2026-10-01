@@ -33,15 +33,27 @@ fn ok(xdg: &Path, args: &[&str]) -> String {
     String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
+/// Path from the `Config saved to: <path>` line `config set` prints.
+fn saved_path(stdout: &str) -> String {
+    let line = stdout
+        .lines()
+        .find_map(|l| l.split_once("Config saved to: "))
+        .unwrap_or_else(|| panic!("no saved path in: {stdout}"))
+        .1;
+    // Drop any trailing ANSI color reset.
+    line.split('\u{1b}').next().unwrap().trim().to_string()
+}
+
 #[test]
 fn consent_screen_command_disables_telemetry() {
     let dir = TempDir::new().unwrap();
-    ok(dir.path(), &["config", "set", "telemetry.enabled", "false"]);
+    let set = ok(dir.path(), &["config", "set", "telemetry.enabled", "false"]);
     let got = ok(dir.path(), &["config", "get", "telemetry.enabled"]);
     assert!(got.contains("false"), "got: {got}");
     // The explicit choice must count as consent so the first-run prompt
-    // cannot later overwrite it.
-    let saved = std::fs::read_to_string(dir.path().join("caro/config.toml")).unwrap();
+    // cannot later overwrite it. Read the file `config set` reports, since
+    // the config dir differs per platform.
+    let saved = std::fs::read_to_string(saved_path(&set)).unwrap();
     assert!(saved.contains("first_run = false"), "config: {saved}");
 
     ok(dir.path(), &["config", "set", "telemetry", "true"]);

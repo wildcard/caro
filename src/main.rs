@@ -212,14 +212,16 @@ enum ExportFormat {
 enum ConfigCommands {
     /// Set a configuration value
     Set {
-        /// Configuration key (backend, model-name, shell, safety)
+        /// Configuration key (backend, model-name, shell, safety, telemetry.enabled,
+        /// log_level, cache_max_size, log_rotation)
         key: String,
         /// Value to set
         value: String,
     },
     /// Get a configuration value
     Get {
-        /// Configuration key (backend, model-name, shell, safety)
+        /// Configuration key (backend, model-name, shell, safety, telemetry.enabled,
+        /// log_level, cache_max_size, log_rotation)
         key: String,
     },
     /// Show all configuration
