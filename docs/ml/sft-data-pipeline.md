@@ -49,9 +49,9 @@ these as DPO-style preference pairs is the natural next increment:
 
 ### Source 3 — consensus-labelled gate decisions (#1466)
 
-When the eval harness runs with both the local judge and a reference
-labeller (`CARO_EVAL_JUDGE_RISK=1` plus `CARO_EVAL_REFERENCE_JUDGE`, and
-`CARO_EVAL_BACKENDS` naming a backend that has a judge; the static matcher
+When the eval harness runs with a reference labeller
+(`CARO_EVAL_REFERENCE_JUDGE`, which also turns on the local judge pass) and
+`CARO_EVAL_BACKENDS` names a backend that has a judge (the static matcher
 does not), every generated command carries the local backend's risk verdict
 and the reference's. A result missing either verdict yields no record. `sft_export::decision_label_pairs`
 turns them into two record kinds for the gate classifier planned in the

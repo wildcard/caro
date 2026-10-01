@@ -209,6 +209,12 @@ impl BaselineStore {
     /// * `baseline` - Baseline benchmark report to compare against
     /// * `threshold` - Regression threshold (e.g., 0.05 for 5% drop)
     ///
+    /// Since #1466 this also applies the calibration gate at
+    /// [`DEFAULT_ECE_REGRESSION_THRESHOLD`]: a backend whose ECE rose by
+    /// more than that over the baseline is listed in
+    /// `significant_regressions`. Use [`compare_with_ece`](Self::compare_with_ece)
+    /// to choose the ECE threshold explicitly.
+    ///
     /// # Returns
     ///
     /// BaselineDelta with comparison results and regression detection

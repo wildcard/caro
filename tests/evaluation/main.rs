@@ -168,7 +168,7 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
             std::env::var("CARO_EVAL_JUDGE_RISK").as_deref(),
             Ok("1" | "true")
         ),
-        ece_regression_threshold: caro::evaluation::baseline::DEFAULT_ECE_REGRESSION_THRESHOLD,
+        ece_regression_threshold: HarnessConfig::default().ece_regression_threshold,
     };
     let ece_regression_threshold = config.ece_regression_threshold;
 
@@ -272,7 +272,6 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
     Ok(exit_code)
 }
 
-/// Parse category string to enum
 /// Build a remote backend from `<kind>:<model>[@<url>]` (#1466), used for
 /// both `CARO_EVAL_BACKENDS` entries and `CARO_EVAL_REFERENCE_JUDGE`.
 #[cfg(feature = "remote-backends")]
@@ -308,6 +307,7 @@ fn backend_from_spec(_spec: &str) -> Result<Arc<dyn caro::backends::CommandGener
     Err("built without the remote-backends feature".to_string())
 }
 
+/// Parse category string to enum
 fn parse_category(s: &str) -> Result<TestCategory, String> {
     match s {
         "correctness" => Ok(TestCategory::Correctness),

@@ -10,6 +10,7 @@ use std::time::{Duration, Instant};
 use tokio::time::timeout;
 
 use crate::backends::{CommandGenerator, GeneratorError};
+use crate::evaluation::baseline::DEFAULT_ECE_REGRESSION_THRESHOLD;
 use crate::evaluation::calibration::{
     decision_failure_count, risk_agreement, source_counts, CalibrationRollup, LatencyPercentiles,
 };
@@ -110,7 +111,7 @@ impl Default for HarnessConfig {
             regression_threshold: 0.95, // 95% pass rate
             max_concurrency: 10,
             judge_risk: false,
-            ece_regression_threshold: 0.05,
+            ece_regression_threshold: DEFAULT_ECE_REGRESSION_THRESHOLD,
         }
     }
 }
@@ -194,8 +195,10 @@ impl EvaluationHarness {
     }
 
     /// Set the reference labeller (#1466): a backend with a risk judge whose
-    /// verdicts are stored as `reference_risk` on every result. Its labels
-    /// are a model's opinion, not ground truth.
+    /// verdicts are stored as `reference_risk` on every result. Setting it
+    /// also turns on the local judge pass (as `judge_risk` does), since
+    /// agreement needs both verdicts. Its labels are a model's opinion, not
+    /// ground truth.
     pub fn set_reference_judge(&mut self, judge: Arc<dyn CommandGenerator>) {
         self.reference_judge = Some(judge);
     }
@@ -414,8 +417,8 @@ impl EvaluationHarness {
                     })?
                     .clone();
                 let timeout_ms = self.config.backend_timeout_ms;
-                let judge_risk = self.config.judge_risk;
                 let reference_judge = self.reference_judge.clone();
+                let judge_risk = self.config.judge_risk || reference_judge.is_some();
                 let permit = limiter
                     .clone()
                     .acquire_owned()
@@ -575,7 +578,7 @@ impl EvaluationHarness {
                 reference_risk: None,
             },
         };
-        if self.config.judge_risk {
+        if self.config.judge_risk || self.reference_judge.is_some() {
             Self::judge_command_for_test(
                 &mut command_result,
                 &backend,
@@ -1157,10 +1160,8 @@ mod tests {
     #[tokio::test]
     async fn reference_labels_score_agreement_per_backend() {
         let dataset = create_simple_dataset();
-        let config = HarnessConfig {
-            judge_risk: true,
-            ..Default::default()
-        };
+        // No `judge_risk`: a reference judge implies the local pass.
+        let config = HarnessConfig::default();
         let verdict = |risk| crate::models::RiskJudgment {
             risk,
             reason: "mock".to_string(),

@@ -222,7 +222,7 @@ pub struct EvaluationResult {
     pub local_risk: Option<crate::models::RiskJudgment>,
 
     /// The reference labeller's verdict for the same command, when
-    /// `EvaluationHarness::with_reference_judge` was set (#1466). This is a
+    /// `EvaluationHarness::set_reference_judge` was set (#1466). This is a
     /// model's label, not ground truth: agreement measures consensus, not
     /// correctness.
     #[serde(default, skip_serializing_if = "Option::is_none")]
