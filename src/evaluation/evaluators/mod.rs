@@ -24,6 +24,21 @@ pub struct CommandResult {
 
     /// Backend that generated this result
     pub backend_name: String,
+
+    /// Backend-reported confidence in the generated command (`0.0..=1.0`),
+    /// `None` when generation failed or the backend reported nothing.
+    ///
+    /// Carried through to [`EvaluationResult::confidence`] so the harness can
+    /// score calibration (Brier / ECE) — see [`crate::evaluation::calibration`].
+    pub confidence: Option<f64>,
+
+    /// Provenance of `confidence` (ADR-017, #1464). `None` when generation
+    /// failed; `Some(Unknown)` when the backend answered but cannot measure.
+    pub confidence_source: Option<crate::models::ConfidenceSource>,
+
+    /// Whether the risk judge (`classify_risk`) returned no verdict when
+    /// the harness asked for one (#1465). `None` when the judge did not run.
+    pub decision_failed: Option<bool>,
 }
 
 impl CommandResult {
@@ -35,6 +50,9 @@ impl CommandResult {
             error: None,
             execution_time_ms,
             backend_name,
+            confidence: None,
+            confidence_source: Some(crate::models::ConfidenceSource::Unknown),
+            decision_failed: None,
         }
     }
 
@@ -46,6 +64,9 @@ impl CommandResult {
             error: None,
             execution_time_ms,
             backend_name,
+            confidence: None,
+            confidence_source: None,
+            decision_failed: None,
         }
     }
 
@@ -57,6 +78,9 @@ impl CommandResult {
             error: Some(error),
             execution_time_ms,
             backend_name,
+            confidence: None,
+            confidence_source: None,
+            decision_failed: None,
         }
     }
 }

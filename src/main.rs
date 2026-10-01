@@ -1957,6 +1957,7 @@ impl caro::backends::CommandGenerator for InlineMockBackend {
             backend_used: "mock-inline".into(),
             generation_time_ms: 1,
             confidence_score: 0.5,
+            confidence_source: caro::models::ConfidenceSource::Measured,
         })
     }
 
@@ -3538,6 +3539,37 @@ async fn main() {
             // Exit with code 1 if command was blocked by safety validation
             // Exit with code 0 for successful or safe commands
             process::exit(if was_blocked { 1 } else { 0 })
+        }
+        Err(CliError::NeedsClarification { question, p }) => {
+            // Typed clarification gate (ADR-017): a question, not an error.
+            // Honour the requested machine-readable format so wrappers can
+            // tell a question from a command.
+            let fallback = "Could you rephrase the request with a bit more detail?";
+            let format = cli
+                .output
+                .as_deref()
+                .and_then(|o| o.parse::<caro::cli::OutputFormat>().ok())
+                .unwrap_or(caro::cli::OutputFormat::Plain);
+            let payload = serde_json::json!({
+                "needs_clarification": true,
+                "question": question.as_deref().unwrap_or(fallback),
+                "p": p,
+            });
+            match format {
+                caro::cli::OutputFormat::Json => {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&payload).unwrap_or_default()
+                    )
+                }
+                caro::cli::OutputFormat::Yaml => {
+                    print!("{}", serde_yaml::to_string(&payload).unwrap_or_default())
+                }
+                caro::cli::OutputFormat::Plain => {
+                    eprintln!("{}", question.as_deref().unwrap_or(fallback))
+                }
+            }
+            process::exit(0);
         }
         Err(e) => {
             eprintln!("Error: {}", e);

@@ -193,6 +193,28 @@ pub struct EvaluationResult {
     /// Total rubric criteria evaluated for this case (0 = single-criterion).
     #[serde(default)]
     pub criteria_total: u32,
+
+    /// Backend-reported confidence for this generation (`0.0..=1.0`).
+    ///
+    /// `None` when the backend reported nothing or generation failed. Joined
+    /// with `passed` by [`crate::evaluation::calibration`] to compute Brier
+    /// score and ECE per backend. `serde(default)` keeps older baseline JSON
+    /// loadable.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub confidence: Option<f64>,
+
+    /// Where `confidence` came from (#1464): measured, self-reported, or
+    /// unknown. `None` when generation failed. Lets the report separate
+    /// evidence-backed calibration from backends that report nothing.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub confidence_source: Option<crate::models::ConfidenceSource>,
+
+    /// `Some(true)` when the harness asked the backend's risk judge for a
+    /// verdict and got none back (a type error after the corrective retry,
+    /// or a transport error); `Some(false)` when it answered; `None` when
+    /// the judge was not run (`HarnessConfig::judge_risk` off) — see #1465.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub decision_failed: Option<bool>,
 }
 
 impl EvaluationResult {
@@ -324,6 +346,48 @@ pub struct BackendResult {
     /// Total estimated output tokens across all tests for this backend.
     #[serde(default)]
     pub total_tokens_out: u64,
+
+    /// Brier score over results that reported a confidence (lower is better,
+    /// 0.0 = perfectly calibrated and always right). `None` when no result
+    /// carried a confidence. See [`crate::evaluation::calibration`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub brier: Option<f32>,
+
+    /// Expected Calibration Error over results that reported a confidence
+    /// (lower is better). A backend that always reports a constant confidence
+    /// `c` has `ECE == |c - pass_rate|`, which is how hardcoded confidence
+    /// constants show up in the report.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ece: Option<f32>,
+
+    /// Fraction of this backend's results that carried a usable confidence
+    /// (the population `brier`/`ece` are computed over). Low coverage means
+    /// the calibration numbers describe a subset, typically excluding
+    /// failures that reported no confidence.
+    #[serde(default)]
+    pub confidence_coverage: f32,
+
+    /// Median per-test generation time (milliseconds), timeouts excluded.
+    #[serde(default)]
+    pub p50_execution_time_ms: u64,
+
+    /// 95th-percentile per-test generation time (milliseconds). The tail is
+    /// what a user feels; the mean hides it.
+    #[serde(default)]
+    pub p95_execution_time_ms: u64,
+
+    /// How many results came with each confidence provenance (#1464).
+    /// Serialised with the enum's snake_case names (`measured`,
+    /// `self_reported`, `unknown`). Results that failed to generate are not
+    /// counted.
+    #[serde(default)]
+    pub confidence_sources: std::collections::BTreeMap<crate::models::ConfidenceSource, u32>,
+
+    /// Risk-judge verdicts that failed to parse or arrive when
+    /// `HarnessConfig::judge_risk` was on (#1465). Must be 0 on backends
+    /// with constrained decoding (Ollama `format`, vLLM `guided_json`).
+    #[serde(default)]
+    pub decision_parse_failures: u32,
 }
 
 /// Aggregated results from a complete evaluation run
@@ -677,6 +741,9 @@ mod tests {
             est_cost_usd: 0.0,
             criteria_passed,
             criteria_total,
+            confidence: None,
+            confidence_source: None,
+            decision_failed: None,
         }
     }
 

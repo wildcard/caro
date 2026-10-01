@@ -14,8 +14,9 @@ use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError
 /// Handles cases like: {"cmd": "find . -type f -name "*.txt""}
 static CMD_EXTRACT_REGEX: Lazy<Regex> =
     Lazy::new(|| Regex::new(r#"\{\s*"cmd"\s*:\s*"(.+)"\s*\}"#).expect("Invalid regex pattern"));
+use crate::decision::decide_with_retry;
 use crate::models::{CommandRequest, GeneratedCommand, RiskJudgeContext, RiskJudgment, RiskLevel};
-use crate::prompts::{build_risk_judge_prompt, parse_risk_judgment};
+use crate::prompts::{build_risk_judge_prompt, parse_risk_judgment, risk_judge_schema};
 
 /// Ollama API request format
 #[derive(Debug, Serialize)]
@@ -24,6 +25,9 @@ struct OllamaRequest {
     prompt: String,
     stream: bool,
     options: OllamaOptions,
+    /// JSON Schema for structured output; set on decision requests only (#1465).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    format: Option<serde_json::Value>,
 }
 
 /// Ollama inference options
@@ -94,7 +98,7 @@ Rules:
 4. Target shell: {}
 5. NEVER generate destructive commands (rm -rf /, mkfs, dd, etc.)
 6. Keep commands simple and safe
-7. If the request is unclear, generate "echo 'Please clarify your request'"
+7. If the request is unclear, output ONLY: {{"needs_clarification": true, "p": <0.0-1.0>, "question": "<one short question>"}}
 
 Request: {}
 "#,
@@ -104,6 +108,13 @@ Request: {}
 
     /// Parse JSON response from Ollama
     fn parse_command_response(&self, response: &str) -> Result<String, GeneratorError> {
+        // Typed clarification gate (#1462): never return a runnable command
+        // whose only purpose is to ask the user something.
+        if let Some(c) = crate::decision::clarification_from_raw(response) {
+            if c.should_ask() {
+                return Err(GeneratorError::from_clarification(&c));
+            }
+        }
         // Try structured JSON parsing first
         if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(response) {
             if let Some(cmd) = parsed.get("cmd").and_then(|v| v.as_str()) {
@@ -156,8 +167,13 @@ Request: {}
         })
     }
 
-    /// Call Ollama API for inference
-    async fn call_ollama_api(&self, prompt: &str) -> Result<String, GeneratorError> {
+    /// Call Ollama API for inference. `format` carries a JSON Schema the
+    /// server must conform to; command generation passes `None`.
+    async fn call_ollama_api(
+        &self,
+        prompt: &str,
+        format: Option<serde_json::Value>,
+    ) -> Result<String, GeneratorError> {
         let request = OllamaRequest {
             model: self.model_name.clone(),
             prompt: prompt.to_string(),
@@ -168,6 +184,7 @@ Request: {}
                 top_p: 0.3,
                 num_predict: 100,
             },
+            format,
         };
 
         let url = self
@@ -219,7 +236,7 @@ Request: {}
     ) -> Result<GeneratedCommand, GeneratorError> {
         // Try Ollama first
         match self
-            .call_ollama_api(&self.create_system_prompt(request))
+            .call_ollama_api(&self.create_system_prompt(request), None)
             .await
         {
             Ok(response) => {
@@ -233,9 +250,14 @@ Request: {}
                             alternatives: vec![],
                             backend_used: format!("Ollama ({})", self.model_name),
                             generation_time_ms: 0, // Will be set by caller
-                            confidence_score: 0.8,
+                            confidence_score: 0.0, // /api/generate exposes no logprobs (#1464)
+                            confidence_source: crate::models::ConfidenceSource::Unknown,
                         });
                     }
+                    // A typed clarification decision is not a parse failure:
+                    // surface the question instead of falling back to a
+                    // command from another backend (#1462).
+                    Err(err @ GeneratorError::NeedsClarification { .. }) => return Err(err),
                     Err(parse_error) => {
                         tracing::warn!("Failed to parse Ollama response: {}", parse_error);
                         // Continue to fallback
@@ -278,12 +300,28 @@ impl CommandGenerator for OllamaBackend {
         Ok(result)
     }
 
+    fn supports_risk_judge(&self) -> bool {
+        true
+    }
+
     async fn classify_risk(&self, command: &str, ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
-        // Reuse the existing prompt→text path; fail safe to `None` on any error
-        // so the caller falls back to the static decision.
+        // Constrained decoding (`format` = verdict schema) plus one corrective
+        // retry (#1465); fail safe to `None` so the caller falls back to the
+        // static decision.
         let prompt = build_risk_judge_prompt(command, ctx);
-        let raw = self.call_ollama_api(&prompt).await.ok()?;
-        parse_risk_judgment(&raw)
+        let schema = risk_judge_schema();
+        let format = schema.to_json();
+        decide_with_retry(
+            &prompt,
+            &schema,
+            |p| {
+                let format = format.clone();
+                async move { self.call_ollama_api(&p, Some(format)).await }
+            },
+            parse_risk_judgment,
+        )
+        .await
+        .value
     }
 
     async fn is_available(&self) -> bool {
@@ -356,5 +394,106 @@ mod tests {
         let response = "This is not a valid JSON response";
         let result = backend.parse_command_response(response);
         assert!(result.is_err());
+    }
+
+    mod constrained_decoding {
+        use super::*;
+        use crate::models::{RiskJudgeContext, SafetyLevel, ShellType};
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, Request, ResponseTemplate};
+
+        fn ctx() -> RiskJudgeContext {
+            RiskJudgeContext {
+                shell: ShellType::Bash,
+                cwd: None,
+                static_risk: RiskLevel::Safe,
+                matched_patterns: vec![],
+            }
+        }
+
+        fn backend(server: &MockServer) -> OllamaBackend {
+            OllamaBackend::new(Url::parse(&server.uri()).unwrap(), "m".to_string()).unwrap()
+        }
+
+        fn body(req: &Request) -> serde_json::Value {
+            serde_json::from_slice(&req.body).unwrap()
+        }
+
+        #[tokio::test]
+        async fn decision_request_sets_format_schema() {
+            let server = MockServer::start().await;
+            Mock::given(method("POST"))
+                .and(path("/api/generate"))
+                .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                    "response": r#"{"risk": "high", "reason": "deletes", "confidence": 0.9}"#,
+                    "done": true
+                })))
+                .expect(1)
+                .mount(&server)
+                .await;
+
+            let judgment = backend(&server).classify_risk("rm -r build", &ctx()).await;
+            assert_eq!(judgment.map(|j| j.risk), Some(RiskLevel::High));
+
+            let reqs = server.received_requests().await.unwrap();
+            let b = body(&reqs[0]);
+            assert_eq!(
+                b["format"]["properties"]["risk"]["enum"],
+                serde_json::json!(["critical", "high", "moderate", "safe"])
+            );
+            assert_eq!(
+                b["format"]["required"],
+                serde_json::json!(["risk", "confidence"])
+            );
+        }
+
+        #[tokio::test]
+        async fn decision_retries_once_with_corrective_prompt() {
+            let server = MockServer::start().await;
+            Mock::given(method("POST"))
+                .and(path("/api/generate"))
+                .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                    "response": "I think it is fine",
+                    "done": true
+                })))
+                .expect(2)
+                .mount(&server)
+                .await;
+
+            let judgment = backend(&server).classify_risk("ls", &ctx()).await;
+            assert!(judgment.is_none(), "two type errors fail safe to None");
+
+            let reqs = server.received_requests().await.unwrap();
+            assert_eq!(reqs.len(), 2);
+            let second = body(&reqs[1])["prompt"].as_str().unwrap().to_string();
+            assert!(second.contains("I think it is fine"));
+            assert!(second.contains("\"enum\""));
+        }
+
+        #[tokio::test]
+        async fn generation_request_has_no_format() {
+            let server = MockServer::start().await;
+            Mock::given(method("POST"))
+                .and(path("/api/generate"))
+                .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                    "response": r#"{"cmd": "ls"}"#,
+                    "done": true
+                })))
+                .mount(&server)
+                .await;
+
+            let request = CommandRequest {
+                input: "list files".to_string(),
+                shell: ShellType::Bash,
+                safety_level: SafetyLevel::Moderate,
+                context: None,
+                backend_preference: None,
+            };
+            let generated = backend(&server).generate_command(&request).await.unwrap();
+            assert_eq!(generated.command, "ls");
+
+            let reqs = server.received_requests().await.unwrap();
+            assert!(body(&reqs[0]).get("format").is_none());
+        }
     }
 }

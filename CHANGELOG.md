@@ -7,6 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Calibration and tail-latency metrics in the evaluation harness.**
+  `EvaluationResult` now records the backend's reported `confidence`, and
+  every `BackendResult` carries `brier`, `ece`, `p50_execution_time_ms` and
+  `p95_execution_time_ms` (`src/evaluation/calibration.rs`). A backend that
+  reports a constant confidence shows `ece == |constant − pass_rate|`, which
+  is how today's hardcoded confidence values become visible. Older baseline
+  JSON stays loadable (`serde(default)`).
+- **`caro::decision` typed-decision primitives** — `Noul`, `Choice<T>`,
+  `Score` and `parse_choice_json` — borrowed from TypeSafe AI's "System One"
+  framing. The `--approval smart` risk judge now parses its verdict through
+  `Choice<RiskLevel>` (behaviour unchanged; also accepts a
+  `{"probabilities": {...}}` answer). `RiskLevel` implements `FromStr`.
+
+- **Measured confidence for LLM backends** ([#1464](https://github.com/wildcard/caro/issues/1464)):
+  `GeneratedCommand.confidence_source` (`measured`, `self-reported`,
+  `unknown`) replaces the per-backend constants. vLLM and OpenRouter request
+  `logprobs` and report the geometric-mean token probability; Claude is asked
+  for a `confidence` alongside `cmd` and the value is validated to 0..=1;
+  backends that cannot measure (embedded, Ollama, Exo, Mesh, AI-Horde) report
+  `unknown` with score 0.0. The agent refinement gate and the candidate-ranking
+  `llm_confidence` feature ignore `unknown`; the eval harness records the
+  source per result and per backend (`confidence_sources`), and telemetry's
+  `CommandGeneration` event gains `confidence` / `confidence_source`
+  (metadata only). CLI output shows `Confidence: n/a` instead of `0%` when
+  there is no evidence. ADR-017 moves to Accepted.
+- **Constrained decoding for decision prompts** ([#1465](https://github.com/wildcard/caro/issues/1465)):
+  `decision::DecisionSchema` builds a JSON Schema from the same label list
+  the parser accepts, and `decision::decide_with_retry` adds the System One
+  adapter's loop: one corrective retry quoting the invalid reply and the
+  schema, then `None`. The `--approval smart` risk judge sends the schema as
+  Ollama `format` and vLLM `guided_json` (vLLM gains `classify_risk`);
+  command-generation requests stay unconstrained. The eval harness can run
+  the judge (`HarnessConfig::judge_risk`, `CARO_EVAL_JUDGE_RISK=1`) and
+  reports `decision_parse_failures` per backend.
+- **Static matcher reports measured confidence** ([#1461](https://github.com/wildcard/caro/issues/1461)): regex matches
+  score 1.0; keyword matches score `0.6 + 0.4 × optional-keyword coverage`
+  instead of a constant 1.0. Pattern selection is unchanged. Eval ECE for the
+  static matcher moved from 0.156 to 0.137 on the bundled dataset.
+- **Typed clarification gate** ([#1462](https://github.com/wildcard/caro/issues/1462)): `caro::decision::Clarification` and
+  `clarification_from_raw` map the embedded `QUESTION:` prefix, a
+  `{"needs_clarification": true, "p": …, "question": …}` JSON answer, and the
+  legacy `echo 'Please clarify your request'` output onto one
+  `GeneratorError::NeedsClarification`. The CLI now prints the question
+  instead of offering an `echo` command; remote prompts ask for the JSON
+  form. Regression guard: `tests/clarification_gate_contract.rs`.
+
+- **Typed intent categorisation** ([#1463](https://github.com/wildcard/caro/issues/1463)):
+  `caro::prompts::IntentCategory` (closed set mirroring the template
+  categories, `FromStr`) and `TemplateLibrary::classify_intent`, a
+  deterministic keyword-coverage prior returned as a `Choice`.
+  `find_template` now ranks by word coverage (plural-insensitive, earlier
+  template wins ties) instead of a raw substring match. Not yet wired into
+  the model prompt; that waits on eval evidence.
+
+### Documentation
+
+- `docs/research/jev-system-one-gap-analysis.md` — what caro can learn from
+  Jev / System One models and what not to copy.
+- `docs/research/jev-of-execution-safety-strategy.md` — phased strategy for
+  caro as the calibrated, deterministic-floored decision layer for execution
+  safety (epic #1460 phases 1–5, docs/skills/rules impact).
+- [ADR-017](docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md) — Typed Decisions and Calibrated Confidence for Pipeline Gates
+  (Accepted).
+- `docs/PERFORMANCE.md` — new "Decision Latency & Calibration" section.
+
 ## [1.5.0] - 2026-07-12
 
 ### Added

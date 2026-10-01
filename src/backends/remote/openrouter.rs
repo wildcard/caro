@@ -63,6 +63,8 @@ struct ChatRequest {
     temperature: f32,
     max_tokens: u32,
     stream: bool,
+    /// Ask for per-token log-probs so confidence is measured, not constant (#1464).
+    logprobs: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -83,6 +85,35 @@ struct ChatChoice {
     message: ChatResponseMessage,
     #[allow(dead_code)]
     finish_reason: Option<String>,
+    #[serde(default)]
+    logprobs: Option<ChoiceLogprobs>,
+}
+
+/// OpenAI-compatible per-choice log-probabilities (`"logprobs": {"content": [...]}`).
+#[derive(Debug, Deserialize)]
+struct ChoiceLogprobs {
+    #[serde(default)]
+    content: Option<Vec<TokenLogprob>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct TokenLogprob {
+    /// Token text; absent in incomplete logprob metadata, which then yields
+    /// no measured confidence rather than an all-token fallback.
+    #[serde(default)]
+    token: Option<String>,
+    logprob: f64,
+}
+
+/// Per-token `(text, logprob)` pairs for one choice, `None` when the server
+/// omitted `logprobs` (#1464). Scored against the parsed command with
+/// [`crate::backends::command_token_confidence`].
+fn token_logprobs(logprobs: Option<&ChoiceLogprobs>) -> Option<Vec<(String, f64)>> {
+    let tokens = logprobs?.content.as_ref()?;
+    tokens
+        .iter()
+        .map(|t| t.token.clone().map(|text| (text, t.logprob)))
+        .collect()
 }
 
 #[derive(Debug, Deserialize)]
@@ -149,13 +180,20 @@ Rules:
 4. Target shell: {}
 5. NEVER generate destructive commands (rm -rf /, mkfs, dd, etc.)
 6. Keep commands simple and safe
-7. If the request is unclear, generate "echo 'Please clarify your request'"
+7. If the request is unclear, output ONLY: {{"needs_clarification": true, "p": <0.0-1.0>, "question": "<one short question>"}}
 "#,
             request.shell
         )
     }
 
     fn parse_command_response(&self, response: &str) -> Result<String, GeneratorError> {
+        // Typed clarification gate (#1462): never return a runnable command
+        // whose only purpose is to ask the user something.
+        if let Some(c) = crate::decision::clarification_from_raw(response) {
+            if c.should_ask() {
+                return Err(GeneratorError::from_clarification(&c));
+            }
+        }
         if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(response) {
             if let Some(cmd) = parsed.get("cmd").and_then(|v| v.as_str()) {
                 if !cmd.is_empty() {
@@ -196,7 +234,7 @@ Rules:
         &self,
         system_prompt: &str,
         user_input: &str,
-    ) -> Result<String, GeneratorError> {
+    ) -> Result<(String, Option<Vec<(String, f64)>>), GeneratorError> {
         let request = ChatRequest {
             model: self.config.model.clone(),
             messages: vec![
@@ -212,6 +250,7 @@ Rules:
             temperature: self.config.temperature,
             max_tokens: self.config.max_tokens,
             stream: false,
+            logprobs: true,
         };
 
         let url = format!("{}/chat/completions", self.config.endpoint);
@@ -261,7 +300,8 @@ Rules:
                 })?;
 
         if let Some(choice) = chat_response.choices.first() {
-            Ok(choice.message.content.clone())
+            let tokens = token_logprobs(choice.logprobs.as_ref());
+            Ok((choice.message.content.clone(), tokens))
         } else {
             Err(GeneratorError::ParseError {
                 content: "OpenRouter response contained no choices".to_string(),
@@ -277,8 +317,15 @@ Rules:
             .call_api(&self.create_system_prompt(request), &request.input)
             .await
         {
-            Ok(response) => match self.parse_command_response(&response) {
+            Ok((response, tokens)) => match self.parse_command_response(&response) {
                 Ok(command) => {
+                    let measured = tokens
+                        .as_deref()
+                        .and_then(|t| crate::backends::command_token_confidence(t, &command));
+                    let (confidence_score, confidence_source) = match measured {
+                        Some(c) => (c, crate::models::ConfidenceSource::Measured),
+                        None => (0.0, crate::models::ConfidenceSource::Unknown),
+                    };
                     return Ok(GeneratedCommand {
                         command,
                         explanation: "Generated using OpenRouter".to_string(),
@@ -287,9 +334,14 @@ Rules:
                         alternatives: vec![],
                         backend_used: format!("OpenRouter ({})", self.config.model),
                         generation_time_ms: 0,
-                        confidence_score: 0.85,
+                        confidence_score,
+                        confidence_source,
                     });
                 }
+                // A typed clarification decision is not a parse failure:
+                // surface the question instead of falling back to a
+                // command from another backend (#1462).
+                Err(err @ GeneratorError::NeedsClarification { .. }) => return Err(err),
                 Err(parse_error) => {
                     tracing::warn!("Failed to parse OpenRouter response: {}", parse_error);
                 }
@@ -448,5 +500,53 @@ mod tests {
         let info = backend.backend_info();
         assert_eq!(info.backend_type, BackendType::OpenRouter);
         assert_eq!(info.model_name, "qwen/qwen3-coder");
+    }
+}
+
+#[cfg(test)]
+mod confidence_tests {
+    use super::*;
+
+    #[test]
+    fn logprobs_yield_measured_confidence() {
+        let body = r#"{"choices":[{"message":{"role":"assistant","content":"{\"cmd\":\"ls\"}"},
+            "logprobs":{"content":[{"token":"a","logprob":-0.10536051565782628}]}}]}"#;
+        let parsed: ChatResponse = serde_json::from_str(body).unwrap();
+        let tokens = token_logprobs(parsed.choices[0].logprobs.as_ref()).unwrap();
+        let c = crate::backends::mean_logprob_confidence(
+            &tokens.iter().map(|(_, lp)| *lp).collect::<Vec<_>>(),
+        )
+        .unwrap();
+        assert!((c - 0.9).abs() < 1e-9);
+    }
+
+    #[test]
+    fn command_tokens_are_scored_not_the_wrapper() {
+        let half = 0.5_f64.ln();
+        let body = format!(
+            r#"{{"choices":[{{"message":{{"role":"assistant","content":"{{\"cmd\":\"ls\"}}"}},
+            "logprobs":{{"content":[{{"token":"{{\"cmd\":\"","logprob":0.0}},{{"token":"ls","logprob":{half}}},{{"token":"\"}}","logprob":0.0}}]}}}}]}}"#
+        );
+        let parsed: ChatResponse = serde_json::from_str(&body).unwrap();
+        let tokens = token_logprobs(parsed.choices[0].logprobs.as_ref()).unwrap();
+        let c = crate::backends::command_token_confidence(&tokens, "ls").unwrap();
+        assert!((c - 0.5).abs() < 1e-9, "{c}");
+    }
+
+    #[test]
+    fn missing_logprobs_yield_unknown() {
+        let body = r#"{"choices":[{"message":{"role":"assistant","content":"x"}}]}"#;
+        let parsed: ChatResponse = serde_json::from_str(body).unwrap();
+        assert_eq!(token_logprobs(parsed.choices[0].logprobs.as_ref()), None);
+    }
+
+    #[test]
+    fn missing_token_text_yields_unknown() {
+        // Incomplete logprob metadata (a token without text) must not become
+        // measured confidence through the all-token fallback.
+        let body = r#"{"choices":[{"message":{"role":"assistant","content":"{\"cmd\":\"ls\"}"},
+            "logprobs":{"content":[{"token":"{\"cmd","logprob":-0.1},{"logprob":-0.2}]}}]}"#;
+        let parsed: ChatResponse = serde_json::from_str(body).unwrap();
+        assert_eq!(token_logprobs(parsed.choices[0].logprobs.as_ref()), None);
     }
 }
