@@ -72,6 +72,13 @@ pub trait CommandGenerator: Send + Sync {
         None
     }
 
+    /// Whether [`classify_risk`](CommandGenerator::classify_risk) is
+    /// implemented. Lets callers (the eval harness, #1465) tell "cannot
+    /// judge" from "judged and failed", which both come back as `None`.
+    fn supports_risk_judge(&self) -> bool {
+        false
+    }
+
     /// Act as a "frontier advisor": review and improve a low-confidence draft.
     ///
     /// The default is a no-op (`None`): a backend opts out of advising, so a
@@ -147,9 +154,108 @@ pub enum GeneratorError {
 
     #[error("Validation failed: {reason}")]
     ValidationFailed { reason: String },
+
+    /// The backend decided (a `Noul` gate, see `crate::decision`) that the
+    /// request needs a clarifying question before a command can be generated.
+    /// Not a failure: the CLI renders `question` and exits cleanly.
+    #[error("Clarification needed: {}", question.as_deref().unwrap_or("please rephrase the request"))]
+    NeedsClarification {
+        question: Option<String>,
+        /// Probability the model assigned to "needs clarification".
+        p: f64,
+    },
+}
+
+impl GeneratorError {
+    /// Build a `NeedsClarification` from a typed decision.
+    pub fn from_clarification(c: &crate::decision::Clarification) -> Self {
+        Self::NeedsClarification {
+            question: c.question.clone(),
+            p: c.needed.p_yes,
+        }
+    }
 }
 
 // Types are already public, no re-export needed
 
 // Re-export static matcher
 pub use static_matcher::StaticMatcher;
+
+/// Turn per-token log-probabilities into a confidence in `0.0..=1.0`
+/// (ADR-017, #1464): the geometric-mean token probability, `exp(mean(logprob))`.
+///
+/// Non-finite entries are ignored; an empty (or all non-finite) slice yields
+/// `None` so the caller reports [`crate::models::ConfidenceSource::Unknown`]
+/// rather than a made-up number.
+pub fn mean_logprob_confidence(logprobs: &[f64]) -> Option<f64> {
+    let (sum, n) = logprobs
+        .iter()
+        .filter(|lp| lp.is_finite())
+        .fold((0.0_f64, 0usize), |(s, n), lp| (s + lp, n + 1));
+    (n > 0).then(|| (sum / n as f64).exp().clamp(0.0, 1.0))
+}
+
+/// Like [`mean_logprob_confidence`], restricted to the tokens that spell the
+/// generated `command` inside the full completion (#1464). The JSON wrapper
+/// tokens (`{"cmd": "`) are near-certain and would otherwise inflate the
+/// score. Falls back to all tokens when the command cannot be located in the
+/// concatenated token text (tokenisers that split mid-escape, for example).
+pub fn command_token_confidence(tokens: &[(String, f64)], command: &str) -> Option<f64> {
+    let text: String = tokens.iter().map(|(t, _)| t.as_str()).collect();
+    let selected: Vec<f64> = match text.find(command).filter(|_| !command.is_empty()) {
+        Some(start) => {
+            let end = start + command.len();
+            let mut offset = 0usize;
+            tokens
+                .iter()
+                .filter_map(|(t, lp)| {
+                    let (tok_start, tok_end) = (offset, offset + t.len());
+                    offset = tok_end;
+                    (tok_start < end && tok_end > start).then_some(*lp)
+                })
+                .collect()
+        }
+        None => tokens.iter().map(|(_, lp)| *lp).collect(),
+    };
+    mean_logprob_confidence(&selected)
+}
+
+#[cfg(test)]
+mod confidence_tests {
+    use super::{command_token_confidence, mean_logprob_confidence};
+
+    #[test]
+    fn command_token_confidence_ignores_json_wrapper() {
+        // Wrapper tokens are certain (logprob 0); the command tokens are 0.5 each.
+        let half = 0.5_f64.ln();
+        let tokens = vec![
+            ("{\"cmd\": \"".to_string(), 0.0),
+            ("ls".to_string(), half),
+            (" -la".to_string(), half),
+            ("\"}".to_string(), 0.0),
+        ];
+        let c = command_token_confidence(&tokens, "ls -la").unwrap();
+        assert!((c - 0.5).abs() < 1e-9, "{c}");
+        // Not found in the token text → fall back to every token.
+        let c = command_token_confidence(&tokens, "pwd").unwrap();
+        assert!(c > 0.5 && c < 1.0);
+        assert_eq!(command_token_confidence(&[], "ls"), None);
+    }
+
+    #[test]
+    fn mean_logprob_confidence_hand_values() {
+        let half = 0.5_f64.ln();
+        let c = mean_logprob_confidence(&[half, half]).unwrap();
+        assert!((c - 0.5).abs() < 1e-9);
+        // 0.9 and 0.1 average to the geometric mean 0.3.
+        let c = mean_logprob_confidence(&[0.9_f64.ln(), 0.1_f64.ln()]).unwrap();
+        assert!((c - 0.3).abs() < 1e-9);
+        assert_eq!(mean_logprob_confidence(&[]), None);
+        assert_eq!(
+            mean_logprob_confidence(&[f64::NAN, f64::NEG_INFINITY]),
+            None
+        );
+        // Positive log-probs (malformed) still clamp to 1.0 rather than exceed it.
+        assert_eq!(mean_logprob_confidence(&[0.5]), Some(1.0));
+    }
+}

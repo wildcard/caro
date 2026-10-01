@@ -43,6 +43,7 @@ impl CommandGenerator for MockBackend {
             backend_used: self.name.clone(),
             generation_time_ms: self.latency.as_millis() as u64,
             confidence_score: 0.95,
+            confidence_source: caro::models::ConfidenceSource::Measured,
         })
     }
 

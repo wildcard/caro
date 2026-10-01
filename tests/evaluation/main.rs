@@ -164,6 +164,10 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
         skip_unavailable: true,
         regression_threshold: 0.95, // 95% pass rate
         max_concurrency: 10,
+        judge_risk: matches!(
+            std::env::var("CARO_EVAL_JUDGE_RISK").as_deref(),
+            Ok("1" | "true")
+        ),
     };
 
     // Note: Backend filtering is not yet supported through HarnessConfig
@@ -347,6 +351,52 @@ fn output_table(
             );
         }
         println!("└─────────────────┴───────┴────────┴────────┴───────────┴────────┘");
+        println!();
+
+        // Calibration + tail latency (ADR-017). A backend that reports a
+        // constant confidence shows ECE == |constant - pass_rate|.
+        println!("┌───────────────────────────────────────────────────────────────────────────┐");
+        println!("│ Calibration & Latency Tail by Backend                                     │");
+        println!("├─────────────────┬────────┬────────┬─────────┬─────────┬────────┬──────────┤");
+        println!("│ Backend         │  Brier │    ECE │  p50 ms │  p95 ms │  cover │ source   │");
+        println!("├─────────────────┼────────┼────────┼─────────┼─────────┼────────┼──────────┤");
+        let mut backends: Vec<_> = report.backend_results.iter().collect();
+        backends.sort_by_key(|(name, _)| name.as_str());
+        for (backend_name, result) in backends {
+            let fmt_opt = |v: Option<f32>| {
+                v.map(|x| format!("{:.3}", x))
+                    .unwrap_or_else(|| "n/a".into())
+            };
+            // Dominant confidence provenance (#1464); "mixed" when no single
+            // source covers every generated result.
+            let source = match result.confidence_sources.iter().max_by_key(|(_, n)| **n) {
+                None => "n/a".to_string(),
+                Some((name, n)) if result.confidence_sources.values().sum::<u32>() == *n => {
+                    name.to_string().replace("self-reported", "self-rep")
+                }
+                Some(_) => "mixed".to_string(),
+            };
+            println!(
+                "│ {:15} │ {:>6} │ {:>6} │ {:>7} │ {:>7} │ {:>5.0}% │ {:8} │",
+                backend_name,
+                fmt_opt(result.brier),
+                fmt_opt(result.ece),
+                result.p50_execution_time_ms,
+                result.p95_execution_time_ms,
+                result.confidence_coverage * 100.0,
+                source,
+            );
+        }
+        println!("└─────────────────┴────────┴────────┴─────────┴─────────┴────────┴──────────┘");
+        // Risk-judge decision failures (#1465), only when the judge ran.
+        for (backend_name, result) in &report.backend_results {
+            if result.decision_parse_failures > 0 {
+                println!(
+                    "  {}: {} risk-judge verdict(s) failed to parse",
+                    backend_name, result.decision_parse_failures
+                );
+            }
+        }
         println!();
     }
 
