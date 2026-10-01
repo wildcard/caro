@@ -13,7 +13,7 @@ Reading order: most recent first.
 
 - `cargo build --release --features embedded-cpu` → **PASS** (2m 12s, no errors)
 - `caro --version` → **PASS**: `caro 1.5.0 (1ad0631 2026-09-30)`
-- `caro --help` → **PASS**: all subcommands listed (ai, suggest, assess, config, completion, skill, etc.)
+- `caro --help` → **PASS**: available subcommands listed (ai, suggest, config, completion, skill, etc.)
 - `caro doctor` → **PASS**: network reachable, proxy detected, no model downloaded (expected in fresh sandbox)
 - `caro -p 'list files in current directory' --dry-run` → **PASS**: static matcher returned `ls -la` (telemetry consent shown on first run; piped `y` to proceed; second invocation runs without consent prompt)
 
@@ -33,7 +33,7 @@ Surface chosen: **#10 `caro ai --once` scripted conversational mode** (oldest 'n
 - `caro ai --help` → **PASS**: `--once` flag documented; "Run one turn and return — no TTY REPL. The only mode supported today"
 - `caro ai --once "list files in current directory"` → **FAIL (P1)**: returns `Error: backend error: Clarification needed: What exactly should be deleted?` for every prompt
 - Root cause confirmed: `src/backends/embedded/cpu.rs:63` checks `prompt.contains("rm")` on the full system prompt, which always contains `rm -rf` as a negative example (line 218 of `embedded_backend.rs`). Every invocation fires the deletion-clarification branch.
-- `--backend` flag cannot be passed after the `ai` subcommand (clap parse error). Passing it before (`caro --backend static ai ...`) fails with "Unknown backend 'static'". No testable backend avoids this bug without a model download or remote service.
+- `--backend` flag cannot be passed after the `ai` subcommand (clap parse error). Passing it before is also rejected: `args_conflicts_with_subcommands = true` (src/main.rs:690) makes clap conflict `--backend` with `ai`, so backend resolution (and its "Unknown backend" error) is never reached. No testable backend avoids this bug without a model download or remote service.
 
 ### Findings
 
