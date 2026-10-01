@@ -13,7 +13,7 @@ export const colors = {
   prompt: "#4ec9b0",
   command: "#9cdcfe",
   success: "#22c55e",
-  danger: "#ef4444",
+  danger: "#dc2626",
   warning: "#f59e0b",
   textPrimary: "#e0e0e0",
   textMuted: "#a0a0a0",

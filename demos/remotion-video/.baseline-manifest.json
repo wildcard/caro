@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "comment": "Tripwire manifest for the caro-demo landing-page video. Each entry records the SHA-256 of a source file the video depends on at the moment of the last shipped render. scripts/check-drift.sh compares the working tree to this manifest. When drift is detected the skill at .claude/skills/caro-demo-video/SKILL.md takes over. DO NOT EDIT BY HAND — regenerate with `scripts/render-and-ship.sh` (it rewrites this file on a successful render).",
-  "rendered_at": "2026-10-01T12:11:21Z",
-  "rendered_commit": "1ad0631",
+  "rendered_at": "2026-10-01T12:28:00Z",
+  "rendered_commit": "fbd2d63",
   "caro_version_at_render": "1.5.0",
   "video_output": {
     "path": "website/public/caro-demo.mp4",
@@ -61,7 +61,7 @@
     {
       "path": "src/safety/patterns.rs",
       "sha256": "effc25e271803e776fa3af176b1cd18625b9bba0494a8e7d47adde7a893e38ff",
-      "purpose": "Safety pattern definitions. Pattern count drives the Scene 3 caption '52+ patterns'. Drift here may bump the claim text."
+      "purpose": "Safety pattern definitions. Pattern count drives the Scene 3 caption '67+ patterns'. Drift here may bump the claim text."
     },
     {
       "path": "homebrew-tap/README.md",
