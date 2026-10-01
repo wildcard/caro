@@ -761,7 +761,10 @@ impl StaticMatcher {
             PatternEntry {
                 required_keywords: vec!["list".to_string(), "files".to_string()],
                 optional_keywords: vec!["all".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)^(list|show).*(all)?.*(files?)\s*$").unwrap()),
+                // Optional trailing qualifier names only the current directory (#1181);
+                // any other location must not collapse to a bare `ls -la`.
+                // `[^/~]` keeps a named path's last component ("/var/log/files") from satisfying `files?`.
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show)[^/~]*\bfiles?(\s+((in\s+)?here|in\s+(the\s+)?(current|this)\s+(directory|dir|folder)))?\s*$").unwrap()),
                 gnu_command: "ls -la".to_string(),
                 bsd_command: Some("ls -la".to_string()),
                 description: "List files (simple)".to_string(),
@@ -2228,6 +2231,47 @@ mod tests {
         assert!(result.is_ok());
         let cmd = result.unwrap();
         assert_eq!(cmd.command, "ls -d .*", "Command should be 'ls -d .*'");
+    }
+
+    /// Issue #1181: Pattern 43 must accept a trailing current-directory qualifier
+    #[tokio::test]
+    async fn test_list_files_with_current_directory_qualifier() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        for query in [
+            "list files in current directory",
+            "list files in the current directory",
+            "list all files in this folder",
+            "show files here",
+            "list files in here",
+            "listing files in the current directory",
+        ] {
+            let request = CommandRequest::new(query, ShellType::Bash);
+            let cmd = matcher
+                .generate_command(&request)
+                .await
+                .unwrap_or_else(|e| panic!("{query:?} should match statically: {e}"));
+            assert_eq!(cmd.command, "ls -la", "{query:?}");
+        }
+
+        // Other locations must not collapse to a bare `ls -la`
+        let request = CommandRequest::new("list files in /var/log", ShellType::Bash);
+        let result = matcher.generate_command(&request).await;
+        assert!(
+            result.is_err(),
+            "/var/log must not be statically matched, got {:?}",
+            result.map(|c| c.command)
+        );
+
+        // A path whose last component is "files" must not satisfy Pattern 43
+        let request = CommandRequest::new("list files in /var/log/files", ShellType::Bash);
+        let result = matcher.generate_command(&request).await;
+        assert_ne!(
+            result.ok().map(|c| c.command).as_deref(),
+            Some("ls -la"),
+            "/var/log/files must not be dropped"
+        );
     }
 
     /// Issue #411: Test GNU platform generates GNU syntax (du --max-depth)
