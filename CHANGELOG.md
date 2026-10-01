@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Internal
+
+- New `Harness Lint` CI job (`scripts/check-harness.py`, stdlib Python) lints
+  the Claude Code harness: skill dirs without `SKILL.md`, read-only agents
+  without a `tools:` allowlist, rules missing from the constitution index,
+  unwired hooks, and dangling file references (errors in `CLAUDE.md` and
+  rules, ratcheted warnings elsewhere). Adapted from tigerless-labs/autoharness;
+  see ADR-017.
+- Fixed the harness drift it found: `devils-advocate` and `ponytail-reviewer`
+  now declare read-only tool allowlists, `design-dialogue-protocol.md` is
+  indexed in the constitution, `CLAUDE.md` no longer hardcodes a stale
+  version/MSRV, and docs no longer claim a push-blocking hook that does not
+  exist.
+
 ## [1.5.0] - 2026-07-12
 
 ### Added
