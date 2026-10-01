@@ -97,7 +97,7 @@ d="$(new_env stopped 'echo $$ > "$STUB_PID_FILE"; sleep 30')"
   RALPH_LOG_FILE="$d/ralph.log" RALPH_ITERATION_TIMEOUT=60s \
   "$LOOP" build >"$d/out.log" 2>&1) &
 loop_pid=$!
-for _ in $(seq 50); do [[ -s "$d/stub.pid" ]] && break; sleep 0.1; done
+for ((i = 0; i < 50; i++)); do [[ -s "$d/stub.pid" ]] && break; sleep 0.1; done
 stub_pid="$(cat "$d/stub.pid" 2>/dev/null)"
 kill -TERM "$loop_pid"
 sleep 2
