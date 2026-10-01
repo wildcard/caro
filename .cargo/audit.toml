@@ -134,6 +134,25 @@ ignore = [
     "RUSTSEC-2023-0071",
 
     # -------------------------------------------------------------------------
+    # TRANSITIVE — h2 0.3 via optional knowledge / chromadb features only
+    # -------------------------------------------------------------------------
+
+    # RUSTSEC-2026-0258: h2 unbounded empty DATA frames (DoS). Fixed only in
+    # h2 >= 0.4.16; the 0.3.x line has no patched release.
+    # Approved by maintainer 2026-10-01 (BW-001, #1488).
+    # The default and remote-backends builds no longer contain h2 0.3 since
+    # the reqwest 0.12 upgrade (#1488), and h2 0.4 is at 0.4.19 (patched).
+    # h2 0.3.27 remains in Cargo.lock ONLY via optional features:
+    #   - `chromadb`: chromadb 2.3.0 (latest) -> reqwest 0.11 -> hyper 0.14
+    #   - `knowledge`: lancedb 0.23 -> lance-io -> aws-config ->
+    #     aws-smithy-http-client 1.1 (pinned by lance-io)
+    # Check: `cargo tree -i h2@0.3.27` (default features) must print no match.
+    # Review by 2026-12-31. Revert: when lancedb is upgraded (0.39+) and the
+    # chromadb crate is replaced or drops reqwest 0.11.
+    # Tracked: https://github.com/wildcard/caro/issues/1472 (BW-001)
+    "RUSTSEC-2026-0258",
+
+    # -------------------------------------------------------------------------
     # TRANSITIVE — quick-xml via LanceDB stack (fix is semver-major upstream)
     # -------------------------------------------------------------------------
 
