@@ -2062,7 +2062,9 @@ fn build_knowledge_backend_config(
 // Configuration Commands
 // =============================================================================
 
-/// Keys accepted by `caro config set/get` (every key `config show` prints).
+/// Canonical keys for `caro config set/get` (every key `config show` prints),
+/// listed in the unknown-key error. The match arms also accept dash/underscore
+/// aliases; `tests/config_cli_keys.rs` exercises each key and alias.
 const CONFIG_KEYS: &str =
     "backend, model-name, shell, safety, telemetry.enabled, log_level, cache_max_size, log_rotation";
 
