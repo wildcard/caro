@@ -180,11 +180,25 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
 
     let mut harness = EvaluationHarness::new(filtered_dataset, config)?;
 
+    // Extra evaluated backends (#1466), opt-in because they need a live
+    // server. These are the ones with a risk judge, so this is also what
+    // makes `CARO_EVAL_JUDGE_RISK` and the consensus labels below produce
+    // anything: the static matcher has no judge.
+    //   CARO_EVAL_BACKENDS=ollama:<model>[@<url>],vllm:<model>@<url>
+    if let Ok(specs) = std::env::var("CARO_EVAL_BACKENDS") {
+        for spec in specs.split(',').map(str::trim).filter(|s| !s.is_empty()) {
+            match backend_from_spec(spec) {
+                Ok(backend) => harness.add_backend(spec.replace('@', " "), backend),
+                Err(e) => eprintln!("Warning: ignoring CARO_EVAL_BACKENDS entry {spec:?}: {e}"),
+            }
+        }
+    }
+
     // Reference labeller for consensus risk labels (#1466), opt-in because
     // it costs a model call per generated command:
     //   CARO_EVAL_REFERENCE_JUDGE=ollama:<model>[@<url>] | vllm:<model>@<url>
     if let Ok(spec) = std::env::var("CARO_EVAL_REFERENCE_JUDGE") {
-        match reference_judge_from_spec(&spec) {
+        match backend_from_spec(&spec) {
             Ok(judge) => harness.set_reference_judge(judge),
             Err(e) => eprintln!("Warning: ignoring CARO_EVAL_REFERENCE_JUDGE: {}", e),
         }
@@ -259,11 +273,10 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
 }
 
 /// Parse category string to enum
-/// Build the reference labeller named by `CARO_EVAL_REFERENCE_JUDGE` (#1466).
+/// Build a remote backend from `<kind>:<model>[@<url>]` (#1466), used for
+/// both `CARO_EVAL_BACKENDS` entries and `CARO_EVAL_REFERENCE_JUDGE`.
 #[cfg(feature = "remote-backends")]
-fn reference_judge_from_spec(
-    spec: &str,
-) -> Result<Arc<dyn caro::backends::CommandGenerator>, String> {
+fn backend_from_spec(spec: &str) -> Result<Arc<dyn caro::backends::CommandGenerator>, String> {
     use caro::backends::remote::{OllamaBackend, VllmBackend};
     let (kind, rest) = spec
         .split_once(':')
@@ -291,9 +304,7 @@ fn reference_judge_from_spec(
 }
 
 #[cfg(not(feature = "remote-backends"))]
-fn reference_judge_from_spec(
-    _spec: &str,
-) -> Result<Arc<dyn caro::backends::CommandGenerator>, String> {
+fn backend_from_spec(_spec: &str) -> Result<Arc<dyn caro::backends::CommandGenerator>, String> {
     Err("built without the remote-backends feature".to_string())
 }
 

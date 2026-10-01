@@ -37,7 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Consensus risk labels, Pareto view and ECE release gate** ([#1466](https://github.com/wildcard/caro/issues/1466)):
   the eval harness can take a reference labeller
   (`EvaluationHarness::set_reference_judge`, `CARO_EVAL_REFERENCE_JUDGE=ollama:<model>[@<url>]`
-  or `vllm:<model>@<url>`) whose risk verdict is stored next to the local one
+  or `vllm:<model>@<url>`; `CARO_EVAL_BACKENDS` registers judge-capable
+  backends to evaluate with the same syntax) whose risk verdict is stored next to the local one
   (`EvaluationResult.{local_risk,reference_risk}`), with per-backend
   `risk_agreement` and `risk_disagreements`. `BaselineStore::compare_with_ece`
   flags a backend whose ECE rose by more than `HarnessConfig::ece_regression_threshold`
