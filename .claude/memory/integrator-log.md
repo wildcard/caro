@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-09-29 (23:00 PT fire) — no-new-PR night; audit re-check + plugin-surface discovery
+
+- **Validated:** ✓ VERIFIED against published `caro 1.4.0` (`caro --version` → `caro 1.4.0 ( crates.io)`; crates.io newest still 1.4.0, 2026-05-09; tags only `v1.4.0`; two zero-asset `v1.5.0` drafts; `main` HEAD `be07b22b`, ~10 weeks idle).
+  - **Embedded (MLX)**: **PASS**. `caro --backend embedded --dry-run -p "list pdf files in current directory"` → command generated, "would execute successfully".
+  - **Ollama**: **PARTIAL, unchanged**. Still logs `WARN caro::cli: Remote backends not compiled in` and silently falls back to `ls -la`.
+  - **Claude API**: **FAIL, unchanged**. `--backend claude` → `Error: Invalid argument: Unknown backend 'claude'`, while `--backend-info` still advertises `static` + `claude`.
+  - **Security audit (#1471)**: `cargo audit` 0.22.0 run with the repo's `.cargo/audit.toml` ignore list. `main` lockfile → RUSTSEC-2026-0258 (h2 0.3.27 + 0.4.13) and RUSTSEC-2026-0285 (rustls 0.23.36). #1471's lockfile → only RUSTSEC-2026-0258 on h2 0.3.27. **No new advisory since 09-24**; #1471's "reduces 3→1, does not green the check" write-up is still exactly right.
+
+- **Shipped:** **no new PR**, per the 09-12 rule ("if none of #1338/#1348/#1432 merged, do not ship another"). None merged; #1471 has been added to the open pile since then. Extended this PR's branch (#1432) with the matrix re-dates and this entry instead of adding a fifth unmerged integrator PR.
+
+- **Filed:** [#1490](https://github.com/wildcard/caro/issues/1490) `integration: Claude Code plugin — marketplace.json shape + '/plugin install wildcard/caro' one-liner likely stale` (P2, `integration` + `nightly-discovery`). Dedup: `--search "plugin marketplace"` and `"caro-shell plugin"` over all states returned no match. Filed as an issue, not a PR, because the breakage is **? INFERRED**: `claude plugin validate` hung headless on an authorization timeout, so the manifest could not be tested end to end. That matches the claim-verification rule.
+
+- **Discovered:**
+  - Research (2 queries): Anthropic is rolling out one plugin discovery experience across Claude and Claude Code, with a directory submission portal. Plugins bundle skills and/or MCP servers. That is a natural distribution channel for `caro-shell` today and for `caro mcp serve` (#928) later, which makes #1490 worth more than its P2 label suggests once a release ships. Also noted: Claude Opus 5.5 (09-22) and GPT-6 for Codex shipped this month. Neither changes caro's integration surface; both stay covered by the OpenAI shim (#929) and the Claude backend (#1081) rows.
+  - **Log fragmentation across open integrator PRs:** each open branch carries a different fork of `integrator-log.md` and `integrations-status.md` (#1471's log tops out at 07-11, #1348's at 07-18, this branch's at 09-29). Whichever merges second will conflict on these two files. This is the same hazard as the memory note on integrator PR serialization. It is not fixable from inside one more PR; merge order should be #1432 first (it carries the full September record), then rebase the rest.
+  - Stale local worktrees from earlier passes (`/private/tmp/caro-integrator-20260909`, `-20260924`, `-20260925`) are all `prunable`. Not removed tonight: deleting them needs explicit user approval.
+
+- **Next pass should:** start with the same single fact, whether `v1.5.0` is tagged. If it is, re-validate all 7 `CLI_SERVABLE_BACKENDS` rows against the new binary and run #1490's interactive plugin check. If it isn't, and none of #1338/#1348/#1432/#1471 have merged, hold again: append one line here, and do not open a sixth PR.
+
+---
+
 ## 2026-09-12 (23:00 PT fire) — no-new-PR night; #1432's thesis measured over 9 days
 
 - **Validated:** ✓ VERIFIED against the published `caro 1.4.0` binary (`caro --version` → `caro 1.4.0 ( crates.io)`). Four rows re-smoke-tested, three of them the matrix's stalest:
