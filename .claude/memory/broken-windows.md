@@ -23,14 +23,15 @@ Rules (see `.claude/rules/good-boy-scout.md` → "Stay in your lane"):
 
 **Found:** 2026-09-24, PR #1470 session
 **Issue:** #1472 (reqwest 0.11→0.12 + wiremock 0.5→0.6); lockfile part is #1471
-**Status:** open. PR #1471 (lockfile bump of h2 0.4.x and rustls) is open;
-2026-09-30 main CI also reports RUSTSEC-2026-0285 (rustls 0.23.36 → >=0.23.45),
-which #1471 covers. Older duplicate report: #1446.
-**Needs human?:** yes. The only fixes are a manifest-major upgrade (#1472)
-or an `.cargo/audit.toml` suppression, and the suppression is a security-policy
-call that the auto-mode classifier refuses without explicit maintainer approval.
-**Next step:** maintainer picks between #1472 and a suppression. Until then
-every PR shows a red `Security Audit` / `cargo-audit`; that is not the PR's fault.
+**Status:** fixed (#1488, merged 2026-10-01). reqwest 0.12 / wiremock 0.6.4,
+h2 0.4.19, rustls 0.23.45; h2 0.3.27 is gone from default builds. Maintainer
+approved a scoped `.cargo/audit.toml` ignore for RUSTSEC-2026-0258 (h2 0.3 only
+via the optional `chromadb`/`knowledge` features), review by 2026-12-31.
+**Needs human?:** no (decided)
+**Next step:** close #1471, #1472 and #1446 as fixed by #1488. Follow-ups:
+upgrade lancedb 0.23 → 0.39 and replace the `chromadb` crate (then remove the
+ignore); migrate `deny.toml` off keys removed in cargo-deny (it fails to parse,
+and its CI step has `continue-on-error`).
 
 ### BW-002: CLAUDE.md version/MSRV drift, filed 40× (canonical + 39 duplicates)
 
