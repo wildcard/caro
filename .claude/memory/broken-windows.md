@@ -68,9 +68,9 @@ hardcoded `/Users/kobik-private` paths.
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1181 (dups #1274, #1362, #1396, #1399, #1412)
-**Status:** claimed-by sweep/2026-09-30-BW-005 (#1487)
+**Status:** fixed (#1487, merged 2026-10-01)
 **Needs human?:** no
-**Next step:** review and merge the sweep PR.
+**Next step:** close the #1181 row of "Dedup pending".
 
 ### BW-006: embedded CPU stub always returns `echo 'Please clarify your request'`
 
@@ -92,7 +92,7 @@ hardcoded `/Users/kobik-private` paths.
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1216 (dups #1286, #1330, #1380, #1457)
-**Status:** open
+**Status:** claimed-by sweep/2026-10-01-BW-009 (PR pending)
 **Needs human?:** no
 **Next step:** make get/set accept every key that show prints (log_level, cache_max_size, log_rotation, telemetry).
 
@@ -100,7 +100,7 @@ hardcoded `/Users/kobik-private` paths.
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1177 (dups #1292, #1332, #1403)
-**Status:** open
+**Status:** claimed-by sweep/2026-10-01-BW-009 (PR pending)
 **Needs human?:** no
 **Next step:** accept the key, or fix the consent text. Probably fixed together with BW-008.
 
@@ -160,6 +160,22 @@ hardcoded `/Users/kobik-private` paths.
 **Needs human?:** yes (release)
 **Next step:** maintainer decides whether to tag 1.5.0. This is also the root of the BW-002 churn.
 
+### BW-017: `pr-merged.yml` `add-contributor` job fails on every merge
+
+**Found:** 2026-10-01 sweep
+**Issue:** #1491 (action `all-contributors/add-contributor` not found)
+**Status:** open
+**Needs human?:** no (CI config). Pin a published action, or remove the job.
+**Next step:** confirm which all-contributors action and version the repo means to use.
+
+### BW-018: Claude Code plugin marketplace.json shape / install one-liner likely stale
+
+**Found:** 2026-10-01 sweep (nightly-discovery)
+**Issue:** #1490
+**Status:** open
+**Needs human?:** no
+**Next step:** check the current plugin marketplace schema and `/plugin install` syntax, then update the docs and marketplace.json.
+
 ---
 
 ## Dedup pending (2026-09-30)
@@ -170,11 +186,11 @@ permission, should close each one as a duplicate of its canonical issue.
 
 | Canonical | Duplicates |
 |---|---|
-| #1098 | #1214 #1215 #1271 #1283 #1288 #1319 #1335 #1359 #1366 #1368 #1372 #1376 #1383 #1385 #1388 #1391 #1395 #1397 #1398 #1401 #1405 #1407 #1411 #1414 #1416 #1420 #1425 #1426 #1427 #1431 #1434 #1442 #1444 #1450 #1456 #1469 #1474 #1476 #1483 |
+| #1098 | #1495 #1214 #1215 #1271 #1283 #1288 #1319 #1335 #1359 #1366 #1368 #1372 #1376 #1383 #1385 #1388 #1391 #1395 #1397 #1398 #1401 #1405 #1407 #1411 #1414 #1416 #1420 #1425 #1426 #1427 #1431 #1434 #1442 #1444 #1450 #1456 #1469 #1474 #1476 #1483 |
 | #1272 | #1290 #1295 #1384 #1393 #1404 #1418 #1449 #1455 #1458 #1468 #1484 |
-| #1269 | #1277 #1289 #1334 #1355 #1360 #1375 #1382 #1406 #1410 #1430 #1473 |
+| #1269 | #1494 #1277 #1289 #1334 #1355 #1360 #1375 #1382 #1406 #1410 #1430 #1473 |
 | #1281 | #1361 #1421 #1424 |
-| #1181 | #1274 #1362 #1396 #1399 #1412 |
+| #1181 (closed by #1487) | #1274 #1362 #1396 #1399 #1412 |
 | #1216 | #1286 #1330 #1380 #1457 |
 | #1177 | #1292 #1332 #1403 |
 | #1222 | #1252 #1413 |
