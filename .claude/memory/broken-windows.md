@@ -176,6 +176,14 @@ hardcoded `/Users/kobik-private` paths.
 **Needs human?:** no
 **Next step:** check the current plugin marketplace schema and `/plugin install` syntax, then update the docs and marketplace.json.
 
+### BW-019: Lint & Format red on every PR since Rust 1.99 clippy
+
+**Found:** 2026-10-01 (while driving #1497)
+**Issue:** #1498. Clippy 1.99 `double_must_use` (via `#[async_trait]`) and `redundant_field_names` (via `thiserror` `#[from] source`), 27 errors, none in changed code.
+**Status:** open
+**Needs human?:** yes (CI gate / lint policy). Options: pin the lint toolchain to 1.98.1, add a dated crate-level `allow`, or bump async-trait (syn 3; check MSRV).
+**Next step:** maintainer picks an option on #1498.
+
 ---
 
 ## Dedup pending (2026-09-30)
