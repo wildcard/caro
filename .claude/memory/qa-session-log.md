@@ -4,6 +4,52 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-01 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B (many PRs merged since last run 2026-05-07) + C (surface #10).
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 12s, no errors)
+- `caro --version` → **PASS**: `caro 1.5.0 (1ad0631 2026-09-30)`
+- `caro --help` → **PASS**: all subcommands listed (ai, suggest, assess, config, completion, skill, etc.)
+- `caro doctor` → **PASS**: network reachable, proxy detected, no model downloaded (expected in fresh sandbox)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: static matcher returned `ls -la` (telemetry consent shown on first run; piped `y` to proceed; second invocation runs without consent prompt)
+
+### Slot B — Recent diff
+
+PRs merged since 2026-05-07 (5+ months, ~50 PRs). Key surfaces smoke-tested:
+
+- **#1487** `fix(static-matcher): accept current-directory qualifier in Pattern 43` → `cargo test --lib -- test_list_files_with_current_directory_qualifier` **PASS**
+- **#1488** `fix(deps): upgrade reqwest 0.12 / h2 / rustls (RUSTSEC-2026-0258, -0285)` → Cargo.lock verified: h2 v0.4.19, rustls v0.23.45 — **noted** (security fix landed)
+- **#1459** `feat(decision): Jev gap analysis, clarification gates, constrained decoding` → new surface; flagged for future Slot C (see matrix)
+- **#1470** `fix: enforce declared limits (executor timeout, guard hooks, loop budgets)` → new surface; flagged for future Slot C
+
+### Slot C — `caro ai --once` (surface #10)
+
+Surface chosen: **#10 `caro ai --once` scripted conversational mode** (oldest 'never' tested).
+
+- `caro ai --help` → **PASS**: `--once` flag documented; "Run one turn and return — no TTY REPL. The only mode supported today"
+- `caro ai --once "list files in current directory"` → **FAIL (P1)**: returns `Error: backend error: Clarification needed: What exactly should be deleted?` for every prompt
+- Root cause confirmed: `src/backends/embedded/cpu.rs:63` checks `prompt.contains("rm")` on the full system prompt, which always contains `rm -rf` as a negative example (line 218 of `embedded_backend.rs`). Every invocation fires the deletion-clarification branch.
+- `--backend` flag cannot be passed after the `ai` subcommand (clap parse error). Passing it before (`caro --backend static ai ...`) fails with "Unknown backend 'static'". No testable backend avoids this bug without a model download or remote service.
+
+### Findings
+
+- [#1494](https://github.com/wildcard/caro/issues/1494) — `ai: caro ai --once always returns deletion-clarification with embedded-cpu backend` (P1)
+- [#1495](https://github.com/wildcard/caro/issues/1495) — `docs: CLAUDE.md version banner shows 1.4.0 (GA) instead of 1.5.0 (regression)` (P2)
+
+### Followups
+
+- FLAKE-001 (model download) not reproduced this pass: Slot A dry-run succeeded via static matcher; model download path not exercised.
+- #1044 (CLAUDE.md version drift, P2) is **closed** (2026-05-09) but has recurred at v1.5.0; filed as #1495.
+- Previous QA rotation PRs #1178, #1373, #1443, #1477 are still open/unmerged — memory updates are accumulating in open PRs. Consider squashing/closing stale rotation PRs.
+- Next Slot C candidate: surface #11 (`caro ai --continue-session` shell widget) — also never tested.
+- Consider testing surface #29 (`caro --safety strict/moderate/permissive` modes) given the new decision-module gates in #1459.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
