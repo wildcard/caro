@@ -52,7 +52,7 @@ Also incidentally found: CLAUDE.md version drift recurred (shows 1.4.0, actual 1
 
 ### Followups
 
-- FLAKE-001 (model download failure) did NOT reproduce this run: model downloaded successfully in a background invocation. Marking occurrence gap in known-flakes. Two prior occurrences needed for promotion to regression.
+- FLAKE-001 (model download failure) did NOT reproduce this run: model downloaded successfully in a background invocation. Marking occurrence gap in known-flakes. Two more observations within 7 days would be needed for promotion to regression (1 prior observation total; threshold is 3 in 7 days).
 - Slot C surface #10 is FAIL. Next Slot C candidate: surface #11 (`caro ai --continue-session`) or #12 (`caro assess`) — both "never" tested.
 - 25 merged PRs since last run (first API page only — pagination not applied). Actual merge count since 2026-05-07 may be higher; next Slot B should paginate all pages and note any coverage gap. Website i18n, brand, design-system surfaces not tested — recommend adding website surfaces #25–#31 to upcoming Slot C cycles.
 - Previous QA rotation PRs (#1178, #1373, #1443, #1477, #1496) are still open/unmerged — their session logs are not on main. This run's state is correctly based on main.
