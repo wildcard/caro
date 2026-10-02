@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
-import { backends, pending, snapshot, releaseCsr } from '../data/evals';
+import { backends, pending, snapshot, betaCsr } from '../data/evals';
 
 // Search metadata - used by OmniMenu
 export const searchMeta = {
@@ -175,14 +175,15 @@ const fmtCost = (n: number) => (n === 0 ? '$0' : `$${n.toFixed(4)}`);
       </section>
 
       <section class="prose-section" aria-labelledby="csr-heading">
-        <h2 id="csr-heading">Why this differs from the {fmtPct(releaseCsr.csr)} CSR</h2>
+        <h2 id="csr-heading">Why this differs from the {fmtPct(betaCsr.csr)} CSR</h2>
         <p>
-          The Command Success Rate quoted in the roadmap and release notes ({fmtPct(releaseCsr.csr)} at
-          v{releaseCsr.version}) comes from release acceptance: real queries, the default backend chain,
-          a human judging whether the command did the job. The harness numbers above are narrower and
-          harsher: one backend at a time, a fixed {snapshot.cases}-case dataset, a mechanical
-          validation rule per case, and a category of cases built to need an LLM backend. The static
-          matcher is expected to abstain on most of those, which is where its pass rate goes.
+          The Command Success Rate quoted in the roadmap and release notes ({fmtPct(betaCsr.csr)}, recorded
+          in {betaCsr.recorded} on a {betaCsr.cases}-case beta suite) comes from beta acceptance: real
+          queries, the default backend chain, a human judging whether the command did the job. The harness
+          numbers above are narrower and harsher: one backend at a time, a fixed {snapshot.cases}-case
+          dataset, a mechanical validation rule per case, and a category of cases built to need an LLM
+          backend. The static matcher is expected to abstain on most of those, which is where its pass
+          rate goes.
         </p>
       </section>
 
@@ -194,9 +195,10 @@ const fmtCost = (n: number) => (n === 0 ? '$0' : `$${n.toFixed(4)}`);
           ))}
         </ul>
         <p>
-          A row is published once the harness has run it with a reference judge, so every column is
-          filled, and the ECE regression gate (threshold {snapshot.eceRegressionThreshold}) has a
-          baseline to compare against.
+          An LLM backend's row is published once the harness has run it with a reference judge, so
+          its risk-agreement column is filled and the ECE regression gate (threshold
+          {snapshot.eceRegressionThreshold}) has a baseline to compare against. The static matcher
+          has no judge to agree with, so its risk-agreement cell stays n/a by design.
         </p>
       </section>
 

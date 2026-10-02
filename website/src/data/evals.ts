@@ -118,8 +118,9 @@ export const pending: PendingBackend[] = [
 ];
 
 /**
- * Release-level figure, separate from the harness: the Command Success Rate
- * recorded at v1.4.0 release acceptance (ROADMAP.md). It is quoted on the
- * page so readers can see why it differs from the harness pass rate.
+ * Headline figure quoted in ROADMAP.md and the blog, separate from the
+ * harness: the Command Success Rate on the 58-case beta suite recorded in
+ * January 2026 (ROADMAP.md, "Metrics to Track (During Beta)"). It is quoted
+ * on the page so readers can see why it differs from the harness pass rate.
  */
-export const releaseCsr = { version: '1.4.0', csr: 94.8 };
+export const betaCsr = { csr: 94.8, cases: 58, recorded: 'January 2026', source: 'ROADMAP.md' };

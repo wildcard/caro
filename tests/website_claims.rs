@@ -2290,6 +2290,7 @@ fn test_evals_001_snapshot_matches_dataset() {
     );
 
     let row = regex::Regex::new(r"category:\s*'(\w+)',[\s\S]*?total:\s*(\d+)").unwrap();
+    let mut published: std::collections::HashSet<String> = std::collections::HashSet::new();
     let mut checked = 0;
     for cap in row.captures_iter(&ts) {
         let category = &cap[1];
@@ -2305,9 +2306,21 @@ fn test_evals_001_snapshot_matches_dataset() {
             "{} says category `{}` has {} cases, {} has {}",
             ts_path, category, total, yaml_path, actual
         );
+        assert!(
+            published.insert(category.to_string()),
+            "{} publishes category `{}` more than once",
+            ts_path,
+            category
+        );
         checked += 1;
     }
-    assert!(checked > 0, "{} has no perCategory rows to check", ts_path);
+    let dataset_categories: std::collections::HashSet<String> =
+        per_category.keys().cloned().collect();
+    assert_eq!(
+        published, dataset_categories,
+        "{} must publish exactly the categories in {}",
+        ts_path, yaml_path
+    );
     println!(
         "PASSED: {} cases, {} category rows match the dataset",
         published_cases, checked
@@ -2328,22 +2341,34 @@ fn test_evals_002_published_numbers_are_well_formed() {
         return;
     };
 
-    // Each backend row lists these fields in this order; non-greedy matching keeps
-    // the capture inside one row.
-    let row = regex::Regex::new(
-        r"backend:\s*'([\w-]+)'[\s\S]*?passRate:\s*([\d.]+)[\s\S]*?passed:\s*(\d+)[\s\S]*?total:\s*(\d+)[\s\S]*?brier:\s*([\d.]+)[\s\S]*?ece:\s*([\d.]+)[\s\S]*?coverage:\s*(\d+)",
-    )
-    .unwrap();
+    // Split the `backends` array into one chunk per `{ backend: ... }` object so a
+    // field can never be borrowed from a neighbouring row.
+    let backends_block = ts
+        .split("export const backends")
+        .nth(1)
+        .and_then(|rest| rest.split("export const pending").next())
+        .unwrap_or_else(|| panic!("{} has no `backends` array", ts_path));
+    let field = |chunk: &str, name: &str| -> f64 {
+        let re = regex::Regex::new(&format!(r"\b{}:\s*(-?[\d.]+)\s*,", name)).unwrap();
+        let cap = re
+            .captures(chunk)
+            .unwrap_or_else(|| panic!("a backend row in {} is missing `{}`", ts_path, name));
+        cap[1]
+            .parse()
+            .unwrap_or_else(|_| panic!("`{}` in {} is not a number", name, ts_path))
+    };
 
     let mut rows = 0;
-    for cap in row.captures_iter(&ts) {
-        let backend = &cap[1];
-        let pass_rate: f64 = cap[2].parse().unwrap();
-        let passed: f64 = cap[3].parse().unwrap();
-        let total: f64 = cap[4].parse().unwrap();
-        let brier: f64 = cap[5].parse().unwrap();
-        let ece: f64 = cap[6].parse().unwrap();
-        let coverage: f64 = cap[7].parse().unwrap();
+    for chunk in backends_block.split("backend: '").skip(1) {
+        let backend = chunk.split('\'').next().unwrap_or("?");
+        // Cut the per-category rows off so their `passed`/`total` are not read as the backend's.
+        let row = chunk.split("perCategory").next().unwrap_or(chunk);
+        let pass_rate = field(row, "passRate");
+        let passed = field(row, "passed");
+        let total = field(row, "total");
+        let brier = field(row, "brier");
+        let ece = field(row, "ece");
+        let coverage = field(row, "coverage");
 
         assert!(
             total > 0.0 && passed <= total,

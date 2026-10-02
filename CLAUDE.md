@@ -116,7 +116,7 @@ skill: safety-pattern-developer
 
 ## Testing Standards
 
-- **94.8% Command Success Rate** at v1.4.0 release acceptance (per-backend harness numbers: `website/src/data/evals.ts`, published at caro.sh/evals)
+- **94.8% Command Success Rate** on the 58-case beta suite, January 2026 (ROADMAP.md); separate from the per-backend harness numbers in `website/src/data/evals.ts`, published at caro.sh/evals
 - **Zero false positives** in safety validation
 - **TDD methodology** for all safety-critical code
 - Run `cargo test` before any commit

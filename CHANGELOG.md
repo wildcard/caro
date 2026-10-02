@@ -13,12 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   renders `website/src/data/evals.ts`, a committed snapshot of the harness's
   "Pareto View by Backend" (pass rate, Brier, ECE, confidence coverage and
   source, p50/p95, cost per pass, risk agreement) with an "up and to the
-  left" chart and per-category rows. `tests/website_claims.rs` (EVALS-001,
-  EVALS-002) checks the snapshot against `tests/evaluation/dataset.yaml` so
-  the page cannot drift from the dataset. Reconciled the published accuracy
-  figure to the 94.8% CSR recorded at v1.4.0 (README and CLAUDE.md said
-  93.1%) and corrected the "zero telemetry" use-case copy to "off unless
-  you opt in".
+  left" chart and per-category rows. `tests/website_claims.rs` EVALS-001
+  checks the snapshot's case count and per-category totals against
+  `tests/evaluation/dataset.yaml` so the page cannot drift from the dataset;
+  EVALS-002 checks each published row is internally consistent (pass rate =
+  passed/total, Brier and ECE in [0, 1]). Reconciled the headline accuracy
+  figure to the 94.8% CSR on the 58-case beta suite that ROADMAP.md records
+  (README and CLAUDE.md quoted the older 93.1% v1.1.0 figure) and corrected
+  the "zero telemetry" use-case copy to "off unless you opt in".
 - **Calibration and tail-latency metrics in the evaluation harness.**
   `EvaluationResult` now records the backend's reported `confidence`, and
   every `BackendResult` carries `brier`, `ece`, `p50_execution_time_ms` and
