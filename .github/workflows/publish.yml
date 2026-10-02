@@ -68,8 +68,13 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
 
+      # Clippy only runs on Rust 1.98.1, the same pin as ci.yml Lint & Format:
+      # 1.99 clippy lints #[async_trait] / thiserror expansions (#1498). The
+      # build, tests and `cargo publish` stay on stable.
       - name: Run clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: |
+          rustup toolchain install 1.98.1 --profile minimal --component clippy
+          cargo +1.98.1 clippy --all-targets --all-features -- -D warnings
 
       - name: Run comprehensive tests
         run: |
