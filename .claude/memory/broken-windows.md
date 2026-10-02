@@ -60,7 +60,7 @@ hardcoded `/Users/kobik-private` paths.
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1272 (11 duplicates, see "Dedup pending")
-**Status:** claimed-by sweep/2026-10-02-BW-004 (stdin half, #1499). Two causes,
+**Status:** claimed-by sweep/2026-10-02-BW-004 (#1503; stdin half, #1499). Two causes,
 reproduced 2026-10-02: (1) `--once` read stdin even with a trailing prompt, so an
 open pipe (scripts, CI) blocked forever (#1499); (2) the first run silently
 downloads the ~1 GB default model, with no progress output (#1272, #1484).
