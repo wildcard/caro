@@ -8,15 +8,18 @@
 #
 # Usage:
 #   bin/routine-status record <routine> <phase> <reason> [--started <iso8601>]
-#                             [--pr <n>] [--issues <n,n,...>]
+#                             [--pr <n>] [--issues <n,n,...>] [--max-age-hours <n>]
 #   bin/routine-status show [--max-age-hours <n>] [--check]
 #
 # Phases: Succeeded | Failed | TimedOut | Blocked
 #   Blocked = preflight failed (no repo, no GitHub access, ...); nothing was done.
 #
 # `show` prints the latest record per routine. Rows that are not Succeeded, or
-# older than --max-age-hours (default 26), are marked with "!". With --check it
-# exits 1 if any row is marked.
+# overdue, are marked with "!". A routine is overdue when its latest record is
+# older than the --max-age-hours it recorded (its own cadence, e.g. 26 for a
+# daily routine, 170 for a weekly one), else the default from `show
+# --max-age-hours` (26). With --check it exits 1 if any row is marked, and it
+# exits 2 if the status branch can't be read.
 #
 # Environment:
 #   CARO_STATUS_REMOTE  git remote name or URL (default: origin)
@@ -45,14 +48,15 @@ remote_url() {
 now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 record() {
-  [[ $# -ge 3 ]] || die "usage: record <routine> <phase> <reason> [--started ts] [--pr n] [--issues n,n]"
-  local routine="$1" phase="$2" reason="$3" started="" pr="" issues=""
+  [[ $# -ge 3 ]] || die "usage: record <routine> <phase> <reason> [--started ts] [--pr n] [--issues n,n] [--max-age-hours n]"
+  local routine="$1" phase="$2" reason="$3" started="" pr="" issues="" max_age=""
   shift 3
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --started) started="${2:-}"; shift 2 ;;
       --pr) pr="${2:-}"; shift 2 ;;
       --issues) issues="${2:-}"; shift 2 ;;
+      --max-age-hours) max_age="${2:-}"; shift 2 ;;
       *) die "unknown option: $1" ;;
     esac
   done
@@ -63,17 +67,21 @@ record() {
   [[ -n "$routine" && -n "$reason" ]] || die "routine and reason must be non-empty"
   [[ -z "$pr" || "$pr" =~ ^[0-9]+$ ]] || die "--pr must be a number"
   [[ -z "$issues" || "$issues" =~ ^[0-9]+(,[0-9]+)*$ ]] || die "--issues must be n,n,..."
+  [[ -z "$max_age" || "$max_age" =~ ^[1-9][0-9]*$ ]] || die "--max-age-hours must be a positive number"
 
   local line
-  line="$(python3 - "$routine" "$phase" "$reason" "${started:-$(now)}" "$(now)" "$pr" "$issues" <<'PY'
+  line="$(python3 - "$routine" "$phase" "$reason" "${started:-$(now)}" "$(now)" "$pr" "$issues" "$max_age" <<'PY'
 import json, sys
-routine, phase, reason, started, finished, pr, issues = sys.argv[1:]
-print(json.dumps({
+routine, phase, reason, started, finished, pr, issues, max_age = sys.argv[1:]
+rec = {
     "routine": routine, "phase": phase, "reason": reason,
     "started": started, "finished": finished,
     "pr": int(pr) if pr else None,
     "issues": [int(i) for i in issues.split(",")] if issues else [],
-}, separators=(",", ":")))
+}
+if max_age:
+    rec["max_age_hours"] = int(max_age)
+print(json.dumps(rec, separators=(",", ":")))
 PY
 )"
 
@@ -115,13 +123,21 @@ show() {
   done
   [[ "$max_age" =~ ^[0-9]+$ ]] || die "--max-age-hours must be a number"
 
-  local tmp
-  WORK="$(mktemp -d)"
-  tmp="$WORK"
-  if ! git clone -q --depth 1 --single-branch --branch "$BRANCH" "$(remote_url)" "$tmp/wt" 2>/dev/null; then
+  local tmp url rc=0 err
+  url="$(remote_url)"
+  # Only a confirmed-missing branch means "no records". An unreachable remote
+  # or expired auth is an error, not an empty history.
+  err="$(git ls-remote --exit-code --heads "$url" "$BRANCH" 2>&1 >/dev/null)" || rc=$?
+  if [[ $rc -eq 2 ]]; then
     echo "no status records yet (branch $BRANCH not found)"
     return $((check))
+  elif [[ $rc -ne 0 ]]; then
+    die "cannot read status branch from $url: ${err:-git ls-remote exit $rc}"
   fi
+  WORK="$(mktemp -d)"
+  tmp="$WORK"
+  err="$(git clone -q --depth 1 --single-branch --branch "$BRANCH" "$url" "$tmp/wt" 2>&1)" ||
+    die "cannot read status branch from $url: $err"
   python3 - "$tmp/wt/$FILE" "$max_age" "$check" <<'PY'
 import json, sys
 from datetime import datetime, timezone
@@ -143,7 +159,7 @@ for name in sorted(latest):
     rec = latest[name]
     finished = datetime.fromisoformat(rec["finished"].replace("Z", "+00:00"))
     hours = (now - finished).total_seconds() / 3600
-    bad = rec["phase"] != "Succeeded" or hours > max_age
+    bad = rec["phase"] != "Succeeded" or hours > rec.get("max_age_hours", max_age)
     flagged += bad
     extra = f" (PR #{rec['pr']})" if rec.get("pr") else ""
     print(f"{'!' if bad else ' ':1} {name:32} {rec['phase']:10} {hours:5.1f}h  {rec['reason']}{extra}")

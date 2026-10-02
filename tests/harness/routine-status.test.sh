@@ -20,6 +20,7 @@ REMOTE="$TMP/remote.git"
 git init -q --bare "$REMOTE"
 git -C "$REMOTE" symbolic-ref HEAD refs/heads/main
 export CARO_STATUS_REMOTE="$REMOTE"
+export CARO_STATUS_BRANCH=automation/routine-status
 
 pass=0
 fail=0
@@ -59,6 +60,10 @@ for i in 1 2 3 4 5 6 7 8; do
 done
 wait
 check "8 concurrent records all land (got $(records) total)" test "$(records)" = 9
+landed() { git -C "$REMOTE" show automation/routine-status:runs.jsonl | grep -c "\"routine\":\"parallel-$1\""; }
+for i in 1 2 3 4 5 6 7 8; do
+  check "parallel-$i landed exactly once" test "$(landed "$i")" = 1
+done
 
 # A push that can't succeed reports git's own error and cleans up after itself.
 before="$(find "${TMPDIR:-/tmp}" -maxdepth 1 -name 'tmp.*' 2>/dev/null | wc -l)"
@@ -76,6 +81,31 @@ check "show --check fails when a routine is not Succeeded" fails "$TOOL" show --
 "$TOOL" record sweep Succeeded "fixed BW-005" --started 2020-01-01T00:00:00Z >/dev/null
 check "latest record per routine wins" bash -c "'$TOOL' show | grep -q '^  sweep .*Succeeded'"
 check "--max-age-hours 0 flags every routine as stale" fails "$TOOL" show --check --max-age-hours 0
+
+# Per-routine cadence: a weekly routine 3 days old is fine; a daily one is overdue.
+old_ts="$(python3 -c 'from datetime import datetime,timedelta,timezone; print((datetime.now(timezone.utc)-timedelta(hours=72)).strftime("%Y-%m-%dT%H:%M:%SZ"))')"
+python3 - "$REMOTE" "$old_ts" <<'PY'
+import json, subprocess, sys, tempfile, os
+remote, ts = sys.argv[1], sys.argv[2]
+d = tempfile.mkdtemp()
+subprocess.run(["git", "clone", "-q", "--branch", "automation/routine-status", remote, d], check=True)
+with open(os.path.join(d, "runs.jsonl"), "a") as f:
+    for name, age in (("weekly-job", 170), ("daily-job", 26)):
+        f.write(json.dumps({"routine": name, "phase": "Succeeded", "reason": "ok", "started": ts,
+                            "finished": ts, "pr": None, "issues": [], "max_age_hours": age}) + "\n")
+subprocess.run(["git", "-C", d, "commit", "-qam", "aged records"], check=True)
+subprocess.run(["git", "-C", d, "push", "-q", "origin", "HEAD:automation/routine-status"], check=True)
+PY
+check "a weekly routine 72h old is not overdue" bash -c "'$TOOL' show | grep -q '^  weekly-job '"
+check "a daily routine 72h old is overdue" bash -c "'$TOOL' show | grep -q '^! daily-job '"
+check "record stores --max-age-hours" bash -c \
+  "'$TOOL' record cadence-job Succeeded ok --max-age-hours 170 | grep -q '\"max_age_hours\":170'"
+check "non-positive --max-age-hours is refused" fails "$TOOL" record cadence-job Succeeded ok --max-age-hours 0
+
+# An unreachable remote is an error, never an empty history.
+check "show on an unreachable remote exits non-zero" fails env CARO_STATUS_REMOTE="$TMP/missing.git" "$TOOL" show
+check "show on an unreachable remote does not claim 'no records'" bash -c \
+  "! CARO_STATUS_REMOTE='$TMP/missing.git' '$TOOL' show 2>&1 | grep -q 'no status records yet'"
 
 echo "routine-status: $pass passed, $fail failed"
 [[ "$fail" == 0 ]]
