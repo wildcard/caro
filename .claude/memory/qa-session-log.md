@@ -25,6 +25,7 @@ PRs merged since 2026-05-07 (25 PRs from first API page only; pagination not app
 - **#1487** `fix(static-matcher): accept current-directory qualifier in Pattern 43`: validated by Slot A dry-run returning `ls -la` for "list files in current directory" — **PASS**
 - **#1459** `feat(decision): typed decisions, calibration, constrained decoding`: safety suite PASS (35/35); decision/calibration unit tests use `decision::` / `evaluation::calibration::` paths not captured by the `-- safety` filter — not separately verified this run
 - **#1488** `fix(deps): reqwest/h2/rustls security bumps`: build compiled clean — **PASS**; CVE assessment: explicit `cargo audit` not run in this QA session; relies on Security Audit CI job passing on #1488's merge CI
+- **#1470** `fix: enforce declared limits (executor timeout, guard hooks, loop budgets, eval CI)`: HEAD under test (1ad0631); not separately diffed — implicit coverage from Slot A smoke and Slot B build/test passes; executor-timeout change is potentially related to the Slot C P1 hang (#1499)
 - i18n, brand, docs, CI PRs: flagged for Slot C coverage matrix tracking (website surfaces #25–#31)
 
 ### Slot C — `caro ai --once` scripted conversational mode (surface #10)
