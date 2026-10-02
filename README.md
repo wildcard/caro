@@ -31,7 +31,7 @@ Have questions or want to discuss caro with other users? Join the community!
 
 **Current Version:** 1.5.0 (General Availability)
 
-This project is **generally available** with all core features implemented, tested, and working. The CLI achieves 93.1% pass rate on comprehensive test suite with zero false positives in safety validation.
+This project is **generally available** with all core features implemented, tested, and working. The CLI recorded a 94.8% Command Success Rate (CSR) at v1.4.0 release acceptance with zero false positives in safety validation; per-backend accuracy and calibration numbers are published at [caro.sh/evals](https://caro.sh/evals).
 
 > **Note:** The project was originally named `cmdai` but has been renamed to `caro`. See [Naming History](docs/NAMING_HISTORY.md) for details.
 

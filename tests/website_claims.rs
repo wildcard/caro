@@ -2210,3 +2210,178 @@ fn test_claims_summary() {
     println!("See ADR-010 and spec.md for full details.");
     println!("========================================");
 }
+
+// =============================================================================
+// EVALS PAGE CLAIMS TESTS
+// =============================================================================
+// Source: website/src/pages/evals.astro, rendered from website/src/data/evals.ts
+//
+// The evals page is a committed snapshot of the evaluation harness. These
+// tests pin the snapshot to the dataset it claims to describe so the page
+// cannot drift from `tests/evaluation/dataset.yaml`.
+
+fn read_first_existing(paths: &[&str]) -> Option<(String, String)> {
+    paths.iter().find_map(|p| {
+        std::fs::read_to_string(p)
+            .ok()
+            .map(|content| (p.to_string(), content))
+    })
+}
+
+fn evals_data_file() -> Option<(String, String)> {
+    read_first_existing(&[
+        "website/src/data/evals.ts",
+        "../website/src/data/evals.ts",
+        "../../website/src/data/evals.ts",
+    ])
+}
+
+fn eval_dataset_file() -> Option<(String, String)> {
+    read_first_existing(&[
+        "tests/evaluation/dataset.yaml",
+        "../tests/evaluation/dataset.yaml",
+        "../../tests/evaluation/dataset.yaml",
+    ])
+}
+
+/// Website Claim: "Snapshot ... N cases" and the per-category rows on /evals
+/// Source: https://caro.sh/evals
+/// Claim ID: EVALS-001
+#[test]
+fn test_evals_001_snapshot_matches_dataset() {
+    println!("=== EVALS-001 ===");
+    println!("Claim: the published case count and per-category totals match tests/evaluation/dataset.yaml");
+    println!("Source: https://caro.sh/evals");
+
+    let (Some((ts_path, ts)), Some((yaml_path, yaml))) = (evals_data_file(), eval_dataset_file())
+    else {
+        println!(
+            "SKIPPED: evals.ts or dataset.yaml not found from {:?}",
+            env::current_dir()
+        );
+        return;
+    };
+
+    let cases: Vec<serde_yaml::Value> = serde_yaml::from_str(&yaml)
+        .unwrap_or_else(|e| panic!("{} is not a case list: {}", yaml_path, e));
+    let mut per_category: std::collections::HashMap<String, usize> =
+        std::collections::HashMap::new();
+    for case in &cases {
+        let category = case["category"]
+            .as_str()
+            .unwrap_or_else(|| panic!("case without a category in {}", yaml_path))
+            .to_string();
+        *per_category.entry(category).or_default() += 1;
+    }
+
+    let published_cases: usize = regex::Regex::new(r"cases:\s*(\d+)")
+        .unwrap()
+        .captures(&ts)
+        .and_then(|c| c[1].parse().ok())
+        .unwrap_or_else(|| panic!("{} has no `cases: N` in its snapshot", ts_path));
+    assert_eq!(
+        published_cases,
+        cases.len(),
+        "{} publishes {} cases but {} has {}",
+        ts_path,
+        published_cases,
+        yaml_path,
+        cases.len()
+    );
+
+    let row = regex::Regex::new(r"category:\s*'(\w+)',[\s\S]*?total:\s*(\d+)").unwrap();
+    let mut checked = 0;
+    for cap in row.captures_iter(&ts) {
+        let category = &cap[1];
+        let total: usize = cap[2].parse().unwrap();
+        let actual = per_category.get(category).copied().unwrap_or_else(|| {
+            panic!(
+                "{} publishes category `{}` which {} does not contain",
+                ts_path, category, yaml_path
+            )
+        });
+        assert_eq!(
+            total, actual,
+            "{} says category `{}` has {} cases, {} has {}",
+            ts_path, category, total, yaml_path, actual
+        );
+        checked += 1;
+    }
+    assert!(checked > 0, "{} has no perCategory rows to check", ts_path);
+    println!(
+        "PASSED: {} cases, {} category rows match the dataset",
+        published_cases, checked
+    );
+}
+
+/// Website Claim: the Pareto table on /evals is internally consistent
+/// Source: https://caro.sh/evals
+/// Claim ID: EVALS-002
+#[test]
+fn test_evals_002_published_numbers_are_well_formed() {
+    println!("=== EVALS-002 ===");
+    println!("Claim: every published backend row has pass = passed/total and calibration scores in [0, 1]");
+    println!("Source: https://caro.sh/evals");
+
+    let Some((ts_path, ts)) = evals_data_file() else {
+        println!("SKIPPED: evals.ts not found from {:?}", env::current_dir());
+        return;
+    };
+
+    // Each backend row lists these fields in this order; non-greedy matching keeps
+    // the capture inside one row.
+    let row = regex::Regex::new(
+        r"backend:\s*'([\w-]+)'[\s\S]*?passRate:\s*([\d.]+)[\s\S]*?passed:\s*(\d+)[\s\S]*?total:\s*(\d+)[\s\S]*?brier:\s*([\d.]+)[\s\S]*?ece:\s*([\d.]+)[\s\S]*?coverage:\s*(\d+)",
+    )
+    .unwrap();
+
+    let mut rows = 0;
+    for cap in row.captures_iter(&ts) {
+        let backend = &cap[1];
+        let pass_rate: f64 = cap[2].parse().unwrap();
+        let passed: f64 = cap[3].parse().unwrap();
+        let total: f64 = cap[4].parse().unwrap();
+        let brier: f64 = cap[5].parse().unwrap();
+        let ece: f64 = cap[6].parse().unwrap();
+        let coverage: f64 = cap[7].parse().unwrap();
+
+        assert!(
+            total > 0.0 && passed <= total,
+            "{}: {} passed of {}",
+            backend,
+            passed,
+            total
+        );
+        let derived = passed / total * 100.0;
+        assert!(
+            (derived - pass_rate).abs() < 0.1,
+            "{}: passRate {} does not match {}/{} = {:.1}",
+            backend,
+            pass_rate,
+            passed,
+            total,
+            derived
+        );
+        assert!(
+            (0.0..=1.0).contains(&brier),
+            "{}: brier {} out of range",
+            backend,
+            brier
+        );
+        assert!(
+            (0.0..=1.0).contains(&ece),
+            "{}: ece {} out of range",
+            backend,
+            ece
+        );
+        assert!(
+            (0.0..=100.0).contains(&coverage),
+            "{}: coverage {} out of range",
+            backend,
+            coverage
+        );
+        rows += 1;
+    }
+    assert!(rows > 0, "{} publishes no backend rows", ts_path);
+    println!("PASSED: {} backend rows are well-formed", rows);
+}

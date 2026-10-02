@@ -1,0 +1,393 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+import { backends, pending, snapshot, releaseCsr } from '../data/evals';
+
+// Search metadata - used by OmniMenu
+export const searchMeta = {
+  title: 'Evals',
+  description: 'Published accuracy, calibration, latency and cost per backend',
+  keywords: ['evals', 'evaluation', 'benchmark', 'calibration', 'ECE', 'Brier', 'pass rate', 'pareto'],
+  icon: '📈',
+};
+
+// "Up and to the left": x = ECE (lower is better), y = pass rate (higher is better).
+const chart = { w: 560, h: 340, pad: { l: 56, r: 24, t: 24, b: 48 }, xMax: 0.5, yMax: 100 };
+const plotW = chart.w - chart.pad.l - chart.pad.r;
+const plotH = chart.h - chart.pad.t - chart.pad.b;
+const x = (ece: number) => chart.pad.l + (Math.min(ece, chart.xMax) / chart.xMax) * plotW;
+const y = (pass: number) => chart.pad.t + plotH - (pass / chart.yMax) * plotH;
+const xTicks = [0, 0.1, 0.2, 0.3, 0.4, 0.5];
+const yTicks = [0, 25, 50, 75, 100];
+
+const sourceLabel: Record<string, string> = {
+  measured: 'measured',
+  self_reported: 'self-reported',
+  constant: 'constant',
+  none: 'none',
+};
+const fmtPct = (n: number) => `${n.toFixed(1)}%`;
+const fmtCost = (n: number) => (n === 0 ? '$0' : `$${n.toFixed(4)}`);
+---
+
+<Layout
+  title="Evals - Caro"
+  description="Caro's published evaluation numbers: pass rate, Brier score, Expected Calibration Error, latency tail and cost per backend, straight from the evaluation harness."
+>
+  <Navigation />
+
+  <main class="evals-page">
+    <div class="container">
+      <header class="page-header">
+        <h1>Evals</h1>
+        <p class="subtitle">
+          What the evaluation harness measures, per backend, with the calibration columns most benchmarks leave out.
+        </p>
+        <p class="snapshot">
+          Snapshot from <code>main@{snapshot.commit}</code> on {snapshot.date},
+          {snapshot.cases} cases, produced by <code>{snapshot.command}</code>.
+        </p>
+      </header>
+
+      <section class="chart-section" aria-labelledby="chart-heading">
+        <h2 id="chart-heading">Up and to the left</h2>
+        <p>
+          Accuracy alone hides a backend that is confidently wrong. The chart plots pass rate against
+          Expected Calibration Error, so a backend only moves up and to the left when it gets more
+          cases right <em>and</em> its confidence tracks its outcomes.
+        </p>
+        <figure class="chart">
+          <svg viewBox={`0 0 ${chart.w} ${chart.h}`} role="img" aria-label="Pass rate versus Expected Calibration Error per backend">
+            <rect x={chart.pad.l} y={chart.pad.t} width={plotW / 2} height={plotH / 2} class="target-zone" />
+            <text x={chart.pad.l + 8} y={chart.pad.t + 16} class="zone-label">target: pass ≥ 50%, ECE ≤ 0.25</text>
+            {yTicks.map((t) => (
+              <g>
+                <line x1={chart.pad.l} x2={chart.w - chart.pad.r} y1={y(t)} y2={y(t)} class="grid" />
+                <text x={chart.pad.l - 8} y={y(t) + 4} class="tick" text-anchor="end">{t}%</text>
+              </g>
+            ))}
+            {xTicks.map((t) => (
+              <g>
+                <line x1={x(t)} x2={x(t)} y1={chart.pad.t} y2={chart.h - chart.pad.b} class="grid" />
+                <text x={x(t)} y={chart.h - chart.pad.b + 18} class="tick" text-anchor="middle">{t.toFixed(1)}</text>
+              </g>
+            ))}
+            <text x={chart.pad.l + plotW / 2} y={chart.h - 8} class="axis-label" text-anchor="middle">ECE (lower is better)</text>
+            <text x={14} y={chart.pad.t + plotH / 2} class="axis-label" text-anchor="middle" transform={`rotate(-90 14 ${chart.pad.t + plotH / 2})`}>pass rate (higher is better)</text>
+            {backends.map((b) => (
+              <g>
+                <circle cx={x(b.ece)} cy={y(b.passRate)} r="7" class="point" />
+                <text x={x(b.ece) + 12} y={y(b.passRate) + 4} class="point-label">{b.backend}</text>
+              </g>
+            ))}
+          </svg>
+          <figcaption>
+            One point per published backend. LLM backends are added once their consensus-label run has
+            filled the risk-agreement column, see <a href="#pending">what is not published yet</a>.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="table-section" aria-labelledby="pareto-heading">
+        <h2 id="pareto-heading">Pareto view by backend</h2>
+        <p>The same table the harness prints and the Monday demo report copies. Arrows mark the better direction.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Backend</th>
+                <th>pass ↑</th>
+                <th>Brier ↓</th>
+                <th>ECE ↓</th>
+                <th>coverage</th>
+                <th>source</th>
+                <th>p50 ms</th>
+                <th>p95 ms ↓</th>
+                <th>$/pass ↓</th>
+                <th>risk agreement ↑</th>
+              </tr>
+            </thead>
+            <tbody>
+              {backends.map((b) => (
+                <tr>
+                  <td><strong>{b.backend}</strong><span class="muted">{b.label}</span></td>
+                  <td>{fmtPct(b.passRate)}<span class="muted">{b.passed}/{b.total}</span></td>
+                  <td>{b.brier.toFixed(3)}</td>
+                  <td>{b.ece.toFixed(3)}</td>
+                  <td>{b.coverage}%</td>
+                  <td>{sourceLabel[b.source]}</td>
+                  <td>{b.p50Ms}</td>
+                  <td>{b.p95Ms}</td>
+                  <td>{fmtCost(b.costPerPass)}</td>
+                  <td>{b.riskAgreement === null ? 'n/a' : fmtPct(b.riskAgreement)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="table-section" aria-labelledby="category-heading">
+        <h2 id="category-heading">By category</h2>
+        {backends.map((b) => (
+          <div class="category-block">
+            <h3>{b.backend}</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Category</th><th>passed</th><th>pass rate</th><th>note</th></tr>
+                </thead>
+                <tbody>
+                  {b.perCategory.map((c) => (
+                    <tr>
+                      <td>{c.label}</td>
+                      <td>{c.passed}/{c.total}</td>
+                      <td>{fmtPct(c.passRate)}</td>
+                      <td class="muted">{c.note ?? ''}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section class="prose-section" aria-labelledby="read-heading">
+        <h2 id="read-heading">How to read the columns</h2>
+        <dl>
+          <dt>pass</dt>
+          <dd>Share of dataset cases whose generated command passed the case's validation rule.</dd>
+          <dt>Brier</dt>
+          <dd>Mean squared error between the backend's confidence and the pass/fail outcome, over cases that carried a confidence. 0 is perfect.</dd>
+          <dt>ECE</dt>
+          <dd>Expected Calibration Error: how far reported confidence sits from observed pass rate, averaged over confidence bins. A backend that always reports the same confidence has ECE equal to the gap between that constant and its pass rate.</dd>
+          <dt>coverage and source</dt>
+          <dd>How many cases carried a confidence, and where it came from. <em>measured</em> means token log-probs or keyword coverage, <em>self-reported</em> means the model was asked, <em>constant</em> means a hard-coded value. Calibration columns are only computed over covered cases.</dd>
+          <dt>p50 / p95</dt>
+          <dd>Generation latency per case in milliseconds. p95 is the tail users feel.</dd>
+          <dt>$/pass</dt>
+          <dd>Provider cost divided by passed cases. Local backends cost nothing per call.</dd>
+          <dt>risk agreement</dt>
+          <dd>How often the backend's risk verdict matched the reference labeller's. Agreement is not correctness, which is why it is a separate column.</dd>
+        </dl>
+      </section>
+
+      <section class="prose-section" aria-labelledby="csr-heading">
+        <h2 id="csr-heading">Why this differs from the {fmtPct(releaseCsr.csr)} CSR</h2>
+        <p>
+          The Command Success Rate quoted in the roadmap and release notes ({fmtPct(releaseCsr.csr)} at
+          v{releaseCsr.version}) comes from release acceptance: real queries, the default backend chain,
+          a human judging whether the command did the job. The harness numbers above are narrower and
+          harsher: one backend at a time, a fixed {snapshot.cases}-case dataset, a mechanical
+          validation rule per case, and a category of cases built to need an LLM backend. The static
+          matcher is expected to abstain on most of those, which is where its pass rate goes.
+        </p>
+      </section>
+
+      <section class="prose-section" id="pending" aria-labelledby="pending-heading">
+        <h2 id="pending-heading">Not published yet</h2>
+        <ul class="pending-list">
+          {pending.map((p) => (
+            <li><strong>{p.label}</strong> <span class="muted">({p.backend})</span>: {p.reason}</li>
+          ))}
+        </ul>
+        <p>
+          A row is published once the harness has run it with a reference judge, so every column is
+          filled, and the ECE regression gate (threshold {snapshot.eceRegressionThreshold}) has a
+          baseline to compare against.
+        </p>
+      </section>
+
+      <section class="prose-section" aria-labelledby="repro-heading">
+        <h2 id="repro-heading">Reproduce it</h2>
+        <pre><code>git clone https://github.com/wildcard/caro && cd caro
+{snapshot.command}</code></pre>
+        <p>
+          The dataset is <code>{snapshot.dataset}</code>, the harness is <code>{snapshot.harness}</code>,
+          and the numbers on this page live in <code>website/src/data/evals.ts</code>. The website-claims
+          test suite checks that file against the dataset on every pull request, so the page and the
+          harness cannot quietly disagree.
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .evals-page {
+    background: var(--bg);
+    color: var(--fg);
+    padding: var(--space-2xl) 0 var(--space-3xl);
+  }
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+  }
+  .page-header {
+    margin-bottom: var(--space-2xl);
+  }
+  .page-header h1 {
+    font-family: var(--font-display);
+    font-size: var(--font-size-3xl);
+    margin: 0 0 var(--space-sm);
+  }
+  .subtitle {
+    font-size: var(--font-size-lg);
+    color: var(--fg-muted);
+    margin: 0 0 var(--space-sm);
+  }
+  .snapshot {
+    color: var(--fg-subtle);
+    font-size: var(--font-size-sm);
+    margin: 0;
+  }
+  section {
+    margin-bottom: var(--space-2xl);
+  }
+  h2 {
+    font-family: var(--font-display);
+    font-size: var(--font-size-xl);
+    margin: 0 0 var(--space-sm);
+  }
+  h3 {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-md);
+    margin: var(--space-lg) 0 var(--space-xs);
+  }
+  p {
+    line-height: var(--line-height-relaxed);
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 0.3em;
+  }
+  pre {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    overflow-x: auto;
+  }
+  pre code {
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+  .chart {
+    margin: var(--space-md) 0 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-raised);
+    padding: var(--space-sm);
+  }
+  .chart svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .chart figcaption {
+    color: var(--fg-muted);
+    font-size: var(--font-size-sm);
+    padding: var(--space-sm) var(--space-xs) 0;
+  }
+  .target-zone {
+    fill: var(--status-safe);
+    fill-opacity: 0.08;
+  }
+  .zone-label,
+  .tick,
+  .axis-label {
+    fill: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .axis-label {
+    fill: var(--fg);
+  }
+  .grid {
+    stroke: var(--border);
+    stroke-width: 1;
+  }
+  .point {
+    fill: var(--accent);
+    stroke: var(--bg);
+    stroke-width: 2;
+  }
+  .point-label {
+    fill: var(--fg);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+  th,
+  td {
+    text-align: left;
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    vertical-align: top;
+  }
+  th {
+    background: var(--bg-subtle);
+    font-weight: var(--font-weight-semibold);
+  }
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  td .muted {
+    display: block;
+    font-size: var(--font-size-xs);
+  }
+  td.muted {
+    white-space: normal;
+    min-width: 16rem;
+  }
+  .muted {
+    color: var(--fg-muted);
+  }
+  dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--space-xs) var(--space-lg);
+  }
+  dt {
+    font-family: var(--font-mono);
+    font-weight: var(--font-weight-semibold);
+  }
+  dd {
+    margin: 0;
+    color: var(--fg-muted);
+  }
+  .pending-list {
+    padding-left: var(--space-lg);
+  }
+  .pending-list li {
+    margin-bottom: var(--space-xs);
+  }
+  @media (max-width: 640px) {
+    dl {
+      grid-template-columns: 1fr;
+    }
+    dt {
+      margin-top: var(--space-sm);
+    }
+  }
+</style>

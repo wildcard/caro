@@ -116,7 +116,7 @@ skill: safety-pattern-developer
 
 ## Testing Standards
 
-- **93.1% pass rate** on comprehensive test suite
+- **94.8% Command Success Rate** at v1.4.0 release acceptance (per-backend harness numbers: `website/src/data/evals.ts`, published at caro.sh/evals)
 - **Zero false positives** in safety validation
 - **TDD methodology** for all safety-critical code
 - Run `cargo test` before any commit

@@ -13,7 +13,7 @@ export const useCases = [
     icon: "\uD83D\uDD12",
     title: "Security-Conscious Engineer",
     problem: "You can't send your production server names and file paths to OpenAI.",
-    solution: "Caro runs 100% locally. Your commands, configs, and infrastructure details never leave your machine. Zero telemetry, auditable code.",
+    solution: "Caro runs 100% locally. Your commands, configs, and infrastructure details never leave your machine. Telemetry is off unless you opt in, and the code is auditable.",
     example: {
       input: "search logs for failed auth from IP 192.168.1.100",
       output: "grep -r 'failed.*auth.*192\.168\.1\.100' /var/log/"
