@@ -21,12 +21,16 @@
 # Environment:
 #   CARO_STATUS_REMOTE  git remote name or URL (default: origin)
 #   CARO_STATUS_BRANCH  status branch (default: automation/routine-status)
+#   CARO_STATUS_ATTEMPTS  push attempts before giving up (default: 10)
 
 set -euo pipefail
 
 REMOTE="${CARO_STATUS_REMOTE:-origin}"
 BRANCH="${CARO_STATUS_BRANCH:-automation/routine-status}"
 FILE="runs.jsonl"
+
+WORK=""
+trap '[[ -n "$WORK" ]] && rm -rf "$WORK"' EXIT
 
 die() { echo "routine-status: $*" >&2; exit 2; }
 
@@ -73,12 +77,13 @@ print(json.dumps({
 PY
 )"
 
-  local url tmp attempt
+  local url tmp attempt err="" attempts="${CARO_STATUS_ATTEMPTS:-10}"
   url="$(remote_url)"
-  tmp="$(mktemp -d)"
-  trap 'rm -rf "$tmp"' RETURN
-  # Concurrent writers: a rejected push re-clones and re-appends.
-  for attempt in 1 2 3 4 5; do
+  WORK="$(mktemp -d)"
+  tmp="$WORK"
+  # Concurrent writers: a rejected push re-clones and re-appends. The backoff
+  # is randomized so simultaneous writers don't keep colliding in lockstep.
+  for ((attempt = 1; attempt <= attempts; attempt++)); do
     rm -rf "$tmp/wt"
     if ! git clone -q --depth 1 --single-branch --branch "$BRANCH" "$url" "$tmp/wt" 2>/dev/null; then
       git init -q "$tmp/wt"
@@ -90,13 +95,13 @@ PY
     git -C "$tmp/wt" config user.email >/dev/null || git -C "$tmp/wt" config user.email "routine@caro.invalid"
     git -C "$tmp/wt" config user.name >/dev/null || git -C "$tmp/wt" config user.name "caro routine"
     git -C "$tmp/wt" commit -q -m "status: $routine $phase"
-    if git -C "$tmp/wt" push -q origin "HEAD:refs/heads/$BRANCH" 2>/dev/null; then
+    if err="$(git -C "$tmp/wt" push -q origin "HEAD:refs/heads/$BRANCH" 2>&1)"; then
       printf '%s\n' "$line"
       return 0
     fi
-    sleep "$attempt"
+    sleep "$((RANDOM % (attempt + 1))).$((RANDOM % 10))"
   done
-  die "could not push status record after 5 attempts"
+  die "could not push status record after $attempts attempts. Last error: ${err:-none}"
 }
 
 show() {
@@ -111,8 +116,8 @@ show() {
   [[ "$max_age" =~ ^[0-9]+$ ]] || die "--max-age-hours must be a number"
 
   local tmp
-  tmp="$(mktemp -d)"
-  trap 'rm -rf "$tmp"' RETURN
+  WORK="$(mktemp -d)"
+  tmp="$WORK"
   if ! git clone -q --depth 1 --single-branch --branch "$BRANCH" "$(remote_url)" "$tmp/wt" 2>/dev/null; then
     echo "no status records yet (branch $BRANCH not found)"
     return $((check))

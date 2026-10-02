@@ -52,12 +52,21 @@ check "non-numeric --pr is refused" fails "$TOOL" record qa-routine Failed "x" -
 check "writing to main is refused" fails env CARO_STATUS_BRANCH=main "$TOOL" record qa-routine Failed "x"
 check "refused records were not written" test "$(records)" = 1
 
-# Concurrent writers: every record must land (push conflicts retry).
-for i in 1 2 3 4; do
+# Concurrent writers: every record must land (push conflicts retry with a
+# randomized backoff; a fixed delay let only one writer through per round).
+for i in 1 2 3 4 5 6 7 8; do
   "$TOOL" record "parallel-$i" Succeeded "run $i" >/dev/null &
 done
 wait
-check "4 concurrent records all land (got $(records) total)" test "$(records)" = 5
+check "8 concurrent records all land (got $(records) total)" test "$(records)" = 9
+
+# A push that can't succeed reports git's own error and cleans up after itself.
+before="$(find "${TMPDIR:-/tmp}" -maxdepth 1 -name 'tmp.*' 2>/dev/null | wc -l)"
+err="$(CARO_STATUS_ATTEMPTS=2 CARO_STATUS_REMOTE="$TMP/missing.git" "$TOOL" record qa-routine Failed "x" 2>&1)"
+check "an unpushable record fails" test -n "$err"
+check "the failure names the git error" bash -c "grep -q 'Last error: .*missing.git' <<<\"\$1\"" _ "$err"
+after="$(find "${TMPDIR:-/tmp}" -maxdepth 1 -name 'tmp.*' 2>/dev/null | wc -l)"
+check "a failed record leaves no temp clone behind" test "$after" -le "$before"
 
 check "show --check passes when all latest runs succeeded" "$TOOL" show --check
 "$TOOL" record sweep Blocked "no GitHub tools in session" >/dev/null
