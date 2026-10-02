@@ -1077,8 +1077,10 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     use std::str::FromStr;
     use std::sync::Arc;
 
-    // Resolve prompt (flag > stdin > trailing).
-    let stdin_text = if is_stdin_available() {
+    // Resolve prompt (flag > stdin > trailing). Only read stdin when no prompt
+    // was given as -p or trailing words: in scripts and CI stdin is a pipe that
+    // may never reach EOF, so reading it would hang `--once` forever (#1499).
+    let stdin_text = if cli.prompt.is_none() && trailing.is_empty() && is_stdin_available() {
         read_stdin().ok().filter(|s| !s.is_empty())
     } else {
         None

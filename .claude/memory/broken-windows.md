@@ -60,9 +60,13 @@ hardcoded `/Users/kobik-private` paths.
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1272 (11 duplicates, see "Dedup pending")
-**Status:** open. PR #1415 (init status feedback) may cover part of it.
+**Status:** claimed-by sweep/2026-10-02-BW-004 (stdin half, #1499). Two causes,
+reproduced 2026-10-02: (1) `--once` read stdin even with a trailing prompt, so an
+open pipe (scripts, CI) blocked forever (#1499); (2) the first run silently
+downloads the ~1 GB default model, with no progress output (#1272, #1484).
 **Needs human?:** no
-**Next step:** check #1415; else add a timeout plus a clear error.
+**Next step:** after the stdin fix merges, close #1499. Cause (2) is covered by
+open PR #1415 (prints "Initializing backend…"); merge or refresh it, then close #1272.
 
 ### BW-005: static matcher Pattern 43 drops "list files in current directory"
 
