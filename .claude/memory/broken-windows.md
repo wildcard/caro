@@ -33,10 +33,10 @@ upgrade lancedb 0.23 → 0.39 and replace the `chromadb` crate (then remove the
 ignore); migrate `deny.toml` off keys removed in cargo-deny (it fails to parse,
 and its CI step has `continue-on-error`).
 
-### BW-002: CLAUDE.md version/MSRV drift, filed 41× (canonical + 40 duplicates)
+### BW-002: CLAUDE.md version/MSRV drift, filed 42× (canonical + 41 duplicates)
 
 **Found:** 2026-09-27, PR #1470 session
-**Issue:** canonical #1098 (oldest open); 40 duplicates, see "Dedup pending" below
+**Issue:** canonical #1098 (oldest open); 41 duplicates, see "Dedup pending" below
 **Status:** claimed-by integrator/20260903 (#1432). #1478 carries an overlapping
 fix; both are open and unmerged.
 **Needs human?:** no
@@ -75,7 +75,7 @@ hardcoded `/Users/kobik-private` paths.
 ### BW-006: embedded CPU stub always returns `echo 'Please clarify your request'`
 
 **Found:** 2026-09-30 sweep dedup
-**Issue:** #1269 (12 duplicates). Root cause: the stub keyword-matches "rm" in the system prompt (`src/backends/embedded/cpu.rs`).
+**Issue:** #1269 (13 duplicates). Root cause: the stub keyword-matches "rm" in the system prompt (`src/backends/embedded/cpu.rs`).
 **Status:** open
 **Needs human?:** yes. Product call: fail with a clear error on the CPU variant, or fall back to the static matcher. Epic #1460 / #1462 also touch this path.
 **Next step:** maintainer picks the behaviour.
@@ -194,9 +194,9 @@ permission, should close each one as a duplicate of its canonical issue.
 
 | Canonical | Duplicates |
 |---|---|
-| #1098 | #1495 #1214 #1215 #1271 #1283 #1288 #1319 #1335 #1359 #1366 #1368 #1372 #1376 #1383 #1385 #1388 #1391 #1395 #1397 #1398 #1401 #1405 #1407 #1411 #1414 #1416 #1420 #1425 #1426 #1427 #1431 #1434 #1442 #1444 #1450 #1456 #1469 #1474 #1476 #1483 |
+| #1098 | #1501 #1495 #1214 #1215 #1271 #1283 #1288 #1319 #1335 #1359 #1366 #1368 #1372 #1376 #1383 #1385 #1388 #1391 #1395 #1397 #1398 #1401 #1405 #1407 #1411 #1414 #1416 #1420 #1425 #1426 #1427 #1431 #1434 #1442 #1444 #1450 #1456 #1469 #1474 #1476 #1483 |
 | #1272 | #1290 #1295 #1384 #1393 #1404 #1418 #1449 #1455 #1458 #1468 #1484 |
-| #1269 | #1494 #1277 #1289 #1334 #1355 #1360 #1375 #1382 #1406 #1410 #1430 #1473 |
+| #1269 | #1500 #1494 #1277 #1289 #1334 #1355 #1360 #1375 #1382 #1406 #1410 #1430 #1473 |
 | #1281 | #1361 #1421 #1424 |
 | #1181 (closed by #1487) | #1274 #1362 #1396 #1399 #1412 |
 | #1216 | #1286 #1330 #1380 #1457 |
