@@ -65,8 +65,10 @@ reproduced 2026-10-02: (1) `--once` read stdin even with a trailing prompt, so a
 open pipe (scripts, CI) blocked forever (#1499); (2) the first run silently
 downloads the ~1 GB default model, with no progress output (#1272, #1484).
 **Needs human?:** no
-**Next step:** after the stdin fix merges, close #1499. Cause (2) is covered by
-open PR #1415 (prints "Initializing backend…"); merge or refresh it, then close #1272.
+**Next step:** after the stdin fix merges, close #1499. Cause (2) is still open:
+PR #1415 only prints a one-time "Initializing backend…" line, not download
+progress. Keep #1272 open until first-run download progress (or a clear
+"downloading model" message) lands; #1415 is a partial step.
 
 ### BW-005: static matcher Pattern 43 drops "list files in current directory"
 
