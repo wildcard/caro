@@ -1,6 +1,11 @@
 //! Regression guard for #1499: `caro ai --once "<prompt>"` must not block on
 //! stdin when the prompt is already given as trailing words, even if stdin is
 //! a pipe that never reaches EOF (scripts, CI, subprocess calls).
+//!
+//! Unix-only: on Windows `dirs::config_dir()` resolves the roaming AppData
+//! folder via the known-folder API, ignoring env vars, so the test would
+//! rewrite the runner's real config.
+#![cfg(unix)]
 
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
