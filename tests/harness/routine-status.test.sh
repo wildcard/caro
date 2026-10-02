@@ -85,10 +85,9 @@ check "--max-age-hours 0 flags every routine as stale" fails "$TOOL" show --chec
 
 # Per-routine cadence: a weekly routine 3 days old is fine; a daily one is overdue.
 old_ts="$(python3 -c 'from datetime import datetime,timedelta,timezone; print((datetime.now(timezone.utc)-timedelta(hours=72)).strftime("%Y-%m-%dT%H:%M:%SZ"))')"
-python3 - "$REMOTE" "$old_ts" <<'PY'
-import json, subprocess, sys, tempfile, os
-remote, ts = sys.argv[1], sys.argv[2]
-d = tempfile.mkdtemp()
+python3 - "$REMOTE" "$old_ts" "$TMP/aged-clone" <<'PY'
+import json, subprocess, sys, os
+remote, ts, d = sys.argv[1], sys.argv[2], sys.argv[3]
 subprocess.run(["git", "clone", "-q", "--branch", "automation/routine-status", remote, d], check=True)
 with open(os.path.join(d, "runs.jsonl"), "a") as f:
     for name, age in (("weekly-job", 170), ("daily-job", 26)):
