@@ -20,11 +20,11 @@ Reading order: most recent first.
 
 ### Slot B — Recent diff
 
-PRs merged since 2026-05-07 (25 total on first page; significant ones tested):
+PRs merged since 2026-05-07 (25 PRs from first API page only; pagination not applied — future Slot B passes should fetch all pages to avoid missing older merges):
 - **#1315** `fix(safety): P0 — close quote/escape evasion`: `cargo test --lib -- safety` → **PASS** (35/35 tests; 16 new tests since bootstrap including smart_blend_tests, allowlist_catastrophic_tests)
 - **#1487** `fix(static-matcher): accept current-directory qualifier in Pattern 43`: validated by Slot A dry-run returning `ls -la` for "list files in current directory" — **PASS**
-- **#1459** `feat(decision): typed decisions, calibration, constrained decoding`: decision unit tests included in the 35 safety tests — **PASS**
-- **#1488** `fix(deps): reqwest/h2/rustls security bumps`: build compiled clean, no CVE regressions surfaced — **PASS**
+- **#1459** `feat(decision): typed decisions, calibration, constrained decoding`: safety suite PASS (35/35); decision/calibration unit tests use `decision::` / `evaluation::calibration::` paths not captured by the `-- safety` filter — not separately verified this run
+- **#1488** `fix(deps): reqwest/h2/rustls security bumps`: build compiled clean — **PASS**; CVE assessment: explicit `cargo audit` not run in this QA session; relies on Security Audit CI job passing on #1488's merge CI
 - i18n, brand, docs, CI PRs: flagged for Slot C coverage matrix tracking (website surfaces #25–#31)
 
 ### Slot C — `caro ai --once` scripted conversational mode (surface #10)
@@ -54,7 +54,7 @@ Also incidentally found: CLAUDE.md version drift recurred (shows 1.4.0, actual 1
 
 - FLAKE-001 (model download failure) did NOT reproduce this run: model downloaded successfully in a background invocation. Marking occurrence gap in known-flakes. Two prior occurrences needed for promotion to regression.
 - Slot C surface #10 is FAIL. Next Slot C candidate: surface #11 (`caro ai --continue-session`) or #12 (`caro assess`) — both "never" tested.
-- 25 merged PRs since last run — website i18n, brand, Codex pet integration, design-system surfaces not tested. Recommend adding website surfaces #25–#31 to upcoming Slot C cycles.
+- 25 merged PRs since last run (first API page only — pagination not applied). Actual merge count since 2026-05-07 may be higher; next Slot B should paginate all pages and note any coverage gap. Website i18n, brand, design-system surfaces not tested — recommend adding website surfaces #25–#31 to upcoming Slot C cycles.
 - Previous QA rotation PRs (#1178, #1373, #1443, #1477, #1496) are still open/unmerged — their session logs are not on main. This run's state is correctly based on main.
 
 ---
