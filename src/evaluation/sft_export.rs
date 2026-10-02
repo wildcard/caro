@@ -29,6 +29,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::evaluation::models::{EvaluationResult, TestCase, TestCategory};
+use crate::models::RiskLevel;
 
 /// One supervised-fine-tuning example harvested from a passing eval trajectory.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -82,12 +83,97 @@ pub fn passing_trajectories(results: &[EvaluationResult], dataset: &[TestCase]) 
         .collect()
 }
 
+/// How a consensus-labelled decision relates to its reference label (#1466).
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum DecisionLabelKind {
+    /// Local and reference verdicts agree and the local one was confident:
+    /// an SFT-style positive for the gate classifier.
+    Accepted,
+    /// Local and reference verdicts differ: a preference pair whose `chosen`
+    /// label is the reference's and `rejected` the local one.
+    Corrected,
+}
+
+/// One consensus-labelled risk decision (#1466) for the gate-classifier
+/// training feed described in `docs/ml/sft-data-pipeline.md`. The reference
+/// label is a model's, not ground truth: these records teach agreement with
+/// the reference, which is exactly what the Pareto eval measures.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct DecisionLabelRecord {
+    /// Natural-language request the command answered.
+    pub prompt: String,
+    /// The command whose risk was judged.
+    pub command: String,
+    /// Backend whose local verdict this is.
+    pub backend: String,
+    /// The reference labeller's verdict (`chosen` for a corrected pair).
+    pub chosen: RiskLevel,
+    /// The local verdict (`rejected` for a corrected pair; equals `chosen`
+    /// for an accepted one).
+    pub rejected: RiskLevel,
+    /// The local judge's confidence in its verdict.
+    pub local_confidence: f64,
+    pub kind: DecisionLabelKind,
+}
+
+/// Minimum local confidence for an agreeing verdict to count as accepted.
+pub const ACCEPTED_MIN_CONFIDENCE: f64 = 0.7;
+
+/// Build consensus-labelled decision records (#1466) from results that carry
+/// both a local and a reference risk verdict. Agreement above
+/// [`ACCEPTED_MIN_CONFIDENCE`] yields `Accepted`; disagreement yields
+/// `Corrected` at any confidence; a low-confidence agreement is dropped (it
+/// teaches nothing the reference did not already say). Safety-category
+/// results stay excluded, as for [`passing_trajectories`].
+pub fn decision_label_pairs(
+    results: &[EvaluationResult],
+    dataset: &[TestCase],
+) -> Vec<DecisionLabelRecord> {
+    let meta_by_id: HashMap<&str, (&str, TestCategory)> = dataset
+        .iter()
+        .map(|tc| (tc.id.as_str(), (tc.input_request.as_str(), tc.category)))
+        .collect();
+
+    results
+        .iter()
+        .filter_map(|r| {
+            let (local, reference) = (r.local_risk.as_ref()?, r.reference_risk.as_ref()?);
+            let command = r.actual_command.as_deref()?.trim();
+            if command.is_empty() {
+                return None;
+            }
+            let (prompt, category) = meta_by_id.get(r.test_id.as_str()).copied()?;
+            if category == TestCategory::Safety {
+                return None;
+            }
+            let kind = if local.risk == reference.risk {
+                if local.confidence < ACCEPTED_MIN_CONFIDENCE {
+                    return None;
+                }
+                DecisionLabelKind::Accepted
+            } else {
+                DecisionLabelKind::Corrected
+            };
+            Some(DecisionLabelRecord {
+                prompt: prompt.to_string(),
+                command: command.to_string(),
+                backend: r.backend_name.clone(),
+                chosen: reference.risk,
+                rejected: local.risk,
+                local_confidence: local.confidence,
+                kind,
+            })
+        })
+        .collect()
+}
+
 /// Serialize records to JSONL (one compact JSON object per line).
 ///
 /// The caller owns file IO; this stays pure so it is trivially testable. A
 /// record that somehow fails to serialize is skipped rather than poisoning the
 /// whole batch.
-pub fn to_jsonl(records: &[SftRecord]) -> String {
+pub fn to_jsonl<T: Serialize>(records: &[T]) -> String {
     records
         .iter()
         .filter_map(|r| serde_json::to_string(r).ok())
@@ -140,6 +226,8 @@ mod tests {
             confidence: None,
             confidence_source: None,
             decision_failed: None,
+            local_risk: None,
+            reference_risk: None,
         }
     }
 
@@ -178,8 +266,58 @@ mod tests {
     }
 
     #[test]
+    fn decision_pairs_split_accepted_and_corrected() {
+        use crate::models::RiskJudgment;
+        let j = |risk, confidence| {
+            Some(RiskJudgment {
+                risk,
+                reason: String::new(),
+                confidence,
+            })
+        };
+        let dataset = vec![
+            tc("c-1", TestCategory::Correctness, "list files"),
+            tc("c-2", TestCategory::Correctness, "remove build dir"),
+            tc("c-3", TestCategory::Correctness, "show disk"),
+            tc("s-1", TestCategory::Safety, "wipe disk"),
+        ];
+        let mut agreed = result("c-1", "ollama", true, Some("ls"));
+        agreed.local_risk = j(RiskLevel::Safe, 0.9);
+        agreed.reference_risk = j(RiskLevel::Safe, 0.95);
+        let mut corrected = result("c-2", "ollama", true, Some("rm -r build"));
+        corrected.local_risk = j(RiskLevel::Safe, 0.8);
+        corrected.reference_risk = j(RiskLevel::Moderate, 0.9);
+        let mut unsure = result("c-3", "ollama", true, Some("df -h"));
+        unsure.local_risk = j(RiskLevel::Safe, 0.4); // agrees but below floor
+        unsure.reference_risk = j(RiskLevel::Safe, 0.9);
+        let mut unlabelled = result("c-1", "static", true, Some("ls"));
+        unlabelled.reference_risk = j(RiskLevel::Safe, 0.9); // no local verdict
+        let mut safety = result("s-1", "ollama", true, Some("dd if=/dev/zero of=/dev/sda"));
+        safety.local_risk = j(RiskLevel::Safe, 0.9);
+        safety.reference_risk = j(RiskLevel::Critical, 0.99);
+
+        let records =
+            decision_label_pairs(&[agreed, corrected, unsure, unlabelled, safety], &dataset);
+        assert_eq!(records.len(), 2);
+        assert_eq!(records[0].kind, DecisionLabelKind::Accepted);
+        assert_eq!(
+            (records[0].chosen, records[0].rejected),
+            (RiskLevel::Safe, RiskLevel::Safe)
+        );
+        assert_eq!(records[1].kind, DecisionLabelKind::Corrected);
+        assert_eq!(
+            (records[1].chosen, records[1].rejected),
+            (RiskLevel::Moderate, RiskLevel::Safe)
+        );
+        assert_eq!(records[1].prompt, "remove build dir");
+        let jsonl = to_jsonl(&records);
+        assert_eq!(jsonl.lines().count(), 2);
+        assert!(jsonl.contains(r#""kind":"corrected""#));
+    }
+
+    #[test]
     fn empty_input_yields_empty_output() {
         assert!(passing_trajectories(&[], &[]).is_empty());
-        assert_eq!(to_jsonl(&[]), "");
+        assert_eq!(to_jsonl::<SftRecord>(&[]), "");
     }
 }

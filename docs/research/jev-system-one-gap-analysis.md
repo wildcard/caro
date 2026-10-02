@@ -131,7 +131,10 @@ backend switch dressed as a decision.
    advisor path (ADR-015) as the reference labeller for gate decisions, store
    disagreements, and feed accepted pairs into `docs/ml/sft-data-pipeline.md`.
    Plot accuracy vs `p95_execution_time_ms` vs `cost_per_passed_task` per
-   backend in the weekly demo report. A tiny local classifier for the Noul
+   backend in the weekly demo report. *Shipped in #1466* (reference
+   labeller, `risk_agreement`, ECE baseline gate, Pareto table,
+   `decision_label_pairs`); the classifier itself waits on that data.
+   A tiny local classifier for the Noul
    gates is a later experiment and should be gated on this data, not on
    enthusiasm.
 

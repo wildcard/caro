@@ -51,6 +51,13 @@ merges still gets a one-line report ("no feature merges this week")
 so absence of a report always means the routine failed, not that
 nothing happened.
 
+The report also carries one **Pareto table** (#1466), copied from
+`cargo test --test evaluation` ("Pareto View by Backend"): per backend,
+pass rate, ECE, cost per passed task, p95 latency and risk-label
+agreement with the reference labeller. "Up and to the left" is better.
+A backend that improves pass rate while worsening ECE is not a clean
+win and the table is where that shows.
+
 ## Reviewer checklist (agents included)
 
 - [ ] PR body links a green CI run
