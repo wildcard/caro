@@ -166,7 +166,7 @@ hardcoded `/Users/kobik-private` paths.
 **Issue:** #1508
 **Status:** open
 **Needs human?:** no (run `translate.yml` or copy the English files; or relax the validator for missing namespaces)
-**Next step:** `en/playbook.json` (#1174) and `en/waitlist.json` (#599) were never mirrored into the other locales; `--strict` turns the 207 untranslated warnings fatal too.
+**Next step:** `en/playbook.json` (#1174) and `en/waitlist.json` (#599) were never mirrored into 13 locales. CI runs the validator without `--strict`, so the missing-file errors are the failure; the 207 untranslated warnings are only fatal in strict mode.
 
 ### BW-018: `Lint & Format` red on main since Rust 1.99 (clippy `double_must_use` via `async_trait`)
 

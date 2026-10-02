@@ -276,8 +276,16 @@ function extractImportedDataStrings(content, filePath) {
       .find((file) => fs.existsSync(file) && fs.statSync(file).isFile());
     if (!candidate) continue;
 
-    const data = fs.readFileSync(candidate, 'utf-8');
-    for (const str of data.matchAll(/(['"])((?:(?!\1)[^\\\n]|\\.)*)\1/g)) {
+    // Drop comments and type declarations first so JSDoc prose and union
+    // members (`'measured' | 'none'`) are not indexed as page content.
+    const data = fs
+      .readFileSync(candidate, 'utf-8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '')
+      .replace(/^\s*(?:export\s+)?type\s+.*$/gm, '')
+      .replace(/^\s*(?:export\s+)?interface\s+\w+[^{]*\{[\s\S]*?^\}/gm, '');
+    // Only `key: 'value'` object fields count as rendered content.
+    for (const str of data.matchAll(/\b[A-Za-z_]\w*\s*:\s*(['"])((?:(?!\1)[^\\\n]|\\.)*)\1/g)) {
       const value = str[2];
       if (value.length > 3 && value.length < 300 && !value.includes('/') && !value.startsWith('.')) {
         strings.push(value);

@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   checks the snapshot's case count and per-category totals against
   `tests/evaluation/dataset.yaml` so the page cannot drift from the dataset;
   EVALS-002 checks each published row is internally consistent (pass rate =
-  passed/total, Brier and ECE in [0, 1]). Reconciled the headline accuracy
+  passed/total × 100, Brier and ECE in [0, 1]). Reconciled the headline accuracy
   figure to the 94.8% CSR on the 58-case beta suite that ROADMAP.md records
   (README and CLAUDE.md quoted the older 93.1% v1.1.0 figure) and corrected
   the "zero telemetry" use-case copy to "off unless you opt in".

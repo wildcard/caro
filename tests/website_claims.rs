@@ -2349,7 +2349,14 @@ fn test_evals_002_published_numbers_are_well_formed() {
         .and_then(|rest| rest.split("export const pending").next())
         .unwrap_or_else(|| panic!("{} has no `backends` array", ts_path));
     let field = |chunk: &str, name: &str| -> f64 {
-        let re = regex::Regex::new(&format!(r"\b{}:\s*(-?[\d.]+)\s*,", name)).unwrap();
+        // Counts must be whole numbers; a fractional `passed` could still
+        // round to a matching pass rate and slip through.
+        let number = if name == "passed" || name == "total" {
+            r"\d+"
+        } else {
+            r"-?[\d.]+"
+        };
+        let re = regex::Regex::new(&format!(r"\b{}:\s*({})\s*,", name, number)).unwrap();
         let cap = re
             .captures(chunk)
             .unwrap_or_else(|| panic!("a backend row in {} is missing `{}`", ts_path, name));

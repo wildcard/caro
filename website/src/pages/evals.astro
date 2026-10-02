@@ -201,9 +201,10 @@ const fmtCost = (n: number) => (n === 0 ? '$0' : `$${n.toFixed(4)}`);
         </ul>
         <p>
           An LLM backend's row is published once the harness has run it with a reference judge, so
-          its risk-agreement column is filled and the ECE regression gate (threshold
-          {snapshot.eceRegressionThreshold}) has a baseline to compare against. The static matcher
-          has no judge to agree with, so its risk-agreement cell stays n/a by design.
+          its risk-agreement column is filled. The ECE regression gate (threshold
+          {snapshot.eceRegressionThreshold}) only compares when both the current run and the supplied
+          baseline carry measured ECE; a backend with unknown confidence is not covered by it. The
+          static matcher has no judge to agree with, so its risk-agreement cell stays n/a by design.
         </p>
       </section>
 
