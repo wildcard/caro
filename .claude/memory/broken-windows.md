@@ -160,6 +160,22 @@ hardcoded `/Users/kobik-private` paths.
 **Needs human?:** yes (release)
 **Next step:** maintainer decides whether to tag 1.5.0. This is also the root of the BW-002 churn.
 
+### BW-017: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
+
+**Found:** 2026-10-02, PR #1507 session (also red on main push be07b22 and every i18n-touching PR)
+**Issue:** #1508
+**Status:** open
+**Needs human?:** no (run `translate.yml` or copy the English files; or relax the validator for missing namespaces)
+**Next step:** `en/playbook.json` (#1174) and `en/waitlist.json` (#599) were never mirrored into the other locales; `--strict` turns the 207 untranslated warnings fatal too.
+
+### BW-018: `Lint & Format` red on main since Rust 1.99 (clippy `double_must_use` via `async_trait`)
+
+**Found:** 2026-10-02, PR #1507 session (main run 37071682323 on 9debe6e)
+**Issue:** #1498, fix PR #1505 (pin the lint toolchain to 1.98.1)
+**Status:** claimed-by fix/ci-pin-clippy-1.98 (#1505)
+**Needs human?:** no
+**Next step:** merge #1505; every open PR goes green on Lint without a rebase.
+
 ---
 
 ## Dedup pending (2026-09-30)
