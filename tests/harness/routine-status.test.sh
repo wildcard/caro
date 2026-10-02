@@ -68,7 +68,8 @@ done
 # A push that can't succeed reports git's own error and cleans up after itself.
 before="$(find "${TMPDIR:-/tmp}" -maxdepth 1 -name 'tmp.*' 2>/dev/null | wc -l)"
 err="$(CARO_STATUS_ATTEMPTS=2 CARO_STATUS_REMOTE="$TMP/missing.git" "$TOOL" record qa-routine Failed "x" 2>&1)"
-check "an unpushable record fails" test -n "$err"
+rc=$?
+check "an unpushable record exits non-zero (rc=$rc)" test "$rc" -ne 0
 check "the failure names the git error" bash -c "grep -q 'Last error: .*missing.git' <<<\"\$1\"" _ "$err"
 after="$(find "${TMPDIR:-/tmp}" -maxdepth 1 -name 'tmp.*' 2>/dev/null | wc -l)"
 check "a failed record leaves no temp clone behind" test "$after" -le "$before"
