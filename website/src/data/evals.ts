@@ -62,7 +62,7 @@ export const snapshot = {
   harness: 'tests/evaluation/main.rs',
   dataset: 'tests/evaluation/dataset.yaml',
   cases: 101,
-  command: 'cargo test --test evaluation -- --backend static_matcher',
+  command: 'env -u CARO_EVAL_BACKENDS cargo test --test evaluation',
   /** ECE regression threshold used by the release gate (#1466). */
   eceRegressionThreshold: 0.05,
 };
