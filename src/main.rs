@@ -75,6 +75,12 @@ fn is_stdin_available() -> bool {
     !std::io::stdin().is_terminal()
 }
 
+/// Whether `caro ai --once` should fall back to reading its prompt from stdin:
+/// only when -p and the trailing words are absent or blank.
+fn needs_stdin_prompt(flag: &Option<String>, trailing: &[String]) -> bool {
+    flag.is_none() && trailing.iter().all(|w| w.trim().is_empty())
+}
+
 /// Read all content from stdin
 ///
 /// Returns the complete stdin content as a String, or an error if reading fails
@@ -1077,10 +1083,10 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     use std::str::FromStr;
     use std::sync::Arc;
 
-    // Resolve prompt (flag > stdin > trailing). Only read stdin when no prompt
-    // was given as -p or trailing words: in scripts and CI stdin is a pipe that
-    // may never reach EOF, so reading it would hang `--once` forever (#1499).
-    let stdin_text = if cli.prompt.is_none() && trailing.is_empty() && is_stdin_available() {
+    // Resolve prompt. Stdin is read only when neither -p nor trailing words gave
+    // one: in scripts and CI stdin is a pipe that may never reach EOF, so
+    // reading it would hang `--once` forever (#1499).
+    let stdin_text = if needs_stdin_prompt(&cli.prompt, &trailing) && is_stdin_available() {
         read_stdin().ok().filter(|s| !s.is_empty())
     } else {
         None
@@ -4182,6 +4188,15 @@ mod tests {
         );
         assert_eq!(resolved.text, "flag");
         assert_eq!(resolved.source, PromptSource::Flag);
+    }
+
+    #[test]
+    fn test_needs_stdin_prompt() {
+        let words = |w: &[&str]| w.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        assert!(needs_stdin_prompt(&None, &[]));
+        assert!(needs_stdin_prompt(&None, &words(&["", "  "])));
+        assert!(!needs_stdin_prompt(&None, &words(&["list", "files"])));
+        assert!(!needs_stdin_prompt(&Some("x".into()), &[]));
     }
 
     #[test]
