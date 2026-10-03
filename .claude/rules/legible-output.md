@@ -78,8 +78,10 @@ worth making.
 
 Caro's `--explain` mode follows the same rules for end users. The checker
 in `src/prompts/ste.rs` and the contract test `tests/explain_ste_contract.rs`
-enforce them there. When you change explain text, run
-`cargo test --test explain_ste_contract`.
+check only the mechanical part: sentence length, paragraph length, a short
+list of unapproved words and passive voice, on the built-in explanation
+text. They are a regression check, not proof that every rule is met. When
+you change explain text, run `cargo test --test explain_ste_contract`.
 
 ## See also
 
@@ -88,4 +90,4 @@ enforce them there. When you change explain text, run
 - [`feature-evidence.md`](./feature-evidence.md): evidence, demo and
   regression guard in PR bodies, which Rule 1 orders
 - `.claude/hooks/quick-actions-reminder.sh`: prints the short form of this
-  rule on every prompt
+  rule on each prompt, except when the conversation used `AskUserQuestion`

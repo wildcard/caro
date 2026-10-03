@@ -168,7 +168,8 @@ WRITING RULES (STE-lite, from ASD-STE100):
 3. Use the active voice and the present tense
 4. Use one word for one meaning, and use simple words ("use", not "utilize")
 5. Do not use filler words such as "simply", "just" or "basically"
-6. If a command can delete or change data, start with "Caution:" and the risk"#
+6. If a command can delete or change data, put a line that starts with "Caution:"
+   and states the risk directly after the "Use `<tool>`" line"#
             .to_string()
     }
 
