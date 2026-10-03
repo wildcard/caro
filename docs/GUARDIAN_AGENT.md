@@ -62,13 +62,18 @@ policy.
 
 ### 2. Harness guardian hook (experimental)
 
-    caro guard --harness claude|grok|codex|opencode|generic [--mode shadow|enforce]
+    caro guard --harness claude --mode shadow
+
+(Synopsis: `--harness` is one of `claude`, `grok`, `codex`, `opencode`,
+`generic`; `--mode` is `shadow` or `enforce`.)
 
 A `PreToolUse` hook adapter. Claude Code, Grok Build, Codex CLI and OpenCode
 (through a plugin) send every shell command their agent is about to run to
 Caro. In **shadow** mode (the default) Caro records what it would have decided
-(see `caro guard report`). In **enforce** mode, Critical commands are denied
-and High-risk ones go to the human. Caro never auto-approves. See
+(see `caro guard report`). In **enforce** mode, Critical commands are denied,
+and High-risk ones go to the human in Claude Code, Grok Build and Codex;
+OpenCode plugins cannot prompt, so there they are blocked with an
+explanation. Caro never auto-approves. See
 [ADR-018](adr/ADR-018-guardian-hook-harness-adapters.md).
 
 ### 3. MCP server (not started, #928)

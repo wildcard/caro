@@ -45,7 +45,7 @@ Claude's snake_case.
 
 | Mode | Effect |
 |---|---|
-| `shadow` (default) | Logs Caro's verdict to `~/.local/share/caro/guard/decisions.jsonl` (platform data dir) and changes nothing. Run `caro guard report` to review. |
+| `shadow` (default) | Logs Caro's verdict to `<platform data dir>/caro/guard/decisions.jsonl` (on Linux `~/.local/share/caro/guard/`) and changes nothing. Run `caro guard report` to review. |
 | `enforce` (`--mode enforce` / `CARO_GUARD_MODE=enforce`) | Critical → `deny`, High → `ask`, anything else → no opinion |
 
 ### Why the guard works this way
@@ -54,8 +54,10 @@ Claude's snake_case.
   output is recorded and the tool still runs. `caro guard` uses static rules
   only, with no model and no network, so it answers well inside the timeout.
 - **Caro never returns `allow`.** It returns `deny`, `ask`, or nothing.
-- **Use user scope.** Project hooks need folder trust, and the agent being
-  guarded can edit them.
+- **Prefer user scope.** Project hooks need folder trust and live in the
+  workspace the agent edits. User scope keeps the guard out of the workspace;
+  it is not a security boundary against an agent with home-directory write
+  access.
 
 ## Using Grok as Caro's model
 
@@ -70,10 +72,12 @@ caro --backend grok --model-name grok-4.5 "..."
 ```
 
 You can also route the hybrid privacy gateway's remote enhancer to Grok, so
-requests are sanitized locally before they reach xAI:
+requests are sanitized locally before they reach xAI. Select the `hybrid`
+backend and point it at Grok:
 
 ```toml
-# ~/.config/caro/config.toml
+# Caro config file (Linux: ~/.config/caro/config.toml)
+default_model = "hybrid"          # or pass --backend hybrid per call
 [backends]
 hybrid_remote = "grok"
 # xai_url = "https://api.x.ai/v1"   # optional override

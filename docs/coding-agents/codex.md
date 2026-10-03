@@ -141,9 +141,9 @@ statusMessage = "caro guard"
 
 ### Validating a command from a script
 
-`caro guard --harness generic` takes `{"command": "..."}` on stdin and prints
-a decision record. It exits 0 for no objection, 2 for deny and 3 for ask
-(enforce mode):
+`caro guard --harness generic` takes `{"command": "..."}` on stdin. In
+`--mode enforce` it prints a decision record and exits 0 for no objection, 2
+for deny and 3 for ask; in the default shadow mode it only logs and exits 0:
 
 ```bash
 cmd='find . -name node_modules -type d -exec rm -rf {} +'
@@ -165,8 +165,9 @@ jq -n --arg c "$cmd" '{command: $c}' | caro guard --harness generic --mode enfor
 
 1. **Shadow first, then enforce** once `caro guard report` shows the
    would-be denials are ones you agree with.
-2. **Use user-scope hooks** (`~/.codex/`), so the agent cannot edit its own
-   guard.
+2. **Use user-scope hooks** (`~/.codex/`) to keep the guard configuration out
+   of the project workspace. This does not stop Codex from editing it when it
+   has permission to write there.
 3. **Use Caro for generation** when you want platform-correct POSIX commands:
    `caro "remove all node_modules directories"`.
 

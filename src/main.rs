@@ -4360,10 +4360,21 @@ async fn handle_guard(
         caro::safety::SafetyValidator::new(cfg).map_err(|e| format!("safety rules: {e}"))
     })();
 
+    // Cap the read: an unbounded payload could stall the hook past the
+    // harness timeout, which fails open.
     let mut raw = String::new();
-    let read = std::io::stdin().read_to_string(&mut raw);
+    let read = std::io::stdin()
+        .take(guard::MAX_PAYLOAD_BYTES as u64 + 1)
+        .read_to_string(&mut raw);
 
     let (rendered, record) = match read {
+        Ok(n) if n > guard::MAX_PAYLOAD_BYTES => {
+            // Drain (without buffering) the rest of the payload so the harness
+            // never sees a broken pipe, which some treat as a hook failure.
+            let _ = std::io::copy(&mut std::io::stdin(), &mut std::io::sink());
+            let (_, rendered, record) = guard::oversize(harness, mode, &raw, started);
+            (rendered, record)
+        }
         Ok(_) => {
             let validator = validator.as_ref().map_err(String::as_str);
             let (_, rendered, record) = guard::run(validator, harness, mode, &raw, started).await;

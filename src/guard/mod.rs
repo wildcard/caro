@@ -110,6 +110,9 @@ pub struct HookEvent {
     pub cwd: Option<String>,
     pub session_id: Option<String>,
     pub tool_use_id: Option<String>,
+    /// The harness truncated the tool input (Grok Build `toolInputTruncated`):
+    /// the visible command is only a prefix of what will run.
+    pub truncated: bool,
 }
 
 impl HookEvent {
@@ -137,6 +140,7 @@ impl HookEvent {
                 cwd: field("cwd", "cwd"),
                 session_id: field("session_id", "sessionId"),
                 tool_use_id: field("tool_use_id", "toolUseId"),
+                truncated: false,
             });
         }
 
@@ -154,7 +158,21 @@ impl HookEvent {
             cwd: field("cwd", "cwd"),
             session_id: field("session_id", "sessionId"),
             tool_use_id: field("tool_use_id", "toolUseId"),
+            truncated: v
+                .get("tool_input_truncated")
+                .or_else(|| v.get("toolInputTruncated"))
+                .and_then(Value::as_bool)
+                .unwrap_or(false),
         })
+    }
+
+    /// Best-effort tool name from the start of a payload too large to parse,
+    /// so an oversized non-shell call (e.g. a big file write) stays silent.
+    pub fn sniff_tool_name(prefix: &str) -> Option<String> {
+        static TOOL: once_cell::sync::Lazy<regex::Regex> = once_cell::sync::Lazy::new(|| {
+            regex::Regex::new(r#""(?:tool_name|toolName)"\s*:\s*"([^"]+)""#).expect("valid regex")
+        });
+        TOOL.captures(prefix).map(|c| c[1].to_string())
     }
 
     /// True when the tool call runs a shell command.
@@ -243,7 +261,7 @@ pub async fn evaluate(
     };
     Ok(GuardDecision {
         risk: result.risk_level,
-        floor_applied: SafetyValidator::targets_catastrophic_location(command),
+        floor_applied: SafetyValidator::floor_applies(command, ShellType::Bash),
         matched_patterns: result.matched_patterns,
         verdict,
         reason,
@@ -379,6 +397,10 @@ pub async fn run(
     let (outcome, event) = match event {
         Err(e) => (Outcome::Error(e), HookEvent::default()),
         Ok(ev) if !ev.is_shell() => (Outcome::NotShell, ev),
+        Ok(ev) if ev.truncated => (
+            Outcome::Error("harness truncated the tool input; command not fully visible".into()),
+            ev,
+        ),
         Ok(ev) => match ev.command.as_deref() {
             None | Some("") => (
                 Outcome::Error("shell tool call without a readable command".into()),
@@ -394,6 +416,47 @@ pub async fn run(
         },
     };
 
+    let rendered = render(harness, mode, &outcome);
+    let record = match &outcome {
+        Outcome::NotShell => None,
+        _ => Some(log::DecisionRecord::new(
+            harness,
+            mode,
+            &event,
+            &outcome,
+            rendered.emitted,
+            started.elapsed().as_micros() as u64,
+        )),
+    };
+    (outcome, rendered, record)
+}
+
+/// Maximum hook payload `caro guard` reads from stdin.
+pub const MAX_PAYLOAD_BYTES: usize = 4 * 1024 * 1024;
+
+/// Handle a payload larger than [`MAX_PAYLOAD_BYTES`] without parsing it:
+/// a shell call (or any generic/opencode payload) fails toward `ask`, while a
+/// recognizably non-shell call (a large file write) stays silent.
+pub fn oversize(
+    harness: Harness,
+    mode: GuardMode,
+    prefix: &str,
+    started: Instant,
+) -> (Outcome, Rendered, Option<log::DecisionRecord>) {
+    let event = HookEvent {
+        tool_name: match harness {
+            Harness::Generic | Harness::Opencode => Some("bash".into()),
+            _ => HookEvent::sniff_tool_name(prefix),
+        },
+        ..Default::default()
+    };
+    let outcome = match event.tool_name {
+        Some(_) if !event.is_shell() => Outcome::NotShell,
+        _ => Outcome::Error(format!(
+            "hook payload exceeds {} MiB; not scanned",
+            MAX_PAYLOAD_BYTES / (1024 * 1024)
+        )),
+    };
     let rendered = render(harness, mode, &outcome);
     let record = match &outcome {
         Outcome::NotShell => None,
@@ -600,6 +663,47 @@ mod tests {
         .await;
         assert_eq!(o, Outcome::NotShell);
         assert_eq!(r.stdout, None);
+    }
+
+    #[tokio::test]
+    async fn truncated_tool_input_asks() {
+        let raw = r#"{"toolName":"run_terminal_command","toolInput":{"command":"echo ok"},
+            "toolInputTruncated":true}"#;
+        let (o, r, _) = run(
+            Ok(&validator()),
+            Harness::Grok,
+            GuardMode::Enforce,
+            raw,
+            Instant::now(),
+        )
+        .await;
+        assert!(matches!(o, Outcome::Error(_)), "{o:?}");
+        let out: Value = serde_json::from_str(r.stdout.as_deref().unwrap()).unwrap();
+        assert_eq!(out["hookSpecificOutput"]["permissionDecision"], "ask");
+    }
+
+    #[test]
+    fn oversize_payload_asks_for_shell_but_not_for_writes() {
+        let shell = r#"{"tool_name":"Bash","tool_input":{"command":"echo aaaa"#;
+        let (o, r, rec) = oversize(Harness::Claude, GuardMode::Enforce, shell, Instant::now());
+        assert!(matches!(o, Outcome::Error(_)));
+        assert!(r.stdout.unwrap().contains("\"ask\""));
+        assert!(rec.is_some());
+
+        let write = r#"{"tool_name":"Write","tool_input":{"content":"aaaa"#;
+        let (o, r, _) = oversize(Harness::Claude, GuardMode::Enforce, write, Instant::now());
+        assert_eq!(o, Outcome::NotShell);
+        assert_eq!(r.stdout, None);
+
+        let (_, r, _) = oversize(Harness::Generic, GuardMode::Enforce, "{", Instant::now());
+        assert_eq!(r.exit_code, 3);
+    }
+
+    #[tokio::test]
+    async fn floor_applied_sees_escaped_root() {
+        let d = evaluate(&validator(), r"rm -rf \/").await.unwrap();
+        assert_eq!(d.verdict, Verdict::Deny);
+        assert!(d.floor_applied);
     }
 
     #[tokio::test]

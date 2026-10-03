@@ -68,11 +68,25 @@ pub fn may_leak_context_offhost(ai_cfg: &AiConfig, backend_name: &str) -> bool {
     let anything_optin = ai_cfg.opening.send_cwd
         || ai_cfg.opening.send_last_command
         || ai_cfg.capabilities.enable_history_search;
-    let remote = matches!(
-        backend_name,
-        "ollama" | "vllm" | "exo" | "claude" | "mesh" | "ai-horde" | "grok" | "openrouter"
-    );
-    anything_optin && remote && ai_cfg.endpoint.is_some()
+    use crate::models::BackendType;
+    // Exhaustive over `BackendType` so a newly wired backend cannot silently
+    // skip this warning. Unknown names (e.g. `static`) are local.
+    let Ok(backend) = backend_name.parse::<BackendType>() else {
+        return false;
+    };
+    let off_host = match backend {
+        // Hosted APIs are always off-host, whatever `ai.endpoint` says.
+        BackendType::Claude | BackendType::OpenRouter | BackendType::Grok => true,
+        // Self-hosted servers are off-host only when pointed at an endpoint.
+        BackendType::Ollama
+        | BackendType::VLlm
+        | BackendType::Exo
+        | BackendType::Mesh
+        | BackendType::AiHorde => ai_cfg.endpoint.is_some(),
+        // On-device, or sanitized before leaving the machine (hybrid).
+        BackendType::Mock | BackendType::Embedded | BackendType::Mlx | BackendType::Hybrid => false,
+    };
+    anything_optin && off_host
 }
 
 #[cfg(test)]
@@ -222,5 +236,14 @@ mod tests {
             ..AiConfig::default()
         };
         assert!(may_leak_context_offhost(&cfg_optin_remote, "ollama"));
+
+        // Hosted APIs warn on opt-in even without an `ai.endpoint`.
+        for hosted in ["grok", "openrouter", "claude"] {
+            assert!(
+                may_leak_context_offhost(&cfg_optin_local, hosted),
+                "{hosted}"
+            );
+            assert!(!may_leak_context_offhost(&base, hosted), "{hosted}");
+        }
     }
 }

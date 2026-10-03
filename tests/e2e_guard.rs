@@ -61,6 +61,7 @@ fn enforce_asks_on_high_for_grok_camel_case() {
         &["--harness", "grok", "--mode", "enforce", "--no-log"],
         payload,
     );
+    assert_eq!(out.status.code(), Some(0));
     assert_eq!(
         stdout_json(&out)["hookSpecificOutput"]["permissionDecision"],
         "ask"

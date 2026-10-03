@@ -631,6 +631,15 @@ impl SafetyValidator {
         false
     }
 
+    /// Whether the catastrophic floor fires for `command`, scanning the same
+    /// targets `validate_command` does (the raw command plus its
+    /// shell-unescaped form for destructive statements).
+    pub(crate) fn floor_applies(command: &str, shell: ShellType) -> bool {
+        Self::targets_catastrophic_location(command)
+            || Self::destructive_unescaped(command, shell)
+                .is_some_and(|u| Self::targets_catastrophic_location(&u))
+    }
+
     /// Validate a single command for safety
     pub async fn validate_command(
         &self,

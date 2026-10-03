@@ -74,8 +74,10 @@ claude "find all TODO comments in the project"
 
 Claude Code runs a `PreToolUse` hook before every tool call. `caro guard`
 reads that hook payload from stdin and validates the **agent's own** shell
-command with Caro's safety patterns. Install it at **user scope**, so the agent
-cannot edit its own guard:
+command with Caro's safety patterns. Install it at **user scope**, so a
+project-local `.claude/settings.json` cannot replace it. This is not a security
+boundary: an agent that can write to your home directory can still edit
+`~/.claude/settings.json`.
 
 ```json
 // ~/.claude/settings.json
@@ -172,10 +174,12 @@ Claude Code settings are stored in `~/.claude/`:
 1. **Start in shadow mode and read the report** (`caro guard report`) before
    enforcing. It shows which of your agent's real commands Caro would have
    stopped.
-2. **Use user-scope hooks.** A project `.claude/settings.json` is editable by
-   the agent being guarded.
+2. **Use user-scope hooks.** A project `.claude/settings.json` sits inside the
+   workspace the agent edits; user scope keeps the guard out of it (though not
+   out of reach of an agent with home-directory write access).
 3. **Bless routine commands with an allowlist** rather than turning the guard
-   off. Add them to `[safety] allowlist_patterns` in `~/.config/caro/config.toml`.
+   off. Add them to `[safety] allowlist_patterns` in Caro's config file
+   (`caro config show` prints its path; on Linux `~/.config/caro/config.toml`).
    Catastrophic commands (`rm -rf /`, disk wipes, fork bombs) cannot be
    allowlisted.
 4. **Use Caro to generate platform-correct commands:** `caro "find files larger than 100MB"`.

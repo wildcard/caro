@@ -19,7 +19,8 @@ mkdir -p ~/.config/opencode/plugin
 cp integrations/opencode/caro-guard.ts ~/.config/opencode/plugin/caro-guard.ts
 ```
 
-The plugin sends `{"command", "cwd"}` to `caro guard --harness opencode`. The
+The plugin sends `{"command": "...", "cwd": "..."}` to
+`caro guard --harness opencode` without blocking OpenCode's event loop. The
 plugin follows `CARO_GUARD_MODE`, and **shadow** is the default:
 
 | Mode | Effect |

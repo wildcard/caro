@@ -303,9 +303,9 @@ impl CliApp {
     /// warn and return the loop unchanged.
     ///
     /// The advisor is a remote/hosted model, so enabling it means low-confidence
-    /// prompts are sent off-host — we warn explicitly. Only `claude` is wired
-    /// today (the article's advisor was Claude Opus); `openrouter` is a trivial
-    /// follow-up once it grows an env constructor.
+    /// prompts are sent off-host — we warn explicitly. Wired advisors:
+    /// `claude` (`ANTHROPIC_API_KEY`), `grok` (`XAI_API_KEY`) and `openrouter`
+    /// (`OPENROUTER_API_KEY`).
     async fn maybe_attach_advisor(agent_loop: AgentLoop, name: &str) -> AgentLoop {
         #[cfg(feature = "remote-backends")]
         match Self::create_advisor(name).await {
@@ -438,8 +438,13 @@ impl CliApp {
                 .as_deref()
                 .unwrap_or(crate::backends::remote::ai_horde::AI_HORDE_ANON_KEY);
 
-            // Check for user-specified model preference
-            let model_preference = user_config.default_model.as_deref();
+            // Check for user-specified model preference. `validate_backend_name`
+            // accepts any case, so normalize before dispatching on the name.
+            let model_preference_lower = user_config
+                .default_model
+                .as_deref()
+                .map(str::to_ascii_lowercase);
+            let model_preference = model_preference_lower.as_deref();
 
             // If user explicitly specified a model, try that first
             if let Some(model) = model_preference {

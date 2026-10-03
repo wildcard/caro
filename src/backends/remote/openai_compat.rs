@@ -290,6 +290,16 @@ Rules:
         )
     }
 
+    /// The user turn: the request plus any context the caller opted to send
+    /// (the embedded backend appends the same context to its prompt).
+    fn user_input(request: &CommandRequest) -> String {
+        let mut msg = format!("<user_request>{}</user_request>", request.input);
+        if let Some(ctx) = request.context.as_deref().filter(|c| !c.trim().is_empty()) {
+            msg.push_str(&format!("\n<context>{}</context>", ctx));
+        }
+        msg
+    }
+
     fn parse_command_response(&self, response: &str) -> Result<String, GeneratorError> {
         // Typed clarification gate (#1462): never return a runnable command
         // whose only purpose is to ask the user something.
@@ -348,7 +358,7 @@ Rules:
                 },
                 ChatMessage {
                     role: "user".to_string(),
-                    content: format!("<user_request>{}</user_request>", user_input),
+                    content: user_input.to_string(),
                 },
             ],
             temperature: self.config.temperature,
@@ -397,9 +407,12 @@ Rules:
         if !status.is_success() {
             let body = response.text().await.unwrap_or_default();
             // xAI answers a bad key with 400 "Incorrect API key provided"
-            // rather than 401; treat it as auth so it is not silently
-            // swallowed by the embedded fallback.
-            if body.to_ascii_lowercase().contains("api key") {
+            // rather than 401; treat exactly that as auth so it is not
+            // silently swallowed by the embedded fallback.
+            if self.config.provider == Provider::Grok
+                && status == reqwest::StatusCode::BAD_REQUEST
+                && body.to_ascii_lowercase().contains("incorrect api key")
+            {
                 return Err(auth_failed());
             }
             let snippet: String = body.chars().take(200).collect();
@@ -431,7 +444,10 @@ Rules:
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
         match self
-            .call_api(&self.create_system_prompt(request), &request.input)
+            .call_api(
+                &self.create_system_prompt(request),
+                &Self::user_input(request),
+            )
             .await
         {
             Ok((response, tokens)) => match self.parse_command_response(&response) {
@@ -751,6 +767,30 @@ mod grok_wire_tests {
         // OpenRouter attribution headers.
         assert!(body.get("logprobs").is_none());
         assert!(reqs[0].headers.get("x-title").is_none());
+    }
+
+    #[tokio::test]
+    async fn opted_in_context_reaches_the_hosted_prompt() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "choices": [{ "message": { "role": "assistant", "content": "{\"cmd\": \"ls\"}" } }]
+            })))
+            .mount(&server)
+            .await;
+
+        let mut req = request();
+        req.context = Some("CWD: /proj".to_string());
+        grok(&server).generate_command(&req).await.unwrap();
+
+        let reqs = server.received_requests().await.unwrap();
+        let body: serde_json::Value = serde_json::from_slice(&reqs[0].body).unwrap();
+        let user = body["messages"][1]["content"].as_str().unwrap();
+        assert_eq!(
+            user,
+            "<user_request>list files by size</user_request>\n<context>CWD: /proj</context>"
+        );
     }
 
     #[tokio::test]

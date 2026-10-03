@@ -3,18 +3,40 @@
 // set CARO_GUARD_MODE=enforce to block Critical/High commands.
 //
 // Install: cp caro-guard.ts ~/.config/opencode/plugin/
-import { spawnSync } from "node:child_process"
+import { spawn } from "node:child_process"
+
+type GuardResult = { status: number | null; stdout: string; error?: Error }
+
+// Async so a slow guard never blocks OpenCode's event loop.
+function runGuard(mode: string, payload: string): Promise<GuardResult> {
+  return new Promise((resolve) => {
+    const child = spawn("caro", ["guard", "--harness", "opencode", "--mode", mode], {
+      stdio: ["pipe", "pipe", "inherit"],
+    })
+    let stdout = ""
+    const timer = setTimeout(() => child.kill(), 10_000)
+    child.stdout.on("data", (chunk) => (stdout += chunk))
+    child.on("error", (error) => {
+      clearTimeout(timer)
+      resolve({ status: null, stdout, error })
+    })
+    child.on("close", (status) => {
+      clearTimeout(timer)
+      resolve({ status, stdout })
+    })
+    child.stdin.end(payload)
+  })
+}
 
 export const CaroGuard = async () => ({
   "tool.execute.before": async (input: { tool: string }, output: { args: { command?: string } }) => {
     if (input.tool !== "bash" || !output.args?.command) return
 
     const mode = process.env.CARO_GUARD_MODE === "enforce" ? "enforce" : "shadow"
-    const res = spawnSync("caro", ["guard", "--harness", "opencode", "--mode", mode], {
-      input: JSON.stringify({ command: output.args.command, cwd: process.cwd() }),
-      encoding: "utf8",
-      timeout: 10_000,
-    })
+    const res = await runGuard(
+      mode,
+      JSON.stringify({ command: output.args.command, cwd: process.cwd() }),
+    )
 
     if (res.error) {
       console.warn(`caro guard unavailable (${res.error.message}); command not checked`)

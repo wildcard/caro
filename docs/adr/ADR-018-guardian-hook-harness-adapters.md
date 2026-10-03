@@ -50,7 +50,9 @@ What Caro lacks is a way to apply that core to *other agents'* commands.
 2. **One policy for every harness:**
    - Critical → `deny`.
    - High → `ask`.
-   - Anything else → no opinion.
+   - Anything else → no opinion, except a shell command Caro could not fully
+     see or scan (over the validator's length limit, input truncated by the
+     harness, or a payload over the 4 MiB read cap) → `ask`.
 
    **Caro never emits `allow`.** A guardian can only add friction. It never
    removes the harness's own checks.
@@ -73,17 +75,20 @@ What Caro lacks is a way to apply that core to *other agents'* commands.
    `additionalContext` is emitted on PreToolUse.
 
 7. **Adapters:**
-   - **`claude`/`grok`/`codex`:** one parser using serde aliases for both key
-     styles. The tool names `Bash`, `run_terminal_command` and `shell` count as
-     shell tools.
+   - **`claude`/`grok`/`codex`:** one parser that reads both snake_case and
+     camelCase keys by explicit lookup (not serde aliases, which reject a
+     payload carrying both spellings, as Grok Build's can). The tool names
+     `Bash`, `run_terminal_command`, `shell`, `local_shell` and `exec_command`
+     count as shell tools.
    - **`generic`:** `{"command"}` in, decision record out, exit codes
      0/2/3.
    - **OpenCode:** a ~30-line TS plugin calls `generic` and throws.
 
-8. **Decision record.** Every shell decision is appended as one redacted JSON
-   line to `data_dir/caro/guard/decisions.jsonl`. The field names are a
-   forward-compatible subset of the Phase 2 `caro decide` record, and include
-   `source` (`static` now) for provenance. `caro guard report` summarizes the
+8. **Decision record.** By default every shell decision is appended as one
+   redacted JSON line to `data_dir/caro/guard/decisions.jsonl` (`--no-log`
+   opts out). It shares provenance fields with the planned Phase 2 `caro
+   decide` record (`source`, `static` now; `floor_applied`), without being
+   schema-identical (`risk` is a scalar here, latency is in µs). `caro guard report` summarizes the
    log.
 
 ## Consequences

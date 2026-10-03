@@ -55,7 +55,7 @@ caro guard report [--log <PATH>] [--limit <N>]
   recorded in the log and selects the output shape.
 - Mode resolution: `--mode`, then `CARO_GUARD_MODE`, then `shadow`.
 - The validator honors the user's `[safety]` custom patterns and allowlist from
-  `config.toml` (`SafetyValidator::from_user_config`). The built-in
+  `config.toml` (`SafetyConfig::from_user_config`). The built-in
   catastrophic floor cannot be allowlisted (ADR-017 invariant).
 - The subcommand is labeled **experimental** in `--help` until the Gate 1
   evidence exists.
@@ -73,8 +73,15 @@ fields are ignored.
 Grok Build sends `toolName`, `toolInput`, `sessionId`, `toolUseId` and
 `hookEventName`; the snake_case aliases are also accepted.
 
-- **Shell tools:** `Bash`, `run_terminal_command`, `shell`, `bash`. The match
-  is case-insensitive.
+- **Shell tools:** `Bash`, `run_terminal_command`, `shell`, `bash`,
+  `local_shell`, `exec_command`. The match is case-insensitive.
+- **Truncated input:** when the harness marks the input truncated
+  (`toolInputTruncated` / `tool_input_truncated`), the command is only a
+  prefix, so the call is treated as an error (enforce: `ask`).
+- **Oversized payload:** stdin is read up to 4 MiB. Beyond that the payload is
+  not parsed: a shell call (by a sniffed tool name, or any generic payload)
+  becomes `ask`; a recognizably non-shell call (a large file write) stays
+  silent.
 - **Every other tool** gets the `none` verdict, produces no output, and is
   not logged.
 
@@ -136,8 +143,13 @@ The decision log holds one JSON line per shell decision.
 - Default path: `dirs::data_dir()/caro/guard/decisions.jsonl`. It sits outside
   any workspace, so the guarded agent does not edit its own audit log by
   accident.
-- Each line is written with a single `write` call on an `O_APPEND` file, so
-  concurrent harness sessions interleave whole lines.
+- Each record is one line written with a single `write_all` on an `O_APPEND`
+  file. On local filesystems a small append is written whole in practice;
+  `write_all` may split it after a short write, so whole-line interleaving
+  across concurrent sessions is not guaranteed, and the report skips (and
+  counts) any torn line.
+- The file is created 0600, and an existing log is tightened to 0600 on the
+  next append.
 
 ### `caro guard report`
 

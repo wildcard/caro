@@ -25,7 +25,10 @@ static COMMAND_SECRETS: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
             "${1}[REDACTED]",
         ),
         (r#"(?i)\b([a-z][a-z0-9+.-]*://)[^/\s:@'"]+:[^/\s@'"]+@"#, "${1}[REDACTED]@"),
-        (r#"(\s(?:-u|--user)[\s=]+)[^\s:'"]+:[^\s'"]+"#, "${1}[REDACTED]"),
+        (
+            r#"(\s(?:-u|--user)[\s=]+)(?:'[^':]*:[^']*'|"[^":]*:[^"]*"|[^\s:'"]+:[^\s'"]+)"#,
+            "${1}[REDACTED]",
+        ),
         (
             r#"(?i)\b([a-z0-9_]*(?:key|token|secret|passw(?:or)?d|pwd|credentials?|auth)[a-z0-9_]*)=(?:'[^']*'|"[^"]*"|[^\s;&|]+)"#,
             "${1}=[REDACTED]",
@@ -150,6 +153,12 @@ pub fn append(path: &Path, record: &DecisionRecord) -> std::io::Result<()> {
         opts.mode(0o600);
     }
     let mut f = opts.open(path)?;
+    // `mode` only applies on create; tighten a pre-existing log too.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = f.set_permissions(std::fs::Permissions::from_mode(0o600));
+    }
     f.write_all(&line)
 }
 
@@ -330,6 +339,8 @@ mod tests {
             "git clone https://user:{S}@github.com/o/r",
             "curl -u alice:{S} https://h",
             "curl --user=bob:{S} https://h",
+            "curl -u 'alice:{S}' https://h",
+            "curl --user \"bob:{S}\" https://h",
             "export GITHUB_TOKEN={S}",
             "DB_PASSWORD='{S} words' ./migrate",
             "AWS_SECRET_ACCESS_KEY={S}/x+y= aws s3 ls",
@@ -371,6 +382,12 @@ mod tests {
             Verdict::None,
             1,
         );
+        append(&path, &rec).unwrap();
+        let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600);
+
+        // A pre-existing world-readable log is tightened on the next append.
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o644)).unwrap();
         append(&path, &rec).unwrap();
         let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
         assert_eq!(mode, 0o600);
