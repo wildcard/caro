@@ -255,7 +255,8 @@ fn find_caution_names_the_actual_exec_action() {
         ok.detailed_explanation
     );
     assert!(
-        ok.detailed_explanation.contains("asks"),
+        ok.detailed_explanation
+            .contains("It asks you first. Answer \"n\" to skip a file."),
         "{}",
         ok.detailed_explanation
     );
