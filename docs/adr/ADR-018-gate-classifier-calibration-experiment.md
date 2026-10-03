@@ -92,8 +92,9 @@ outcome in this ADR before any model is wired into the product.
    and is a gating item in #1510. No training run is approved until this
    baseline exists for every backend in the corpus.
 4. **A human gold subset.** Between 100 and 150 commands, stratified
-   across risk tiers and including Safety-category cases the exporter
-   drops, labelled by a maintainer with the label rules written down.
+   across risk tiers and including the Safety-category cases that
+   `passing_trajectories` drops for generation SFT (the risk-label feed
+   keeps them), labelled by a maintainer with the label rules written down.
    The reference judge's own ECE and disagreement against this subset are
    reported first; if the judge is far from gold, the experiment's target
    becomes gold agreement, not judge agreement. This is the direct answer

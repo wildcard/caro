@@ -299,7 +299,11 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
 /// before the new records so lines never run together.
 fn append_jsonl(path: &str, jsonl: &str) -> std::io::Result<usize> {
     use std::io::Write;
-    let existing = std::fs::read_to_string(path).unwrap_or_default();
+    let existing = match std::fs::read_to_string(path) {
+        Ok(existing) => existing,
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(err) => return Err(err),
+    };
     let existing_lines = existing.lines().filter(|l| !l.trim().is_empty()).count();
     if jsonl.is_empty() {
         return Ok(existing_lines);

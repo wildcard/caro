@@ -102,7 +102,10 @@ pub enum DecisionLabelKind {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DecisionLabelRecord {
     /// Benchmark case this record came from. Held-out splits are made by
-    /// test id (ADR-018), so every record carries it.
+    /// test id (ADR-018), so every record carries it. Records written before
+    /// the field existed deserialize with an empty id and must not be used
+    /// for a split.
+    #[serde(default)]
     pub test_id: String,
     /// Natural-language request the command answered.
     pub prompt: String,
