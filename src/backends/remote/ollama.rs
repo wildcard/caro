@@ -726,8 +726,15 @@ mod tests {
             let generated = backend(&server).generate_command(&request).await.unwrap();
             assert_eq!(generated.command, "ls");
 
+            // generate_command also fires a best-effort /api/show probe for
+            // the served-context-length check, so don't assume index 0 is
+            // the /api/generate request — find it by path instead.
             let reqs = server.received_requests().await.unwrap();
-            assert!(body(&reqs[0]).get("format").is_none());
+            let generate_req = reqs
+                .iter()
+                .find(|r| r.url.path() == "/api/generate")
+                .expect("no /api/generate request recorded");
+            assert!(body(generate_req).get("format").is_none());
         }
     }
 }

@@ -792,8 +792,15 @@ mod confidence_tests {
             let generated = backend(&server).generate_command(&request).await.unwrap();
             assert_eq!(generated.command, "ls");
 
+            // generate_command also fires a best-effort /v1/models probe
+            // for the served-context-length check, so don't assume index 0
+            // is the /v1/chat/completions request — find it by path instead.
             let reqs = server.received_requests().await.unwrap();
-            assert!(body(&reqs[0]).get("guided_json").is_none());
+            let completion_req = reqs
+                .iter()
+                .find(|r| r.url.path() == "/v1/chat/completions")
+                .expect("no /v1/chat/completions request recorded");
+            assert!(body(completion_req).get("guided_json").is_none());
         }
     }
 }
