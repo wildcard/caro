@@ -338,21 +338,7 @@ WRITING RULES (STE-lite, from ASD-STE100):
     fn generate_explanation_for_command(&self, command: &str, tool: &str) -> String {
         let words = first_segment_words(command);
         let mut text = match tool {
-            // An explicit action (`-delete`, `-exec`) turns off find's implicit print.
-            "find" if words.contains(&"-delete") => {
-                "`find` searches a directory tree for files. It starts at the path that \
-                 you give. It deletes each file that matches all of the filters, and \
-                 it does not show them."
-                    .to_string()
-            }
-            "find" if words.contains(&"-exec") => {
-                "`find` searches a directory tree for files. It starts at the path that \
-                 you give. It runs a command on each file that matches all of the filters."
-                    .to_string()
-            }
-            "find" => "`find` searches a directory tree for files. It starts at the path that \
-                       you give. It shows each file that matches all of the filters."
-                .to_string(),
+            "find" => find_description(&find_predicates(&words)),
             "grep" => "`grep` reads files and shows each line that matches a pattern. \
                        It does not change the files."
                 .to_string(),
@@ -369,21 +355,24 @@ WRITING RULES (STE-lite, from ASD-STE100):
         };
 
         // STE warnings come first, before the description.
-        let caution = if tool == "find" && words.contains(&"-delete") {
-            Some(
-                "Caution: `-delete` removes each file that matches, and you cannot undo it. \
-                 Run the command without `-delete` first to see the list of files.",
-            )
-        } else if tool == "find" && words.contains(&"-exec") {
-            Some(
-                "Caution: `-exec` runs a command on each file that matches. \
-                 Run the command without `-exec` first to see the list of files.",
-            )
-        } else {
-            None
-        };
-        if let Some(caution) = caution {
-            text = format!("{caution}\n\n{text}");
+        if tool == "find" {
+            let predicates = find_predicates(&words);
+            let mut cautions = Vec::new();
+            if predicates.contains(&"-delete") {
+                cautions.push(
+                    "Caution: `-delete` removes each file that matches, and you cannot undo it. \
+                     Run the command without `-delete` first to see the list of files.",
+                );
+            }
+            if predicates.iter().any(|w| FIND_EXEC_ACTIONS.contains(w)) {
+                cautions.push(
+                    "Caution: `-exec` runs a command on each file that matches. \
+                     Run the command without `-exec` first to see the list of files.",
+                );
+            }
+            if !cautions.is_empty() {
+                text = format!("{}\n\n{text}", cautions.join("\n\n"));
+            }
         }
 
         text
@@ -408,6 +397,8 @@ WRITING RULES (STE-lite, from ASD-STE100):
 
         match tool {
             "find" => {
+                // Words inside `-exec ... ;` belong to the executed command.
+                let words = find_predicates(&words);
                 // find uses whole words (`-name`), not combined short flags.
                 let has_type = |kind: &str| {
                     words
@@ -610,7 +601,11 @@ WRITING RULES (STE-lite, from ASD-STE100):
 fn summary_from_intent(intent: &str) -> String {
     let mut rest = intent.trim().trim_end_matches(['?', '.']);
     for prefix in ["how do i ", "how can i ", "how to ", "to "] {
-        if rest.len() >= prefix.len() && rest[..prefix.len()].eq_ignore_ascii_case(prefix) {
+        // `get` returns None if the prefix length splits a multi-byte char.
+        if rest
+            .get(..prefix.len())
+            .is_some_and(|head| head.eq_ignore_ascii_case(prefix))
+        {
             rest = rest[prefix.len()..].trim_start();
             break;
         }
@@ -627,6 +622,54 @@ fn summary_from_intent(intent: &str) -> String {
     } else {
         format!("to {rest}")
     }
+}
+
+/// find actions that run another command.
+const FIND_EXEC_ACTIONS: &[&str] = &["-exec", "-execdir", "-ok", "-okdir"];
+
+/// find actions that print file names.
+const FIND_PRINT_ACTIONS: &[&str] = &["-print", "-print0", "-printf", "-ls", "-fprint", "-fls"];
+
+/// find words without the arguments of `-exec`-style actions. The action
+/// word stays; the command after it, up to `;` or `+`, is removed.
+fn find_predicates<'a>(words: &[&'a str]) -> Vec<&'a str> {
+    let mut predicates = Vec::new();
+    let mut in_exec = false;
+    for &word in words {
+        if in_exec {
+            in_exec = !matches!(word, "\\;" | "';'" | "\";\"" | ";" | "+");
+            continue;
+        }
+        in_exec = FIND_EXEC_ACTIONS.contains(&word);
+        predicates.push(word);
+    }
+    predicates
+}
+
+/// What a find command does. An explicit action (`-delete`, `-exec`)
+/// turns off the implicit print, unless a print action is also given.
+fn find_description(predicates: &[&str]) -> String {
+    let deletes = predicates.contains(&"-delete");
+    let runs = predicates.iter().any(|w| FIND_EXEC_ACTIONS.contains(w));
+    let prints = predicates.iter().any(|w| FIND_PRINT_ACTIONS.contains(w));
+
+    let mut text = String::from(
+        "`find` searches a directory tree for files. It starts at the path that you give.",
+    );
+    if deletes {
+        text.push_str(" It deletes each file that matches all of the filters.");
+    }
+    if runs {
+        text.push_str(" It runs a command on each file that matches all of the filters.");
+    }
+    if !deletes && !runs {
+        text.push_str(" It shows each file that matches all of the filters.");
+    } else if prints {
+        text.push_str(" It also shows the name of each file.");
+    } else {
+        text.push_str(" It does not show the file names unless you add `-print`.");
+    }
+    text
 }
 
 /// Words of the first command only. Flags after `|`, `||`, `&&` or `;`

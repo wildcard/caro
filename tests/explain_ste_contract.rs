@@ -197,3 +197,50 @@ fn find_with_explicit_action_does_not_claim_to_show_files() {
     let plain = explainer().create_explanation("find . -name '*.log'", "x");
     assert!(plain.detailed_explanation.contains("shows each file"));
 }
+
+#[test]
+fn find_words_inside_exec_are_not_find_actions() {
+    // Review finding (P1): `-delete` here is an argument to `echo`.
+    let e = explainer().create_explanation("find . -type f -exec echo -delete {} +", "x");
+    assert!(
+        !e.detailed_explanation.contains("deletes"),
+        "{}",
+        e.detailed_explanation
+    );
+    assert!(!e.detailed_explanation.contains("Caution: `-delete`"));
+    assert!(e.detailed_explanation.contains("Caution: `-exec`"));
+    let opts = options("find . -type f -exec echo -delete {} +");
+    assert!(!opts.contains(&"-delete".to_string()), "{opts:?}");
+}
+
+#[test]
+fn find_with_delete_and_exec_explains_both() {
+    let e = explainer().create_explanation("find . -name '*.o' -exec ls {} \\; -delete", "x");
+    let text = &e.detailed_explanation;
+    assert!(
+        text.contains("Caution: `-delete`") && text.contains("Caution: `-exec`"),
+        "{text}"
+    );
+    assert!(
+        text.contains("deletes each file") && text.contains("runs a command"),
+        "{text}"
+    );
+}
+
+#[test]
+fn find_with_print_does_not_claim_it_hides_files() {
+    let e = explainer().create_explanation("find . -name '*.tmp' -print -delete", "x");
+    assert!(
+        !e.detailed_explanation.contains("does not show"),
+        "{}",
+        e.detailed_explanation
+    );
+}
+
+#[test]
+fn multibyte_intent_does_not_panic() {
+    for intent in ["🎉 files", "éé list files", "日本語のファイル"] {
+        let summary = explainer().create_explanation("ls", intent).summary;
+        assert!(summary.starts_with("to "), "{summary}");
+    }
+}
