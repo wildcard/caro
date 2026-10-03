@@ -68,3 +68,19 @@ fn built_in_pattern_descriptions_are_unique() {
         "duplicate descriptions: {duplicates:?}"
     );
 }
+
+#[tokio::test]
+async fn tool_annotation_does_not_add_a_risk_type() {
+    // Review finding: "(Remove-Item)" in a description matched "remov" and
+    // added "removal" next to "deletion" for the same risk.
+    let result = SafetyValidator::new(SafetyConfig::moderate())
+        .expect("validator constructs")
+        .validate_command(r"Remove-Item -Recurse -Force C:\", ShellType::PowerShell)
+        .await
+        .expect("validator runs");
+    assert!(
+        !result.explanation.contains("removal"),
+        "{}",
+        result.explanation
+    );
+}
