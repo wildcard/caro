@@ -8,7 +8,9 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1221](https://github.com/wildcard/caro/issues/1221) | P1 | cli | --backend-info lists invalid backends (static, claude) and omits valid ones (exo, mesh, ai-horde, hybrid) | open | 2026-06-13 |
+| [#1222](https://github.com/wildcard/caro/issues/1222) | P1 | cli | e2e_safety_level_configuration test fails — cargo fallback missing --bin caro with multiple binaries | open | 2026-06-13 |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | **closed** 2026-05-09 | 2026-05-07 |
 
 ---
 
