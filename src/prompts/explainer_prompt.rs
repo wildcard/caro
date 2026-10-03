@@ -342,6 +342,18 @@ WRITING RULES (STE-lite, from ASD-STE100):
     fn generate_explanation_for_command(&self, command: &str, tool: &str) -> String {
         let words = first_segment_words(command);
         let mut text = match tool {
+            // An explicit action (`-delete`, `-exec`) turns off find's implicit print.
+            "find" if words.contains(&"-delete") => {
+                "`find` searches a directory tree for files. It starts at the path that \
+                 you give. It deletes each file that matches all of the filters, and \
+                 it does not show them."
+                    .to_string()
+            }
+            "find" if words.contains(&"-exec") => {
+                "`find` searches a directory tree for files. It starts at the path that \
+                 you give. It runs a command on each file that matches all of the filters."
+                    .to_string()
+            }
             "find" => "`find` searches a directory tree for files. It starts at the path that \
                        you give. It shows each file that matches all of the filters."
                 .to_string(),
@@ -378,7 +390,11 @@ WRITING RULES (STE-lite, from ASD-STE100):
 
     fn extract_options(&self, command: &str, tool: &str) -> Vec<OptionExplanation> {
         let words = first_segment_words(command);
-        let short = short_flags(&words);
+        let short = match tool {
+            "grep" => short_flags(&words, GREP_ARG_FLAGS),
+            "ls" => short_flags(&words, LS_ARG_FLAGS),
+            _ => Vec::new(),
+        };
         let long = long_options(&words);
         let mut options = Vec::new();
         let mut add = |option: &str, description: &str, example: Option<&str>| {
@@ -597,14 +613,44 @@ fn first_segment_words(command: &str) -> Vec<&str> {
 }
 
 /// Short flags, with combined flags split: `-rn` gives `r` and `n`.
-/// Long options (`--include`) are not short flags.
-fn short_flags(words: &[&str]) -> Vec<char> {
-    words
-        .iter()
-        .filter(|w| w.starts_with('-') && !w.starts_with("--"))
-        .flat_map(|w| w[1..].chars().take_while(char::is_ascii_alphabetic))
-        .collect()
+/// Long options (`--include`) are not short flags. Parsing stops at `--`.
+/// A flag in `takes_arg` (grep `-e PATTERN`) uses the rest of its word,
+/// or the next word, as its argument, so that argument is not a flag.
+fn short_flags(words: &[&str], takes_arg: &[char]) -> Vec<char> {
+    let mut flags = Vec::new();
+    let mut skip_next = false;
+    for word in words {
+        if std::mem::take(&mut skip_next) {
+            continue;
+        }
+        if *word == "--" {
+            break;
+        }
+        let Some(cluster) = word.strip_prefix('-') else {
+            continue;
+        };
+        if cluster.starts_with('-') {
+            continue;
+        }
+        for (i, c) in cluster.char_indices() {
+            if !c.is_ascii_alphabetic() {
+                break;
+            }
+            flags.push(c);
+            if takes_arg.contains(&c) {
+                skip_next = i + 1 == cluster.len();
+                break;
+            }
+        }
+    }
+    flags
 }
+
+/// grep short options that take an argument.
+const GREP_ARG_FLAGS: &[char] = &['e', 'f', 'm', 'A', 'B', 'C', 'd', 'D'];
+
+/// ls short options that take an argument.
+const LS_ARG_FLAGS: &[char] = &['I', 'w', 'T'];
 
 /// Long option names without the value: `--include='*.py'` gives `include`.
 fn long_options<'a>(words: &[&'a str]) -> Vec<&'a str> {

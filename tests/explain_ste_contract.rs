@@ -142,3 +142,36 @@ fn system_prompt_carries_the_writing_rules() {
     assert!(prompt.contains("20 words or fewer"));
     assert!(prompt.contains("Caution:"));
 }
+
+#[test]
+fn grep_pattern_after_terminator_or_e_is_not_a_flag() {
+    // Review finding: in `grep -- -v file` and `grep -e -v file`, `-v` is
+    // the pattern, not "show non-matching lines".
+    for command in ["grep -- -v file", "grep -e -v file", "grep -ie -v file"] {
+        let opts = options(command);
+        assert!(!opts.contains(&"-v".to_string()), "{command}: {opts:?}");
+    }
+    // `-i` before `-e` is still a real flag.
+    assert!(options("grep -ie -v file").contains(&"-i".to_string()));
+}
+
+#[test]
+fn find_with_explicit_action_does_not_claim_to_show_files() {
+    // Review finding: `-delete` and `-exec` turn off find's implicit print.
+    let delete = explainer().create_explanation("find . -name '*.tmp' -delete", "x");
+    assert!(
+        !delete.detailed_explanation.contains("shows each file"),
+        "{}",
+        delete.detailed_explanation
+    );
+    assert!(delete.detailed_explanation.contains("deletes each file"));
+
+    let exec = explainer().create_explanation("find . -name '*.log' -exec gzip {} +", "x");
+    assert!(!exec.detailed_explanation.contains("shows each file"));
+    assert!(exec
+        .detailed_explanation
+        .contains("runs a command on each file"));
+
+    let plain = explainer().create_explanation("find . -name '*.log'", "x");
+    assert!(plain.detailed_explanation.contains("shows each file"));
+}
