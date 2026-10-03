@@ -28,6 +28,10 @@ jobs:
     - name: Setup Rust
       uses: ./.github/actions/setup-rust
       with:
+        # Pinned: Rust 1.99 clippy fires double_must_use / redundant_field_names
+        # inside #[async_trait] and thiserror expansions (#1498). Remove the pin
+        # once clippy or those crates stop linting macro-generated code.
+        toolchain: "1.98.1"
         components: rustfmt,clippy
         cache-key-suffix: lint
         install-protobuf: "true"
