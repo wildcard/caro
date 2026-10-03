@@ -12,16 +12,19 @@ pub struct ScorerWeights {
     pub safety_confidence: f32,
     pub platform_fit: f32,
     pub knowledge_similarity: f32,
+    /// Historical per-backend acceptance rate (see `backend_stats`).
+    pub backend_success: f32,
     pub latency: f32,
 }
 
 impl Default for ScorerWeights {
     fn default() -> Self {
         Self {
-            llm_confidence: 0.35,
+            llm_confidence: 0.30,
             safety_confidence: 0.25,
-            platform_fit: 0.20,
-            knowledge_similarity: 0.15,
+            platform_fit: 0.15,
+            knowledge_similarity: 0.12,
+            backend_success: 0.13,
             latency: 0.05,
         }
     }
@@ -33,6 +36,7 @@ impl ScorerWeights {
             + self.safety_confidence
             + self.platform_fit
             + self.knowledge_similarity
+            + self.backend_success
             + self.latency
     }
 }

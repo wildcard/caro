@@ -12,6 +12,14 @@
 #   - `agents`: filenames in .claude/agents/ (without .md extension), or
 #     skill names in .claude/skills/. Used by caro-coder-loop to pick the
 #     right specialist instead of always defaulting to a generic coder.
+#   - `harness`: optional execution harness for automated work in this area
+#     (default `claude-code`). Where `agents` picks WHICH specialist persona
+#     runs, `harness` picks WHICH agent runtime executes it — the multi-harness
+#     dimension from Warp's Oz ("don't bet on a single harness; route per
+#     task"). Known values: `claude-code` (default, careful/reviewed work),
+#     `crush` (lighter, mechanical work). Consumers (caro-coder-loop, the
+#     slash-router, the automation scheduler) record the harness that closed
+#     each task so effectiveness can be compared per harness.
 #   - `review_label`: optional GitHub label auto-applied to PRs touching
 #     this area, so reviewers can filter their queue.
 #
@@ -28,6 +36,7 @@ areas:
     agents:
       - safety-pattern-developer
       - safety-pattern-auditor
+    harness: claude-code   # safety-critical: careful, reviewed harness only
     review_label: "area:safety"
     description: >
       Dangerous-command pattern matching. Changes here gate every command
@@ -146,6 +155,7 @@ areas:
   "Cargo.lock":
     humans: ["@wildcard"]
     agents: [caro-release-expert]
+    harness: crush   # lockfile regen is mechanical: route to the lighter harness
     review_label: "area:build"
 
   ".github/workflows/release.yml":
@@ -234,4 +244,5 @@ areas:
 default:
   humans: ["@wildcard"]
   agents: [rust-cli-expert]
+  harness: claude-code
   review_label: "area:misc"
