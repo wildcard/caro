@@ -198,8 +198,8 @@ pub fn summarize(contents: &str, limit: usize) -> Report {
 }
 
 /// Summarize a decision log by streaming it line by line, so an append-only
-/// log that has grown large is never loaded whole. Unreadable or unparsable
-/// lines are counted, not fatal.
+/// log that has grown large is never loaded whole. Unparsable lines are
+/// counted, not fatal; an I/O read error stops the scan and is returned.
 pub fn summarize_reader<R: std::io::BufRead>(reader: R, limit: usize) -> std::io::Result<Report> {
     // Stop at the first read error: some (e.g. EISDIR) repeat forever.
     let mut err = None;
