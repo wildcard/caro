@@ -736,6 +736,18 @@ impl StaticMatcher {
 
             // ===== FILE MANAGEMENT REFINED PATTERNS (Cycle 4) =====
 
+            // Pattern 40b: "search for TODO in all python files" - content search scoped to *.py
+            // Must precede Pattern 41, whose regex also matches "search ... python files"
+            // and would list the files instead of searching inside them.
+            PatternEntry {
+                required_keywords: vec!["todo".to_string(), "python".to_string()],
+                optional_keywords: vec!["search".to_string(), "find".to_string(), "grep".to_string(), "files".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(search|find|look|grep|scan).*(\btodos?\b.*(python|\.py\b)|(python|\.py\b).*\btodos?\b)").unwrap()),
+                gnu_command: "grep -rn 'TODO' --include='*.py' .".to_string(),
+                bsd_command: Some("grep -rn 'TODO' --include='*.py' .".to_string()),
+                description: "Search Python files for TODO comments".to_string(),
+            },
+
             // Pattern 41: "find python files" (simple variant - was Pattern 43)
             PatternEntry {
                 required_keywords: vec!["find".to_string(), "python".to_string()],

@@ -190,6 +190,14 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** yes (CI gate / lint policy). Options: pin the lint toolchain to 1.98.1, add a dated crate-level `allow`, or bump async-trait (syn 3; check MSRV).
 **Next step:** maintainer picks an option on #1498.
 
+### BW-020: static matcher "Find Python files (simple)" swallows content searches
+
+**Found:** 2026-10-03 (while fixing "search for TODO in all python files")
+**Issue:** #1516. `search for <X> in python files` returns `find . -name "*.py" -type f` for any X other than TODO.
+**Status:** open
+**Needs human?:** no
+**Next step:** stop that pattern's regex from matching `for <X> in …` content searches; add phrasing tests.
+
 ---
 
 ## Dedup pending (2026-09-30)
