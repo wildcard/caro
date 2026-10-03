@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-10-02 (23:00 PT fire) — no-op night: top row already in PR #1184; integrator PR stack is the bottleneck
+
+- **Validated:** ✓ VERIFIED against published `caro 1.4.0` (still newest on crates.io). Ollama + Exo: `caro --backend <x> --dry-run -p "list pdf files"` → `WARN Remote backends not compiled in` + silent fallback to `ls -la` (wrong answer) — FAIL in shipped artifact, fixed on `main` by #1092, unreleased. Candle CPU auto path: `caro --dry-run -p "show disk usage"` → `df -h` — PASS. Claude Code skill: `HOME=<scratch> caro skill install` → installs `caro-scaffold`, not `caro-shell` — row downgraded to ⚠️ partial, re-documentation already in PR #1492.
+- **Shipped:** no PR. Topmost queue row (#1081 claude/openrouter `create_backend` wiring) is already implemented in PR #1184 (MERGEABLE/CLEAN, CI green, idle since 2026-07-18). Next rows (MCP server #928, OpenAI shim #929) exceed one session. Six integrator PRs (#1504, #1492, #1471, #1432, #1348, #1338) are unmerged, plus #1153 superseded by #1492 — another PR adds review debt and another log/matrix conflict. Matrix + this entry committed on branch `integrator/20261002` only, to fold in after the stack drains.
+- **Filed:** none. Dedup: `gh issue list --state all --search "grok build OR kiro in:title"` → none; new rows added to the matrix instead (both ride on #928).
+- **Discovered:** xAI Grok Build (agentic CLI, beta since 2026-05); Kiro CLI consumes the official MCP registry (~2k servers) — a registry listing becomes worthwhile once `caro mcp serve` exists.
+- **Next pass should:** if #1184 merged → validate `--backend claude` on a `main` build and promote the row; else, if the stack is still undrained, hold again. Do not open a new PR touching `integrator-log.md` until #1492/#1432/#1348 land.
+
+---
+
 ## 2026-07-11 (23:00 PT fire, post-merge pass) — #1298 landed; verify + close-the-loop, no code PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.4.0` (crates.io, 2026-05-09 — still newest). Confirmed **PR #1298 MERGED** (2026-07-12 UTC, commit `2a76cf90`) and **issue #1115 CLOSED**. Re-ran the #1115 repro on the shipped binary: `caro --backend-info` still advertises `static` (available) + `claude` (configurable), yet `caro --backend claude --dry-run -p "list pdf files"` → `Error: Invalid argument: Unknown backend 'claude'` and `--backend static` → identical. So the P0 divergence #1298 fixed on `main` is **still live in the shipped artifact** — this is now purely a release-cadence gap, not a code gap. PASS data point: `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls *.pdf` ✓. New-roster gap: `caro --backend ai-horde` → `Unknown backend` (main exposes it via #1209; published 1.4.0 knows only embedded/ollama/exo/vllm). Inspected `main` source: `CLI_SERVABLE_BACKENDS` (`src/backends/mod.rs:35`) now the single source of truth for `validate_backend_name`/`print_backend_info`/`available_backends`/help; `create_backend` (`src/cli/mod.rs:295`) still has no `claude`/`openrouter` arm (wiring half deferred, per the in-code comment).

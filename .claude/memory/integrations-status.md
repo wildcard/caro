@@ -3,7 +3,7 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-07-11 (post-merge pass) — **PR #1298 is MERGED** (2026-07-12 UTC) and **issue #1115 is CLOSED**: the acute half of the backend-roster divergence is resolved on `main` (`--backend-info` / `available_backends()` / `--backend` help all iterate the single source of truth `backends::CLI_SERVABLE_BACKENDS`, shared with `validate_backend_name`). No code PR tonight — the fix already exists on `main`, and re-touching the roster would regress it (see below). Instead: re-validated the **still-published `caro 1.4.0`** (crates.io, 2026-05-09) and confirmed the #1115 P0 is **live in the shipped artifact** — `--backend-info` advertises `static`+`claude`, `--backend claude`/`--backend static` → `Unknown backend`. This is now purely a **release-cadence gap**: `main` exposes 7 CLI-servable backends (adds `mesh`/`ai-horde`/`hybrid` from #1209), the shipped binary knows 4. Posted a post-#1298 status update to **#1081** (the surviving tracking home now that #1115 is closed) covering the remaining wiring-half + release gap. **The wiring half (claude/openrouter arms in `create_backend`) is NOT trivial**: `CLI_SERVABLE_BACKENDS` is not feature-gated, so adding those names without a `#[cfg(feature="remote-backends")]` split would re-open the divergence for default builds. See log.
+> **Last updated:** 2026-10-02 — no-op night. Published binary still `caro 1.4.0` (crates.io); `main` is 1.5.0-in-repo. Topmost queue row (#1081 claude/openrouter wiring) is already implemented in **PR #1184** (MERGEABLE, CLEAN, CI green, idle since 2026-07-18) — needs a maintainer merge, not another PR. Six integrator PRs await review (#1504, #1492, #1471, #1432, #1348, #1338) plus superseded #1153. Previous header (2026-07-11): PR #1298 merged / #1115 closed; release-cadence gap open.
 
 ## Legend
 
@@ -23,11 +23,11 @@
 | Tool | Status | Last validated | Method | GH | Notes |
 |---|---|---|---|---|---|
 | Anthropic Claude API | 🚧 in-progress (CLI wiring missing) | 2026-07-11 | published 1.4.0: `caro --backend claude --dry-run "list pdfs"` → `Error: Unknown backend 'claude'` (still advertised by `--backend-info`) | #1081 | On `main` post-#1298: no longer advertised (divergence closed). `create_backend()` at `src/cli/mod.rs:295` still has no `claude` arm; `ClaudeBackend` struct exists. Wiring-half tracked in #1081 (#1115 closed). |
-| Ollama | ⚠️ partial (feature-gated) | 2026-05-11 | `caro --backend ollama --dry-run "list pdfs"` → `WARN Remote backends not compiled in. Build with --features remote-backends`, then silent fallback to embedded matcher | — | `remote-backends` is **not** in `default = ["embedded-mlx","embedded-cpu","cve-rules"]`. `cargo install caro` and the release-workflow `cargo build --release` (no `--features`) both omit it. |
-| vLLM | ⚠️ partial (feature-gated) | 2026-05-11 | same as Ollama — silent fallback in default binary | — | Same root cause as Ollama. |
-| Exo | ⚠️ partial (feature-gated) | 2026-05-11 | same as Ollama — silent fallback in default binary | — | Same root cause as Ollama. |
+| Ollama | ⚠️ partial (feature-gated) | 2026-10-02 | published 1.4.0 re-check: still WARN + silent fallback (`list pdf files` → `ls -la`); loud-error fix #1092 on main, unreleased. Original: `caro --backend ollama --dry-run "list pdfs"` → `WARN Remote backends not compiled in. Build with --features remote-backends`, then silent fallback to embedded matcher | — | `remote-backends` is **not** in `default = ["embedded-mlx","embedded-cpu","cve-rules"]`. `cargo install caro` and the release-workflow `cargo build --release` (no `--features`) both omit it. |
+| vLLM | ⚠️ partial (feature-gated) | 2026-10-02 | same as Ollama — silent fallback in default binary | — | Same root cause as Ollama. |
+| Exo | ⚠️ partial (feature-gated) | 2026-10-02 | same as Ollama — silent fallback in default binary | — | Same root cause as Ollama. |
 | MLX (Apple Silicon embedded) | ✅ working | 2026-07-11 | published 1.4.0: `caro --backend embedded --dry-run "list pdf files in current directory"` → `ls *.pdf` ✓ | — | `embedded-mlx` is in default features; works in default `cargo install caro` build. |
-| Candle CPU (embedded) | ✅ working | 2026-05-11 | `caro --dry-run "show disk usage"` → `du -sh ... \| sort -rh \| head -10` ✓ (auto-fallback path) | — | `embedded-cpu` is in default features; works in default build. |
+| Candle CPU (embedded) | ✅ working | 2026-10-02 | published 1.4.0: `caro --dry-run -p "show disk usage"` → `df -h` ✓ (auto path) | — | `embedded-cpu` is in default features; works in default build. |
 | OpenRouter | ⏳ not-yet | — | — | #931 | New backend; clones `vllm.rs` shape; supports `auto` model |
 | Gemini / Jules | 🚧 in-progress | — | — | PR #782 | Coordinate with existing PR; don't fork |
 | LM Studio + FunctionGemma | 🚧 in-progress | — | — | PR #558 | Tracked, no action this night |
@@ -39,7 +39,7 @@
 
 | Tool | Status | Last validated | Method | GH | Notes |
 |---|---|---|---|---|---|
-| Claude Code skill (`caro-shell`) | ✅ working | 2026-04-26 | Skill installed in fresh CC session; invokes published `caro` binary; validated suggestion returned | — | Shipped first night (this PR) |
+| Claude Code skill (`caro-shell`) | ⚠️ partial | 2026-10-02 | `HOME=<scratch> caro skill install` (published 1.4.0) installs **`caro-scaffold`**, not `caro-shell` | PR #1492 | `caro-shell` is not distributed by the binary; row split pending #1492 |
 | Claude Code MCP server (`caro mcp serve`) | ⏳ not-yet | — | `mcp-inspect` against `caro mcp serve` | #928 | Spec: `.github/first-time-issues/06-mcp-claude-code-integration.md`; tools `generate_command` / `validate_command` / `explain_safety` / `show_decision_tree` |
 | OpenAI-compat HTTP shim (`caro serve --openai`) | ⏳ not-yet | — | `curl /v1/chat/completions` with a tool call | #929 | Highest leverage — unlocks Codex/Cursor/Continue/Aider/Tabby in one shot |
 | Codex (OpenAI) | ⏳ not-yet | — | Codex config snippet pointing at OpenAI shim or direct MCP | #789 (Crush MCP config PR) | Satisfied by OpenAI shim |
@@ -60,6 +60,8 @@
 | Jules (Google) | ⏳ not-yet | — | Native backend or shim | PR #782 | Coordinate |
 | Autocoder | ⏳ not-yet | — | TBD | #667 (epic) | Big lift |
 | Handy.Computer | ⏳ not-yet | — | TBD | #662 (epic) | Big lift |
+| xAI Grok Build (CLI) | ⏳ not-yet | — | MCP (rides #928) | — | Discovered 2026-10-02; agentic CLI, beta since 2026-05 |
+| Kiro CLI | ⏳ not-yet | — | MCP registry listing (rides #928) | — | Discovered 2026-10-02; CLI consumes the MCP registry |
 
 ## Marketing & discovery surfaces
 
@@ -77,7 +79,7 @@
 Topmost unblocked row drives the next nightly PR.
 
 1. ✅ **DONE — [PR #1298](https://github.com/wildcard/caro/pull/1298) MERGED** (2026-07-12 UTC), **[#1115](https://github.com/wildcard/caro/issues/1115) CLOSED**. Acute divergence half resolved via `backends::CLI_SERVABLE_BACKENDS` single source of truth.
-2. **[#1081](https://github.com/wildcard/caro/issues/1081) — wiring half + feature-gate split** (P1; surviving home now #1115 is closed). `create_backend` (`src/cli/mod.rs:295`) has no arm for `claude`/`openrouter`; structs exist under `src/backends/remote/`. Add arms instantiating `ClaudeBackend`/`OpenRouterBackend` with config-error paths for missing `ANTHROPIC_API_KEY`/`OPENROUTER_API_KEY`. **CAUTION:** `CLI_SERVABLE_BACKENDS` is NOT feature-gated — adding those names to the unconditional slice would re-open the #1298 divergence for default (`remote-backends`-off) builds. The roster needs a feature-gated view first. ~60–80 LOC + the gate split — a single-night fit only once the gating approach is settled. **Topmost unblocked integrator row.**
+2. **[#1081](https://github.com/wildcard/caro/issues/1081) — wiring half + feature-gate split** (P1; surviving home now #1115 is closed). `create_backend` (`src/cli/mod.rs:295`) has no arm for `claude`/`openrouter`; structs exist under `src/backends/remote/`. Add arms instantiating `ClaudeBackend`/`OpenRouterBackend` with config-error paths for missing `ANTHROPIC_API_KEY`/`OPENROUTER_API_KEY`. **CAUTION:** `CLI_SERVABLE_BACKENDS` is NOT feature-gated — adding those names to the unconditional slice would re-open the #1298 divergence for default (`remote-backends`-off) builds. The roster needs a feature-gated view first. ~60–80 LOC + the gate split — a single-night fit only once the gating approach is settled. **Implemented in [PR #1184](https://github.com/wildcard/caro/pull/1184)** (CLEAN, CI green, idle since 2026-07-18) — blocked on maintainer merge, not on integrator work.
 3. **Reconcile the `caro test`-subcommand rosters** — `src/main.rs:437` help + `src/main.rs:2069` `valid_backends` advertise `static`/`mlx`, a genuinely-different roster from top-level `--backend`. Part of #1115's full fix; deferred from #1298 to keep it tight.
 4. **Release-cadence P0 (out of integrator scope — flag to release management / caro-qa-agent):** published crates.io binary is still `1.4.0` (2026-05-09). VERIFIED 2026-07-11 that the #1115 divergence is live in the shipped 1.4.0 (`--backend claude`/`static` → `Unknown backend` despite `--backend-info` advertising them). Mesh-LLM/AI-Horde/hybrid (#1209), OpenRouter (#1097), smart-approval (#1206), the #1092 loud-error fix, and now #1298 are all stranded in main, never reaching a released binary. `cargo install caro` users get none of it. A 1.4.1/1.5.0 cut is overdue.
 6. **Claude Code MCP server** (`caro mcp serve`) — spec drafted (`.github/first-time-issues/06-mcp-claude-code-integration.md`, [#928](https://github.com/wildcard/caro/issues/928)); coordinate with [#789](https://github.com/wildcard/caro/pull/789).
