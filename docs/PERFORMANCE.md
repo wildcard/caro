@@ -2,7 +2,7 @@
 
 Current performance metrics for Caro CLI tool.
 
-**Last Updated**: 2026-01-08 (after Issue #9 benchmark suite implementation)
+**Last Updated**: 2026-09-24 (decision latency & calibration section, ADR-017)
 **Platform**: M1 Mac (Apple Silicon)
 **Rust Version**: 1.75.0+
 **Criterion**: 0.7.0
@@ -126,9 +126,63 @@ None identified. All operations exceed performance requirements.
 
 4. Check CI report on PR for regression analysis
 
+## Decision Latency & Calibration (eval harness)
+
+Every `BackendResult` in the evaluation harness (`src/evaluation/`) now carries
+four fields borrowed from the "System One" framing (see
+`docs/research/jev-system-one-gap-analysis.md` and ADR-017):
+
+| Field | Meaning |
+|-------|---------|
+| `p50_execution_time_ms` | median per-test generation time |
+| `p95_execution_time_ms` | tail latency — what a user actually feels |
+| `brier` | mean squared error between reported confidence and pass/fail (lower is better; `None` = backend reports no confidence) |
+| `ece` | expected calibration error over 10 confidence buckets (lower is better) |
+
+A backend that reports a constant confidence `c` shows `ece == |c − pass_rate|`.
+That is the signature of a hardcoded confidence, and as of #1464 no backend
+reports one: every `GeneratedCommand` carries a `confidence_source`, and a
+backend that cannot measure reports `unknown` (score 0.0, excluded from
+Brier/ECE and ignored by the agent's refinement gate).
+
+| Backend | Confidence signal | Source |
+|---------|-------------------|--------|
+| static matcher | regex 1.0; keyword coverage 0.6–1.0 | `measured` |
+| vLLM, OpenRouter | geometric-mean token probability from the server's `logprobs` | `measured` (or `unknown` when the server omits them) |
+| Claude | the model's own `{"confidence": …}` self-report, validated to 0..=1 | `self-reported` |
+| embedded (MLX / CPU), Ollama, Exo, Mesh, AI-Horde | none yet | `unknown` |
+
+MLX log-probs need a custom `llama_cpp` sampler and are tracked as a
+follow-up; the CPU path is a stub with no inference. Treat a non-trivial ECE
+on a backend as a bug in its confidence reporting, not in the model.
+`confidence_coverage` says what fraction of results the Brier/ECE numbers
+describe, `confidence_sources` counts results per provenance (serialised as
+`measured` / `self_reported` / `unknown`), and p50/p95
+exclude timed-out results.
+
+Jev's published decision-latency band is 70–500 ms end-to-end; use it as the
+budget reference when comparing `p95_execution_time_ms` across backends.
+
+Decision prompts (the `--approval smart` risk judge) are schema-constrained
+on Ollama (`format`) and vLLM (`guided_json`) since #1465, with one
+corrective retry on a type error. A retry doubles that decision's latency,
+so run the eval with `CARO_EVAL_JUDGE_RISK=1` to see
+`decision_parse_failures` per backend; it should be 0 on constrained
+backends, and a non-zero count on them means the server ignored the schema.
+
+With `CARO_EVAL_BACKENDS=ollama:<model>` (a backend that has a judge; the
+static matcher does not) and `CARO_EVAL_REFERENCE_JUDGE` set, each generated
+command gets both the backend's own risk verdict (the reference judge turns
+the local pass on, so `CARO_EVAL_JUDGE_RISK` is not needed as well) and the
+reference's, and the table reports per-backend agreement (#1466).
+For every backend with a measured ECE in both the baseline and the current
+run, `compare_with_ece` fails the run when that ECE rose by more than 0.05:
+calibration regressions block the same way pass-rate regressions do. A
+backend with no ECE on either side (confidence `unknown`) is not compared.
+
 ## Future Work
 
 - Add memory allocation tracking (alloc-benchmarks crate)
 - Profile real-world workloads (not just microbenchmarks)
-- Benchmark MLX inference latency
+- Benchmark MLX inference latency (the harness now records p50/p95 per backend; publish numbers here)
 - Benchmark safety pattern matching performance

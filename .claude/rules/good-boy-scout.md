@@ -22,6 +22,28 @@ Every PR is an opportunity to improve. If you touch a file, clean up obvious iss
 - A passing CI is better than a beautiful failing CI
 - Ship fixes quickly; refine later if needed
 
+## Stay in Your Lane: Hand Off, Don't Detour
+
+"Fix it, no blame" applies to what your task already touches. Anything else
+you notice is someone else's job, and you must make sure someone gets it:
+
+- **In your diff's files and trivial** (a typo, a missing flag, a one-line
+  config): fix it in the same PR.
+- **Anywhere else, or not trivial:** search open issues first. If none
+  exists, file one. Add an entry to
+  [`.claude/memory/broken-windows.md`](../memory/broken-windows.md), mention
+  it in your PR body, and **go back to your task**.
+- **Security-policy or release decisions** (audit suppressions, safety
+  patterns, dependency major bumps, CI gates): always hand off and mark
+  `Needs human: yes`. Never apply them to unblock your own PR.
+- **Red CI caused by something outside your diff:** say so once on your PR
+  with the issue link, then stop. Don't fix `main` from a feature branch.
+
+The **caro broken-window sweep** routine (`trig_01TAiuoMoZ6nofW3ceYL3Csy`,
+daily 15:30 UTC; runs in worker session `session_01Co8rekU5U5KeKZFpA2et5n`,
+which has the repo and GitHub access) dedups the issues, syncs the register,
+and fixes one `Needs human: no` item per run. The register is how it finds them.
+
 ## Triage by Mission-Criticality
 
 Not all failures are equal. Fix in this order:

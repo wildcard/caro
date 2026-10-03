@@ -60,6 +60,11 @@ impl Evaluator for POSIXEvaluator {
                     est_cost_usd: 0.0,
                     criteria_passed: 0,
                     criteria_total: 0,
+                    confidence: result.confidence,
+                    confidence_source: result.confidence_source,
+                    decision_failed: result.decision_failed,
+                    local_risk: result.local_risk.clone(),
+                    reference_risk: result.reference_risk.clone(),
                 });
             }
         };
@@ -114,6 +119,11 @@ impl Evaluator for POSIXEvaluator {
             est_cost_usd: 0.0,
             criteria_passed: 0,
             criteria_total: 0,
+            confidence: result.confidence,
+            confidence_source: result.confidence_source,
+            decision_failed: result.decision_failed,
+            local_risk: result.local_risk.clone(),
+            reference_risk: result.reference_risk.clone(),
         })
     }
 }

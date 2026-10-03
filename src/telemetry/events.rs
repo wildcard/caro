@@ -79,6 +79,14 @@ pub enum EventType {
         success: bool,
         /// Error category if failed (e.g., "timeout", "parse_error")
         error_category: Option<String>,
+        /// Backend confidence in the generated command (`0.0..=1.0`), when
+        /// the backend measured or self-reported one (#1464). Metadata only.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        confidence: Option<f32>,
+        /// Provenance of `confidence`: "measured", "self-reported" or
+        /// "unknown". `None` when generation failed.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        confidence_source: Option<String>,
     },
 
     /// Safety validation performed
@@ -187,6 +195,8 @@ mod tests {
                 duration_ms: 1500,
                 success: true,
                 error_category: None,
+                confidence: None,
+                confidence_source: None,
             },
         );
 
@@ -197,5 +207,53 @@ mod tests {
         // Verify no sensitive data patterns
         assert!(!json.contains("/Users"));
         assert!(!json.contains("PATH="));
+    }
+
+    #[test]
+    fn command_generation_confidence_round_trips_and_defaults() {
+        let event = Event::new(
+            SessionId::generate(),
+            EventType::CommandGeneration {
+                backend: "vllm".to_string(),
+                duration_ms: 20,
+                success: true,
+                error_category: None,
+                confidence: Some(0.75),
+                confidence_source: Some("measured".to_string()),
+            },
+        );
+        let json = serde_json::to_string(&event).unwrap();
+        assert!(json.contains("\"confidence\":0.75"), "{json}");
+        assert!(
+            json.contains("\"confidence_source\":\"measured\""),
+            "{json}"
+        );
+        let back: Event = serde_json::from_str(&json).unwrap();
+        match back.event_type {
+            EventType::CommandGeneration {
+                confidence,
+                confidence_source,
+                ..
+            } => {
+                assert_eq!(confidence, Some(0.75));
+                assert_eq!(confidence_source.as_deref(), Some("measured"));
+            }
+            other => panic!("unexpected {other:?}"),
+        }
+
+        // Events written before #1464 carry neither field.
+        let old = r#"{"type":"command_generation","backend":"embedded","duration_ms":5,"success":true,"error_category":null}"#;
+        let parsed: EventType = serde_json::from_str(old).unwrap();
+        match parsed {
+            EventType::CommandGeneration {
+                confidence,
+                confidence_source,
+                ..
+            } => {
+                assert_eq!(confidence, None);
+                assert_eq!(confidence_source, None);
+            }
+            other => panic!("unexpected {other:?}"),
+        }
     }
 }

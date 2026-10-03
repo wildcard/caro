@@ -12,6 +12,15 @@
     ],
     "SessionStart": [
       {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/session-start.sh"
+          }
+        ]
+      },
+      {
         "matcher": "resume|compact|clear",
         "hooks": [
           {
