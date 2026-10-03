@@ -1,7 +1,11 @@
-// OpenRouter backend implementation
+// Shared client for hosted OpenAI-compatible chat-completions APIs.
 //
-// OpenRouter provides a unified API for 100+ LLMs (OpenAI-compatible endpoint).
-// Docs: https://openrouter.ai/docs
+// One implementation, one `Provider` profile per service (base URL, API-key
+// env var, default model, extra headers). Adding a hosted provider is a new
+// `Provider` arm, not a copy of the request/response structs.
+//
+// - OpenRouter: unified API for 100+ LLMs. Docs: https://openrouter.ai/docs
+// - xAI Grok:   https://api.x.ai/v1 (the default endpoint Grok Build uses)
 
 use async_trait::async_trait;
 use once_cell::sync::Lazy;
@@ -14,8 +18,6 @@ use std::time::Duration;
 use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError};
 use crate::models::{CommandRequest, GeneratedCommand, RiskLevel};
 
-const DEFAULT_ENDPOINT: &str = "https://openrouter.ai/api/v1";
-const DEFAULT_MODEL: &str = "qwen/qwen3-coder";
 const DEFAULT_MAX_TOKENS: u32 = 512;
 const DEFAULT_TEMPERATURE: f32 = 0.1;
 const DEFAULT_TIMEOUT_SECS: u64 = 30;
@@ -23,8 +25,76 @@ const DEFAULT_TIMEOUT_SECS: u64 = 30;
 static CMD_EXTRACT_REGEX: Lazy<Regex> =
     Lazy::new(|| Regex::new(r#"\{\s*"cmd"\s*:\s*"(.+)"\s*\}"#).expect("Invalid regex pattern"));
 
+/// A hosted OpenAI-compatible service.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Provider {
+    /// OpenRouter (`OPENROUTER_API_KEY`).
+    OpenRouter,
+    /// xAI Grok (`XAI_API_KEY`).
+    Grok,
+}
+
+impl Provider {
+    /// Human-readable name used in messages and `backend_used`.
+    pub fn display_name(self) -> &'static str {
+        match self {
+            Self::OpenRouter => "OpenRouter",
+            Self::Grok => "Grok",
+        }
+    }
+
+    /// Base URL, including the `/v1`-style API prefix.
+    pub fn default_endpoint(self) -> &'static str {
+        match self {
+            Self::OpenRouter => "https://openrouter.ai/api/v1",
+            Self::Grok => "https://api.x.ai/v1",
+        }
+    }
+
+    /// Model used when neither `--model-name` nor `CARO_MODEL` is set.
+    pub fn default_model(self) -> &'static str {
+        match self {
+            Self::OpenRouter => "qwen/qwen3-coder",
+            // Grok Build's own default model (xai-org/grok-build, 2026-09).
+            Self::Grok => "grok-4.5",
+        }
+    }
+
+    /// Environment variable holding the API key.
+    pub fn api_key_env(self) -> &'static str {
+        match self {
+            Self::OpenRouter => "OPENROUTER_API_KEY",
+            Self::Grok => "XAI_API_KEY",
+        }
+    }
+
+    /// Environment variable that overrides the base URL.
+    pub fn endpoint_env(self) -> &'static str {
+        match self {
+            Self::OpenRouter => "OPENROUTER_BASE_URL",
+            Self::Grok => "XAI_API_BASE_URL",
+        }
+    }
+
+    pub fn backend_type(self) -> BackendType {
+        match self {
+            Self::OpenRouter => BackendType::OpenRouter,
+            Self::Grok => BackendType::Grok,
+        }
+    }
+
+    /// Whether to request per-token logprobs. Only asked where the service is
+    /// known to accept the field on every model; xAI reasoning models are not
+    /// guaranteed to, so Grok reports confidence as unknown rather than risk
+    /// a 400 on every request.
+    fn request_logprobs(self) -> bool {
+        matches!(self, Self::OpenRouter)
+    }
+}
+
 #[derive(Clone)]
-pub struct OpenRouterConfig {
+pub struct OpenAiCompatConfig {
+    pub provider: Provider,
     pub api_key: String,
     pub model: String,
     pub endpoint: String,
@@ -32,9 +102,10 @@ pub struct OpenRouterConfig {
     pub temperature: f32,
 }
 
-impl std::fmt::Debug for OpenRouterConfig {
+impl std::fmt::Debug for OpenAiCompatConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("OpenRouterConfig")
+        f.debug_struct("OpenAiCompatConfig")
+            .field("provider", &self.provider)
             .field("api_key", &"[REDACTED]")
             .field("model", &self.model)
             .field("endpoint", &self.endpoint)
@@ -44,15 +115,42 @@ impl std::fmt::Debug for OpenRouterConfig {
     }
 }
 
-impl Default for OpenRouterConfig {
-    fn default() -> Self {
+impl OpenAiCompatConfig {
+    /// Defaults for `provider` with an empty API key.
+    pub fn for_provider(provider: Provider) -> Self {
         Self {
+            provider,
             api_key: String::new(),
-            model: DEFAULT_MODEL.to_string(),
-            endpoint: DEFAULT_ENDPOINT.to_string(),
+            model: provider.default_model().to_string(),
+            endpoint: provider.default_endpoint().to_string(),
             max_tokens: DEFAULT_MAX_TOKENS,
             temperature: DEFAULT_TEMPERATURE,
         }
+    }
+
+    /// Resolve key and endpoint from the environment, with optional
+    /// overrides (config-file endpoint, `--model-name`/`CARO_MODEL` model).
+    /// Precedence for the endpoint: `endpoint` argument, then the provider's
+    /// env var, then the default.
+    pub fn from_env(provider: Provider, endpoint: Option<&str>, model: Option<&str>) -> Self {
+        let mut cfg = Self::for_provider(provider);
+        cfg.api_key = std::env::var(provider.api_key_env()).unwrap_or_default();
+        if let Some(e) = endpoint
+            .map(str::to_owned)
+            .or_else(|| std::env::var(provider.endpoint_env()).ok())
+        {
+            cfg.endpoint = e.trim_end_matches('/').to_string();
+        }
+        if let Some(m) = model {
+            cfg.model = m.to_string();
+        }
+        cfg
+    }
+}
+
+impl Default for OpenAiCompatConfig {
+    fn default() -> Self {
+        Self::for_provider(Provider::OpenRouter)
     }
 }
 
@@ -63,7 +161,9 @@ struct ChatRequest {
     temperature: f32,
     max_tokens: u32,
     stream: bool,
-    /// Ask for per-token log-probs so confidence is measured, not constant (#1464).
+    /// Ask for per-token log-probs so confidence is measured, not constant
+    /// (#1464). Omitted for providers that may reject it.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
     logprobs: bool,
 }
 
@@ -133,17 +233,21 @@ struct ChatUsage {
     total_tokens: u32,
 }
 
-pub struct OpenRouterBackend {
-    config: OpenRouterConfig,
+pub struct OpenAiCompatBackend {
+    config: OpenAiCompatConfig,
     client: Client,
     embedded_fallback: Option<Arc<dyn CommandGenerator>>,
 }
 
-impl OpenRouterBackend {
-    pub fn new(config: OpenRouterConfig) -> Result<Self, GeneratorError> {
+impl OpenAiCompatBackend {
+    pub fn new(config: OpenAiCompatConfig) -> Result<Self, GeneratorError> {
         if config.api_key.is_empty() {
             return Err(GeneratorError::ConfigError {
-                message: "OpenRouter API key is required (set OPENROUTER_API_KEY)".to_string(),
+                message: format!(
+                    "{} API key is required (set {})",
+                    config.provider.display_name(),
+                    config.provider.api_key_env()
+                ),
             });
         }
 
@@ -250,44 +354,57 @@ Rules:
             temperature: self.config.temperature,
             max_tokens: self.config.max_tokens,
             stream: false,
-            logprobs: true,
+            logprobs: self.config.provider.request_logprobs(),
         };
 
+        let name = self.config.provider.display_name();
         let url = format!("{}/chat/completions", self.config.endpoint);
 
-        let response = self
-            .client
-            .post(&url)
-            .header(
-                header::AUTHORIZATION,
-                format!("Bearer {}", self.config.api_key),
-            )
-            .header("HTTP-Referer", "https://github.com/wildcard/caro")
-            .header("X-Title", "caro")
-            .json(&request)
-            .send()
-            .await
-            .map_err(|e| {
-                if e.is_connect() || e.is_timeout() {
-                    GeneratorError::BackendUnavailable {
-                        reason: format!("OpenRouter unavailable: {}", e),
-                    }
-                } else {
-                    GeneratorError::GenerationFailed {
-                        details: format!("HTTP request failed: {}", e),
-                    }
+        let mut http = self.client.post(&url).header(
+            header::AUTHORIZATION,
+            format!("Bearer {}", self.config.api_key),
+        );
+        if self.config.provider == Provider::OpenRouter {
+            // OpenRouter attribution headers (optional, used for rankings).
+            http = http
+                .header("HTTP-Referer", "https://github.com/wildcard/caro")
+                .header("X-Title", "caro");
+        }
+        let response = http.json(&request).send().await.map_err(|e| {
+            if e.is_connect() || e.is_timeout() {
+                GeneratorError::BackendUnavailable {
+                    reason: format!("{} unavailable: {}", name, e),
                 }
-            })?;
+            } else {
+                GeneratorError::GenerationFailed {
+                    details: format!("HTTP request failed: {}", e),
+                }
+            }
+        })?;
 
-        if response.status() == 401 || response.status() == 403 {
-            return Err(GeneratorError::BackendUnavailable {
-                reason: "OpenRouter authentication failed - check OPENROUTER_API_KEY".to_string(),
-            });
+        let status = response.status();
+        let auth_failed = || GeneratorError::BackendUnavailable {
+            reason: format!(
+                "{} authentication failed - check {}",
+                name,
+                self.config.provider.api_key_env()
+            ),
+        };
+        if status == 401 || status == 403 {
+            return Err(auth_failed());
         }
 
-        if !response.status().is_success() {
+        if !status.is_success() {
+            let body = response.text().await.unwrap_or_default();
+            // xAI answers a bad key with 400 "Incorrect API key provided"
+            // rather than 401; treat it as auth so it is not silently
+            // swallowed by the embedded fallback.
+            if body.to_ascii_lowercase().contains("api key") {
+                return Err(auth_failed());
+            }
+            let snippet: String = body.chars().take(200).collect();
             return Err(GeneratorError::GenerationFailed {
-                details: format!("OpenRouter API error: {}", response.status()),
+                details: format!("{} API error: {} {}", name, status, snippet),
             });
         }
 
@@ -296,7 +413,7 @@ Rules:
                 .json()
                 .await
                 .map_err(|e| GeneratorError::ParseError {
-                    content: format!("Failed to parse OpenRouter response: {}", e),
+                    content: format!("Failed to parse {} response: {}", name, e),
                 })?;
 
         if let Some(choice) = chat_response.choices.first() {
@@ -304,7 +421,7 @@ Rules:
             Ok((choice.message.content.clone(), tokens))
         } else {
             Err(GeneratorError::ParseError {
-                content: "OpenRouter response contained no choices".to_string(),
+                content: format!("{} response contained no choices", name),
             })
         }
     }
@@ -328,11 +445,18 @@ Rules:
                     };
                     return Ok(GeneratedCommand {
                         command,
-                        explanation: "Generated using OpenRouter".to_string(),
+                        explanation: format!(
+                            "Generated using {}",
+                            self.config.provider.display_name()
+                        ),
                         safety_level: RiskLevel::Moderate,
                         estimated_impact: "Remote inference operation".to_string(),
                         alternatives: vec![],
-                        backend_used: format!("OpenRouter ({})", self.config.model),
+                        backend_used: format!(
+                            "{} ({})",
+                            self.config.provider.display_name(),
+                            self.config.model
+                        ),
                         generation_time_ms: 0,
                         confidence_score,
                         confidence_source,
@@ -343,11 +467,19 @@ Rules:
                 // command from another backend (#1462).
                 Err(err @ GeneratorError::NeedsClarification { .. }) => return Err(err),
                 Err(parse_error) => {
-                    tracing::warn!("Failed to parse OpenRouter response: {}", parse_error);
+                    tracing::warn!(
+                        "Failed to parse {} response: {}",
+                        self.config.provider.display_name(),
+                        parse_error
+                    );
                 }
             },
             Err(api_error) => {
-                tracing::warn!("OpenRouter backend failed: {}", api_error);
+                tracing::warn!(
+                    "{} backend failed: {}",
+                    self.config.provider.display_name(),
+                    api_error
+                );
                 if let GeneratorError::BackendUnavailable { ref reason } = api_error {
                     if reason.to_lowercase().contains("authentication failed") {
                         return Err(api_error);
@@ -359,19 +491,25 @@ Rules:
         if let Some(fallback) = &self.embedded_fallback {
             tracing::info!("Falling back to embedded backend");
             let mut fallback_result = fallback.generate_command(request).await?;
-            fallback_result.backend_used =
-                format!("Embedded (OpenRouter fallback from {})", self.config.model);
+            fallback_result.backend_used = format!(
+                "Embedded ({} fallback from {})",
+                self.config.provider.display_name(),
+                self.config.model
+            );
             return Ok(fallback_result);
         }
 
         Err(GeneratorError::BackendUnavailable {
-            reason: "OpenRouter unavailable and no fallback configured".to_string(),
+            reason: format!(
+                "{} unavailable and no fallback configured",
+                self.config.provider.display_name()
+            ),
         })
     }
 }
 
 #[async_trait]
-impl CommandGenerator for OpenRouterBackend {
+impl CommandGenerator for OpenAiCompatBackend {
     async fn generate_command(
         &self,
         request: &CommandRequest,
@@ -392,24 +530,16 @@ impl CommandGenerator for OpenRouterBackend {
         self.generate_command(request).await.ok()
     }
 
+    /// A key is configured. Hosted APIs have no `/health` endpoint and a
+    /// network probe on every invocation would add a round trip; a bad key
+    /// surfaces as `BackendUnavailable` on the first request instead.
     async fn is_available(&self) -> bool {
-        let url = format!("{}/models", self.config.endpoint);
-        let mut req = self.client.get(&url);
-        if !self.config.api_key.is_empty() {
-            req = req.header(
-                header::AUTHORIZATION,
-                format!("Bearer {}", self.config.api_key),
-            );
-        }
-        match req.send().await {
-            Ok(response) => response.status().is_success(),
-            Err(_) => false,
-        }
+        !self.config.api_key.is_empty()
     }
 
     fn backend_info(&self) -> BackendInfo {
         BackendInfo {
-            backend_type: BackendType::OpenRouter,
+            backend_type: self.config.provider.backend_type(),
             model_name: self.config.model.clone(),
             supports_streaming: false,
             max_tokens: self.config.max_tokens,
@@ -430,7 +560,7 @@ mod tests {
 
     #[test]
     fn test_openrouter_config_default() {
-        let config = OpenRouterConfig::default();
+        let config = OpenAiCompatConfig::default();
         assert_eq!(config.model, "qwen/qwen3-coder");
         assert_eq!(config.endpoint, "https://openrouter.ai/api/v1");
         assert_eq!(config.max_tokens, 512);
@@ -438,26 +568,26 @@ mod tests {
 
     #[test]
     fn test_openrouter_requires_api_key() {
-        let config = OpenRouterConfig::default();
-        assert!(OpenRouterBackend::new(config).is_err());
+        let config = OpenAiCompatConfig::default();
+        assert!(OpenAiCompatBackend::new(config).is_err());
     }
 
     #[test]
     fn test_openrouter_creation() {
-        let config = OpenRouterConfig {
+        let config = OpenAiCompatConfig {
             api_key: "test-key".to_string(),
             ..Default::default()
         };
-        assert!(OpenRouterBackend::new(config).is_ok());
+        assert!(OpenAiCompatBackend::new(config).is_ok());
     }
 
     #[test]
     fn test_parse_valid_json() {
-        let config = OpenRouterConfig {
+        let config = OpenAiCompatConfig {
             api_key: "test-key".to_string(),
             ..Default::default()
         };
-        let backend = OpenRouterBackend::new(config).unwrap();
+        let backend = OpenAiCompatBackend::new(config).unwrap();
         let response = r#"{"cmd": "grep -r 'pattern' ."}"#;
         assert_eq!(
             backend.parse_command_response(response).unwrap(),
@@ -467,11 +597,11 @@ mod tests {
 
     #[test]
     fn test_parse_embedded_json() {
-        let config = OpenRouterConfig {
+        let config = OpenAiCompatConfig {
             api_key: "test-key".to_string(),
             ..Default::default()
         };
-        let backend = OpenRouterBackend::new(config).unwrap();
+        let backend = OpenAiCompatBackend::new(config).unwrap();
         let response = r#"Here: {"cmd": "sort file.txt"} done"#;
         assert_eq!(
             backend.parse_command_response(response).unwrap(),
@@ -481,22 +611,22 @@ mod tests {
 
     #[test]
     fn test_parse_invalid_response() {
-        let config = OpenRouterConfig {
+        let config = OpenAiCompatConfig {
             api_key: "test-key".to_string(),
             ..Default::default()
         };
-        let backend = OpenRouterBackend::new(config).unwrap();
+        let backend = OpenAiCompatBackend::new(config).unwrap();
         assert!(backend.parse_command_response("no command here").is_err());
     }
 
     #[test]
     fn test_backend_info() {
-        let config = OpenRouterConfig {
+        let config = OpenAiCompatConfig {
             api_key: "test-key".to_string(),
             model: "qwen/qwen3-coder".to_string(),
             ..Default::default()
         };
-        let backend = OpenRouterBackend::new(config).unwrap();
+        let backend = OpenAiCompatBackend::new(config).unwrap();
         let info = backend.backend_info();
         assert_eq!(info.backend_type, BackendType::OpenRouter);
         assert_eq!(info.model_name, "qwen/qwen3-coder");
@@ -548,5 +678,134 @@ mod confidence_tests {
             "logprobs":{"content":[{"token":"{\"cmd","logprob":-0.1},{"logprob":-0.2}]}}]}"#;
         let parsed: ChatResponse = serde_json::from_str(body).unwrap();
         assert_eq!(token_logprobs(parsed.choices[0].logprobs.as_ref()), None);
+    }
+}
+
+#[cfg(test)]
+mod grok_wire_tests {
+    use super::*;
+    use crate::models::{SafetyLevel, ShellType};
+    use wiremock::matchers::{header, method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    fn grok(server: &MockServer) -> OpenAiCompatBackend {
+        OpenAiCompatBackend::new(OpenAiCompatConfig {
+            api_key: "xai-test-key".to_string(),
+            // xAI's base already carries the `/v1` prefix.
+            endpoint: format!("{}/v1", server.uri()),
+            ..OpenAiCompatConfig::for_provider(Provider::Grok)
+        })
+        .unwrap()
+    }
+
+    fn request() -> CommandRequest {
+        CommandRequest {
+            input: "list files by size".to_string(),
+            shell: ShellType::Bash,
+            safety_level: SafetyLevel::Moderate,
+            context: None,
+            backend_preference: None,
+        }
+    }
+
+    #[test]
+    fn grok_defaults() {
+        let c = OpenAiCompatConfig::for_provider(Provider::Grok);
+        assert_eq!(c.endpoint, "https://api.x.ai/v1");
+        assert_eq!(c.model, "grok-4.5");
+        assert_eq!(Provider::Grok.api_key_env(), "XAI_API_KEY");
+        assert!(format!("{c:?}").contains("[REDACTED]"));
+    }
+
+    #[test]
+    fn grok_requires_xai_key() {
+        let err = OpenAiCompatBackend::new(OpenAiCompatConfig::for_provider(Provider::Grok))
+            .err()
+            .unwrap();
+        assert!(err.to_string().contains("XAI_API_KEY"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn grok_posts_chat_completions_with_bearer_and_model() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .and(header("authorization", "Bearer xai-test-key"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "choices": [{ "message": { "role": "assistant", "content": "{\"cmd\": \"ls -lS\"}" } }]
+            })))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let backend = grok(&server);
+        let generated = backend.generate_command(&request()).await.unwrap();
+        assert_eq!(generated.command, "ls -lS");
+        assert_eq!(generated.backend_used, "Grok (grok-4.5)");
+        assert_eq!(backend.backend_info().backend_type, BackendType::Grok);
+
+        let reqs = server.received_requests().await.unwrap();
+        let body: serde_json::Value = serde_json::from_slice(&reqs[0].body).unwrap();
+        assert_eq!(body["model"], "grok-4.5");
+        // No logprobs field for xAI (not every model accepts it), and no
+        // OpenRouter attribution headers.
+        assert!(body.get("logprobs").is_none());
+        assert!(reqs[0].headers.get("x-title").is_none());
+    }
+
+    #[tokio::test]
+    async fn grok_auth_failure_is_backend_unavailable() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .respond_with(ResponseTemplate::new(401))
+            .mount(&server)
+            .await;
+
+        let err = grok(&server)
+            .generate_command(&request())
+            .await
+            .unwrap_err();
+        match err {
+            GeneratorError::BackendUnavailable { reason } => {
+                assert!(reason.contains("XAI_API_KEY"), "{reason}")
+            }
+            other => panic!("expected BackendUnavailable, got {other:?}"),
+        }
+    }
+
+    /// Observed against api.x.ai (2026-10-03): a bad key is a 400 with
+    /// `{"code":"invalid-argument","error":"Incorrect API key provided. ..."}`.
+    #[tokio::test]
+    async fn grok_400_incorrect_api_key_is_auth_failure() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .respond_with(ResponseTemplate::new(400).set_body_json(serde_json::json!({
+                "code": "invalid-argument",
+                "error": "Incorrect API key provided. You can obtain an API key from https://console.x.ai."
+            })))
+            .mount(&server)
+            .await;
+
+        let err = grok(&server)
+            .generate_command(&request())
+            .await
+            .unwrap_err();
+        assert!(
+            matches!(err, GeneratorError::BackendUnavailable { ref reason } if reason.contains("authentication failed")),
+            "{err:?}"
+        );
+    }
+
+    #[test]
+    fn from_env_endpoint_override_trims_trailing_slash() {
+        let c = OpenAiCompatConfig::from_env(
+            Provider::Grok,
+            Some("https://proxy.example/v1/"),
+            Some("grok-4.6"),
+        );
+        assert_eq!(c.endpoint, "https://proxy.example/v1");
+        assert_eq!(c.model, "grok-4.6");
     }
 }

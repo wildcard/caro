@@ -765,7 +765,7 @@ struct Cli {
     #[arg(
         short = 'b',
         long,
-        help = "Inference backend (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid; see --backend-info)"
+        help = "Inference backend (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid, grok, claude, openrouter; see --backend-info)"
     )]
     backend: Option<String>,
 
@@ -781,7 +781,7 @@ struct Cli {
     /// (off by default). Its output is re-validated for safety before use.
     #[arg(
         long = "advisor",
-        help = "Frontier advisor for low-confidence drafts (e.g., claude; sends prompts off-host)"
+        help = "Frontier advisor for low-confidence drafts (claude, grok, openrouter; sends prompts off-host)"
     )]
     advisor: Option<String>,
 
@@ -1178,6 +1178,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         // The hybrid gateway sanitizes PII before remote transmission by
         // default, so it is intentionally NOT treated as an off-host leak here.
         caro::models::BackendType::Hybrid => "hybrid".to_string(),
+        caro::models::BackendType::Grok => "grok".to_string(),
     };
 
     let exec_ctx = ExecutionContext::detect();
@@ -4195,8 +4196,8 @@ fn print_backend_info() {
     // The roster is driven by `CLI_SERVABLE_BACKENDS` — the SAME slice that
     // `validate_backend_name` accepts — so this table can never advertise a
     // backend that `--backend <name>` would reject (the divergence tracked
-    // by #1115). `static`/`claude`/`openrouter` are intentionally absent
-    // because the CLI does not route to them yet.
+    // by #1115). `static`/`mlx` are intentionally absent because the CLI
+    // does not route to them yet.
     let remote_backends_compiled = cfg!(feature = "remote-backends");
 
     println!("{}", "Available inference backends".bold());
@@ -4226,6 +4227,10 @@ fn print_backend_info() {
                 "exo" if env_or(&["CARO_EXO_URL"]) => "configured",
                 "mesh" if env_or(&["CARO_MESH_URL"]) => "configured",
                 "hybrid" => "needs config",
+                "grok" if env_or(&["XAI_API_KEY"]) => "configured",
+                "claude" if env_or(&["ANTHROPIC_API_KEY"]) => "configured",
+                "openrouter" if env_or(&["OPENROUTER_API_KEY"]) => "configured",
+                "grok" | "claude" | "openrouter" => "needs API key",
                 _ => "default endpoint",
             }
         };

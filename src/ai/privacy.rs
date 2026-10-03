@@ -70,7 +70,7 @@ pub fn may_leak_context_offhost(ai_cfg: &AiConfig, backend_name: &str) -> bool {
         || ai_cfg.capabilities.enable_history_search;
     let remote = matches!(
         backend_name,
-        "ollama" | "vllm" | "exo" | "claude" | "mesh" | "ai-horde"
+        "ollama" | "vllm" | "exo" | "claude" | "mesh" | "ai-horde" | "grok" | "openrouter"
     );
     anything_optin && remote && ai_cfg.endpoint.is_some()
 }

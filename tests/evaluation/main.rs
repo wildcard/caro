@@ -184,7 +184,7 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
     // server. These are the ones with a risk judge, so this is also what
     // makes `CARO_EVAL_JUDGE_RISK` and the consensus labels below produce
     // anything: the static matcher has no judge.
-    //   CARO_EVAL_BACKENDS=ollama:<model>[@<url>],vllm:<model>@<url>
+    //   CARO_EVAL_BACKENDS=ollama:<model>[@<url>],vllm:<model>@<url>,grok:<model>[@<url>]
     if let Ok(specs) = std::env::var("CARO_EVAL_BACKENDS") {
         for spec in specs.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             match backend_from_spec(spec) {
@@ -297,6 +297,17 @@ fn backend_from_spec(spec: &str) -> Result<Arc<dyn caro::backends::CommandGenera
             VllmBackend::new(url, model.to_string())
                 .map(|b| Arc::new(b) as Arc<dyn caro::backends::CommandGenerator>)
                 .map_err(|e| e.to_string())
+        }
+        "grok" | "xai" => {
+            use caro::backends::remote::{OpenAiCompatBackend, OpenAiCompatConfig, Provider};
+            // Key from XAI_API_KEY; `@<url>` overrides https://api.x.ai/v1.
+            OpenAiCompatBackend::new(OpenAiCompatConfig::from_env(
+                Provider::Grok,
+                url,
+                Some(model),
+            ))
+            .map(|b| Arc::new(b) as Arc<dyn caro::backends::CommandGenerator>)
+            .map_err(|e| e.to_string())
         }
         other => Err(format!("unknown reference judge kind {other:?}")),
     }

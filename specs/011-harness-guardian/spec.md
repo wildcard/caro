@@ -163,13 +163,23 @@ This is the "inform the user" surface for shadow mode.
   own default).
 - **Availability:** a key is present. xAI has no `/health` endpoint.
 - **Errors:** 401/403 become `BackendUnavailable`, so the request does not fall
-  back silently.
+  back silently. So does a 400 whose body names the API key: api.x.ai answers
+  a bad key with `400 {"code":"invalid-argument","error":"Incorrect API key provided…"}`
+  (observed 2026-10-03).
+- **Logprobs:** Grok requests omit `logprobs`, because not every xAI model is
+  guaranteed to accept the field. Confidence for Grok is therefore `Unknown`,
+  and ECE reads n/a until this is verified per model.
 - `--advisor grok` gives frontier escalation through `advise()`.
 - `[backends] hybrid_remote = "grok"` routes the hybrid privacy gateway's
   remote enhancer to Grok, after sanitization.
-- The backend is built on a new shared `openai_compat` client. `openrouter`,
-  which was previously uncompiled, moves onto it. `openrouter` and `claude`
-  become CLI-servable too.
+- The backend is built on a new shared `openai_compat` client
+  (`src/backends/remote/openai_compat.rs`): one `Provider` enum
+  (`OpenRouter`, `Grok`) with endpoint, key env var, default model and
+  headers. `openrouter.rs`, previously never compiled, becomes that file.
+  `openrouter` and `claude` (`ANTHROPIC_API_KEY`) become CLI-servable too,
+  closing the remaining wiring gap from #1115.
+- `grok` and `openrouter` join the off-host privacy warning list
+  (`src/ai/privacy.rs`).
 - **Eval:** `CARO_EVAL_BACKENDS=grok:<model>` is supported, and Grok appears in
   the Pareto table with non-zero pricing.
 
