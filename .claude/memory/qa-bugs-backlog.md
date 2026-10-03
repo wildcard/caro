@@ -9,6 +9,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1444](https://github.com/wildcard/caro/issues/1444) | P2 | docs | CLAUDE.md version (1.4.0) and MSRV (1.83) out of sync with v1.5.0 (MSRV 1.85) | open | 2026-09-08 |
 
 ---
 
