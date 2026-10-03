@@ -4321,9 +4321,9 @@ async fn handle_guard(
             eprintln!("caro guard report: no data directory; pass --log <PATH>");
             return 1;
         };
-        return match std::fs::read_to_string(&path) {
-            Ok(contents) => {
-                let report = guard::log::summarize(&contents, limit);
+        return match std::fs::File::open(&path) {
+            Ok(file) => {
+                let report = guard::log::summarize_reader(std::io::BufReader::new(file), limit);
                 print!("{}", guard::log::format_report(&path, &report));
                 0
             }
@@ -4354,10 +4354,19 @@ async fn handle_guard(
     // as defaults; a config that exists but cannot be loaded is an error, not
     // a silent fallback that would drop the user's own High/Critical rules.
     let validator: Result<caro::safety::SafetyValidator, String> = (|| {
-        let cm = caro::config::ConfigManager::new().map_err(|e| format!("config: {e}"))?;
-        let uc = cm.load().map_err(|e| format!("config: {e}"))?;
+        // Error text stays generic: parser diagnostics can quote the offending
+        // config line, which may hold a token, and this text is logged.
+        let cm = caro::config::ConfigManager::new()
+            .map_err(|_| "config: could not locate the caro config directory".to_string())?;
+        let uc = cm.load().map_err(|_| {
+            format!(
+                "config: {} could not be loaded (run `caro config show` for details)",
+                cm.config_path().display()
+            )
+        })?;
         let cfg = caro::safety::SafetyConfig::from_user_config(&uc, cm.config_path());
-        caro::safety::SafetyValidator::new(cfg).map_err(|e| format!("safety rules: {e}"))
+        caro::safety::SafetyValidator::new(cfg)
+            .map_err(|_| "safety rules: a configured pattern failed to build".to_string())
     })();
 
     // Cap the read: an unbounded payload could stall the hook past the

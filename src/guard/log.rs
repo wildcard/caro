@@ -33,6 +33,22 @@ static COMMAND_SECRETS: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
             r#"(?i)\b([a-z0-9_]*(?:key|token|secret|passw(?:or)?d|pwd|credentials?|auth)[a-z0-9_]*)=(?:'[^']*'|"[^"]*"|[^\s;&|]+)"#,
             "${1}=[REDACTED]",
         ),
+        // `--password X` / `--passwd X` (space-separated; `=` is covered above).
+        (
+            r#"(?i)(\s--passw(?:or)?d\s+)(?:'[^']*'|"[^"]*"|[^\s;&|]+)"#,
+            "${1}[REDACTED]",
+        ),
+        // `-p PASS` only where `-p` means password: registry logins and
+        // sshpass. `mkdir -p`, `cp -p`, `docker run -p 80:80` stay untouched.
+        (
+            r#"(?i)(\b(?:(?:docker|podman|nerdctl|helm|oras|buildah)\s+(?:registry\s+)?login\b[^;&|]*?|sshpass)\s-p\s*)(?:'[^']*'|"[^"]*"|[^\s;&|]+)"#,
+            "${1}[REDACTED]",
+        ),
+        // MySQL-family attached password: `mysql -uroot -pSECRET`.
+        (
+            r#"(\bmysql(?:dump|admin|import|show|check|slap)?\b[^;&|]*?\s-p)(?:'[^']*'|"[^"]*"|[^\s;&|]+)"#,
+            "${1}[REDACTED]",
+        ),
     ]
     .into_iter()
     .map(|(p, r)| (Regex::new(p).expect("valid redaction regex"), r))
@@ -176,15 +192,33 @@ pub struct Report {
     pub recent_flagged: Vec<DecisionRecord>,
 }
 
-/// Summarize a JSONL decision log. Unparsable lines are counted, not fatal.
+/// Summarize a JSONL decision log held in memory (tests, small logs).
 pub fn summarize(contents: &str, limit: usize) -> Report {
+    summarize_lines(contents.lines().map(str::to_owned), limit)
+}
+
+/// Summarize a decision log by streaming it line by line, so an append-only
+/// log that has grown large is never loaded whole. Unreadable or unparsable
+/// lines are counted, not fatal.
+pub fn summarize_reader<R: std::io::BufRead>(reader: R, limit: usize) -> Report {
+    summarize_lines(
+        reader
+            .lines()
+            .map(|l| l.unwrap_or_else(|_| "\u{0}".to_string())),
+        limit,
+    )
+}
+
+fn summarize_lines(lines: impl Iterator<Item = String>, limit: usize) -> Report {
     let mut report = Report::default();
     let mut patterns: BTreeMap<String, usize> = BTreeMap::new();
     let mut latencies = Vec::new();
-    let mut flagged = Vec::new();
+    // Only the newest `limit` flagged records are kept.
+    let mut flagged: std::collections::VecDeque<DecisionRecord> =
+        std::collections::VecDeque::with_capacity(limit.min(1024));
 
-    for line in contents.lines().filter(|l| !l.trim().is_empty()) {
-        let Ok(rec) = serde_json::from_str::<DecisionRecord>(line) else {
+    for line in lines.filter(|l| !l.trim().is_empty()) {
+        let Ok(rec) = serde_json::from_str::<DecisionRecord>(&line) else {
             report.unparsable += 1;
             continue;
         };
@@ -201,8 +235,11 @@ pub fn summarize(contents: &str, limit: usize) -> Report {
             *patterns.entry(p.clone()).or_default() += 1;
         }
         latencies.push(rec.latency_us);
-        if rec.verdict != Verdict::None {
-            flagged.push(rec);
+        if rec.verdict != Verdict::None && limit > 0 {
+            if flagged.len() == limit {
+                flagged.pop_front();
+            }
+            flagged.push_back(rec);
         }
     }
 
@@ -220,7 +257,7 @@ pub fn summarize(contents: &str, limit: usize) -> Report {
     report.p50_latency_us = pct(50);
     report.p95_latency_us = pct(95);
 
-    report.recent_flagged = flagged.into_iter().rev().take(limit).collect();
+    report.recent_flagged = flagged.into_iter().rev().collect();
     report
 }
 
@@ -328,6 +365,42 @@ mod tests {
     }
 
     #[test]
+    fn report_streams_and_keeps_only_the_newest_flags() {
+        let mk = |cmd: &str, verdict: Verdict| {
+            let ev = HookEvent {
+                tool_name: Some("Bash".into()),
+                command: Some(cmd.into()),
+                ..Default::default()
+            };
+            let mut rec = DecisionRecord::new(
+                Harness::Claude,
+                GuardMode::Shadow,
+                &ev,
+                &Outcome::Error("x".into()),
+                Verdict::None,
+                1,
+            );
+            rec.verdict = verdict;
+            serde_json::to_string(&rec).unwrap()
+        };
+        let mut log = String::new();
+        for i in 0..50 {
+            log.push_str(&mk(&format!("cmd-{i}"), Verdict::Ask));
+            log.push('\n');
+        }
+        log.push_str("not json\n");
+        let r = summarize_reader(std::io::Cursor::new(log), 3);
+        assert_eq!(r.total, 50);
+        assert_eq!(r.unparsable, 1);
+        let cmds: Vec<_> = r
+            .recent_flagged
+            .iter()
+            .map(|f| f.command.clone().unwrap())
+            .collect();
+        assert_eq!(cmds, ["cmd-49", "cmd-48", "cmd-47"]);
+    }
+
+    #[test]
     fn command_secret_shapes_are_redacted() {
         // The fake secret is assembled at runtime so no credential-shaped
         // literal lives in the source (keeps secret scanners quiet).
@@ -341,6 +414,12 @@ mod tests {
             "curl --user=bob:{S} https://h",
             "curl -u 'alice:{S}' https://h",
             "curl --user \"bob:{S}\" https://h",
+            "docker login -u me -p {S} registry.example",
+            "podman login --username me -p '{S}' quay.io",
+            "sshpass -p {S} ssh host",
+            "mysql -uroot -p{S} -e 'select 1'",
+            "mysqldump -u root -p'{S}' db",
+            "psql --password {S}",
             "export GITHUB_TOKEN={S}",
             "DB_PASSWORD='{S} words' ./migrate",
             "AWS_SECRET_ACCESS_KEY={S}/x+y= aws s3 ls",
@@ -358,6 +437,10 @@ mod tests {
         }
         // Ordinary commands are untouched.
         for cmd in [
+            "mkdir -p a/b",
+            "cp -p src dst",
+            "docker run -p 8080:80 nginx",
+            "ssh -p 2222 host",
             "ls -la",
             "git push origin main",
             "mkdir -p a/b",

@@ -174,3 +174,31 @@ fn never_emits_allow() {
         );
     }
 }
+
+#[test]
+fn broken_config_asks_without_leaking_config_text() {
+    let home = TempDir::new().unwrap();
+    let cfg_dir = home.path().join("config").join("caro");
+    std::fs::create_dir_all(&cfg_dir).unwrap();
+    // Malformed TOML whose offending line carries a token-like value.
+    let marker = ["leak", "Marker", "7731"].concat();
+    std::fs::write(
+        cfg_dir.join("config.toml"),
+        format!("[ai]\napi_token = \"{marker}\n[broken"),
+    )
+    .unwrap();
+    let log = home.path().join("d.jsonl");
+
+    let out = guard(
+        &home,
+        &["--mode", "enforce", "--log", log.to_str().unwrap()],
+        &claude_payload("ls"),
+    );
+    assert_eq!(
+        stdout_json(&out)["hookSpecificOutput"]["permissionDecision"],
+        "ask"
+    );
+    let logged = std::fs::read_to_string(&log).unwrap();
+    assert!(!logged.contains(&marker), "{logged}");
+    assert!(!String::from_utf8_lossy(&out.stderr).contains(&marker));
+}
