@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-10-01
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -13,6 +13,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
+| 2026-10-01 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher handled dry-run (ls -la); no model download needed; telemetry consent shown on first run |
 
 ---
 
@@ -31,7 +32,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-05-07 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-05-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | never | — | — |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-01 | FAIL | [#1494](https://github.com/wildcard/caro/issues/1494) |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
@@ -54,6 +55,8 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 30 | `caro --verbose` timing output | cli | never | — | — |
 | 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | never | — | — |
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-05-07 | PASS | — |
+| 33 | `caro ai` decision gates (clarification, Jev gap, constrained decoding) (#1459) | ai | never | — | — |
+| 34 | Executor timeout / guard hooks / loop budget enforcement (#1470) | cli | never | — | — |
 
 ---
 
@@ -63,7 +66,9 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | closed |
+| [#1494](https://github.com/wildcard/caro/issues/1494) | `caro ai --once` CPU backend always returns deletion-clarification | ai | 2026-10-01 | open |
+| [#1495](https://github.com/wildcard/caro/issues/1495) | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (regression) | docs | 2026-10-01 | open |
 
 ---
 
