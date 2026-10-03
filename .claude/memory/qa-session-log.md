@@ -67,6 +67,7 @@ All three return: `Error: backend error: Clarification needed: What exactly shou
 - FLAKE-001 observed again (model download required for ai --once; times out in sandbox). Second observation (2026-05-07 + 2026-10-03). Does not meet 3-in-7-days threshold for reclassification.
 - CLAUDE.md version drift has recurred for 3rd time — root cause fix (add to checklist) still needed (#1520).
 - Next Slot C candidate: surface #11 (`caro ai --continue-session` shell widget) — surface #10 only partially exercised due to FLAKE-001.
+- **Slot B coverage gap**: This pass reviewed 9 PRs (#1459–#1509) but first-parent git history since the previous QA commit (c9a31a3) contains additional merged PRs not in the table (#1246, #1301, #1304, #1306, #1316, #1317, #1346). These are older feature/docs/release PRs from the May–Sept 2026 period that were not formally reviewed. Next Slot B run should baseline from the earliest unreviewed PR rather than the previous session date alone.
 
 ---
 
