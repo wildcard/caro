@@ -1,9 +1,21 @@
 # DSPy → caro: Prompt Optimization Learnings
 
-> Research doc, 2026-09-11. What [stanfordnlp/dspy](https://github.com/stanfordnlp/dspy)
-> teaches about caro's prompt + eval architecture, and a phased adoption roadmap.
-> DSPy facts are pinned to **DSPy 3.3.0** (docs at [dspy.ai](https://dspy.ai)) and
-> will drift; caro facts are pinned to `main` at the date above.
+> Research doc, 2026-09-11, **revised 2026-10-03** after `main` moved. What
+> [stanfordnlp/dspy](https://github.com/stanfordnlp/dspy) teaches about caro's
+> prompt + eval architecture, and a phased adoption roadmap. DSPy facts are pinned
+> to **DSPy 3.3.0** (docs at [dspy.ai](https://dspy.ai)) and will drift; caro facts
+> are pinned to `main` at the revision date.
+
+> **Revision note (2026-10-03).** Between the first draft and this revision,
+> `main` landed ADR-017 (typed decisions and calibrated confidence), #1464
+> (confidence is now *measured or absent* — never a constant — for every LLM
+> backend), #1466 / #1489 (Brier/ECE calibration, a Pareto view and an ECE
+> regression gate in the eval harness, plus an opt-in `CARO_EVAL_BACKENDS` path),
+> and #1470 (the CI eval gate no longer masks harness failures). Those changes
+> complete part of L7 and part of the CI hygiene items, and they strengthen the
+> case for L1–L3. Every repo claim below was re-verified at the revision date;
+> where a claim was overtaken, the text says what changed rather than silently
+> dropping it.
 
 ## Executive Summary
 
@@ -42,7 +54,7 @@ Nothing in the build detects this. A compiled prompt would have been optimized
 | 4 | Bounded Refine on safety failure | `dspy.Refine` / `BestOfN` | Final safety block has no regeneration hook | S–M | 1 |
 | 5 | Platform few-shot demos as data | `LabeledFewShot` | Dead gnu/bsd/busybox/posix sets; macOS advice on Linux | S–M | 2 |
 | 6 | One output adapter, not eight parsers | Adapters | 4-tier JSON parse ladder duplicated per backend | M | 3 |
-| 7 | Honest confidence | `BestOfN` / self-consistency | `confidence_score` is a per-backend constant | S–M | 1 |
+| 7 | Honest confidence | `BestOfN` / self-consistency | Constants removed by #1464; LLM backends now report *no* confidence, so the refinement gate never fires for them | S–M | 1 |
 | 8 | Distill compiled prompts into weights | `BootstrapFinetune` | Existing SFT export has no prompt-side input | L | later |
 
 ---
@@ -126,7 +138,9 @@ Every backend owns a private `create_system_prompt()`:
 
 `src/prompts/` (`smollm_prompt.rs` 870 lines, `capability_profile.rs` 1,197,
 `command_templates.rs` 731, `validation.rs` 1,004) is re-exported from
-`src/lib.rs` but never called by a backend. It contains real per-platform example
+`src/lib.rs` but never called by a backend. (#1463 added `intent.rs`, a typed
+intent classifier built on `command_templates.rs`; nothing outside `src/prompts/`
+calls it either, as of the revision date.) It contains real per-platform example
 selection — `build_examples_section()` at `smollm_prompt.rs:526` dispatches to
 `gnu_examples()` / `bsd_examples()` / `busybox_examples()` / `posix_examples()`
 (:547–:655) plus `build_negative_examples()` (:451). **None of it reaches a model.**
@@ -148,25 +162,38 @@ The live exceptions are `build_minimal_prompt`, `ExplainerPromptBuilder`, and
   implementations exist: `src/eval/` (lightweight, 11 built-in cases),
   `src/evaluation/` (what CI runs), and the unlinked `caro-evaluation` crate
   under `tests/evaluation/src/`.
-- **The harness can only score the static matcher.**
+- **In CI, the harness scores only the static matcher.**
   `tests/evaluation/main.rs::validate_args` accepts `static_matcher | mlx |
   ollama | vllm` and rejects the CI matrix's `embedded-smollm` / `embedded-qwen`
-  as `Invalid backend`; for the accepted names, `run_evaluation` prints
-  "Backend filtering is not yet implemented" and registers only `StaticMatcher`.
-  Every "Evaluate <backend>" CI job therefore either dies at argument
-  validation or measures the static matcher. **No LLM backend has ever been
-  scored by the CI eval workflow.**
+  as `Invalid backend`; `--backend` filtering is still unimplemented, and
+  `run_evaluation` registers only `StaticMatcher` by default. Since #1470 the
+  workflow skips the unsupported backends with a visible `::notice::` instead of
+  passing on an argument error. **No LLM backend has ever been scored by the CI
+  eval workflow.** Locally, #1466 added an opt-in path:
+  `CARO_EVAL_BACKENDS=ollama:<model>[@<url>],vllm:<model>@<url>` registers live
+  remote backends (needs the `remote-backends` feature and a running server), and
+  `CARO_EVAL_REFERENCE_JUDGE` adds a reference risk labeller. Embedded backends
+  still cannot be registered at all.
 - **Metric**: the CI target imports `caro::evaluation`, so scoring is
   `src/evaluation/evaluators/correctness.rs` — per-rule **boolean** pass/fail
   (`evaluate_exact_match`, `evaluate_command_equivalence`,
   `evaluate_pattern_match` over `evaluators/utils.rs`). Nothing executes
-  commands; nothing is semantic. A second, graded implementation — the
+  commands (open PR #1438 proposes sandboxed, execution-grounded verification);
+  nothing is semantic. A second, graded implementation — the
   1.0 / 0.95 / 0.90 ladder in `tests/evaluation/src/evaluator.rs` — belongs to
   the separate `caro-evaluation` crate (`tests/evaluation/Cargo.toml`), which
   the CI target never links.
   `EvaluationResult.failure_reason` (`src/evaluation/models.rs:155`) exists and
   the rule evaluators fill it, but the strings are for humans reading a report,
   not for a reflection model — and nothing exports them.
+- **Calibration is now measured** (ADR-017, #1466, #1489):
+  `src/evaluation/calibration.rs` computes Brier score, ECE, p50/p95 latency and
+  confidence coverage per backend; the report prints a Pareto view (pass ↑,
+  ECE ↓, $/pass ↓, p95 ↓, risk agreement ↑); and `BaselineStore::compare_with_ece`
+  adds an ECE regression threshold next to the pass-rate one. This is the
+  eval-maturity half of DSPy's discipline arriving on its own: the harness can now
+  tell a *calibrated* prompt from a lucky one, and Phase 3's exit criterion uses
+  it (§4).
 - **A/B infrastructure**: `tests/evaluation/src/prompt_comparison.rs` has
   `chi_square_test`, `find_winner`, `should_rollback`, `generate_report` — used
   only by its own unit tests, inside that same unlinked `caro-evaluation` crate.
@@ -177,10 +204,13 @@ The live exceptions are `build_minimal_prompt`, `ExplainerPromptBuilder`, and
   registry (`metadata.yaml`: `target_models: [smollm, qwen, static_matcher]`,
   `baseline_pass_rate: 0.31`) whose prompts **do not match production**.
 - **CI gate** (`.github/workflows/evaluation.yml`): baselines are hardcoded —
-  static_matcher 31.0%, every LLM backend `0.0` "TBD", which *skips the check*
-  (:78–:81). The harness runs under `|| true` (:45) and a crashed run reports
-  `backend_available=false` and passes — which is exactly what happens to both
-  `embedded-*` jobs on every run, because the harness rejects those names.
+  static_matcher 31.0%, every LLM backend `0.0` "TBD", which *skips the check*.
+  Until #1470 (2026-09-24) the harness ran under `|| true`, so a crashed run
+  reported `backend_available=false` and passed — which is what happened to both
+  `embedded-*` jobs on every run. #1470 removed the masking: a harness exit code
+  above 1 now fails the job, and unsupported backends are skipped with a
+  `::notice::`. The "TBD" baselines remain, so the gate still guards exactly one
+  backend.
 - **Prior intent**: issue [#517](https://github.com/wildcard/caro/issues/517)
   "WP10-11: Prompt Engineering Framework" envisioned exactly this —
   `--compare-prompts v1.0,v1.1,v1.2`, semantic-versioned prompts, automated
@@ -203,11 +233,11 @@ The live exceptions are `build_minimal_prompt`, `ExplainerPromptBuilder`, and
 ### 2.4 Runtime feedback loops
 
 The flow (`src/cli/mod.rs` → `src/agent/mod.rs`): static matcher first → LLM
-`generate_initial` (:479) → `CommandValidator::validate` → on failure **one**
-`repair_command` (:582) whose `build_repair_prompt` (:693) embeds numbered
-validation errors → optional advisor/refine if `confidence_score < 0.8` (:338) →
+`generate_initial` (:502) → `CommandValidator::validate` → on failure **one**
+`repair_command` (:605) whose `build_repair_prompt` (:716) embeds numbered
+validation errors → optional advisor/refine if `confidence_score < 0.8` (:348) →
 a **second, independent** `SafetyValidator::validate_command` pass
-(`src/cli/mod.rs:836`) → approval → execute.
+(`src/cli/mod.rs:843`) → approval → execute.
 
 What exists is good: the repair prompt is already a feedback-carrying retry.
 What is missing:
@@ -216,11 +246,21 @@ What is missing:
   dead end even when the block reason ("uses `rm -rf`") is exactly the feedback a
   second attempt needs.
 - `_max_iterations: 2` (`src/agent/mod.rs:77`) is underscore-prefixed and unused;
-  repair is single-shot.
-- `confidence_score` is a **constant per backend**: 0.85 embedded
-  (`embedded_backend.rs:511`), 1.0 static (`static_matcher.rs:1901`), 0.8 Ollama,
-  0.75 AI-Horde, 0.95 Claude. The `< 0.8` refinement gate is therefore decided by
-  *which backend answered*, not by anything the model did.
+  repair is single-shot. `docs/research/2026-09-24-google-ax-lessons.md`
+  independently lists "wire or remove `_max_iterations`" as a P1 follow-up.
+- `confidence_score` **was a constant per backend** at the first draft (0.85
+  embedded, 1.0 static, 0.8 Ollama, 0.75 AI-Horde, 0.95 Claude), so the `< 0.8`
+  refinement gate was decided by *which backend answered*. ADR-017 and #1464
+  (2026-09-22) replaced that with "measured or absent": the static matcher reports
+  a measured score (`static_matcher.rs:1944`, regex 1.0 / keywords 0.6–1.0),
+  Claude and OpenRouter parse a self-reported `confidence` field, and embedded,
+  Ollama, vLLM, Exo, Mesh and AI-Horde report `0.0` with
+  `ConfidenceSource::Unknown` (`embedded_backend.rs:520`: "llama.cpp sampler
+  exposes no log-probs yet"). The gate (`src/agent/mod.rs:348`) now fires only on
+  evidence-backed confidence — so it **never fires for the local LLM backends**,
+  because they have none. The fake signal is gone; the real one does not exist
+  yet. (One leftover: `hybrid/mod.rs:261` still returns a 0.9 constant labelled
+  `Measured`.)
 
 ### 2.5 The manual loop
 
@@ -250,7 +290,7 @@ instruction + demos as JSON; the runtime loads it.
 
 **Change**: introduce a *prompt artifact* — one JSON document per (backend-family,
 model) pair — and a single Rust render path that turns an artifact into the
-system prompt. Proposed shape (illustrative; ADR-017 owns the final schema):
+system prompt. Proposed shape (illustrative; the artifact ADR owns the final schema):
 
 ```json
 {
@@ -302,7 +342,8 @@ does not change pass/fail semantics.
 
 **Why it pays**: it is the prerequisite for GEPA, and it improves the human
 failure reports immediately. The `sft_export.rs` module already proves the
-"eval run → JSONL" pattern; this is the negative-example twin of it.
+"eval run → JSONL" pattern (`passing_trajectories`, `decision_label_pairs`, and a
+generic `to_jsonl`); this is the negative-example twin of it. Filed as #1451.
 
 ### L3 — An offline optimizer harness replaces the manual loop  *(M)*
 
@@ -375,7 +416,7 @@ the reward's feedback until the threshold is met or N is exhausted.
 
 **caro gap**: §2.4 — the final safety block is a dead end.
 
-**Change**: when `SafetyValidator::validate_command` blocks at `cli/mod.rs:836`,
+**Change**: when `SafetyValidator::validate_command` blocks at `cli/mod.rs:843`,
 feed the block reason through the existing `build_repair_prompt` for **one**
 regeneration, re-validate, then fail closed. Use the dormant `_max_iterations`
 as the bound. Static-matcher `Critical` blocks stay terminal — they are
@@ -408,6 +449,8 @@ loop centrally.
 
 **caro gap**: every backend duplicates the four-tier parse ladder
 (`embedded_backend.rs:271` and its copies) and only embedded has the parse-retry.
+(#1462 put a typed clarification gate ahead of the ladder; the ladder itself is
+still copied per backend.)
 
 **Change**: a `CommandOutputAdapter` in `src/backends/mod.rs` that renders the
 output-format instruction from the artifact and owns parse + bounded retry; each
@@ -418,22 +461,26 @@ the guard.
 retry embedded already has, and makes output-format changes a one-place edit.
 Lower leverage than L1–L5, so it rides along with Phase 3.
 
-### L7 — Honest confidence  *(S–M)*
+### L7 — Honest confidence  *(S–M; half done by ADR-017)*
 
 **DSPy**: `BestOfN` / self-consistency derive confidence from agreement across
 samples, not from a constant.
 
-**caro gap**: §2.4 — per-backend constants make the `< 0.8` gate fake.
+**caro gap**: §2.4 — the constants are gone (#1464), but the local LLM backends
+now report *no* confidence, so the refinement and advisor gates never fire for
+them. ADR-017 removed the lie; the measurement is still missing.
 
-**Change**: derive `confidence_score` from observable signals: parse tier hit
-(strict JSON = high, regex rescue = low), validator outcome (clean / warnings /
-repaired), and later `n=2` agreement for the embedded backend when latency
-allows. The threshold logic in `AgentLoop` does not change; its input becomes
-real.
+**Change**: give the LLM backends a `Measured` confidence from observable
+signals: parse tier hit (strict JSON = high, regex rescue = low), validator
+outcome (clean / warnings / repaired), and later `n=2` agreement for the embedded
+backend when latency allows. The gate logic in `AgentLoop` does not change; its
+input appears. The harness's new Brier/ECE columns are the acceptance test: a
+measured signal has to beat the `ECE == |c − pass_rate|` that the old constant
+would have scored, not merely exist.
 
 **Why it pays**: the advisor and refinement paths already exist and are gated on
-this number. Today they fire by backend identity; after this they fire when the
-model was actually unsure.
+this number. Before ADR-017 they fired by backend identity; today they never fire
+for local models; after this they fire when the model was actually unsure.
 
 ### L8 — Distill compiled prompts into weights  *(L, strategic)*
 
@@ -472,8 +519,8 @@ prompt-level behavior rather than the hand-tuned one. Not before L1–L3 exist.
 | Phase | Scope | PR shape | Touchpoints |
 |---|---|---|---|
 | **0** | This document. | `docs:` PR, one file. | `docs/research/dspy-prompt-optimization.md` |
-| **1** — Rust-only quick wins | ADR-017 (artifact architecture, *Proposed*); L2 diagnostic feedback + JSONL export; L4 bounded safety regeneration; L7 derived confidence; `split:` tags in `dataset.yaml`; CI gate hygiene (drop `\|\| true`, fail on crashed runs); **harness backend registration** — make `tests/evaluation/main.rs` accept and actually run `embedded-smollm` / `embedded-qwen` / `mlx` (it registers only `StaticMatcher` today), because nothing downstream can produce a per-model baseline without it. | 5–6 small independent PRs, each with a regression-guard test per `.claude/rules/feature-evidence.md`. | `docs/adr/ADR-017-*.md`, `src/evaluation/evaluators/*`, `src/agent/mod.rs`, `src/cli/mod.rs`, `src/backends/*` (confidence), `.github/workflows/evaluation.yml`, `tests/evaluation/main.rs` |
-| **2** — Harness | `tools/dspy-harness/` (loader, metric, exporter); migrate L5 demos to data; first `BootstrapFewShot` run per model with **recorded before/after held-out numbers**; replace the `0.0 TBD` CI baselines with those numbers; extend `prompt_comparison.rs` with a paired McNemar test and wire it to two real artifacts. | One tooling PR + one data PR. Successor to #517 (closed 2026-01-17, goal unmet). Python dev tooling, not a runtime SDK — no build-spike needed. | `tools/dspy-harness/`, `tests/evaluation/prompts/`, `src/prompts/smollm_prompt.rs` (delete dead sets) |
+| **1** — Rust-only quick wins | Artifact ADR (*Proposed*; next free number per `.claude/rules/adr-numbering.md` — 017 is taken, #1511 proposes 018); L2 diagnostic feedback + JSONL export (#1451); L4 bounded safety regeneration; L7 measured confidence for LLM backends (the constants are already gone, #1464); `split:` tags in `dataset.yaml`; replace the `0.0 TBD` CI baselines (the `\|\| true` masking is already fixed, #1470); **harness backend registration** — make `tests/evaluation/main.rs` register `embedded-*` and honour `--backend` (`CARO_EVAL_BACKENDS` from #1466 covers Ollama/vLLM locally; CI still scores only `StaticMatcher`), because nothing downstream can produce a per-model baseline without it. | 5–6 small independent PRs, each with a regression-guard test per `.claude/rules/feature-evidence.md`. | `docs/adr/` (new ADR), `src/evaluation/evaluators/*`, `src/agent/mod.rs`, `src/cli/mod.rs`, `src/backends/*` (confidence), `.github/workflows/evaluation.yml`, `tests/evaluation/main.rs` |
+| **2** — Harness | `tools/dspy-harness/` (loader, metric, exporter — the student runs through the same Ollama endpoint `CARO_EVAL_BACKENDS` evaluates, so optimizer and gate share the backend as well as the metric); migrate L5 demos to data; first `BootstrapFewShot` run per model with **recorded before/after held-out numbers**; replace the `0.0 TBD` CI baselines with those numbers; extend `prompt_comparison.rs` with a paired McNemar test and wire it to two real artifacts. | One tooling PR + one data PR. Successor to #517 (closed 2026-01-17, goal unmet). Python dev tooling, not a runtime SDK — no build-spike needed. | `tools/dspy-harness/`, `tests/evaluation/prompts/`, `src/prompts/smollm_prompt.rs` (delete dead sets) |
 | **3** — Runtime | `PromptArtifact` loader (`include_str!` default + `--prompt-artifact` override) replacing the eight `create_system_prompt` bodies; L6 shared adapter; artifact id surfaced in `caro --version`; GEPA run once L2 feedback is diagnostic. | 2–3 PRs behind a feature flag until the compiled artifact beats the hand-tuned prompt on held-out. | `src/backends/mod.rs`, `src/backends/*/`, `src/model_catalog.rs` |
 | **3b** — Optional | `dspy-rs` build-spike if a Rust-native optimizer ever becomes worth it; L8 `BootstrapFinetune` tie-in. | Per `.claude/rules/external-sdk-integration.md`. | `Cargo.toml` (optional dep, off by default) |
 
@@ -481,18 +528,20 @@ prompt-level behavior rather than the hand-tuned one. Not before L1–L3 exist.
 current hand-tuned embedded prompt on the *held-out* split, on the same machine,
 same seed, with per-case outcomes retained and significance from a **paired**
 test (McNemar's, or a paired bootstrap) — not the unpaired `chi_square_test` in
-`prompt_comparison.rs` as it stands. Until then the hand-tuned prompt stays the
+`prompt_comparison.rs` as it stands. It must also stay within the harness's
+`ece_regression_threshold` (#1489): a prompt that wins on pass rate by making the
+model overconfident is not a win. Until then the hand-tuned prompt stays the
 default and the artifact is opt-in.
 
 ### Proposed follow-up issues (not yet filed)
 
-1. `eval: emit diagnostic failure_reason + JSONL feedback export from all evaluators` (L2)
-2. `eval: register LLM backends and implement --backend filtering in tests/evaluation/main.rs` (Phase 1 prerequisite — CI scores only the static matcher today)
+1. `eval: emit diagnostic failure_reason + JSONL feedback export from all evaluators` (L2 — filed as #1451)
+2. `eval: register embedded backends and implement --backend filtering in tests/evaluation/main.rs` (Phase 1 prerequisite — `CARO_EVAL_BACKENDS` from #1466 covers Ollama/vLLM locally; CI still scores only the static matcher)
 3. `agent: bounded regeneration when the final safety pass blocks` (L4)
-4. `backends: derive confidence_score from parse tier and validation outcome` (L7)
+4. `backends: measured confidence for LLM backends from parse tier, validator outcome and n=2 agreement` (L7 — the constants are already gone via #1464; the gates now never fire for local models)
 5. `eval: add split: train|heldout tags to dataset.yaml (stratified)` (hygiene)
-6. `ci: evaluation.yml — fail on crashed runs and rejected --backend values; replace TBD baselines` (hygiene)
-7. `adr: ADR-017 versioned prompt artifacts` (L1)
+6. `ci: evaluation.yml — replace the 0.0 TBD baselines once a backend is wired` (hygiene — the crash-masking half was fixed by #1470)
+7. `adr: versioned prompt artifacts` (L1 — next free number; 017 is taken, 018 is claimed by #1511)
 8. `tools: dspy-harness phase 2 — BootstrapFewShot/GEPA against dataset.yaml` (L3, successor to #517; umbrella #798)
 9. `eval: add a paired McNemar test to prompt_comparison.rs` (Phase 3 exit criterion)
 10. `prompts: migrate platform demo sets from smollm_prompt.rs into artifact data` (L5)
@@ -548,6 +597,18 @@ named regression guard).
 - Saving/loading programs — https://dspy.ai/tutorials/saving/
 - DSRs (`dspy-rs`) — https://github.com/krypticmouse/DSRs · https://crates.io/crates/dspy-rs
 - caro issue #517 "WP10-11: Prompt Engineering Framework" — https://github.com/wildcard/caro/issues/517 (closed 2026-01-17 as completed; goal unmet, see §2.3)
+- caro, landed while this doc was in review: ADR-017
+  (`docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md`) — typed
+  decisions and measured-or-absent confidence, the generation-side twin of DSPy
+  Signatures; `docs/research/jev-system-one-gap-analysis.md` and
+  `docs/research/jev-of-execution-safety-strategy.md` — the "System One" framing
+  ADR-017 implements (decisions not text, honest probabilities, evals that score
+  calibration); `docs/research/2026-09-24-google-ax-lessons.md` — independently
+  flags the unused `_max_iterations` budget, the `|| true` masking (fixed in
+  #1470) and structured trajectory export (the L2 JSONL twin)
+- Follow-ups filed from this doc: #1451 (L2). Adjacent and in flight: #1511
+  (consensus-label export + ADR-018 gate classifier), #1438 (execution-grounded
+  verification — the "true CSR" the harness lacks today)
 - caro prior art: `tests/evaluation/src/prompt_comparison.rs`,
   `tests/evaluation/prompts/v1.0/metadata.yaml`, `src/prompts/minimal.rs`,
   `src/evaluation/sft_export.rs`, `docs/ml/sft-data-pipeline.md`
