@@ -40,9 +40,26 @@ const COMMANDS: &[&str] = &[
 
 #[test]
 fn headline_does_not_repeat_the_tool() {
-    let e = explainer().create_explanation("find . -mtime 0", "find files modified today");
-    // Displayed as "Use `find` <summary>:".
-    assert_eq!(e.summary, "to find files modified today");
+    // Displayed as "Use `find` <summary>:". The summary must not repeat
+    // the tool ("Use `find` Uses find to ..." was the old bug).
+    let e = explainer().create_explanation("find . -mtime 0", "list files modified today");
+    assert_eq!(e.summary, "to list files modified today");
+    assert!(
+        !e.summary.contains("find"),
+        "{} repeats the tool",
+        e.summary
+    );
+}
+
+#[test]
+fn headline_drops_question_prefixes() {
+    let summary = |intent: &str| explainer().create_explanation("ls", intent).summary;
+    assert_eq!(summary("how to list files"), "to list files");
+    assert_eq!(summary("How do I list files?"), "to list files");
+    assert_eq!(summary("to list files"), "to list files");
+    assert_eq!(summary("List PDF files"), "to list PDF files");
+    assert_eq!(summary("PDF files here"), "to PDF files here");
+    assert_eq!(summary("  "), "");
 }
 
 #[test]
@@ -74,7 +91,11 @@ fn flags_of_a_later_pipeline_stage_are_ignored() {
 #[test]
 fn destructive_find_gets_a_caution_first() {
     let e = explainer().create_explanation("find . -name '*.tmp' -delete", "delete tmp files");
-    assert!(e.detailed_explanation.contains("Caution: `-delete`"));
+    assert!(
+        e.detailed_explanation.starts_with("Caution: `-delete`"),
+        "{}",
+        e.detailed_explanation
+    );
 }
 
 #[test]
@@ -100,6 +121,7 @@ fn all_explanation_text_passes_ste_lite() {
 
     for command in COMMANDS {
         let e = explainer().create_explanation(command, "do the task");
+        check(command, "summary", &e.summary, TextKind::Descriptive);
         check(
             command,
             "detailed_explanation",

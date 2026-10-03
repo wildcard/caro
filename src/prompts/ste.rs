@@ -85,7 +85,7 @@ const IRREGULAR_PARTICIPLES: &[&str] = &[
 /// Inline code in backticks counts as one word, because STE allows
 /// technical names. Paragraphs are separated by a blank line.
 pub fn check(text: &str, kind: TextKind) -> Vec<SteIssue> {
-    let text = mask_code_spans(text);
+    let text = mask_code_spans(&text.replace("\r\n", "\n"));
     let mut issues = Vec::new();
 
     for paragraph in text.split("\n\n").filter(|p| !p.trim().is_empty()) {
@@ -102,7 +102,7 @@ pub fn check(text: &str, kind: TextKind) -> Vec<SteIssue> {
                 .count();
             if words > kind.max_words() {
                 issues.push(SteIssue::SentenceTooLong {
-                    sentence: sentence.to_string(),
+                    sentence,
                     words,
                     max: kind.max_words(),
                 });
@@ -110,18 +110,26 @@ pub fn check(text: &str, kind: TextKind) -> Vec<SteIssue> {
         }
     }
 
-    let normalized = format!(" {} ", lowercase_words(&text).join(" "));
+    let words = lowercase_words(&text);
+    let normalized = format!(" {} ", words.join(" "));
     for (word, use_instead) in UNAPPROVED {
         if normalized.contains(&format!(" {} ", word)) {
             issues.push(SteIssue::UnapprovedWord { word, use_instead });
         }
     }
 
-    let words = lowercase_words(&text);
-    for pair in words.windows(2) {
-        if PASSIVE_AUX.contains(&pair[0].as_str()) && is_participle(&pair[1]) {
+    // Auxiliary + participle, with at most one adverb between ("is often used").
+    for (i, aux) in words.iter().enumerate() {
+        if !PASSIVE_AUX.contains(&aux.as_str()) {
+            continue;
+        }
+        let mut j = i + 1;
+        if words.get(j).is_some_and(|w| is_adverb(w)) {
+            j += 1;
+        }
+        if words.get(j).is_some_and(|w| is_participle(w)) {
             issues.push(SteIssue::PassiveVoice {
-                phrase: format!("{} {}", pair[0], pair[1]),
+                phrase: words[i..=j].join(" "),
             });
         }
     }
@@ -129,41 +137,82 @@ pub fn check(text: &str, kind: TextKind) -> Vec<SteIssue> {
     issues
 }
 
-/// Replace each `code span` with a single placeholder word.
+/// Replace each balanced `code span` with a single placeholder word.
+/// An unmatched backtick stays as text, so the rest is still checked.
 fn mask_code_spans(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
-    let mut in_code = false;
-    for c in text.chars() {
-        if c == '`' {
-            if !in_code {
-                out.push_str("CODE");
-            }
-            in_code = !in_code;
-        } else if !in_code {
-            out.push(c);
-        }
+    let mut rest = text;
+    while let Some(open) = rest.find('`') {
+        let Some(len) = rest[open + 1..].find('`') else {
+            break;
+        };
+        out.push_str(&rest[..open]);
+        out.push_str("CODE");
+        rest = &rest[open + len + 2..];
     }
+    out.push_str(rest);
     out
 }
 
-/// Split a paragraph into sentences at `.`, `!`, `?` followed by
-/// whitespace or the end, and at line breaks (list items).
-fn split_sentences(paragraph: &str) -> Vec<&str> {
-    let mut sentences = Vec::new();
-    for line in paragraph.lines() {
-        let mut start = 0;
-        let chars: Vec<(usize, char)> = line.char_indices().collect();
-        for (i, &(pos, c)) in chars.iter().enumerate() {
-            let at_boundary = chars.get(i + 1).is_none_or(|&(_, n)| n.is_whitespace());
-            if matches!(c, '.' | '!' | '?') && at_boundary {
-                sentences.push(&line[start..pos + 1]);
-                start = pos + 1;
+/// Split a paragraph into sentences.
+///
+/// A wrapped line continues its sentence. A list item (`- `, `* `, `+ `,
+/// `1. `) starts a new one. A sentence ends at `.`, `!` or `?`, plus any
+/// closing quotes or brackets, when whitespace or the end follows and the
+/// next word does not start with a lowercase letter ("e.g. the" does not
+/// split).
+fn split_sentences(paragraph: &str) -> Vec<String> {
+    let mut items: Vec<String> = Vec::new();
+    for line in paragraph.lines().map(str::trim).filter(|l| !l.is_empty()) {
+        match items.last_mut() {
+            Some(last) if !is_list_item(line) => {
+                last.push(' ');
+                last.push_str(line);
             }
+            _ => items.push(line.to_string()),
         }
-        sentences.push(&line[start..]);
+    }
+
+    let mut sentences = Vec::new();
+    for item in &items {
+        let chars: Vec<(usize, char)> = item.char_indices().collect();
+        let mut start = 0;
+        let mut i = 0;
+        while i < chars.len() {
+            if matches!(chars[i].1, '.' | '!' | '?') {
+                let mut end = i + 1;
+                while chars
+                    .get(end)
+                    .is_some_and(|&(_, c)| matches!(c, '"' | '\'' | ')' | ']' | '”' | '’'))
+                {
+                    end += 1;
+                }
+                let spaced = chars.get(end).is_none_or(|&(_, c)| c.is_whitespace());
+                let next = chars[end..]
+                    .iter()
+                    .map(|&(_, c)| c)
+                    .find(|c| !c.is_whitespace());
+                if spaced && !next.is_some_and(char::is_lowercase) {
+                    let byte_end = chars.get(end).map_or(item.len(), |&(pos, _)| pos);
+                    sentences.push(item[start..byte_end].trim().to_string());
+                    start = byte_end;
+                    i = end;
+                    continue;
+                }
+            }
+            i += 1;
+        }
+        sentences.push(item[start..].trim().to_string());
     }
     sentences.retain(|s| s.chars().any(char::is_alphanumeric));
-    sentences.iter().map(|s| s.trim()).collect()
+    sentences
+}
+
+fn is_list_item(line: &str) -> bool {
+    ["- ", "* ", "+ "].iter().any(|m| line.starts_with(m))
+        || line
+            .split_once(". ")
+            .is_some_and(|(n, _)| !n.is_empty() && n.chars().all(|c| c.is_ascii_digit()))
 }
 
 fn lowercase_words(text: &str) -> Vec<String> {
@@ -175,6 +224,14 @@ fn lowercase_words(text: &str) -> Vec<String> {
 
 fn is_participle(word: &str) -> bool {
     (word.len() > 3 && word.ends_with("ed")) || IRREGULAR_PARTICIPLES.contains(&word)
+}
+
+const ADVERBS: &[&str] = &[
+    "not", "often", "also", "always", "never", "usually", "still", "only", "then", "now",
+];
+
+fn is_adverb(word: &str) -> bool {
+    ADVERBS.contains(&word) || (word.len() > 4 && word.ends_with("ly"))
 }
 
 #[cfg(test)]
@@ -253,6 +310,69 @@ mod tests {
             vec![SteIssue::PassiveVoice {
                 phrase: "are deleted".to_string()
             }]
+        );
+    }
+
+    #[test]
+    fn flags_passive_voice_with_adverb_between() {
+        let issues = check("The flag is often used with grep.", TextKind::Descriptive);
+        assert_eq!(
+            issues,
+            vec![SteIssue::PassiveVoice {
+                phrase: "is often used".to_string()
+            }]
+        );
+    }
+
+    #[test]
+    fn crlf_blank_line_separates_paragraphs() {
+        let text = "One. Two. Three. Four.\r\n\r\nFive. Six. Seven.";
+        assert!(check(text, TextKind::Descriptive).is_empty());
+    }
+
+    #[test]
+    fn unmatched_backtick_does_not_hide_the_rest() {
+        let text = "Run `find now. Then utilize the output.";
+        assert!(
+            check(text, TextKind::Procedural).contains(&SteIssue::UnapprovedWord {
+                word: "utilize",
+                use_instead: "use"
+            })
+        );
+    }
+
+    #[test]
+    fn wrapped_line_continues_the_sentence() {
+        let text = "Run the command in the directory that holds the files\n\
+                    that you want to search so that it can find all of them for you.";
+        assert!(matches!(
+            check(text, TextKind::Procedural).as_slice(),
+            [SteIssue::SentenceTooLong { words: 25, .. }]
+        ));
+    }
+
+    #[test]
+    fn list_items_are_separate_sentences() {
+        let sentences = split_sentences("- Match only files\n- Match only directories");
+        assert_eq!(
+            sentences,
+            vec!["- Match only files", "- Match only directories"]
+        );
+    }
+
+    #[test]
+    fn abbreviation_does_not_split_sentence() {
+        assert_eq!(
+            split_sentences("Use a pattern, e.g. a glob. Then run it."),
+            vec!["Use a pattern, e.g. a glob.", "Then run it."]
+        );
+    }
+
+    #[test]
+    fn sentence_can_end_inside_quotes() {
+        assert_eq!(
+            split_sentences("It means \"modified today.\" Use it."),
+            vec!["It means \"modified today.\"", "Use it."]
         );
     }
 

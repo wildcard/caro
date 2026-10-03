@@ -315,11 +315,7 @@ WRITING RULES (STE-lite, from ASD-STE100):
         CommandExplanation {
             command: command.to_string(),
             // Displayed after "Use `<tool>`", so it must not repeat the tool.
-            summary: if intent.trim().is_empty() {
-                String::new()
-            } else {
-                format!("to {}", intent.trim())
-            },
+            summary: summary_from_intent(intent),
             detailed_explanation: self.generate_explanation_for_command(command, &tool),
             option_breakdown: self.extract_options(command, &tool),
             examples: self.generate_examples(&tool, intent),
@@ -372,17 +368,22 @@ WRITING RULES (STE-lite, from ASD-STE100):
             ),
         };
 
-        // STE warnings start with the risk, before the detail.
-        if tool == "find" && words.contains(&"-delete") {
-            text.push_str(
-                "\n\nCaution: `-delete` removes each file that matches, and you cannot undo it. \
+        // STE warnings come first, before the description.
+        let caution = if tool == "find" && words.contains(&"-delete") {
+            Some(
+                "Caution: `-delete` removes each file that matches, and you cannot undo it. \
                  Run the command without `-delete` first to see the list of files.",
-            );
+            )
         } else if tool == "find" && words.contains(&"-exec") {
-            text.push_str(
-                "\n\nCaution: `-exec` runs a command on each file that matches. \
+            Some(
+                "Caution: `-exec` runs a command on each file that matches. \
                  Run the command without `-exec` first to see the list of files.",
-            );
+            )
+        } else {
+            None
+        };
+        if let Some(caution) = caution {
+            text = format!("{caution}\n\n{text}");
         }
 
         text
@@ -600,6 +601,31 @@ WRITING RULES (STE-lite, from ASD-STE100):
             ],
             _ => vec![],
         }
+    }
+}
+
+/// The headline text after "Use `<tool>`": "to <intent>". A leading
+/// "how to", "how do I", "how can I" or "to" is removed, so the headline
+/// does not read "to how to ..." or "to to ...".
+fn summary_from_intent(intent: &str) -> String {
+    let mut rest = intent.trim().trim_end_matches(['?', '.']);
+    for prefix in ["how do i ", "how can i ", "how to ", "to "] {
+        if rest.len() >= prefix.len() && rest[..prefix.len()].eq_ignore_ascii_case(prefix) {
+            rest = rest[prefix.len()..].trim_start();
+            break;
+        }
+    }
+    if rest.is_empty() {
+        return String::new();
+    }
+    // Lowercase the first letter, but keep acronyms such as "PDF".
+    let mut chars = rest.chars();
+    let first = chars.next().unwrap_or_default();
+    let second_is_upper = chars.next().is_some_and(char::is_uppercase);
+    if first.is_uppercase() && !second_is_upper {
+        format!("to {}{}", first.to_lowercase(), &rest[first.len_utf8()..])
+    } else {
+        format!("to {rest}")
     }
 }
 

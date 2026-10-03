@@ -61,7 +61,8 @@ attention, not compute.
 ### Origin
 
 AECMA, the European aerospace industry association, started work on it in
-the early 1980s. The first guide came out in 1985. The problem was specific.
+the early 1980s. The first guide came out in 1986 (some sources say 1985).
+The problem was specific.
 Aircraft maintenance manuals came from many manufacturers. Each manufacturer
 wrote a different English (American, British, or a non-native house style).
 Most of the readers were maintenance technicians whose first language was not

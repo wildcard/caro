@@ -69,7 +69,7 @@ worth making.
 ## Self-check before you send
 
 - [ ] Line 1 tells the owner if they must act.
-- [ ] No sentence is longer than 25 words, except quoted text.
+- [ ] No instruction is longer than 20 words and no description is longer than 25, except quoted text.
 - [ ] Each paragraph has one topic.
 - [ ] A flow or multi-part change has a diagram.
 - [ ] Each open question has a number and a default.
