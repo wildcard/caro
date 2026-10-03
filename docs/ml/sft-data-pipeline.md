@@ -55,7 +55,7 @@ When the eval harness runs with a reference labeller
 does not), every generated command carries the local backend's risk verdict
 and the reference's. A result missing either verdict yields no record. `sft_export::decision_label_pairs`
 turns them into two record kinds for the gate classifier planned in the
-calibrated-decisions strategy (ADR-017 → ADR-019):
+calibrated-decisions strategy (ADR-017 → ADR-018):
 
 - `accepted`: local == reference and local confidence ≥ 0.7 — an SFT
   positive for the risk gate;
@@ -95,5 +95,7 @@ file IO stays with the caller, as for Source 1.
 
 1. `src/evaluation/sft_export.rs` — pure exporter + tests (done).
 2. This design doc (done).
-3. Follow-ups filed: Source 2 correction-log export; an eval-run wiring that
-   writes the JSONL artifact; the LoRA-config + baseline PR.
+3. Follow-ups: Source 2 correction-log export (open); the eval-run wiring
+   that writes the JSONL artifact (done: `CARO_EVAL_EXPORT_LABELS=<path>`
+   in `tests/evaluation/main.rs` writes Source 3 records, ADR-018 / #1510);
+   the LoRA-config + baseline PR (gated by ADR-018's data gate).

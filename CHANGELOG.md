@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Consensus-label export and ADR-018.** `CARO_EVAL_EXPORT_LABELS=<path>.jsonl`
+  makes `cargo test --test evaluation` write `sft_export::decision_label_pairs`
+  (local vs reference risk verdicts, #1466) to disk via the new
+  `EvaluationHarness::run_with_results`, so the gate-classifier experiment
+  proposed in `docs/adr/ADR-018-gate-classifier-calibration-experiment.md`
+  (Phase 4 of the Jev strategy, tracking #1510) has a data source. Guarded by
+  `evaluation::harness::tests::test_run_with_results_returns_every_result`.
 - **Calibration and tail-latency metrics in the evaluation harness.**
   `EvaluationResult` now records the backend's reported `confidence`, and
   every `BackendResult` carries `brier`, `ece`, `p50_execution_time_ms` and

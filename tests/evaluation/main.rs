@@ -23,7 +23,9 @@
 //! cargo test --test evaluation -- --threshold 0.10
 //! ```
 
-use caro::evaluation::{BaselineStore, Dataset, EvaluationHarness, HarnessConfig, TestCategory};
+use caro::evaluation::{
+    sft_export, BaselineStore, Dataset, EvaluationHarness, HarnessConfig, TestCategory,
+};
 use clap::Parser;
 use std::path::PathBuf;
 use std::process;
@@ -171,6 +173,8 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
         ece_regression_threshold: HarnessConfig::default().ece_regression_threshold,
     };
     let ece_regression_threshold = config.ece_regression_threshold;
+    // Kept for the consensus-label export below; the harness takes the dataset.
+    let test_cases = filtered_dataset.test_cases().to_vec();
 
     // Note: Backend filtering is not yet supported through HarnessConfig
     // This would require modifying the harness initialization
@@ -226,7 +230,22 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
     // This will be implemented in a future work package
 
     // Run evaluation
-    let mut report = harness.run().await?;
+    let (mut report, results) = harness.run_with_results().await?;
+
+    // Consensus-label export for the gate classifier (ADR-018). Only results
+    // that carry both a local and a reference risk verdict yield a record, so
+    // without CARO_EVAL_REFERENCE_JUDGE (and a backend that has a judge) the
+    // file is written empty and says so.
+    //   CARO_EVAL_EXPORT_LABELS=<path>.jsonl
+    if let Ok(path) = std::env::var("CARO_EVAL_EXPORT_LABELS") {
+        let records = sft_export::decision_label_pairs(&results, &test_cases);
+        std::fs::write(&path, sft_export::to_jsonl(&records))?;
+        eprintln!(
+            "Wrote {} consensus-labelled decision record(s) to {}",
+            records.len(),
+            path
+        );
+    }
 
     // Baseline comparison if provided
     let mut regression_detected = false;
