@@ -292,6 +292,8 @@ The Grok backend is a provider addition to the existing core loop, like
 
 ## Follow-ups (not in this spec's PR)
 
+Tracked in #1512. The safety-core evasions are tracked on #1054.
+
 1. **Segment-aware validation**, following Grok Build: tree-sitter or
    shell-words splitting on `&& || ; |`, wrapper stripping, deny on any
    segment. This is safety-core work: TDD via `safety-pattern-developer`, and
