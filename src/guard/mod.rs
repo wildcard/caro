@@ -178,6 +178,9 @@ pub struct GuardDecision {
     pub reason: String,
 }
 
+/// Pattern label recorded when a command is too long for the validator to scan.
+pub const OVER_LENGTH: &str = "command exceeds the validator's maximum length (not scanned)";
+
 /// Map a static risk level to the guard verdict (ADR-018 policy table).
 pub fn verdict_for(risk: RiskLevel) -> Verdict {
     match risk {
@@ -202,8 +205,20 @@ pub async fn evaluate(
     validator: &SafetyValidator,
     command: &str,
 ) -> Result<GuardDecision, crate::safety::ValidationError> {
-    let result = validator.validate_command(command, ShellType::Bash).await?;
-    let verdict = verdict_for(result.risk_level);
+    let mut result = validator.validate_command(command, ShellType::Bash).await?;
+    let mut verdict = verdict_for(result.risk_level);
+    // The validator does not scan a command over its length limit and reports
+    // Moderate, which would map to "no opinion": a silent fail-open on long
+    // heredocs and pipelines. An unscanned command goes to the human.
+    if verdict == Verdict::None
+        && result.matched_patterns.is_empty()
+        && result
+            .explanation
+            .starts_with("Command exceeds maximum length")
+    {
+        verdict = Verdict::Ask;
+        result.matched_patterns = vec![OVER_LENGTH.to_string()];
+    }
     let reason = if verdict == Verdict::None {
         String::new()
     } else {
@@ -344,13 +359,16 @@ pub fn render(harness: Harness, mode: GuardMode, outcome: &Outcome) -> Rendered 
 /// Parse, evaluate, and build the log record for one payload.
 ///
 /// Returns the outcome plus the record to append (`None` for non-shell tools).
+///
+/// `started` should be taken at process start so `latency_us` includes config
+/// load and the stdin read, i.e. what the harness's hook timeout sees.
 pub async fn run(
     validator: &SafetyValidator,
     harness: Harness,
     mode: GuardMode,
     raw: &str,
+    started: Instant,
 ) -> (Outcome, Rendered, Option<log::DecisionRecord>) {
-    let started = Instant::now();
     let event = HookEvent::parse(harness, raw);
 
     let (outcome, event) = match event {
@@ -462,6 +480,15 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn over_length_command_asks_instead_of_passing_silently() {
+        let long = format!("echo {}", "a".repeat(20_000));
+        let d = evaluate(&validator(), &long).await.unwrap();
+        assert_eq!(d.verdict, Verdict::Ask);
+        assert_eq!(d.matched_patterns, vec![OVER_LENGTH.to_string()]);
+        assert!(!d.reason.contains("aaaa"));
+    }
+
+    #[tokio::test]
     async fn safe_command_has_no_opinion() {
         let d = evaluate(&validator(), "ls -la").await.unwrap();
         assert_eq!(d.verdict, Verdict::None);
@@ -472,7 +499,14 @@ mod tests {
     async fn shadow_never_writes_stdout() {
         let v = validator();
         for cmd in ["rm -rf /", "ls", "chmod 777 /etc/passwd"] {
-            let (_, r, rec) = run(&v, Harness::Claude, GuardMode::Shadow, &claude(cmd)).await;
+            let (_, r, rec) = run(
+                &v,
+                Harness::Claude,
+                GuardMode::Shadow,
+                &claude(cmd),
+                Instant::now(),
+            )
+            .await;
             assert_eq!(r.stdout, None, "{cmd}");
             assert_eq!(r.exit_code, 0);
             assert_eq!(r.emitted, Verdict::None);
@@ -487,6 +521,7 @@ mod tests {
             Harness::Claude,
             GuardMode::Enforce,
             &claude("rm -rf /"),
+            Instant::now(),
         )
         .await;
         let out: Value = serde_json::from_str(r.stdout.as_deref().unwrap()).unwrap();
@@ -501,7 +536,14 @@ mod tests {
     #[tokio::test]
     async fn enforce_non_shell_tool_is_silent_and_unlogged() {
         let raw = r#"{"tool_name":"Read","tool_input":{"file_path":"/etc/passwd"}}"#;
-        let (o, r, rec) = run(&validator(), Harness::Claude, GuardMode::Enforce, raw).await;
+        let (o, r, rec) = run(
+            &validator(),
+            Harness::Claude,
+            GuardMode::Enforce,
+            raw,
+            Instant::now(),
+        )
+        .await;
         assert_eq!(o, Outcome::NotShell);
         assert_eq!(r.stdout, None);
         assert!(rec.is_none());
@@ -510,7 +552,14 @@ mod tests {
     #[tokio::test]
     async fn enforce_error_fails_toward_ask() {
         let raw = r#"{"tool_name":"Bash","tool_input":"<truncated>"}"#;
-        let (o, r, _) = run(&validator(), Harness::Codex, GuardMode::Enforce, raw).await;
+        let (o, r, _) = run(
+            &validator(),
+            Harness::Codex,
+            GuardMode::Enforce,
+            raw,
+            Instant::now(),
+        )
+        .await;
         assert!(matches!(o, Outcome::Error(_)));
         let out: Value = serde_json::from_str(r.stdout.as_deref().unwrap()).unwrap();
         assert_eq!(out["hookSpecificOutput"]["permissionDecision"], "ask");
@@ -524,6 +573,7 @@ mod tests {
             Harness::Generic,
             GuardMode::Enforce,
             r#"{"command":"rm -rf /"}"#,
+            Instant::now(),
         )
         .await
         .1;
@@ -533,13 +583,20 @@ mod tests {
             Harness::Generic,
             GuardMode::Enforce,
             r#"{"command":"ls"}"#,
+            Instant::now(),
         )
         .await
         .1;
         assert_eq!(none.exit_code, 0);
-        let err = run(&v, Harness::Opencode, GuardMode::Enforce, r#"{"cwd":"/"}"#)
-            .await
-            .1;
+        let err = run(
+            &v,
+            Harness::Opencode,
+            GuardMode::Enforce,
+            r#"{"cwd":"/"}"#,
+            Instant::now(),
+        )
+        .await
+        .1;
         assert_eq!(err.exit_code, 3);
     }
 
@@ -573,7 +630,7 @@ mod tests {
                     } else {
                         claude(c)
                     };
-                    let (_, r, _) = run(&v, h, m, &raw).await;
+                    let (_, r, _) = run(&v, h, m, &raw, Instant::now()).await;
                     let out = r.stdout.unwrap_or_default();
                     assert!(!out.contains("\"allow\""), "{h:?} {m:?} {c}: {out}");
                     assert!(!out.contains("additionalContext"), "{h:?} {m:?} {c}");

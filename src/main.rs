@@ -4312,6 +4312,10 @@ async fn handle_guard(
     use caro::guard::{self, GuardMode};
     use std::io::Read;
 
+    // Latency is measured from here so it includes config load and the stdin
+    // read: the time the harness's hook timeout actually sees.
+    let started = std::time::Instant::now();
+
     if let Some(GuardAction::Report { log, limit }) = action {
         let Some(path) = log.or_else(guard::log::default_log_path) else {
             eprintln!("caro guard report: no data directory; pass --log <PATH>");
@@ -4363,7 +4367,7 @@ async fn handle_guard(
 
     let (rendered, record) = match (validator, read) {
         (Some(v), Ok(_)) => {
-            let (_, rendered, record) = guard::run(&v, harness, mode, &raw).await;
+            let (_, rendered, record) = guard::run(&v, harness, mode, &raw, started).await;
             (rendered, record)
         }
         (None, _) => (

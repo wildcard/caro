@@ -12,6 +12,38 @@ use serde::{Deserialize, Serialize};
 
 use super::{risk_str, GuardMode, Harness, HookEvent, Outcome, Verdict};
 use crate::logging::Redaction;
+use once_cell::sync::Lazy;
+use regex::Regex;
+
+/// Secret shapes the generic [`Redaction`] pattern misses in shell commands:
+/// HTTP auth headers, URL userinfo, `curl -u user:pass`, and env assignments
+/// whose *name* says secret (`export GITHUB_TOKEN=...`, `DB_PASSWORD='x y'`).
+static COMMAND_SECRETS: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
+    [
+        (
+            r#"(?i)(authorization\s*:\s*)(?:bearer|basic|token)?\s*[^\s'"]+"#,
+            "${1}[REDACTED]",
+        ),
+        (r#"(?i)\b([a-z][a-z0-9+.-]*://)[^/\s:@'"]+:[^/\s@'"]+@"#, "${1}[REDACTED]@"),
+        (r#"(\s(?:-u|--user)[\s=]+)[^\s:'"]+:[^\s'"]+"#, "${1}[REDACTED]"),
+        (
+            r#"(?i)\b([a-z0-9_]*(?:key|token|secret|passw(?:or)?d|pwd|credentials?|auth)[a-z0-9_]*)=(?:'[^']*'|"[^"]*"|[^\s;&|]+)"#,
+            "${1}=[REDACTED]",
+        ),
+    ]
+    .into_iter()
+    .map(|(p, r)| (Regex::new(p).expect("valid redaction regex"), r))
+    .collect()
+});
+
+/// Redact a command or description before it is written to the log.
+pub fn redact_command(text: &str) -> String {
+    let mut out = Redaction::redact(text);
+    for (re, rep) in COMMAND_SECRETS.iter() {
+        out = re.replace_all(&out, *rep).into_owned();
+    }
+    out
+}
 use crate::models::RiskLevel;
 
 /// One decision, as written to `decisions.jsonl`.
@@ -80,8 +112,8 @@ impl DecisionRecord {
             session_id: event.session_id.clone(),
             tool_use_id: event.tool_use_id.clone(),
             cwd: event.cwd.clone(),
-            command: event.command.as_deref().map(Redaction::redact),
-            description: event.description.as_deref().map(Redaction::redact),
+            command: event.command.as_deref().map(redact_command),
+            description: event.description.as_deref().map(redact_command),
             risk,
             matched_patterns: patterns,
             floor_applied: floor,
@@ -102,14 +134,22 @@ pub fn default_log_path() -> Option<PathBuf> {
 }
 
 /// Append one record as a single line in a single `write` on an `O_APPEND`
-/// file, so concurrent harness sessions interleave whole lines.
+/// file, so concurrent harness sessions interleave whole lines. The file is
+/// created owner-only (0600): it indexes every command an agent ran.
 pub fn append(path: &Path, record: &DecisionRecord) -> std::io::Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
     let mut line = serde_json::to_vec(record).map_err(std::io::Error::other)?;
     line.push(b'\n');
-    let mut f = OpenOptions::new().create(true).append(true).open(path)?;
+    let mut opts = OpenOptions::new();
+    opts.create(true).append(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        opts.mode(0o600);
+    }
+    let mut f = opts.open(path)?;
     f.write_all(&line)
 }
 
@@ -242,7 +282,14 @@ mod tests {
         for cmd in ["rm -rf /", "ls -la", "rm -rf / --no-preserve-root"] {
             let raw =
                 serde_json::json!({"tool_name":"Bash","tool_input":{"command":cmd}}).to_string();
-            let (_, _, rec) = run(&v, Harness::Claude, GuardMode::Shadow, &raw).await;
+            let (_, _, rec) = run(
+                &v,
+                Harness::Claude,
+                GuardMode::Shadow,
+                &raw,
+                std::time::Instant::now(),
+            )
+            .await;
             append(&path, &rec.unwrap()).unwrap();
         }
         std::fs::OpenOptions::new()
@@ -263,6 +310,75 @@ mod tests {
 
         let text = format_report(&path, &r);
         assert!(text.contains("by verdict: deny 2 · none 1"));
+    }
+
+    #[test]
+    fn command_secret_shapes_are_redacted() {
+        let cases = [
+            (
+                "curl -H 'Authorization: Bearer eyJhbGciOi.payload.sig' https://api",
+                "eyJhbGciOi",
+            ),
+            (
+                "curl -H \"authorization: token ghp_abc123XYZ\" x",
+                "ghp_abc123XYZ",
+            ),
+            ("psql postgres://admin:hunter2@db.internal/app", "hunter2"),
+            ("git clone https://user:s3cr3t@github.com/o/r", "s3cr3t"),
+            ("curl -u alice:wonderland https://h", "wonderland"),
+            ("curl --user=bob:builder https://h", "builder"),
+            ("export GITHUB_TOKEN=ghp_1234567890", "ghp_1234567890"),
+            ("DB_PASSWORD='two words' ./migrate", "two words"),
+            (
+                "AWS_SECRET_ACCESS_KEY=abcd/efgh+ijk= aws s3 ls",
+                "abcd/efgh+ijk=",
+            ),
+            ("OPENAI_API_KEY=sk-proj-xyz python app.py", "sk-proj-xyz"),
+            ("env MY_PWD=p4ss make deploy", "p4ss"),
+            (
+                "docker login -u me -p hunter3; CREDENTIALS=c4fe run",
+                "c4fe",
+            ),
+            ("mysql --password=pa55 -e 'select 1'", "pa55"),
+            (
+                "curl 'https://h/x?api_key=sk_live_abc123'",
+                "sk_live_abc123",
+            ),
+            ("XAI_API_KEY=xai-abc caro --backend grok 'ls'", "xai-abc"),
+        ];
+        for (cmd, secret) in cases {
+            let red = redact_command(cmd);
+            assert!(!red.contains(secret), "{cmd:?} -> {red:?}");
+        }
+        // Ordinary commands are untouched.
+        for cmd in [
+            "ls -la",
+            "git push origin main",
+            "mkdir -p a/b",
+            "cargo test",
+        ] {
+            assert_eq!(redact_command(cmd), cmd);
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn log_file_is_owner_only() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("d.jsonl");
+        let ev = HookEvent::default();
+        let rec = DecisionRecord::new(
+            Harness::Generic,
+            GuardMode::Shadow,
+            &ev,
+            &Outcome::Error("x".into()),
+            Verdict::None,
+            1,
+        );
+        append(&path, &rec).unwrap();
+        let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600);
     }
 
     #[test]

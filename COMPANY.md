@@ -115,6 +115,16 @@ decision-maker inherits the reasoning):
   feature PR. Full record with alternatives:
   [`docs/decisions/2026-07-12-autonomous-mode-release-scope.md`](./docs/decisions/2026-07-12-autonomous-mode-release-scope.md).
 
+- **2026-10-03 — `caro guard` ships as an experimental, shadow-default
+  surface before Gate 1.** The owner asked for the harness-guardian hook
+  (Claude Code / Grok Build / Codex / OpenCode) and the Grok backend to be
+  built after studying xai-org/grok-build. The guard has 0/20 transcripts.
+  It ships labeled experimental and never changes a harness's behavior
+  unless the user opts into enforce. Its decision log is the instrument for
+  the evidence, not a substitute for the interviews. Kill criteria, the
+  cohort definition and the devil's-advocate outcomes are in
+  [`specs/011-harness-guardian/spec.md`](./specs/011-harness-guardian/spec.md).
+
 ## How to contribute to "the company part"
 
 - **Marketing / DevRel work** lives in the
