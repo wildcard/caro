@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "comment": "Tripwire manifest for the caro-demo landing-page video. Each entry records the SHA-256 of a source file the video depends on at the moment of the last shipped render. scripts/check-drift.sh compares the working tree to this manifest. When drift is detected the skill at .claude/skills/caro-demo-video/SKILL.md takes over. DO NOT EDIT BY HAND — regenerate with `scripts/render-and-ship.sh` (it rewrites this file on a successful render).",
-  "rendered_at": "2026-04-26T02:07:00Z",
-  "rendered_commit": "4c45fc56",
-  "caro_version_at_render": "1.3.0",
+  "rendered_at": "2026-09-01T12:11:57Z",
+  "rendered_commit": "be07b22",
+  "caro_version_at_render": "1.5.0",
   "video_output": {
     "path": "website/public/caro-demo.mp4",
     "poster": "website/public/caro-demo-poster.png",
@@ -13,8 +13,8 @@
     "fps": 30
   },
   "claims_baked_into_video": {
-    "pattern_count": 52,
-    "pattern_count_claim_text": "52+ patterns. Blocked before damage.",
+    "pattern_count": 67,
+    "pattern_count_claim_text": "67+ patterns. Blocked before damage.",
     "install_command": "cargo install caro",
     "block_message": "✗ command blocked by safety validator (Critical)",
     "block_reason_text": "Recursive deletion of root, home, current, or parent directory",
@@ -40,7 +40,7 @@
   "watched_files": [
     {
       "path": "website/src/ui/tokens.css",
-      "sha256": "c7f38e748a8cda98adb2d29443aed333d266eb0322cd8a78c594b904085934a5",
+      "sha256": "476356d63de1d90bb3aad9b5b4153d2b02af6faf42e31d35e7263c8fb8468d14",
       "purpose": "Brand colors. Mirrored verbatim into demos/remotion-video/src/tokens.ts. A drift here is the most common trigger — any palette change requires re-render."
     },
     {
@@ -50,7 +50,7 @@
     },
     {
       "path": "src/main.rs",
-      "sha256": "6f47a8e154c6198176836d903bb6e462f646c895887400c3799199e7fa38fd31",
+      "sha256": "3c86ce29f3c42b102f076e4facd49df61be884eca5551b21ab205df546d3bd8a",
       "purpose": "CLI output strings. Scene 3 quotes the block-message literal from around line 1016. If the CLI's user-facing strings change, the video lies."
     },
     {
@@ -60,12 +60,12 @@
     },
     {
       "path": "src/safety/patterns.rs",
-      "sha256": "30d29615cb61cc728ef37fe0c4c0518a3af8ce5450f6af1e2347237f94be82b0",
-      "purpose": "Safety pattern definitions. Pattern count drives the Scene 3 caption '52+ patterns'. Drift here may bump the claim text."
+      "sha256": "effc25e271803e776fa3af176b1cd18625b9bba0494a8e7d47adde7a893e38ff",
+      "purpose": "Safety pattern definitions. Pattern count drives the Scene 3 caption '67+ patterns'. Drift here may bump the claim text."
     },
     {
       "path": "homebrew-tap/README.md",
-      "sha256": "8d85e785e55c0d16ceaa568791141fee22a59aeecb7a02a1d2bbe71aad994803",
+      "sha256": "44473ddb7dd33c96c98fa460f3e4f83d156f6ed02b6312cb1d52752f45ed045d",
       "purpose": "Homebrew install instructions. Scene 4's install line should match the canonical install command."
     },
     {

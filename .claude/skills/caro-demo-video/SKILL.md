@@ -47,8 +47,8 @@ These are caro-specific and not covered by `remotion-best-practices`.
 | `bgTerminal` | `#1a1a2e` | Terminal window body |
 | `bgChrome` | `#16161c` | Terminal title bar |
 | `borderSubtle` | `#1e1e24` | Window border |
-| `accent` | `#ff8c42` | Caro suggestions, primary CTA |
-| `accentDark` | `#ff6b35` | Hover states, secondary brand |
+| `accent` | `#ef3333` | Caro suggestions, primary CTA |
+| `accentDark` | `#e63636` | Hover states, secondary brand |
 | `prompt` | `#4ec9b0` | Shell prompt `$` |
 | `command` | `#9cdcfe` | Typed command text |
 | `success` | `#22c55e` | Safe / passed indicator |
