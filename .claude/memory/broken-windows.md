@@ -115,9 +115,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1222 (dups #1252, #1413, closed); same root cause as #1164
-**Status:** claimed-by sweep/2026-10-03-BW-010 (#1522)
+**Status:** fixed by #1522 (`default-run = "caro"`), pending merge
 **Needs human?:** no
-**Next step:** add `--bin caro` to the fallback, or set `default-run` in Cargo.toml (#1164).
+**Next step:** none once #1522 merges; delete 7 days after.
 
 ### BW-011: `caro ai --once` has no static-matcher first pass
 
