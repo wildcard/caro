@@ -260,7 +260,13 @@ pub fn format_report(path: &Path, r: &Report) -> String {
                 rec.verdict.as_str(),
                 rec.risk.map(risk_str).unwrap_or("error"),
                 format!("{:?}", rec.harness).to_lowercase(),
-                rec.command.as_deref().unwrap_or("-"),
+                // Agent-supplied text: escape newlines and control
+                // sequences so it cannot forge report lines or drive the
+                // reviewer's terminal.
+                rec.command
+                    .as_deref()
+                    .map(|c| c.escape_debug().to_string())
+                    .unwrap_or_else(|| "-".into()),
             );
         }
     }
@@ -283,7 +289,7 @@ mod tests {
             let raw =
                 serde_json::json!({"tool_name":"Bash","tool_input":{"command":cmd}}).to_string();
             let (_, _, rec) = run(
-                &v,
+                Ok(&v),
                 Harness::Claude,
                 GuardMode::Shadow,
                 &raw,
@@ -379,6 +385,31 @@ mod tests {
         append(&path, &rec).unwrap();
         let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
         assert_eq!(mode, 0o600);
+    }
+
+    #[test]
+    fn report_escapes_control_characters_in_commands() {
+        let ev = HookEvent {
+            tool_name: Some("Bash".into()),
+            command: Some("rm -rf /\n    2026-01-01  none  safe  claude  forged\x1b[2J".into()),
+            ..Default::default()
+        };
+        let rec = DecisionRecord::new(
+            Harness::Claude,
+            GuardMode::Shadow,
+            &ev,
+            &Outcome::Error("x".into()),
+            Verdict::None,
+            1,
+        );
+        let line = serde_json::to_string(&rec).unwrap();
+        let text = format_report(Path::new("d.jsonl"), &summarize(&line, 10));
+        let flagged: Vec<&str> = text.lines().filter(|l| l.contains("rm -rf")).collect();
+        assert_eq!(flagged.len(), 1, "{text}");
+        assert!(!text.contains('\x1b'));
+        assert!(!text
+            .lines()
+            .any(|l| l.trim_start().starts_with("2026-01-01")));
     }
 
     #[test]

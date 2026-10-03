@@ -362,8 +362,13 @@ pub fn render(harness: Harness, mode: GuardMode, outcome: &Outcome) -> Rendered 
 ///
 /// `started` should be taken at process start so `latency_us` includes config
 /// load and the stdin read, i.e. what the harness's hook timeout sees.
+///
+/// `validator` is `Err` when the user's safety configuration could not be
+/// loaded. That must not silently drop their custom High/Critical rules, so a
+/// shell call becomes an [`Outcome::Error`] (enforce: `ask`); non-shell calls
+/// stay `NotShell`.
 pub async fn run(
-    validator: &SafetyValidator,
+    validator: Result<&SafetyValidator, &str>,
     harness: Harness,
     mode: GuardMode,
     raw: &str,
@@ -379,9 +384,12 @@ pub async fn run(
                 Outcome::Error("shell tool call without a readable command".into()),
                 ev,
             ),
-            Some(cmd) => match evaluate(validator, cmd).await {
-                Ok(d) => (Outcome::Decided(d), ev),
-                Err(e) => (Outcome::Error(format!("validator error: {e}")), ev),
+            Some(cmd) => match validator {
+                Err(e) => (Outcome::Error(e.to_string()), ev),
+                Ok(v) => match evaluate(v, cmd).await {
+                    Ok(d) => (Outcome::Decided(d), ev),
+                    Err(e) => (Outcome::Error(format!("validator error: {e}")), ev),
+                },
             },
         },
     };
@@ -500,7 +508,7 @@ mod tests {
         let v = validator();
         for cmd in ["rm -rf /", "ls", "chmod 777 /etc/passwd"] {
             let (_, r, rec) = run(
-                &v,
+                Ok(&v),
                 Harness::Claude,
                 GuardMode::Shadow,
                 &claude(cmd),
@@ -517,7 +525,7 @@ mod tests {
     #[tokio::test]
     async fn enforce_claude_denies_critical() {
         let (_, r, rec) = run(
-            &validator(),
+            Ok(&validator()),
             Harness::Claude,
             GuardMode::Enforce,
             &claude("rm -rf /"),
@@ -537,7 +545,7 @@ mod tests {
     async fn enforce_non_shell_tool_is_silent_and_unlogged() {
         let raw = r#"{"tool_name":"Read","tool_input":{"file_path":"/etc/passwd"}}"#;
         let (o, r, rec) = run(
-            &validator(),
+            Ok(&validator()),
             Harness::Claude,
             GuardMode::Enforce,
             raw,
@@ -553,7 +561,7 @@ mod tests {
     async fn enforce_error_fails_toward_ask() {
         let raw = r#"{"tool_name":"Bash","tool_input":"<truncated>"}"#;
         let (o, r, _) = run(
-            &validator(),
+            Ok(&validator()),
             Harness::Codex,
             GuardMode::Enforce,
             raw,
@@ -566,10 +574,39 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn config_error_asks_on_shell_but_not_other_tools() {
+        let err = Err("config: invalid TOML");
+        let (o, r, rec) = run(
+            err,
+            Harness::Claude,
+            GuardMode::Enforce,
+            &claude("ls"),
+            Instant::now(),
+        )
+        .await;
+        assert_eq!(o, Outcome::Error("config: invalid TOML".into()));
+        let out: Value = serde_json::from_str(r.stdout.as_deref().unwrap()).unwrap();
+        assert_eq!(out["hookSpecificOutput"]["permissionDecision"], "ask");
+        assert!(rec.is_some(), "a broken config is logged");
+
+        let read = r#"{"tool_name":"Read","tool_input":{"file_path":"a"}}"#;
+        let (o, r, _) = run(
+            err,
+            Harness::Claude,
+            GuardMode::Enforce,
+            read,
+            Instant::now(),
+        )
+        .await;
+        assert_eq!(o, Outcome::NotShell);
+        assert_eq!(r.stdout, None);
+    }
+
+    #[tokio::test]
     async fn generic_exit_codes() {
         let v = validator();
         let deny = run(
-            &v,
+            Ok(&v),
             Harness::Generic,
             GuardMode::Enforce,
             r#"{"command":"rm -rf /"}"#,
@@ -579,7 +616,7 @@ mod tests {
         .1;
         assert_eq!(deny.exit_code, 2);
         let none = run(
-            &v,
+            Ok(&v),
             Harness::Generic,
             GuardMode::Enforce,
             r#"{"command":"ls"}"#,
@@ -589,7 +626,7 @@ mod tests {
         .1;
         assert_eq!(none.exit_code, 0);
         let err = run(
-            &v,
+            Ok(&v),
             Harness::Opencode,
             GuardMode::Enforce,
             r#"{"cwd":"/"}"#,
@@ -630,7 +667,7 @@ mod tests {
                     } else {
                         claude(c)
                     };
-                    let (_, r, _) = run(&v, h, m, &raw, Instant::now()).await;
+                    let (_, r, _) = run(Ok(&v), h, m, &raw, Instant::now()).await;
                     let out = r.stdout.unwrap_or_default();
                     assert!(!out.contains("\"allow\""), "{h:?} {m:?} {c}: {out}");
                     assert!(!out.contains("additionalContext"), "{h:?} {m:?} {c}");

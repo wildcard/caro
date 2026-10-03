@@ -4350,35 +4350,26 @@ async fn handle_guard(
     });
 
     // Honor the user's [safety] custom patterns and allowlist; the built-in
-    // catastrophic floor cannot be allowlisted.
-    let config_manager = caro::config::ConfigManager::new();
-    let validator = config_manager
-        .as_ref()
-        .ok()
-        .and_then(|cm| cm.load().ok().map(|uc| (cm, uc)))
-        .map(|(cm, uc)| caro::safety::SafetyConfig::from_user_config(&uc, cm.config_path()))
-        .and_then(|cfg| caro::safety::SafetyValidator::new(cfg).ok())
-        .or_else(|| {
-            caro::safety::SafetyValidator::new(caro::safety::SafetyConfig::moderate()).ok()
-        });
+    // catastrophic floor cannot be allowlisted. A missing config file loads
+    // as defaults; a config that exists but cannot be loaded is an error, not
+    // a silent fallback that would drop the user's own High/Critical rules.
+    let validator: Result<caro::safety::SafetyValidator, String> = (|| {
+        let cm = caro::config::ConfigManager::new().map_err(|e| format!("config: {e}"))?;
+        let uc = cm.load().map_err(|e| format!("config: {e}"))?;
+        let cfg = caro::safety::SafetyConfig::from_user_config(&uc, cm.config_path());
+        caro::safety::SafetyValidator::new(cfg).map_err(|e| format!("safety rules: {e}"))
+    })();
 
     let mut raw = String::new();
     let read = std::io::stdin().read_to_string(&mut raw);
 
-    let (rendered, record) = match (validator, read) {
-        (Some(v), Ok(_)) => {
-            let (_, rendered, record) = guard::run(&v, harness, mode, &raw, started).await;
+    let (rendered, record) = match read {
+        Ok(_) => {
+            let validator = validator.as_ref().map_err(String::as_str);
+            let (_, rendered, record) = guard::run(validator, harness, mode, &raw, started).await;
             (rendered, record)
         }
-        (None, _) => (
-            guard::render(
-                harness,
-                mode,
-                &guard::Outcome::Error("safety validator failed to initialize".into()),
-            ),
-            None,
-        ),
-        (_, Err(e)) => (
+        Err(e) => (
             guard::render(
                 harness,
                 mode,
