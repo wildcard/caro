@@ -76,6 +76,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   template wins ties) instead of a raw substring match. Not yet wired into
   the model prompt; that waits on eval evidence.
 
+### Fixed
+
+- **`--explain` output is correct and legible.** The headline no longer reads
+  "Use `find` Uses find to …". The option breakdown splits combined flags
+  (`-rn`, `-la`) and no longer reports `-i` for `grep --include`. Destructive
+  `find -delete` / `-exec` commands get a Caution paragraph before the
+  description, and examples are read-only. The built-in explanation text and
+  the summary follow STE-lite (ASD-STE100), guarded by
+  `tests/explain_ste_contract.rs`. The summary still contains the user's own
+  words, so the guard cannot cover every input.
+
 ### Documentation
 
 - `docs/research/jev-system-one-gap-analysis.md` — what caro can learn from
