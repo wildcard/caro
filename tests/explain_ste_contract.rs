@@ -244,3 +244,27 @@ fn multibyte_intent_does_not_panic() {
         assert!(summary.starts_with("to "), "{summary}");
     }
 }
+
+#[test]
+fn find_caution_names_the_actual_exec_action() {
+    // Review finding: `-ok` and `-execdir` got a caution that named `-exec`.
+    let ok = explainer().create_explanation(r"find . -name '*.tmp' -ok rm {} \;", "x");
+    assert!(
+        ok.detailed_explanation.contains("Caution: `-ok`"),
+        "{}",
+        ok.detailed_explanation
+    );
+    assert!(
+        ok.detailed_explanation.contains("asks"),
+        "{}",
+        ok.detailed_explanation
+    );
+    assert!(
+        !ok.detailed_explanation.contains("`-exec`"),
+        "{}",
+        ok.detailed_explanation
+    );
+
+    let execdir = explainer().create_explanation("find . -execdir ls {} +", "x");
+    assert!(execdir.detailed_explanation.contains("Caution: `-execdir`"));
+}

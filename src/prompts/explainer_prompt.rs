@@ -358,18 +358,27 @@ WRITING RULES (STE-lite, from ASD-STE100):
         // STE warnings come first, before the description.
         if tool == "find" {
             let predicates = find_predicates(&words);
-            let mut cautions = Vec::new();
+            let mut cautions: Vec<String> = Vec::new();
             if predicates.contains(&"-delete") {
                 cautions.push(
                     "Caution: `-delete` removes each file that matches, and you cannot undo it. \
-                     Run the command without `-delete` first to see the list of files.",
+                     Run the command without `-delete` first to see the list of files."
+                        .to_string(),
                 );
             }
-            if predicates.iter().any(|w| FIND_EXEC_ACTIONS.contains(w)) {
-                cautions.push(
-                    "Caution: `-exec` runs a command on each file that matches. \
-                     Run the command without `-exec` first to see the list of files.",
-                );
+            // Name the action that the command uses. `-ok` asks before each run.
+            if let Some(action) = predicates.iter().find(|w| FIND_EXEC_ACTIONS.contains(w)) {
+                cautions.push(if matches!(*action, "-ok" | "-okdir") {
+                    format!(
+                        "Caution: `{action}` runs a command on each file that matches. \
+                         It asks you first. Answer \"n\" to skip a file."
+                    )
+                } else {
+                    format!(
+                        "Caution: `{action}` runs a command on each file that matches. \
+                         Run the command without `{action}` first to see the list of files."
+                    )
+                });
             }
             if !cautions.is_empty() {
                 text = format!("{}\n\n{text}", cautions.join("\n\n"));
@@ -662,6 +671,9 @@ fn find_description(predicates: &[&str]) -> String {
     }
     if runs {
         text.push_str(" It runs a command on each file that matches all of the filters.");
+        if predicates.iter().any(|w| matches!(*w, "-ok" | "-okdir")) {
+            text.push_str(" It asks you before each run.");
+        }
     }
     if !deletes && !runs {
         text.push_str(" It shows each file that matches all of the filters.");
