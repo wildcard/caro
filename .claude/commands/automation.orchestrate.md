@@ -83,7 +83,7 @@ When invoked, this skill:
 
 1. **Load Configuration**
    - Read `.claude/automation/config/schedule.yaml`
-   - Load state from `.claude/automation/state/`
+   - Read the latest run per routine: `bin/routine-status show`
 
 2. **Validate Environment**
    - Check required tools (gh, git, npm)
@@ -94,9 +94,9 @@ When invoked, this skill:
    - Capture output and timing
    - Handle errors gracefully
 
-4. **Update State**
-   - Record run results
-   - Update metrics
+4. **Record Status**
+   - Record one status per loop run with `bin/routine-status record`
+     (see `.claude/automation/CONTRACT.md`)
    - Send notifications if configured
 
 ## Example Session
@@ -157,15 +157,9 @@ Technical Pack Complete
 
 ## State Files
 
-```
-.claude/automation/state/
-├── last_run.json           # Last run time per loop
-├── run_history/            # Historical run data
-│   ├── 2026-01-11.yaml
-│   └── ...
-├── metrics.json            # Aggregate metrics
-└── errors.json             # Error log
-```
+Run status lives in `runs.jsonl` on the `automation/routine-status` branch,
+written by `bin/routine-status record` and read with `bin/routine-status show`.
+See `.claude/automation/CONTRACT.md`.
 
 ## Configuration
 
