@@ -303,9 +303,9 @@ impl CliApp {
     /// warn and return the loop unchanged.
     ///
     /// The advisor is a remote/hosted model, so enabling it means low-confidence
-    /// prompts are sent off-host — we warn explicitly. Only `claude` is wired
-    /// today (the article's advisor was Claude Opus); `openrouter` is a trivial
-    /// follow-up once it grows an env constructor.
+    /// prompts are sent off-host — we warn explicitly. Wired advisors:
+    /// `claude` (`ANTHROPIC_API_KEY`), `grok` (`XAI_API_KEY`) and `openrouter`
+    /// (`OPENROUTER_API_KEY`).
     async fn maybe_attach_advisor(agent_loop: AgentLoop, name: &str) -> AgentLoop {
         #[cfg(feature = "remote-backends")]
         match Self::create_advisor(name).await {
@@ -339,9 +339,24 @@ impl CliApp {
                     None
                 }
             },
+            "grok" | "xai" | "openrouter" => {
+                use crate::backends::remote::{OpenAiCompatBackend, OpenAiCompatConfig, Provider};
+                let provider = if name.eq_ignore_ascii_case("openrouter") {
+                    Provider::OpenRouter
+                } else {
+                    Provider::Grok
+                };
+                match OpenAiCompatBackend::new(OpenAiCompatConfig::from_env(provider, None, None)) {
+                    Ok(backend) => Some(Arc::new(backend)),
+                    Err(e) => {
+                        eprintln!("⚠  advisor '{}' unavailable: {}", name, e);
+                        None
+                    }
+                }
+            }
             other => {
                 eprintln!(
-                    "⚠  unknown advisor '{}': only 'claude' is supported today",
+                    "⚠  unknown advisor '{}': supported advisors are claude, grok, openrouter",
                     other
                 );
                 None
@@ -423,8 +438,13 @@ impl CliApp {
                 .as_deref()
                 .unwrap_or(crate::backends::remote::ai_horde::AI_HORDE_ANON_KEY);
 
-            // Check for user-specified model preference
-            let model_preference = user_config.default_model.as_deref();
+            // Check for user-specified model preference. `validate_backend_name`
+            // accepts any case, so normalize before dispatching on the name.
+            let model_preference_lower = user_config
+                .default_model
+                .as_deref()
+                .map(str::to_ascii_lowercase);
+            let model_preference = model_preference_lower.as_deref();
 
             // If user explicitly specified a model, try that first
             if let Some(model) = model_preference {
@@ -493,6 +513,26 @@ impl CliApp {
                         // Pick the remote enhancer (default: mesh).
                         let remote_kind = backends_cfg.hybrid_remote.as_deref().unwrap_or("mesh");
                         let remote: Arc<dyn CommandGenerator> = match remote_kind {
+                            "grok" | "xai" => {
+                                use crate::backends::remote::{
+                                    OpenAiCompatBackend, OpenAiCompatConfig, Provider,
+                                };
+                                Arc::new(
+                                    OpenAiCompatBackend::new(OpenAiCompatConfig::from_env(
+                                        Provider::Grok,
+                                        backends_cfg.xai_url.as_deref(),
+                                        user_config.model_name.as_deref(),
+                                    ))
+                                    .map_err(|e| {
+                                        CliError::ConfigurationError {
+                                            message: format!(
+                                                "Failed to create Grok remote for hybrid: {}",
+                                                e
+                                            ),
+                                        }
+                                    })?,
+                                )
+                            }
                             "ai-horde" | "aihorde" | "horde" => Arc::new(
                                 AiHordeBackend::new(ai_horde_url_str, ai_horde_key_str).map_err(
                                     |e| CliError::ConfigurationError {
@@ -611,8 +651,59 @@ impl CliApp {
                             }
                         }
                     }
+                    #[cfg(feature = "remote-backends")]
+                    "grok" | "xai" | "openrouter" => {
+                        use crate::backends::remote::{
+                            OpenAiCompatBackend, OpenAiCompatConfig, Provider,
+                        };
+
+                        let (provider, endpoint) = if model == "openrouter" {
+                            (Provider::OpenRouter, None)
+                        } else {
+                            (Provider::Grok, backends_cfg.xai_url.as_deref())
+                        };
+                        let cfg = OpenAiCompatConfig::from_env(
+                            provider,
+                            endpoint,
+                            user_config.model_name.as_deref(),
+                        );
+                        // A hosted API without a key is a configuration error,
+                        // not something to paper over with a silent fallback.
+                        let backend = OpenAiCompatBackend::new(cfg)
+                            .map_err(|e| CliError::ConfigurationError {
+                                message: e.to_string(),
+                            })?
+                            .with_embedded_fallback(embedded_arc.clone());
+                        tracing::info!(
+                            "Using {} backend (user preference)",
+                            provider.display_name()
+                        );
+                        return Ok(Box::new(backend));
+                    }
+                    #[cfg(feature = "remote-backends")]
+                    "claude" | "anthropic" => {
+                        use crate::backends::remote::ClaudeBackend;
+
+                        let key = std::env::var("ANTHROPIC_API_KEY").map_err(|_| {
+                            CliError::ConfigurationError {
+                                message: "ANTHROPIC_API_KEY environment variable not set"
+                                    .to_string(),
+                            }
+                        })?;
+                        let backend = match user_config.model_name.clone() {
+                            Some(m) => ClaudeBackend::with_model(key, m),
+                            None => ClaudeBackend::new(key),
+                        }
+                        .map_err(|e| CliError::ConfigurationError {
+                            message: format!("Failed to create Claude backend: {}", e),
+                        })?
+                        .with_embedded_fallback(embedded_arc.clone());
+                        tracing::info!("Using Claude backend (user preference)");
+                        return Ok(Box::new(backend));
+                    }
                     #[cfg(not(feature = "remote-backends"))]
-                    "mesh" | "ollama" | "exo" | "vllm" | "ai-horde" | "hybrid" => {
+                    "mesh" | "ollama" | "exo" | "vllm" | "ai-horde" | "hybrid" | "grok" | "xai"
+                    | "openrouter" | "claude" | "anthropic" => {
                         return Err(Self::remote_backend_unavailable_error(model));
                     }
                     _ => {
@@ -1254,7 +1345,7 @@ mod tests {
         // intentionally rejected — advertising them was the #1115 bug. If a
         // future PR wires one of these, add it to CLI_SERVABLE_BACKENDS (which
         // updates every surface at once) rather than special-casing here.
-        for unwired in ["claude", "static", "openrouter", "mlx"] {
+        for unwired in ["static", "mlx"] {
             assert!(
                 CliApp::validate_backend_name(unwired).is_err(),
                 "'{}' is not CLI-wired yet and must not be silently accepted",

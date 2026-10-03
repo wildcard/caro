@@ -190,6 +190,14 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** yes (CI gate / lint policy). Options: pin the lint toolchain to 1.98.1, add a dated crate-level `allow`, or bump async-trait (syn 3; check MSRV).
 **Next step:** maintainer picks an option on #1498.
 
+### BW-020: hybrid sanitizer leaks spaced paths and inline credentials
+
+**Found:** 2026-10-03 (cubic review on #1513)
+**Issue:** #1518. `PATH_RE` stops at whitespace, and there's no rule for `Authorization: Bearer`, `-u user:pass` or URL userinfo in the request input sent to hybrid remotes.
+**Status:** open
+**Needs human?:** yes (privacy policy: what may leave the machine)
+**Next step:** reuse `COMMAND_SECRETS` from `src/guard/log.rs` as reversible sanitizer rules; add tests.
+
 ---
 
 ## Dedup pending (2026-09-30)

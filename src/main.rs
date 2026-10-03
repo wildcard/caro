@@ -384,6 +384,21 @@ enum SkillSubcommand {
     Uninstall,
 }
 
+/// `caro guard` subcommands
+#[derive(Parser, Clone)]
+enum GuardAction {
+    /// Summarize the decision log: verdict counts, top patterns, recent flags.
+    Report {
+        /// Decision log path (default: <data dir>/caro/guard/decisions.jsonl).
+        #[arg(long)]
+        log: Option<std::path::PathBuf>,
+
+        /// How many recent would-be deny/ask decisions to list.
+        #[arg(long, default_value_t = 10)]
+        limit: usize,
+    },
+}
+
 /// Subcommands for caro
 #[derive(Parser, Clone)]
 enum Commands {
@@ -514,6 +529,33 @@ enum Commands {
         /// Skip the `?` AI keybinding even if `ai.enabled` is true in config.
         #[arg(long)]
         disable_ai: bool,
+    },
+
+    /// [experimental] PreToolUse guardian for agent harnesses (spec 011).
+    ///
+    /// Reads a hook payload on stdin (Claude Code, Grok Build, Codex, or
+    /// `{"command": ...}`) and validates the agent's shell command. Shadow
+    /// mode (default) only logs; enforce mode denies Critical and asks on
+    /// High. Never emits `allow`.
+    Guard {
+        #[command(subcommand)]
+        action: Option<GuardAction>,
+
+        /// Payload/output format of the calling harness.
+        #[arg(long, value_enum, default_value = "claude")]
+        harness: caro::guard::Harness,
+
+        /// shadow (log only) or enforce. Default: $CARO_GUARD_MODE, else shadow.
+        #[arg(long, value_enum)]
+        mode: Option<caro::guard::GuardMode>,
+
+        /// Decision log path (default: <data dir>/caro/guard/decisions.jsonl).
+        #[arg(long, conflicts_with = "no_log")]
+        log: Option<std::path::PathBuf>,
+
+        /// Do not write the decision log.
+        #[arg(long)]
+        no_log: bool,
     },
 
     /// Validate a CaroML (`.caro`) task file: parse, lint, report errors with line numbers.
@@ -723,7 +765,7 @@ struct Cli {
     #[arg(
         short = 'b',
         long,
-        help = "Inference backend (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid; see --backend-info)"
+        help = "Inference backend (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid, grok, claude, openrouter; see --backend-info)"
     )]
     backend: Option<String>,
 
@@ -739,7 +781,7 @@ struct Cli {
     /// (off by default). Its output is re-validated for safety before use.
     #[arg(
         long = "advisor",
-        help = "Frontier advisor for low-confidence drafts (e.g., claude; sends prompts off-host)"
+        help = "Frontier advisor for low-confidence drafts (claude, grok, openrouter; sends prompts off-host)"
     )]
     advisor: Option<String>,
 
@@ -1136,6 +1178,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         // The hybrid gateway sanitizes PII before remote transmission by
         // default, so it is intentionally NOT treated as an off-host leak here.
         caro::models::BackendType::Hybrid => "hybrid".to_string(),
+        caro::models::BackendType::Grok => "grok".to_string(),
     };
 
     let exec_ctx = ExecutionContext::detect();
@@ -1180,6 +1223,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         store_path,
         session_mode,
         last_command_hint,
+        hybrid_allow_public: user_cfg.backends.allow_public,
     })
     .await
     .map_err(|e| format!("{}", e))?;
@@ -3190,6 +3234,13 @@ async fn main() {
                 }
             }
         }
+        Some(Commands::Guard {
+            action,
+            harness,
+            mode,
+            log,
+            no_log,
+        }) => process::exit(handle_guard(action, harness, mode, log, no_log).await),
         Some(Commands::Check { ref file }) => match caro::caroml::check_file(file) {
             Ok(task) => {
                 println!(
@@ -4146,8 +4197,8 @@ fn print_backend_info() {
     // The roster is driven by `CLI_SERVABLE_BACKENDS` — the SAME slice that
     // `validate_backend_name` accepts — so this table can never advertise a
     // backend that `--backend <name>` would reject (the divergence tracked
-    // by #1115). `static`/`claude`/`openrouter` are intentionally absent
-    // because the CLI does not route to them yet.
+    // by #1115). `static`/`mlx` are intentionally absent because the CLI
+    // does not route to them yet.
     let remote_backends_compiled = cfg!(feature = "remote-backends");
 
     println!("{}", "Available inference backends".bold());
@@ -4177,6 +4228,10 @@ fn print_backend_info() {
                 "exo" if env_or(&["CARO_EXO_URL"]) => "configured",
                 "mesh" if env_or(&["CARO_MESH_URL"]) => "configured",
                 "hybrid" => "needs config",
+                "grok" if env_or(&["XAI_API_KEY"]) => "configured",
+                "claude" if env_or(&["ANTHROPIC_API_KEY"]) => "configured",
+                "openrouter" if env_or(&["OPENROUTER_API_KEY"]) => "configured",
+                "grok" | "claude" | "openrouter" => "needs API key",
                 _ => "default endpoint",
             }
         };
@@ -4246,6 +4301,126 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
 // =============================================================================
 // Unit Tests
 // =============================================================================
+
+/// `caro guard` (spec 011 / ADR-018). Returns the process exit code.
+async fn handle_guard(
+    action: Option<GuardAction>,
+    harness: caro::guard::Harness,
+    mode: Option<caro::guard::GuardMode>,
+    log: Option<std::path::PathBuf>,
+    no_log: bool,
+) -> i32 {
+    use caro::guard::{self, GuardMode};
+    use std::io::Read;
+
+    // Latency is measured from here so it includes config load and the stdin
+    // read: the time the harness's hook timeout actually sees.
+    let started = std::time::Instant::now();
+
+    if let Some(GuardAction::Report { log, limit }) = action {
+        let Some(path) = log.or_else(guard::log::default_log_path) else {
+            eprintln!("caro guard report: no data directory; pass --log <PATH>");
+            return 1;
+        };
+        return match std::fs::File::open(&path) {
+            Ok(file) => match guard::log::summarize_reader(std::io::BufReader::new(file), limit) {
+                Ok(report) => {
+                    print!("{}", guard::log::format_report(&path, &report));
+                    0
+                }
+                Err(e) => {
+                    eprintln!("caro guard report: {}: {}", path.display(), e);
+                    1
+                }
+            },
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                println!(
+                    "caro guard report: no decisions logged yet ({})",
+                    path.display()
+                );
+                0
+            }
+            Err(e) => {
+                eprintln!("caro guard report: {}: {}", path.display(), e);
+                1
+            }
+        };
+    }
+
+    let mode = mode.unwrap_or_else(|| match std::env::var("CARO_GUARD_MODE") {
+        Ok(v) => v.parse().unwrap_or_else(|e: String| {
+            eprintln!("caro guard: {e}; using shadow");
+            GuardMode::Shadow
+        }),
+        Err(_) => GuardMode::Shadow,
+    });
+
+    // Honor the user's [safety] custom patterns and allowlist; the built-in
+    // catastrophic floor cannot be allowlisted. A missing config file loads
+    // as defaults; a config that exists but cannot be loaded is an error, not
+    // a silent fallback that would drop the user's own High/Critical rules.
+    let validator: Result<caro::safety::SafetyValidator, String> = (|| {
+        // Error text stays generic: parser diagnostics can quote the offending
+        // config line, which may hold a token, and this text is logged.
+        let cm = caro::config::ConfigManager::new()
+            .map_err(|_| "config: could not locate the caro config directory".to_string())?;
+        let uc = cm.load().map_err(|_| {
+            format!(
+                "config: {} could not be loaded (run `caro config show` for details)",
+                cm.config_path().display()
+            )
+        })?;
+        let cfg = caro::safety::SafetyConfig::from_user_config(&uc, cm.config_path());
+        caro::safety::SafetyValidator::new(cfg)
+            .map_err(|_| "safety rules: a configured pattern failed to build".to_string())
+    })();
+
+    // Cap the read: an unbounded payload could stall the hook past the
+    // harness timeout, which fails open.
+    let mut raw = String::new();
+    let read = std::io::stdin()
+        .take(guard::MAX_PAYLOAD_BYTES as u64 + 1)
+        .read_to_string(&mut raw);
+
+    let (rendered, record) = match read {
+        Ok(n) if n > guard::MAX_PAYLOAD_BYTES => {
+            // Drain (without buffering) the rest of the payload so the harness
+            // never sees a broken pipe, which some treat as a hook failure.
+            let _ = std::io::copy(&mut std::io::stdin(), &mut std::io::sink());
+            let (_, rendered, record) = guard::oversize(harness, mode, &raw, started);
+            (rendered, record)
+        }
+        Ok(_) => {
+            let validator = validator.as_ref().map_err(String::as_str);
+            let (_, rendered, record) = guard::run(validator, harness, mode, &raw, started).await;
+            (rendered, record)
+        }
+        Err(e) => (
+            guard::render(
+                harness,
+                mode,
+                &guard::Outcome::Error(format!("could not read stdin: {e}")),
+            ),
+            None,
+        ),
+    };
+
+    if let (Some(record), false) = (record, no_log) {
+        if let Some(path) = log.or_else(guard::log::default_log_path) {
+            // Logging must never break the hook.
+            if let Err(e) = guard::log::append(&path, &record) {
+                eprintln!("caro guard: could not write {}: {}", path.display(), e);
+            }
+        }
+    }
+    if let Some(err) = rendered.stderr {
+        eprintln!("{err}");
+    }
+    if let Some(out) = rendered.stdout {
+        println!("{out}");
+    }
+    rendered.exit_code
+}
 
 #[cfg(test)]
 mod tests {

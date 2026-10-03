@@ -60,7 +60,23 @@ The JSON output includes the generated command, risk level, and safety
 verdict. A guardian orchestrator can parse this and apply its own approval
 policy.
 
-### 2. MCP server (in progress)
+### 2. Harness guardian hook (experimental)
+
+    caro guard --harness claude --mode shadow
+
+(Synopsis: `--harness` is one of `claude`, `grok`, `codex`, `opencode`,
+`generic`; `--mode` is `shadow` or `enforce`.)
+
+A `PreToolUse` hook adapter. Claude Code, Grok Build, Codex CLI and OpenCode
+(through a plugin) send every shell command their agent is about to run to
+Caro. In **shadow** mode (the default) Caro records what it would have decided
+(see `caro guard report`). In **enforce** mode, Critical commands are denied,
+and High-risk ones go to the human in Claude Code, Grok Build and Codex;
+OpenCode plugins cannot prompt, so there they are blocked with an
+explanation. Caro never auto-approves. See
+[ADR-018](adr/ADR-018-guardian-hook-harness-adapters.md).
+
+### 3. MCP server (not started, #928)
 
     caro mcp serve
 
@@ -68,7 +84,7 @@ Exposes `generate_command`, `validate_command`, and `explain_safety` over the
 Model Context Protocol. Any MCP-aware agent framework (LangChain, CrewAI,
 Semantic Kernel, Google ADK) can call Caro as a tool.
 
-### 3. OpenAI-compatible endpoint (in progress)
+### 4. OpenAI-compatible endpoint (not started, #929)
 
     caro serve --openai
 
