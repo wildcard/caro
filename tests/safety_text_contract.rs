@@ -29,7 +29,7 @@ async fn explanation_text_is_the_same_on_every_run() {
         "need 2+ keywords to test order: {first}"
     );
 
-    let mut seen = HashSet::new();
+    let mut seen = HashSet::from([first]);
     for _ in 0..25 {
         seen.insert(explanation(command).await);
     }
