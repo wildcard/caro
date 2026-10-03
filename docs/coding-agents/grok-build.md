@@ -72,8 +72,10 @@ caro --backend grok --model-name grok-4.5 "..."
 ```
 
 You can also route the hybrid privacy gateway's remote enhancer to Grok, so
-requests are sanitized locally before they reach xAI. Select the `hybrid`
-backend and point it at Grok:
+requests are sanitized locally before they reach xAI. Neither path sends
+your local execution context (cwd, directory listing, knowledge entries) to
+xAI; only the request itself goes out. Select the `hybrid` backend and point
+it at Grok:
 
 ```toml
 # Caro config file (Linux: ~/.config/caro/config.toml)

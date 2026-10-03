@@ -237,7 +237,6 @@ pub struct OpenAiCompatBackend {
     config: OpenAiCompatConfig,
     client: Client,
     embedded_fallback: Option<Arc<dyn CommandGenerator>>,
-    forward_context: bool,
 }
 
 impl OpenAiCompatBackend {
@@ -263,19 +262,11 @@ impl OpenAiCompatBackend {
             config,
             client,
             embedded_fallback: None,
-            forward_context: false,
         })
     }
 
     pub fn with_embedded_fallback(mut self, fallback: Arc<dyn CommandGenerator>) -> Self {
         self.embedded_fallback = Some(fallback);
-        self
-    }
-
-    /// Forward `request.context` to the provider. Only for callers that
-    /// sanitize the context first: the `hybrid` remote enhancer.
-    pub fn with_context_forwarding(mut self) -> Self {
-        self.forward_context = true;
         self
     }
 
@@ -299,19 +290,15 @@ Rules:
         )
     }
 
-    /// The user turn. By default `request.context` is NOT forwarded:
-    /// `AgentLoop` always fills it with the execution context (cwd, user,
-    /// directory and knowledge data), and a hosted API must not receive that
-    /// raw. Same policy as `claude.rs`. The `hybrid` backend sanitizes the
-    /// context first and opts in via [`Self::with_context_forwarding`].
-    fn user_input(&self, request: &CommandRequest) -> String {
-        match request.context.as_deref() {
-            Some(ctx) if self.forward_context && !ctx.trim().is_empty() => format!(
-                "<user_request>{}</user_request>\n<context>{}</context>",
-                request.input, ctx
-            ),
-            _ => format!("<user_request>{}</user_request>", request.input),
-        }
+    /// The user turn. `request.context` is deliberately NOT forwarded, not
+    /// even as `hybrid`'s remote: `AgentLoop` fills it with the execution
+    /// context (cwd, user, directory and knowledge data), and the hybrid
+    /// sanitizer is not built for free-form context (paths with spaces,
+    /// credentials inside stored commands). Same policy as `claude.rs` and
+    /// the mesh / AI Horde remotes; hybrid carries what the remote needs in
+    /// `input`.
+    fn user_input(request: &CommandRequest) -> String {
+        format!("<user_request>{}</user_request>", request.input)
     }
 
     fn parse_command_response(&self, response: &str) -> Result<String, GeneratorError> {
@@ -460,7 +447,7 @@ Rules:
         match self
             .call_api(
                 &self.create_system_prompt(request),
-                &self.user_input(request),
+                &Self::user_input(request),
             )
             .await
         {
@@ -802,30 +789,6 @@ mod grok_wire_tests {
         let body = String::from_utf8_lossy(&reqs[0].body);
         assert!(!body.contains("secret-project"), "{body}");
         assert!(!body.contains("alice"), "{body}");
-    }
-
-    #[tokio::test]
-    async fn hybrid_remote_forwards_sanitized_context() {
-        let server = MockServer::start().await;
-        Mock::given(method("POST"))
-            .and(path("/v1/chat/completions"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-                "choices": [{ "message": { "role": "assistant", "content": "{\"cmd\": \"ls\"}" } }]
-            })))
-            .mount(&server)
-            .await;
-
-        let mut req = request();
-        req.context = Some("CWD: <PATH_1> user=<USER_1>".to_string());
-        grok(&server)
-            .with_context_forwarding()
-            .generate_command(&req)
-            .await
-            .unwrap();
-
-        let reqs = server.received_requests().await.unwrap();
-        let body = String::from_utf8_lossy(&reqs[0].body);
-        assert!(body.contains("<PATH_1>"), "{body}");
     }
 
     #[tokio::test]

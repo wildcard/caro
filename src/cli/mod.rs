@@ -530,9 +530,7 @@ impl CliApp {
                                                 e
                                             ),
                                         }
-                                    })?
-                                    // Hybrid hands the remote sanitized context.
-                                    .with_context_forwarding(),
+                                    })?,
                                 )
                             }
                             "ai-horde" | "aihorde" | "horde" => Arc::new(
