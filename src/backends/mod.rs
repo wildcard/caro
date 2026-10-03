@@ -28,10 +28,12 @@ use crate::models::{
 /// hard-errored "Unknown backend".
 ///
 /// It lists only backends the CLI can route to today. Enum variants that exist
-/// in [`BackendType`] but are **not yet CLI-wired** (`claude`, `openrouter`,
-/// `mlx`, `static`) are intentionally excluded so no surface advertises a name
-/// that `--backend` rejects. Wiring those (and unifying the remaining help-text
-/// rosters) is the larger follow-up on #1115.
+/// in [`BackendType`] but are **not yet CLI-wired** (`mlx`, `static`) are
+/// intentionally excluded so no surface advertises a name that `--backend`
+/// rejects. `claude` and `openrouter` were added here once `create_backend`
+/// was wired to route to them (the follow-up promised by #1115). Wiring the
+/// remainder (and unifying the remaining help-text rosters) stays tracked by
+/// #1115's follow-on cluster.
 pub const CLI_SERVABLE_BACKENDS: &[(&str, &str)] = &[
     (
         "embedded",
@@ -49,6 +51,14 @@ pub const CLI_SERVABLE_BACKENDS: &[(&str, &str)] = &[
         "AI-Horde volunteer cluster (free, public, no setup)",
     ),
     ("hybrid", "local sanitizer + remote enhancer (PII-safe)"),
+    (
+        "claude",
+        "Anthropic Claude API (requires: ANTHROPIC_API_KEY)",
+    ),
+    (
+        "openrouter",
+        "OpenRouter unified API, 100+ models (requires: OPENROUTER_API_KEY)",
+    ),
 ];
 
 /// Core trait that all command generation backends must implement
