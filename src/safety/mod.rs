@@ -560,7 +560,7 @@ impl SafetyValidator {
     /// a catastrophe slips through. Quoting (`rm -rf "$HOME"`, `rm -rf "/"`) is a
     /// real evasion vector here, so we must match through quotes — exactly what
     /// the context heuristic would wrongly suppress.
-    fn targets_catastrophic_location(command: &str) -> bool {
+    pub(crate) fn targets_catastrophic_location(command: &str) -> bool {
         Self::catastrophic_regexes()
             .iter()
             .any(|re| re.is_match(command))

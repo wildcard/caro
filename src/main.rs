@@ -384,6 +384,21 @@ enum SkillSubcommand {
     Uninstall,
 }
 
+/// `caro guard` subcommands
+#[derive(Parser, Clone)]
+enum GuardAction {
+    /// Summarize the decision log: verdict counts, top patterns, recent flags.
+    Report {
+        /// Decision log path (default: <data dir>/caro/guard/decisions.jsonl).
+        #[arg(long)]
+        log: Option<std::path::PathBuf>,
+
+        /// How many recent would-be deny/ask decisions to list.
+        #[arg(long, default_value_t = 10)]
+        limit: usize,
+    },
+}
+
 /// Subcommands for caro
 #[derive(Parser, Clone)]
 enum Commands {
@@ -514,6 +529,33 @@ enum Commands {
         /// Skip the `?` AI keybinding even if `ai.enabled` is true in config.
         #[arg(long)]
         disable_ai: bool,
+    },
+
+    /// [experimental] PreToolUse guardian for agent harnesses (spec 011).
+    ///
+    /// Reads a hook payload on stdin (Claude Code, Grok Build, Codex, or
+    /// `{"command": ...}`) and validates the agent's shell command. Shadow
+    /// mode (default) only logs; enforce mode denies Critical and asks on
+    /// High. Never emits `allow`.
+    Guard {
+        #[command(subcommand)]
+        action: Option<GuardAction>,
+
+        /// Payload/output format of the calling harness.
+        #[arg(long, value_enum, default_value = "claude")]
+        harness: caro::guard::Harness,
+
+        /// shadow (log only) or enforce. Default: $CARO_GUARD_MODE, else shadow.
+        #[arg(long, value_enum)]
+        mode: Option<caro::guard::GuardMode>,
+
+        /// Decision log path (default: <data dir>/caro/guard/decisions.jsonl).
+        #[arg(long, conflicts_with = "no_log")]
+        log: Option<std::path::PathBuf>,
+
+        /// Do not write the decision log.
+        #[arg(long)]
+        no_log: bool,
     },
 
     /// Validate a CaroML (`.caro`) task file: parse, lint, report errors with line numbers.
@@ -3190,6 +3232,13 @@ async fn main() {
                 }
             }
         }
+        Some(Commands::Guard {
+            action,
+            harness,
+            mode,
+            log,
+            no_log,
+        }) => process::exit(handle_guard(action, harness, mode, log, no_log).await),
         Some(Commands::Check { ref file }) => match caro::caroml::check_file(file) {
             Ok(task) => {
                 println!(
@@ -4246,6 +4295,106 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
 // =============================================================================
 // Unit Tests
 // =============================================================================
+
+/// `caro guard` (spec 011 / ADR-018). Returns the process exit code.
+async fn handle_guard(
+    action: Option<GuardAction>,
+    harness: caro::guard::Harness,
+    mode: Option<caro::guard::GuardMode>,
+    log: Option<std::path::PathBuf>,
+    no_log: bool,
+) -> i32 {
+    use caro::guard::{self, GuardMode};
+    use std::io::Read;
+
+    if let Some(GuardAction::Report { log, limit }) = action {
+        let Some(path) = log.or_else(guard::log::default_log_path) else {
+            eprintln!("caro guard report: no data directory; pass --log <PATH>");
+            return 1;
+        };
+        return match std::fs::read_to_string(&path) {
+            Ok(contents) => {
+                let report = guard::log::summarize(&contents, limit);
+                print!("{}", guard::log::format_report(&path, &report));
+                0
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                println!(
+                    "caro guard report: no decisions logged yet ({})",
+                    path.display()
+                );
+                0
+            }
+            Err(e) => {
+                eprintln!("caro guard report: {}: {}", path.display(), e);
+                1
+            }
+        };
+    }
+
+    let mode = mode.unwrap_or_else(|| match std::env::var("CARO_GUARD_MODE") {
+        Ok(v) => v.parse().unwrap_or_else(|e: String| {
+            eprintln!("caro guard: {e}; using shadow");
+            GuardMode::Shadow
+        }),
+        Err(_) => GuardMode::Shadow,
+    });
+
+    // Honor the user's [safety] custom patterns and allowlist; the built-in
+    // catastrophic floor cannot be allowlisted.
+    let config_manager = caro::config::ConfigManager::new();
+    let validator = config_manager
+        .as_ref()
+        .ok()
+        .and_then(|cm| cm.load().ok().map(|uc| (cm, uc)))
+        .map(|(cm, uc)| caro::safety::SafetyConfig::from_user_config(&uc, cm.config_path()))
+        .and_then(|cfg| caro::safety::SafetyValidator::new(cfg).ok())
+        .or_else(|| {
+            caro::safety::SafetyValidator::new(caro::safety::SafetyConfig::moderate()).ok()
+        });
+
+    let mut raw = String::new();
+    let read = std::io::stdin().read_to_string(&mut raw);
+
+    let (rendered, record) = match (validator, read) {
+        (Some(v), Ok(_)) => {
+            let (_, rendered, record) = guard::run(&v, harness, mode, &raw).await;
+            (rendered, record)
+        }
+        (None, _) => (
+            guard::render(
+                harness,
+                mode,
+                &guard::Outcome::Error("safety validator failed to initialize".into()),
+            ),
+            None,
+        ),
+        (_, Err(e)) => (
+            guard::render(
+                harness,
+                mode,
+                &guard::Outcome::Error(format!("could not read stdin: {e}")),
+            ),
+            None,
+        ),
+    };
+
+    if let (Some(record), false) = (record, no_log) {
+        if let Some(path) = log.or_else(guard::log::default_log_path) {
+            // Logging must never break the hook.
+            if let Err(e) = guard::log::append(&path, &record) {
+                eprintln!("caro guard: could not write {}: {}", path.display(), e);
+            }
+        }
+    }
+    if let Some(err) = rendered.stderr {
+        eprintln!("{err}");
+    }
+    if let Some(out) = rendered.stdout {
+        println!("{out}");
+    }
+    rendered.exit_code
+}
 
 #[cfg(test)]
 mod tests {
