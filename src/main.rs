@@ -212,14 +212,16 @@ enum ExportFormat {
 enum ConfigCommands {
     /// Set a configuration value
     Set {
-        /// Configuration key (backend, model-name, shell, safety)
+        /// Configuration key (backend, model-name, shell, safety, telemetry.enabled,
+        /// log_level, cache_max_size, log_rotation)
         key: String,
         /// Value to set
         value: String,
     },
     /// Get a configuration value
     Get {
-        /// Configuration key (backend, model-name, shell, safety)
+        /// Configuration key (backend, model-name, shell, safety, telemetry.enabled,
+        /// log_level, cache_max_size, log_rotation)
         key: String,
     },
     /// Show all configuration
@@ -2060,6 +2062,12 @@ fn build_knowledge_backend_config(
 // Configuration Commands
 // =============================================================================
 
+/// Canonical keys for `caro config set/get` (every key `config show` prints),
+/// listed in the unknown-key error. The match arms also accept dash/underscore
+/// aliases; `tests/config_cli_keys.rs` exercises each key and alias.
+const CONFIG_KEYS: &str =
+    "backend, model-name, shell, safety, telemetry.enabled, log_level, cache_max_size, log_rotation";
+
 /// Handle configuration subcommands
 fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
     use colored::Colorize;
@@ -2109,10 +2117,52 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                     config.safety_level = level;
                     println!("{} Set safety level to '{:?}'", "✓".green(), level);
                 }
+                "telemetry" | "telemetry.enabled" | "telemetry-enabled" => {
+                    let enabled: bool = value.to_lowercase().parse().map_err(|_| {
+                        format!("Invalid telemetry value '{}': use true or false", value)
+                    })?;
+                    config.telemetry.enabled = enabled;
+                    // An explicit choice counts as consent; don't re-prompt over it.
+                    config.telemetry.first_run = false;
+                    println!("{} Set telemetry.enabled to '{}'", "✓".green(), enabled);
+                }
+                "log_level" | "log-level" => {
+                    let level: caro::models::LogLevel = value.parse()?;
+                    config.log_level = level;
+                    println!("{} Set log level to '{:?}'", "✓".green(), level);
+                }
+                "cache_max_size" | "cache-max-size" => {
+                    config.cache_max_size_gb = value.parse().map_err(|_| {
+                        format!(
+                            "Invalid cache_max_size '{}': expected a number of GB",
+                            value
+                        )
+                    })?;
+                    config.validate()?;
+                    println!(
+                        "{} Set cache max size to {} GB",
+                        "✓".green(),
+                        config.cache_max_size_gb
+                    );
+                }
+                "log_rotation" | "log-rotation" => {
+                    config.log_rotation_days = value.parse().map_err(|_| {
+                        format!(
+                            "Invalid log_rotation '{}': expected a number of days",
+                            value
+                        )
+                    })?;
+                    config.validate()?;
+                    println!(
+                        "{} Set log rotation to {} days",
+                        "✓".green(),
+                        config.log_rotation_days
+                    );
+                }
                 _ => {
                     return Err(format!(
-                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety",
-                        key
+                        "Unknown config key '{}'. Valid keys: {}",
+                        key, CONFIG_KEYS
                     ));
                 }
             }
@@ -2154,10 +2204,34 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 "safety" => {
                     println!("{}: {:?}", "safety".bold(), config.safety_level);
                 }
+                "telemetry" | "telemetry.enabled" | "telemetry-enabled" => {
+                    println!(
+                        "{}: {}",
+                        "telemetry.enabled".bold(),
+                        config.telemetry.enabled
+                    );
+                }
+                "log_level" | "log-level" => {
+                    println!("{}: {:?}", "log_level".bold(), config.log_level);
+                }
+                "cache_max_size" | "cache-max-size" => {
+                    println!(
+                        "{}: {} GB",
+                        "cache_max_size".bold(),
+                        config.cache_max_size_gb
+                    );
+                }
+                "log_rotation" | "log-rotation" => {
+                    println!(
+                        "{}: {} days",
+                        "log_rotation".bold(),
+                        config.log_rotation_days
+                    );
+                }
                 _ => {
                     return Err(format!(
-                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety",
-                        key
+                        "Unknown config key '{}'. Valid keys: {}",
+                        key, CONFIG_KEYS
                     ));
                 }
             }
