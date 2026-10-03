@@ -1223,6 +1223,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         store_path,
         session_mode,
         last_command_hint,
+        hybrid_allow_public: user_cfg.backends.allow_public,
     })
     .await
     .map_err(|e| format!("{}", e))?;
@@ -4322,11 +4323,16 @@ async fn handle_guard(
             return 1;
         };
         return match std::fs::File::open(&path) {
-            Ok(file) => {
-                let report = guard::log::summarize_reader(std::io::BufReader::new(file), limit);
-                print!("{}", guard::log::format_report(&path, &report));
-                0
-            }
+            Ok(file) => match guard::log::summarize_reader(std::io::BufReader::new(file), limit) {
+                Ok(report) => {
+                    print!("{}", guard::log::format_report(&path, &report));
+                    0
+                }
+                Err(e) => {
+                    eprintln!("caro guard report: {}: {}", path.display(), e);
+                    1
+                }
+            },
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
                 println!(
                     "caro guard report: no decisions logged yet ({})",

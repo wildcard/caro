@@ -158,8 +158,10 @@ judge can never relax (ADR-017).
 - Explicit escalation to a human when the judge fails.
 - A configurable amount of context sent to the judge.
 
-**Adopt:** reasons that never contain command text (now: guard reasons are
-built only from Caro's own pattern descriptions). Typed finding tokens and an
+**Adopt:** reasons that never echo the command text directly (now: guard
+reasons are built from matched pattern descriptions, which include any
+user-configured `[safety]` pattern descriptions, so those are trusted user
+input, not agent input). Typed finding tokens and an
 optional judge for guard that escalates to `ask` on failure (later).
 
 ### 2.5 Sandbox

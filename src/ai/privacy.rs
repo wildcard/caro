@@ -64,7 +64,13 @@ pub fn build_context(
 
 /// When this returns `true`, the caller should warn the user that remote
 /// transmission may occur with the selected backend and the configured opt-ins.
-pub fn may_leak_context_offhost(ai_cfg: &AiConfig, backend_name: &str) -> bool {
+/// `hybrid_allow_public` is `[backends] allow_public`: when set, the hybrid
+/// gateway forwards context to its remote enhancer without sanitizing it.
+pub fn may_leak_context_offhost(
+    ai_cfg: &AiConfig,
+    backend_name: &str,
+    hybrid_allow_public: bool,
+) -> bool {
     let anything_optin = ai_cfg.opening.send_cwd
         || ai_cfg.opening.send_last_command
         || ai_cfg.capabilities.enable_history_search;
@@ -83,8 +89,11 @@ pub fn may_leak_context_offhost(ai_cfg: &AiConfig, backend_name: &str) -> bool {
         | BackendType::Exo
         | BackendType::Mesh
         | BackendType::AiHorde => ai_cfg.endpoint.is_some(),
-        // On-device, or sanitized before leaving the machine (hybrid).
-        BackendType::Mock | BackendType::Embedded | BackendType::Mlx | BackendType::Hybrid => false,
+        // Hybrid sanitizes before anything leaves the machine, unless
+        // `allow_public` turns that off.
+        BackendType::Hybrid => hybrid_allow_public,
+        // On-device.
+        BackendType::Mock | BackendType::Embedded | BackendType::Mlx => false,
     };
     anything_optin && off_host
 }
@@ -207,13 +216,17 @@ mod tests {
     #[test]
     fn leak_detection_only_fires_with_optin_and_remote() {
         let base = AiConfig::default();
-        assert!(!may_leak_context_offhost(&base, "ollama"));
+        assert!(!may_leak_context_offhost(&base, "ollama", false));
 
         let cfg_remote_no_optin = AiConfig {
             endpoint: Some("https://x".into()),
             ..AiConfig::default()
         };
-        assert!(!may_leak_context_offhost(&cfg_remote_no_optin, "ollama"));
+        assert!(!may_leak_context_offhost(
+            &cfg_remote_no_optin,
+            "ollama",
+            false
+        ));
 
         let cfg_optin_local = AiConfig {
             opening: AiOpening {
@@ -222,7 +235,11 @@ mod tests {
             },
             ..AiConfig::default()
         };
-        assert!(!may_leak_context_offhost(&cfg_optin_local, "embedded"));
+        assert!(!may_leak_context_offhost(
+            &cfg_optin_local,
+            "embedded",
+            false
+        ));
 
         let cfg_optin_remote = AiConfig {
             endpoint: Some("https://x".into()),
@@ -235,15 +252,19 @@ mod tests {
             },
             ..AiConfig::default()
         };
-        assert!(may_leak_context_offhost(&cfg_optin_remote, "ollama"));
+        assert!(may_leak_context_offhost(&cfg_optin_remote, "ollama", false));
+
+        // Hybrid is local unless `allow_public` disables its sanitizer.
+        assert!(!may_leak_context_offhost(&cfg_optin_local, "hybrid", false));
+        assert!(may_leak_context_offhost(&cfg_optin_local, "hybrid", true));
 
         // Hosted APIs warn on opt-in even without an `ai.endpoint`.
         for hosted in ["grok", "openrouter", "claude"] {
             assert!(
-                may_leak_context_offhost(&cfg_optin_local, hosted),
+                may_leak_context_offhost(&cfg_optin_local, hosted, false),
                 "{hosted}"
             );
-            assert!(!may_leak_context_offhost(&base, hosted), "{hosted}");
+            assert!(!may_leak_context_offhost(&base, hosted, false), "{hosted}");
         }
     }
 }

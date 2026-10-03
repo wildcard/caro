@@ -143,7 +143,9 @@ statusMessage = "caro guard"
 
 `caro guard --harness generic` takes `{"command": "..."}` on stdin. In
 `--mode enforce` it prints a decision record and exits 0 for no objection, 2
-for deny and 3 for ask; in the default shadow mode it only logs and exits 0:
+for deny and 3 for ask. In the default shadow mode it logs the decision, exits
+0, and prints a one-line stderr notice for a would-be deny or ask, or for an
+evaluation error:
 
 ```bash
 cmd='find . -name node_modules -type d -exec rm -rf {} +'

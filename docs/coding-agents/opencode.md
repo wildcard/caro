@@ -34,7 +34,9 @@ an explanation. Approve it by running it yourself, or by adding it to
 `[safety] allowlist_patterns`.
 
 If `caro` is not on `PATH`, the plugin lets the command through and prints a
-warning. This matches how hooks fail open in every other harness.
+warning, matching how hooks fail open in the other harnesses. If `caro guard`
+does not finish within 10 seconds, enforce mode blocks the call ("command not
+checked"); shadow mode only warns.
 
 ## Resources
 

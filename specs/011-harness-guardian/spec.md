@@ -148,8 +148,9 @@ The decision log holds one JSON line per shell decision.
   `write_all` may split it after a short write, so whole-line interleaving
   across concurrent sessions is not guaranteed, and the report skips (and
   counts) any torn line.
-- The file is created 0600, and an existing log is tightened to 0600 on the
-  next append.
+- On Unix the file is created with mode 0600, and each append makes a
+  best-effort attempt to tighten an existing log to 0600. Other platforms rely
+  on the per-user data directory's default permissions.
 
 ### `caro guard report`
 
@@ -202,7 +203,7 @@ This is the "inform the user" surface for shadow mode.
 | A guard run fits in the hook timeout; Grok Build's default is 5 s | The hook times out on a loaded machine and the harness fails open, so the guard silently does nothing | `latency_us` on every record; `caro guard report` prints p50/p95 | Static path only, with no model or network. Users can raise the hook `timeout` |
 | The log stays small | An agent running thousands of commands a day grows the log without bound | File size is visible; the report counts lines | Documented manual rotation now; size-capped rotation is a follow-up |
 | Pattern false positives are rare enough | In enforce mode a false `ask` on a routine command trains users to click through, and a false `deny` stalls the agent | Shadow mode first: the report shows would-be asks and denies per pattern before anyone enforces | Shadow is the default. The user allowlist (`[safety] allowlist_patterns`) blesses known commands; the floor stays |
-| One writer at a time | Several harness sessions append concurrently | Lines are whole JSON objects; the report skips unparsable lines and counts them | `O_APPEND` single-write lines |
+| One writer at a time | Several harness sessions append concurrently; a short write can tear a line | The report skips and counts unparsable lines | One `write_all` per record on an `O_APPEND` file: whole lines in practice on local filesystems, not guaranteed |
 | The agent cannot edit its guard | A project-scope hook in `.claude/settings.json` can be edited by the guarded agent | n/a | Docs recommend user-scope installation (`~/.claude/settings.json`, `~/.grok/hooks/`, `~/.codex/hooks.json`) |
 | xAI pricing and model IDs are stable | A model ID is retired and Grok calls fail | `BackendUnavailable` and `GenerationFailed` surface in CLI errors and eval | `--model-name` override; the hybrid falls back to local |
 

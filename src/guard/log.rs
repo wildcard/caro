@@ -46,7 +46,7 @@ static COMMAND_SECRETS: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
         ),
         // MySQL-family attached password: `mysql -uroot -pSECRET`.
         (
-            r#"(\bmysql(?:dump|admin|import|show|check|slap)?\b[^;&|]*?\s-p)(?:'[^']*'|"[^"]*"|[^\s;&|]+)"#,
+            r#"(\b(?:mysql(?:dump|admin|import|show|check|slap)?|mariadb(?:-(?:dump|admin|import|show|check|slap))?)\b[^;&|]*?\s-p)(?:'[^']*'|"[^"]*"|[^\s;&|]+)"#,
             "${1}[REDACTED]",
         ),
     ]
@@ -200,13 +200,21 @@ pub fn summarize(contents: &str, limit: usize) -> Report {
 /// Summarize a decision log by streaming it line by line, so an append-only
 /// log that has grown large is never loaded whole. Unreadable or unparsable
 /// lines are counted, not fatal.
-pub fn summarize_reader<R: std::io::BufRead>(reader: R, limit: usize) -> Report {
-    summarize_lines(
-        reader
-            .lines()
-            .map(|l| l.unwrap_or_else(|_| "\u{0}".to_string())),
-        limit,
-    )
+pub fn summarize_reader<R: std::io::BufRead>(reader: R, limit: usize) -> std::io::Result<Report> {
+    // Stop at the first read error: some (e.g. EISDIR) repeat forever.
+    let mut err = None;
+    let lines = reader.lines().map_while(|l| match l {
+        Ok(line) => Some(line),
+        Err(e) => {
+            err = Some(e);
+            None
+        }
+    });
+    let report = summarize_lines(lines, limit);
+    match err {
+        Some(e) => Err(e),
+        None => Ok(report),
+    }
 }
 
 fn summarize_lines(lines: impl Iterator<Item = String>, limit: usize) -> Report {
@@ -389,7 +397,7 @@ mod tests {
             log.push('\n');
         }
         log.push_str("not json\n");
-        let r = summarize_reader(std::io::Cursor::new(log), 3);
+        let r = summarize_reader(std::io::Cursor::new(log), 3).unwrap();
         assert_eq!(r.total, 50);
         assert_eq!(r.unparsable, 1);
         let cmds: Vec<_> = r
@@ -398,6 +406,18 @@ mod tests {
             .map(|f| f.command.clone().unwrap())
             .collect();
         assert_eq!(cmds, ["cmd-49", "cmd-48", "cmd-47"]);
+    }
+
+    #[test]
+    fn report_stops_on_read_errors() {
+        struct Broken;
+        impl std::io::Read for Broken {
+            fn read(&mut self, _: &mut [u8]) -> std::io::Result<usize> {
+                Err(std::io::Error::other("EISDIR"))
+            }
+        }
+        let r = summarize_reader(std::io::BufReader::new(Broken), 5);
+        assert!(r.is_err());
     }
 
     #[test]
@@ -419,6 +439,8 @@ mod tests {
             "sshpass -p {S} ssh host",
             "mysql -uroot -p{S} -e 'select 1'",
             "mysqldump -u root -p'{S}' db",
+            "mariadb -uroot -p{S} app",
+            "mariadb-dump -u root -p{S} app",
             "psql --password {S}",
             "export GITHUB_TOKEN={S}",
             "DB_PASSWORD='{S} words' ./migrate",

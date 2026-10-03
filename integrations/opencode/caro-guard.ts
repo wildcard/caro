@@ -5,7 +5,7 @@
 // Install: cp caro-guard.ts ~/.config/opencode/plugin/
 import { spawn } from "node:child_process"
 
-type GuardResult = { status: number | null; stdout: string; error?: Error }
+type GuardResult = { status: number | null; stdout: string; error?: Error; timedOut?: boolean }
 
 // Async so a slow guard never blocks OpenCode's event loop.
 function runGuard(mode: string, payload: string): Promise<GuardResult> {
@@ -14,7 +14,11 @@ function runGuard(mode: string, payload: string): Promise<GuardResult> {
       stdio: ["pipe", "pipe", "inherit"],
     })
     let stdout = ""
-    const timer = setTimeout(() => child.kill(), 10_000)
+    let timedOut = false
+    const timer = setTimeout(() => {
+      timedOut = true
+      child.kill()
+    }, 10_000)
     child.stdout.on("data", (chunk) => (stdout += chunk))
     child.on("error", (error) => {
       clearTimeout(timer)
@@ -22,7 +26,7 @@ function runGuard(mode: string, payload: string): Promise<GuardResult> {
     })
     child.on("close", (status) => {
       clearTimeout(timer)
-      resolve({ status, stdout })
+      resolve({ status, stdout, timedOut })
     })
     child.stdin.end(payload)
   })
@@ -40,6 +44,13 @@ export const CaroGuard = async () => ({
 
     if (res.error) {
       console.warn(`caro guard unavailable (${res.error.message}); command not checked`)
+      return
+    }
+    // Killed by the timeout (or by a signal): the command was not checked.
+    // In enforce mode that must not pass silently.
+    if (res.timedOut || res.status === null) {
+      if (mode === "enforce") throw new Error("caro guard did not finish in time; command not checked")
+      console.warn("caro guard did not finish in time; command not checked")
       return
     }
     if (res.status === 2 || res.status === 3) {

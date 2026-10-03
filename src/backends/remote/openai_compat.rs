@@ -290,14 +290,13 @@ Rules:
         )
     }
 
-    /// The user turn: the request plus any context the caller opted to send
-    /// (the embedded backend appends the same context to its prompt).
+    /// The user turn. `request.context` is deliberately NOT forwarded:
+    /// `AgentLoop` always fills it with the execution context (cwd, user,
+    /// directory and knowledge data), and a hosted API must not receive that
+    /// by default. Same policy as `claude.rs`; use `hybrid` for context that
+    /// is sanitized before it leaves the machine.
     fn user_input(request: &CommandRequest) -> String {
-        let mut msg = format!("<user_request>{}</user_request>", request.input);
-        if let Some(ctx) = request.context.as_deref().filter(|c| !c.trim().is_empty()) {
-            msg.push_str(&format!("\n<context>{}</context>", ctx));
-        }
-        msg
+        format!("<user_request>{}</user_request>", request.input)
     }
 
     fn parse_command_response(&self, response: &str) -> Result<String, GeneratorError> {
@@ -770,7 +769,7 @@ mod grok_wire_tests {
     }
 
     #[tokio::test]
-    async fn opted_in_context_reaches_the_hosted_prompt() {
+    async fn hosted_prompt_never_includes_local_context() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
             .and(path("/v1/chat/completions"))
@@ -781,16 +780,13 @@ mod grok_wire_tests {
             .await;
 
         let mut req = request();
-        req.context = Some("CWD: /proj".to_string());
+        req.context = Some("CWD: /home/alice/secret-project user=alice".to_string());
         grok(&server).generate_command(&req).await.unwrap();
 
         let reqs = server.received_requests().await.unwrap();
-        let body: serde_json::Value = serde_json::from_slice(&reqs[0].body).unwrap();
-        let user = body["messages"][1]["content"].as_str().unwrap();
-        assert_eq!(
-            user,
-            "<user_request>list files by size</user_request>\n<context>CWD: /proj</context>"
-        );
+        let body = String::from_utf8_lossy(&reqs[0].body);
+        assert!(!body.contains("secret-project"), "{body}");
+        assert!(!body.contains("alice"), "{body}");
     }
 
     #[tokio::test]
