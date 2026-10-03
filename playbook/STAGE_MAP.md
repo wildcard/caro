@@ -1,6 +1,6 @@
 # Caro Stage Map
 
-**Last Updated**: 2026-05-25
+**Last Updated**: 2026-10-03
 **Source framework**: [Anthropic, "The Founder's Playbook: Building an AI-native startup"](https://claude.com/blog/the-founders-playbook) (May 14, 2026)
 
 This is Caro's location on the playbook's four-stage map. Each stage names
@@ -133,6 +133,53 @@ user cohort.
   rule — it requires a defended cohort definition. Our cohort is
   *not* "everyone who installed Caro"; it's "users who completed at
   least 5 commands in week 1". This is named in the retention spec.
+
+### Failure modes observed (2026-10-03 audit)
+
+Two Stage-3 failure modes have been confirmed in the four months since
+this map was last reconciled. They are named here so the next decision
+on either does not restart from zero.
+
+- **Release-reset drift.** `chore(release): v1.5.0` landed on
+  2026-07-12 (commit `6f23d37`) and bumped `Cargo.toml`, `README.md`,
+  `homebrew-tap/README.md` and `nuget/tools/install.ps1` to 1.5.0. The
+  tag + crates.io publish step — which only the owner can authorize —
+  never ran. Twelve subsequent PRs (eval consensus labels / Pareto /
+  ECE gate, Jev-system-one calibration + typed decisions, declared-
+  limit enforcement, reqwest 0.12 / RUSTSEC-2026-0258/-0285 bump,
+  Hebrew i18n overhaul, Cloudflare Pages prep, static-matcher
+  Pattern 43, `ai --once` stdin fix, `config set/get` key parity,
+  Rust 1.98.1 lint pin, Vercel/Astro drift guard, ponytail-reviewer
+  agent) landed on `main` on top of that bump. Users on crates.io
+  have been pinned to v1.4.0 since 2026-05-09 — nearly five months —
+  while the repository state says 1.5.0. The failure mode is not
+  "forgot to tag" but "the step with owner-only credentials sits
+  outside the agent flow, so the version bump accumulates work
+  without a backstop". The release-reset decision in
+  [`docs/decisions/2026-10-03-release-reset-and-discovery-decision.md`](../docs/decisions/2026-10-03-release-reset-and-discovery-decision.md)
+  names the options.
+- **Discovery-rule inertia.** `.claude/rules/validation-discipline.md`
+  (Gate 1 — twenty transcripts) was adopted on 2026-05-25, the same
+  day this map was last updated. The companion discovery-debt epic
+  (#1188) and its five sub-issues (#1189–#1193) have had **zero
+  human or agent activity since 2026-05-31**. `docs/discovery/transcripts/`
+  contains zero transcripts. Zero devil's-advocate reviews
+  (Gate 4) have been filed. The `interview-enterprise-dashboard.md`
+  script prepared in PR #1223 for exactly this purpose has never
+  been used. The rule applies to the author who wrote it, and the
+  author did not respond. The failure mode is not "nobody cares
+  about discovery" but "an evidence requirement imposed on the
+  owner without a shipped mechanism for the owner to meet it in
+  single-digit minutes a week will be ignored, not fought". The
+  three honest options (resource it, retire the epic as
+  `not_planned`, pause with a 30-day deadline) are named in the
+  decision doc above.
+
+Both failure modes are **systemic**, not individual: they describe
+process gaps that would reproduce under any owner. The release-reset
+gap wants a `Needs human: credential` escape hatch; the discovery-
+inertia gap wants either a time cost small enough to budget or an
+explicit retirement so the open epic stops reading as commitment.
 
 ---
 
