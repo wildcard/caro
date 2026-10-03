@@ -66,7 +66,7 @@ aider --api-key anthropic=sk-...
 Located at `~/.aider.conf.yml`:
 
 ```yaml
-model: claude-sonnet-4-20250514
+model: claude-sonnet-4-6
 auto-commits: true
 git-depth: 2
 show-diffs: true
@@ -82,7 +82,7 @@ shell:
 Create `.aider.conf.yml` in project root:
 
 ```yaml
-model: claude-sonnet-4-20250514
+model: claude-sonnet-4-6
 read:
   - README.md
   - CLAUDE.md
@@ -101,7 +101,7 @@ aider
 aider src/main.rs src/lib.rs
 
 # With specific model
-aider --model claude-sonnet-4-20250514
+aider --model claude-sonnet-4-6
 
 # In architect mode (planning first)
 aider --architect
@@ -229,7 +229,7 @@ pre-commit:
 
 ```bash
 # Start both tools for a session
-aider --model claude-sonnet-4-20250514 &
+aider --model claude-sonnet-4-6 &
 caro --watch  # Watch for command validation requests
 ```
 

@@ -63,7 +63,7 @@ Cursor inherits VS Code settings with AI-specific additions:
 // ~/Library/Application Support/Cursor/User/settings.json (macOS)
 {
   "cursor.cpp.enabled": true,
-  "cursor.chat.defaultModel": "claude-sonnet-4-20250514",
+  "cursor.chat.defaultModel": "claude-sonnet-4-6",
   "cursor.prediction.enabled": true,
   "cursor.aiContext.enabled": true,
   "terminal.integrated.defaultProfile.linux": "zsh"

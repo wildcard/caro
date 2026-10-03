@@ -40,7 +40,7 @@ After installation:
 {
   "cline.apiProvider": "anthropic",
   "cline.apiKey": "...",
-  "cline.model": "claude-sonnet-4-20250514",
+  "cline.model": "claude-sonnet-4-6",
   "cline.customInstructions": "Always validate shell commands with caro",
   "cline.alwaysAllowWrite": false,
   "cline.alwaysAllowExecute": false
