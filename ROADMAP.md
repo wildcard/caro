@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: July 12, 2026
+**Last Updated**: October 3, 2026
 
 > **Recent Update**: Integrated 104 PRs (#557-660) into roadmap with milestone assignments and tracking issues.
 
@@ -49,16 +49,49 @@ gantt
 
 ## Release Milestones
 
-### 🎉 v1.5.0 - Safety Floor Hardening & CI Repair
-**Released**: July 12, 2026 ✅
+### 🎉 v1.5.0 - Decision Layer & Release Reset
+**Released**: October 3, 2026 ✅
 **Status**: 100% Complete - **RELEASED**
-**Focus**: Catastrophic-floor allowlist safety (5 adversarial review rounds,
-evasion-hardened, all test-pinned), backend-roster single source of truth,
-runtime-loadable custom safety patterns via TOML, MSRV 1.85, dependency
-security repair (RUSTSEC-2026-0204/0185, ethnum/rust-1.97 compile break),
-cache-test de-flaking. Note: the v2.0.0 "Distributed Autonomy" milestone
-stays open pending validation-discipline Gate 1 (user discovery) — see
-docs/decisions/2026-07-12-autonomous-mode-release-scope.md (D1).
+**Focus**: Consolidation of the stalled 2026-07-12 scope (safety-floor
+hardening, custom-pattern TOML, MSRV 1.85, backend-roster single-source)
+with twelve subsequent PRs that landed on `main` between 2026-07-12 and
+2026-10-03:
+
+- **Decision layer, calibration and typed primitives** —
+  [#1459](https://github.com/wildcard/caro/pull/1459)
+  (Jev gap analysis, calibration metrics, typed-decision primitives,
+  measured confidence, clarification + intent gates, constrained decoding),
+  [#1489](https://github.com/wildcard/caro/pull/1489) (consensus risk
+  labels, Pareto view, ECE release gate), [ADR-017](docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md)
+- **Declared != enforced** — [#1470](https://github.com/wildcard/caro/pull/1470)
+  (CommandExecutor timeout, PreToolUse guard hooks, loop budgets, eval CI
+  honesty)
+- **Security dependency bump** — [#1488](https://github.com/wildcard/caro/pull/1488)
+  (reqwest 0.12, wiremock 0.6, RUSTSEC-2026-0258/-0285)
+- **i18n + Cloudflare Pages** — [#1352](https://github.com/wildcard/caro/pull/1352),
+  [#1351](https://github.com/wildcard/caro/pull/1351),
+  Vercel adapter astro-drift guard (4d7a855)
+- **Static matcher Pattern 43 current-dir qualifier** —
+  [#1487](https://github.com/wildcard/caro/pull/1487)
+- **CLI parity fixes** — [#1497](https://github.com/wildcard/caro/pull/1497)
+  (`config set/get` key parity), [#1503](https://github.com/wildcard/caro/pull/1503)
+  (`ai --once` with trailing prompt no longer blocks on stdin)
+- **CI pinning** — [#1498](https://github.com/wildcard/caro/pull/1498),
+  [#1505](https://github.com/wildcard/caro/pull/1505) (Lint & Format
+  pinned to Rust 1.98.1)
+- **Agent additions** — [#1244](https://github.com/wildcard/caro/pull/1244)
+  (ponytail pragmatic-skeptic reviewer, additive)
+
+**Release-reset note**: an earlier `chore(release): v1.5.0` landed
+2026-07-12 (commit `6f23d37`) and bumped `Cargo.toml`/`README`/
+homebrew/nuget to 1.5.0, but the owner-only tag + crates.io publish
+step never ran — users on crates.io stayed pinned at v1.4.0
+(2026-05-09) for nearly five months. This release consolidates both
+scopes into a single honest 1.5.0 shipping entry. Rationale and
+options considered: [`docs/decisions/2026-10-03-release-reset-and-discovery-decision.md`](docs/decisions/2026-10-03-release-reset-and-discovery-decision.md).
+The v2.0.0 "Distributed Autonomy" milestone stays open pending
+validation-discipline Gate 1 (user discovery); see
+[`docs/decisions/2026-07-12-autonomous-mode-release-scope.md`](docs/decisions/2026-07-12-autonomous-mode-release-scope.md) (D1).
 
 ---
 
@@ -372,7 +405,7 @@ above.
 
 | Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
 |-----------|----------|---------------------|----------|----------|---------|
-| **v1.5.0** | Jul 12, 2026 | Safety floor hardening + CI repair | 4 | 100% | ✅ **RELEASED** |
+| **v1.5.0** | Oct 3, 2026 | Decision layer, calibration, security bump + release reset | 15 | 100% | ✅ **RELEASED** |
 | **v1.4.0** | May 9, 2026 | CaroML preview + safety hardening | 12 | 100% | ✅ **RELEASED** |
 | **v1.3.2** | May 9, 2026 | Static matcher coverage gaps | 7 | 100% | ✅ **RELEASED** |
 | **v1.3.1** | May 9, 2026 | P0/P1 safety patch | 4 | 100% | ✅ **RELEASED** |
