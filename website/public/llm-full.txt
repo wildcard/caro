@@ -511,6 +511,18 @@ Safety Approach
 
 ---
 
+## Evals
+
+**URL**: https://caro.sh/evals
+
+Caro's published evaluation numbers: pass rate, Brier score, Expected Calibration Error, latency tail and cost per backend, straight from the evaluation harness.
+
+Evals
+
+Published accuracy, calibration, latency and cost per backend
+
+---
+
 ## Integrations — Caro
 
 **URL**: https://caro.sh/integrations
@@ -1023,4 +1035,4 @@ Yes! Caro is licensed under AGPL-3.0. You can read, modify, and distribute the s
 
 ---
 
-*Generated on 2026-07-12*
+*Generated on 2026-10-02*

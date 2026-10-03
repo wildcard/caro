@@ -186,9 +186,17 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-01 (while driving #1497)
 **Issue:** #1498. Clippy 1.99 `double_must_use` (via `#[async_trait]`) and `redundant_field_names` (via `thiserror` `#[from] source`), 27 errors, none in changed code.
+**Status:** fixed (#1505, merged 2026-10-03): lint toolchain pinned to 1.98.1.
+**Needs human?:** no (decided)
+**Next step:** open PRs go green on Lint once they carry or merge main; close #1498 after confirming.
+### BW-020: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
+
+**Found:** 2026-10-02, PR #1507 session (also red on main push be07b22 and every i18n-touching PR)
+**Issue:** #1508
 **Status:** open
-**Needs human?:** yes (CI gate / lint policy). Options: pin the lint toolchain to 1.98.1, add a dated crate-level `allow`, or bump async-trait (syn 3; check MSRV).
-**Next step:** maintainer picks an option on #1498.
+**Needs human?:** no (run `translate.yml` or copy the English files; or relax the validator for missing namespaces)
+**Next step:** `en/playbook.json` (#1174) and `en/waitlist.json` (#599) were never mirrored into 13 locales. CI runs the validator without `--strict`, so the missing-file errors are the failure; the 207 untranslated warnings are only fatal in strict mode.
+
 
 ---
 
