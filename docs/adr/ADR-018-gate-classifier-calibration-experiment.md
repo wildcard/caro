@@ -41,10 +41,11 @@ What the repository actually has, as of this ADR:
 - A consensus-label exporter (`src/evaluation/sft_export.rs::
   decision_label_pairs`) that pairs the local backend's risk verdict with
   a reference judge's. Until this change nothing wrote its output to disk,
-  so there are zero records. It drops Safety-category cases and
-  agreements below confidence 0.7, which censors exactly the high-risk and
-  uncertain regions a risk gate most needs; the experiment has to account
-  for that, not inherit it silently.
+  so there are zero records. It used to drop Safety-category cases, which
+  censored exactly the high-risk region a risk gate most needs; this change
+  keeps them and adds the `test_id` each record came from. It still drops
+  agreements below confidence 0.7, which biases the corpus toward confident
+  cases; the experiment has to account for that, not inherit it silently.
 - Harness calibration metrics (`src/evaluation/calibration.rs`) that score
   a backend's *generation* confidence against whether the generated command
   passed. They do not score the risk gate. There is no risk-gate ECE
@@ -70,9 +71,11 @@ Run a bounded, pre-registered experiment tracked in #1510, and record its
 outcome in this ADR before any model is wired into the product.
 
 1. **Data path.** The evaluation binary gains
-   `CARO_EVAL_EXPORT_LABELS=<path>.jsonl`, which writes
+   `CARO_EVAL_EXPORT_LABELS=<path>.jsonl`, which appends
    `decision_label_pairs` for a run that had both a local and a reference
-   risk verdict. This is the only code change in this ADR.
+   risk verdict; a run that produced none leaves the file untouched, so the
+   corpus accumulates across judged runs. Each record carries its
+   `test_id`. These are the only code changes in this ADR.
 2. **Pilot before thresholds.** The first judged run over the 101-case
    dataset (one backend, one reference judge) is committed under
    `tests/evaluation/results/` with the backend, judge, prompt template
@@ -255,7 +258,7 @@ it cannot, this ADR records that and stops.
 - `docs/research/jev-of-execution-safety-strategy.md`, Phase 4
 - `docs/research/jev-system-one-gap-analysis.md`
 - ADR-017: Typed Decisions and Calibrated Confidence for Pipeline Gates
-- `docs/ml/sft-data-pipeline.md`, Source 3
+- `docs/ml/sft-data-pipeline.md`, Source 4
 - `src/evaluation/sft_export.rs`, `src/evaluation/calibration.rs`
 - `.claude/rules/validation-discipline.md`, Gates 3 and 4
 - Tracking issue #1510; epic #1460 (Phases 1 to 3)

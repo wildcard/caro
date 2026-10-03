@@ -100,7 +100,7 @@ crate's token API. No OpenAI-compatible request sends `logprobs`.
 - **Telemetry**: add `confidence`, `confidence_source`, and an outcome field (executed / edited / rejected) to `CommandGeneration` so live ECE is computable; consent unchanged.
 - Guard: `calibration::tests::excludes_unsourced_confidence`; per-backend contract tests.
 
-### Phase 2 — The decision API surface (new ADR-018)
+### Phase 2 — The decision API surface (shipped under ADR-017; no separate ADR, so 018 went to Phase 4)
 - `caro decide "<request or command>"` (and `--output json`) returning one typed record: `{risk: Choice<RiskLevel>, should_run: Noul, needs_clarification: Noul, intent: Choice, confidence: Score, source, floor_applied: bool, latency_ms}`. Every field is a `caro::decision` type; the JSON Schema is published.
 - Same record from MCP `validate_command` / `explain_safety` and the OpenAI-compatible endpoint (the two "in progress" integrations in `GUARDIAN_AGENT.md`).
 - `should_run` = calibrated composition of static floor + judge (`blend_smart_decision`) with the invariant: `p_run == 0.0` whenever the floor says Critical.
@@ -147,9 +147,9 @@ Gated on Phase 3 data, per the research doc's "not on enthusiasm".
 | Phase | Size | Depends on |
 |---|---|---|
 | 1 #1464 | 1 PR (~600 LOC) | #1459 merged |
-| 2 ADR-018 + `caro decide` + #1465 | ADR + 2 PRs | Phase 1 |
+| 2 `caro decide` + #1465 (under ADR-017) | 2 PRs | Phase 1 |
 | 3 #1466 + evals page | 2 PRs | Phase 1 |
-| 4 gate model | ADR + experiment | Phase 3 data |
+| 4 gate classifier (ADR-018, #1510) | ADR + experiment | Phase 3 data |
 | 5 product | interviews first | Gate 1 |
 
 Phases 2 and 3 can run in parallel sessions on separate branches.

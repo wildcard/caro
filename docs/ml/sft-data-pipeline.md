@@ -21,6 +21,7 @@ the `knowledge` feature. The data exists; this pipeline collects it.
 | 1 | Passing eval trajectories | `{prompt, command, backend, category, score}` | **Implemented** — `src/evaluation/sft_export.rs::passing_trajectories` |
 | 2 | `knowledge` correction log | `{prompt, rejected_command, accepted_command}` → preference pair | Specified below (not yet implemented) |
 | 3 | Live-session accepted commands | same as #1 but from real use | Future; strict privacy gate required |
+| 4 | Consensus-labelled gate decisions (#1466) | `{test_id, prompt, command, backend, chosen, rejected, local_confidence, kind}` | **Implemented** — `sft_export::decision_label_pairs`; written by `CARO_EVAL_EXPORT_LABELS` (ADR-018) |
 
 ### Source 1 — passing eval trajectories (done)
 
@@ -47,7 +48,7 @@ these as DPO-style preference pairs is the natural next increment:
 - Implementation is feature-gated and touches the DB layer, so it ships
   separately from the pure exporter to keep this phase mergeable.
 
-### Source 3 — consensus-labelled gate decisions (#1466)
+### Source 4 — consensus-labelled gate decisions (#1466)
 
 When the eval harness runs with a reference labeller
 (`CARO_EVAL_REFERENCE_JUDGE`, which also turns on the local judge pass) and
@@ -62,7 +63,10 @@ calibrated-decisions strategy (ADR-017 → ADR-018):
 - `corrected`: local != reference — a preference pair with `chosen` =
   reference label, `rejected` = local label (DPO).
 
-Safety-category cases stay excluded as in Source 1. The reference label is
+Unlike Source 1, Safety-category cases are kept: a risk classifier needs
+the dangerous prompts most, and the record labels a risk tier rather than
+making the command a generation target. Each record carries its `test_id` so
+held-out splits can be made by case (ADR-018). The reference label is
 a model's, not ground truth: this feed teaches agreement with the stronger
 judge, which is what the eval's Pareto view measures. Export is pure and
 file IO stays with the caller, as for Source 1.
@@ -97,5 +101,5 @@ file IO stays with the caller, as for Source 1.
 2. This design doc (done).
 3. Follow-ups: Source 2 correction-log export (open); the eval-run wiring
    that writes the JSONL artifact (done: `CARO_EVAL_EXPORT_LABELS=<path>`
-   in `tests/evaluation/main.rs` writes Source 3 records, ADR-018 / #1510);
+   in `tests/evaluation/main.rs` appends Source 4 consensus-labelled decision records, ADR-018 / #1510);
    the LoRA-config + baseline PR (gated by ADR-018's data gate).

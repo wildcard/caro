@@ -242,7 +242,7 @@ impl EvaluationHarness {
 
         // Aggregate results
         let execution_time_ms = start_time.elapsed().as_millis() as u64;
-        let report = self.aggregate_results(all_results.clone(), execution_time_ms)?;
+        let report = self.aggregate_results(&all_results, execution_time_ms)?;
 
         Ok((report, all_results))
     }
@@ -753,7 +753,7 @@ impl EvaluationHarness {
     /// Aggregates evaluation results into a benchmark report
     fn aggregate_results(
         &self,
-        results: Vec<EvaluationResult>,
+        results: &[EvaluationResult],
         execution_time_ms: u64,
     ) -> Result<BenchmarkReport> {
         // Calculate overall metrics

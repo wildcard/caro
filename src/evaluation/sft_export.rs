@@ -101,6 +101,9 @@ pub enum DecisionLabelKind {
 /// the reference, which is exactly what the Pareto eval measures.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DecisionLabelRecord {
+    /// Benchmark case this record came from. Held-out splits are made by
+    /// test id (ADR-018), so every record carries it.
+    pub test_id: String,
     /// Natural-language request the command answered.
     pub prompt: String,
     /// The command whose risk was judged.
@@ -124,15 +127,17 @@ pub const ACCEPTED_MIN_CONFIDENCE: f64 = 0.7;
 /// both a local and a reference risk verdict. Agreement above
 /// [`ACCEPTED_MIN_CONFIDENCE`] yields `Accepted`; disagreement yields
 /// `Corrected` at any confidence; a low-confidence agreement is dropped (it
-/// teaches nothing the reference did not already say). Safety-category
-/// results stay excluded, as for [`passing_trajectories`].
+/// teaches nothing the reference did not already say). Unlike
+/// [`passing_trajectories`], Safety-category results are kept: a risk
+/// classifier needs the dangerous prompts most, and these records label a
+/// risk tier, they do not make a dangerous command a generation target.
 pub fn decision_label_pairs(
     results: &[EvaluationResult],
     dataset: &[TestCase],
 ) -> Vec<DecisionLabelRecord> {
-    let meta_by_id: HashMap<&str, (&str, TestCategory)> = dataset
+    let prompt_by_id: HashMap<&str, &str> = dataset
         .iter()
-        .map(|tc| (tc.id.as_str(), (tc.input_request.as_str(), tc.category)))
+        .map(|tc| (tc.id.as_str(), tc.input_request.as_str()))
         .collect();
 
     results
@@ -143,10 +148,7 @@ pub fn decision_label_pairs(
             if command.is_empty() {
                 return None;
             }
-            let (prompt, category) = meta_by_id.get(r.test_id.as_str()).copied()?;
-            if category == TestCategory::Safety {
-                return None;
-            }
+            let prompt = *prompt_by_id.get(r.test_id.as_str())?;
             let kind = if local.risk == reference.risk {
                 if local.confidence < ACCEPTED_MIN_CONFIDENCE {
                     return None;
@@ -156,6 +158,7 @@ pub fn decision_label_pairs(
                 DecisionLabelKind::Corrected
             };
             Some(DecisionLabelRecord {
+                test_id: r.test_id.clone(),
                 prompt: prompt.to_string(),
                 command: command.to_string(),
                 backend: r.backend_name.clone(),
@@ -298,7 +301,8 @@ mod tests {
 
         let records =
             decision_label_pairs(&[agreed, corrected, unsure, unlabelled, safety], &dataset);
-        assert_eq!(records.len(), 2);
+        assert_eq!(records.len(), 3);
+        assert_eq!(records[0].test_id, "c-1");
         assert_eq!(records[0].kind, DecisionLabelKind::Accepted);
         assert_eq!(
             (records[0].chosen, records[0].rejected),
@@ -310,9 +314,18 @@ mod tests {
             (RiskLevel::Moderate, RiskLevel::Safe)
         );
         assert_eq!(records[1].prompt, "remove build dir");
+        // Safety cases are kept for the risk-label feed (ADR-018): the
+        // dangerous prompt is exactly what a risk classifier must see.
+        assert_eq!(records[2].test_id, "s-1");
+        assert_eq!(records[2].kind, DecisionLabelKind::Corrected);
+        assert_eq!(
+            (records[2].chosen, records[2].rejected),
+            (RiskLevel::Critical, RiskLevel::Safe)
+        );
         let jsonl = to_jsonl(&records);
-        assert_eq!(jsonl.lines().count(), 2);
+        assert_eq!(jsonl.lines().count(), 3);
         assert!(jsonl.contains(r#""kind":"corrected""#));
+        assert!(jsonl.contains(r#""test_id":"s-1""#));
     }
 
     #[test]

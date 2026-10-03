@@ -233,17 +233,19 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
     let (mut report, results) = harness.run_with_results().await?;
 
     // Consensus-label export for the gate classifier (ADR-018). Only results
-    // that carry both a local and a reference risk verdict yield a record, so
-    // without CARO_EVAL_REFERENCE_JUDGE (and a backend that has a judge) the
-    // file is written empty and says so.
+    // that carry both a local and a reference risk verdict yield a record.
+    // The corpus accumulates across judged runs, so records are appended and
+    // a run that produced none (no reference judge, or no backend with a
+    // judge) leaves an existing file untouched instead of emptying it.
     //   CARO_EVAL_EXPORT_LABELS=<path>.jsonl
     if let Ok(path) = std::env::var("CARO_EVAL_EXPORT_LABELS") {
         let records = sft_export::decision_label_pairs(&results, &test_cases);
-        std::fs::write(&path, sft_export::to_jsonl(&records))?;
+        let written = append_jsonl(&path, &sft_export::to_jsonl(&records))?;
         eprintln!(
-            "Wrote {} consensus-labelled decision record(s) to {}",
+            "Appended {} consensus-labelled decision record(s) to {} ({} line(s) total)",
             records.len(),
-            path
+            path,
+            written
         );
     }
 
@@ -289,6 +291,29 @@ async fn run_evaluation(args: Args) -> Result<i32, Box<dyn std::error::Error>> {
     };
 
     Ok(exit_code)
+}
+
+/// Append newline-delimited records to `path`, creating it if needed, and
+/// return the file's line count afterwards. An empty batch never truncates or
+/// creates anything; a non-empty file that lacks a trailing newline gets one
+/// before the new records so lines never run together.
+fn append_jsonl(path: &str, jsonl: &str) -> std::io::Result<usize> {
+    use std::io::Write;
+    let existing = std::fs::read_to_string(path).unwrap_or_default();
+    let existing_lines = existing.lines().filter(|l| !l.trim().is_empty()).count();
+    if jsonl.is_empty() {
+        return Ok(existing_lines);
+    }
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)?;
+    if !existing.is_empty() && !existing.ends_with('\n') {
+        file.write_all(b"\n")?;
+    }
+    file.write_all(jsonl.as_bytes())?;
+    file.write_all(b"\n")?;
+    Ok(existing_lines + jsonl.lines().count())
 }
 
 /// Build a remote backend from `<kind>:<model>[@<url>]` (#1466), used for
