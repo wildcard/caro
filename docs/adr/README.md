@@ -54,6 +54,7 @@ Example: `ADR-001-enterprise-community-architecture.md`
 | [ADR-015](./ADR-015-distributed-llm-backends-hybrid-privacy.md) | Distributed-LLM Backends (Mesh-LLM, AI-Horde) via a Hybrid Privacy Gateway | Accepted | 2026-06-07 |
 | [ADR-016](./ADR-016-ponytail-pragmatic-reviewer.md) | Ponytail Pragmatic-Skeptic Reviewer (Additive Adoption) | Accepted | 2026-06-14 |
 | [ADR-017](./ADR-017-typed-decisions-and-calibrated-confidence.md) | Typed Decisions and Calibrated Confidence for Pipeline Gates | Accepted | 2026-09-22 |
+| [ADR-018](./ADR-018-guardian-hook-harness-adapters.md) | Guardian Hook and Harness Adapters (`caro guard`) | Proposed | 2026-10-03 |
 
 ## Contributing to ADRs
 

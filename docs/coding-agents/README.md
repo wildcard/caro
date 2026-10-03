@@ -44,14 +44,19 @@ claude "generate a command to..." # Claude can call caro internally
 # Crush - Configure in .crush.json
 crush "find large files" # Crush can pipe to caro for validation
 
-# Codex CLI - Shell alias integration
-codex "list files" | caro --validate
+# Codex CLI - PreToolUse guard hook (see codex.md)
+# [[hooks.PreToolUse]] ... command = "caro guard --harness codex"
+
+# Grok Build - PreToolUse guard hook (see grok-build.md)
+# ~/.grok/hooks/caro-guard.json -> "caro guard --harness grok"
+
+# OpenCode - plugin wrapper (see opencode.md)
 
 # Augie - Direct shell integration
 augie exec "$(caro 'compress images')"
 
-# Shai - Unix pipeline native
-shai suggest | caro --validate
+# Shai / any pipeline - generic guard input
+jq -n --arg c "$(shai suggest)" '{command: $c}' | caro guard --harness generic --mode enforce
 ```
 
 ### IDE-Based Agents (Extension Integration)
@@ -110,9 +115,9 @@ Standalone extensions for VS Code:
 ### Safety Layer
 All agents benefit from Caro's safety validation:
 ```bash
-# Any agent can validate commands through Caro
-caro --validate "rm -rf /"
-# Output: BLOCKED - Critical risk pattern detected
+# Any agent harness can run Caro as a PreToolUse guard (experimental)
+echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /"}}' | caro guard --mode enforce --no-log
+# {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny",...}}
 ```
 
 ### Platform Intelligence
@@ -125,9 +130,9 @@ caro "sort files by size"
 ```
 
 ### Execution Safety
-Safe command execution with confirmation:
+Caro asks for confirmation before running a command it generated:
 ```bash
-caro --execute "find and delete temp files"
+caro "find and delete temp files"
 # Shows command, risk level, requires confirmation
 ```
 

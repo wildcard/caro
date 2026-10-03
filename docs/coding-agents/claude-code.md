@@ -70,47 +70,49 @@ claude "find all TODO comments in the project"
 
 ## Integration with Caro
 
-### Method 1: Direct Command Validation
+### Method 1: Guardian hook (`caro guard`, experimental)
 
-Claude Code can use Caro to validate generated shell commands:
-
-```bash
-# In Claude Code session
-> Generate a command to delete old log files
-# Claude generates: find /var/log -name "*.log" -mtime +30 -delete
-
-# Validate with Caro
-caro --validate "find /var/log -name '*.log' -mtime +30 -delete"
-```
-
-### Method 2: MCP Server Integration
-
-Claude Code supports Model Context Protocol (MCP) servers. Configure Caro as an MCP server:
+Claude Code runs a `PreToolUse` hook before every tool call. `caro guard`
+reads that hook payload from stdin and validates the **agent's own** shell
+command with Caro's safety patterns. Install it at **user scope**, so the agent
+cannot edit its own guard:
 
 ```json
-// ~/.claude/mcp_servers.json
+// ~/.claude/settings.json
 {
-  "caro": {
-    "command": "caro",
-    "args": ["--mcp-server"],
-    "description": "Safe shell command generation"
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "caro guard --harness claude", "timeout": 10 }]
+      }
+    ]
   }
 }
 ```
 
-### Method 3: Custom Slash Commands
+- **Shadow mode** (the default) never changes Claude Code's behavior. Caro
+  logs what it *would* have decided and prints a one-line notice for High and
+  Critical commands. Review the log with `caro guard report`.
+- **Enforce mode** (`"command": "caro guard --harness claude --mode enforce"`,
+  or `CARO_GUARD_MODE=enforce`) **denies** Critical commands and **asks** you
+  about High-risk ones, even when `Bash(*)` is pre-approved.
+- Caro never answers `allow`. In Claude Code, `allow` would skip your own
+  permission prompt.
 
-Create a Claude Code command that uses Caro:
+See [spec 011](../../specs/011-harness-guardian/spec.md) for the full contract.
 
-```markdown
-<!-- .claude/commands/safe-shell.md -->
-Generate a shell command for: $ARGUMENTS
+### Method 2: The `caro-shell` skill
 
-Use caro to validate the command before execution:
-1. Generate the command based on the request
-2. Run: caro --validate "<command>"
-3. If safe, execute with user confirmation
-```
+The bundled Claude Code skill (`.claude/skills/caro-shell/SKILL.md`) has
+Claude ask Caro to *generate* a command from natural language
+(`caro --dry-run "<request>"`) and present it for approval.
+
+### Planned: MCP server
+
+`caro mcp serve` with a `validate_command` tool is tracked in #928 and is not
+available yet. MCP tools are optional for the model to call. The hook above is
+what the harness enforces.
 
 ## Claude Code Features
 
@@ -146,7 +148,7 @@ Project-specific instructions for Claude Code.
 ## Commands
 - Use `cargo test` for running tests
 - Use `make lint` for linting
-- Always validate shell commands with `caro --validate`
+- Shell commands are checked by the `caro guard` PreToolUse hook
 
 ## Safety
 - Never run commands that modify system directories
@@ -167,36 +169,16 @@ Claude Code settings are stored in `~/.claude/`:
 
 ## Best Practices with Caro
 
-### 1. Safety-First Workflow
-
-```bash
-# Have Claude generate the command
-> Generate a command to clean up Docker images
-
-# Claude outputs: docker system prune -af
-
-# Validate before executing
-caro --validate "docker system prune -af"
-# Output: WARNING - Moderate risk: Removes all unused Docker data
-```
-
-### 2. Platform-Aware Generation
-
-```bash
-# Use Caro for platform-specific commands
-> I need to find large files
-
-# Instead of Claude guessing, use Caro:
-caro "find files larger than 100MB"
-# Automatically uses correct syntax for BSD/GNU
-```
-
-### 3. Execution with Confirmation
-
-```bash
-# Safe execution pattern
-caro --execute "$(claude 'generate cleanup command')"
-```
+1. **Start in shadow mode and read the report** (`caro guard report`) before
+   enforcing. It shows which of your agent's real commands Caro would have
+   stopped.
+2. **Use user-scope hooks.** A project `.claude/settings.json` is editable by
+   the agent being guarded.
+3. **Bless routine commands with an allowlist** rather than turning the guard
+   off. Add them to `[safety] allowlist_patterns` in `~/.config/caro/config.toml`.
+   Catastrophic commands (`rm -rf /`, disk wipes, fork bombs) cannot be
+   allowlisted.
+4. **Use Caro to generate platform-correct commands:** `caro "find files larger than 100MB"`.
 
 ## Troubleshooting
 
@@ -210,11 +192,11 @@ which caro
 export PATH="$PATH:$HOME/.cargo/bin"
 ```
 
-**Issue**: MCP server not connecting
+**Issue**: The guard never fires
 ```bash
-# Check MCP server configuration
-claude config mcp list
-# Restart Claude Code after config changes
+# Feed the hook a sample payload by hand
+echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /"}}' | caro guard --mode enforce --no-log
+# Then check `/hooks` inside Claude Code lists the PreToolUse entry
 ```
 
 **Issue**: Rate limiting

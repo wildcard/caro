@@ -101,6 +101,8 @@ crate's token API. No OpenAI-compatible request sends `logprobs`.
 - Guard: `calibration::tests::excludes_unsourced_confidence`; per-backend contract tests.
 
 ### Phase 2 — The decision API surface (new ADR-018)
+> **Update 2026-10-03:** ADR-018 landed as [Guardian Hook and Harness Adapters](../adr/ADR-018-guardian-hook-harness-adapters.md). Its first surface is `caro guard`, a PreToolUse adapter for Claude Code, Grok Build, Codex and OpenCode, shipped shadow-by-default as an experimental extension. Its decision record is a forward-compatible subset of the `caro decide` record below. `caro decide` itself remains open.
+
 - `caro decide "<request or command>"` (and `--output json`) returning one typed record: `{risk: Choice<RiskLevel>, should_run: Noul, needs_clarification: Noul, intent: Choice, confidence: Score, source, floor_applied: bool, latency_ms}`. Every field is a `caro::decision` type; the JSON Schema is published.
 - Same record from MCP `validate_command` / `explain_safety` and the OpenAI-compatible endpoint (the two "in progress" integrations in `GUARDIAN_AGENT.md`).
 - `should_run` = calibrated composition of static floor + judge (`blend_smart_decision`) with the invariant: `p_run == 0.0` whenever the floor says Critical.

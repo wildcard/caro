@@ -63,7 +63,7 @@ Example `config.json`:
   "model": "gpt-4",
   "temperature": 0.2,
   "maxTokens": 4096,
-  "systemPrompt": "You are a coding assistant. Always validate shell commands with caro."
+  "systemPrompt": "You are a coding assistant."
 }
 ```
 
@@ -115,75 +115,39 @@ codex "command to find large files"
 
 ## Integration with Caro
 
-### Method 1: Pipeline Integration
+### Guardian hook (`caro guard`, experimental)
+
+Codex CLI supports Claude-compatible `PreToolUse` hooks, configured in
+`~/.codex/hooks.json` or `~/.codex/config.toml`. Install Caro at user scope:
+
+```toml
+# ~/.codex/config.toml
+[[hooks.PreToolUse]]
+matcher = "^Bash$"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "caro guard --harness codex"
+timeout = 10
+statusMessage = "caro guard"
+```
+
+- **Shadow mode** (the default) logs what Caro would have decided and changes
+  nothing. Review it with `caro guard report`.
+- **Enforce mode** (`--mode enforce` or `CARO_GUARD_MODE=enforce`) denies
+  Critical commands and asks about High-risk ones.
+- Caro never emits `additionalContext` on `PreToolUse`. Codex treats it as an
+  error and the hook would fail open.
+
+### Validating a command from a script
+
+`caro guard --harness generic` takes `{"command": "..."}` on stdin and prints
+a decision record. It exits 0 for no objection, 2 for deny and 3 for ask
+(enforce mode):
 
 ```bash
-# Generate and validate in one pipeline
-codex "command to delete temp files" | caro --validate
-
-# Or capture and validate
-cmd=$(codex --raw "find old log files")
-caro --validate "$cmd"
-```
-
-### Method 2: System Prompt
-
-Configure Codex to use Caro:
-
-```json
-// .codex/config.json
-{
-  "systemPrompt": "When generating shell commands:\n1. Generate POSIX-compliant commands\n2. Suggest validation: caro --validate '<command>'\n3. For dangerous operations, recommend: caro --execute '<command>'"
-}
-```
-
-### Method 3: Custom Prompts
-
-Create Caro-aware prompts:
-
-```markdown
-<!-- .codex/prompts/safe-shell.md -->
-# Safe Shell Command Generator
-
-Generate a shell command for: {{input}}
-
-Requirements:
-1. Use POSIX-compliant syntax
-2. Avoid destructive operations without confirmation
-3. Quote paths properly for spaces/special chars
-
-After generation, validate with:
-```bash
-caro --validate "<command>"
-```
-
-If the command is risky, use:
-```bash
-caro --execute "<command>"
-```
-```
-
-### Method 4: Wrapper Script
-
-Create a Codex+Caro wrapper:
-
-```bash
-#!/bin/bash
-# ~/bin/safe-codex
-
-# Generate command with Codex
-cmd=$(codex --raw "$@")
-
-# Validate with Caro
-echo "Generated: $cmd"
-caro --validate "$cmd"
-
-# Ask for execution
-read -p "Execute? (y/N) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    caro --execute "$cmd"
-fi
+cmd='find . -name node_modules -type d -exec rm -rf {} +'
+jq -n --arg c "$cmd" '{command: $c}' | caro guard --harness generic --mode enforce --no-log
 ```
 
 ## Codex Commands
@@ -199,35 +163,12 @@ fi
 
 ## Best Practices with Caro
 
-### 1. Safe Command Generation
-
-```bash
-# Use Codex for intent, Caro for safety
-codex "I need to clean up Docker" --raw | xargs -I {} caro --validate "{}"
-```
-
-### 2. Dangerous Operation Workflow
-
-```bash
-# Step 1: Generate with Codex
-codex "remove all node_modules directories"
-# Output: find . -name "node_modules" -type d -exec rm -rf {} +
-
-# Step 2: Validate with Caro
-caro --validate "find . -name 'node_modules' -type d -exec rm -rf {} +"
-# Output: HIGH RISK - Recursive directory deletion
-
-# Step 3: Execute safely with Caro
-caro --execute "find . -name 'node_modules' -type d -exec rm -rf {} +"
-# Shows confirmation prompt
-```
-
-### 3. Learning Workflow
-
-```bash
-# Have Codex explain what Caro validates
-codex "explain this command" --context "caro --validate 'rm -rf /tmp/*'"
-```
+1. **Shadow first, then enforce** once `caro guard report` shows the
+   would-be denials are ones you agree with.
+2. **Use user-scope hooks** (`~/.codex/`), so the agent cannot edit its own
+   guard.
+3. **Use Caro for generation** when you want platform-correct POSIX commands:
+   `caro "remove all node_modules directories"`.
 
 ## Troubleshooting
 
