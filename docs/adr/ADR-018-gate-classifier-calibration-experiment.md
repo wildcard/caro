@@ -121,8 +121,9 @@ outcome in this ADR before any model is wired into the product.
    ECE improves over Candidate 0 with a bootstrap 95% interval excluding
    zero, agreement with gold does not fall, and no risk tier gets worse.
    Stop: the pilot shows the data gate cannot be met with the resources
-   available, or the judge's disagreement with gold exceeds the gap the
-   experiment hopes to close. Either outcome moves this ADR to Accepted
+   available, or the judge's tier disagreement with gold exceeds the
+   maximum fixed in #1510 before any gold label is reviewed (the default
+   proposal is 15 percentage points). Either outcome moves this ADR to Accepted
    with the numbers in it; "Accepted" records the experiment's result,
    not approval to ship.
 8. **One-sided by construction.** Any learned gate that is later proposed
