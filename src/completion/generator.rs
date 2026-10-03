@@ -56,7 +56,16 @@ fn build_caro_command() -> clap::Command {
                 .long("backend")
                 .help("Inference backend to use")
                 .value_name("BACKEND")
-                .value_parser(["embedded", "ollama", "exo", "vllm", "static"]),
+                // Same roster as `--backend` / `--backend-info` (#1115). The
+                // previous literal offered `static` (which `--backend` rejects)
+                // and omitted `mesh`/`ai-horde`/`hybrid`, so tab-completion
+                // suggested a failing name and hid three working ones.
+                .value_parser(
+                    crate::backends::CLI_SERVABLE_BACKENDS
+                        .iter()
+                        .map(|(name, _)| *name)
+                        .collect::<Vec<_>>(),
+                ),
         )
         .arg(
             Arg::new("shell")
