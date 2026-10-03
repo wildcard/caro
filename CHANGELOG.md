@@ -86,6 +86,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the summary follow STE-lite (ASD-STE100), guarded by
   `tests/explain_ste_contract.rs`. The summary still contains the user's own
   words, so the guard cannot cover every input.
+- **Safety warning text is stable and unambiguous.** The risk keywords in a
+  safety explanation now print in the same order on every run (a `HashSet`
+  changed the order). CVE warnings show the CVE ID once, not twice. The two
+  Windows drive-root deletion patterns now name their tool (`rm` or
+  `Remove-Item`), so the user can tell which one matched. Regexes and risk
+  levels are unchanged. Guarded by `tests/safety_text_contract.rs`.
 
 ### Documentation
 
