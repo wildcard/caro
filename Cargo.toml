@@ -46,7 +46,7 @@ config = "0.15"
 schemars = { version = "0.8", features = ["chrono"] }
 
 # HTTP client for remote backends and Hugging Face Hub downloads
-reqwest = { version = "0.11", features = ["stream", "json", "rustls-tls"], default-features = false }
+reqwest = { version = "0.12", features = ["stream", "json", "rustls-tls"], default-features = false }
 
 # Error handling and logging
 anyhow = "1"
@@ -120,6 +120,11 @@ rustyline = "14"
 # License: MIT — compatible absorption into caro's AGPL-3.0.
 agentmesh = { version = "3.6", optional = true }
 
+# Process-group signalling for CommandExecutor timeouts (already a
+# transitive dependency; declared directly for `libc::kill`).
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
 # Embedded model inference - MLX for Apple Silicon via llama.cpp
 [target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
 mlx-rs = { version = "0.25", optional = true }
@@ -158,7 +163,7 @@ criterion = { version = "=0.7.0", features = ["html_reports"] }  # Pin: 0.8+ req
 futures = "0.3"
 serde_yaml = "0.9"
 env_logger = "0.11"
-wiremock = "0.5"
+wiremock = "=0.6.4"  # 0.6.5 uses let-chains (rustc 1.88+); keep MSRV 1.85
 
 [[bench]]
 name = "cache"
