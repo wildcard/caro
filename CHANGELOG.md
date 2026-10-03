@@ -7,8 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-03
+
+> **Release-reset note**: An earlier `chore(release): v1.5.0`
+> (commit `6f23d37`, 2026-07-12) bumped `Cargo.toml`/`README.md`/
+> `homebrew-tap/README.md`/`nuget/tools/install.ps1` to 1.5.0 but the
+> owner-only `git tag v1.5.0 && git push` step never ran. Twelve
+> additional PRs then landed on `main` on top of that bump. This
+> entry consolidates the 2026-07-12 planned content with the twelve
+> subsequent PRs into a single honest 1.5.0 shipping scope. See
+> [`docs/decisions/2026-10-03-release-reset-and-discovery-decision.md`](docs/decisions/2026-10-03-release-reset-and-discovery-decision.md)
+> for the rationale.
+
 ### Added
 
+- **Runtime-loadable custom safety patterns** via TOML config. Users can now
+  add organization-specific dangerous-command patterns (e.g. `kubectl delete
+  -n prod`, `terraform destroy`, `aws s3 rb s3://prod-…`) without
+  recompiling. Two delivery surfaces, both additive on top of the built-in
+  pattern database:
+  - Inline `[[safety.custom_patterns]]` in `config.toml`.
+  - Sibling `~/.config/caro/patterns.toml` (preferred for team-shared rule sets).
+  Hardened: `risk_level` capped at `High` (Critical reserved for built-ins),
+  pattern source ≤ 512 chars (ReDoS bound), description required, malformed
+  regex fails loudly, and user allowlists cannot bypass Critical built-ins
+  (`rm -rf /` is blocked regardless of allowlist contents). See
+  [examples/patterns.example.toml](examples/patterns.example.toml) for the
+  full schema. Idea sourced from
+  [adolfousier/opencrabs](https://github.com/adolfousier/opencrabs)'s
+  `tools.toml` ergonomic; re-implemented from scratch in caro.
 - **Calibration and tail-latency metrics in the evaluation harness.**
   `EvaluationResult` now records the backend's reported `confidence`, and
   every `BackendResult` carries `brier`, `ece`, `p50_execution_time_ms` and
@@ -21,7 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   framing. The `--approval smart` risk judge now parses its verdict through
   `Choice<RiskLevel>` (behaviour unchanged; also accepts a
   `{"probabilities": {...}}` answer). `RiskLevel` implements `FromStr`.
-
 - **Measured confidence for LLM backends** ([#1464](https://github.com/wildcard/caro/issues/1464)):
   `GeneratedCommand.confidence_source` (`measured`, `self-reported`,
   `unknown`) replaces the per-backend constants. vLLM and OpenRouter request
@@ -67,7 +93,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `GeneratorError::NeedsClarification`. The CLI now prints the question
   instead of offering an `echo` command; remote prompts ask for the JSON
   form. Regression guard: `tests/clarification_gate_contract.rs`.
-
 - **Typed intent categorisation** ([#1463](https://github.com/wildcard/caro/issues/1463)):
   `caro::prompts::IntentCategory` (closed set mirroring the template
   categories, `FromStr`) and `TemplateLibrary::classify_intent`, a
@@ -75,37 +100,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `find_template` now ranks by word coverage (plural-insensitive, earlier
   template wins ties) instead of a raw substring match. Not yet wired into
   the model prompt; that waits on eval evidence.
-
-### Documentation
-
-- `docs/research/jev-system-one-gap-analysis.md` — what caro can learn from
-  Jev / System One models and what not to copy.
-- `docs/research/jev-of-execution-safety-strategy.md` — phased strategy for
-  caro as the calibrated, deterministic-floored decision layer for execution
-  safety (epic #1460 phases 1–5, docs/skills/rules impact).
-- [ADR-017](docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md) — Typed Decisions and Calibrated Confidence for Pipeline Gates
-  (Accepted).
-- `docs/PERFORMANCE.md` — new "Decision Latency & Calibration" section.
-
-## [1.5.0] - 2026-07-12
-
-### Added
-
-- **Runtime-loadable custom safety patterns** via TOML config. Users can now
-  add organization-specific dangerous-command patterns (e.g. `kubectl delete
-  -n prod`, `terraform destroy`, `aws s3 rb s3://prod-…`) without
-  recompiling. Two delivery surfaces, both additive on top of the built-in
-  pattern database:
-  - Inline `[[safety.custom_patterns]]` in `config.toml`.
-  - Sibling `~/.config/caro/patterns.toml` (preferred for team-shared rule sets).
-  Hardened: `risk_level` capped at `High` (Critical reserved for built-ins),
-  pattern source ≤ 512 chars (ReDoS bound), description required, malformed
-  regex fails loudly, and user allowlists cannot bypass Critical built-ins
-  (`rm -rf /` is blocked regardless of allowlist contents). See
-  [examples/patterns.example.toml](examples/patterns.example.toml) for the
-  full schema. Idea sourced from
-  [adolfousier/opencrabs](https://github.com/adolfousier/opencrabs)'s
-  `tools.toml` ergonomic; re-implemented from scratch in caro.
+- **Ponytail pragmatic-skeptic reviewer agent** ([#1244](https://github.com/wildcard/caro/pull/1244)):
+  additive read-only reviewer that interrogates a change for over-engineering
+  (surplus code, abstractions, dependencies, ceremony). Deliberate complement
+  to `devils-advocate` (which fights under-validation). Never trims safety,
+  security, accessibility, data-loss handling, or their tests. Invokable via
+  the `ponytail-review` skill.
 
 ### Changed
 
@@ -117,6 +117,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `--locked` parses every entry in `Cargo.lock`, including
   feature-gated ones. Rust 1.85 was stabilized 2025-02-20, ~14 months
   before this bump.
+- **Declared limits are now enforced** ([#1470](https://github.com/wildcard/caro/pull/1470)):
+  applies google/ax's "declared != enforced" lesson to Caro and its harness.
+  CommandExecutor timeout kills the whole process group with a null stdin;
+  PreToolUse guard hooks read stdin JSON and block with exit 2; the
+  budget-leak scanner regex is corrected and read-only agents get tool
+  allowlists; `loop.sh` grows an iteration cap, per-iteration timeout, and
+  Ctrl+C forwarding; eval CI no longer masks failures or fakes backends.
+  Research in `docs/research/2026-09-24-google-ax-lessons.md`.
+- **i18n locale JSON files are now all loaded** ([#1352](https://github.com/wildcard/caro/pull/1352)):
+  the loader previously missed secondary JSON files, so overrides lived in
+  the primary `landing.json` or silently fell back to English. Fix plus a
+  full Hebrew-translation pass across the public site.
+- **Docs site + Storybook prepared for Cloudflare Pages**
+  ([#1351](https://github.com/wildcard/caro/pull/1351)): build pipeline
+  no longer depends on Vercel-specific routing for the docs/storybook
+  outputs.
 
 ### Fixed
 
@@ -131,7 +147,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `kill the runaway process hogging CPU`. Closes the v1.4.0 release-
   acceptance P0 carry-forward.
   ([#947](https://github.com/wildcard/caro/issues/947))
-
 - **Safety: allowlist regression fixed + catastrophic floor hardened**
   ([#1246](https://github.com/wildcard/caro/pull/1246)). PR #1110's
   "Critical is never allowlistable" guard over-matched, so a deliberate
@@ -156,21 +171,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in default builds with a `--features remote-backends` hint.
 - **Flaky `test_cache_roundtrip` de-flaked** via the `CARO_CAPABILITY_CACHE`
   env override and serialized cache tests ([#1246](https://github.com/wildcard/caro/pull/1246)).
+- **Static matcher: Pattern 43 accepts current-directory qualifier**
+  ([#1487](https://github.com/wildcard/caro/pull/1487)): queries like
+  "list files in the current directory" now match the pattern that would
+  otherwise bind only to the bare "list files" phrasing.
+- **CLI: `config set/get` accepts every `config show` key**
+  ([#1497](https://github.com/wildcard/caro/pull/1497)): closes the
+  surface-parity gap where `config show` exposed keys that `config set`
+  then refused.
+- **CLI: `ai --once <prompt>` no longer blocks on stdin**
+  ([#1503](https://github.com/wildcard/caro/pull/1503)): a trailing-prompt
+  invocation reads the prompt from argv instead of waiting for stdin.
 
 ### Security
 
+- **reqwest 0.12 / wiremock 0.6 / h2 / rustls upgrade**
+  ([#1488](https://github.com/wildcard/caro/pull/1488)): resolves
+  RUSTSEC-2026-0258 (h2 pre-0.4.19) and RUSTSEC-2026-0285 (rustls
+  pre-0.23.45). `reqwest 0.11 → 0.12`, `wiremock 0.5 → =0.6.4`
+  (0.6.5 needs rustc 1.88 which exceeds MSRV 1.85), `h2 0.4.13 → 0.4.19`,
+  `rustls 0.23.36 → 0.23.45`. The legacy `h2 0.3` path is removed from
+  default and remote-backend builds; a scoped `.cargo/audit.toml` ignore
+  remains for the optional `chromadb`/`knowledge` features (review by
+  2026-12-31). This supersedes the terminal `reqwest 0.11 → rustls 0.21
+  → rustls-webpki 0.101.7` suppression carried in the 2026-07-12 scope.
 - Bump `rustls-webpki` modern path (`0.103.10` → `0.103.13`) to resolve
-  RUSTSEC-2026-0098, RUSTSEC-2026-0099, and RUSTSEC-2026-0104
-  (CRL parsing panics and name-constraint flaws). The legacy
-  `reqwest 0.11` → `rustls 0.21` → `rustls-webpki 0.101.7` path is
-  terminal (no upstream patch available); suppressed in `audit.toml` and
-  `.cargo/audit.toml` with documented rationale pending the reqwest 0.12
-  migration. `cargo audit` exits 0 with no unacknowledged vulnerabilities.
-  Reverts `continue-on-error: true` guard on the CI Security Audit job
-  (originally added in [#1072](https://github.com/wildcard/caro/pull/1072);
-  revert criteria from that PR are now met).
+  RUSTSEC-2026-0098, RUSTSEC-2026-0099, and RUSTSEC-2026-0104 (CRL parsing
+  panics and name-constraint flaws). `cargo audit` exits 0 with no
+  unacknowledged vulnerabilities. Reverts the `continue-on-error: true`
+  guard on the CI Security Audit job (originally added in
+  [#1072](https://github.com/wildcard/caro/pull/1072); revert criteria
+  from that PR are now met).
   ([#1026](https://github.com/wildcard/caro/pull/1026))
-
 - Dependency drift repair (2026-07-12, [#1246](https://github.com/wildcard/caro/pull/1246)):
   `crossbeam-epoch` 0.9.18 → 0.9.20 (RUSTSEC-2026-0204), `quinn-proto`
   0.11.14 → 0.11.16 (RUSTSEC-2026-0185, 7.5 high), `ethnum` 1.5.2 → 1.5.3
@@ -179,12 +211,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   requires a semver-major bump across the lancedb/opendal/object_store
   chain, and the affected paths parse object-store API XML only.
 
+### Documentation
+
+- `docs/research/jev-system-one-gap-analysis.md` — what caro can learn from
+  Jev / System One models and what not to copy.
+- `docs/research/jev-of-execution-safety-strategy.md` — phased strategy for
+  caro as the calibrated, deterministic-floored decision layer for execution
+  safety (epic #1460 phases 1–5, docs/skills/rules impact).
+- [ADR-017](docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md) — Typed Decisions and Calibrated Confidence for Pipeline Gates
+  (Accepted).
+- `docs/PERFORMANCE.md` — new "Decision Latency & Calibration" section.
+- `docs/research/2026-09-24-google-ax-lessons.md` — the "declared !=
+  enforced" lesson underpinning #1470.
+- `docs/decisions/2026-10-03-release-reset-and-discovery-decision.md` —
+  rationale for consolidating this release scope from the stalled
+  2026-07-12 scope.
+
 ### Internal
 
 - rust 1.97 clippy fixes (`question_mark`, `useless_borrows_in_formatting`).
 - New Tier-2 rule `.claude/rules/feature-evidence.md`: every feature PR
   carries evidence (green CI link), a runnable demo, and a named
   regression-guard test; weekly demo reports land in `docs/demos/`.
+- **Lint & Format CI pinned to Rust 1.98.1**
+  ([#1498](https://github.com/wildcard/caro/pull/1498),
+  [#1505](https://github.com/wildcard/caro/pull/1505)): clippy's rolling
+  "latest-stable" tag was breaking under new lints that landed between
+  commits.
+- **Vercel adapter astro-drift guard** (`4d7a855`): a test on the website
+  build catches Astro-major churn before it reaches production.
 
 ## [1.4.0] - 2026-05-09
 
