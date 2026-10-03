@@ -74,7 +74,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ### BW-005: static matcher Pattern 43 drops "list files in current directory"
 
 **Found:** 2026-09-30 sweep dedup
-**Issue:** #1181 (dups #1274, #1362, #1396, #1399, #1412)
+**Issue:** #1181 (dups #1274, #1362, #1396, #1399, #1412, closed)
 **Status:** fixed (#1487, merged 2026-10-01)
 **Needs human?:** no
 **Next step:** none; duplicates closed 2026-10-03. Delete after 2026-10-08.
@@ -82,7 +82,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ### BW-006: embedded CPU stub always returns `echo 'Please clarify your request'`
 
 **Found:** 2026-09-30 sweep dedup
-**Issue:** #1269 (13 duplicates). Root cause: the stub keyword-matches "rm" in the system prompt (`src/backends/embedded/cpu.rs`).
+**Issue:** #1269 (13 duplicates, closed). Root cause: the stub keyword-matches "rm" in the system prompt (`src/backends/embedded/cpu.rs`).
 **Status:** open
 **Needs human?:** yes. Product call: fail with a clear error on the CPU variant, or fall back to the static matcher. Epic #1460 / #1462 also touch this path.
 **Next step:** maintainer picks the behaviour.
@@ -90,7 +90,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ### BW-007: placeholder command reported with fake confidence=0.85 / risk=Safe
 
 **Found:** 2026-09-30 sweep dedup
-**Issue:** #1281 (dups #1361, #1421, #1424)
+**Issue:** #1281 (dups #1361, #1421, #1424, closed)
 **Status:** open
 **Needs human?:** yes. It goes together with the BW-006 decision.
 **Next step:** fix after BW-006 is decided.
@@ -101,7 +101,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Issue:** #1216 (dups #1286, #1330, #1380, #1457, closed)
 **Status:** fixed (#1497, merged 2026-10-03)
 **Needs human?:** no
-**Next step:** make get/set accept every key that show prints (log_level, cache_max_size, log_rotation, telemetry).
+**Next step:** none; get/set accept every `config show` key. Delete after 2026-10-10.
 
 ### BW-009: first-run consent advertises invalid `config set telemetry.enabled false`
 
@@ -109,7 +109,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Issue:** #1177 (dups #1292, #1332, #1403, closed)
 **Status:** fixed (#1497, merged 2026-10-03)
 **Needs human?:** no
-**Next step:** accept the key, or fix the consent text. Probably fixed together with BW-008.
+**Next step:** none; `telemetry.enabled` is accepted and clears first-run. Delete after 2026-10-10.
 
 ### BW-010: CLI test runner falls back to ambiguous `cargo run` (multi-binary)
 
@@ -122,7 +122,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ### BW-011: `caro ai --once` has no static-matcher first pass
 
 **Found:** 2026-09-30 sweep dedup
-**Issue:** #1179 (dup #1387)
+**Issue:** #1179 (dup #1387, closed)
 **Status:** open
 **Needs human?:** no
 **Next step:** route `ai --once` through the same static-first chain as the top-level command.
@@ -130,7 +130,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ### BW-012: `caro ai` rejects `-p/--prompt` while its error text suggests it
 
 **Found:** 2026-09-30 sweep dedup
-**Issue:** #1213 (dup #1422)
+**Issue:** #1213 (dup #1422, closed)
 **Status:** open
 **Needs human?:** no
 **Next step:** accept `-p`, or fix the message.
@@ -138,7 +138,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ### BW-013: `caro config reset <key>` unsupported
 
 **Found:** 2026-09-30 sweep dedup
-**Issue:** #1260 (dup #1381)
+**Issue:** #1260 (dup #1381, closed)
 **Status:** open
 **Needs human?:** no
 **Next step:** add per-key reset.
@@ -146,7 +146,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ### BW-014: `--output json` reports `executed: true` under `--dry-run`
 
 **Found:** 2026-09-30 sweep dedup
-**Issue:** #1217 (dup #1417)
+**Issue:** #1217 (dup #1417, closed)
 **Status:** open
 **Needs human?:** no
 **Next step:** set `executed` from the real execution path.
