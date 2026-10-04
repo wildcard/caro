@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `integrations/opencode/caro-guard.ts`. In shadow mode (the default) the
   guard only logs what it would have decided, and `caro guard report`
   summarizes the log. With `--mode enforce` it denies Critical commands and
-  asks about High ones. It never emits `allow`. See spec 011 and ADR-018.
+  asks about High ones. It never emits `allow`. See spec 011 and ADR-019.
 - **xAI Grok backend.** `--backend grok`, `--advisor grok`, and
   `hybrid_remote = "grok"` (`XAI_API_KEY`, `remote-backends` feature), built
   on a new shared OpenAI-compatible client. `openrouter` and `claude` are

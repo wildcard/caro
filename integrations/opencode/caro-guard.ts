@@ -1,5 +1,5 @@
 // caro-guard: OpenCode plugin that runs every bash tool call through
-// `caro guard` (spec 011, ADR-018). Shadow mode (default) only logs;
+// `caro guard` (spec 011, ADR-019). Shadow mode (default) only logs;
 // set CARO_GUARD_MODE=enforce to block Critical/High commands.
 //
 // Install: cp caro-guard.ts ~/.config/opencode/plugin/

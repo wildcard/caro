@@ -1,4 +1,4 @@
-//! `caro guard`: a PreToolUse guardian for agent harnesses (spec 011, ADR-018).
+//! `caro guard`: a PreToolUse guardian for agent harnesses (spec 011, ADR-019).
 //!
 //! Claude Code, Grok Build and Codex run a hook before each tool call and
 //! hand it the call as JSON on stdin; OpenCode does the same through a plugin
@@ -6,7 +6,7 @@
 //! [`Verdict`] using the existing [`SafetyValidator`] and renders the answer in
 //! the harness's own output shape.
 //!
-//! Policy (ADR-018): Critical → `deny`, High → `ask`, anything else → no
+//! Policy (ADR-019): Critical → `deny`, High → `ask`, anything else → no
 //! opinion. Caro **never** emits `allow`: in Claude Code an `allow` skips the
 //! user's own permission prompt, so a guardian could only lower safety by
 //! sending one. Shadow mode (the default) decides and logs but emits nothing
@@ -199,7 +199,7 @@ pub struct GuardDecision {
 /// Pattern label recorded when a command is too long for the validator to scan.
 pub const OVER_LENGTH: &str = "command exceeds the validator's maximum length (not scanned)";
 
-/// Map a static risk level to the guard verdict (ADR-018 policy table).
+/// Map a static risk level to the guard verdict (ADR-019 policy table).
 pub fn verdict_for(risk: RiskLevel) -> Verdict {
     match risk {
         RiskLevel::Critical => Verdict::Deny,
@@ -741,7 +741,7 @@ mod tests {
         assert_eq!(err.exit_code, 3);
     }
 
-    /// ADR-018 invariant: no rendering path ever emits `allow` or
+    /// ADR-019 invariant: no rendering path ever emits `allow` or
     /// `additionalContext`, for any harness, mode, or command.
     #[tokio::test]
     async fn never_allow_never_additional_context() {

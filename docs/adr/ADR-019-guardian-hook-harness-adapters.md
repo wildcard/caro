@@ -1,4 +1,4 @@
-# ADR-018: Guardian Hook and Harness Adapters
+# ADR-019: Guardian Hook and Harness Adapters
 
 **Status**: Proposed
 

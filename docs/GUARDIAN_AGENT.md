@@ -74,7 +74,7 @@ Caro. In **shadow** mode (the default) Caro records what it would have decided
 and High-risk ones go to the human in Claude Code, Grok Build and Codex;
 OpenCode plugins cannot prompt, so there they are blocked with an
 explanation. Caro never auto-approves. See
-[ADR-018](adr/ADR-018-guardian-hook-harness-adapters.md).
+[ADR-019](adr/ADR-019-guardian-hook-harness-adapters.md).
 
 ### 3. MCP server (not started, #928)
 

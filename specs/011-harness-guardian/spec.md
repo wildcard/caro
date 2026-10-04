@@ -2,7 +2,7 @@
 
 **Status**: Draft, experimental prototype (see §Validation status)
 **Date**: 2026-10-03
-**ADR**: [ADR-018](../../docs/adr/ADR-018-guardian-hook-harness-adapters.md)
+**ADR**: [ADR-019](../../docs/adr/ADR-019-guardian-hook-harness-adapters.md)
 **Research**: [Lessons from Grok Build](../../docs/research/2026-10-03-grok-build-lessons.md)
 **Related**:
 - `docs/GUARDIAN_AGENT.md` (positioning)
@@ -91,7 +91,7 @@ Grok Build sends `toolName`, `toolInput`, `sessionId`, `toolUseId` and
 {"command":"rm -rf /","cwd":"/repo"}
 ```
 
-### Policy (ADR-018)
+### Policy (ADR-019)
 
 | Static risk | Verdict |
 |---|---|

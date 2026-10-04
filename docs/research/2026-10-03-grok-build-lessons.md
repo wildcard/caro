@@ -4,7 +4,7 @@
 **Source**: [xai-org/grok-build](https://github.com/xai-org/grok-build), HEAD 2026-09-29
 ("Synced from monorepo", `SOURCE_REV` 559751fd), Apache-2.0
 **Status**: Research. The decisions it leads to are in
-[ADR-018](../adr/ADR-018-guardian-hook-harness-adapters.md) and
+[ADR-019](../adr/ADR-019-guardian-hook-harness-adapters.md) and
 [spec 011](../../specs/011-harness-guardian/spec.md).
 
 Grok Build is xAI's terminal coding agent. It ships as a TUI binary called
@@ -287,7 +287,7 @@ compiled and CLI-wired at the same time.
 
 ## 7. Resulting work
 
-- **Commit 1 (this PR):** this document, spec 011, ADR-018, and docs that
+- **Commit 1 (this PR):** this document, spec 011, ADR-019, and docs that
   match real CLI surfaces.
 - **Commit 2 (this PR):** `caro guard`, a PreToolUse guardian for Claude Code,
   Grok Build, Codex and OpenCode. Shadow mode is the default. In enforce mode,

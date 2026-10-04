@@ -90,4 +90,4 @@ hybrid_remote = "grok"
 - [Grok Build hooks guide](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/10-hooks.md)
 - [Grok Build permissions & safety](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/22-permissions-and-safety.md)
 - [Spec 011: Harness Guardian](../../specs/011-harness-guardian/spec.md)
-- [ADR-018](../adr/ADR-018-guardian-hook-harness-adapters.md)
+- [ADR-019](../adr/ADR-019-guardian-hook-harness-adapters.md)

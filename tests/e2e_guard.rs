@@ -1,4 +1,4 @@
-//! E2E regression guard for `caro guard` (spec 011 / ADR-018).
+//! E2E regression guard for `caro guard` (spec 011 / ADR-019).
 //!
 //! Drives the real binary with harness hook payloads on stdin and pins the
 //! output protocol each harness relies on.
