@@ -65,7 +65,6 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
-| [#1523](https://github.com/wildcard/caro/issues/1523) | caro ai --once always returns wrong clarification error | ai | 2026-10-04 | open |
 
 ---
 

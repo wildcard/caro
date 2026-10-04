@@ -16,11 +16,11 @@ Reading order: most recent first.
 - `caro --help` → **PASS**: all subcommands listed; `ai`, `suggest`, `assess`, `config`, all CaroML verbs present
 - `caro doctor` → **PASS**: advisory (model not yet downloaded at that point; embedded backend detected but needs model)
 - `caro -p 'list files in current directory' --dry-run` → **PASS**: static matcher returned `ls -la` immediately (no model download needed for static path)
-- Note: model `qwen2.5-coder-1.5b-instruct-q4_k_m.gguf` was auto-downloaded to `/root/.cache/caro/models/` during or shortly after the build step. FLAKE-001 (HuggingFace block) did NOT reproduce this run.
+- Note: model `qwen2.5-coder-1.5b-instruct-q4_k_m.gguf` was found in `/root/.cache/caro/models/` by Slot C time (mtime 14:16). `cargo build` does not trigger model downloads; the download most likely occurred during the 15s `--dry-run` timeout or the first Slot C `ai --once` invocation. FLAKE-001 (HuggingFace block) did NOT reproduce this run.
 
 ### Slot B — Recent diff (119 PRs since 2026-05-07; focused on 9 since 2026-09-01)
 
-**PRs reviewed**: #1509 (explain STE-lite), #1503 (ai --once stdin fix), #1497 (config key acceptance), #1487 (static-matcher current-directory qualifier), #1488 (security deps bump).
+**PRs reviewed** (5 of 9 merged since 2026-09-01): #1509 (explain STE-lite), #1503 (ai --once stdin fix), #1497 (config key acceptance), #1487 (static-matcher current-directory qualifier), #1488 (security deps bump).
 
 - `caro config show` / `config get backend|safety|log_level|cache_max_size|log_rotation|telemetry` → **PASS**: all `config show` keys accepted by `config get` (PR #1497 fix verified)
 - `caro config set safety permissive` → `config get safety` → `config set safety moderate` → **PASS**: round-trip correct
