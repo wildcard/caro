@@ -4,6 +4,65 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-04 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B (119 PRs merged since last run) + C.
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** (3m 09s, no errors)
+- `caro --version` → **PASS**: `caro 1.5.0 (75d32f7 2026-10-03)`
+- `caro --help` → **PASS**: all subcommands listed; `ai`, `suggest`, `assess`, `config`, all CaroML verbs present
+- `caro doctor` → **PASS**: advisory (model not yet downloaded at that point; embedded backend detected but needs model)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: static matcher returned `ls -la` immediately (no model download needed for static path)
+- Note: model `qwen2.5-coder-1.5b-instruct-q4_k_m.gguf` was auto-downloaded to `/root/.cache/caro/models/` during or shortly after the build step. FLAKE-001 (HuggingFace block) did NOT reproduce this run.
+
+### Slot B — Recent diff (119 PRs since 2026-05-07; focused on 9 since 2026-09-01)
+
+**PRs reviewed**: #1509 (explain STE-lite), #1503 (ai --once stdin fix), #1497 (config key acceptance), #1487 (static-matcher current-directory qualifier), #1488 (security deps bump).
+
+- `caro config show` / `config get backend|safety|log_level|cache_max_size|log_rotation|telemetry` → **PASS**: all `config show` keys accepted by `config get` (PR #1497 fix verified)
+- `caro config set safety permissive` → `config get safety` → `config set safety moderate` → **PASS**: round-trip correct
+- `caro -p "show disk usage" --explain` → **PASS**: STE-lite output ("Use `ls` to list…", per-option bullets, ≤25 words per sentence) (PR #1509 fix verified)
+- `caro -p "find python files in current directory" --dry-run` → **PASS**: `find . -name "*.py" -type f` (PR #1487 current-directory qualifier verified)
+- `caro -p "list files here" / "show files in this directory" --dry-run` → **PASS**: `ls -la` (PR #1487)
+- `caro ai --once "show disk usage"` (PR #1503) → stdin no longer blocks (**PASS** for #1503 fix); but backend returns wrong error (**FAIL** — see Slot C and issue #1523)
+
+**Surfaces flagged for future Slot C**: #1488 security deps (reqwest/h2/rustls) — no direct CLI surface to exercise, but worth a `cargo audit` next cycle.
+
+### Slot C — `caro ai --once` (surface #10, never previously tested)
+
+**What was exercised:**
+- `caro ai --once "show disk usage"` (with and without stdin pipe)
+- `caro ai --once "list running processes"`
+- `caro ai --once --backend static "show disk usage"`
+- Inspected `src/backends/embedded/cpu.rs` and `src/backends/embedded/embedded_backend.rs` to confirm root cause
+
+**Finding — FAIL (P1):**
+Every `caro ai --once` invocation returns:
+```
+Error: backend error: Clarification needed: What exactly should be deleted?
+```
+
+Root cause: `cpu.rs:63` checks `prompt.contains("rm")` against the full system prompt, which always contains "rm -rf" in the destructive-commands rule (line 218 of `embedded_backend.rs`). The CPU backend is an unfinished placeholder; the condition should check only the user request text, not the compiled system prompt.
+
+The static matcher IS correct (`caro -p` path) — `ai --once` bypasses it by calling `backend_arc()` directly instead of routing through the AgentLoop.
+
+### Findings
+
+- [#1523](https://github.com/wildcard/caro/issues/1523) — `ai: caro ai --once returns wrong "Clarification needed" error for every query` (P1)
+
+### Followups
+
+- FLAKE-001 (HuggingFace model download) did NOT reproduce this run — update occurrence log.
+- `caro ai --once 'query' --dry-run` timed out (15s): hypothesis is this was the model download trigger (download started, timeout elapsed before completion). Should verify next cycle with `--dry-run` after warm cache.
+- `caro ai --once` with `--dry-run` flag: trailing_var_arg on ai subcommand may consume `--dry-run` as part of the prompt text. Worth a unit test.
+- #1488 security deps (RUSTSEC-2026-0258, -0285): add `cargo audit` to a future Slot B check.
+- Next Slot C candidate: surface #11 (`caro ai --continue-session` shell widget) or #12 (`caro assess`).
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).

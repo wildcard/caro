@@ -14,6 +14,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **Impact**: Slot A `--dry-run` smoke check cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:
 - 2026-05-07: observed once
+- 2026-10-04: did NOT reproduce — model qwen2.5-coder-1.5b-instruct-q4_k_m.gguf was downloaded successfully to /root/.cache/caro/models/. Sandbox network policy may have changed, or the model was pre-seeded.
 
 **Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Workaround**: Run `caro -p "..." --dry-run` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama installed as fallback backend.

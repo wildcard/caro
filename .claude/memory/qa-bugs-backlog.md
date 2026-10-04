@@ -9,6 +9,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1523](https://github.com/wildcard/caro/issues/1523) | P1 | ai | caro ai --once returns wrong "Clarification needed" error for every query (cpu.rs:63 checks full system prompt) | open | 2026-10-04 |
 
 ---
 
