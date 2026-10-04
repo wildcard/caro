@@ -20,6 +20,7 @@
 use async_trait::async_trait;
 use std::sync::Arc;
 
+use super::backend_stats::BackendStats;
 use super::{Candidate, Hydrator};
 use crate::models::ShellType;
 use crate::prompts::CommandValidator;
@@ -146,6 +147,31 @@ impl Hydrator for ValidationHydrator {
     }
 }
 
+/// Writes the source backend's historical acceptance rate onto
+/// `features.backend_success`, keyed on `candidate.source`. The [`BackendStats`]
+/// snapshot is loaded once at pipeline construction, so this hydrator does no
+/// disk I/O per candidate. Un-rated backends get the neutral 0.5 prior.
+pub struct BackendSuccessHydrator {
+    stats: Arc<BackendStats>,
+}
+
+impl BackendSuccessHydrator {
+    pub fn new(stats: Arc<BackendStats>) -> Self {
+        Self { stats }
+    }
+}
+
+#[async_trait]
+impl Hydrator for BackendSuccessHydrator {
+    async fn hydrate(&self, c: &mut Candidate) {
+        c.features.backend_success = self.stats.success_score(&c.source);
+    }
+
+    fn name(&self) -> &str {
+        "backend-success"
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -207,5 +233,25 @@ mod tests {
             c.features.risk_level,
             Some(RiskLevel::Safe) | Some(RiskLevel::Moderate)
         ));
+    }
+
+    #[tokio::test]
+    async fn backend_success_hydrator_keys_on_source() {
+        let mut stats = BackendStats::default();
+        for _ in 0..10 {
+            stats.record("good", true, 100);
+        }
+        let h = BackendSuccessHydrator::new(Arc::new(stats));
+
+        let mut rated = cand("ls");
+        rated.source = "good".to_string();
+        h.hydrate(&mut rated).await;
+        assert!(rated.features.backend_success > 0.5);
+
+        // A source with no history gets the neutral prior.
+        let mut unrated = cand("ls");
+        unrated.source = "never-seen".to_string();
+        h.hydrate(&mut unrated).await;
+        assert!((unrated.features.backend_success - 0.5).abs() < 1e-6);
     }
 }

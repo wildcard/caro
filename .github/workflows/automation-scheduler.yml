@@ -1,0 +1,94 @@
+name: Automation Scheduler
+
+# Executor for .claude/automation/config/schedule.yaml — closes the
+# "schedule.yaml is descriptive, not executable" gap (Warp Oz idea: schedule
+# and run harnesses, then measure each).
+#
+# Ships as a SCAFFOLD, mirroring slash-router.yml's help/echo/version staging:
+# on its hourly trigger it enumerates the enabled loops and appends a
+# run-history ledger entry for each (see .github/scripts/automation_scheduler.py).
+# Live per-loop cron-due matching and agent dispatch land once the
+# ANTHROPIC_API_KEY secret is provisioned — the dispatch step below is gated on
+# that secret, so this workflow is safe to merge and no-ops until then.
+#
+# Ledger entries land in .claude/automation/state/run_history/<UTC-date>.yaml:
+#   - loop: <name>
+#     harness: <claude-code|crush>   # default from .github/STAKEHOLDERS.yml
+#     schedule: "<cron>"
+#     started: <UTC ISO8601>
+#     outcome: <skipped|dispatched|failed>
+#     note: <free text>
+
+on:
+  workflow_dispatch:
+    inputs:
+      loop:
+        description: "Loop name from schedule.yaml, or 'due' for all enabled"
+        required: false
+        default: "due"
+      dry_run:
+        description: "Enumerate + ledger only; do not dispatch the agent"
+        required: false
+        default: "true"
+  schedule:
+    - cron: "0 * * * *" # hourly; per-loop cron-due filtering is a follow-up
+
+permissions:
+  contents: read
+
+concurrency:
+  group: automation-scheduler
+  cancel-in-progress: false
+
+jobs:
+  enumerate:
+    name: Enumerate + ledger due loops
+    runs-on: ubuntu-latest
+    # Bound the run — the enumerate step is seconds of work; the schedule.yaml
+    # per-loop budgets top out at 45 min, so this never needs the 6-hour default.
+    timeout-minutes: 10
+    env:
+      # Job-level env is available in step `if:` (unlike the secrets context).
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install parser dependency
+        run: pip install --quiet pyyaml
+
+      - name: Enumerate enabled loops and write the ledger
+        env:
+          LOOP_INPUT: ${{ github.event.inputs.loop || 'due' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'true' }}
+        run: python3 .github/scripts/automation_scheduler.py
+
+      # Live dispatch — no-op until ANTHROPIC_API_KEY is set. When present (and
+      # not a dry run), this is where the resolved harness (Claude Code action /
+      # crush) is invoked for the due loop and the ledger outcome is updated to
+      # `dispatched`. Kept as a guarded placeholder so the scaffold is safe.
+      - name: Dispatch agent (secret-gated)
+        if: ${{ github.event.inputs.dry_run == 'false' && env.HAS_KEY == 'true' }}
+        run: |
+          echo "::warning::Harness dispatch is not wired yet. Replace this step"
+          echo "::warning::with the Claude Code action invocation for the resolved harness."
+
+      # The ledger is written into the ephemeral checkout (the run_history dir is
+      # gitignored) and the job only has `contents: read`, so persist it as an
+      # artifact — otherwise the audit trail vanishes when the runner exits.
+      # Uploaded last (after dispatch) with always() so the final outcome —
+      # including a `dispatched` update or a failure — is captured.
+      # include-hidden-files is required because the path lives under `.claude`
+      # and upload-artifact excludes dot-dir files by default.
+      - name: Upload run-history ledger
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: automation-run-history-${{ github.run_id }}
+          path: .claude/automation/state/run_history/
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 30

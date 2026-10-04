@@ -19,6 +19,7 @@
 //!
 //! [1]: https://github.com/xai-org/x-algorithm
 
+pub mod backend_stats;
 pub mod filters;
 pub mod hydrators;
 pub mod scorer;
@@ -26,17 +27,31 @@ pub mod selector;
 pub mod sources;
 pub mod weights;
 
+pub use backend_stats::BackendStats;
 pub use filters::{SafetyFilter, ValidationFilter};
-pub use hydrators::{PlatformFitHydrator, SafetyHydrator, ValidationHydrator};
+pub use hydrators::{
+    BackendSuccessHydrator, PlatformFitHydrator, SafetyHydrator, ValidationHydrator,
+};
 pub use scorer::{LinearScorer, Scorer};
 pub use selector::{ArgmaxSelector, Selector};
 pub use sources::BackendSource;
 
 use async_trait::async_trait;
+use futures::future::join_all;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::time::Duration;
+use tokio::time::timeout;
 
-use crate::models::RiskLevel;
+use crate::backends::CommandGenerator;
+use crate::models::{RiskLevel, ShellType};
+use crate::prompts::CommandValidator;
+use crate::safety::SafetyValidator;
+
+/// Default wall-clock budget for the whole source fan-out. A source that
+/// hasn't produced a candidate by this point is dropped so a slow or hung
+/// backend can't blow the interactive latency budget.
+const DEFAULT_LATENCY_BUDGET: Duration = Duration::from_secs(8);
 
 /// Feature vector hydrated onto each candidate before scoring.
 ///
@@ -55,6 +70,10 @@ pub struct CandidateFeatures {
     pub platform_fit: f32,
     /// Cosine similarity to the closest known successful command, if any.
     pub knowledge_similarity: Option<f32>,
+    /// Historical acceptance rate of this candidate's source backend, in
+    /// `[0, 1]` (0.5 neutral prior when unrated). Written by
+    /// [`BackendSuccessHydrator`] from persisted per-backend stats.
+    pub backend_success: f32,
     /// Wall-clock time the source took to produce this candidate.
     pub latency_ms: u64,
     /// Whether the structural / syntactic validator passed. `false` is the
@@ -130,31 +149,112 @@ pub enum PipelineError {
     NoCandidates,
 }
 
-/// Orchestrates the five stages. Phase 1 runs sources sequentially; Phase 2
-/// will fan them out under a shared latency budget.
+/// Outcome of a ranked pipeline run: the winning candidate plus the full
+/// scored set (sorted best-first) so callers can surface the trade-off each
+/// source produced — e.g. in `--dry-run` / `--explain`.
+#[derive(Debug, Clone)]
+pub struct RankedRun {
+    /// The selected best candidate. Identical to `run()`'s return value.
+    pub winner: Candidate,
+    /// Every candidate that was produced, sorted by score descending.
+    /// Rejected candidates keep their `rejection_reason` and sort last.
+    pub ranked: Vec<Candidate>,
+}
+
+/// Orchestrates the five stages. Sources fan out concurrently under a shared
+/// [`Pipeline::latency_budget`]; the remaining stages run over the candidates
+/// that came back in time.
 pub struct Pipeline {
     pub sources: Vec<Arc<dyn CandidateSource>>,
     pub hydrators: Vec<Arc<dyn Hydrator>>,
     pub filters: Vec<Arc<dyn Filter>>,
     pub scorer: Arc<dyn Scorer>,
     pub selector: Arc<dyn Selector>,
+    /// Wall-clock budget for the source fan-out (see [`DEFAULT_LATENCY_BUDGET`]).
+    pub latency_budget: Duration,
 }
 
 impl Pipeline {
-    pub async fn run(&self, prompt: &str) -> Result<Candidate, PipelineError> {
-        let mut candidates: Vec<Candidate> = Vec::with_capacity(self.sources.len());
-        for src in &self.sources {
-            if let Ok(c) = src.produce(prompt).await {
-                candidates.push(c);
-            }
+    /// Assemble the canonical caro best-of-N pipeline from a set of backends.
+    ///
+    /// Wraps each `(backend, label)` in a [`BackendSource`], wires the standard
+    /// hydrators ([`PlatformFitHydrator`], [`SafetyHydrator`],
+    /// [`ValidationHydrator`], [`BackendSuccessHydrator`]), filters
+    /// ([`SafetyFilter`], [`ValidationFilter`]), a [`LinearScorer`], and an
+    /// [`ArgmaxSelector`]. Reuses the existing primitives rather than
+    /// re-implementing scoring or selection.
+    pub fn standard(
+        sources: Vec<(Arc<dyn CommandGenerator>, String)>,
+        safety: Arc<SafetyValidator>,
+        validator: Arc<CommandValidator>,
+        backend_stats: Arc<BackendStats>,
+        os: impl Into<String>,
+        shell: ShellType,
+    ) -> Self {
+        let os = os.into();
+        let sources: Vec<Arc<dyn CandidateSource>> = sources
+            .into_iter()
+            .map(|(backend, label)| {
+                Arc::new(BackendSource::new(backend, label).with_shell(shell))
+                    as Arc<dyn CandidateSource>
+            })
+            .collect();
+        let hydrators: Vec<Arc<dyn Hydrator>> = vec![
+            Arc::new(PlatformFitHydrator::new(os)),
+            Arc::new(SafetyHydrator::new(safety).with_shell(shell)),
+            Arc::new(ValidationHydrator::new(validator)),
+            Arc::new(BackendSuccessHydrator::new(backend_stats)),
+        ];
+        let filters: Vec<Arc<dyn Filter>> =
+            vec![Arc::new(SafetyFilter), Arc::new(ValidationFilter)];
+        Self {
+            sources,
+            hydrators,
+            filters,
+            scorer: Arc::new(LinearScorer::default()),
+            selector: Arc::new(ArgmaxSelector),
+            latency_budget: DEFAULT_LATENCY_BUDGET,
         }
+    }
 
+    /// Override the source fan-out latency budget.
+    pub fn with_latency_budget(mut self, budget: Duration) -> Self {
+        self.latency_budget = budget;
+        self
+    }
+
+    /// Run the pipeline and return only the winning candidate.
+    pub async fn run(&self, prompt: &str) -> Result<Candidate, PipelineError> {
+        Ok(self.run_ranked(prompt).await?.winner)
+    }
+
+    /// Run the pipeline and return the winner plus the full scored set.
+    pub async fn run_ranked(&self, prompt: &str) -> Result<RankedRun, PipelineError> {
+        // Stage 1 — sources fan out concurrently. Each source gets the shared
+        // latency budget; a failure or timeout drops that source rather than
+        // failing the whole run, so one slow backend can't starve the rest.
+        let budget = self.latency_budget;
+        let produced = self.sources.iter().map(|src| {
+            let src = Arc::clone(src);
+            async move {
+                match timeout(budget, src.produce(prompt)).await {
+                    Ok(Ok(candidate)) => Some(candidate),
+                    Ok(Err(_)) => None, // source errored
+                    Err(_) => None,     // exceeded the latency budget
+                }
+            }
+        });
+        let mut candidates: Vec<Candidate> =
+            join_all(produced).await.into_iter().flatten().collect();
+
+        // Stage 2 — hydrate features onto each surviving candidate.
         for c in candidates.iter_mut() {
             for h in &self.hydrators {
                 h.hydrate(c).await;
             }
         }
 
+        // Stage 3 — filter out unsafe / invalid candidates.
         for c in candidates.iter_mut() {
             for f in &self.filters {
                 if let Some(reason) = f.filter(c).await {
@@ -164,16 +264,31 @@ impl Pipeline {
             }
         }
 
+        // Stage 4 — score the survivors.
         for c in candidates.iter_mut() {
             if !c.is_rejected() {
                 c.score = Some(self.scorer.score(c));
             }
         }
 
-        self.selector
+        // Stage 5 — select the winner (authoritative, stable tiebreak) before
+        // reordering the set for display.
+        let winner = self
+            .selector
             .select(&candidates)
             .cloned()
-            .ok_or(PipelineError::NoCandidates)
+            .ok_or(PipelineError::NoCandidates)?;
+
+        candidates.sort_by(|a, b| {
+            let sa = a.score.unwrap_or(f32::NEG_INFINITY);
+            let sb = b.score.unwrap_or(f32::NEG_INFINITY);
+            sb.partial_cmp(&sa).unwrap_or(std::cmp::Ordering::Equal)
+        });
+
+        Ok(RankedRun {
+            winner,
+            ranked: candidates,
+        })
     }
 }
 
@@ -231,6 +346,7 @@ mod tests {
             filters: vec![],
             scorer: Arc::new(LinearScorer::default()),
             selector: Arc::new(ArgmaxSelector),
+            latency_budget: Duration::from_secs(5),
         };
         let winner = p.run("anything").await.unwrap();
         // All candidates have identical features → first wins (deterministic).
@@ -249,6 +365,7 @@ mod tests {
             filters: vec![Arc::new(RejectByName("a"))],
             scorer: Arc::new(LinearScorer::default()),
             selector: Arc::new(ArgmaxSelector),
+            latency_budget: Duration::from_secs(5),
         };
         let winner = p.run("anything").await.unwrap();
         assert_eq!(winner.command, "echo b");
@@ -262,8 +379,81 @@ mod tests {
             filters: vec![Arc::new(RejectByName("a"))],
             scorer: Arc::new(LinearScorer::default()),
             selector: Arc::new(ArgmaxSelector),
+            latency_budget: Duration::from_secs(5),
         };
         let err = p.run("anything").await.unwrap_err();
         assert!(matches!(err, PipelineError::NoCandidates));
+    }
+
+    /// Source with a controllable confidence, so scoring is deterministic.
+    struct ConfSource(&'static str, &'static str, f32);
+    #[async_trait]
+    impl CandidateSource for ConfSource {
+        async fn produce(&self, _prompt: &str) -> Result<Candidate, PipelineError> {
+            let mut c = Candidate::new(self.1.to_string(), self.0.to_string());
+            c.features.llm_confidence = self.2;
+            Ok(c)
+        }
+        fn name(&self) -> &str {
+            self.0
+        }
+    }
+
+    /// Source that sleeps before producing, to simulate a slow/hung backend.
+    struct SlowSource(&'static str, u64);
+    #[async_trait]
+    impl CandidateSource for SlowSource {
+        async fn produce(&self, _prompt: &str) -> Result<Candidate, PipelineError> {
+            tokio::time::sleep(Duration::from_millis(self.1)).await;
+            let mut c = Candidate::new("slow-cmd", self.0);
+            c.features.llm_confidence = 0.99; // would win on score if it arrived
+            Ok(c)
+        }
+        fn name(&self) -> &str {
+            self.0
+        }
+    }
+
+    #[tokio::test]
+    async fn parallel_fanout_selects_highest_scored_and_ranks_all() {
+        let p = Pipeline {
+            sources: vec![
+                Arc::new(ConfSource("low", "echo low", 0.1)),
+                Arc::new(ConfSource("high", "echo high", 0.9)),
+                Arc::new(ConfSource("mid", "echo mid", 0.5)),
+            ],
+            hydrators: vec![Arc::new(FlatHydrator)],
+            filters: vec![],
+            scorer: Arc::new(LinearScorer::default()),
+            selector: Arc::new(ArgmaxSelector),
+            latency_budget: Duration::from_secs(5),
+        };
+        let run = p.run_ranked("anything").await.unwrap();
+        // Highest llm_confidence wins under the default weights.
+        assert_eq!(run.winner.command, "echo high");
+        // Every source's candidate survives and the set is sorted best-first.
+        assert_eq!(run.ranked.len(), 3);
+        assert_eq!(run.ranked[0].command, "echo high");
+        assert_eq!(run.ranked[2].command, "echo low");
+    }
+
+    #[tokio::test]
+    async fn slow_source_dropped_at_latency_budget() {
+        let p = Pipeline {
+            sources: vec![
+                Arc::new(ConfSource("fast", "echo fast", 0.2)),
+                Arc::new(SlowSource("slow", 500)),
+            ],
+            hydrators: vec![Arc::new(FlatHydrator)],
+            filters: vec![],
+            scorer: Arc::new(LinearScorer::default()),
+            selector: Arc::new(ArgmaxSelector),
+            latency_budget: Duration::from_millis(50),
+        };
+        let run = p.run_ranked("anything").await.unwrap();
+        // The slow source would have scored higher, but it never arrives in
+        // time, so the fast source wins and is the only ranked candidate.
+        assert_eq!(run.winner.command, "echo fast");
+        assert_eq!(run.ranked.len(), 1);
     }
 }
