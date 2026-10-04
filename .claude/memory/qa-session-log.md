@@ -36,18 +36,18 @@ Reading order: most recent first.
 **What was exercised:**
 - `caro ai --once "show disk usage"` (with and without stdin pipe)
 - `caro ai --once "list running processes"`
-- `caro ai --once --backend static "show disk usage"`
+- ~~`caro ai --once --backend static "show disk usage"`~~ (invalid test: `ai` uses `trailing_var_arg`, so `--backend static` after the subcommand is consumed as prompt text, not a flag; the embedded backend received literal `--backend static show disk usage` as the query — see correction below)
 - Inspected `src/backends/embedded/cpu.rs` and `src/backends/embedded/embedded_backend.rs` to confirm root cause
 
 **Finding — FAIL (P1):**
-Every `caro ai --once` invocation returns:
+Every invocation that reaches the embedded CPU backend returns:
 ```
 Error: backend error: Clarification needed: What exactly should be deleted?
 ```
 
 Root cause: `cpu.rs:63` checks `prompt.contains("rm")` against the full system prompt, which always contains "rm -rf" in the destructive-commands rule (line 218 of `embedded_backend.rs`). The CPU backend is an unfinished placeholder; the condition should check only the user request text, not the compiled system prompt.
 
-The static matcher IS correct (`caro -p` path) — `ai --once` bypasses it by calling `backend_arc()` directly instead of routing through the AgentLoop.
+The static matcher IS correct (`caro -p` path) — `ai --once` bypasses it by calling `backend_arc()` directly instead of routing through the AgentLoop. **Note**: the same bug affects any embedded CPU path (e.g. `caro --force-llm -p ...` or a static-matcher miss), because `EmbeddedModelBackend::generate_command` builds the same full system prompt and passes it to `CpuBackend::infer`. Surface #19 (embedded model backend) is also affected. See [#1523](https://github.com/wildcard/caro/issues/1523).
 
 ### Findings
 

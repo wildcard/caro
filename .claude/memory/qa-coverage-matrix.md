@@ -41,7 +41,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 16 | `caro --output yaml` format correctness | cli | never | — | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
 | 18 | `caro test --backend static` eval harness | cli | never | — | — |
-| 19 | Embedded model backend command quality | embedded | never | — | — |
+| 19 | Embedded model backend command quality | embedded | never | — | [#1523](https://github.com/wildcard/caro/issues/1523) (expected FAIL: same cpu.rs:63 bug as surface #10) |
 | 20 | Ollama backend (requires ollama installed) | ollama | never | — | — |
 | 21 | CaroML: `caro run / generate / render / history` | cli | never | — | — |
 | 22 | CaroML: `caro experiment / adopt / why` | cli | never | — | — |
