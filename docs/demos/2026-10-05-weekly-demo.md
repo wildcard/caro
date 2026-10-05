@@ -14,8 +14,8 @@ Open planning PR: [#1528](https://github.com/wildcard/caro/pull/1528)
 ## Pareto View by Backend
 
 Evaluation suite was not run by this planning routine (no build or feature work this session).
-The last recorded evaluation results are from the 2026-07-12 session (CI run
-[27532336756](https://github.com/wildcard/caro/actions/runs/27532336756)).
+No evaluation run link is available for this week; the last recorded results are from the
+2026-07-12 feature session. See the evaluate workflow for the current baseline.
 
 | Backend | Pass Rate | ECE | Cost/task | p95 Latency | Risk-label agreement |
 |---------|-----------|-----|-----------|-------------|----------------------|
@@ -32,6 +32,6 @@ for the latest automated results.
 
 ## Next week
 
-- Begin user discovery for Self-Healing (#1151) — highest PMF potential; run `caro.discovery`.
+- Begin user discovery for Self-Healing (#1151) — highest PMF potential; run devil's-advocate review on any AI-drafted hypothesis spec first (Gate 4), then run `caro.discovery` to collect 20 transcripts.
 - Begin user discovery for Local Context Indexing (#1152) — Gates 3–4 remain.
 - Reset v2.0.0 milestone target date (D1 default: Q4 2026).

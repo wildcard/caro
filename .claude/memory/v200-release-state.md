@@ -41,8 +41,8 @@
 ## Target Date Reset (owner input needed)
 
 Decision D1 (`docs/decisions/2026-07-12-autonomous-mode-release-scope.md`, accepted 2026-07-12)
-resolved the scope question: v1.5.0 shipped on the 29 completed items; v2.0.0 stays gated for the
-5 validated distributed-autonomy features. Shipping the 29 items as v2.0.0 was **rejected**
+resolved the scope question: v1.5.0 shipped the unreleased work; v2.0.0 remains gated pending validation of the
+5 distributed-autonomy features. Shipping the 29 items as v2.0.0 was **rejected**
 (semver violation; misleading release name for a "Distributed Autonomy" milestone containing zero
 distributed-autonomy features).
 
