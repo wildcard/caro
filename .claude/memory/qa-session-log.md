@@ -6,7 +6,7 @@ Reading order: most recent first.
 
 ## 2026-10-05 — Scheduled run (Slot A + Slot B + Slot C)
 
-**Trigger**: scheduled cron 14:00 UTC.
+**Trigger**: Claude Code scheduled session (approximate cron equivalent 14:00 UTC; not an entry in schedule.yaml).
 **Rotation**: A + B (PRs merged since 2026-05-07) + C (surface #10 — `caro ai --once`).
 
 ### Slot A — Smoke
@@ -39,13 +39,13 @@ Surfaces flagged for future Slot C cycles: eval harness (#1489, #1459 — `caro 
 
 ### Findings
 
-None new this pass — surfaces under test all in good shape. Two known open issues confirmed still present:
+No new issues filed this pass. Slot C FLAKEd (model download); Slot A and Slot B were clean. Two known open issues confirmed still present:
 - [#1248](https://github.com/wildcard/caro/issues/1248) — ai: caro ai silently hangs in non-TTY (ongoing; confirmed still reproducible)
 - [#1520](https://github.com/wildcard/caro/issues/1520) — docs: CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (ongoing)
 
 ### Followups
 
-- Model download FLAKE-001 second observation (2026-10-05). One previous in 7-day window? Last run 2026-05-07 is >7 days ago, so this is a fresh window. Logging as second observation in flake register.
+- Model download FLAKE-001: second lifetime observation (first was 2026-05-07, outside any 7-day window). Current 7-day window count: 1 of 3 needed to promote to regression.
 - Next Slot C candidate: surface #11 (`caro ai --continue-session` shell widget) — still "never" tested.
 - Surface #18 (`caro test --backend static`) should be prioritized: three recent PRs (#1489, #1459, #1466) touch the eval harness.
 - CLAUDE.md version drift is a recurring P2. Consider adding CLAUDE.md to the release checklist (as suggested in #1044). Already tracked in #1520.

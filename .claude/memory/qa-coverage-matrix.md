@@ -65,8 +65,8 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version banner drift | docs | 2026-05-07 | closed (recurred as #1098, #1520) |
-| [#1248](https://github.com/wildcard/caro/issues/1248) | `caro ai` silent hang in non-TTY | ai | 2026-10-05 | open |
-| [#1520](https://github.com/wildcard/caro/issues/1520) | CLAUDE.md version banner shows 1.4.0 vs 1.5.0 | docs | 2026-10-05 | open |
+| [#1248](https://github.com/wildcard/caro/issues/1248) | `caro ai` silent hang in non-TTY | ai | pre-2026-10-05 | open |
+| [#1520](https://github.com/wildcard/caro/issues/1520) | CLAUDE.md version banner shows 1.4.0 vs 1.5.0 | docs | pre-2026-10-05 | open |
 
 ---
 
