@@ -170,7 +170,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-01 sweep
 **Issue:** #1491 (action `all-contributors/add-contributor` not found)
-**Status:** claimed-by sweep/2026-10-05-BW-017. The job is removed: the action repo does not exist and the repo has no `.all-contributorsrc`.
+**Status:** claimed-by sweep/2026-10-05-BW-017 (#1527). The job is removed: the action repo does not exist and the repo has no `.all-contributorsrc`.
 **Needs human?:** no (CI config). Pin a published action, or remove the job.
 **Next step:** merge the removal PR. Re-add a working all-contributors job only if the maintainer wants a contributors list.
 
