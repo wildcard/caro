@@ -70,20 +70,23 @@ remains open with `mergeable_state: unstable` — likely base branch drift, not 
 2. **Release date passed**: Target was June 30, 2026 — now 97 days overdue, with 0/5 core
    features implemented.
 3. **PR #1482 unmerged**: 7-day-old planning PR still open; docs-only, safe to merge.
-4. **Scope decision deferred**: Since July 6 the recommendation to either reset the target
-   date to Q1 2027 or ship on 29 completed items has not been actioned.
+4. **Scope decision deferred**: Since July 6 the owner has not acted on the
+   recommendation to reset the target date or ship on 29 completed items.
 
 ## Next milestone items
 
 **Top 3 unstarted items to work on next:**
 
 1. **Begin user discovery for Self-Healing (#1151)** — highest PMF potential; run
-   `caro.discovery` skill, target 20 first-hand interviews, track transcripts in
-   `docs/discovery/transcripts/self-healing/`.
+   `caro.discovery` skill, target 20 first-hand interviews. Store transcripts in the
+   flat layout defined by `docs/discovery/transcripts/README.md` (not in a subdirectory)
+   so they register in the Gate 1 count. Note: validation-discipline requires Gates 1–5
+   before implementation; a devil's-advocate review (Gate 4) is also needed once the
+   hypothesis spec is drafted.
 
 2. **Begin user discovery for Local Context Indexing (#1152)** — ChromaDB foundation
-   (Phases 1–3 of #504) already complete; only discovery gate remains. Target 20
-   interviews before Phase 4 implementation.
+   (Phases 1–3 of #504) are complete, but Gates 3–4 remain; target 20
+   interviews plus the remaining validation gates before Phase 4 implementation.
 
 3. **Action the scope decision** — Ship v2.0.0 on 29 completed items OR reset target
    date to Q1 2027. Both options remain open; the decision requires owner input.
