@@ -11,7 +11,7 @@
 **Core feature completion**: 0% (0/5 gantt features implemented)
 **Open blockers**: 4 identified
 **Target release**: June 30, 2026 → **97 DAYS OVERDUE**
-**Status**: BLOCKED — requires owner scope decision
+**Status**: BLOCKED — requires target date reset (owner input)
 
 ## Blockers
 
@@ -19,7 +19,8 @@
    current count is 0/20 across all five features
 2. **Release date passed** — June 30, 2026 target; now October 5, 2026
 3. **PR #1482 unmerged** — Sept-28 planning PR still open (7 days), docs-only safe to merge
-4. **Scope decision deferred** — No action on A/B options since July 6 run
+4. **Target date reset deferred** — D1 (July 12) settled scope (v1.5.0 shipped; v2.0.0 stays
+   gated for the 5 features; Option B rejected). Only date reset outstanding; D1 default is Q4 2026.
 
 ## Core Feature Issues
 
@@ -35,17 +36,20 @@
 
 1. Begin user discovery for Self-Healing (#1151) — run `caro.discovery` skill, 20 interviews
 2. Begin user discovery for Local Context Indexing (#1152) — ChromaDB phases 1–3 already done
-3. Action scope decision: reset to Q1 2027 OR ship v2.0.0 on 29 completed items
+3. Reset the v2.0.0 target date (D1 default: Q4 2026; extend to Q1 2027 if discovery not started)
 
-## Scope Options (owner decision needed)
+## Target Date Reset (owner input needed)
 
-**Option A** — Reset release date to Q1 2027, begin discovery work now. Preserves semver
-intent: v2.0.0 ships when the major-version features (Karo, Dogma, Voice, Self-Healing, Context)
-are actually built.
+Decision D1 (`docs/decisions/2026-07-12-autonomous-mode-release-scope.md`, accepted 2026-07-12)
+resolved the scope question: v1.5.0 shipped on the 29 completed items; v2.0.0 stays gated for the
+5 validated distributed-autonomy features. Shipping the 29 items as v2.0.0 was **rejected**
+(semver violation; misleading release name for a "Distributed Autonomy" milestone containing zero
+distributed-autonomy features).
 
-**Option B** — Ship v2.0.0 on the 29 already-completed items; create "v2.1.0 - Core AI Features"
-for the 5 discovery-gated features. Resolves the overdue state but raises the question of what
-major-version change justifies bumping from 1.x.
+**Only outstanding**: reset the v2.0.0 milestone target date.
+- **D1 default**: Q4 2026 (absent owner input).
+- **Extend to Q1 2027** if the first two discovery sprints (Self-Healing #1151, Local Context
+  Indexing #1152) have not produced 20 transcripts each by Q4 2026.
 
 ## Milestone Alignment Gaps
 

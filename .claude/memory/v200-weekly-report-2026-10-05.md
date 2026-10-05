@@ -70,8 +70,9 @@ remains open with `mergeable_state: unstable` — likely base branch drift, not 
 2. **Release date passed**: Target was June 30, 2026 — now 97 days overdue, with 0/5 core
    features implemented.
 3. **PR #1482 unmerged**: 7-day-old planning PR still open; docs-only, safe to merge.
-4. **Scope decision deferred**: Since July 6 the owner has not acted on the
-   recommendation to reset the target date or ship on 29 completed items.
+4. **Target date reset deferred**: Decision D1 (`docs/decisions/2026-07-12-autonomous-mode-release-scope.md`)
+   accepted v1.5.0 and rejected shipping 29 items as v2.0.0 (semver violation). Only the
+   target date reset remains outstanding; owner input preferred, Q4 2026 as the standing default.
 
 ## Next milestone items
 
@@ -88,9 +89,10 @@ remains open with `mergeable_state: unstable` — likely base branch drift, not 
    (Phases 1–3 of #504) are complete, but Gates 3–4 remain; target 20
    interviews plus the remaining validation gates before Phase 4 implementation.
 
-3. **Action the scope decision** — Ship v2.0.0 on 29 completed items OR reset target
-   date to Q1 2027. Both options remain open; the decision requires owner input.
-   See `v200-release-state.md` for the options.
+3. **Reset the v2.0.0 target date** — Decision D1 (July 12) rejected shipping 29 items as v2.0.0
+   (no breaking changes = semver violation; no distributed-autonomy features = misleading release name).
+   Only the date reset remains. Owner input preferred; Q4 2026 is the D1 standing default.
+   See `docs/decisions/2026-07-12-autonomous-mode-release-scope.md` D1.
 
 ## Status
 
@@ -101,7 +103,7 @@ The milestone trajectory has not changed since July 6: no discovery work started
 transcripts collected, no scope decision made. The reporting state is now stale by 3 months.
 
 **Owner action needed:**
-- Option A: Reset milestone target to Q1 2027 and start user discovery now.
-- Option B: Ship v2.0.0 on the 29 already-completed items; move 5 core features to v2.1.0.
-  (Note: previous run flagged this may be a semver concern — v2.0.0 should carry the
-  major-version features that justify the bump.)
+- Reset the v2.0.0 milestone target date. Q4 2026 is the D1 default; extend to Q1 2027 if
+  the first two discovery sprints (Self-Healing, Local Context Indexing) are not complete
+  by Q4 2026. (Shipping 29 items as v2.0.0 was rejected in D1 — semver violation, misleading
+  release name. See `docs/decisions/2026-07-12-autonomous-mode-release-scope.md`.)
