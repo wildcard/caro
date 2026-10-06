@@ -54,7 +54,7 @@ Nothing in the build detects this. A compiled prompt would have been optimized
 | 4 | Bounded Refine on safety failure | `dspy.Refine` / `BestOfN` | Final safety block has no regeneration hook | S–M | 1 |
 | 5 | Platform few-shot demos as data | `LabeledFewShot` | Dead gnu/bsd/busybox/posix sets; macOS advice on Linux | S–M | 2 |
 | 6 | One output adapter, not eight parsers | Adapters | 4-tier JSON parse ladder duplicated per backend | M | 3 |
-| 7 | Honest confidence | `BestOfN` / self-consistency | Constants removed by #1464; embedded and Ollama now report *no* confidence, so the refinement gate never fires on the default local path | S–M | 1 |
+| 7 | Honest confidence | `BestOfN` / self-consistency | Constants removed by #1464; embedded and Ollama now report *no* confidence, so confidence-triggered refinement never fires on the default local path | S–M | 1 |
 | 8 | Distill compiled prompts into weights | `BootstrapFinetune` | Existing SFT export has no prompt-side input | L | later |
 
 ---
@@ -260,9 +260,12 @@ What is missing:
   and AI-Horde report `0.0` with `ConfidenceSource::Unknown`
   (`embedded_backend.rs:520`: "llama.cpp sampler exposes no log-probs yet"). The
   gate (`src/agent/mod.rs:348`) now fires only on evidence-backed confidence — so
-  it **never fires on the default local path** (embedded, Ollama), because those
-  backends have none. The fake signal is gone; for the models most users run,
-  the real one does not exist yet. (One leftover: `hybrid/mod.rs:261` still
+  **confidence-triggered refinement never fires on the default local path**
+  (embedded, Ollama), because those backends have none; only the
+  platform-smell trigger (`should_refine`: GNU-only flags, `find /`, long
+  pipelines) still reaches the advisor and refine paths for them. The fake
+  signal is gone; for the models most users run, the real one does not exist
+  yet. (One leftover: `hybrid/mod.rs:261` still
   returns a 0.9 constant labelled `Measured`.)
 
 ### 2.5 The manual loop
@@ -470,9 +473,10 @@ Lower leverage than L1–L5, so it rides along with Phase 3.
 samples, not from a constant.
 
 **caro gap**: §2.4 — the constants are gone (#1464), but embedded and Ollama —
-the default local path — now report *no* confidence, so the refinement and
-advisor gates never fire for them. (vLLM and OpenRouter already measure it from
-log-probs; Claude self-reports.) ADR-017 removed the lie; for the local models
+the default local path — now report *no* confidence, so confidence-triggered
+refinement and advisor escalation never fire for them; only the platform-smell
+trigger still does. (vLLM and OpenRouter already measure it from log-probs;
+Claude self-reports.) ADR-017 removed the lie; for the local models
 the measurement is still missing.
 
 **Change**: give embedded and Ollama a `Measured` confidence from observable
@@ -484,8 +488,9 @@ measured signal has to beat the `ECE == |c − pass_rate|` that the old constant
 would have scored, not merely exist.
 
 **Why it pays**: the advisor and refinement paths already exist and are gated on
-this number. Before ADR-017 they fired by backend identity; today they never fire
-for embedded or Ollama; after this they fire when the model was actually unsure.
+this number. Before ADR-017 they fired by backend identity; today the confidence
+trigger never fires for embedded or Ollama; after this it fires when the model
+was actually unsure.
 
 ### L8 — Distill compiled prompts into weights  *(L, strategic)*
 
@@ -543,7 +548,7 @@ default and the artifact is opt-in.
 1. `eval: emit diagnostic failure_reason + JSONL feedback export from all evaluators` (L2 — filed as #1451)
 2. `eval: register embedded backends and implement --backend filtering in tests/evaluation/main.rs` (Phase 1 prerequisite — `CARO_EVAL_BACKENDS` from #1466 covers Ollama/vLLM locally; CI still scores only the static matcher)
 3. `agent: bounded regeneration when the final safety pass blocks` (L4)
-4. `backends: measured confidence for embedded and Ollama from parse tier, validator outcome and n=2 agreement` (L7 — the constants are already gone via #1464; vLLM/OpenRouter measure from log-probs; the gates now never fire for embedded/Ollama)
+4. `backends: measured confidence for embedded and Ollama from parse tier, validator outcome and n=2 agreement` (L7 — the constants are already gone via #1464; vLLM/OpenRouter measure from log-probs; the confidence trigger now never fires for embedded/Ollama)
 5. `eval: add split: train|heldout tags to dataset.yaml (stratified)` (hygiene)
 6. `ci: evaluation.yml — replace the 0.0 TBD baselines once a backend is wired` (hygiene — the crash-masking half was fixed by #1470)
 7. `adr: versioned prompt artifacts` (L1 — next free number; 017 is taken, 018 is claimed by #1511)
