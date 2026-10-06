@@ -830,8 +830,15 @@ impl SafetyValidator {
             let risk_types = if risk_keywords.is_empty() {
                 String::new()
             } else {
-                let unique: std::collections::HashSet<_> = risk_keywords.into_iter().collect();
-                format!(" ({})", unique.into_iter().collect::<Vec<_>>().join(", "))
+                // Keep first-seen order so the same command always prints
+                // the same text (a HashSet changed the order between runs).
+                let mut unique: Vec<&str> = Vec::new();
+                for keyword in risk_keywords {
+                    if !unique.contains(&keyword) {
+                        unique.push(keyword);
+                    }
+                }
+                format!(" ({})", unique.join(", "))
             };
 
             format!(

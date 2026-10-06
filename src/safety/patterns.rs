@@ -202,13 +202,13 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r"rm\s+-r[f]*\s+[A-Z]:\\".to_string(),
             risk_level: RiskLevel::Critical,
-            description: "Recursive deletion of Windows drive root".to_string(),
+            description: "Recursive deletion of Windows drive root (Bash/WSL)".to_string(),
             shell_specific: Some(ShellType::Bash), // When running on WSL
         },
         DangerPattern {
             pattern: r"Remove-Item\s+-Recurse\s+-Force\s+[A-Z]:\\".to_string(),
             risk_level: RiskLevel::Critical,
-            description: "Recursive deletion of Windows drive root".to_string(),
+            description: "Recursive deletion of Windows drive root (PowerShell)".to_string(),
             shell_specific: Some(ShellType::PowerShell),
         },
         DangerPattern {
