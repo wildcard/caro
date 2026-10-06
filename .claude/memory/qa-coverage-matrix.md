@@ -36,7 +36,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
-| 14 | `caro config get/set/show/reset` | cli | 2026-10-06 | PASS (partial) | [#1530](https://github.com/wildcard/caro/issues/1530) |
+| 14 | `caro config get/set/show/reset` | cli | 2026-10-06 | FAIL | [#1530](https://github.com/wildcard/caro/issues/1530) |
 | 15 | `caro --output json` format correctness | cli | never | — | — |
 | 16 | `caro --output yaml` format correctness | cli | never | — | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
