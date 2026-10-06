@@ -39,11 +39,32 @@ struct Agent {
     tools: Option<Vec<String>>,
 }
 
-fn frontmatter_field<'a>(frontmatter: &'a str, key: &str) -> Option<&'a str> {
-    frontmatter
-        .lines()
-        .find_map(|line| line.strip_prefix(key)?.strip_prefix(':'))
+/// The value of a top-level frontmatter key. A block scalar (`key: |` or
+/// `key: >`, with any chomping indicator) yields its indented lines joined.
+fn frontmatter_field(frontmatter: &str, key: &str) -> Option<String> {
+    let mut lines = frontmatter.lines();
+    let value = lines
+        .by_ref()
+        .find_map(|line| line.strip_prefix(key)?.strip_prefix(':'))?
+        .trim();
+    if !(value.starts_with('|') || value.starts_with('>')) {
+        return Some(value.to_string());
+    }
+    let block: Vec<&str> = lines
+        .take_while(|line| line.is_empty() || line.starts_with([' ', '\t']))
         .map(str::trim)
+        .collect();
+    Some(block.join(" ").trim().to_string())
+}
+
+#[test]
+fn frontmatter_field_reads_block_scalars() {
+    let fm = "name: x\ndescription: >-\n  A read-only\n  reviewer.\ntools: Read\n";
+    assert_eq!(
+        frontmatter_field(fm, "description").as_deref(),
+        Some("A read-only reviewer.")
+    );
+    assert_eq!(frontmatter_field(fm, "tools").as_deref(), Some("Read"));
 }
 
 fn agents() -> Vec<Agent> {
@@ -61,9 +82,7 @@ fn agents() -> Vec<Agent> {
                 .map(|(fm, _)| fm)
                 .unwrap_or_else(|| panic!("{name}: missing frontmatter"));
             Agent {
-                description: frontmatter_field(frontmatter, "description")
-                    .unwrap_or_default()
-                    .to_string(),
+                description: frontmatter_field(frontmatter, "description").unwrap_or_default(),
                 tools: frontmatter_field(frontmatter, "tools")
                     .map(|list| list.split(',').map(|t| t.trim().to_string()).collect()),
                 name,
