@@ -7,6 +7,7 @@
 use std::collections::{HashMap, HashSet};
 
 use caro::models::{RiskLevel, ShellType};
+use caro::prompts::ste::{self, TextKind};
 use caro::safety::{get_patterns_by_risk, SafetyConfig, SafetyValidator};
 
 async fn explanation(command: &str) -> String {
@@ -120,4 +121,20 @@ async fn root_user_is_still_privilege_escalation() {
         let text = explanation(command).await;
         assert!(text.contains("privilege escalation"), "{command}: {text}");
     }
+}
+
+#[test]
+fn built_in_pattern_descriptions_pass_ste_lite() {
+    // STE allows an -ing word only as a technical noun or modifier, so a
+    // description does not start with one ("Changing file permissions").
+    let mut failures = Vec::new();
+    for p in get_patterns_by_risk(RiskLevel::Safe) {
+        let d = p.description.as_str();
+        let issues = ste::check(d, TextKind::Descriptive);
+        let first = d.split_whitespace().next().unwrap_or_default();
+        if !issues.is_empty() || first.to_lowercase().ends_with("ing") {
+            failures.push(format!("{d:?}: {issues:?}"));
+        }
+    }
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
