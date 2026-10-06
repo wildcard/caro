@@ -70,7 +70,7 @@ async fn dry_run_json_says_dry_run_and_never_runs() {
     let json = run(true, true).await;
     assert_eq!(json["dry_run"], true, "JSON must flag the dry run: {json}");
     assert!(
-        json["exit_code"].is_null(),
+        json["exit_code"].is_null() && json["execution_error"].is_null(),
         "a dry run must not run the command: {json}"
     );
 }
