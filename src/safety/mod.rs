@@ -811,8 +811,12 @@ impl SafetyValidator {
                     if lower.contains("recursive") {
                         keywords.push("recursive");
                     }
+                    // "root" alone also names the filesystem root and drive
+                    // roots ("deletion of root"), which change no privilege.
+                    // A world-writable path lets any user replace its files.
                     if lower.contains("privilege")
-                        || lower.contains("root")
+                        || lower.contains("root user")
+                        || lower.contains("world-writable")
                         || lower.contains("sudo")
                     {
                         keywords.push("privilege escalation");
