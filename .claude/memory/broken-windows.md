@@ -150,22 +150,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** no
 **Next step:** merge the PR.
 
-### BW-024: `caro config set backend` has no `auto` value to restore auto-detect
-
-**Found:** 2026-10-06 sweep
-**Issue:** #1530
-**Status:** open
-**Needs human?:** no
-**Next step:** accept `auto` (or `default`) in `config set backend` and clear the stored backend. (Numbered BW-024 because BW-020 to BW-023 are on the #1522 branch.)
-
-### BW-025: GNU coreutils misdetected as BSD when `ls --version` exceeds 500 ms
-
-**Found:** 2026-10-06, CI on #1532 (`test_coreutils_detection` failed on ubuntu-24.04)
-**Issue:** #1533
-**Status:** open
-**Needs human?:** no
-**Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
-
 ### BW-015: main CI `Extended Tests` (4 model jobs) red: HF Hub model download fails
 
 **Found:** 2026-09-30 sweep, CI run 36658876598
@@ -205,6 +189,23 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Status:** open
 **Needs human?:** yes (CI gate / lint policy). Options: pin the lint toolchain to 1.98.1, add a dated crate-level `allow`, or bump async-trait (syn 3; check MSRV).
 **Next step:** maintainer picks an option on #1498.
+
+### BW-024: `caro config set backend` has no `auto` value to restore auto-detect
+
+**Found:** 2026-10-06 sweep
+**Issue:** #1530
+**Status:** open
+**Needs human?:** no
+**Next step:** accept `auto` (or `default`) in `config set backend` and clear the stored backend.
+(BW-020 to BW-023 are on the #1522 branch.)
+
+### BW-025: GNU coreutils misdetected as BSD when `ls --version` exceeds 500 ms
+
+**Found:** 2026-10-06, CI on #1532 (`test_coreutils_detection` failed on ubuntu-24.04)
+**Issue:** #1533
+**Status:** open
+**Needs human?:** no
+**Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
 
 ---
 

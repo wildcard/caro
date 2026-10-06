@@ -73,6 +73,11 @@ async fn dry_run_json_says_dry_run_and_never_runs() {
         json["exit_code"].is_null() && json["execution_error"].is_null(),
         "a dry run must not run the command: {json}"
     );
+    // The command was eligible to run, so only the dry run kept it from running.
+    assert_eq!(
+        json["executed"], true,
+        "safe command must pass checks: {json}"
+    );
 }
 
 #[tokio::test]
