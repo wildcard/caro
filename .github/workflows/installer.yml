@@ -15,6 +15,7 @@ env:
 jobs:
   install:
     strategy:
+      fail-fast: false
       matrix:
         # Supported macOS baseline on both Intel and Apple Silicon.
         os: [ubuntu-latest, macos-15-intel, macos-15]
