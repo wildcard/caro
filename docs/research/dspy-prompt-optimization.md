@@ -54,7 +54,7 @@ Nothing in the build detects this. A compiled prompt would have been optimized
 | 4 | Bounded Refine on safety failure | `dspy.Refine` / `BestOfN` | Final safety block has no regeneration hook | S–M | 1 |
 | 5 | Platform few-shot demos as data | `LabeledFewShot` | Dead gnu/bsd/busybox/posix sets; macOS advice on Linux | S–M | 2 |
 | 6 | One output adapter, not eight parsers | Adapters | 4-tier JSON parse ladder duplicated per backend | M | 3 |
-| 7 | Honest confidence | `BestOfN` / self-consistency | Constants removed by #1464; LLM backends now report *no* confidence, so the refinement gate never fires for them | S–M | 1 |
+| 7 | Honest confidence | `BestOfN` / self-consistency | Constants removed by #1464; embedded and Ollama now report *no* confidence, so the refinement gate never fires on the default local path | S–M | 1 |
 | 8 | Distill compiled prompts into weights | `BootstrapFinetune` | Existing SFT export has no prompt-side input | L | later |
 
 ---
@@ -137,7 +137,7 @@ Every backend owns a private `create_system_prompt()`:
 ### 2.2 The prompt machinery that *is* structured is dead
 
 `src/prompts/` (`smollm_prompt.rs` 870 lines, `capability_profile.rs` 1,197,
-`command_templates.rs` 731, `validation.rs` 1,004) is re-exported from
+`command_templates.rs` 797, `validation.rs` 1,004) is re-exported from
 `src/lib.rs` but never called by a backend. (#1463 added `intent.rs`, a typed
 intent classifier built on `command_templates.rs`; nothing outside `src/prompts/`
 calls it either, as of the revision date.) It contains real per-platform example
@@ -252,15 +252,18 @@ What is missing:
   embedded, 1.0 static, 0.8 Ollama, 0.75 AI-Horde, 0.95 Claude), so the `< 0.8`
   refinement gate was decided by *which backend answered*. ADR-017 and #1464
   (2026-09-22) replaced that with "measured or absent": the static matcher reports
-  a measured score (`static_matcher.rs:1944`, regex 1.0 / keywords 0.6–1.0),
-  Claude and OpenRouter parse a self-reported `confidence` field, and embedded,
-  Ollama, vLLM, Exo, Mesh and AI-Horde report `0.0` with
-  `ConfidenceSource::Unknown` (`embedded_backend.rs:520`: "llama.cpp sampler
-  exposes no log-probs yet"). The gate (`src/agent/mod.rs:348`) now fires only on
-  evidence-backed confidence — so it **never fires for the local LLM backends**,
-  because they have none. The fake signal is gone; the real one does not exist
-  yet. (One leftover: `hybrid/mod.rs:261` still returns a 0.9 constant labelled
-  `Measured`.)
+  a measured score (`static_matcher.rs:1944`, regex 1.0 / keywords 0.6–1.0);
+  Claude parses a self-reported `confidence` field (`claude.rs:176`); vLLM and
+  OpenRouter derive a `Measured` score from per-token log-probs
+  (`command_token_confidence`, `vllm.rs:324`, `openrouter.rs:324` — `0.0` +
+  `Unknown` only when the server returns none); and embedded, Ollama, Exo, Mesh
+  and AI-Horde report `0.0` with `ConfidenceSource::Unknown`
+  (`embedded_backend.rs:520`: "llama.cpp sampler exposes no log-probs yet"). The
+  gate (`src/agent/mod.rs:348`) now fires only on evidence-backed confidence — so
+  it **never fires on the default local path** (embedded, Ollama), because those
+  backends have none. The fake signal is gone; for the models most users run,
+  the real one does not exist yet. (One leftover: `hybrid/mod.rs:261` still
+  returns a 0.9 constant labelled `Measured`.)
 
 ### 2.5 The manual loop
 
@@ -466,11 +469,13 @@ Lower leverage than L1–L5, so it rides along with Phase 3.
 **DSPy**: `BestOfN` / self-consistency derive confidence from agreement across
 samples, not from a constant.
 
-**caro gap**: §2.4 — the constants are gone (#1464), but the local LLM backends
-now report *no* confidence, so the refinement and advisor gates never fire for
-them. ADR-017 removed the lie; the measurement is still missing.
+**caro gap**: §2.4 — the constants are gone (#1464), but embedded and Ollama —
+the default local path — now report *no* confidence, so the refinement and
+advisor gates never fire for them. (vLLM and OpenRouter already measure it from
+log-probs; Claude self-reports.) ADR-017 removed the lie; for the local models
+the measurement is still missing.
 
-**Change**: give the LLM backends a `Measured` confidence from observable
+**Change**: give embedded and Ollama a `Measured` confidence from observable
 signals: parse tier hit (strict JSON = high, regex rescue = low), validator
 outcome (clean / warnings / repaired), and later `n=2` agreement for the embedded
 backend when latency allows. The gate logic in `AgentLoop` does not change; its
@@ -480,7 +485,7 @@ would have scored, not merely exist.
 
 **Why it pays**: the advisor and refinement paths already exist and are gated on
 this number. Before ADR-017 they fired by backend identity; today they never fire
-for local models; after this they fire when the model was actually unsure.
+for embedded or Ollama; after this they fire when the model was actually unsure.
 
 ### L8 — Distill compiled prompts into weights  *(L, strategic)*
 
@@ -519,7 +524,7 @@ prompt-level behavior rather than the hand-tuned one. Not before L1–L3 exist.
 | Phase | Scope | PR shape | Touchpoints |
 |---|---|---|---|
 | **0** | This document. | `docs:` PR, one file. | `docs/research/dspy-prompt-optimization.md` |
-| **1** — Rust-only quick wins | Artifact ADR (*Proposed*; next free number per `.claude/rules/adr-numbering.md` — 017 is taken, #1511 proposes 018); L2 diagnostic feedback + JSONL export (#1451); L4 bounded safety regeneration; L7 measured confidence for LLM backends (the constants are already gone, #1464); `split:` tags in `dataset.yaml`; replace the `0.0 TBD` CI baselines (the `\|\| true` masking is already fixed, #1470); **harness backend registration** — make `tests/evaluation/main.rs` register `embedded-*` and honour `--backend` (`CARO_EVAL_BACKENDS` from #1466 covers Ollama/vLLM locally; CI still scores only `StaticMatcher`), because nothing downstream can produce a per-model baseline without it. | 5–6 small independent PRs, each with a regression-guard test per `.claude/rules/feature-evidence.md`. | `docs/adr/` (new ADR), `src/evaluation/evaluators/*`, `src/agent/mod.rs`, `src/cli/mod.rs`, `src/backends/*` (confidence), `.github/workflows/evaluation.yml`, `tests/evaluation/main.rs` |
+| **1** — Rust-only quick wins | Artifact ADR (*Proposed*; next free number per `.claude/rules/adr-numbering.md` — 017 is taken, #1511 proposes 018); L2 diagnostic feedback + JSONL export (#1451); L4 bounded safety regeneration; L7 measured confidence for embedded and Ollama (the constants are already gone, #1464; vLLM/OpenRouter already measure from log-probs); `split:` tags in `dataset.yaml`; replace the `0.0 TBD` CI baselines (the `\|\| true` masking is already fixed, #1470); **harness backend registration** — make `tests/evaluation/main.rs` register `embedded-*` and honour `--backend` (`CARO_EVAL_BACKENDS` from #1466 covers Ollama/vLLM locally; CI still scores only `StaticMatcher`), because nothing downstream can produce a per-model baseline without it. | 5–6 small independent PRs, each with a regression-guard test per `.claude/rules/feature-evidence.md`. | `docs/adr/` (new ADR), `src/evaluation/evaluators/*`, `src/agent/mod.rs`, `src/cli/mod.rs`, `src/backends/*` (confidence), `.github/workflows/evaluation.yml`, `tests/evaluation/main.rs` |
 | **2** — Harness | `tools/dspy-harness/` (loader, metric, exporter — the student runs through the same Ollama endpoint `CARO_EVAL_BACKENDS` evaluates, so optimizer and gate share the backend as well as the metric); migrate L5 demos to data; first `BootstrapFewShot` run per model with **recorded before/after held-out numbers**; replace the `0.0 TBD` CI baselines with those numbers; extend `prompt_comparison.rs` with a paired McNemar test and wire it to two real artifacts. | One tooling PR + one data PR. Successor to #517 (closed 2026-01-17, goal unmet). Python dev tooling, not a runtime SDK — no build-spike needed. | `tools/dspy-harness/`, `tests/evaluation/prompts/`, `src/prompts/smollm_prompt.rs` (delete dead sets) |
 | **3** — Runtime | `PromptArtifact` loader (`include_str!` default + `--prompt-artifact` override) replacing the eight `create_system_prompt` bodies; L6 shared adapter; artifact id surfaced in `caro --version`; GEPA run once L2 feedback is diagnostic. | 2–3 PRs behind a feature flag until the compiled artifact beats the hand-tuned prompt on held-out. | `src/backends/mod.rs`, `src/backends/*/`, `src/model_catalog.rs` |
 | **3b** — Optional | `dspy-rs` build-spike if a Rust-native optimizer ever becomes worth it; L8 `BootstrapFinetune` tie-in. | Per `.claude/rules/external-sdk-integration.md`. | `Cargo.toml` (optional dep, off by default) |
@@ -538,7 +543,7 @@ default and the artifact is opt-in.
 1. `eval: emit diagnostic failure_reason + JSONL feedback export from all evaluators` (L2 — filed as #1451)
 2. `eval: register embedded backends and implement --backend filtering in tests/evaluation/main.rs` (Phase 1 prerequisite — `CARO_EVAL_BACKENDS` from #1466 covers Ollama/vLLM locally; CI still scores only the static matcher)
 3. `agent: bounded regeneration when the final safety pass blocks` (L4)
-4. `backends: measured confidence for LLM backends from parse tier, validator outcome and n=2 agreement` (L7 — the constants are already gone via #1464; the gates now never fire for local models)
+4. `backends: measured confidence for embedded and Ollama from parse tier, validator outcome and n=2 agreement` (L7 — the constants are already gone via #1464; vLLM/OpenRouter measure from log-probs; the gates now never fire for embedded/Ollama)
 5. `eval: add split: train|heldout tags to dataset.yaml (stratified)` (hygiene)
 6. `ci: evaluation.yml — replace the 0.0 TBD baselines once a backend is wired` (hygiene — the crash-masking half was fixed by #1470)
 7. `adr: versioned prompt artifacts` (L1 — next free number; 017 is taken, 018 is claimed by #1511)
