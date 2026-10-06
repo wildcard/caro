@@ -811,14 +811,7 @@ impl SafetyValidator {
                     if lower.contains("recursive") {
                         keywords.push("recursive");
                     }
-                    // "root" alone also names the filesystem root and drive
-                    // roots ("deletion of root"), which change no privilege.
-                    // A world-writable path lets any user replace its files.
-                    if lower.contains("privilege")
-                        || lower.contains("root user")
-                        || lower.contains("world-writable")
-                        || lower.contains("sudo")
-                    {
+                    if names_privilege_change(&lower) {
                         keywords.push("privilege escalation");
                     }
                     if lower.contains("network") || lower.contains("backdoor") {
@@ -1094,6 +1087,36 @@ pub enum ValidationError {
 }
 
 // Types are already public, no re-export needed
+
+/// Words that name the filesystem root or a drive root. In these phrases
+/// "root" is a path, not the root user, so it changes no privilege.
+const FILESYSTEM_ROOT_PHRASES: &[&str] = &[
+    "drive root",
+    "root directory",
+    "root filesystem",
+    "root protection",
+    "of root",
+    "from root",
+];
+
+/// True when a lowercase pattern description names a privilege change.
+///
+/// "root" counts unless it is part of a filesystem-root phrase, so custom
+/// descriptions such as "run as root" keep the label. A world-writable
+/// path counts because any user can then replace its files.
+fn names_privilege_change(lower: &str) -> bool {
+    if ["privilege", "sudo", "world-writable"]
+        .iter()
+        .any(|w| lower.contains(w))
+    {
+        return true;
+    }
+    let mut rest = lower.to_string();
+    for phrase in FILESYSTEM_ROOT_PHRASES {
+        rest = rest.replace(phrase, " ");
+    }
+    rest.contains("root")
+}
 
 #[cfg(test)]
 mod smart_blend_tests {
@@ -1500,5 +1523,49 @@ mod allowlist_catastrophic_tests {
                 "permissive allowlist must never re-enable catastrophe: {cmd:?}"
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod privilege_label_tests {
+    use super::names_privilege_change;
+
+    #[test]
+    fn filesystem_root_phrases_are_not_privilege_changes() {
+        for d in [
+            "recursive deletion of root, home, current, or parent directory",
+            "force recursive deletion from root",
+            "bypass root protection and delete everything",
+            "recursive chmod on root directory",
+            "recursive deletion of windows drive root (powershell)",
+            "windows delete on c drive root",
+        ] {
+            assert!(!names_privilege_change(d), "{d}");
+        }
+    }
+
+    #[test]
+    fn root_privilege_wording_keeps_the_label() {
+        // Review finding: custom descriptions use many root-privilege
+        // phrases, not only "root user".
+        for d in [
+            "switch to root user without specific command",
+            "run as root",
+            "gain root access",
+            "open a root shell",
+            "download and execute remote script with root privileges",
+            "permission change making root world-writable (recursive or direct)",
+            "delete files with elevated privileges",
+            "sudo without a password",
+        ] {
+            assert!(names_privilege_change(d), "{d}");
+        }
+    }
+
+    #[test]
+    fn root_privilege_next_to_a_filesystem_root_keeps_the_label() {
+        assert!(names_privilege_change(
+            "run as root and delete the root directory"
+        ));
     }
 }

@@ -94,8 +94,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   levels are unchanged. Guarded by `tests/safety_text_contract.rs`.
 - **A deletion of `/` or a drive root no longer says "privilege escalation".**
   The safety explanation matched the bare word "root", so `rm -rf /` listed
-  "privilege escalation" next to "deletion". Now only the root user, root
-  privileges or a world-writable path (`chmod -R 777 /`) get that label.
+  "privilege escalation" next to "deletion". Now "root" in a filesystem-root
+  phrase ("drive root", "root directory") does not count. "Run as root" and a
+  world-writable path (`chmod -R 777 /`) keep the label.
   Six pattern descriptions now start with a verb, not an -ing word
   ("Change file permissions"). Guarded by `tests/safety_text_contract.rs`.
 
