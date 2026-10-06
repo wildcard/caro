@@ -1090,13 +1090,18 @@ pub enum ValidationError {
 
 /// Words that name the filesystem root or a drive root. In these phrases
 /// "root" is a path, not the root user, so it changes no privilege.
+///
+/// Each phrase names a path, so root-user wording such as "password of root
+/// user" keeps the label. "root dir" also covers "root directory".
 const FILESYSTEM_ROOT_PHRASES: &[&str] = &[
     "drive root",
-    "root directory",
+    "root dir",
+    "root folder",
+    "root partition",
     "root filesystem",
     "root protection",
-    "of root",
-    "from root",
+    "deletion of root",
+    "deletion from root",
 ];
 
 /// True when a lowercase pattern description names a privilege change.
@@ -1539,6 +1544,9 @@ mod privilege_label_tests {
             "recursive chmod on root directory",
             "recursive deletion of windows drive root (powershell)",
             "windows delete on c drive root",
+            "recursive chmod on the root dir",
+            "clear the root folder",
+            "wipe root partition",
         ] {
             assert!(!names_privilege_change(d), "{d}");
         }
@@ -1557,6 +1565,10 @@ mod privilege_label_tests {
             "permission change making root world-writable (recursive or direct)",
             "delete files with elevated privileges",
             "sudo without a password",
+            // Review finding: "of root" / "from root" must not strip
+            // root-user wording.
+            "reset password of root user",
+            "login from root's account",
         ] {
             assert!(names_privilege_change(d), "{d}");
         }
