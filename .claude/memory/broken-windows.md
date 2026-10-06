@@ -146,9 +146,17 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1217 (dup #1417)
+**Status:** claimed-by sweep/2026-10-06-BW-014. Adds a `dry_run` field to the JSON. `executed` keeps its pinned meaning ("passed safety checks"); contract tests depend on it.
+**Needs human?:** no
+**Next step:** merge the PR.
+
+### BW-024: `caro config set backend` has no `auto` value to restore auto-detect
+
+**Found:** 2026-10-06 sweep
+**Issue:** #1530
 **Status:** open
 **Needs human?:** no
-**Next step:** set `executed` from the real execution path.
+**Next step:** accept `auto` (or `default`) in `config set backend` and clear the stored backend. (Numbered BW-024 because BW-020 to BW-023 are on the #1522 branch.)
 
 ### BW-015: main CI `Extended Tests` (4 model jobs) red: HF Hub model download fails
 
