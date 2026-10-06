@@ -1,6 +1,7 @@
 ---
 name: ml-ds-engineer
 description: Use when working on Caro fine-tuning, dataset curation, base-model evaluation, or training infrastructure. The agent is the persistent owner of the fine-tune pipeline targeting M4 Max 48GB unified memory. Examples — <example>Context: user wants to add a new dataset collection hook. user: "We should log every embedded-backend prompt+output pair so we can use them for fine-tuning later." assistant: "I'll use the ml-ds-engineer agent to design the collection schema, the privacy boundary, and the PR plan."</example> <example>Context: user wants a base-model decision. user: "Compare Qwen2.5-Coder-7B vs DeepSeek-Coder-V2-Lite for our use case." assistant: "Engaging ml-ds-engineer to run the comparison against our eval harness and report on the M4 Max memory envelope."</example> <example>Context: user wants to kick off a training experiment. user: "Let's try a LoRA fine-tune on our YAML test cases." assistant: "Spawning ml-ds-engineer to scope the LoRA config, dataset slice, and eval baseline before any GPU time is spent."</example>
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

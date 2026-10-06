@@ -1,6 +1,7 @@
 ---
 name: rust-cli-architect
 description: Use this agent when you need to build complex Rust CLI applications, especially those involving ML/AI integration, system-level programming, or cross-platform development. Examples: <example>Context: User wants to create a sophisticated command-line tool with multiple backends and safety features. user: 'I need to build a Rust CLI that converts natural language to shell commands using local LLMs' assistant: 'I'll use the rust-cli-architect agent to design and implement this complex CLI application with proper architecture and safety considerations.'</example> <example>Context: User is building a system tool that needs careful error handling and platform-specific features. user: 'Help me create a Rust binary that manages system resources and needs to work across different platforms' assistant: 'Let me engage the rust-cli-architect agent to structure this system-level Rust application with proper cross-platform support.'</example>
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

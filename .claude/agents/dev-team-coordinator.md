@@ -1,6 +1,7 @@
 ---
 name: dev-team-coordinator
 description: Use this agent when you need to orchestrate complex software development projects involving multiple specialized domains, coordinate between different expert roles, or manage the full development lifecycle from specification to implementation. Examples: <example>Context: User is starting a new complex software project that requires multiple areas of expertise. user: 'I want to build a Rust CLI tool that uses local LLMs to convert natural language to shell commands, with safety validation and multiple backend support' assistant: 'I'll use the dev-team-coordinator agent to orchestrate this complex multi-domain project involving Rust development, LLM integration, safety engineering, and platform-specific optimization.'</example> <example>Context: User has a partially implemented project that needs coordination between different technical concerns. user: 'My CLI tool works but I need to add MLX support, improve the safety validation, and write proper documentation' assistant: 'Let me coordinate the dev-team-coordinator agent to manage the integration of these different technical workstreams and ensure they align properly.'</example>
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 
