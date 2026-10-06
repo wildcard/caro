@@ -64,7 +64,8 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | superseded by #1520 |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | superseded by [#1520](https://github.com/wildcard/caro/issues/1520) |
+| [#1520](https://github.com/wildcard/caro/issues/1520) | CLAUDE.md version banner drift (recurring) | docs | 2026-10-03 | open |
 | [#1530](https://github.com/wildcard/caro/issues/1530) | config set backend no auto-detect option | cli | 2026-10-06 | open |
 
 ---
