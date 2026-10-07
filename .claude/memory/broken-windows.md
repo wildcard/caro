@@ -196,7 +196,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-07 sweep (red on every main push since at least 2026-04-30)
 **Issue:** #1340
-**Status:** claimed-by sweep/2026-10-07-BW-026. Root cause: the cleanup step deletes `~/.cargo/bin/caro`, but cargo's metadata still lists caro. `cargo install` then prints "already installed" and exits 0, so setup.sh says "Installed" and `caro --help` exits 127. Real users who delete the binary hit the same thing.
+**Status:** claimed-by sweep/2026-10-07-BW-026 (#1539). Root cause: the cleanup step deletes `~/.cargo/bin/caro`, but cargo's metadata still lists caro. `cargo install` then prints "already installed" and exits 0, so setup.sh says "Installed" and `caro --help` exits 127. Real users who delete the binary hit the same thing.
 **Needs human?:** no
 **Next step:** merge the PR.
 
