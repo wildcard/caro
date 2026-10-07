@@ -394,18 +394,29 @@ test_full_script_dry_run() {
     fi
 }
 
-# Test: cargo metadata lists caro but the binary was deleted (#1340).
-# `cargo install` then prints "already installed" and exits 0 without a
-# binary. setup.sh must reinstall with --force instead of reporting success.
-test_cargo_install_missing_binary() {
-    test_start "cargo install repairs a missing binary"
-    setup_test_env
-
+# Helpers for the install_via_cargo tests (#1340). The mock cargo has
+# three modes:
+#   stale - metadata lists caro, binary deleted: "already installed", exit 0
+#           unless --force, which writes the binary.
+#   root  - an `install.root` config: installs into $TEST_TMPDIR/other-root.
+#   fail  - the build fails: exit 101.
+write_install_harness() {
     local mock_bin="$TEST_TMPDIR/mock-bin"
-    mkdir -p "$mock_bin"
+    mkdir -p "$mock_bin" "$TEST_TMPDIR/other-root/bin"
     cat > "$mock_bin/cargo" << 'EOF'
 #!/bin/bash
 echo "cargo $*" >> "$CARGO_HOME/cargo-calls.log"
+case "$MOCK_CARGO_MODE" in
+    fail)
+        echo "error: failed to compile caro"
+        exit 101
+        ;;
+    root)
+        printf '#!/bin/bash\necho caro\n' > "$TEST_TMPDIR/other-root/bin/caro"
+        chmod +x "$TEST_TMPDIR/other-root/bin/caro"
+        exit 0
+        ;;
+esac
 for arg in "$@"; do
     if [ "$arg" = "--force" ]; then
         printf '#!/bin/bash\necho caro\n' > "$CARGO_HOME/bin/caro"
@@ -428,12 +439,61 @@ EOF
         sed -n '/^install_via_cargo() {/,/^}/p' setup.sh
         echo 'install_via_cargo'
     } > "$TEST_TMPDIR/install_via_cargo_test.sh"
+}
 
-    if PATH="$mock_bin:$PATH" bash "$TEST_TMPDIR/install_via_cargo_test.sh" > "$TEST_TMPDIR/out.log" 2>&1 \
-        && [ -x "$CARGO_HOME/bin/caro" ]; then
+# Run the harness with only the mock and system tools on PATH, so a real
+# caro on this machine cannot hide the bug.
+run_install_harness() {
+    export TEST_TMPDIR
+    MOCK_CARGO_MODE="$1" \
+        PATH="$TEST_TMPDIR/mock-bin:/usr/bin:/bin" \
+        bash "$TEST_TMPDIR/install_via_cargo_test.sh" > "$TEST_TMPDIR/out.log" 2>&1
+}
+
+# Test: cargo metadata lists caro but the binary was deleted (#1340).
+# setup.sh must reinstall with --force instead of reporting success.
+test_cargo_install_missing_binary() {
+    test_start "cargo install repairs a missing binary"
+    setup_test_env
+    write_install_harness
+
+    if run_install_harness stale && [ -x "$CARGO_HOME/bin/caro" ]; then
         test_pass "Missing binary reinstalled with --force"
     else
         test_fail "Missing binary not reinstalled" "$(cat "$TEST_TMPDIR/out.log")"
+    fi
+
+    cleanup_test_env
+}
+
+# Test: an `install.root` config puts the binary outside ~/.cargo/bin.
+# That is a real install: no --force, no error.
+test_cargo_install_custom_root() {
+    test_start "cargo install with a custom install root"
+    setup_test_env
+    write_install_harness
+
+    if run_install_harness root \
+        && ! grep -q -- "--force" "$CARGO_HOME/cargo-calls.log"; then
+        test_pass "Custom install root accepted without --force"
+    else
+        test_fail "Custom install root rejected or forced" "$(cat "$TEST_TMPDIR/out.log")"
+    fi
+
+    cleanup_test_env
+}
+
+# Test: a failed cargo build still fails setup.sh (the output goes through tee).
+test_cargo_install_failure() {
+    test_start "cargo install failure is reported"
+    setup_test_env
+    write_install_harness
+
+    if ! run_install_harness fail \
+        && grep -q "Failed to install via cargo" "$TEST_TMPDIR/out.log"; then
+        test_pass "Failed cargo build fails the install"
+    else
+        test_fail "Failed cargo build was not reported" "$(cat "$TEST_TMPDIR/out.log")"
     fi
 
     cleanup_test_env
@@ -460,6 +520,8 @@ main() {
     test_unknown_shell_fallback
     test_completely_unknown_shell
     test_cargo_install_missing_binary
+    test_cargo_install_custom_root
+    test_cargo_install_failure
 
     # Summary
     echo ""

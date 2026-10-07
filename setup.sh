@@ -122,20 +122,27 @@ install_via_cargo() {
         say "Force install requested"
     fi
 
-    if ! $cargo_cmd; then
+    local cargo_log
+    cargo_log=$(mktemp)
+    $cargo_cmd 2>&1 | tee "$cargo_log"
+    local cargo_status=${PIPESTATUS[0]}
+    if [ "$cargo_status" -ne 0 ]; then
+        rm -f "$cargo_log"
         err "Failed to install via cargo"
     fi
 
     # cargo skips the install when its metadata lists caro, even if the
-    # binary was deleted, and still exits 0 (#1340). Reinstall with --force.
+    # binary was deleted, and still exits 0 (#1340). Reinstall with --force
+    # only then: an `install.root` config puts a real install elsewhere.
     local cargo_bin="${CARGO_INSTALL_ROOT:-${CARGO_HOME:-$HOME/.cargo}}/bin/caro"
-    if [ ! -x "$cargo_bin" ] && [ "$FORCE_INSTALL" != "true" ]; then
-        say "caro is not at $cargo_bin; reinstalling with --force"
-        $cargo_cmd --force || err "Failed to install via cargo"
+    if grep -q "is already installed" "$cargo_log" \
+        && [ "$FORCE_INSTALL" != "true" ] \
+        && [ ! -x "$cargo_bin" ] \
+        && ! command -v caro >/dev/null 2>&1; then
+        say "cargo lists caro as installed, but the binary is missing; reinstalling with --force"
+        $cargo_cmd --force || { rm -f "$cargo_log"; err "Failed to install via cargo"; }
     fi
-    if [ ! -x "$cargo_bin" ]; then
-        err "cargo reported success, but $cargo_bin does not exist"
-    fi
+    rm -f "$cargo_log"
 
     say_success "Installed caro successfully"
     return 0
