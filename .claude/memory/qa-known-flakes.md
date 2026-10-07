@@ -14,11 +14,11 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **Impact**: Queries requiring LLM inference cannot complete in this environment. Slot A dry-run using simple queries (e.g. "list files in current directory") uses the static matcher and passes without model download. Only prompts that fall outside static-matcher coverage are blocked; do not substitute proxy checks for a dry-run that the static matcher can serve.  
 **Occurrence log**:
 - 2026-05-07: observed once (Slot A dry-run)
-- 2026-10-07: observed again (Slot C `caro ai --once`; hang >45s; same root cause — binary download stalls)
+- 2026-10-07: observed again (Slot C `caro ai --once`; hang >45s; code defect — no download timeout (#1440), no static fallback (#1179), no init feedback (#1408), distinct from the sandbox download stall)
 
 **Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Workaround**: Run `caro -p "..." --dry-run` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama installed as fallback backend.
-**Note**: The `caro ai --once` variant of this flake is separately tracked as open issue #1440 (no download timeout) + #1179 (no static fallback). In the main `caro -p` path, the static matcher handles common commands without LLM, so FLAKE-001 surfaces only for queries that need LLM.
+**Note**: The `caro ai --once` variant of this flake is separately tracked as open issue #1440 (no download timeout) + #1179 (no static fallback) + #1408 (no init feedback). In the main `caro -p` path, the static matcher handles common commands without LLM, so FLAKE-001 surfaces only for queries that need LLM.
 
 ---
 

@@ -29,7 +29,7 @@ PRs merged since 2026-05-07 (sampling past 7 days — many more total):
 ### Slot C — `caro ai --once` (surface #10, never previously tested)
 
 - `caro ai --once list files in current directory` → **FLAKE**: hangs indefinitely (>45s) — model download stalls in sandbox; same underlying issue as FLAKE-001 extended to the `ai` subcommand
-- Error path tested: `echo "" | caro ai --once` → **PASS**: exits immediately with `Error: no prompt provided`
+- Error path tested: `echo "" | caro ai --once` → **PASS**: exits immediately with `Error: no prompt provided (pass text, pipe stdin, or use -p)`
 - Stdin-piped path: `echo "prompt" | caro ai --once` → **FLAKE**: reads stdin correctly (exits prompt-resolution), then hangs on backend init
 - `caro ai --help` → **PASS**: `--once` documented as "Run one turn and return — no TTY REPL"
 - Code inspection confirms PR #1503 fix is in place (`needs_stdin_prompt` guards stdin read)
