@@ -192,6 +192,16 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 ---
 
+### BW-020: CI never runs 23 of 46 integration test targets
+
+**Found:** 2026-10-07 (while driving #1536)
+**Issue:** #1537. CI runs only targets named by `cargo test --test <name>`; 23 targets in `tests/` are named nowhere, including 5 `*_contract` guards (e.g. `explain_ste_contract`, `clarification_gate_contract`).
+**Status:** open
+**Needs human?:** yes (CI gate). Options on #1537: run `cargo test --tests` in Unit Tests, or add a check that every target is named.
+**Next step:** maintainer picks an option on #1537.
+
+---
+
 ## Dedup pending (2026-09-30)
 
 The sweep could not close these duplicates: the session's permission classifier

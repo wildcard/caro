@@ -102,14 +102,35 @@ fn loops(schedule: &Schedule) -> impl Iterator<Item = (&String, &Loop)> {
         .chain(&schedule.management)
 }
 
-/// Five cron fields, each made of digits and `* / , -`.
+/// Five cron fields (minute, hour, day of month, month, day of week). Each
+/// field is a comma list of `*`, `n` or `a-b`, optionally `/step` with step > 0,
+/// and every number must be in the field's range.
 fn is_cron(expr: &str) -> bool {
+    const RANGES: [(u32, u32); 5] = [(0, 59), (0, 23), (1, 31), (1, 12), (0, 7)];
     let fields: Vec<&str> = expr.split_whitespace().collect();
     fields.len() == 5
-        && fields.iter().all(|f| {
-            f.chars()
-                .all(|c| c.is_ascii_digit() || matches!(c, '*' | '/' | ',' | '-'))
-        })
+        && fields
+            .iter()
+            .zip(RANGES)
+            .all(|(field, (lo, hi))| field.split(',').all(|part| cron_part_ok(part, lo, hi)))
+}
+
+fn cron_part_ok(part: &str, lo: u32, hi: u32) -> bool {
+    let in_range = |s: &str| s.parse::<u32>().is_ok_and(|n| (lo..=hi).contains(&n));
+    let (base, step) = match part.split_once('/') {
+        Some((base, step)) => (base, Some(step)),
+        None => (part, None),
+    };
+    if step.is_some_and(|s| !s.parse::<u32>().is_ok_and(|n| n > 0)) {
+        return false;
+    }
+    match base.split_once('-') {
+        _ if base == "*" => true,
+        Some((a, b)) => {
+            in_range(a) && in_range(b) && a.parse::<u32>().ok() <= b.parse::<u32>().ok()
+        }
+        None => in_range(base),
+    }
 }
 
 /// `/caro.sync all` → `caro.sync`, resolved as a command or a skill.
@@ -193,6 +214,12 @@ fn strict_decoding_rejects_unknown_and_missing_fields() {
 #[test]
 fn cron_check_rejects_malformed_expressions() {
     assert!(is_cron("0 */4 * * 1-5"));
+    assert!(is_cron("5 0,12 1-15/2 * 0"));
     assert!(!is_cron("0 5 * *"));
     assert!(!is_cron("daily"));
+    assert!(!is_cron("99 99 * * *"), "out of range");
+    assert!(!is_cron("- - - - -"), "empty range ends");
+    assert!(!is_cron("*/0 * * * *"), "zero step");
+    assert!(!is_cron("0 5-3 * * *"), "reversed range");
+    assert!(!is_cron("0 0 0 * *"), "day of month starts at 1");
 }
