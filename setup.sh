@@ -122,12 +122,23 @@ install_via_cargo() {
         say "Force install requested"
     fi
 
-    if $cargo_cmd; then
-        say_success "Installed caro successfully"
-        return 0
-    else
+    if ! $cargo_cmd; then
         err "Failed to install via cargo"
     fi
+
+    # cargo skips the install when its metadata lists caro, even if the
+    # binary was deleted, and still exits 0 (#1340). Reinstall with --force.
+    local cargo_bin="${CARGO_INSTALL_ROOT:-${CARGO_HOME:-$HOME/.cargo}}/bin/caro"
+    if [ ! -x "$cargo_bin" ] && [ "$FORCE_INSTALL" != "true" ]; then
+        say "caro is not at $cargo_bin; reinstalling with --force"
+        $cargo_cmd --force || err "Failed to install via cargo"
+    fi
+    if [ ! -x "$cargo_bin" ]; then
+        err "cargo reported success, but $cargo_bin does not exist"
+    fi
+
+    say_success "Installed caro successfully"
+    return 0
 }
 
 # Install via pre-built binary

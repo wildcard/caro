@@ -394,6 +394,51 @@ test_full_script_dry_run() {
     fi
 }
 
+# Test: cargo metadata lists caro but the binary was deleted (#1340).
+# `cargo install` then prints "already installed" and exits 0 without a
+# binary. setup.sh must reinstall with --force instead of reporting success.
+test_cargo_install_missing_binary() {
+    test_start "cargo install repairs a missing binary"
+    setup_test_env
+
+    local mock_bin="$TEST_TMPDIR/mock-bin"
+    mkdir -p "$mock_bin"
+    cat > "$mock_bin/cargo" << 'EOF'
+#!/bin/bash
+echo "cargo $*" >> "$CARGO_HOME/cargo-calls.log"
+for arg in "$@"; do
+    if [ "$arg" = "--force" ]; then
+        printf '#!/bin/bash\necho caro\n' > "$CARGO_HOME/bin/caro"
+        chmod +x "$CARGO_HOME/bin/caro"
+        exit 0
+    fi
+done
+echo "Ignored package \`caro v1.4.0\` is already installed, use --force to override"
+exit 0
+EOF
+    chmod +x "$mock_bin/cargo"
+
+    # Use the real function from setup.sh, not a copy.
+    {
+        echo 'say() { echo "$1"; }'
+        echo 'say_success() { echo "$1"; }'
+        echo 'say_error() { echo "$1"; }'
+        echo 'err() { say_error "$1"; exit 1; }'
+        echo 'FORCE_INSTALL="false"'
+        sed -n '/^install_via_cargo() {/,/^}/p' setup.sh
+        echo 'install_via_cargo'
+    } > "$TEST_TMPDIR/install_via_cargo_test.sh"
+
+    if PATH="$mock_bin:$PATH" bash "$TEST_TMPDIR/install_via_cargo_test.sh" > "$TEST_TMPDIR/out.log" 2>&1 \
+        && [ -x "$CARGO_HOME/bin/caro" ]; then
+        test_pass "Missing binary reinstalled with --force"
+    else
+        test_fail "Missing binary not reinstalled" "$(cat "$TEST_TMPDIR/out.log")"
+    fi
+
+    cleanup_test_env
+}
+
 # Main test runner
 main() {
     echo ""
@@ -414,6 +459,7 @@ main() {
     test_zdotdir_support
     test_unknown_shell_fallback
     test_completely_unknown_shell
+    test_cargo_install_missing_binary
 
     # Summary
     echo ""

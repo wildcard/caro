@@ -190,6 +190,59 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** yes (CI gate / lint policy). Options: pin the lint toolchain to 1.98.1, add a dated crate-level `allow`, or bump async-trait (syn 3; check MSRV).
 **Next step:** maintainer picks an option on #1498.
 
+(BW-020 to BW-023 are on the #1522 branch. BW-024 and BW-025 are on the #1532 branch.)
+
+### BW-026: `Install` workflow red on main: setup.sh reports success with no binary
+
+**Found:** 2026-10-07 sweep (red on every main push since at least 2026-04-30)
+**Issue:** #1340
+**Status:** claimed-by sweep/2026-10-07-BW-026. Root cause: the cleanup step deletes `~/.cargo/bin/caro`, but cargo's metadata still lists caro. `cargo install` then prints "already installed" and exits 0, so setup.sh says "Installed" and `caro --help` exits 127. Real users who delete the binary hit the same thing.
+**Needs human?:** no
+**Next step:** merge the PR.
+
+### BW-027: CI never runs 23 of 46 integration test targets
+
+**Found:** 2026-10-07 sweep
+**Issue:** #1537
+**Status:** open
+**Needs human?:** yes (CI gate). Options are in the issue: run `cargo test --tests`, or fail when a target is not named in a workflow.
+**Next step:** maintainer picks an option on #1537.
+
+### BW-028: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
+
+**Found:** 2026-10-07 sweep (issue filed 2026-10-03)
+**Issue:** #1508
+**Status:** open
+**Needs human?:** no
+**Next step:** add the missing locale files (English fallback content), or run the translate workflow.
+
+### BW-029: hybrid sanitizer lets paths with spaces and inline credentials reach the remote
+
+**Found:** 2026-10-07 sweep (issue filed 2026-10-03)
+**Issue:** #1518
+**Status:** open
+**Needs human?:** no (a bug fix in `src/backends/hybrid/sanitizer.rs`; use TDD)
+**Next step:** add failing cases for both inputs, then widen the redaction rules.
+
+### BW-030: static matcher "Find Python files (simple)" swallows content searches
+
+**Found:** 2026-10-07 sweep (issue filed 2026-10-03)
+**Issue:** #1516
+**Status:** claimed-by claude/blissful-archimedes-sl737k (#1517)
+**Needs human?:** no
+**Next step:** merge #1517.
+
+---
+
+## Dedup pending (2026-10-07)
+
+The session's permission classifier refused the close again. The 2026-10-03
+groups are on the #1522 branch. New since then:
+
+| Canonical | Duplicates |
+|---|---|
+| #1269 | #1523 (same CPU-stub root cause: the stub matches "rm" in the system prompt) |
+
 ---
 
 ## Dedup pending (2026-09-30)
