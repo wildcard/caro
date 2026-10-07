@@ -44,10 +44,10 @@ technical:
 
   ml_fine_tune_loop:
     description: "Daily ML/DS engineer pass — dataset growth, base-model selection, training experiments"
-    schedule: "5 0 * * *"           # Daily 12:05 AM (offset 5 min from metrics_collection at 0 0 since parallel_runs=false)
+    schedule: "5 0 * * *"           # Daily 12:05 AM (5 min after metrics_collection's slot, kept for when it is re-enabled; parallel_runs=false)
     skill: "/ml-fine-tune-loop"
     enabled: true
-    timeout_minutes: 30           # runner-contract default; the loop has no stated cap
+    timeout_minutes: 30           # 30-min default from the runner contract (#1506); the loop states no cap
     notify_on_failure: true
 
   creative_query_generator:
