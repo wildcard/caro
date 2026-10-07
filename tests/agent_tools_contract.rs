@@ -74,7 +74,10 @@ fn agents() -> Vec<Agent> {
         .map(|entry| entry.expect("dir entry").path())
         .filter(|path| path.extension().is_some_and(|ext| ext == "md"))
         .map(|path| {
-            let text = fs::read_to_string(&path).expect("read agent file");
+            // Windows runners check out with CRLF; the frontmatter split expects LF.
+            let text = fs::read_to_string(&path)
+                .expect("read agent file")
+                .replace("\r\n", "\n");
             let name = path.file_stem().unwrap().to_string_lossy().into_owned();
             let frontmatter = text
                 .strip_prefix("---\n")
