@@ -24,7 +24,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | # | Surface | Domain | Last tested | Result | Linked issue(s) |
 |---|---------|--------|-------------|--------|-----------------|
 | 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-05-07 | PASS | — |
-| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-05-07 | FLAKE | — |
+| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-07 | PASS | — |
 | 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
@@ -65,6 +65,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | closed |
+| [#1520](https://github.com/wildcard/caro/issues/1520) | CLAUDE.md version field alignment | docs | 2026-10-03 | open |
 
 ---
 
