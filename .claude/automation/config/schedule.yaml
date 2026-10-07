@@ -1,6 +1,8 @@
 # Automation Schedule Configuration
 # This file defines when each automation loop runs
+# Schema: tests/automation_schedule_contract.rs (strict; unknown or missing fields fail)
 
+version: 1
 timezone: "America/Los_Angeles"
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -44,6 +46,10 @@ technical:
     description: "Daily ML/DS engineer pass — dataset growth, base-model selection, training experiments"
     schedule: "5 0 * * *"           # Daily 12:05 AM (offset 5 min from metrics_collection at 0 0 since parallel_runs=false)
     skill: "/ml-fine-tune-loop"
+    enabled: true
+    timeout_minutes: 30           # runner-contract default; the loop has no stated cap
+    notify_on_failure: true
+
   creative_query_generator:
     description: "Generate novel natural-language queries, test against caro, file GH issues for epic failures"
     schedule: "0 4 * * *"           # Daily 4 AM
@@ -90,14 +96,14 @@ management:
     description: "Weekly revival of stale PRs and issues"
     schedule: "0 10 * * 1"          # Weekly Monday 10 AM
     skill: "/stale-revival-loop"
-    enabled: true
+    enabled: false  # Not yet implemented: no /stale-revival-loop command or skill exists
     timeout_minutes: 30
 
   metrics_collection:
     description: "Collect and aggregate automation metrics"
     schedule: "0 0 * * *"           # Daily midnight
     skill: "/metrics-collection"
-    enabled: true
+    enabled: false  # Not yet implemented: no /metrics-collection command or skill exists
     timeout_minutes: 10
 
   roadmap_status:

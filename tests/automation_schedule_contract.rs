@@ -1,0 +1,198 @@
+//! Contract: `.claude/automation/config/schedule.yaml` is versioned, strictly
+//! typed, and every enabled loop points at something that exists.
+//!
+//! google/ax decodes its specs strictly: an unknown or missing field is an
+//! error, not a silent default. Before this test the schedule had no version,
+//! one entry with no `enabled` or `timeout_minutes`, and two enabled loops
+//! naming skills that don't exist. See
+//! `docs/research/2026-09-24-google-ax-lessons.md`.
+
+// Some fields are never read: they exist so strict decoding accepts them.
+#![allow(dead_code)]
+
+use std::collections::BTreeMap;
+use std::path::Path;
+
+use serde::Deserialize;
+
+const SCHEDULE: &str = ".claude/automation/config/schedule.yaml";
+const SUPPORTED_VERSION: u32 = 1;
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Schedule {
+    version: u32,
+    timezone: String,
+    technical: BTreeMap<String, Loop>,
+    content: BTreeMap<String, Loop>,
+    management: BTreeMap<String, Loop>,
+    settings: Settings,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Loop {
+    description: String,
+    schedule: String,
+    skill: Option<String>,
+    agent: Option<String>,
+    prompt: Option<String>,
+    enabled: bool,
+    timeout_minutes: u32,
+    #[serde(default)]
+    notify_on_failure: bool,
+    #[serde(default)]
+    notify_on_completion: bool,
+    #[serde(default)]
+    notify_on_issues: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Settings {
+    notifications: Notifications,
+    retry: Retry,
+    logging: Logging,
+    features: Features,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Notifications {
+    slack_webhook: Option<String>,
+    email: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Retry {
+    max_attempts: u32,
+    delay_minutes: u32,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Logging {
+    level: String,
+    keep_days: u32,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Features {
+    dry_run: bool,
+    parallel_runs: bool,
+}
+
+fn root() -> &'static Path {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+}
+
+fn load() -> Schedule {
+    let text = std::fs::read_to_string(root().join(SCHEDULE)).expect("read schedule.yaml");
+    serde_yaml::from_str(&text)
+        .unwrap_or_else(|e| panic!("{SCHEDULE} does not match the schema: {e}"))
+}
+
+fn loops(schedule: &Schedule) -> impl Iterator<Item = (&String, &Loop)> {
+    schedule
+        .technical
+        .iter()
+        .chain(&schedule.content)
+        .chain(&schedule.management)
+}
+
+/// Five cron fields, each made of digits and `* / , -`.
+fn is_cron(expr: &str) -> bool {
+    let fields: Vec<&str> = expr.split_whitespace().collect();
+    fields.len() == 5
+        && fields.iter().all(|f| {
+            f.chars()
+                .all(|c| c.is_ascii_digit() || matches!(c, '*' | '/' | ',' | '-'))
+        })
+}
+
+/// `/caro.sync all` → `caro.sync`, resolved as a command or a skill.
+fn skill_exists(skill: &str) -> bool {
+    let name = skill
+        .trim_start_matches('/')
+        .split_whitespace()
+        .next()
+        .unwrap_or_default();
+    !name.is_empty()
+        && (root().join(format!(".claude/commands/{name}.md")).is_file()
+            || root()
+                .join(format!(".claude/skills/{name}/SKILL.md"))
+                .is_file())
+}
+
+#[test]
+fn schedule_decodes_strictly_with_a_supported_version() {
+    let schedule = load();
+    assert_eq!(
+        schedule.version, SUPPORTED_VERSION,
+        "unsupported schedule version; bump SUPPORTED_VERSION only with a migration"
+    );
+    assert!(!schedule.timezone.is_empty());
+    assert!(schedule.settings.retry.max_attempts > 0);
+}
+
+#[test]
+fn every_loop_is_well_formed() {
+    let schedule = load();
+    for (name, l) in loops(&schedule) {
+        assert!(!l.description.is_empty(), "{name}: empty description");
+        assert!(is_cron(&l.schedule), "{name}: bad cron {:?}", l.schedule);
+        assert!(l.timeout_minutes > 0, "{name}: timeout_minutes must be > 0");
+        assert!(
+            l.skill.is_some() != l.agent.is_some(),
+            "{name}: set exactly one of `skill` or `agent`"
+        );
+        assert!(
+            l.agent.is_none() || l.prompt.is_some(),
+            "{name}: an `agent` loop needs a `prompt`"
+        );
+    }
+}
+
+#[test]
+fn enabled_loops_point_at_something_that_exists() {
+    let schedule = load();
+    for (name, l) in loops(&schedule).filter(|(_, l)| l.enabled) {
+        if let Some(skill) = &l.skill {
+            assert!(
+                skill_exists(skill),
+                "{name}: enabled, but skill {skill:?} has no .claude/commands or .claude/skills entry"
+            );
+        }
+        if let Some(agent) = &l.agent {
+            assert!(
+                root().join(format!(".claude/agents/{agent}.md")).is_file(),
+                "{name}: enabled, but agent {agent:?} has no .claude/agents entry"
+            );
+        }
+    }
+}
+
+#[test]
+fn strict_decoding_rejects_unknown_and_missing_fields() {
+    let base = "version: 1\ntimezone: UTC\ncontent: {}\nmanagement: {}\n\
+        settings: {notifications: {slack_webhook: null, email: null}, \
+        retry: {max_attempts: 1, delay_minutes: 1}, logging: {level: info, keep_days: 1}, \
+        features: {dry_run: false, parallel_runs: false}}\n";
+    let ok = "technical: {a: {description: d, schedule: '0 0 * * *', skill: /x, enabled: true, timeout_minutes: 5}}\n";
+    assert!(serde_yaml::from_str::<Schedule>(&format!("{base}{ok}")).is_ok());
+
+    let missing = "technical: {a: {description: d, schedule: '0 0 * * *', skill: /x}}\n";
+    assert!(serde_yaml::from_str::<Schedule>(&format!("{base}{missing}")).is_err());
+
+    let typo = "technical: {a: {description: d, schedule: '0 0 * * *', skill: /x, enabled: true, timeout_minutes: 5, timout: 1}}\n";
+    assert!(serde_yaml::from_str::<Schedule>(&format!("{base}{typo}")).is_err());
+}
+
+#[test]
+fn cron_check_rejects_malformed_expressions() {
+    assert!(is_cron("0 */4 * * 1-5"));
+    assert!(!is_cron("0 5 * *"));
+    assert!(!is_cron("daily"));
+}
