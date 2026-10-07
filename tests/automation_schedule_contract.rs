@@ -186,8 +186,8 @@ fn strict_decoding_rejects_unknown_and_missing_fields() {
     let missing = "technical: {a: {description: d, schedule: '0 0 * * *', skill: /x}}\n";
     assert!(serde_yaml::from_str::<Schedule>(&format!("{base}{missing}")).is_err());
 
-    let typo = "technical: {a: {description: d, schedule: '0 0 * * *', skill: /x, enabled: true, timeout_minutes: 5, timout: 1}}\n";
-    assert!(serde_yaml::from_str::<Schedule>(&format!("{base}{typo}")).is_err());
+    let unknown = "technical: {a: {description: d, schedule: '0 0 * * *', skill: /x, enabled: true, timeout_minutes: 5, not_a_field: 1}}\n";
+    assert!(serde_yaml::from_str::<Schedule>(&format!("{base}{unknown}")).is_err());
 }
 
 #[test]
