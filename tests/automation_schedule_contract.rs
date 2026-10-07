@@ -133,6 +133,12 @@ fn cron_part_ok(part: &str, lo: u32, hi: u32) -> bool {
     }
 }
 
+/// A bare file name: no path separators and no `..`, so it can't resolve
+/// outside the directory it is checked in.
+fn is_plain_name(name: &str) -> bool {
+    !name.is_empty() && !name.contains(['/', '\\']) && !name.contains("..")
+}
+
 /// `/caro.sync all` → `caro.sync`, resolved as a command or a skill.
 fn skill_exists(skill: &str) -> bool {
     let name = skill
@@ -140,7 +146,7 @@ fn skill_exists(skill: &str) -> bool {
         .split_whitespace()
         .next()
         .unwrap_or_default();
-    !name.is_empty()
+    is_plain_name(name)
         && (root().join(format!(".claude/commands/{name}.md")).is_file()
             || root()
                 .join(format!(".claude/skills/{name}/SKILL.md"))
@@ -188,7 +194,7 @@ fn enabled_loops_point_at_something_that_exists() {
         }
         if let Some(agent) = &l.agent {
             assert!(
-                root().join(format!(".claude/agents/{agent}.md")).is_file(),
+                is_plain_name(agent) && root().join(format!(".claude/agents/{agent}.md")).is_file(),
                 "{name}: enabled, but agent {agent:?} has no .claude/agents entry"
             );
         }
@@ -209,6 +215,15 @@ fn strict_decoding_rejects_unknown_and_missing_fields() {
 
     let unknown = "technical: {a: {description: d, schedule: '0 0 * * *', skill: /x, enabled: true, timeout_minutes: 5, not_a_field: 1}}\n";
     assert!(serde_yaml::from_str::<Schedule>(&format!("{base}{unknown}")).is_err());
+}
+
+#[test]
+fn references_must_be_plain_names() {
+    assert!(is_plain_name("caro.sync"));
+    assert!(!is_plain_name("../commands/caro.sync"));
+    assert!(!is_plain_name("a/b"));
+    assert!(!is_plain_name("a\\b"));
+    assert!(!skill_exists("/../commands/caro.sync"));
 }
 
 #[test]
