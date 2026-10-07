@@ -190,7 +190,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** yes (CI gate / lint policy). Options: pin the lint toolchain to 1.98.1, add a dated crate-level `allow`, or bump async-trait (syn 3; check MSRV).
 **Next step:** maintainer picks an option on #1498.
 
-(BW-020 to BW-023 are on the #1522 branch. BW-024 and BW-025 are on the #1532 branch.)
+(Entries still on open PR branches: BW-020 #1221, BW-021 #1165, BW-022 #1162 and BW-023 #1163 on the #1522 branch; BW-024 #1530 and BW-025 #1533 on the #1532 branch.)
 
 ### BW-026: `Install` workflow red on main: setup.sh reports success with no binary
 
@@ -237,7 +237,8 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ## Dedup pending (2026-10-07)
 
 The session's permission classifier refused the close again. The 2026-10-03
-groups are on the #1522 branch. New since then:
+dedup groups (a table, separate from the BW entries) are on the #1522 branch.
+New since then:
 
 | Canonical | Duplicates |
 |---|---|

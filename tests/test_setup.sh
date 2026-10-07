@@ -457,7 +457,11 @@ test_cargo_install_missing_binary() {
     setup_test_env
     write_install_harness
 
-    if run_install_harness stale && [ -x "$CARGO_HOME/bin/caro" ]; then
+    # Call 1 is the plain install that cargo skips; call 2 is the --force retry.
+    if run_install_harness stale && [ -x "$CARGO_HOME/bin/caro" ] \
+        && [ "$(wc -l < "$CARGO_HOME/cargo-calls.log")" -eq 2 ] \
+        && ! sed -n 1p "$CARGO_HOME/cargo-calls.log" | grep -q -- "--force" \
+        && sed -n 2p "$CARGO_HOME/cargo-calls.log" | grep -q -- "--force"; then
         test_pass "Missing binary reinstalled with --force"
     else
         test_fail "Missing binary not reinstalled" "$(cat "$TEST_TMPDIR/out.log")"
