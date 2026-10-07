@@ -398,7 +398,8 @@ test_full_script_dry_run() {
 # three modes:
 #   stale - metadata lists caro, binary deleted: "already installed", exit 0
 #           unless --force, which writes the binary.
-#   root  - an `install.root` config: installs into $TEST_TMPDIR/other-root.
+#   root  - an `install.root` config: caro is already in
+#           $TEST_TMPDIR/other-root/bin (on PATH); cargo says "already installed".
 #   fail  - the build fails: exit 101.
 write_install_harness() {
     local mock_bin="$TEST_TMPDIR/mock-bin"
@@ -412,8 +413,7 @@ case "$MOCK_CARGO_MODE" in
         exit 101
         ;;
     root)
-        printf '#!/bin/bash\necho caro\n' > "$TEST_TMPDIR/other-root/bin/caro"
-        chmod +x "$TEST_TMPDIR/other-root/bin/caro"
+        echo "Ignored package \`caro v1.4.0\` is already installed, use --force to override"
         exit 0
         ;;
 esac
@@ -433,6 +433,7 @@ EOF
     {
         echo 'say() { echo "$1"; }'
         echo 'say_success() { echo "$1"; }'
+        echo 'say_warn() { echo "$1"; }'
         echo 'say_error() { echo "$1"; }'
         echo 'err() { say_error "$1"; exit 1; }'
         echo 'FORCE_INSTALL="false"'
@@ -441,12 +442,12 @@ EOF
     } > "$TEST_TMPDIR/install_via_cargo_test.sh"
 }
 
-# Run the harness with only the mock and system tools on PATH, so a real
-# caro on this machine cannot hide the bug.
+# Run the harness with only the mock, the custom install root and system
+# tools on PATH, so a real caro on this machine cannot hide the bug.
 run_install_harness() {
     export TEST_TMPDIR
     MOCK_CARGO_MODE="$1" \
-        PATH="$TEST_TMPDIR/mock-bin:/usr/bin:/bin" \
+        PATH="$TEST_TMPDIR/mock-bin:$TEST_TMPDIR/other-root/bin:/usr/bin:/bin" \
         bash "$TEST_TMPDIR/install_via_cargo_test.sh" > "$TEST_TMPDIR/out.log" 2>&1
 }
 
@@ -471,11 +472,13 @@ test_cargo_install_missing_binary() {
 }
 
 # Test: an `install.root` config puts the binary outside ~/.cargo/bin.
-# That is a real install: no --force, no error.
+# cargo says "already installed" and caro is on PATH: no --force, no error.
 test_cargo_install_custom_root() {
     test_start "cargo install with a custom install root"
     setup_test_env
     write_install_harness
+    printf '#!/bin/bash\necho caro\n' > "$TEST_TMPDIR/other-root/bin/caro"
+    chmod +x "$TEST_TMPDIR/other-root/bin/caro"
 
     if run_install_harness root \
         && ! grep -q -- "--force" "$CARGO_HOME/cargo-calls.log"; then

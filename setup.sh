@@ -141,6 +141,9 @@ install_via_cargo() {
         && ! command -v caro >/dev/null 2>&1; then
         say "cargo lists caro as installed, but the binary is missing; reinstalling with --force"
         $cargo_cmd --force || { rm -f "$cargo_log"; err "Failed to install via cargo"; }
+        if [ ! -x "$cargo_bin" ] && ! command -v caro >/dev/null 2>&1; then
+            say_warn "caro was reinstalled, but it is not at $cargo_bin or on PATH; check cargo's install.root"
+        fi
     fi
     rm -f "$cargo_log"
 
