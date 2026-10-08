@@ -25,7 +25,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 |---|---------|--------|-------------|--------|-----------------|
 | 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-05-07 | PASS | — |
 | 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-08 | PASS | — |
-| 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
+| 3 | Telemetry consent persistence across invocations | cli | 2026-10-08 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
 | 6 | Safety validation unit tests (cargo test safety) | safety | 2026-10-08 | PASS | — |
@@ -36,7 +36,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
-| 14 | `caro config get/set/show/reset` | cli | never | — | — |
+| 14 | `caro config get/set/show/reset` | cli | 2026-10-08 | PASS | — |
 | 15 | `caro --output json` format correctness | cli | never | — | — |
 | 16 | `caro --output yaml` format correctness | cli | never | — | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
