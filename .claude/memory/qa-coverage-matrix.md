@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-10-08
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -12,6 +12,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
+| 2026-10-08 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher fallback in 1.5.0 resolves previous dry-run FLAKE |
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
 
 ---
@@ -23,19 +24,19 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | # | Surface | Domain | Last tested | Result | Linked issue(s) |
 |---|---------|--------|-------------|--------|-----------------|
 | 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-05-07 | PASS | — |
-| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-05-07 | FLAKE | — |
-| 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
+| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-08 | PASS | — |
+| 3 | Telemetry consent persistence across invocations | cli | 2026-10-08 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
-| 6 | Safety validation unit tests (cargo test safety) | safety | 2026-05-07 | PASS | — |
-| 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-05-07 | PASS | — |
+| 6 | Safety validation unit tests (cargo test safety) | safety | 2026-10-08 | PASS | — |
+| 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-10-08 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-05-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | never | — | — |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-08 | FAIL | [#1540](https://github.com/wildcard/caro/issues/1540) |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
-| 14 | `caro config get/set/show/reset` | cli | never | — | — |
+| 14 | `caro config get/set/show/reset` | cli | 2026-10-08 | PASS | — |
 | 15 | `caro --output json` format correctness | cli | never | — | — |
 | 16 | `caro --output yaml` format correctness | cli | never | — | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
@@ -63,7 +64,9 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | closed |
+| [#1540](https://github.com/wildcard/caro/issues/1540) | ai --once silent hang when no backend ready | ai | 2026-10-08 | open |
+| [#1541](https://github.com/wildcard/caro/issues/1541) | CLAUDE.md shows 1.4.0 instead of 1.5.0 | docs | 2026-10-08 | open |
 
 ---
 
