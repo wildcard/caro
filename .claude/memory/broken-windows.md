@@ -196,7 +196,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-07 sweep (issue filed 2026-10-03)
 **Issue:** #1508
-**Status:** claimed-by sweep/2026-10-08-BW-028. Ran the repo's `website/scripts/i18n/sync-keys.mjs`, which writes English-fallback skeletons; `validate.mjs` goes from 26 errors to 0. The translate workflow keys on the English source hash, so it still translates these files on its next run.
+**Status:** claimed-by sweep/2026-10-08-BW-028 (#1544). Ran the repo's `website/scripts/i18n/sync-keys.mjs`, which writes English-fallback skeletons; `validate.mjs` goes from 26 errors to 0. The translate workflow keys on the English source hash, so it still translates these files on its next run.
 **Needs human?:** no
 **Next step:** merge the PR.
 
