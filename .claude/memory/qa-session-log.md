@@ -25,7 +25,7 @@ PRs merged since 2026-05-07 (≥20 significant PRs; key surfaces exercised):
 - **#1497** (config get/set key coverage) → `caro config show`, `config get safety/log_level/cache_max_size/log_rotation`, `config set safety moderate` → **PASS**: all keys accepted
 - **#1509** (STE-lite explain mode) → `caro -p "list files" --explain` → **PASS**: explains `ls -la` in short-sentence STE format with option breakdown
 - **#1503** (ai --once stdin fix) → tested as part of Slot C; see below
-- **#1488** (security dep upgrade) → build clean, no new audit warnings observed
+- **#1488** (security dep upgrade) → build succeeded; `cargo audit` not installed in sandbox — CI Security Audit job is the authoritative check for advisory-database coverage
 
 ### Slot C — caro ai --once (surface #10)
 
