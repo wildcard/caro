@@ -190,7 +190,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** yes (CI gate / lint policy). Options: pin the lint toolchain to 1.98.1, add a dated crate-level `allow`, or bump async-trait (syn 3; check MSRV).
 **Next step:** maintainer picks an option on #1498.
 
-(Entries still on open PR branches: BW-020..023 on #1522, BW-024..025 on #1532, BW-026..030 on #1539.)
+(Entries still on open PR branches: BW-020..023 on #1522, BW-024..025 on #1532, BW-026..030 on #1539. BW-028 below is that same #1508 entry, updated with its claim; whichever PR merges second keeps one copy.)
 
 ### BW-028: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
 
