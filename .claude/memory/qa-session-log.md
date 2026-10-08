@@ -87,7 +87,7 @@ Surface chosen: **Safety validation module** (oldest = never tested; first-ever 
 ### Followups
 
 - Model download FLAKE observed once. Sandbox network appears to block HuggingFace binary downloads despite HTTP reachability. Track in qa-known-flakes.md; if reproduced 3×/7 days, promote to regression.
-- Next Slot C candidate: `caro ai` conversational mode (surface #10 in matrix, never tested).
+- Next Slot C candidate: `caro ai --continue-session` shell widget (surface #11 in matrix, never tested). Surface #10 (`caro ai --once`) was exercised in the 2026-10-08 rotation; see Findings above.
 - Consider adding `CLAUDE.md` to the release-version-alignment 6-file checklist so version drift can't recur (noted in #1044 fix direction).
 
 ---
