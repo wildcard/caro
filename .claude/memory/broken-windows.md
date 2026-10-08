@@ -190,6 +190,27 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** yes (CI gate / lint policy). Options: pin the lint toolchain to 1.98.1, add a dated crate-level `allow`, or bump async-trait (syn 3; check MSRV).
 **Next step:** maintainer picks an option on #1498.
 
+(Entries still on open PR branches: BW-020..023 on #1522, BW-024..025 on #1532, BW-026..030 on #1539.)
+
+### BW-028: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
+
+**Found:** 2026-10-07 sweep (issue filed 2026-10-03)
+**Issue:** #1508
+**Status:** claimed-by sweep/2026-10-08-BW-028. Ran the repo's `website/scripts/i18n/sync-keys.mjs`, which writes English-fallback skeletons; `validate.mjs` goes from 26 errors to 0. The translate workflow keys on the English source hash, so it still translates these files on its next run.
+**Needs human?:** no
+**Next step:** merge the PR.
+
+---
+
+## Dedup pending (2026-10-08)
+
+The classifier refused issue closes on 2026-10-03, 2026-10-06 and 2026-10-07. New duplicates since then:
+
+| Canonical | Duplicates |
+|---|---|
+| #1098 | #1541 |
+| #1272 | #1540 |
+
 ---
 
 ## Dedup pending (2026-09-30)

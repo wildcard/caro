@@ -1,0 +1,86 @@
+{
+  "playbook": {
+    "meta": {
+      "title": "The Caro Playbook — Where we are, where we're going",
+      "description": "Caro's founder-arc stage map adapted from Anthropic's Founder's Playbook. We're at late MVP heading into Launch. The next gate is retention, not features."
+    },
+    "hero": {
+      "eyebrow": "Founder Playbook",
+      "title": "Where Caro is on the founder arc",
+      "subtitle": "We adapted Anthropic's Founder's Playbook into a stage map you can actually inspect — with the evidence, the gaps, and the honest failure modes we're watching for."
+    },
+    "intro": {
+      "heading": "Why we publish this",
+      "body": "Most companies tell you they have product-market fit. We tell you the four-stage map we're on, where we sit on it, and what evidence we'd need to claim the next stage. The playbook came from Anthropic; the honesty is the only way to make it useful."
+    },
+    "stages": {
+      "idea": {
+        "title": "Stage 1 — Idea",
+        "status": "Exited",
+        "summary": "Problem validated. Personas documented. Distribution channels live. Waitlist signal is real (~247) but qualitative — quantitative validation gates are codified now to apply forward from May 25, 2026.",
+        "evidence": "MISSION.md, docs/PERSONAS_JTBD.md, docs/JOBS_TO_BE_DONE.md, live waitlist on caro.sh"
+      },
+      "mvp": {
+        "title": "Stage 2 — MVP",
+        "status": "Exited",
+        "summary": "Core loop ships at 94.8% Command Success Rate. Multi-backend by construction (no single-vendor lock-in). 52+ dangerous-command patterns. 700+ eval cases. Engineering discipline encoded in a tiered constitution.",
+        "evidence": "Cargo.toml v1.4.0, tests/evaluation/, src/safety/patterns.rs, .claude/rules/constitution.md"
+      },
+      "launch": {
+        "title": "Stage 3 — Launch",
+        "status": "Current",
+        "summary": "Distribution shipped (crates.io, Homebrew, npm, NuGet, install script). Public surface shipped (15-locale website, docs). The exit gate is retention, not features. Until we publish a defended D7 curve, we do not claim PMF.",
+        "evidence": "Multi-channel distribution, telemetry infrastructure, docs/retention-dashboard-spec.md (spec only; dashboard not yet shipped)"
+      },
+      "scale": {
+        "title": "Stage 4 — Scale",
+        "status": "Mapped, not entered",
+        "summary": "Dual-track Community / Enterprise per ADR-001. Multi-agent operating layer in place (Hermes + 33 domain agents). Scale is horizontal adoption inside orgs that already deploy AI coding agents — not consumer pivots.",
+        "evidence": "docs/adr/ADR-001-enterprise-community-architecture.md, docs/enterprise/MOAT.md, .hermes/AGENT.md"
+      }
+    },
+    "discipline": {
+      "heading": "The five gates we now apply to ourselves",
+      "body": "Adopting the playbook meant codifying its anti-confirmation-bias practices as a constitution rule. New product lines clear five gates before the spec graduates from research to implementation.",
+      "gates": [
+        {
+          "name": "20 first-hand transcripts",
+          "body": "Real interviews, not surveys, not stars, not waitlist counts. 20 conversations surfacing at least 3 distinct pain patterns."
+        },
+        {
+          "name": "No surveys as primary evidence",
+          "body": "Surveys size hypotheses after qualitative interviews surface them — never replace them."
+        },
+        {
+          "name": "What breaks at 100 real users",
+          "body": "Every spec names the demoware-trap failure mode and the instrumentation that would detect it."
+        },
+        {
+          "name": "Devil's-advocate review",
+          "body": "An adversarial agent interrogates AI-drafted proposals before merge to counter confirmation bias."
+        },
+        {
+          "name": "Sean Ellis with a defended cohort",
+          "body": "PMF claims require both the >40% threshold and a cohort definition we can defend — not 'everyone who installed'."
+        }
+      ]
+    },
+    "audit": {
+      "heading": "We audited our own roadmap against these gates",
+      "body": "Five v2.0 product lines moved to Research (unvalidated) because they had zero first-hand transcripts: Karo distributed intelligence, Dogma rule engine, voice synthesis, self-healing, and local context indexing. The four items that extend the already-validated core loop (Azure Foundry, vLLM Jukebox, Skills extension, Handy.Computer) pass as extensions and remain on v2.0.",
+      "linkText": "Read the full retroactive audit",
+      "linkHref": "https://github.com/wildcard/caro/blob/main/docs/discovery/v2.0-validation-audit.md"
+    },
+    "links": {
+      "heading": "Read the work",
+      "stageMap": "Full stage map",
+      "company": "How Caro becomes a company",
+      "rule": "Validation discipline rule",
+      "discovery": "Discovery directory",
+      "launchOs": "Launch operating system inventory",
+      "retention": "Retention dashboard spec",
+      "agenticStack": "How we use Chat / Cowork / Code / Platform",
+      "source": "The original playbook"
+    }
+  }
+}
