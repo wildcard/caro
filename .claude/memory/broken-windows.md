@@ -221,8 +221,8 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Found:** 2026-10-07 sweep (issue filed 2026-10-03)
 **Issue:** #1518
 **Status:** open
-**Needs human?:** no (a bug fix in `src/backends/hybrid/sanitizer.rs`; use TDD)
-**Next step:** add failing cases for both inputs, then widen the redaction rules.
+**Needs human?:** yes. The issue marks it as a privacy-policy surface: the owner confirms what may leave the machine.
+**Next step:** owner decides; then add failing cases for both inputs in `src/backends/hybrid/sanitizer.rs` and widen the redaction rules.
 
 ### BW-030: static matcher "Find Python files (simple)" swallows content searches
 
