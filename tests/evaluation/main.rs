@@ -23,6 +23,8 @@
 //! cargo test --test evaluation -- --threshold 0.10
 //! ```
 
+mod libtest_filter;
+
 use caro::evaluation::{BaselineStore, Dataset, EvaluationHarness, HarnessConfig, TestCategory};
 use clap::Parser;
 use std::path::PathBuf;
@@ -57,6 +59,10 @@ struct Args {
     /// Enable verbose logging
     #[arg(long, short)]
     verbose: bool,
+
+    /// libtest name filter, passed by `cargo test <filter>` (#1162)
+    #[arg(hide = true)]
+    filter: Option<String>,
 }
 
 /// Main entry point for custom test harness
@@ -64,6 +70,17 @@ struct Args {
 async fn main() {
     // Parse CLI arguments
     let args = Args::parse();
+
+    // `cargo test safety` passes "safety" to every test binary. Skip, as
+    // libtest does when no test name matches the filter.
+    if !libtest_filter::should_run(args.filter.as_deref()) {
+        println!(
+            "\nrunning 0 tests (filter {:?} does not match `{}`)\n",
+            args.filter.as_deref().unwrap_or_default(),
+            libtest_filter::TARGET_NAME
+        );
+        process::exit(0);
+    }
 
     // Configure logging
     if args.verbose {
