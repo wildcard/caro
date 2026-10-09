@@ -77,22 +77,3 @@ jobs:
               issue_number: prNumber,
               body: message
             });
-
-  add-contributor:
-    if: github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          ref: main
-          fetch-depth: 0
-
-      - name: Add contributor to all-contributors
-        uses: all-contributors/add-contributor@v1
-        continue-on-error: true
-        with:
-          contributor_name: ${{ github.event.pull_request.user.login }}
-          contributor_type: code
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
