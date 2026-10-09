@@ -51,10 +51,13 @@ yield to anything in Tier 1 or Tier 2.
    found it; do not gold-plate.
 9. **[quick-actions-footer.md](./quick-actions-footer.md)** — Append a
    Quick-Actions footer when stopping for user input.
-10. **[astro-esbuild-shell-syntax.md](./astro-esbuild-shell-syntax.md)** —
+10. **[legible-output.md](./legible-output.md)** — Owner-facing agent output
+   puts the ask first, uses STE-lite (ASD-STE100) sentences, and climbs the
+   text → diagram → HTML → video ladder when text is not enough.
+11. **[astro-esbuild-shell-syntax.md](./astro-esbuild-shell-syntax.md)** —
    Escape `{` in shell snippets inside `.astro` / `.jsx` / `.tsx` templates
    (esbuild treats it as a JSX expression boundary).
-11. **[design-dialogue-protocol.md](./design-dialogue-protocol.md)** — Brand
+12. **[design-dialogue-protocol.md](./design-dialogue-protocol.md)** — Brand
    work with Claude Design: screenshots only via sub-agent, ask don't
    instruct, user-gated sends, revert call sites not assets, visual audit
    before merging brand-touching PRs.

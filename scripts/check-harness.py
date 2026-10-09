@@ -6,7 +6,7 @@ Adapted from tigerless-labs/autoharness (MIT). There, a model may only
 one spec before anything lands, and tests pin the agents' contracts
 (least-privilege tools, hooks wired to files that exist). Caro's harness is
 hand-written by many parallel sessions, so the same checks run in CI instead.
-Rationale: docs/adr/ADR-017-autoharness-harness-hygiene.md
+Rationale: docs/adr/ADR-018-autoharness-harness-hygiene.md
 
 Levels:
   error   fails the run: a broken registry entry, or drift in a file that is

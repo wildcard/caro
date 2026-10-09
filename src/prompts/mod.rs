@@ -83,10 +83,12 @@
 pub mod capability_profile;
 pub mod command_templates;
 pub mod explainer_prompt;
+pub mod intent;
 pub mod minimal;
 pub mod profiles;
 pub mod risk_judge;
 pub mod smollm_prompt;
+pub mod ste;
 pub mod validation;
 
 /// Selects which system-prompt variant the embedded backend uses.
@@ -131,12 +133,13 @@ impl std::fmt::Display for PromptStyle {
 pub use capability_profile::{AwkType, CapabilityProfile, DetectedShell, ProfileType, StatFormat};
 pub use command_templates::{CommandTemplate, TemplateLibrary};
 pub use explainer_prompt::ExplainerPromptBuilder;
+pub use intent::{classify_intent, IntentCategory};
 pub use minimal::build_minimal_prompt;
 pub use profiles::{
     AlternativeCommand, CommandExplanation, GenerationProfile, OptionExplanation, ProfileConfig,
     UsageExample,
 };
-pub use risk_judge::{build_risk_judge_prompt, parse_risk_judgment};
+pub use risk_judge::{build_risk_judge_prompt, parse_risk_judgment, risk_judge_schema};
 pub use smollm_prompt::{CommandOutput, PromptResponse, RepairPromptBuilder, SmolLMPromptBuilder};
 pub use validation::{
     CommandValidator, RiskLevel, ValidationError, ValidationErrorCode, ValidationResult,

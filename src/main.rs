@@ -75,6 +75,12 @@ fn is_stdin_available() -> bool {
     !std::io::stdin().is_terminal()
 }
 
+/// Whether `caro ai --once` should fall back to reading its prompt from stdin:
+/// only when -p and the trailing words are absent or blank.
+fn needs_stdin_prompt(flag: &Option<String>, trailing: &[String]) -> bool {
+    flag.is_none() && trailing.iter().all(|w| w.trim().is_empty())
+}
+
 /// Read all content from stdin
 ///
 /// Returns the complete stdin content as a String, or an error if reading fails
@@ -212,14 +218,16 @@ enum ExportFormat {
 enum ConfigCommands {
     /// Set a configuration value
     Set {
-        /// Configuration key (backend, model-name, shell, safety)
+        /// Configuration key (backend, model-name, shell, safety, telemetry.enabled,
+        /// log_level, cache_max_size, log_rotation)
         key: String,
         /// Value to set
         value: String,
     },
     /// Get a configuration value
     Get {
-        /// Configuration key (backend, model-name, shell, safety)
+        /// Configuration key (backend, model-name, shell, safety, telemetry.enabled,
+        /// log_level, cache_max_size, log_rotation)
         key: String,
     },
     /// Show all configuration
@@ -1077,8 +1085,10 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     use std::str::FromStr;
     use std::sync::Arc;
 
-    // Resolve prompt (flag > stdin > trailing).
-    let stdin_text = if is_stdin_available() {
+    // Resolve prompt. Stdin is read only when neither -p nor trailing words gave
+    // one: in scripts and CI stdin is a pipe that may never reach EOF, so
+    // reading it would hang `--once` forever (#1499).
+    let stdin_text = if needs_stdin_prompt(&cli.prompt, &trailing) && is_stdin_available() {
         read_stdin().ok().filter(|s| !s.is_empty())
     } else {
         None
@@ -1957,6 +1967,7 @@ impl caro::backends::CommandGenerator for InlineMockBackend {
             backend_used: "mock-inline".into(),
             generation_time_ms: 1,
             confidence_score: 0.5,
+            confidence_source: caro::models::ConfidenceSource::Measured,
         })
     }
 
@@ -2059,6 +2070,12 @@ fn build_knowledge_backend_config(
 // Configuration Commands
 // =============================================================================
 
+/// Canonical keys for `caro config set/get` (every key `config show` prints),
+/// listed in the unknown-key error. The match arms also accept dash/underscore
+/// aliases; `tests/config_cli_keys.rs` exercises each key and alias.
+const CONFIG_KEYS: &str =
+    "backend, model-name, shell, safety, telemetry.enabled, log_level, cache_max_size, log_rotation";
+
 /// Handle configuration subcommands
 fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
     use colored::Colorize;
@@ -2108,10 +2125,52 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                     config.safety_level = level;
                     println!("{} Set safety level to '{:?}'", "✓".green(), level);
                 }
+                "telemetry" | "telemetry.enabled" | "telemetry-enabled" => {
+                    let enabled: bool = value.to_lowercase().parse().map_err(|_| {
+                        format!("Invalid telemetry value '{}': use true or false", value)
+                    })?;
+                    config.telemetry.enabled = enabled;
+                    // An explicit choice counts as consent; don't re-prompt over it.
+                    config.telemetry.first_run = false;
+                    println!("{} Set telemetry.enabled to '{}'", "✓".green(), enabled);
+                }
+                "log_level" | "log-level" => {
+                    let level: caro::models::LogLevel = value.parse()?;
+                    config.log_level = level;
+                    println!("{} Set log level to '{:?}'", "✓".green(), level);
+                }
+                "cache_max_size" | "cache-max-size" => {
+                    config.cache_max_size_gb = value.parse().map_err(|_| {
+                        format!(
+                            "Invalid cache_max_size '{}': expected a number of GB",
+                            value
+                        )
+                    })?;
+                    config.validate()?;
+                    println!(
+                        "{} Set cache max size to {} GB",
+                        "✓".green(),
+                        config.cache_max_size_gb
+                    );
+                }
+                "log_rotation" | "log-rotation" => {
+                    config.log_rotation_days = value.parse().map_err(|_| {
+                        format!(
+                            "Invalid log_rotation '{}': expected a number of days",
+                            value
+                        )
+                    })?;
+                    config.validate()?;
+                    println!(
+                        "{} Set log rotation to {} days",
+                        "✓".green(),
+                        config.log_rotation_days
+                    );
+                }
                 _ => {
                     return Err(format!(
-                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety",
-                        key
+                        "Unknown config key '{}'. Valid keys: {}",
+                        key, CONFIG_KEYS
                     ));
                 }
             }
@@ -2153,10 +2212,34 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 "safety" => {
                     println!("{}: {:?}", "safety".bold(), config.safety_level);
                 }
+                "telemetry" | "telemetry.enabled" | "telemetry-enabled" => {
+                    println!(
+                        "{}: {}",
+                        "telemetry.enabled".bold(),
+                        config.telemetry.enabled
+                    );
+                }
+                "log_level" | "log-level" => {
+                    println!("{}: {:?}", "log_level".bold(), config.log_level);
+                }
+                "cache_max_size" | "cache-max-size" => {
+                    println!(
+                        "{}: {} GB",
+                        "cache_max_size".bold(),
+                        config.cache_max_size_gb
+                    );
+                }
+                "log_rotation" | "log-rotation" => {
+                    println!(
+                        "{}: {} days",
+                        "log_rotation".bold(),
+                        config.log_rotation_days
+                    );
+                }
                 _ => {
                     return Err(format!(
-                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety",
-                        key
+                        "Unknown config key '{}'. Valid keys: {}",
+                        key, CONFIG_KEYS
                     ));
                 }
             }
@@ -3539,6 +3622,37 @@ async fn main() {
             // Exit with code 0 for successful or safe commands
             process::exit(if was_blocked { 1 } else { 0 })
         }
+        Err(CliError::NeedsClarification { question, p }) => {
+            // Typed clarification gate (ADR-017): a question, not an error.
+            // Honour the requested machine-readable format so wrappers can
+            // tell a question from a command.
+            let fallback = "Could you rephrase the request with a bit more detail?";
+            let format = cli
+                .output
+                .as_deref()
+                .and_then(|o| o.parse::<caro::cli::OutputFormat>().ok())
+                .unwrap_or(caro::cli::OutputFormat::Plain);
+            let payload = serde_json::json!({
+                "needs_clarification": true,
+                "question": question.as_deref().unwrap_or(fallback),
+                "p": p,
+            });
+            match format {
+                caro::cli::OutputFormat::Json => {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&payload).unwrap_or_default()
+                    )
+                }
+                caro::cli::OutputFormat::Yaml => {
+                    print!("{}", serde_yaml::to_string(&payload).unwrap_or_default())
+                }
+                caro::cli::OutputFormat::Plain => {
+                    eprintln!("{}", question.as_deref().unwrap_or(fallback))
+                }
+            }
+            process::exit(0);
+        }
         Err(e) => {
             eprintln!("Error: {}", e);
             match e {
@@ -3732,6 +3846,19 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             display!("  {} Primary command", "#".dimmed());
             display!("  {}", result.generated_command.bright_cyan().bold());
             display!("");
+
+            // Print what the command does (STE-lite text)
+            if !explanation.detailed_explanation.is_empty() {
+                display!("{}", "What it does:".bold());
+                for line in explanation.detailed_explanation.lines() {
+                    if line.is_empty() {
+                        display!("");
+                    } else {
+                        display!("  {}", line);
+                    }
+                }
+                display!("");
+            }
 
             // Print usage examples
             if !explanation.examples.is_empty() {
@@ -4148,6 +4275,15 @@ mod tests {
         );
         assert_eq!(resolved.text, "flag");
         assert_eq!(resolved.source, PromptSource::Flag);
+    }
+
+    #[test]
+    fn test_needs_stdin_prompt() {
+        let words = |w: &[&str]| w.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        assert!(needs_stdin_prompt(&None, &[]));
+        assert!(needs_stdin_prompt(&None, &words(&["", "  "])));
+        assert!(!needs_stdin_prompt(&None, &words(&["list", "files"])));
+        assert!(!needs_stdin_prompt(&Some("x".into()), &[]));
     }
 
     #[test]

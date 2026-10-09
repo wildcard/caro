@@ -24,6 +24,29 @@ pub struct CommandResult {
 
     /// Backend that generated this result
     pub backend_name: String,
+
+    /// Backend-reported confidence in the generated command (`0.0..=1.0`),
+    /// `None` when generation failed or the backend reported nothing.
+    ///
+    /// Carried through to [`EvaluationResult::confidence`] so the harness can
+    /// score calibration (Brier / ECE) — see [`crate::evaluation::calibration`].
+    pub confidence: Option<f64>,
+
+    /// Provenance of `confidence` (ADR-017, #1464). `None` when generation
+    /// failed; `Some(Unknown)` when the backend answered but cannot measure.
+    pub confidence_source: Option<crate::models::ConfidenceSource>,
+
+    /// Whether the risk judge (`classify_risk`) returned no verdict when
+    /// the harness asked for one (#1465). `None` when the judge did not run.
+    pub decision_failed: Option<bool>,
+
+    /// The backend's own risk verdict for the generated command, when the
+    /// harness ran its judge (#1466).
+    pub local_risk: Option<crate::models::RiskJudgment>,
+
+    /// The reference labeller's verdict for the same command, when one was
+    /// configured (#1466). A model label, not ground truth.
+    pub reference_risk: Option<crate::models::RiskJudgment>,
 }
 
 impl CommandResult {
@@ -35,6 +58,11 @@ impl CommandResult {
             error: None,
             execution_time_ms,
             backend_name,
+            confidence: None,
+            confidence_source: Some(crate::models::ConfidenceSource::Unknown),
+            decision_failed: None,
+            local_risk: None,
+            reference_risk: None,
         }
     }
 
@@ -46,6 +74,11 @@ impl CommandResult {
             error: None,
             execution_time_ms,
             backend_name,
+            confidence: None,
+            confidence_source: None,
+            decision_failed: None,
+            local_risk: None,
+            reference_risk: None,
         }
     }
 
@@ -57,6 +90,11 @@ impl CommandResult {
             error: Some(error),
             execution_time_ms,
             backend_name,
+            confidence: None,
+            confidence_source: None,
+            decision_failed: None,
+            local_risk: None,
+            reference_risk: None,
         }
     }
 }

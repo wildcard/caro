@@ -53,7 +53,8 @@ Example: `ADR-001-enterprise-community-architecture.md`
 | [ADR-014](./ADR-014-serde-env-evaluation.md) | Environment Variable Deserialization with serde-env | Proposed | 2026-01-01 |
 | [ADR-015](./ADR-015-distributed-llm-backends-hybrid-privacy.md) | Distributed-LLM Backends (Mesh-LLM, AI-Horde) via a Hybrid Privacy Gateway | Accepted | 2026-06-07 |
 | [ADR-016](./ADR-016-ponytail-pragmatic-reviewer.md) | Ponytail Pragmatic-Skeptic Reviewer (Additive Adoption) | Accepted | 2026-06-14 |
-| [ADR-017](./ADR-017-autoharness-harness-hygiene.md) | Harness Hygiene Lessons from autoharness (Additive Adoption) | Proposed | 2026-09-26 |
+| [ADR-017](./ADR-017-typed-decisions-and-calibrated-confidence.md) | Typed Decisions and Calibrated Confidence for Pipeline Gates | Accepted | 2026-09-22 |
+| [ADR-018](./ADR-018-autoharness-harness-hygiene.md) | Harness Hygiene Lessons from autoharness (Additive Adoption) | Proposed | 2026-09-26 |
 
 ## Contributing to ADRs
 

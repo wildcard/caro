@@ -9,6 +9,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError};
+use crate::decision::decide_with_retry;
+use crate::models::{RiskJudgeContext, RiskJudgment};
+use crate::prompts::{build_risk_judge_prompt, parse_risk_judgment, risk_judge_schema};
 
 /// Regex pattern to extract command from malformed JSON with unescaped quotes
 /// Handles cases like: {"cmd": "find . -type f -name "*.txt""}
@@ -24,6 +27,11 @@ struct VllmRequest {
     temperature: f32,
     max_tokens: u32,
     stream: bool,
+    /// Ask for per-token log-probs so confidence is measured, not constant (#1464).
+    logprobs: bool,
+    /// JSON Schema for guided decoding; set on decision requests only (#1465).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    guided_json: Option<serde_json::Value>,
 }
 
 /// vLLM message format
@@ -47,6 +55,35 @@ struct VllmChoice {
     message: VllmResponseMessage,
     #[allow(dead_code)]
     finish_reason: Option<String>,
+    #[serde(default)]
+    logprobs: Option<ChoiceLogprobs>,
+}
+
+/// OpenAI-compatible per-choice log-probabilities (`"logprobs": {"content": [...]}`).
+#[derive(Debug, Deserialize)]
+struct ChoiceLogprobs {
+    #[serde(default)]
+    content: Option<Vec<TokenLogprob>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct TokenLogprob {
+    /// Token text; absent in incomplete logprob metadata, which then yields
+    /// no measured confidence rather than an all-token fallback.
+    #[serde(default)]
+    token: Option<String>,
+    logprob: f64,
+}
+
+/// Per-token `(text, logprob)` pairs for one choice, `None` when the server
+/// omitted `logprobs` (#1464). Scored against the parsed command with
+/// [`crate::backends::command_token_confidence`].
+fn token_logprobs(logprobs: Option<&ChoiceLogprobs>) -> Option<Vec<(String, f64)>> {
+    let tokens = logprobs?.content.as_ref()?;
+    tokens
+        .iter()
+        .map(|t| t.token.clone().map(|text| (text, t.logprob)))
+        .collect()
 }
 
 /// vLLM response message
@@ -123,7 +160,7 @@ Rules:
 4. Target shell: {}
 5. NEVER generate destructive commands (rm -rf /, mkfs, dd, etc.)
 6. Keep commands simple and safe
-7. If the request is unclear, generate "echo 'Please clarify your request'"
+7. If the request is unclear, output ONLY: {{"needs_clarification": true, "p": <0.0-1.0>, "question": "<one short question>"}}
 
 Request: {}
 "#,
@@ -133,6 +170,13 @@ Request: {}
 
     /// Parse JSON response from vLLM
     fn parse_command_response(&self, response: &str) -> Result<String, GeneratorError> {
+        // Typed clarification gate (#1462): never return a runnable command
+        // whose only purpose is to ask the user something.
+        if let Some(c) = crate::decision::clarification_from_raw(response) {
+            if c.should_ask() {
+                return Err(GeneratorError::from_clarification(&c));
+            }
+        }
         // Try structured JSON parsing first
         if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(response) {
             if let Some(cmd) = parsed.get("cmd").and_then(|v| v.as_str()) {
@@ -186,7 +230,13 @@ Request: {}
     }
 
     /// Call vLLM API for inference
-    async fn call_vllm_api(&self, prompt: &str) -> Result<String, GeneratorError> {
+    /// Returns the reply text and, when the server returned `logprobs`, the
+    /// measured confidence of that reply.
+    async fn call_vllm_api(
+        &self,
+        prompt: &str,
+        guided_json: Option<serde_json::Value>,
+    ) -> Result<(String, Option<Vec<(String, f64)>>), GeneratorError> {
         let request = VllmRequest {
             model: self.model_name.clone(),
             messages: vec![VllmMessage {
@@ -196,6 +246,8 @@ Request: {}
             temperature: 0.1,
             max_tokens: 100,
             stream: false,
+            logprobs: true,
+            guided_json,
         };
 
         let url = self.base_url.join("/v1/chat/completions").map_err(|e| {
@@ -245,7 +297,8 @@ Request: {}
                 })?;
 
         if let Some(choice) = vllm_response.choices.first() {
-            Ok(choice.message.content.clone())
+            let tokens = token_logprobs(choice.logprobs.as_ref());
+            Ok((choice.message.content.clone(), tokens))
         } else {
             Err(GeneratorError::ParseError {
                 content: "vLLM response contained no choices".to_string(),
@@ -260,12 +313,19 @@ Request: {}
     ) -> Result<GeneratedCommand, GeneratorError> {
         // Try vLLM first
         match self
-            .call_vllm_api(&self.create_system_prompt(request))
+            .call_vllm_api(&self.create_system_prompt(request), None)
             .await
         {
-            Ok(response) => {
+            Ok((response, tokens)) => {
                 match self.parse_command_response(&response) {
                     Ok(command) => {
+                        let measured = tokens
+                            .as_deref()
+                            .and_then(|t| crate::backends::command_token_confidence(t, &command));
+                        let (confidence_score, confidence_source) = match measured {
+                            Some(c) => (c, crate::models::ConfidenceSource::Measured),
+                            None => (0.0, crate::models::ConfidenceSource::Unknown),
+                        };
                         return Ok(GeneratedCommand {
                             command,
                             explanation: "Generated using vLLM server".to_string(),
@@ -274,9 +334,14 @@ Request: {}
                             alternatives: vec![],
                             backend_used: format!("vLLM ({})", self.model_name),
                             generation_time_ms: 0, // Will be set by caller
-                            confidence_score: 0.85,
+                            confidence_score,
+                            confidence_source,
                         });
                     }
+                    // A typed clarification decision is not a parse failure:
+                    // surface the question instead of falling back to a
+                    // command from another backend (#1462).
+                    Err(err @ GeneratorError::NeedsClarification { .. }) => return Err(err),
                     Err(parse_error) => {
                         tracing::warn!("Failed to parse vLLM response: {}", parse_error);
                         // Continue to fallback
@@ -324,6 +389,34 @@ impl CommandGenerator for VllmBackend {
         result.generation_time_ms = start_time.elapsed().as_millis() as u64;
 
         Ok(result)
+    }
+
+    fn supports_risk_judge(&self) -> bool {
+        true
+    }
+
+    async fn classify_risk(&self, command: &str, ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
+        // Guided decoding (`guided_json` = verdict schema) plus one corrective
+        // retry (#1465); fail safe to `None` so the caller falls back to the
+        // static decision.
+        let prompt = build_risk_judge_prompt(command, ctx);
+        let schema = risk_judge_schema();
+        let guided = schema.to_json();
+        decide_with_retry(
+            &prompt,
+            &schema,
+            |p| {
+                let guided = guided.clone();
+                async move {
+                    self.call_vllm_api(&p, Some(guided))
+                        .await
+                        .map(|(raw, _)| raw)
+                }
+            },
+            parse_risk_judgment,
+        )
+        .await
+        .value
     }
 
     async fn is_available(&self) -> bool {
@@ -406,5 +499,132 @@ mod tests {
         let response = "I can't generate a command for that request.";
         let result = backend.parse_command_response(response);
         assert!(result.is_err());
+    }
+}
+
+#[cfg(test)]
+mod confidence_tests {
+    use super::*;
+
+    #[test]
+    fn logprobs_yield_measured_confidence() {
+        let body = r#"{"choices":[{"message":{"role":"assistant","content":"{\"cmd\":\"ls\"}"},
+            "finish_reason":"stop","logprobs":{"content":[{"token":"a","logprob":-0.6931471805599453},
+            {"token":"b","logprob":-0.6931471805599453}]}}]}"#;
+        let parsed: VllmResponse = serde_json::from_str(body).unwrap();
+        let tokens = token_logprobs(parsed.choices[0].logprobs.as_ref()).unwrap();
+        let c = crate::backends::mean_logprob_confidence(
+            &tokens.iter().map(|(_, lp)| *lp).collect::<Vec<_>>(),
+        )
+        .unwrap();
+        assert!((c - 0.5).abs() < 1e-9);
+    }
+
+    #[test]
+    fn command_tokens_are_scored_not_the_wrapper() {
+        let half = 0.5_f64.ln();
+        let body = format!(
+            r#"{{"choices":[{{"message":{{"role":"assistant","content":"{{\"cmd\":\"ls\"}}"}},
+            "logprobs":{{"content":[{{"token":"{{\"cmd\":\"","logprob":0.0}},{{"token":"ls","logprob":{half}}},{{"token":"\"}}","logprob":0.0}}]}}}}]}}"#
+        );
+        let parsed: VllmResponse = serde_json::from_str(&body).unwrap();
+        let tokens = token_logprobs(parsed.choices[0].logprobs.as_ref()).unwrap();
+        let c = crate::backends::command_token_confidence(&tokens, "ls").unwrap();
+        assert!((c - 0.5).abs() < 1e-9, "{c}");
+    }
+
+    #[test]
+    fn missing_logprobs_yield_unknown() {
+        let body = r#"{"choices":[{"message":{"role":"assistant","content":"{\"cmd\":\"ls\"}"},"finish_reason":"stop"}]}"#;
+        let parsed: VllmResponse = serde_json::from_str(body).unwrap();
+        assert_eq!(token_logprobs(parsed.choices[0].logprobs.as_ref()), None);
+        let body =
+            r#"{"choices":[{"message":{"role":"assistant","content":"x"},"logprobs":null}]}"#;
+        let parsed: VllmResponse = serde_json::from_str(body).unwrap();
+        assert_eq!(token_logprobs(parsed.choices[0].logprobs.as_ref()), None);
+    }
+
+    #[test]
+    fn missing_token_text_yields_unknown() {
+        // Incomplete logprob metadata (a token without text) must not become
+        // measured confidence through the all-token fallback.
+        let body = r#"{"choices":[{"message":{"role":"assistant","content":"{\"cmd\":\"ls\"}"},
+            "logprobs":{"content":[{"token":"{\"cmd","logprob":-0.1},{"logprob":-0.2}]}}]}"#;
+        let parsed: VllmResponse = serde_json::from_str(body).unwrap();
+        assert_eq!(token_logprobs(parsed.choices[0].logprobs.as_ref()), None);
+    }
+
+    mod constrained_decoding {
+        use super::*;
+        use crate::models::{RiskJudgeContext, SafetyLevel, ShellType};
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, Request, ResponseTemplate};
+
+        fn ctx() -> RiskJudgeContext {
+            RiskJudgeContext {
+                shell: ShellType::Bash,
+                cwd: None,
+                static_risk: RiskLevel::Safe,
+                matched_patterns: vec![],
+            }
+        }
+
+        fn backend(server: &MockServer) -> VllmBackend {
+            VllmBackend::new(Url::parse(&server.uri()).unwrap(), "m".to_string()).unwrap()
+        }
+
+        fn body(req: &Request) -> serde_json::Value {
+            serde_json::from_slice(&req.body).unwrap()
+        }
+
+        fn reply(content: &str) -> serde_json::Value {
+            serde_json::json!({ "choices": [{ "message": { "role": "assistant", "content": content } }] })
+        }
+
+        #[tokio::test]
+        async fn decision_request_sets_guided_json() {
+            let server = MockServer::start().await;
+            Mock::given(method("POST"))
+                .and(path("/v1/chat/completions"))
+                .respond_with(ResponseTemplate::new(200).set_body_json(reply(
+                    r#"{"risk": "moderate", "reason": "writes", "confidence": 0.8}"#,
+                )))
+                .expect(1)
+                .mount(&server)
+                .await;
+
+            let judgment = backend(&server).classify_risk("touch x", &ctx()).await;
+            assert_eq!(judgment.map(|j| j.risk), Some(RiskLevel::Moderate));
+
+            let reqs = server.received_requests().await.unwrap();
+            let b = body(&reqs[0]);
+            assert_eq!(
+                b["guided_json"]["properties"]["risk"]["enum"],
+                serde_json::json!(["critical", "high", "moderate", "safe"])
+            );
+        }
+
+        #[tokio::test]
+        async fn generation_request_has_no_guided_json() {
+            let server = MockServer::start().await;
+            Mock::given(method("POST"))
+                .and(path("/v1/chat/completions"))
+                .respond_with(ResponseTemplate::new(200).set_body_json(reply(r#"{"cmd": "ls"}"#)))
+                .mount(&server)
+                .await;
+
+            let request = CommandRequest {
+                input: "list files".to_string(),
+                shell: ShellType::Bash,
+                safety_level: SafetyLevel::Moderate,
+                context: None,
+                backend_preference: None,
+            };
+            let generated = backend(&server).generate_command(&request).await.unwrap();
+            assert_eq!(generated.command, "ls");
+
+            let reqs = server.received_requests().await.unwrap();
+            assert!(body(&reqs[0]).get("guided_json").is_none());
+        }
     }
 }

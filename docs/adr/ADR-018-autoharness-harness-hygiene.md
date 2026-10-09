@@ -1,4 +1,4 @@
-# ADR-017: Harness Hygiene Lessons from autoharness (Additive Adoption)
+# ADR-018: Harness Hygiene Lessons from autoharness (Additive Adoption)
 
 **Status**: Proposed
 

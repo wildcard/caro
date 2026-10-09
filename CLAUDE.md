@@ -137,6 +137,7 @@ Run `bd ready` for the beads work queue; milestones live in `ROADMAP.md`.
 ## Important Files to Know
 
 - `.claude/rules/constitution.md` - **Precedence index for all `.claude/rules/` files (read first)**
+- `.claude/rules/legible-output.md` - How to write output the owner reads (ask first, STE-lite, format ladder)
 - `src/safety/patterns.rs` - All dangerous command patterns
 - `src/prompts/command_templates.rs` - LLM prompt templates
 - `.claude/skills/` - Domain expertise (load on-demand)

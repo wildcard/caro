@@ -761,7 +761,10 @@ impl StaticMatcher {
             PatternEntry {
                 required_keywords: vec!["list".to_string(), "files".to_string()],
                 optional_keywords: vec!["all".to_string()],
-                regex_pattern: Some(Regex::new(r"(?i)^(list|show).*(all)?.*(files?)\s*$").unwrap()),
+                // Optional trailing qualifier names only the current directory (#1181);
+                // any other location must not collapse to a bare `ls -la`.
+                // `[^/~]` keeps a named path's last component ("/var/log/files") from satisfying `files?`.
+                regex_pattern: Some(Regex::new(r"(?i)^(list|show)[^/~]*\bfiles?(\s+((in\s+)?here|in\s+(the\s+)?(current|this)\s+(directory|dir|folder)))?\s*$").unwrap()),
                 gnu_command: "ls -la".to_string(),
                 bsd_command: Some("ls -la".to_string()),
                 description: "List files (simple)".to_string(),
@@ -1788,15 +1791,45 @@ impl StaticMatcher {
         patterns
     }
 
-    /// Try to match the query against known patterns
-    fn try_match(&self, query: &str) -> Option<&PatternEntry> {
+    /// Confidence assigned to a regex match: the pattern was written for
+    /// this phrasing.
+    const REGEX_MATCH_CONFIDENCE: f64 = 1.0;
+    /// Floor for a keyword-only match (all required keywords, no optional).
+    const KEYWORD_BASE_CONFIDENCE: f64 = 0.6;
+
+    /// Measured confidence for a keyword match: `0.6 + 0.4 × coverage`, where
+    /// coverage is the fraction of the pattern's optional keywords present.
+    /// A pattern with no optional keywords scores the base. This replaces the
+    /// previous constant `1.0`, which made the static matcher's ECE equal to
+    /// its error rate (ADR-017, #1461).
+    fn keyword_confidence(optional_hits: usize, optional_total: usize) -> f64 {
+        if optional_total == 0 {
+            return Self::KEYWORD_BASE_CONFIDENCE;
+        }
+        let coverage = optional_hits as f64 / optional_total as f64;
+        (Self::KEYWORD_BASE_CONFIDENCE + (1.0 - Self::KEYWORD_BASE_CONFIDENCE) * coverage)
+            .clamp(0.0, 1.0)
+    }
+
+    /// Try to match the query against known patterns.
+    ///
+    /// Returns the first matching pattern (first-match-wins, ordering rules in
+    /// the module docs) together with a measured confidence in `0.0..=1.0`.
+    #[cfg(test)]
+    fn try_match(&self, query: &str) -> Option<(&PatternEntry, f64)> {
+        self.try_match_kind(query).map(|(p, c, _)| (p, c))
+    }
+
+    /// Like [`Self::try_match`] but also reports whether the match came from
+    /// the pattern's regex (`true`) or from keyword coverage (`false`).
+    fn try_match_kind(&self, query: &str) -> Option<(&PatternEntry, f64, bool)> {
         let query_lower = query.to_lowercase();
 
         for pattern in self.patterns.iter() {
             // Check regex pattern first (most precise)
             if let Some(ref regex) = pattern.regex_pattern {
                 if regex.is_match(&query_lower) {
-                    return Some(pattern);
+                    return Some((pattern, Self::REGEX_MATCH_CONFIDENCE, true));
                 }
             }
 
@@ -1807,7 +1840,7 @@ impl StaticMatcher {
                 .all(|kw| query_lower.contains(kw));
 
             if all_required {
-                // Count optional keywords for confidence boost
+                // Optional-keyword coverage is the confidence signal
                 let optional_count = pattern
                     .optional_keywords
                     .iter()
@@ -1816,7 +1849,9 @@ impl StaticMatcher {
 
                 // Require at least some optional keywords for keyword-only match
                 if optional_count > 0 || pattern.regex_pattern.is_none() {
-                    return Some(pattern);
+                    let confidence =
+                        Self::keyword_confidence(optional_count, pattern.optional_keywords.len());
+                    return Some((pattern, confidence, false));
                 }
             }
         }
@@ -1851,7 +1886,7 @@ impl CommandGenerator for StaticMatcher {
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
         // Try to match the query
-        if let Some(pattern) = self.try_match(&request.input) {
+        if let Some((pattern, confidence, via_regex)) = self.try_match_kind(&request.input) {
             let command = self.select_command(pattern);
 
             // ADVERSARIAL INTENT CHECK: Adversarial guard patterns generate a marker
@@ -1888,7 +1923,15 @@ impl CommandGenerator for StaticMatcher {
 
             Ok(GeneratedCommand {
                 command: command.clone(),
-                explanation: format!("Matched pattern: {}", pattern.description),
+                explanation: format!(
+                    "Matched pattern: {} ({})",
+                    pattern.description,
+                    if via_regex {
+                        "regex".to_string()
+                    } else {
+                        format!("keywords, confidence {:.2}", confidence)
+                    }
+                ),
                 safety_level: safety_result.risk_level, // Use actual risk level from validation
                 estimated_impact: if safety_result.warnings.is_empty() {
                     "Safe to execute".to_string()
@@ -1897,8 +1940,9 @@ impl CommandGenerator for StaticMatcher {
                 },
                 alternatives: vec![],
                 backend_used: "static-matcher".to_string(),
-                generation_time_ms: 0, // Instant - no LLM call
-                confidence_score: 1.0, // Deterministic match
+                generation_time_ms: 0,        // Instant - no LLM call
+                confidence_score: confidence, // Measured: regex 1.0, keywords 0.6..1.0
+                confidence_source: crate::models::ConfidenceSource::Measured,
             })
         } else {
             // No match - return error so we can fall through to LLM
@@ -1934,6 +1978,42 @@ impl CommandGenerator for StaticMatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn confidence_reflects_keyword_coverage() {
+        // Regression guard for #1461: the static matcher must not report a
+        // constant confidence.
+        assert_eq!(StaticMatcher::keyword_confidence(0, 0), 0.6);
+        assert_eq!(StaticMatcher::keyword_confidence(0, 4), 0.6);
+        assert!((StaticMatcher::keyword_confidence(2, 4) - 0.8).abs() < 1e-12);
+        assert_eq!(StaticMatcher::keyword_confidence(4, 4), 1.0);
+        assert!(StaticMatcher::keyword_confidence(9, 4) <= 1.0);
+    }
+
+    #[test]
+    fn regex_match_scores_one_keyword_match_scores_less() {
+        let matcher = StaticMatcher::new(CapabilityProfile::ubuntu());
+        let (_, regex_conf) = matcher
+            .try_match("list all files")
+            .expect("regex pattern should match");
+        assert_eq!(regex_conf, 1.0);
+
+        // A keyword-only entry must score by coverage, not a constant.
+        let keyword_only = StaticMatcher {
+            patterns: Arc::new(vec![PatternEntry {
+                required_keywords: vec!["frobnicate".into()],
+                optional_keywords: vec!["quickly".into(), "safely".into()],
+                regex_pattern: None,
+                gnu_command: "true".into(),
+                bsd_command: None,
+                description: "test".into(),
+            }]),
+            profile: matcher.profile.clone(),
+            safety_validator: matcher.safety_validator.clone(),
+        };
+        let (_, kw_conf) = keyword_only.try_match("frobnicate quickly").unwrap();
+        assert!((kw_conf - 0.8).abs() < 1e-12);
+    }
     use crate::{RiskLevel, ShellType};
 
     #[tokio::test]
@@ -2151,6 +2231,47 @@ mod tests {
         assert!(result.is_ok());
         let cmd = result.unwrap();
         assert_eq!(cmd.command, "ls -d .*", "Command should be 'ls -d .*'");
+    }
+
+    /// Issue #1181: Pattern 43 must accept a trailing current-directory qualifier
+    #[tokio::test]
+    async fn test_list_files_with_current_directory_qualifier() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        for query in [
+            "list files in current directory",
+            "list files in the current directory",
+            "list all files in this folder",
+            "show files here",
+            "list files in here",
+            "listing files in the current directory",
+        ] {
+            let request = CommandRequest::new(query, ShellType::Bash);
+            let cmd = matcher
+                .generate_command(&request)
+                .await
+                .unwrap_or_else(|e| panic!("{query:?} should match statically: {e}"));
+            assert_eq!(cmd.command, "ls -la", "{query:?}");
+        }
+
+        // Other locations must not collapse to a bare `ls -la`
+        let request = CommandRequest::new("list files in /var/log", ShellType::Bash);
+        let result = matcher.generate_command(&request).await;
+        assert!(
+            result.is_err(),
+            "/var/log must not be statically matched, got {:?}",
+            result.map(|c| c.command)
+        );
+
+        // A path whose last component is "files" must not satisfy Pattern 43
+        let request = CommandRequest::new("list files in /var/log/files", ShellType::Bash);
+        let result = matcher.generate_command(&request).await;
+        assert_ne!(
+            result.ok().map(|c| c.command).as_deref(),
+            Some("ls -la"),
+            "/var/log/files must not be dropped"
+        );
     }
 
     /// Issue #411: Test GNU platform generates GNU syntax (du --max-depth)

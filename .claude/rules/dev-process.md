@@ -107,7 +107,7 @@ Full i18n guide: `website/I18N_TRANSLATION_GUIDE.md`
 ## Harness Changes (`CLAUDE.md`, `.claude/`)
 
 The agent harness is code: CI lints it with `scripts/check-harness.py`
-(Harness Lint; rationale in `docs/adr/ADR-017-autoharness-harness-hygiene.md`).
+(Harness Lint; rationale in `docs/adr/ADR-018-autoharness-harness-hygiene.md`).
 Its `--max-warnings` budget must equal the warning count, so the PR that
 fixes a warning also lowers the budget; nothing raises it.
 
