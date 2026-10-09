@@ -27,7 +27,7 @@ Spot-tested recent diff surfaces:
 
 - `cargo test --lib -- safety` → **PASS**: 38 safety unit tests passed, 0 failed
 - `caro config get` / `caro config set` → **PASS**: round-trips correctly
-- `caro -p 'explain the last command' --dry-run` → **PASS**: static-matched
+- `caro -p 'explain the last command' --dry-run` → **FAIL**: no `explain` pattern in static matcher; falls to embedded CPU backend → P1 #1269 clarification stub
 - `caro ai --once "list files"` → **FAIL** (pre-existing P1 #1269, see Findings)
 - `caro -p 'find files in current directory' --dry-run` → **FAIL** (falls to embedded CPU stub; P1 #1269)
 
