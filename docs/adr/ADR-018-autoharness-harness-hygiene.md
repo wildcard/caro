@@ -81,11 +81,12 @@ mechanisms additively, in phases:
 
 - **Phase 1 (this ADR's PR): deterministic harness lint in CI.**
   `scripts/check-harness.py` (stdlib only) runs in
-  `.github/workflows/harness-lint.yml`. The findings above are fixed, and
-  `dev-process.md` gains a short "Harness changes" section.
+  `.github/workflows/harness-lint.yml`. The findings above are fixed, and a
+  path-scoped rule, `.claude/rules/harness-changes.md`, states the conventions.
 - **Phase 2: measure before pruning.** Add hook-based usage counters (`Skill`
   and `Agent` tool calls, `Read` into `.claude/skills/`, slash commands via
-  `UserPromptSubmit`) that write to a **durable** sink. Then run one curator-style
+  `UserPromptSubmit`) that write to a **durable** sink (routine runs already
+  get one: the `automation/routine-status` branch from #1506). Then run one curator-style
   consolidation pass on the overlapping agents, backed by that data.
 - **Phase 3 (optional): a personal pilot.** One maintainer runs the autoharness
   plugin at user scope for a time-box and judges it by its own `metrics` output
@@ -94,10 +95,11 @@ mechanisms additively, in phases:
 | autoharness mechanism | Caro adaptation (Phase 1) |
 |---|---|
 | Promoter lints every intent against one spec | CI lints the harness against `check-harness.py` |
-| Tests pin agent contracts (reflector has no write tools) | An agent that says "You are read-only" must declare a `tools:` allowlist without Write, Edit, MultiEdit, NotebookEdit or Bash |
+| Tests pin agent contracts (reflector has no write tools) | Agent `tools:` allowlists are left to #1534's Rust contract test (`tests/agent_tools_contract.rs`), so this linter does not duplicate it |
 | Manifest tests: hooks route to files that exist | Every repo script a `settings.json` hook names must exist; the one it runs directly must be executable |
 | Structure check: referenced files exist | Dangling references: **error** in always-loaded files (CLAUDE.md, rules), ratcheted **warning** in skills, agents and commands |
-| Rejected intents stay visible, never silent | Warnings print on every run. Their count must equal `--max-warnings`, so the PR that fixes one also lowers the budget and the slack can't be spent again |
+| Rejected intents stay visible, never silent | Warnings print on every run. Their count must equal the budget in `scripts/harness-budget.json`, so the PR that fixes one also lowers the budget and the slack can't be spent again |
+| Curator folds near-duplicate skills | Skills whose descriptions share 5+ word trigrams get a notice (ported from #1196's `bin/verify-skills`) |
 | No wall-clock lifecycle ("a closed laptop ages no one out") | Overdue deprecations are **notices** and never fail CI, so the calendar alone cannot turn a PR red |
 | `metrics.py` is observation-only | A context-budget notice prints on every run |
 | Never promise a path that does not exist (their PRs #99 and #105) | Corrected enforcement claims, plus the rule "document a check as enforced only once it is wired" |
@@ -182,17 +184,17 @@ mechanisms additively, in phases:
   (ratcheted) and notice.
 - `+ scripts/tests/test_check_harness.py`: `unittest` cases for every check,
   each built on a throwaway fixture tree.
-- `+ .github/workflows/harness-lint.yml`: runs the tests, then the linter with
-  `--max-warnings 16`.
-- `~ .claude/agents/{devils-advocate,ponytail-reviewer}.md`: add
-  `tools: Read, Grep, Glob`, the same set as autoharness's reflector. Bash is
-  left out because the shell can write, and scoped `Bash(...)` patterns are
-  documented for skills' `allowed-tools`, not for subagent `tools:`. The
-  reviewers get the diff from their caller; the `ponytail-review` skill already
-  pastes it into the prompt.
-- `~ .claude/rules/constitution.md`: index `design-dialogue-protocol.md`,
-  appended to Tier 3 so no existing numbers shift.
-- `~ .claude/rules/dev-process.md`: new "Harness changes" section.
+- `+ .github/workflows/harness-lint.yml`: runs the tests, then the linter.
+- `+ scripts/harness-budget.json`: the warning budget (16). Keeping it out of
+  the workflow means lowering it never edits a Tier-1 path.
+- The read-only reviewers' `tools:` lines came from #1470 (merged); #1534
+  adds allowlists for every other agent.
+- `~ .claude/rules/constitution.md`: index `design-dialogue-protocol.md` and
+  `harness-changes.md`, appended to Tier 3 so no existing numbers shift.
+- `+ .claude/rules/harness-changes.md`: the conventions (search before adding,
+  least privilege, no unwired promises, retire with evidence). Its `paths:`
+  frontmatter loads it only when harness files are touched, and the linter
+  treats such rules as on-demand.
 - `~ CLAUDE.md`, rules, the `validate-constitution` skill and agent,
   `.claude/memory/consolidated-knowledge-rules.md`, six commands and one skill: the drift
   fixes listed in Context.
@@ -210,14 +212,14 @@ survive ephemeral cloud sessions. Pick a durable sink before trusting any
   fields the plugin marketplace schema requires.
 - The duplicate `ADR-004` number.
 - The failing `scripts/tests/test_pattern_gap_analyzer.py` suite, which no CI
-  job runs.
+  job runs (the wider gap, 23 of 46 test targets, is #1537).
 
 ## Success Metrics
 
 - Harness Lint stays green on `main`, and the warning budget only decreases
   (16 → 0).
-- After merge, no orphan rule, loader-invisible skill directory, or read-only
-  agent with write tools lands on `main`.
+- After merge, no orphan rule or loader-invisible skill directory lands on
+  `main` (read-only agents with write tools are #1534's contract test).
 - Phase 2: at least 30 days of durable usage data before any consolidation PR.
   The consolidation should cut the per-session agent-description budget
   (about 47.7K characters) roughly in half.
@@ -231,11 +233,12 @@ survive ephemeral cloud sessions. Pick a durable sink before trusting any
 - [ADR-016](./ADR-016-ponytail-pragmatic-reviewer.md): precedent for adopting an
   external project's idea additively.
 - [`constitution.md`](../../.claude/rules/constitution.md),
-  [`dev-process.md`](../../.claude/rules/dev-process.md),
+  [`harness-changes.md`](../../.claude/rules/harness-changes.md),
   [`good-boy-scout.md`](../../.claude/rules/good-boy-scout.md).
 
 ## Revision History
 
 | Date | Author | Changes |
 |------|--------|---------|
-| 2026-09-26 | Caro maintainers | Initial draft, Proposed |
+| 2026-09-26 | Caro maintainers | Initial draft, Proposed (as ADR-017) |
+| 2026-10-09 | Caro maintainers | Renumbered to ADR-018 (#1459 took 017). Least-privilege check handed to #1534; #1196's collision check ported; budget moved to `scripts/harness-budget.json`; conventions moved to a path-scoped rule |

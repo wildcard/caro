@@ -61,6 +61,10 @@ yield to anything in Tier 1 or Tier 2.
    work with Claude Design: screenshots only via sub-agent, ask don't
    instruct, user-gated sends, revert call sites not assets, visual audit
    before merging brand-touching PRs.
+13. **[harness-changes.md](./harness-changes.md)** — Editing the harness itself
+   (`CLAUDE.md`, `.claude/`): search before adding, least privilege, no
+   unwired promises, retire with evidence. Path-scoped: loads only when harness
+   files are touched.
 
 ---
 
