@@ -120,7 +120,7 @@ impl CommandExecutor {
             match child.try_wait() {
                 Ok(Some(status)) => break status,
                 Ok(None) if Instant::now() >= deadline => {
-                    Self::kill_tree(&mut child, grace_ms);
+                    Self::kill_tree(&mut child, grace_ms, |c| matches!(c.try_wait(), Ok(None)));
                     return Err(ExecutorError::Timeout(timeout_ms));
                 }
                 Ok(None) => thread::sleep(Duration::from_millis(10)),
@@ -137,7 +137,16 @@ impl CommandExecutor {
                 Ok((true, buf)) => stdout = Some(buf),
                 Ok((false, buf)) => stderr = Some(buf),
                 Err(mpsc::RecvTimeoutError::Timeout) => {
-                    Self::kill_tree(&mut child, grace_ms);
+                    // The shell is already reaped, so the descendant holding
+                    // the pipes is what gets the grace period. It is done
+                    // once every pipe still open has closed.
+                    let mut open = usize::from(stdout.is_none()) + usize::from(stderr.is_none());
+                    Self::kill_tree(&mut child, grace_ms, |_| {
+                        while rx.try_recv().is_ok() {
+                            open = open.saturating_sub(1);
+                        }
+                        open > 0
+                    });
                     return Err(ExecutorError::Timeout(timeout_ms));
                 }
                 Err(mpsc::RecvTimeoutError::Disconnected) => {
@@ -175,15 +184,17 @@ impl CommandExecutor {
     /// Stop the child's whole process group, then reap the child.
     ///
     /// On Unix the group gets SIGTERM first, so a command can clean up (remove
-    /// a lock or temp file). Once the shell exits, or `grace_ms` runs out,
+    /// a lock or temp file). Once the command exits, or `grace_ms` runs out,
     /// the group gets SIGKILL for anything that ignored SIGTERM. Elsewhere
     /// the child is killed at once.
     ///
-    /// The wait is on the shell we spawned, not the whole group: orphaned
-    /// descendants become zombies that still count as group members until
-    /// PID 1 reaps them, and a container without an init never does.
-    #[cfg_attr(not(unix), allow(unused_variables))]
-    fn kill_tree(child: &mut Child, grace_ms: u64) {
+    /// `running` says whether the command is still going: the caller knows
+    /// whether that is the shell or a descendant holding the pipes. The wait
+    /// is never on the whole group: orphaned descendants become zombies that
+    /// still count as group members until PID 1 reaps them, and a container
+    /// without an init never does.
+    #[cfg_attr(not(unix), allow(unused_variables, unused_mut))]
+    fn kill_tree(child: &mut Child, grace_ms: u64, mut running: impl FnMut(&mut Child) -> bool) {
         #[cfg(unix)]
         {
             // The child leads its own group (process_group(0)), so its pid is
@@ -191,7 +202,7 @@ impl CommandExecutor {
             let pgid = child.id() as libc::pid_t;
             if Self::signal_group(pgid, libc::SIGTERM) {
                 let deadline = Instant::now() + Duration::from_millis(grace_ms);
-                while Instant::now() < deadline && matches!(child.try_wait(), Ok(None)) {
+                while Instant::now() < deadline && running(child) {
                     thread::sleep(Duration::from_millis(10));
                 }
                 Self::signal_group(pgid, libc::SIGKILL);
@@ -432,6 +443,24 @@ mod tests {
         let executor = CommandExecutor::new(ShellType::Bash).with_timeout(300);
         let result = executor.execute(&format!(
             "trap 'echo cleaned > {}; exit 0' TERM; sleep 5 & wait",
+            marker.display()
+        ));
+
+        assert!(matches!(result, Err(ExecutorError::Timeout(300))));
+        assert!(marker.exists(), "TERM trap did not run before the kill");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_timeout_while_draining_gives_descendant_grace() {
+        // The shell exits at once, but a background subshell keeps stdout
+        // open, so the timeout fires while draining. That subshell must still
+        // get its grace period to run its TERM trap.
+        let dir = tempfile::tempdir().unwrap();
+        let marker = dir.path().join("cleaned");
+        let executor = CommandExecutor::new(ShellType::Bash).with_timeout(300);
+        let result = executor.execute(&format!(
+            "(trap 'echo cleaned > {}; exit 0' TERM; sleep 5 >/dev/null 2>&1 & wait) &",
             marker.display()
         ));
 
