@@ -40,7 +40,8 @@ These rules govern how code is written, reviewed, and released.
 7. **[feature-evidence.md](./feature-evidence.md)** — Every feature PR
    carries evidence (green CI run link), a runnable demo, and a named
    regression-guard test; the Monday planning routine compiles merged
-   demos into `docs/demos/<date>-weekly-demo.md`.
+   demos into a weekly demo report on the `automation/routine-status`
+   branch.
 
 ## Tier 3 — Workflow hygiene
 

@@ -27,7 +27,7 @@ Every in-scope PR must carry, in its body or linked from it:
 - A runnable command sequence a reviewer (or the weekly demo report)
   can copy-paste, with expected output. Three lines is enough.
 - Demos aggregate weekly: the Monday planning routine compiles every
-  merged feature's demo into `docs/demos/<date>-weekly-demo.md`.
+  merged feature's demo into the weekly demo report (below).
 
 ### 3. Regression guard — "it cannot silently break"
 
@@ -44,12 +44,19 @@ Every in-scope PR must carry, in its body or linked from it:
 ## Weekly Demo Report
 
 The Monday planning routine (routine `trig_01KTFtDwFfs4xHiJ2JVbCgEV`)
-produces `docs/demos/<date>-weekly-demo.md` containing, for every
+produces `<date>-weekly-demo.md` containing, for every
 feature merged that week: what shipped, the demo commands, the evidence
 links, and the regression guard's test name. A week with no feature
 merges still gets a one-line report ("no feature merges this week")
 so absence of a report always means the routine failed, not that
 nothing happened.
+
+The routine stores the report with `bin/routine-status state put
+weekly-planning <date>-weekly-demo.md`, not in a PR (see
+`.claude/automation/CONTRACT.md`, section 5). It lives at
+`state/weekly-planning/<date>-weekly-demo.md` on the
+`automation/routine-status` branch. `docs/demos/` keeps the reports
+from before this change.
 
 The report also carries one **Pareto table** (#1466), copied from
 `cargo test --test evaluation` ("Pareto View by Backend"): per backend,
@@ -76,4 +83,5 @@ three artifacts is missing.
   this rule gates *how* it lands
 - `.claude/rules/release-version-alignment.md` — the same
   checklist-as-grep pattern at release time
-- `docs/demos/` — the weekly demo reports this rule feeds
+- `state/weekly-planning/` on the `automation/routine-status` branch —
+  the weekly demo reports this rule feeds (`docs/demos/` for older ones)

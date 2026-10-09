@@ -51,6 +51,9 @@ bin/routine-status record <routine> <phase> "<reason>" \
   different schedules.
 - **Never record `Succeeded` on a failure path.** "Nothing to do" is a
   success only if the run checked and found nothing.
+- **The reason names its evidence.** Give the issue or PR numbers (also in
+  `--issues` and `--pr`), a run link, or the output that shows the result.
+  Report only what the run observed, never what it expected to happen.
 
 Records go to `runs.jsonl` on the `automation/routine-status` branch, never to
 `main`, so writing one needs no PR.
@@ -74,6 +77,51 @@ bin/routine-status show --check   # exit 1 if any is not Succeeded or overdue;
 A `!` marks a routine whose latest run did not succeed or is overdue (older
 than the `--max-age-hours` it recorded; 26 h if it recorded none). Hermes and
 the sweep read this instead of the platform status.
+
+## 5. Keep working state on the status branch
+
+A routine that remembers anything between runs (a coverage matrix, a bug
+backlog, a flake log) keeps it on the status branch, never in a PR:
+
+```bash
+bin/routine-status state get <routine> <file> > <file>   # first; exit 1 = first run
+bin/routine-status state put <routine> <file> < <file>   # last, before `record`
+```
+
+- Read state before any other work. Without it, the run starts from a stale
+  copy and repeats old work.
+- Write state back before the run's `record`. `put` refuses empty input and
+  makes no commit when nothing changed.
+- Do not open a PR to store state, reports or logs. A PR that waits for review
+  is not memory, because the next run cannot read it.
+- Keep at most one open PR per routine. Before you open one, look for the
+  routine's open PR and update it instead.
+- A dated report (a weekly plan, a demo report) is a state file named by its
+  date, such as `2026-10-05-weekly-demo.md`. Never overwrite a past date.
+
+Files live at `state/<routine>/<file>` on `automation/routine-status`, so
+GitHub shows each one at a stable URL.
+
+**Why:** the QA routine kept its state in `.claude/memory/qa-*.md` and shipped
+each run as a PR. 32 such PRs stayed open, all editing the same four files, while
+`main` kept the May bootstrap copy. So every run re-tested the same surfaces.
+
+## 6. Search before you file
+
+Before a routine files an issue, it searches for the same finding:
+
+1. Give the finding a stable fingerprint, `<routine>/<slug>`. The slug names
+   the finding, not the date: `qa-rotation/claude-md-version-drift`.
+2. Search open **and closed** issues for `fp:<routine>/<slug>`, then for the
+   title.
+3. On a match, do not file. Comment on the match only with new evidence, such
+   as a new version or a new reproduction. Reopen a closed match only if the
+   fix regressed, and say what changed.
+4. On no match, file the issue. End its body with the line
+   `fp:<routine>/<slug>`, so the next search finds it.
+
+**Why:** the QA routine filed one finding (the `CLAUDE.md` version drift) 42
+times, about 2.5 times a week, because no run searched before filing.
 
 ## Regression guard
 
