@@ -55,7 +55,7 @@ Surface: **`caro ai --once` scripted conversational mode** (oldest 'never' teste
 
 ### Followups
 
-- FLAKE-001 (model download) not reproduced today: model downloaded successfully to `~/.cache/caro/models/`. Update known-flakes accordingly.
+- FLAKE-001 (model download) not reproduced today: model downloaded successfully to `~/.cache/caro/models/` (known-flakes updated in this PR).
 - `caro ai --once` (Surface #10) remains broken. Next Slot C candidate: Surface #11 (`caro ai --continue-session`).
 - #1269 has 5+ duplicate issues closed. Root fix in `cpu.rs:63` still pending.
 - CLAUDE.md still shows `1.4.0 (GA)` while Cargo.toml is `1.5.0`. #1098 still open.
