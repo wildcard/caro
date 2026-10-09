@@ -3847,6 +3847,19 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             display!("  {}", result.generated_command.bright_cyan().bold());
             display!("");
 
+            // Print what the command does (STE-lite text)
+            if !explanation.detailed_explanation.is_empty() {
+                display!("{}", "What it does:".bold());
+                for line in explanation.detailed_explanation.lines() {
+                    if line.is_empty() {
+                        display!("");
+                    } else {
+                        display!("  {}", line);
+                    }
+                }
+                display!("");
+            }
+
             // Print usage examples
             if !explanation.examples.is_empty() {
                 for example in &explanation.examples {

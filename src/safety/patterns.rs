@@ -104,7 +104,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r"sudo\s+.*chmod\s+u\+s".to_string(),
             risk_level: RiskLevel::High,
-            description: "Adding setuid bit with elevated privileges".to_string(),
+            description: "Add setuid bit with elevated privileges".to_string(),
             shell_specific: None,
         },
         // HIGH: Download and execute
@@ -202,13 +202,13 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r"rm\s+-r[f]*\s+[A-Z]:\\".to_string(),
             risk_level: RiskLevel::Critical,
-            description: "Recursive deletion of Windows drive root".to_string(),
+            description: "Recursive deletion of Windows drive root (Bash/WSL)".to_string(),
             shell_specific: Some(ShellType::Bash), // When running on WSL
         },
         DangerPattern {
             pattern: r"Remove-Item\s+-Recurse\s+-Force\s+[A-Z]:\\".to_string(),
             risk_level: RiskLevel::Critical,
-            description: "Recursive deletion of Windows drive root".to_string(),
+            description: "Recursive deletion of Windows drive root (PowerShell)".to_string(),
             shell_specific: Some(ShellType::PowerShell),
         },
         DangerPattern {
@@ -287,7 +287,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r"rm\s+[^-\s][^\s]*\.(txt|doc|pdf|xlsx|pptx|zip|tar|sql|bak)".to_string(),
             risk_level: RiskLevel::Moderate,
-            description: "Deleting important file types".to_string(),
+            description: "Delete important file types".to_string(),
             shell_specific: None,
         },
         // Fix Windows backslash pattern - works in Bash/PowerShell/WSL
@@ -301,26 +301,26 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r"chmod\s+[+\-]x\s+".to_string(),
             risk_level: RiskLevel::Moderate,
-            description: "Making files executable".to_string(),
+            description: "Make files executable".to_string(),
             shell_specific: None,
         },
         DangerPattern {
             pattern: r"chmod\s+[0-7]{3,4}\s+".to_string(),
             risk_level: RiskLevel::Moderate,
-            description: "Changing file permissions".to_string(),
+            description: "Change file permissions".to_string(),
             shell_specific: None,
         },
         DangerPattern {
             pattern: r"chown\s+[^\s]+\s+".to_string(),
             risk_level: RiskLevel::Moderate,
-            description: "Changing file ownership".to_string(),
+            description: "Change file ownership".to_string(),
             shell_specific: None,
         },
         // MODERATE: Installing packages with user scope
         DangerPattern {
             pattern: r"pip\s+install\s+--user".to_string(),
             risk_level: RiskLevel::Moderate,
-            description: "Installing Python packages in user directory".to_string(),
+            description: "Install Python packages in user directory".to_string(),
             shell_specific: None,
         },
         // CRITICAL: Windows del command with dangerous flags
