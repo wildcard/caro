@@ -195,7 +195,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-03 sweep dedup
 **Issue:** #1162 (dup #1170)
-**Status:** claimed-by sweep/2026-10-09-BW-022 (#PRNUM). The `evaluation` harness (`harness = false`) now accepts libtest's positional filter and skips itself when the filter does not match its name.
+**Status:** claimed-by sweep/2026-10-09-BW-022 (#1548). The `evaluation` harness (`harness = false`) now accepts libtest's positional filter and skips itself when the filter does not match its name.
 **Needs human?:** no
 **Next step:** merge the PR.
 
