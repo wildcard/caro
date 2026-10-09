@@ -192,7 +192,9 @@ impl CommandExecutor {
     /// whether that is the shell or a descendant holding the pipes. The wait
     /// is never on the whole group: orphaned descendants become zombies that
     /// still count as group members until PID 1 reaps them, and a container
-    /// without an init never does.
+    /// without an init never does. So the grace period belongs to the command
+    /// we wait on: once it exits, any other group member that ignored SIGTERM
+    /// gets SIGKILL at once, as in AX's runner.
     #[cfg_attr(not(unix), allow(unused_variables, unused_mut))]
     fn kill_tree(child: &mut Child, grace_ms: u64, mut running: impl FnMut(&mut Child) -> bool) {
         #[cfg(unix)]
@@ -482,7 +484,7 @@ mod tests {
         assert!(matches!(result, Err(ExecutorError::Timeout(300))));
         let elapsed = start.elapsed().as_millis();
         assert!(
-            elapsed >= 450,
+            elapsed >= 500,
             "did not wait out the grace period ({elapsed}ms)"
         );
         assert!(
