@@ -250,7 +250,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 ### BW-036: `caro config set backend` rejects mesh, ai-horde, hybrid
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-07-27)
-**Issue:** #1379 (related: BW-020, BW-024)
+**Issue:** #1379 (related: BW-020, and BW-024 on the #1532 branch)
 **Status:** open. PR #1348 (`integrator/20260718`) unifies the backend rosters; it is mergeable but idle since 2026-09-24. `src/main.rs` still hardcodes `["embedded", "ollama", "exo", "vllm"]`.
 **Needs human?:** no
 **Next step:** review and merge #1348, or rebase it.
