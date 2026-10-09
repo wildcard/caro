@@ -10,6 +10,8 @@
 #   bin/routine-status record <routine> <phase> <reason> [--started <iso8601>]
 #                             [--pr <n>] [--issues <n,n,...>] [--max-age-hours <n>]
 #   bin/routine-status show [--max-age-hours <n>] [--check]
+#   bin/routine-status state get <routine> <file>
+#   bin/routine-status state put <routine> <file> < content
 #
 # Phases: Succeeded | Failed | TimedOut | Blocked
 #   Blocked = preflight failed (no repo, no GitHub access, ...); nothing was done.
@@ -20,6 +22,13 @@
 # daily routine, 170 for a weekly one), else the default from `show
 # --max-age-hours` (26). With --check it exits 1 if any row is marked, and it
 # exits 2 if the status branch can't be read.
+#
+# `state` keeps a routine's working files (coverage matrix, bug backlog, ...)
+# at state/<routine>/<file> on the same branch, so each run starts from the
+# last run's state, not from a stale copy on main. `get` prints the file; it
+# exits 1 if there is no such state yet (a first run) and 2 if the branch
+# can't be read. `put` replaces the file with stdin. It refuses empty input,
+# so a broken pipe can't wipe state, and an unchanged file makes no commit.
 #
 # Environment:
 #   CARO_STATUS_REMOTE  git remote name or URL (default: origin)
@@ -46,6 +55,62 @@ remote_url() {
 }
 
 now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
+
+# A state path part is one plain path component: no slash, no leading dot.
+valid_part() { [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; }
+
+# Clone the status branch into "$WORK/wt". Returns 1 when the branch does not
+# exist yet. Only a confirmed-missing branch means "nothing yet": an
+# unreachable remote or expired auth is an error, not an empty history.
+clone_branch() {
+  local url rc=0 err
+  url="$(remote_url)"
+  err="$(git ls-remote --exit-code --heads "$url" "$BRANCH" 2>&1 >/dev/null)" || rc=$?
+  if [[ $rc -eq 2 ]]; then
+    return 1
+  elif [[ $rc -ne 0 ]]; then
+    die "cannot read status branch from $url: ${err:-git ls-remote exit $rc}"
+  fi
+  [[ -n "$WORK" ]] || WORK="$(mktemp -d)"
+  err="$(git clone -q --depth 1 --single-branch --branch "$BRANCH" "$url" "$WORK/wt" 2>&1)" ||
+    die "cannot read status branch from $url: $err"
+}
+
+# Commit one change to the status branch: clone it fresh (or start it), run
+# the edit command with the tree's path as its last argument, and push.
+# Concurrent writers: a rejected push re-clones and re-applies the edit. The
+# backoff is randomized so simultaneous writers don't keep colliding in
+# lockstep. An edit that changes nothing commits nothing.
+commit_change() {
+  local msg="$1"
+  shift
+  local url tree attempt err="" attempts="${CARO_STATUS_ATTEMPTS:-10}"
+  url="$(remote_url)"
+  [[ -n "$WORK" ]] || WORK="$(mktemp -d)"
+  tree="$WORK/wt"
+  for ((attempt = 1; attempt <= attempts; attempt++)); do
+    rm -rf "$tree"
+    if ! git clone -q --depth 1 --single-branch --branch "$BRANCH" "$url" "$tree" 2>/dev/null; then
+      git init -q "$tree"
+      git -C "$tree" checkout -q --orphan "$BRANCH"
+      git -C "$tree" remote add origin "$url"
+    fi
+    "$@" "$tree"
+    git -C "$tree" add -A
+    git -C "$tree" diff --cached --quiet && return 0
+    git -C "$tree" config user.email >/dev/null || git -C "$tree" config user.email "routine@caro.invalid"
+    git -C "$tree" config user.name >/dev/null || git -C "$tree" config user.name "caro routine"
+    git -C "$tree" commit -q -m "$msg"
+    if err="$(git -C "$tree" push -q origin "HEAD:refs/heads/$BRANCH" 2>&1)"; then
+      return 0
+    fi
+    sleep "$((RANDOM % (attempt + 1))).$((RANDOM % 10))"
+  done
+  die "could not push to $BRANCH after $attempts attempts. Last error: ${err:-none}"
+}
+
+append_line() { printf '%s\n' "$1" >>"$2/$FILE"; }            # <line> <tree>
+write_file() { mkdir -p "$(dirname "$3/$2")" && cp "$1" "$3/$2"; } # <src> <path> <tree>
 
 record() {
   [[ $# -ge 3 ]] || die "usage: record <routine> <phase> <reason> [--started ts] [--pr n] [--issues n,n] [--max-age-hours n]"
@@ -85,31 +150,8 @@ print(json.dumps(rec, separators=(",", ":")))
 PY
 )"
 
-  local url tmp attempt err="" attempts="${CARO_STATUS_ATTEMPTS:-10}"
-  url="$(remote_url)"
-  WORK="$(mktemp -d)"
-  tmp="$WORK"
-  # Concurrent writers: a rejected push re-clones and re-appends. The backoff
-  # is randomized so simultaneous writers don't keep colliding in lockstep.
-  for ((attempt = 1; attempt <= attempts; attempt++)); do
-    rm -rf "$tmp/wt"
-    if ! git clone -q --depth 1 --single-branch --branch "$BRANCH" "$url" "$tmp/wt" 2>/dev/null; then
-      git init -q "$tmp/wt"
-      git -C "$tmp/wt" checkout -q --orphan "$BRANCH"
-      git -C "$tmp/wt" remote add origin "$url"
-    fi
-    printf '%s\n' "$line" >>"$tmp/wt/$FILE"
-    git -C "$tmp/wt" add "$FILE"
-    git -C "$tmp/wt" config user.email >/dev/null || git -C "$tmp/wt" config user.email "routine@caro.invalid"
-    git -C "$tmp/wt" config user.name >/dev/null || git -C "$tmp/wt" config user.name "caro routine"
-    git -C "$tmp/wt" commit -q -m "status: $routine $phase"
-    if err="$(git -C "$tmp/wt" push -q origin "HEAD:refs/heads/$BRANCH" 2>&1)"; then
-      printf '%s\n' "$line"
-      return 0
-    fi
-    sleep "$((RANDOM % (attempt + 1))).$((RANDOM % 10))"
-  done
-  die "could not push status record after $attempts attempts. Last error: ${err:-none}"
+  commit_change "status: $routine $phase" append_line "$line"
+  printf '%s\n' "$line"
 }
 
 show() {
@@ -123,22 +165,16 @@ show() {
   done
   [[ "$max_age" =~ ^[0-9]+$ ]] || die "--max-age-hours must be a number"
 
-  local tmp url rc=0 err
-  url="$(remote_url)"
-  # Only a confirmed-missing branch means "no records". An unreachable remote
-  # or expired auth is an error, not an empty history.
-  err="$(git ls-remote --exit-code --heads "$url" "$BRANCH" 2>&1 >/dev/null)" || rc=$?
-  if [[ $rc -eq 2 ]]; then
+  if ! clone_branch; then
     echo "no status records yet (branch $BRANCH not found)"
     return $((check))
-  elif [[ $rc -ne 0 ]]; then
-    die "cannot read status branch from $url: ${err:-git ls-remote exit $rc}"
   fi
-  WORK="$(mktemp -d)"
-  tmp="$WORK"
-  err="$(git clone -q --depth 1 --single-branch --branch "$BRANCH" "$url" "$tmp/wt" 2>&1)" ||
-    die "cannot read status branch from $url: $err"
-  python3 - "$tmp/wt/$FILE" "$max_age" "$check" <<'PY'
+  # `state put` can create the branch before any run records one.
+  if [[ ! -f "$WORK/wt/$FILE" ]]; then
+    echo "no status records yet ($BRANCH has no $FILE)"
+    return $((check))
+  fi
+  python3 - "$WORK/wt/$FILE" "$max_age" "$check" <<'PY'
 import json, sys
 from datetime import datetime, timezone
 
@@ -167,10 +203,33 @@ sys.exit(1 if check and flagged else 0)
 PY
 }
 
+state_cmd() {
+  [[ $# -eq 3 && ("$1" == get || "$1" == put) ]] ||
+    die "usage: state get <routine> <file> | state put <routine> <file> < content"
+  local sub="$1" routine="$2" name="$3"
+  valid_part "$routine" || die "invalid routine name '$routine' (one path component: letters, digits, . _ -)"
+  valid_part "$name" || die "invalid state file name '$name' (one path component: letters, digits, . _ -)"
+  local path="state/$routine/$name"
+  if [[ "$sub" == get ]]; then
+    if ! clone_branch || [[ ! -f "$WORK/wt/$path" ]]; then
+      echo "routine-status: no state yet at $path" >&2
+      return 1
+    fi
+    cat "$WORK/wt/$path"
+  else
+    WORK="$(mktemp -d)"
+    cat >"$WORK/input"
+    [[ -s "$WORK/input" ]] || die "refusing to write empty state to $path (a broken pipe must not wipe it)"
+    commit_change "state: $path" write_file "$WORK/input" "$path"
+    echo "saved $path"
+  fi
+}
+
 cmd="${1:-}"
 shift || true
 case "$cmd" in
   record) record "$@" ;;
   show) show "$@" ;;
-  *) die "usage: $0 record|show ... (see header)" ;;
+  state) state_cmd "$@" ;;
+  *) die "usage: $0 record|show|state ... (see header)" ;;
 esac
