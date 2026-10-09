@@ -1,9 +1,9 @@
 name: Harness Lint
 
 # Deterministic checks on the Claude Code harness (CLAUDE.md + .claude/):
-# skill dirs that silently fail to load, read-only agents that can write,
-# rules missing from the constitution index, unwired hooks, and dangling file
-# references. Rationale: docs/adr/ADR-018-autoharness-harness-hygiene.md
+# skill dirs that silently fail to load, rules missing from the constitution
+# index, unwired hooks, dangling file references, and near-twin skill
+# descriptions. Rationale: docs/adr/ADR-018-autoharness-harness-hygiene.md
 # No path filter: renaming a file outside .claude/ can break a reference to it.
 
 on:
