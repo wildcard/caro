@@ -38,8 +38,18 @@ fi
 # - byte counts:       5 GB / 200 MB
 SENSITIVE_RE='\$[0-9]+([.,][0-9]+)?|\b[0-9]+[.,]?[0-9]*[[:space:]]*USD\b|\b[0-9]+[[:space:]]*(minutes?|mins?)\b|\b[0-9]+[[:space:]]*(GB|MB|TB|KB)\b'
 
+# During a merge, diff against the incoming branch: its lines are already
+# committed (public, if it is main), so only lines this side adds are new.
+diff_cached() {
+  if git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
+    git diff --cached MERGE_HEAD "$@"
+  else
+    git diff --cached "$@"
+  fi
+}
+
 # Look only at staged files in protected paths.
-PROTECTED_FILES=$(git diff --cached --name-only --diff-filter=ACMRT 2>/dev/null \
+PROTECTED_FILES=$(diff_cached --name-only --diff-filter=ACMRT 2>/dev/null \
   | grep -E '^(\.beads/|\.claude/memory/)' || true)
 
 if [[ -z "$PROTECTED_FILES" ]]; then
@@ -49,7 +59,7 @@ fi
 # Scan staged diff (added lines only) for sensitive patterns.
 # Added lines only: skip each file's header (up to its first @@ hunk), so a
 # content line that itself starts with "++" is still scanned.
-LEAK=$(git diff --cached --unified=0 -- $PROTECTED_FILES 2>/dev/null \
+LEAK=$(diff_cached --unified=0 -- $PROTECTED_FILES 2>/dev/null \
   | awk '/^diff --git /{h=1; next} /^@@/{h=0; next} !h && /^\+/' \
   | grep -E -i "$SENSITIVE_RE" || true)
 
