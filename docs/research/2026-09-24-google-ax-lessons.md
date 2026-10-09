@@ -179,7 +179,7 @@ trail and the governance spike together, without new infrastructure.
 |---|---|---|
 | P0 | ✅ Real timeout enforcement (this PR) | `src/execution/executor.rs` |
 | P1 | SIGINT forwarding to the process group, then a default step timeout in `caro run` / `caro do` | `src/execution/executor.rs`, `src/caroml/runner.rs`, `jobs.rs` |
-| P1 | SIGTERM, grace period, then SIGKILL | `src/execution/executor.rs` |
+| ✅ | SIGTERM, grace period, then SIGKILL (`DEFAULT_GRACE_MS` 2 s, `with_grace_period`). No production caller sets a timeout yet; that is the item above | `src/execution/executor.rs` |
 | P1 | Wire or remove `AgentLoop._max_iterations` | `src/agent/mod.rs` |
 | P1 | ADR: CaroML version header (next free number) | `docs/adr/`, `src/caroml/parser.rs` |
 | P1 | Runner contract doc + contract test | `docs/caroml/`, `tests/` |
