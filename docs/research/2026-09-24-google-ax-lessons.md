@@ -68,8 +68,9 @@ Follow-ups:
   kill `caro` but leave the step running. AX's runner forwards the signal to the
   group (`syscall.Kill(-pid, SIGTERM)`, `runner/runner.go`), and we need the same
   before a default timeout can ship.
-- Use SIGTERM, then a grace period, then SIGKILL (AX's shutdown order) instead of
-  an immediate SIGKILL, so commands can clean up.
+- ✅ Use SIGTERM, then a grace period, then SIGKILL (AX's shutdown order) instead of
+  an immediate SIGKILL, so commands can clean up. Done in #1545
+  (`DEFAULT_GRACE_MS`, `with_grace_period`).
 - Either wire `AgentLoop._max_iterations` or delete it. A declared but unused
   budget is worse than none.
 
@@ -179,7 +180,7 @@ trail and the governance spike together, without new infrastructure.
 |---|---|---|
 | P0 | ✅ Real timeout enforcement (this PR) | `src/execution/executor.rs` |
 | P1 | SIGINT forwarding to the process group, then a default step timeout in `caro run` / `caro do` | `src/execution/executor.rs`, `src/caroml/runner.rs`, `jobs.rs` |
-| ✅ | SIGTERM, grace period, then SIGKILL (`DEFAULT_GRACE_MS` 2 s, `with_grace_period`). No production caller sets a timeout yet; that is the item above | `src/execution/executor.rs` |
+| P1 | ✅ SIGTERM, grace period, then SIGKILL (`DEFAULT_GRACE_MS` 2 s, `with_grace_period`). No production caller sets a timeout yet; that is the item above | `src/execution/executor.rs` |
 | P1 | Wire or remove `AgentLoop._max_iterations` | `src/agent/mod.rs` |
 | P1 | ADR: CaroML version header (next free number) | `docs/adr/`, `src/caroml/parser.rs` |
 | P1 | Runner contract doc + contract test | `docs/caroml/`, `tests/` |
@@ -203,9 +204,9 @@ because our own harness has the same kind.
 - **Supervise the process group, not just the process.** The runner starts
   the command with `Setpgid: true`. On shutdown it sends SIGTERM to `-pid`,
   waits 10s, then SIGKILLs the group (`runner/runner.go`). This PR copies
-  the process-group supervision into `CommandExecutor`, but not the shutdown
-  sequence: on timeout it sends SIGKILL immediately. Adding SIGTERM and a
-  grace period is a P1 follow-up.
+  the process-group supervision into `CommandExecutor`. #1545 adds the
+  shutdown sequence: on timeout the group gets SIGTERM, a 2 s grace period,
+  then SIGKILL.
 - **Stay inspectable after the command exits.** The runner remains PID 1 and
   keeps its metadata server up once the agent finishes, so you can still look
   at what happened. For our harness, a routine should leave its worktree and
