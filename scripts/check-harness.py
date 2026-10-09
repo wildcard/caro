@@ -14,10 +14,12 @@ Levels:
   error   fails the run: a broken registry entry, or drift in a file that is
           loaded into every session (CLAUDE.md, .claude/rules/).
   warn    legacy drift in on-demand files (skills, agents, commands). The count
-          must equal --max-warnings, a ratchet: the PR that fixes a warning
-          lowers the budget, so the slack can never be spent again.
-  notice  informational (overdue deprecations, context budget); never fails,
-          so the calendar alone can never turn CI red.
+          must equal the budget in scripts/harness-budget.json (or
+          --max-warnings), a ratchet: the PR that fixes a warning lowers the
+          budget, so the slack can never be spent again.
+  notice  informational (overdue deprecations, context budget, near-twin skill
+          descriptions); never fails, so the calendar alone can never turn CI
+          red.
 
 Stdlib only. Usage: python3 scripts/check-harness.py [--max-warnings N]
 """
@@ -32,6 +34,8 @@ from pathlib import Path
 
 # Agent Skills format maximum for `description`; autoharness enforces the same cap.
 SKILL_DESC_MAX = 1024
+# Shorter than this, a description is a no-op that nothing routes to (from #1196).
+SKILL_DESC_MIN = 20
 # Skills whose descriptions share this many word trigrams compete for the same
 # requests (threshold from #1196's bin/verify-skills, which found two pairs).
 COLLISION_TRIGRAMS = 5
@@ -119,10 +123,26 @@ def check_skills(root):
         elif len(desc) > SKILL_DESC_MAX:
             out.append(Finding("error", "skill-description", where, None,
                                f"description is {len(desc)} chars (max {SKILL_DESC_MAX})"))
+        elif len(desc) < SKILL_DESC_MIN:
+            out.append(Finding("warn", "skill-description", where, None,
+                               f"description is {len(desc)} chars (min {SKILL_DESC_MIN}), "
+                               "too short to route on"))
         # name == directory keeps names unique, so a copied skill cannot shadow another.
         if fm.get("name") and fm["name"] != d.name:
             out.append(Finding("error", "skill-structure", where, None,
                                f"frontmatter name {fm['name']!r} != directory {d.name!r}"))
+    return out
+
+
+def check_commands(root):
+    """Frontmatter is optional for a command, but a `description:` that is
+    present and empty leaves the listing nothing to show (from #1196)."""
+    out = []
+    for f in sorted((root / ".claude" / "commands").glob("*.md")):
+        fm = frontmatter(read(f))
+        if fm is not None and "description" in fm and not fm["description"]:
+            out.append(Finding("error", "command-description", rel(root, f), None,
+                               "empty description, so the command listing shows nothing"))
     return out
 
 
@@ -322,7 +342,8 @@ def context_budget(root):
 
 
 def run_checks(root, today):
-    return (check_skills(root) + check_agents(root) + check_rules_indexed(root)
+    return (check_skills(root) + check_commands(root) + check_agents(root)
+            + check_rules_indexed(root)
             + check_hooks(root)
             + check_references(root, always_loaded(root), "error")
             + check_references(root, on_demand(root), "warn")

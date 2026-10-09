@@ -100,6 +100,7 @@ mechanisms additively, in phases:
 | Structure check: referenced files exist | Dangling references: **error** in always-loaded files (CLAUDE.md, rules), ratcheted **warning** in skills, agents and commands |
 | Rejected intents stay visible, never silent | Warnings print on every run. Their count must equal the budget in `scripts/harness-budget.json`, so the PR that fixes one also lowers the budget and the slack can't be spent again |
 | Curator folds near-duplicate skills | Skills whose descriptions share 5+ word trigrams get a notice (ported from #1196's `bin/verify-skills`) |
+| Promoter rejects malformed specs | #1196's other checks, ported with it: a skill description under 20 chars is a warning, and an empty command `description:` is an error |
 | No wall-clock lifecycle ("a closed laptop ages no one out") | Overdue deprecations are **notices** and never fail CI, so the calendar alone cannot turn a PR red |
 | `metrics.py` is observation-only | A context-budget notice prints on every run |
 | Never promise a path that does not exist (their PRs #99 and #105) | Corrected enforcement claims, plus the rule "document a check as enforced only once it is wired" |
@@ -241,4 +242,4 @@ survive ephemeral cloud sessions. Pick a durable sink before trusting any
 | Date | Author | Changes |
 |------|--------|---------|
 | 2026-09-26 | Caro maintainers | Initial draft, Proposed (as ADR-017) |
-| 2026-10-09 | Caro maintainers | Renumbered to ADR-018 (#1459 took 017). Least-privilege check handed to #1534; #1196's collision check ported; budget moved to `scripts/harness-budget.json`; conventions moved to a path-scoped rule |
+| 2026-10-09 | Caro maintainers | Renumbered to ADR-018 (#1459 took 017). Least-privilege check handed to #1534; #1196's collision, minimum-description and command-description checks ported; budget moved to `scripts/harness-budget.json`; conventions moved to a path-scoped rule |

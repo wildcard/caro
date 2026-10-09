@@ -92,6 +92,17 @@ class TestSkills(HarnessFixture):
         self.write(".claude/skills/demo/SKILL.md", "---\nname: demo\n---\n# demo\n")
         self.assertEqual(len(self.findings("skill-description")), 1)
 
+    def test_description_under_minimum_is_warning(self):
+        # A one-word description is a no-op that nothing routes to (#1196).
+        self.describe(ch.SKILL_DESC_MIN - 1)
+        [f] = self.findings("skill-description")
+        self.assertEqual(f.level, "warn")
+        self.assertIn(f"min {ch.SKILL_DESC_MIN}", f.message)
+
+    def test_description_at_minimum_passes(self):
+        self.describe(ch.SKILL_DESC_MIN)
+        self.assertEqual(self.findings("skill-description"), [])
+
     def test_name_must_match_directory(self):
         self.write(".claude/skills/demo/SKILL.md", SKILL.format(name="copied-from-elsewhere"))
         [f] = self.findings("skill-structure")
@@ -99,7 +110,18 @@ class TestSkills(HarnessFixture):
 
     def test_name_is_optional(self):
         # The host defaults it to the directory name (create_handoff relies on this).
-        self.write(".claude/skills/demo/SKILL.md", "---\ndescription: Use when demoing.\n---\n")
+        self.write(".claude/skills/demo/SKILL.md", "---\ndescription: Use when demoing the feature.\n---\n")
+        self.assertEqual(self.findings(), [])
+
+
+class TestCommands(HarnessFixture):
+    def test_empty_description_is_error(self):
+        self.write(".claude/commands/go.md", "---\ndescription:\n---\n# go\n")
+        [f] = self.findings("command-description")
+        self.assertEqual((f.level, f.path), ("error", ".claude/commands/go.md"))
+
+    def test_frontmatter_is_optional(self):
+        self.write(".claude/commands/go.md", "# go\nRun the thing.\n")
         self.assertEqual(self.findings(), [])
 
 
