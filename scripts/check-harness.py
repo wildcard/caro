@@ -6,6 +6,8 @@ Adapted from tigerless-labs/autoharness (MIT). There, a model may only
 one spec before anything lands, and tests pin the agents' contracts
 (least-privilege tools, hooks wired to files that exist). Caro's harness is
 hand-written by many parallel sessions, so the same checks run in CI instead.
+Agent tool allowlists are left to #1534's Rust contract test
+(tests/agent_tools_contract.rs), so this script does not duplicate it.
 Rationale: docs/adr/ADR-018-autoharness-harness-hygiene.md
 
 Levels:
@@ -30,10 +32,10 @@ from pathlib import Path
 
 # Agent Skills format maximum for `description`; autoharness enforces the same cap.
 SKILL_DESC_MAX = 1024
-# Bash counts: the shell can write, and scoped `Bash(...)` patterns are
-# documented for skills' allowed-tools, not for subagent `tools:`.
-WRITE_CAPABLE = {"Write", "Edit", "MultiEdit", "NotebookEdit", "Bash"}
-READ_ONLY_CLAIM = re.compile(r"(?i)\byou are read-only\b")
+# Skills whose descriptions share this many word trigrams compete for the same
+# requests (threshold from #1196's bin/verify-skills, which found two pairs).
+COLLISION_TRIGRAMS = 5
+BUDGET_FILE = Path("scripts") / "harness-budget.json"
 # Directories under .claude/skills/ that are support material for a command,
 # not standalone skills. Claude Code ignores a skill dir without SKILL.md.
 SUPPORT_DIRS = {
@@ -88,11 +90,6 @@ def _scalar(value):
     return value
 
 
-def tool_names(value):
-    """Base names from a `tools:` value: 'Read, Bash(git diff:*)' -> {'Read', 'Bash'}."""
-    return {t.split("(", 1)[0] for t in re.findall(r"[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?", value)}
-
-
 def rel(root, path):
     return path.relative_to(root).as_posix()
 
@@ -133,8 +130,7 @@ def check_agents(root):
     out = []
     for f in sorted((root / ".claude" / "agents").glob("*.md")):
         where = rel(root, f)
-        text = read(f)
-        fm = frontmatter(text)
+        fm = frontmatter(read(f))
         if fm is None:
             out.append(Finding("error", "agent-structure", where, None, "missing frontmatter"))
             continue
@@ -145,16 +141,6 @@ def check_agents(root):
                                f"frontmatter name {fm.get('name')!r} != filename {f.stem!r}"))
         if not fm.get("description"):
             out.append(Finding("error", "agent-structure", where, None, "empty description"))
-        if READ_ONLY_CLAIM.search(text):
-            if "tools" not in fm:
-                out.append(Finding("error", "agent-least-privilege", where, None,
-                                   "says it is read-only but has no `tools:` allowlist, "
-                                   "so it inherits Write, Edit and Bash"))
-            elif tool_names(fm["tools"]) & WRITE_CAPABLE:
-                granted = ", ".join(sorted(tool_names(fm["tools"]) & WRITE_CAPABLE))
-                out.append(Finding("error", "agent-least-privilege", where, None,
-                                   f"says it is read-only but its allowlist grants {granted}, "
-                                   "which can write"))
     return out
 
 
@@ -251,15 +237,21 @@ def check_references(root, files, level):
     return out
 
 
+def scoped(rule):
+    """A rule with `paths:` frontmatter loads only when Claude reads a matching file."""
+    return "paths" in (frontmatter(read(rule)) or {})
+
+
 def always_loaded(root):
     files = [root / "CLAUDE.md", root / ".claude" / "CLAUDE.md"]
-    files += sorted((root / ".claude" / "rules").glob("*.md"))
+    files += [f for f in sorted((root / ".claude" / "rules").glob("*.md")) if not scoped(f)]
     return [f for f in files if f.is_file()]
 
 
 def on_demand(root):
     c = root / ".claude"
     files = [c / "AGENTS.md"] if (c / "AGENTS.md").is_file() else []
+    files += [f for f in sorted(c.glob("rules/*.md")) if scoped(f)]
     return files + sorted(c.glob("skills/*/SKILL.md")) + sorted(c.glob("agents/*.md")) \
         + sorted(c.glob("commands/*.md"))
 
@@ -280,6 +272,32 @@ def check_deprecations(root, today):
             if f'"{name}"' in published else ""
         out.append(Finding("notice", "overdue-removal", rel(root, f), None,
                            f"its deprecation notice promised removal after {m.group(1)}{tail}"))
+    return out
+
+
+def trigrams(text):
+    words = re.findall(r"[a-z0-9]+", text.lower())
+    return {tuple(words[i:i + 3]) for i in range(len(words) - 2)}
+
+
+def check_collisions(root):
+    """Skills whose descriptions overlap heavily: the model routes on the
+    description, so near-twins compete for the same requests. A notice, because
+    merging or sharpening them is a judgment call."""
+    grams = {}
+    for f in sorted((root / ".claude" / "skills").glob("*/SKILL.md")):
+        desc = (frontmatter(read(f)) or {}).get("description", "")
+        if desc:
+            grams[f.parent.name] = trigrams(desc)
+    names = sorted(grams)
+    out = []
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            shared = len(grams[a] & grams[b])
+            if shared >= COLLISION_TRIGRAMS:
+                out.append(Finding("notice", "description-collision", f".claude/skills/{a}", None,
+                                   f"description shares {shared} word trigrams with {b}; "
+                                   "merge them or sharpen their triggers"))
     return out
 
 
@@ -308,7 +326,7 @@ def run_checks(root, today):
             + check_hooks(root)
             + check_references(root, always_loaded(root), "error")
             + check_references(root, on_demand(root), "warn")
-            + check_deprecations(root, today) + context_budget(root))
+            + check_deprecations(root, today) + check_collisions(root) + context_budget(root))
 
 
 def emit(f, github):
@@ -324,11 +342,14 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Lint Caro's Claude Code harness.")
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--max-warnings", type=int, default=None,
-                        help="fail when warnings exceed N (ratchet for legacy drift)")
+                        help=f"fail unless warnings equal N (default: max_warnings in {BUDGET_FILE})")
     parser.add_argument("--today", type=date.fromisoformat, default=date.today(),
                         help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     root = args.root.resolve()
+    budget_file = root / BUDGET_FILE
+    if args.max_warnings is None and budget_file.is_file():
+        args.max_warnings = json.loads(read(budget_file))["max_warnings"]
     findings = sorted(run_checks(root, args.today),
                       key=lambda f: (LEVELS.index(f.level), f.path, f.line or 0))
     github = os.environ.get("GITHUB_ACTIONS") == "true"
@@ -347,8 +368,8 @@ def main(argv=None):
         if warnings < args.max_warnings:
             # Unspent slack would let a later PR add drift for free, so the gain
             # must be locked in by the PR that made it.
-            print(f"Drift went down: lower --max-warnings to {warnings} in "
-                  ".github/workflows/harness-lint.yml in this PR to lock in the gain.")
+            print(f"Drift went down: lower max_warnings to {warnings} in "
+                  f"{BUDGET_FILE.as_posix()} in this PR to lock in the gain.")
             return 1
     return 0
 

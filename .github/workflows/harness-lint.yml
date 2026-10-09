@@ -26,7 +26,7 @@ jobs:
         run: python3 -m unittest discover -s scripts/tests -p 'test_check_harness.py'
 
       - name: Lint the harness
-        # --max-warnings ratchets legacy drift in skills/agents/commands. It
-        # must equal the warning count: the PR that fixes a warning lowers it
-        # (CI fails until it does). Never raise it.
-        run: python3 scripts/check-harness.py --max-warnings 16
+        # The warning budget lives in scripts/harness-budget.json, so lowering
+        # it never edits this workflow. It must equal the warning count: the PR
+        # that fixes a warning lowers it (CI fails until it does). Never raise it.
+        run: python3 scripts/check-harness.py

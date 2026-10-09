@@ -104,41 +104,18 @@ class TestSkills(HarnessFixture):
 
 
 class TestAgents(HarnessFixture):
-    READ_ONLY = "You are read-only. You never edit files."
-
-    def test_read_only_agent_without_allowlist_is_error(self):
-        # Omitting `tools:` inherits Write/Edit: the prose promise is unenforced.
-        self.write(".claude/agents/critic.md", AGENT.format(name="critic", extra="", body=self.READ_ONLY))
-        [f] = self.findings("agent-least-privilege")
-        self.assertIn("no `tools:` allowlist", f.message)
-
-    def test_read_only_agent_granting_write_is_error(self):
-        self.write(".claude/agents/critic.md",
-                   AGENT.format(name="critic", extra="tools: Read, Grep, Edit\n", body=self.READ_ONLY))
-        [f] = self.findings("agent-least-privilege")
-        self.assertIn("Edit", f.message)
-
-    def test_read_only_agent_granting_bash_is_error(self):
-        # The shell can write, and scoped Bash(...) is not documented for subagent `tools:`.
-        for tools in ("Read, Bash", "Read, Bash(git diff:*)"):
-            self.write(".claude/agents/critic.md",
-                       AGENT.format(name="critic", extra=f"tools: {tools}\n", body=self.READ_ONLY))
-            [f] = self.findings("agent-least-privilege")
-            self.assertIn("Bash", f.message)
-
-    def test_read_only_agent_with_read_tools_passes(self):
-        self.write(".claude/agents/critic.md",
-                   AGENT.format(name="critic", extra="tools: Read, Grep, Glob\n", body=self.READ_ONLY))
-        self.assertEqual(self.findings(), [])
-
-    def test_agent_that_does_not_claim_read_only_needs_no_allowlist(self):
-        self.write(".claude/agents/builder.md", AGENT.format(name="builder", extra="", body="Build it."))
-        self.assertEqual(self.findings(), [])
+    # Tool allowlists are left to tests/agent_tools_contract.rs (#1534);
+    # this linter keeps only registry integrity for agents.
 
     def test_name_must_match_filename(self):
         self.write(".claude/agents/helper.md", AGENT.format(name="other", extra="", body="Help."))
         [f] = self.findings("agent-structure")
         self.assertIn("!= filename", f.message)
+
+    def test_tools_are_not_this_linters_job(self):
+        self.write(".claude/agents/critic.md",
+                   AGENT.format(name="critic", extra="", body="You are read-only."))
+        self.assertEqual(self.findings(), [])
 
 
 class TestRulesIndexed(HarnessFixture):
@@ -241,6 +218,52 @@ class TestReferences(HarnessFixture):
         self.assertEqual(self.findings("dangling-ref"), [])
 
 
+class TestScopedRules(HarnessFixture):
+    SCOPED = '---\npaths:\n  - ".claude/**"\n---\n# Harness\nSee `docs/gone.md`.\n'
+
+    def index(self, name):
+        self.write(".claude/rules/constitution.md",
+                   CONSTITUTION + f"2. **[{name}](./{name})** — scoped.\n")
+
+    def test_rule_with_paths_is_on_demand(self):
+        # A `paths:` rule loads only when matching files are read, so its drift
+        # costs only those sessions: a warning, like skills, not an error.
+        self.write(".claude/rules/harness.md", self.SCOPED)
+        self.index("harness.md")
+        [f] = self.findings("dangling-ref")
+        self.assertEqual((f.level, f.path), ("warn", ".claude/rules/harness.md"))
+
+    def test_scoped_rule_must_still_be_indexed(self):
+        self.write(".claude/rules/harness.md", self.SCOPED.replace("`docs/gone.md`", "nothing"))
+        [f] = self.findings("rules-indexed")
+        self.assertEqual(f.path, ".claude/rules/harness.md")
+
+
+class TestCollisions(HarnessFixture):
+    SAME = "the quick brown fox jumps over the lazy dog every single day"
+
+    def skill(self, name, desc):
+        self.write(f".claude/skills/{name}/SKILL.md", f"---\nname: {name}\ndescription: {desc}\n---\n")
+
+    def test_near_twin_descriptions_are_a_notice(self):
+        # spec-kitty-git-workflow and spec-kitty-mission-system share 15 trigrams (#1196).
+        self.skill("alpha", self.SAME)
+        self.skill("beta", self.SAME)
+        [f] = self.findings("description-collision")
+        self.assertEqual((f.level, f.path), ("notice", ".claude/skills/alpha"))
+        self.assertIn("beta", f.message)
+
+    def test_distinct_descriptions_do_not_collide(self):
+        self.skill("alpha", "bake bread early every morning for the shop")
+        self.skill("beta", "compile quarterly reports for the board review")
+        self.assertEqual(self.findings("description-collision"), [])
+
+    def test_collisions_never_fail_the_run(self):
+        self.skill("alpha", self.SAME)
+        self.skill("beta", self.SAME)
+        self.assertEqual(self.run_main("--max-warnings", "0")[0], 0)
+
+
 class TestDeprecations(HarnessFixture):
     DEPRECATED = "---\nname: old\ndescription: \"DEPRECATED — use demo. Will be removed after {day}.\"\n---\n"
 
@@ -269,8 +292,6 @@ class TestFrontmatter(unittest.TestCase):
     def test_missing_frontmatter_is_none(self):
         self.assertIsNone(ch.frontmatter("# no frontmatter\n"))
 
-    def test_tool_names_strip_arguments(self):
-        self.assertEqual(ch.tool_names("Read, Bash(git diff:*), Edit"), {"Read", "Bash", "Edit"})
 
 
 class TestWarningRatchet(HarnessFixture):
@@ -291,7 +312,21 @@ class TestWarningRatchet(HarnessFixture):
         # Unspent slack would let a later PR add drift for free.
         code, out = self.run_main("--max-warnings", "3")
         self.assertEqual(code, 1)
-        self.assertIn("lower --max-warnings to 1", out)
+        self.assertIn("lower max_warnings to 1", out)
+
+    def test_budget_file_is_the_default(self):
+        # The number lives in scripts/harness-budget.json, so lowering it never
+        # edits a Tier-1 workflow file.
+        self.write("scripts/harness-budget.json", '{"max_warnings": 0}')
+        code, out = self.run_main()
+        self.assertEqual(code, 1)
+        self.assertIn("(budget 0)", out)
+        self.write("scripts/harness-budget.json", '{"max_warnings": 1}')
+        self.assertEqual(self.run_main()[0], 0)
+
+    def test_budget_slack_names_the_budget_file(self):
+        code, out = self.run_main("--max-warnings", "3")
+        self.assertIn("harness-budget.json", out)
 
     def test_any_error_fails_regardless_of_budget(self):
         self.write(".claude/skills/ghost/README.md", "#\n")
