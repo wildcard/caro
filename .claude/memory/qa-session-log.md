@@ -17,7 +17,7 @@ Reading order: most recent first.
 - `caro doctor` → **PASS**: advisory output only
 - `caro -p 'list files in current directory' --dry-run` → **PASS** via static matcher (Pattern 43); no model download required for this query
 - `caro config show` → **PASS**: shows active config
-- `caro -p 'explain this' --dry-run` → **PASS**: static-matched, no LLM required
+- `caro -p 'explain this' --dry-run` → **FAIL**: no `explain` pattern in static matcher; falls to embedded CPU backend → P1 #1269 clarification stub
 
 ### Slot B — Recent diff
 
