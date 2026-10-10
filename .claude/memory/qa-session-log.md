@@ -4,6 +4,64 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-09 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: automated cron; second-ever run of caro-qa-agent.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+
+- `cargo build` → **PASS** (debug build, no errors)
+- `caro --version` → **PASS**: `caro 1.5.0`
+- `caro --help` → **PASS**: all subcommands listed
+- `caro doctor` → **PASS**: advisory output only
+- `caro -p 'list files in current directory' --dry-run` → **PASS** via static matcher (Pattern 43); no model download required for this query
+- `caro config show` → **PASS**: shows active config
+- `caro -p 'explain this' --dry-run` → **FAIL**: no `explain` pattern in static matcher; falls to embedded CPU backend → P1 #1269 clarification stub
+
+### Slot B — Recent diff
+
+**Last run date**: 2026-05-07. Scanned 124 PRs merged since then (PR range approximately #1100–#1487+).
+
+Spot-tested recent diff surfaces:
+
+- `cargo test --lib -- safety` → **PASS**: 38 safety unit tests passed, 0 failed
+- `caro config get` / `caro config set` → **PASS**: round-trips correctly
+- `caro -p 'explain the last command' --dry-run` → **FAIL**: no `explain` pattern in static matcher; falls to embedded CPU backend → P1 #1269 clarification stub
+- `caro ai --once "list files"` → **FAIL** (pre-existing P1 #1269, see Findings)
+- `caro -p 'find files in current directory' --dry-run` → **FAIL** (falls to embedded CPU stub; P1 #1269)
+
+PR #1487 (Pattern 43 extension for current-directory qualifier) tested:
+
+- `caro -p 'list files here' --dry-run` → **PASS**: matched by extended Pattern 43
+- `caro -p 'show files in this directory' --dry-run` → **PASS**: matched by extended Pattern 43
+
+### Slot C — `caro ai --once` (Surface #10)
+
+Surface: **`caro ai --once` scripted conversational mode** (oldest 'never' tested surface, #10 in matrix).
+
+- `caro ai --once "list files in home directory"` → **FAIL**
+  - Embedded CPU stub hit (model downloaded successfully to `~/.cache/caro/models/`)
+  - `cpu.rs:63` checks `prompt.contains("rm")` against the full system prompt
+  - System prompt always contains "rm -rf" in its safety instructions
+  - All non-static-matched queries return clarification stub: `"What exactly should be deleted?"`
+  - Root cause: pre-existing P1 bug [#1269](https://github.com/wildcard/caro/issues/1269) (open since 2026-06-26)
+
+### Findings
+
+- **0 new issues filed**. Both bugs confirmed pre-existing:
+  - [#1269](https://github.com/wildcard/caro/issues/1269) — CPU stub `rm`-in-system-prompt false positive (P1, open)
+  - [#1098](https://github.com/wildcard/caro/issues/1098) — CLAUDE.md version drift (P2, open; #1044 closed as dup)
+
+### Followups
+
+- FLAKE-001 (model download) not reproduced today: model downloaded successfully to `~/.cache/caro/models/` (known-flakes updated in this PR).
+- `caro ai --once` (Surface #10) remains broken. Next Slot C candidate: Surface #11 (`caro ai --continue-session`).
+- #1269 has 5+ duplicate issues closed. Root fix in `cpu.rs:63` still pending.
+- CLAUDE.md still shows `1.4.0 (GA)` while Cargo.toml is `1.5.0`. #1098 still open.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
