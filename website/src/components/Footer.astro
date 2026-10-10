@@ -215,8 +215,8 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
   }
 
   .social-link:hover {
-    background: var(--accent, #ef3333);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     transform: translateY(-2px);
   }
 
@@ -256,17 +256,21 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     transition: color 0.2s;
   }
 
+  /* The footer is the grey console surface: red text cannot reach AA on
+     it (≈2.4:1), so hover and highlight use the brand yellow (7.5:1). */
   .column-links a:hover {
-    color: var(--accent, #ef3333);
+    color: var(--highlight);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .support-link {
-    color: #ea4aaa !important;
-    font-weight: 500;
+    color: var(--highlight) !important;
+    font-weight: 600;
   }
 
   .support-link:hover {
-    color: #d43d9a !important;
+    color: var(--caro-beige-100) !important;
   }
 
   /* Kyaro Mascot Banner */
@@ -310,8 +314,9 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
   }
 
   .kyaro-text a {
-    color: var(--accent, #ef3333);
-    text-decoration: none;
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
     font-weight: 500;
   }
 
@@ -349,24 +354,23 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     font-size: 13px;
     color: var(--color-footer-text-muted);
     font-style: italic;
-    opacity: 0.8;
   }
 
   .heritage-tribute {
     font-size: 12px;
     color: var(--color-footer-text-muted);
-    opacity: 0.7;
     margin-top: 4px;
   }
 
   .heritage-tribute a {
-    color: var(--color-footer-text-muted);
-    text-decoration: none;
+    color: var(--color-footer-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
     transition: color 0.2s;
   }
 
   .heritage-tribute a:hover {
-    color: var(--accent, #ef3333);
+    color: var(--highlight);
   }
 
   .version {
