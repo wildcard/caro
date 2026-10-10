@@ -31,11 +31,12 @@ const vsPages = [
     keyDiff: 'No App Switch'
   },
   {
-    slug: 'amazon-q-cli',
-    name: 'Amazon Q CLI',
+    // There is no amazon-q-cli page: Amazon Q CLI is now Kiro CLI.
+    slug: 'kiro-cli',
+    name: 'Kiro CLI',
     tagline: 'Enterprise cloud vs local control',
-    description: 'Compare Amazon Q\'s AWS-integrated approach with Caro\'s self-contained, privacy-first design.',
-    icon: '☁️',
+    description: 'Compare Kiro CLI\'s (formerly Amazon Q) AWS-integrated approach with Caro\'s self-contained, privacy-first design.',
+    icon: '👻',
     keyDiff: 'Self-Contained'
   },
   {
@@ -56,7 +57,7 @@ const vsPages = [
 >
   <Navigation lang={lang} />
 
-  <div class="compare-hub">
+  <main id="main-content" class="compare-hub">
     <section class="hero">
       <div class="container">
         <h1>How Caro Compares</h1>
@@ -73,7 +74,7 @@ const vsPages = [
           {vsPages.map((page) => (
             <a href={`/${lang}/compare/${page.slug}`} class="comparison-card">
               <div class="card-icon">{page.icon}</div>
-              <h3>{page.name}</h3>
+              <h2>{page.name}</h2>
               <p class="tagline">{page.tagline}</p>
               <p class="description">{page.description}</p>
               <div class="key-diff">
@@ -89,7 +90,7 @@ const vsPages = [
         </div>
       </div>
     </section>
-  </div>
+  </main>
 
   <Footer lang={lang} />
 </Layout>
@@ -132,7 +133,7 @@ const vsPages = [
 
   .comparison-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
     gap: 30px;
     margin-bottom: 60px;
   }
@@ -157,10 +158,12 @@ const vsPages = [
     margin-bottom: 20px;
   }
 
-  .comparison-card h3 {
+  /* h2 (was h3) for a valid outline; the global `section h2` centers text. */
+  .comparison-card h2 {
     font-size: 24px;
     margin-bottom: 10px;
     color: var(--color-text);
+    text-align: left;
   }
 
   .comparison-card .tagline {
@@ -221,8 +224,16 @@ const vsPages = [
   }
 
   .cta-button:hover {
+    background: var(--accent-fill-hover);
+    color: var(--on-accent);
+    text-decoration: none;
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(239, 51, 51, 0.3);
+  }
+
+  .cta-button:focus-visible {
+    outline: 3px solid var(--fg-strong);
+    outline-offset: 2px;
   }
 
   @media (max-width: 768px) {

@@ -10,7 +10,7 @@ import Navigation from '../components/Navigation.astro';
 >
   <Navigation lang="en" />
 
-  <div class="credits-page">
+  <main id="main-content" class="credits-page">
     <!-- Opening Crawl / Hero -->
     <section class="credits-hero">
       <div class="stars"></div>
@@ -31,15 +31,15 @@ import Navigation from '../components/Navigation.astro';
     </section>
 
     <!-- Main Credits Roll -->
-    <main id="main-content" class="credits-content">
+    <div class="credits-content">
 
       <!-- Special Thanks Section -->
       <section class="credits-section special-thanks">
         <div class="container">
           <div class="section-header">
-            <span class="sparkle">&#10024;</span>
+            <span class="sparkle" aria-hidden="true">&#10024;</span>
             <h2>Special Thanks</h2>
-            <span class="sparkle">&#10024;</span>
+            <span class="sparkle" aria-hidden="true">&#10024;</span>
           </div>
 
           <div class="credit-card featured">
@@ -481,19 +481,19 @@ import Navigation from '../components/Navigation.astro';
 
           <div class="license-grid">
             <div class="license-category">
-              <h4>MIT License</h4>
+              <h3>MIT License</h3>
               <p>tokio, clap, indicatif, dialoguer, colored, tracing, reqwest, hyper, anyhow, thiserror, elevator.js, canvas-confetti</p>
             </div>
             <div class="license-category">
-              <h4>MIT OR Apache-2.0</h4>
+              <h3>MIT OR Apache-2.0</h3>
               <p>serde, serde_json, chrono, regex, once_cell, async-trait, futures</p>
             </div>
             <div class="license-category">
-              <h4>Apache-2.0</h4>
+              <h3>Apache-2.0</h3>
               <p>Qwen models, tokenizers, hf-hub</p>
             </div>
             <div class="license-category">
-              <h4>MIT</h4>
+              <h3>MIT</h3>
               <p>llama.cpp, MLX (Apple), Astro</p>
             </div>
           </div>
@@ -533,8 +533,8 @@ import Navigation from '../components/Navigation.astro';
         </div>
       </section>
 
-    </main>
-  </div>
+    </div>
+  </main>
 </Layout>
 
 <style>
@@ -680,7 +680,8 @@ import Navigation from '../components/Navigation.astro';
 
   .section-description a {
     color: var(--color-link, var(--accent));
-    text-decoration: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .section-description a:hover {
@@ -747,7 +748,8 @@ import Navigation from '../components/Navigation.astro';
 
   .credit-content .description a {
     color: var(--color-link, var(--accent));
-    text-decoration: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .credit-content .description a:hover {
@@ -863,7 +865,8 @@ import Navigation from '../components/Navigation.astro';
 
   .inspiration-card a {
     color: var(--color-link, var(--accent));
-    text-decoration: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .inspiration-card a:hover {
@@ -873,11 +876,6 @@ import Navigation from '../components/Navigation.astro';
 
   .inspiration-card.heritage-card {
     border-left: 3px solid #a07850;
-    background: linear-gradient(135deg, var(--color-bg) 0%, rgba(160, 120, 80, 0.05) 100%);
-  }
-
-  :global(.dark) .inspiration-card.heritage-card {
-    background: linear-gradient(135deg, var(--color-bg-secondary) 0%, rgba(160, 120, 80, 0.08) 100%);
   }
 
   /* Licenses Section */
@@ -895,7 +893,7 @@ import Navigation from '../components/Navigation.astro';
     padding: 20px;
   }
 
-  .license-category h4 {
+  .license-category h3 {
     font-size: 16px;
     font-weight: 700;
     color: var(--accent-text);
@@ -926,7 +924,8 @@ import Navigation from '../components/Navigation.astro';
 
   .license-note a {
     color: var(--color-link, var(--accent));
-    text-decoration: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .license-note a:hover {
@@ -961,20 +960,27 @@ import Navigation from '../components/Navigation.astro';
     color: var(--highlight);
   }
 
+  /* Console surface: grey-300 is the AA secondary ink (4.85:1); red cannot
+     reach AA on grey-700, so the link uses the brand's on-dark accent. */
   .finale-subtext {
     font-size: 16px;
-    color: #a0a0a0;
+    color: var(--caro-grey-300);
     margin-bottom: 40px;
   }
 
   .finale-subtext a {
-    color: var(--color-link, var(--accent));
-    text-decoration: none;
+    color: var(--highlight);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .finale-subtext a:hover {
-    color: var(--color-link-hover, var(--accent-hover));
+    color: var(--fg-inverse);
     text-decoration: underline;
+  }
+
+  .finale-subtext a:focus-visible {
+    outline-color: var(--highlight);
   }
 
   .finale-cta {
@@ -994,8 +1000,16 @@ import Navigation from '../components/Navigation.astro';
   }
 
   .cta-button:hover {
+    background: var(--accent-fill-hover);
+    color: var(--on-accent);
+    text-decoration: none;
     transform: translateY(-2px);
     box-shadow: 0 10px 30px rgba(239, 51, 51, 0.4);
+  }
+
+  .cta-button:focus-visible {
+    outline: 3px solid var(--highlight);
+    outline-offset: 3px;
   }
 
   .finale-signature {
@@ -1014,7 +1028,7 @@ import Navigation from '../components/Navigation.astro';
   }
 
   :global(.dark) .credit-card.featured {
-    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg-secondary) 100%);
+    background: var(--color-bg-tertiary);
   }
 
   :global(.dark) .inspiration-card,

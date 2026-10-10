@@ -184,6 +184,8 @@ const repo = 'https://github.com/wildcard/caro';
 
   .banner a {
     color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .hero {
@@ -213,7 +215,7 @@ const repo = 'https://github.com/wildcard/caro';
 
   .tiers {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 1.5rem;
     margin: 0 0 3rem;
   }
@@ -286,6 +288,11 @@ const repo = 'https://github.com/wildcard/caro';
     color: var(--on-accent);
   }
 
+  .cta--primary:hover {
+    background: var(--accent-fill-hover);
+    color: var(--on-accent);
+  }
+
   .cta--secondary {
     background: transparent;
     color: var(--accent-text);
@@ -331,5 +338,7 @@ const repo = 'https://github.com/wildcard/caro';
   .contract a,
   .faq a {
     color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 </style>

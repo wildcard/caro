@@ -17,7 +17,7 @@ export const searchMeta = {
 >
   <Navigation />
 
-  <div class="support-page">
+  <main id="main-content" class="support-page">
     <!-- Hero Section -->
     <section class="support-hero">
       <div class="container">
@@ -278,7 +278,7 @@ export const searchMeta = {
         </div>
       </div>
     </section>
-  </div>
+  </main>
 </Layout>
 
 <style>
@@ -386,8 +386,7 @@ export const searchMeta = {
   }
 
   .support-card.primary {
-    border-color: #ea4aaa;
-    background: linear-gradient(135deg, rgba(234, 74, 170, 0.05) 0%, var(--color-bg) 100%);
+    border-color: var(--accent);
   }
 
   .card-header {
@@ -398,7 +397,7 @@ export const searchMeta = {
   }
 
   .card-icon {
-    color: #ea4aaa;
+    color: var(--accent);
   }
 
   .badge {
@@ -411,13 +410,15 @@ export const searchMeta = {
   }
 
   .badge.recommended {
-    background: #ea4aaa;
-    color: #fff;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
+  /* --status-safe-text is dark green in light mode and light green in dark
+     mode; --bg is the opposite page tone, so the pair passes AA in both. */
   .badge.transparent {
-    background: #10b981;
-    color: #fff;
+    background: var(--status-safe-text);
+    color: var(--bg);
   }
 
   .support-card h3 {
@@ -452,7 +453,7 @@ export const searchMeta = {
     content: "✓";
     position: absolute;
     left: 0;
-    color: #10b981;
+    color: var(--status-safe-text);
     font-weight: 600;
   }
 
@@ -468,13 +469,20 @@ export const searchMeta = {
     transition: all 0.2s ease;
   }
 
+  .cta-button:focus-visible {
+    outline: 3px solid var(--fg-strong);
+    outline-offset: 2px;
+  }
+
   .cta-button.github-sponsors {
-    background: #ea4aaa;
-    color: #fff;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .cta-button.github-sponsors:hover {
-    background: #d43d9a;
+    background: var(--accent-fill-hover);
+    color: var(--on-accent);
+    text-decoration: none;
     transform: translateY(-2px);
   }
 
@@ -485,6 +493,8 @@ export const searchMeta = {
 
   .cta-button.open-collective:hover {
     background: #6930d9;
+    color: #fff;
+    text-decoration: none;
     transform: translateY(-2px);
   }
 
@@ -633,19 +643,19 @@ export const searchMeta = {
     align-items: center;
     gap: 12px;
     padding: 32px;
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
-    border: 2px solid #10b981;
+    background: rgba(63, 163, 77, 0.1);
+    border: 2px solid var(--status-safe);
     border-radius: 16px;
   }
 
   .badge-icon {
-    color: #10b981;
+    color: var(--status-safe);
   }
 
   .badge-text {
     font-size: 16px;
     font-weight: 700;
-    color: #10b981;
+    color: var(--status-safe-text);
   }
 
   /* Other Ways Grid */
@@ -725,12 +735,14 @@ export const searchMeta = {
   }
 
   .cta-button.primary {
-    background: #ea4aaa;
-    color: #fff;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .cta-button.primary:hover {
-    background: #d43d9a;
+    background: var(--accent-fill-hover);
+    color: var(--on-accent);
+    text-decoration: none;
   }
 
   .cta-button.secondary {
@@ -741,6 +753,13 @@ export const searchMeta = {
 
   .cta-button.secondary:hover {
     background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* The final CTA sits on the console surface: a dark ring would vanish. */
+  .final-cta .cta-button:focus-visible {
+    outline-color: var(--highlight);
   }
 
   /* Responsive */
