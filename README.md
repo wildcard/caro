@@ -389,6 +389,10 @@ mesh_url = "http://localhost:9337"
 # AI-Horde: free crowdsourced cluster (anonymous key works out of the box)
 ai_horde_url = "https://aihorde.net/api"
 ai_horde_key = "0000000000"
+# Or keep your own key out of this file: name the environment variable that
+# holds it. Set ai_horde_key or ai_horde_key_env, not both. If the variable is
+# unset, Caro stops with an error instead of using the anonymous key.
+# ai_horde_key_env = "AI_HORDE_KEY"
 # Hybrid gateway: which remote enhancer to wrap (mesh | ai-horde)
 hybrid_remote = "mesh"
 # Send prompts verbatim to a (trusted) remote instead of sanitizing PII first.

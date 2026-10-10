@@ -946,6 +946,11 @@ pub struct BackendsConfig {
     /// AI-Horde API key (default anonymous `"0000000000"`).
     #[serde(default)]
     pub ai_horde_key: Option<String>,
+    /// Name of the environment variable that holds the AI-Horde API key, so
+    /// the key itself stays out of `config.toml`. Set this or `ai_horde_key`,
+    /// not both.
+    #[serde(default)]
+    pub ai_horde_key_env: Option<String>,
     /// Which remote enhancer the `hybrid` backend wraps: `"mesh"` (default) or
     /// `"ai-horde"`.
     #[serde(default)]
@@ -956,6 +961,54 @@ pub struct BackendsConfig {
     /// standard remote-privacy warning (the path Claude/OpenRouter use).
     #[serde(default)]
     pub allow_public: bool,
+}
+
+impl BackendsConfig {
+    /// Validate the `[backends]` section. A key may come from the file or
+    /// from a named environment variable, never both.
+    pub fn validate(&self) -> Result<(), String> {
+        if self.ai_horde_key.is_some() && self.ai_horde_key_env.is_some() {
+            return Err(
+                "backends: set either ai_horde_key or ai_horde_key_env, not both".to_string(),
+            );
+        }
+        if let Some(name) = &self.ai_horde_key_env {
+            if !is_env_var_name(name) {
+                return Err(format!(
+                    "backends.ai_horde_key_env must be an environment variable name \
+                     (letters, digits, '_'; not starting with a digit), got {:?}",
+                    name
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    /// The AI-Horde key to use: from `ai_horde_key_env`, else `ai_horde_key`,
+    /// else `None` (the caller applies the anonymous default).
+    ///
+    /// A named variable that is unset or empty is an error, not a silent
+    /// fallback to the anonymous key: the user asked for their own key.
+    /// The error names the variable, never its value.
+    pub fn resolve_ai_horde_key(&self) -> Result<Option<String>, String> {
+        match &self.ai_horde_key_env {
+            Some(name) => match std::env::var(name) {
+                Ok(value) if !value.is_empty() => Ok(Some(value)),
+                _ => Err(format!(
+                    "backends.ai_horde_key_env names ${}, but that variable is unset or empty",
+                    name
+                )),
+            },
+            None => Ok(self.ai_horde_key.clone()),
+        }
+    }
+}
+
+/// True when `name` is a portable environment variable name.
+fn is_env_var_name(name: &str) -> bool {
+    let mut chars = name.chars();
+    matches!(chars.next(), Some(c) if c.is_ascii_alphabetic() || c == '_')
+        && chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
 }
 
 /// User configuration with preferences
@@ -1040,6 +1093,7 @@ impl UserConfiguration {
             ));
         }
         self.ai.validate()?;
+        self.backends.validate()?;
         Ok(())
     }
 }
@@ -1207,6 +1261,10 @@ impl ConfigSchema {
         known_keys.insert("backends.exo_url".to_string(), "String".to_string());
         known_keys.insert("backends.ai_horde_url".to_string(), "String".to_string());
         known_keys.insert("backends.ai_horde_key".to_string(), "String".to_string());
+        known_keys.insert(
+            "backends.ai_horde_key_env".to_string(),
+            "String".to_string(),
+        );
         known_keys.insert("backends.hybrid_remote".to_string(), "String".to_string());
         known_keys.insert("backends.allow_public".to_string(), "bool".to_string());
 
@@ -1528,5 +1586,92 @@ mod confidence_source_tests {
         )
         .unwrap();
         assert_eq!(v.confidence_source, ConfidenceSource::Unknown);
+    }
+}
+
+#[cfg(test)]
+mod backends_config_tests {
+    use super::*;
+
+    // Each test uses its own variable name, so tests can run in parallel.
+
+    #[test]
+    fn contract_ai_horde_key_env_reads_the_named_variable() {
+        std::env::set_var("CARO_TEST_HORDE_KEY_A", "user-key-123");
+        let cfg: BackendsConfig =
+            toml::from_str("ai_horde_key_env = \"CARO_TEST_HORDE_KEY_A\"").unwrap();
+        assert!(cfg.validate().is_ok());
+        assert_eq!(
+            cfg.resolve_ai_horde_key().unwrap().as_deref(),
+            Some("user-key-123")
+        );
+    }
+
+    #[test]
+    fn contract_unset_key_env_is_an_error_not_the_anonymous_key() {
+        std::env::remove_var("CARO_TEST_HORDE_KEY_UNSET");
+        let cfg = BackendsConfig {
+            ai_horde_key_env: Some("CARO_TEST_HORDE_KEY_UNSET".into()),
+            ..Default::default()
+        };
+        let err = cfg.resolve_ai_horde_key().unwrap_err();
+        assert!(err.contains("$CARO_TEST_HORDE_KEY_UNSET"), "{err}");
+
+        std::env::set_var("CARO_TEST_HORDE_KEY_EMPTY", "");
+        let cfg = BackendsConfig {
+            ai_horde_key_env: Some("CARO_TEST_HORDE_KEY_EMPTY".into()),
+            ..Default::default()
+        };
+        assert!(cfg.resolve_ai_horde_key().is_err());
+    }
+
+    #[test]
+    fn inline_key_and_default_still_work() {
+        let inline = BackendsConfig {
+            ai_horde_key: Some("inline-key".into()),
+            ..Default::default()
+        };
+        assert_eq!(
+            inline.resolve_ai_horde_key().unwrap().as_deref(),
+            Some("inline-key")
+        );
+        assert_eq!(BackendsConfig::default().resolve_ai_horde_key(), Ok(None));
+    }
+
+    #[test]
+    fn rejects_both_inline_key_and_key_env() {
+        let cfg = BackendsConfig {
+            ai_horde_key: Some("inline-key".into()),
+            ai_horde_key_env: Some("HORDE_KEY".into()),
+            ..Default::default()
+        };
+        let err = cfg.validate().unwrap_err();
+        assert!(err.contains("not both"), "{err}");
+    }
+
+    #[test]
+    fn rejects_key_env_that_is_not_a_variable_name() {
+        for bad in ["", "1KEY", "MY-KEY", "MY KEY", "$KEY", "sk-live-abc"] {
+            let cfg = BackendsConfig {
+                ai_horde_key_env: Some(bad.into()),
+                ..Default::default()
+            };
+            assert!(cfg.validate().is_err(), "{bad:?} should be rejected");
+        }
+        for good in ["HORDE_KEY", "_KEY", "key2"] {
+            let cfg = BackendsConfig {
+                ai_horde_key_env: Some(good.into()),
+                ..Default::default()
+            };
+            assert!(cfg.validate().is_ok(), "{good:?} should be accepted");
+        }
+    }
+
+    #[test]
+    fn user_configuration_validate_checks_backends() {
+        let mut cfg = UserConfiguration::default();
+        cfg.backends.ai_horde_key = Some("inline-key".into());
+        cfg.backends.ai_horde_key_env = Some("HORDE_KEY".into());
+        assert!(cfg.validate().is_err());
     }
 }
