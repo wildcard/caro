@@ -128,6 +128,43 @@ impl std::fmt::Display for ParseError {
 
 impl std::error::Error for ParseError {}
 
+/// The CaroML major version this build reads (ADR-018).
+pub const CAROML_MAJOR_VERSION: u32 = 1;
+
+/// The version of a file with no `CAROML <major>` header. It stays 1 for
+/// good: raising [`CAROML_MAJOR_VERSION`] must not change how existing
+/// headerless files parse.
+pub const IMPLICIT_CAROML_VERSION: u32 = 1;
+
+// This build has one grammar, so headerless files and `CAROML 1` files take
+// the same path. A second major version needs per-version dispatch first,
+// so headerless files keep version-1 rules (ADR-018). This stops the build
+// until that dispatch exists.
+const _: () = assert!(
+    CAROML_MAJOR_VERSION == IMPLICIT_CAROML_VERSION,
+    "add per-version parsing before raising CAROML_MAJOR_VERSION (ADR-018)"
+);
+
+/// Check a `CAROML <major>` header line. `seen_content` is true when any
+/// non-`REM` line came before it.
+pub(crate) fn check_version_header(
+    rest: &str,
+    line_no: usize,
+    seen_content: bool,
+) -> Result<(), ParseError> {
+    if seen_content {
+        return Err(ParseError::new(line_no, ParseErrorKind::MisplacedVersion));
+    }
+    let version = rest.trim();
+    if version.parse::<u32>() != Ok(CAROML_MAJOR_VERSION) {
+        return Err(ParseError::new(
+            line_no,
+            ParseErrorKind::UnsupportedVersion(version.to_string()),
+        ));
+    }
+    Ok(())
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseErrorKind {
     /// First non-comment line was not `TASK <title>`.
@@ -161,6 +198,11 @@ pub enum ParseErrorKind {
     RunOutsideJob,
     /// `RUN <alias>` referenced an alias not declared by any prior `USE`.
     UndefinedAlias(String),
+    // ---- Version header (ADR-018) ----
+    /// `CAROML <major>` named a major version this build does not know.
+    UnsupportedVersion(String),
+    /// `CAROML <major>` was not the first non-`REM` line, or appeared twice.
+    MisplacedVersion,
 }
 
 impl std::fmt::Display for ParseErrorKind {
@@ -195,6 +237,15 @@ impl std::fmt::Display for ParseErrorKind {
             ),
             Self::EmptyTaskTitle => write!(f, "TASK line has no title"),
             Self::NoSteps => write!(f, "task has no `DO` steps"),
+            Self::UnsupportedVersion(v) => write!(
+                f,
+                "unsupported CaroML version `{}`; this caro reads `CAROML {}`",
+                v, CAROML_MAJOR_VERSION
+            ),
+            Self::MisplacedVersion => write!(
+                f,
+                "`CAROML <version>` must be the first non-`REM` line, and appear once"
+            ),
             Self::MalformedUse => {
                 write!(f, "expected `USE <target> AS <alias>`")
             }

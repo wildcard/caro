@@ -2,12 +2,13 @@
 
 Plain UTF-8, line-oriented, no required indentation, blank lines and trailing
 whitespace are insignificant. The first non-`REM` token on each line determines
-the line kind. Eight keywords — that's the entire surface area.
+the line kind. Eight keywords, plus an optional version header.
 
 ## Keywords
 
 | Keyword | Multiplicity | Form |
 |---|---|---|
+| `CAROML` | 0 or 1 | `CAROML <major>`: first non-`REM` line only (see below) |
 | `TASK` | exactly 1 | `TASK <title>` |
 | `WHY` | 0 or 1 | `WHY <reason>` |
 | `NEED` | 0+ | `NEED <thing>` (e.g. `NEED sudo`, `NEED jq`) |
@@ -18,6 +19,20 @@ the line kind. Eight keywords — that's the entire surface area.
 | `REM` | 0+ | `REM <comment>` (ignored everywhere) |
 
 Recognized platforms: `macos`, `linux`, `windows`, `posix`.
+
+## Version header
+
+A file may start with `CAROML 1` ([ADR-018](../adr/ADR-018-caroml-version-header.md)).
+A file without it is read as version 1. The parser rejects any other version,
+so a file written for a newer caro fails loudly instead of running under old
+rules.
+
+```text
+REM nightly cleanup
+CAROML 1
+TASK Clean old logs
+DO delete log files older than 30 days
+```
 
 ## `LET` substitution
 
@@ -62,6 +77,8 @@ with a 1-based line number suitable for editor jump-to. The error kinds:
 | `UndefinedParam` | `{name}` with no prior `LET name = ...` |
 | `EmptyTaskTitle` | `TASK` line with no title |
 | `NoSteps` | File parsed cleanly but had zero `DO` lines |
+| `UnsupportedVersion` | `CAROML` named a version other than `1` (including `1.1`, `v1` or nothing) |
+| `MisplacedVersion` | `CAROML` was not the first non-`REM` line, or appeared twice |
 
 ## Future grammar (parsed-but-not-interpreted in v0.1)
 
