@@ -57,7 +57,7 @@ jobs:
         model:
           - id: smollm-135m-q4
             name: SmolLM 135M
-            size_mb: 82
+            size_mb: 145
             cache_path_linux: ~/.cache/caro/models
             cache_path_macos: ~/Library/Caches/caro/models
 
@@ -85,6 +85,8 @@ jobs:
         echo "OPENBLAS_NUM_THREADS=1" >> $GITHUB_ENV
         echo "MKL_NUM_THREADS=1" >> $GITHUB_ENV
         echo "CARO_MODEL=${{ matrix.model.id }}" >> $GITHUB_ENV
+        # CPU only: llama_cpp 0.3's Metal backend aborts on hosted macOS runners (#1341)
+        echo "CARO_GPU_LAYERS=0" >> $GITHUB_ENV
 
     - name: Display test configuration
       run: |
@@ -258,16 +260,13 @@ jobs:
         model:
           - id: smollm-135m-q4
             name: SmolLM 135M
-            size_mb: 82
+            size_mb: 145
           - id: qwen-0.5b-q4
             name: Qwen 0.5B
             size_mb: 352
           - id: tinyllama-1.1b-q4
             name: TinyLlama 1.1B
             size_mb: 669
-          - id: starcoder-1b-q4
-            name: StarCoder 1B
-            size_mb: 700
 
     steps:
     - uses: actions/checkout@v6
@@ -303,6 +302,8 @@ jobs:
       env:
         RUST_BACKTRACE: 1
         CARO_MODEL: ${{ matrix.model.id }}
+        # CPU only: llama_cpp 0.3's Metal backend aborts with "unsupported op" on hosted macOS runners (#1341)
+        CARO_GPU_LAYERS: "0"
 
     - name: Upload logs on failure
       if: failure()

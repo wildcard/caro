@@ -76,7 +76,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   template wins ties) instead of a raw substring match. Not yet wired into
   the model prompt; that waits on eval evidence.
 
+### Removed
+
+- **StarCoder 1B is no longer in the model catalog** ([#1341](https://github.com/wildcard/caro/issues/1341)).
+  Its Hugging Face repo (`TheBloke/starcoderbase-1b-GGUF`) no longer exists, so
+  the model could not download. `CARO_MODEL=starcoder-1b-q4` now fails with
+  "Model not found", and the public `caro::model_catalog::STARCODER_1B_Q4`
+  constant is removed.
+
 ### Fixed
+
+- **SmolLM catalog entry points to a live repo** ([#1341](https://github.com/wildcard/caro/issues/1341)).
+  The old Q4_K_M repo is gone, so `CARO_MODEL=smollm-135m-q4` could not
+  download. The entry now uses the 145 MB Q8_0 build. The
+  model id is unchanged. `CARO_GPU_LAYERS=0` runs the Apple Silicon backend on
+  the CPU only (the default stays all layers on Metal).
 
 - **`--explain` output is correct and legible.** The headline no longer reads
   "Use `find` Uses find to …". The option breakdown splits combined flags
