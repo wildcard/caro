@@ -154,6 +154,7 @@ const jobs = [
   painPoint="Commands that work on Mac fail on Linux server"
 >
   <Navigation variant="use-cases" currentPage="devops" />
+  <main id="main-content">
 
   <!-- Hero -->
   <section class="hero">
@@ -211,7 +212,7 @@ const jobs = [
       <h2>The BSD vs GNU Problem</h2>
       <p class="section-subtitle">Commands you write on Mac break on Linux servers</p>
 
-      <div class="diff-table-wrapper">
+      <div class="diff-table-wrapper" tabindex="0" role="region" aria-label="BSD and GNU command differences">
         <table class="diff-table">
           <thead>
             <tr>
@@ -381,6 +382,7 @@ const jobs = [
   </section>
 
   <LPDownload />
+  </main>
   <LPFooter />
 </LandingPage>
 
@@ -399,9 +401,9 @@ const jobs = [
 
   .hero-badge {
     display: inline-block;
-    background: rgba(6, 182, 212, 0.15);
-    border: 1px solid rgba(6, 182, 212, 0.3);
-    color: #06b6d4;
+    background: rgba(239, 51, 51, 0.08);
+    border: 1px solid rgba(239, 51, 51, 0.3);
+    color: var(--accent-text);
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 14px;
@@ -432,11 +434,14 @@ const jobs = [
 
   .platform-select {
     display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 100%;
     align-items: center;
     gap: 12px;
     padding: 12px 24px;
     background: var(--color-bg-secondary);
-    border-radius: 50px;
+    border-radius: 28px;
     border: 1px solid var(--color-border);
   }
 
@@ -452,9 +457,9 @@ const jobs = [
     font-weight: 600;
   }
 
-  .platform-tag.mac { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-  .platform-tag.linux { background: rgba(249, 115, 22, 0.15); color: #f97316; }
-  .platform-tag.posix { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+  .platform-tag.mac { background: rgba(59, 130, 246, 0.15); color: var(--fg-strong); }
+  .platform-tag.linux { background: rgba(252, 252, 98, 0.2); color: var(--fg-strong); }
+  .platform-tag.posix { background: rgba(34, 197, 94, 0.15); color: var(--fg-strong); }
 
   .cta-buttons {
     display: flex;
@@ -474,13 +479,13 @@ const jobs = [
   }
 
   .cta-button.primary {
-    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .cta-button.secondary {
-    border: 2px solid #06b6d4;
-    color: #06b6d4;
+    border: 2px solid var(--accent);
+    color: var(--accent-text);
   }
 
   /* Jobs Section */
@@ -505,7 +510,7 @@ const jobs = [
 
   .jobs-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
     gap: 24px;
   }
 
@@ -540,7 +545,7 @@ const jobs = [
     gap: 4px;
   }
 
-  .pain-badge { font-size: 11px; color: #ef4444; font-weight: 600; }
+  .pain-badge { font-size: 11px; color: var(--accent-text); font-weight: 600; }
   .freq-badge { font-size: 11px; color: var(--color-text-secondary); background: var(--color-bg); padding: 2px 8px; border-radius: 4px; }
 
   .job-card p {
@@ -589,7 +594,7 @@ const jobs = [
 
   .task-col { font-weight: 500; }
   .mac-col { background: rgba(59, 130, 246, 0.05); }
-  .linux-col { background: rgba(249, 115, 22, 0.05); }
+  .linux-col { background: rgba(252, 252, 98, 0.12); }
   .note-col { font-size: 12px; color: var(--color-text-secondary); }
 
   .diff-table code {
@@ -620,12 +625,12 @@ const jobs = [
 
   .arrow {
     font-size: 32px;
-    color: #06b6d4;
+    color: var(--accent);
   }
 
   /* Terminal */
   .terminal {
-    background: #1a1a2e;
+    background: var(--term-bg);
     border-radius: 12px;
     padding: 20px;
     font-family: 'SF Mono', monospace;
@@ -652,12 +657,12 @@ const jobs = [
   .terminal-dot.red { background: #ff5f56; }
   .terminal-dot.yellow { background: #ffbd2e; }
   .terminal-dot.green { background: #27c93f; }
-  .terminal-title { margin-left: auto; font-size: 12px; color: #666; font-family: system-ui; }
+  .terminal-title { margin-left: auto; font-size: 12px; color: var(--caro-grey-300); font-family: system-ui; }
 
-  .terminal-line { margin: 8px 0; color: #d4d4d4; }
-  .prompt { color: #4ec9b0; }
-  .command { color: #9cdcfe; }
-  .output { color: #ce9178; }
+  .terminal-line { margin: 8px 0; color: var(--term-fg); }
+  .prompt { color: var(--term-prompt); }
+  .command { color: var(--term-fg); }
+  .output { color: var(--caro-grey-300); }
   .caro-label { color: var(--highlight); font-weight: 600; }
 
   /* Automation */
@@ -668,7 +673,7 @@ const jobs = [
 
   .automation-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr));
     gap: 24px;
   }
 
@@ -680,7 +685,7 @@ const jobs = [
   }
 
   .automation-card.warning {
-    border-color: rgba(245, 158, 11, 0.3);
+    border-color: rgba(239, 51, 51, 0.3);
   }
 
   .auto-header {
@@ -717,13 +722,13 @@ const jobs = [
   }
 
   .warning-box {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
+    background: rgba(252, 252, 98, 0.12);
+    color: var(--highlight);
   }
 
   .safer-box {
     background: rgba(34, 197, 94, 0.1);
-    color: #22c55e;
+    color: var(--term-fg);
   }
 
   .safer-box code {
@@ -740,7 +745,7 @@ const jobs = [
 
   .translation-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: 16px;
     margin-bottom: 48px;
   }
@@ -760,16 +765,16 @@ const jobs = [
   }
 
   .arrow-small {
-    color: #06b6d4;
+    color: var(--accent-text);
     margin-bottom: 8px;
   }
 
   .translation-card .command {
     display: block;
-    background: #1a1a2e;
+    background: var(--term-bg);
     padding: 10px;
     border-radius: 6px;
-    color: #9cdcfe;
+    color: var(--term-fg);
     font-size: 12px;
     text-align: left;
     word-break: break-all;
@@ -793,10 +798,10 @@ const jobs = [
   }
 
   .try-examples code {
-    background: #1a1a2e;
+    background: var(--term-bg);
     padding: 12px 20px;
     border-radius: 8px;
-    color: #9cdcfe;
+    color: var(--term-fg);
     font-size: 14px;
   }
 
@@ -808,7 +813,7 @@ const jobs = [
 
   .cicd-tips {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: 24px;
   }
 
@@ -826,10 +831,10 @@ const jobs = [
 
   .tip-card code {
     display: block;
-    background: #1a1a2e;
+    background: var(--term-bg);
     padding: 12px;
     border-radius: 6px;
-    color: #9cdcfe;
+    color: var(--term-fg);
     font-size: 13px;
     margin-bottom: 12px;
   }
@@ -839,9 +844,38 @@ const jobs = [
     color: var(--color-text-secondary);
   }
 
+  .terminal .command,
+  .terminal .output,
+  .try-examples code,
+  .tip-card code {
+    overflow-wrap: anywhere;
+  }
+
+  .cta-button.primary:hover {
+    background: var(--accent-fill-hover);
+  }
+
+  .cta-button:focus-visible,
+  .job-card:focus-visible,
+  .diff-table-wrapper:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
   @media (max-width: 768px) {
     h1 { font-size: 36px; }
     h2 { font-size: 28px; }
     .automation-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-button,
+    .job-card {
+      transition: none;
+    }
+
+    .job-card:hover {
+      transform: none;
+    }
   }
 </style>

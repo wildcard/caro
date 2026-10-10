@@ -29,7 +29,7 @@ const currentYear = new Date().getFullYear();
 
       <div class="footer-links">
         <div class="link-group">
-          <h4>Product</h4>
+          <h3>Product</h3>
           <a href="#demo">Demo</a>
           <a href="#download">Install</a>
           <a href="/compare">Compare</a>
@@ -37,7 +37,7 @@ const currentYear = new Date().getFullYear();
         </div>
 
         <div class="link-group">
-          <h4>Community</h4>
+          <h3>Community</h3>
           <a href="https://github.com/wildcard/caro" target="_blank" rel="noopener">GitHub</a>
           <a href="https://github.com/wildcard/caro/discussions" target="_blank" rel="noopener">Discussions</a>
           <a href="https://github.com/wildcard/caro/issues" target="_blank" rel="noopener">Issues</a>
@@ -45,7 +45,7 @@ const currentYear = new Date().getFullYear();
         </div>
 
         <div class="link-group">
-          <h4>Resources</h4>
+          <h3>Resources</h3>
           <a href="https://github.com/wildcard/caro#readme" target="_blank" rel="noopener">Documentation</a>
           <a href="https://github.com/wildcard/caro/releases" target="_blank" rel="noopener">Releases</a>
           <a href="https://github.com/wildcard/caro/blob/main/LICENSE" target="_blank" rel="noopener">License (AGPL-3.0)</a>
@@ -68,7 +68,7 @@ const currentYear = new Date().getFullYear();
 <style>
   .footer {
     background: var(--bg-inverse);
-    color: #e0e0e0;
+    color: var(--fg-inverse);
     padding: 80px 24px 40px;
   }
 
@@ -91,7 +91,7 @@ const currentYear = new Date().getFullYear();
     text-decoration: none;
     font-weight: 700;
     font-size: 24px;
-    color: white;
+    color: var(--fg-inverse);
     margin-bottom: 16px;
   }
 
@@ -100,7 +100,7 @@ const currentYear = new Date().getFullYear();
   }
 
   .tagline {
-    color: #888;
+    color: var(--caro-grey-300);
     font-size: 15px;
     line-height: 1.6;
     margin-bottom: 20px;
@@ -112,7 +112,7 @@ const currentYear = new Date().getFullYear();
   }
 
   .social-links a {
-    color: #888;
+    color: var(--caro-grey-300);
     transition: color 0.2s;
   }
 
@@ -126,8 +126,8 @@ const currentYear = new Date().getFullYear();
     gap: 40px;
   }
 
-  .link-group h4 {
-    color: white;
+  .link-group h3 {
+    color: var(--fg-inverse);
     font-size: 14px;
     font-weight: 600;
     text-transform: uppercase;
@@ -137,7 +137,7 @@ const currentYear = new Date().getFullYear();
 
   .link-group a {
     display: block;
-    color: #888;
+    color: var(--caro-grey-300);
     text-decoration: none;
     font-size: 14px;
     margin-bottom: 10px;
@@ -153,13 +153,13 @@ const currentYear = new Date().getFullYear();
     justify-content: space-between;
     align-items: center;
     padding-top: 40px;
-    border-top: 1px solid #333;
+    border-top: 1px solid var(--caro-grey-500);
   }
 
   .copyright,
   .built-with {
     font-size: 14px;
-    color: #666;
+    color: var(--caro-grey-300);
   }
 
   .rust-love {
@@ -188,5 +188,11 @@ const currentYear = new Date().getFullYear();
     .footer-links {
       grid-template-columns: 1fr;
     }
+  }
+
+  /* Red rings disappear on the grey console surface; yellow reads at 7:1. */
+  .footer a:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
   }
 </style>

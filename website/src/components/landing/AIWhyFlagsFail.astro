@@ -132,8 +132,8 @@ const flagFailures = [
   }
 
   .failure-card {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, var(--color-bg-secondary) 100%);
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    background: var(--color-bg-secondary);
+    border: 1px solid rgba(239, 51, 51, 0.3);
     border-radius: 12px;
     padding: 28px;
   }
@@ -147,8 +147,9 @@ const flagFailures = [
   }
 
   .tool-badge {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
+    background: var(--color-bg);
+    border: 1px solid var(--accent);
+    color: var(--accent-text);
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
@@ -186,7 +187,7 @@ const flagFailures = [
   }
 
   .what-happened p {
-    color: #ef4444;
+    color: var(--accent-text);
     font-size: 15px;
     line-height: 1.6;
     margin: 0;
@@ -244,12 +245,12 @@ const flagFailures = [
   }
 
   .approach-header.bad .approach-icon {
-    color: #ef4444;
+    color: var(--accent-text);
     font-size: 20px;
   }
 
   .approach-header.good .approach-icon {
-    color: #22c55e;
+    color: var(--status-safe-text);
     font-size: 20px;
   }
 
@@ -277,14 +278,14 @@ const flagFailures = [
     content: "✗";
     position: absolute;
     left: 0;
-    color: #ef4444;
+    color: var(--accent);
   }
 
   .pattern-approach .approach-list li::before {
     content: "✓";
     position: absolute;
     left: 0;
-    color: #22c55e;
+    color: var(--status-safe);
   }
 
   .key-insight {

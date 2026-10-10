@@ -429,6 +429,7 @@ const vsAlternatives = [
   painPoint="Can't remember command syntax"
 >
   <Navigation variant="use-cases" currentPage="developer" />
+  <main id="main-content">
 
   <!-- Hero -->
   <section class="hero">
@@ -625,7 +626,7 @@ const vsAlternatives = [
       <h2>Caro vs. Your Current Workflow</h2>
       <p class="section-subtitle">Time spent getting commands to work</p>
 
-      <div class="comparison-table">
+      <div class="comparison-table" tabindex="0" role="region" aria-label="Time to a working command: Caro compared with other methods">
         <table>
           <thead>
             <tr>
@@ -764,6 +765,7 @@ const vsAlternatives = [
   </section>
 
   <LPDownload />
+  </main>
   <LPFooter />
 </LandingPage>
 
@@ -782,9 +784,9 @@ const vsAlternatives = [
 
   .hero-badge {
     display: inline-block;
-    background: rgba(139, 92, 246, 0.15);
-    border: 1px solid rgba(139, 92, 246, 0.3);
-    color: #8b5cf6;
+    background: rgba(239, 51, 51, 0.08);
+    border: 1px solid rgba(239, 51, 51, 0.3);
+    color: var(--accent-text);
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 14px;
@@ -813,7 +815,7 @@ const vsAlternatives = [
   .social-proof {
     background: var(--color-bg);
     border: 1px solid var(--color-border);
-    border-left: 4px solid #8b5cf6;
+    border-left: 4px solid var(--accent);
     padding: 24px 32px;
     border-radius: 8px;
     margin-bottom: 40px;
@@ -853,19 +855,20 @@ const vsAlternatives = [
   }
 
   .cta-button.primary {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .cta-button.primary:hover {
+    background: var(--accent-fill-hover);
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 10px 25px rgba(239, 51, 51, 0.3);
   }
 
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid #8b5cf6;
-    color: #8b5cf6;
+    border: 2px solid var(--accent);
+    color: var(--accent-text);
   }
 
   /* Jobs Section */
@@ -890,7 +893,7 @@ const vsAlternatives = [
 
   .jobs-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
     gap: 24px;
   }
 
@@ -931,7 +934,7 @@ const vsAlternatives = [
 
   .pain-badge {
     font-size: 11px;
-    color: #8b5cf6;
+    color: var(--accent-text);
     font-weight: 600;
   }
 
@@ -978,8 +981,8 @@ const vsAlternatives = [
   .step-number {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -991,6 +994,7 @@ const vsAlternatives = [
 
   .step-content {
     flex: 1;
+    min-width: 0;
   }
 
   .step-content h3 {
@@ -1001,7 +1005,7 @@ const vsAlternatives = [
 
   /* Terminal */
   .terminal {
-    background: #1a1a2e;
+    background: var(--term-bg);
     border-radius: 12px;
     padding: 20px;
     font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
@@ -1030,24 +1034,26 @@ const vsAlternatives = [
   .terminal-title {
     margin-left: auto;
     font-size: 12px;
-    color: #666;
+    color: var(--caro-grey-300);
     font-family: system-ui, sans-serif;
   }
 
   .terminal-line {
     margin: 8px 0;
-    color: #d4d4d4;
+    color: var(--term-fg);
+    overflow-wrap: anywhere;
   }
 
-  .prompt { color: #4ec9b0; }
-  .command { color: #9cdcfe; }
+  .prompt { color: var(--term-prompt); }
+  .command { color: var(--term-fg); }
 
   .terminal-output {
     margin-top: 12px;
   }
 
   .terminal-output pre {
-    color: #ce9178;
+    color: var(--caro-grey-300);
+    overflow-wrap: anywhere;
     white-space: pre-wrap;
     font-size: 13px;
     line-height: 1.5;
@@ -1068,13 +1074,13 @@ const vsAlternatives = [
     color: var(--color-text);
     margin-bottom: 24px;
     padding-bottom: 12px;
-    border-bottom: 2px solid #8b5cf6;
+    border-bottom: 2px solid var(--accent);
     display: inline-block;
   }
 
   .translations-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 20px;
   }
 
@@ -1098,7 +1104,7 @@ const vsAlternatives = [
 
   .input-text {
     font-size: 15px;
-    color: #8b5cf6;
+    color: var(--accent-text);
     font-style: italic;
   }
 
@@ -1122,12 +1128,13 @@ const vsAlternatives = [
 
   .output-command {
     display: block;
-    background: #1a1a2e;
-    color: #9cdcfe;
+    background: var(--term-bg);
+    color: var(--term-fg);
     padding: 12px;
     border-radius: 6px;
     font-size: 13px;
-    overflow-x: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 
   .translation-explain {
@@ -1171,12 +1178,13 @@ const vsAlternatives = [
 
   .learning-command code {
     display: block;
-    background: #1a1a2e;
-    color: #9cdcfe;
+    background: var(--term-bg);
+    color: var(--term-fg);
     padding: 16px;
     border-radius: 8px;
     font-size: 15px;
-    overflow-x: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 
   .breakdown-list {
@@ -1194,8 +1202,9 @@ const vsAlternatives = [
   }
 
   .breakdown-part {
-    background: rgba(139, 92, 246, 0.1);
-    color: #8b5cf6;
+    background: rgba(239, 51, 51, 0.08);
+    color: var(--accent-text);
+    overflow-wrap: anywhere;
     padding: 8px 12px;
     border-radius: 6px;
     font-size: 13px;
@@ -1217,33 +1226,34 @@ const vsAlternatives = [
   }
 
   .learning-warning {
-    background: rgba(239, 68, 68, 0.1);
+    background: rgba(239, 51, 51, 0.08);
     border: 1px solid rgba(239, 68, 68, 0.2);
-    color: #ef4444;
+    color: var(--accent-text);
   }
 
   .learning-tip {
     background: rgba(34, 197, 94, 0.1);
     border: 1px solid rgba(34, 197, 94, 0.2);
-    color: #22c55e;
+    color: var(--status-safe-text);
   }
 
   .learning-alternative {
-    background: rgba(96, 165, 250, 0.1);
-    border: 1px solid rgba(96, 165, 250, 0.2);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
     color: var(--color-text);
   }
 
   .alt-label {
-    color: #60a5fa;
+    color: var(--color-text);
     font-weight: 600;
   }
 
   .learning-alternative code {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--term-bg);
     padding: 4px 8px;
     border-radius: 4px;
-    color: #9cdcfe;
+    color: var(--term-fg);
+    overflow-wrap: anywhere;
   }
 
   /* Mistakes Section */
@@ -1254,7 +1264,7 @@ const vsAlternatives = [
 
   .mistakes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 20px;
   }
 
@@ -1275,13 +1285,15 @@ const vsAlternatives = [
     margin-bottom: 6px;
   }
 
-  .wrong-label { color: #ef4444; }
-  .right-label { color: #22c55e; }
+  .wrong-label { color: var(--accent-text); }
+  .right-label { color: var(--status-safe-text); }
 
   .mistake-wrong code {
     display: block;
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    background: var(--color-bg);
+    border-left: 3px solid var(--accent);
+    color: var(--accent-text);
+    overflow-wrap: anywhere;
     padding: 10px;
     border-radius: 6px;
     font-size: 13px;
@@ -1290,8 +1302,10 @@ const vsAlternatives = [
 
   .mistake-right code {
     display: block;
-    background: rgba(34, 197, 94, 0.1);
-    color: #22c55e;
+    background: var(--color-bg);
+    border-left: 3px solid var(--status-safe);
+    color: var(--status-safe-text);
+    overflow-wrap: anywhere;
     padding: 10px;
     border-radius: 6px;
     font-size: 13px;
@@ -1327,7 +1341,7 @@ const vsAlternatives = [
   }
 
   th {
-    background: var(--color-bg);
+    background: var(--color-bg-tertiary);
     font-weight: 600;
     color: var(--color-text);
   }
@@ -1338,7 +1352,7 @@ const vsAlternatives = [
   }
 
   .caro-cell {
-    background: rgba(139, 92, 246, 0.05);
+    background: rgba(239, 51, 51, 0.05);
   }
 
   .time {
@@ -1349,7 +1363,7 @@ const vsAlternatives = [
   }
 
   .caro-cell .time {
-    color: #8b5cf6;
+    color: var(--accent-text);
   }
 
   .effort {
@@ -1374,7 +1388,7 @@ const vsAlternatives = [
 
   .features-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
     gap: 24px;
   }
 
@@ -1405,12 +1419,12 @@ const vsAlternatives = [
 
   .feature-card code {
     display: block;
-    background: #1a1a2e;
-    color: #9cdcfe;
+    background: var(--term-bg);
+    color: var(--term-fg);
     padding: 12px;
     border-radius: 6px;
     font-size: 12px;
-    overflow-x: auto;
+    overflow-wrap: anywhere;
     white-space: pre-wrap;
   }
 
@@ -1422,7 +1436,7 @@ const vsAlternatives = [
 
   .testimonials-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
     gap: 24px;
   }
 
@@ -1467,6 +1481,7 @@ const vsAlternatives = [
 
     .breakdown-part {
       width: fit-content;
+      max-width: 100%;
     }
 
     table {
@@ -1475,6 +1490,25 @@ const vsAlternatives = [
 
     th, td {
       padding: 12px 8px;
+    }
+  }
+
+  .cta-button:focus-visible,
+  .job-card:focus-visible,
+  .comparison-table:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-button,
+    .job-card {
+      transition: none;
+    }
+
+    .cta-button.primary:hover,
+    .job-card:hover {
+      transform: none;
     }
   }
 </style>

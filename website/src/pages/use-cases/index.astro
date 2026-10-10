@@ -136,6 +136,7 @@ const topJobs = [
   slug="use-cases"
 >
   <Navigation variant="use-cases" currentPage="index" />
+  <main id="main-content">
 
   <!-- Hero Section -->
   <section class="hero">
@@ -236,7 +237,7 @@ const topJobs = [
       <h2>How Caro Compares</h2>
       <p class="section-subtitle">Purpose-built for these specific jobs</p>
 
-      <div class="compare-table-wrapper">
+      <div class="compare-table-wrapper" tabindex="0" role="region" aria-label="Caro compared with other AI shell tools">
         <table class="compare-table">
           <thead>
             <tr>
@@ -315,6 +316,7 @@ const topJobs = [
   </section>
 
   <LPDownload />
+  </main>
   <LPFooter />
 </LandingPage>
 
@@ -333,7 +335,7 @@ const topJobs = [
 
   .hero-badge {
     display: inline-block;
-    background: rgba(239, 51, 51, 0.15);
+    background: rgba(239, 51, 51, 0.08);
     border: 1px solid rgba(239, 51, 51, 0.3);
     color: var(--accent-text);
     padding: 8px 20px;
@@ -417,7 +419,7 @@ const topJobs = [
 
   .persona-card.highlight {
     border-color: var(--accent-color);
-    background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg) 100%);
+    background: var(--color-bg-tertiary);
   }
 
   .persona-icon {
@@ -433,7 +435,7 @@ const topJobs = [
 
   .persona-tagline {
     font-size: 14px;
-    color: var(--accent-color);
+    color: var(--accent-text);
     font-weight: 600;
     margin-bottom: 12px;
   }
@@ -523,7 +525,7 @@ const topJobs = [
 
   .job-pain {
     font-size: 12px;
-    color: #ef4444;
+    color: var(--accent-text);
     font-weight: 600;
   }
 
@@ -579,8 +581,8 @@ const topJobs = [
   }
 
   .why-card code {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    background: rgba(239, 51, 51, 0.08);
+    color: var(--accent-text);
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 13px;
@@ -599,6 +601,12 @@ const topJobs = [
   .compare-table-wrapper {
     overflow-x: auto;
     margin-bottom: 24px;
+  }
+
+  .compare-table-wrapper:focus-visible,
+  .persona-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .compare-table {
@@ -633,15 +641,15 @@ const topJobs = [
   }
 
   .compare-table .yes {
-    color: #22c55e;
+    color: var(--status-safe-text);
   }
 
   .compare-table .no {
-    color: #ef4444;
+    color: var(--accent-text);
   }
 
   .compare-table .partial {
-    color: #f59e0b;
+    color: var(--color-text-secondary);
   }
 
   .compare-note {

@@ -62,9 +62,9 @@
 
   .hero-badge {
     display: inline-block;
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #ef4444;
+    background: rgba(239, 51, 51, 0.08);
+    border: 1px solid rgba(239, 51, 51, 0.3);
+    color: var(--accent-text);
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 14px;
@@ -118,7 +118,7 @@
 
   .incident-tool {
     font-weight: 700;
-    color: #ef4444;
+    color: var(--accent-text);
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -160,6 +160,7 @@
   }
 
   .cta-button.primary:hover {
+    background: var(--accent-fill-hover);
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(239, 51, 51, 0.3);
   }
@@ -208,5 +209,15 @@
     .cta-buttons { flex-direction: column; align-items: center; }
     .cta-button { width: 100%; max-width: 280px; }
     .trust-badges { flex-direction: column; gap: 12px; }
+  }
+
+  .cta-button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-button { transition: none; }
+    .cta-button:hover { transform: none; }
   }
 </style>
