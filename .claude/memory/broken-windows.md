@@ -239,6 +239,60 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** no
 **Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
 
+(Entries still on open PR branches: BW-020 #1221, BW-021 #1165, BW-022 #1162 and BW-023 #1163 on the #1522 branch; BW-024 #1530 and BW-025 #1533 on the #1532 branch.)
+
+### BW-026: `Install` workflow red on main: setup.sh reports success with no binary
+
+**Found:** 2026-10-07 sweep (red on every main push since at least 2026-04-30)
+**Issue:** #1340
+**Status:** claimed-by sweep/2026-10-07-BW-026 (#1539). Root cause: the cleanup step deletes `~/.cargo/bin/caro`, but cargo's metadata still lists caro. `cargo install` then prints "already installed" and exits 0, so setup.sh says "Installed" and `caro --help` exits 127. Real users who delete the binary hit the same thing.
+**Needs human?:** no
+**Next step:** merge the PR.
+
+### BW-027: CI never runs 23 of 46 integration test targets
+
+**Found:** 2026-10-07 sweep
+**Issue:** #1537
+**Status:** open
+**Needs human?:** yes (CI gate). Options are in the issue: run `cargo test --tests`, or fail when a target is not named in a workflow.
+**Next step:** maintainer picks an option on #1537.
+
+### BW-028: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
+
+**Found:** 2026-10-07 sweep (issue filed 2026-10-03)
+**Issue:** #1508
+**Status:** open
+**Needs human?:** no
+**Next step:** add the missing locale files (English fallback content), or run the translate workflow.
+
+### BW-029: hybrid sanitizer lets paths with spaces and inline credentials reach the remote
+
+**Found:** 2026-10-07 sweep (issue filed 2026-10-03)
+**Issue:** #1518
+**Status:** open
+**Needs human?:** yes. The issue marks it as a privacy-policy surface: the owner confirms what may leave the machine.
+**Next step:** owner decides; then add failing cases for both inputs in `src/backends/hybrid/sanitizer.rs` and widen the redaction rules.
+
+### BW-030: static matcher "Find Python files (simple)" swallows content searches
+
+**Found:** 2026-10-07 sweep (issue filed 2026-10-03)
+**Issue:** #1516
+**Status:** claimed-by claude/blissful-archimedes-sl737k (#1517)
+**Needs human?:** no
+**Next step:** merge #1517.
+
+---
+
+## Dedup pending (2026-10-07)
+
+The session's permission classifier refused the close again. The 2026-10-03
+dedup groups (a table, separate from the BW entries) are on the #1522 branch.
+New since then:
+
+| Canonical | Duplicates |
+|---|---|
+| #1269 | #1523 (same CPU-stub root cause: the stub matches "rm" in the system prompt) |
+
 ---
 
 ## Dedup pending (2026-10-03)
