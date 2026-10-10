@@ -8,6 +8,23 @@ use crate::models::{RiskLevel, ShellType};
 
 use super::DangerPattern;
 
+/// Regex fragments shared by the #1054 patterns and the catastrophic floor.
+///
+/// One argument token of the same statement (stops at a bare separator).
+pub(crate) const TOK: &str = r"[^\s;&|]+";
+/// A recursive flag for chmod/chown.
+pub(crate) const REC: &str = r"(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)";
+/// A world-writable mode: octal with a write bit in the last digit, or a
+/// symbolic mode that grants `w` to `o` or `a`.
+pub(crate) const WW_MODE: &str =
+    r"(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)";
+/// Root or home as a whole argument, optionally quoted or with `/*`.
+pub(crate) const ROOT_OR_HOME: &str = r#"['"]?(?:/+|~/?|\$\{?HOME\}?/?)\*?['"]?"#;
+/// The rest of a `find` call after the command word: optional `-H/-L/-P`,
+/// a root/home start path, then `-delete` or `-exec rm` in the same
+/// statement (`\;` is allowed inside it).
+pub(crate) const FIND_ROOT_OR_HOME_DELETE: &str = r#"(?:-[HLP]\s+)*['"]?(?:/+|~/?|\$\{?HOME\}?/?)['"]?(?:\s+(?:[^\s;&|]|\\;)+)*?\s+(?:-delete\b|-exec(?:dir)?\s+(?:sudo\s+)?rm\b)"#;
+
 /// Built-in dangerous patterns loaded once at startup
 pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
     vec![
@@ -92,6 +109,73 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             pattern: r"chmod\s+-[rR]\s+[0-7]{3,4}\s+/".to_string(),
             risk_level: RiskLevel::High,
             description: "Recursive chmod on root directory".to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: recursive world-writable chmod on root or home (#1054).
+        // Both flag orders: `chmod -R 777 ~` and `chmod 777 -R /`. A mode is
+        // world-writable when its last octal digit has the write bit (2, 3,
+        // 6, 7), or a symbolic mode grants `w` to `o` or `a`.
+        DangerPattern {
+            pattern: format!(
+                r"\bchmod\s+(?:{TOK}\s+)*?{REC}\s+(?:{TOK}\s+)*?{WW_MODE}\s+(?:{TOK}\s+)*?{ROOT_OR_HOME}(?:\s|$)"
+            ),
+            risk_level: RiskLevel::Critical,
+            description: "Recursive world-writable permission change on root or home".to_string(),
+            shell_specific: None,
+        },
+        DangerPattern {
+            pattern: format!(
+                r"\bchmod\s+(?:{TOK}\s+)*?{WW_MODE}\s+(?:{TOK}\s+)*?{REC}\s+(?:{TOK}\s+)*?{ROOT_OR_HOME}(?:\s|$)"
+            ),
+            risk_level: RiskLevel::Critical,
+            description: "Recursive world-writable permission change on root or home".to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: find-based recursive delete from root or home (#1054).
+        DangerPattern {
+            pattern: format!(r"\bfind\s+{FIND_ROOT_OR_HOME_DELETE}"),
+            risk_level: RiskLevel::Critical,
+            description: "Recursive delete with find from root or home".to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: decoded payload piped into a shell (#1054).
+        DangerPattern {
+            pattern: r"\bbase64\b[^|;&\n]*\s(?:-d|-D|--decode)\b[^|;&\n]*\|\s*(?:sudo\s+(?:-\S+\s+)*)?(?:ba|z|da|k|mk)?sh\b"
+                .to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "Decoded base64 payload piped into a shell".to_string(),
+            shell_specific: None,
+        },
+        // HIGH: eval of hidden input (#1054). A variable, or a substitution
+        // from the network or a decoder, runs code nobody reviewed.
+        DangerPattern {
+            pattern: r#"\beval\s+['"]?\$\{?[A-Za-z_]"#.to_string(),
+            risk_level: RiskLevel::High,
+            description: "eval of a variable runs code that is not shown".to_string(),
+            shell_specific: None,
+        },
+        DangerPattern {
+            pattern: r#"\beval\s+['"]?(?:\$\(|`)[^)`]*\b(?:curl|wget|base64|xxd|openssl|nc)\b"#
+                .to_string(),
+            risk_level: RiskLevel::High,
+            description: "eval of downloaded or decoded content".to_string(),
+            shell_specific: None,
+        },
+        // MODERATE: eval of any other substitution. Common in shell setup
+        // (`eval "$(ssh-agent -s)"`), so flagged but not raised to High.
+        DangerPattern {
+            pattern: r#"\beval\s+['"]?(?:\$\(|`)"#.to_string(),
+            risk_level: RiskLevel::Moderate,
+            description: "eval of command output".to_string(),
+            shell_specific: None,
+        },
+        // HIGH: interpreter one-liner deleting root, home or a system dir (#1054).
+        DangerPattern {
+            pattern: r#"\b(?:python[0-9.]*|perl|ruby)\s+(?:-\S+\s+)*?-[a-zA-Z]*[ce]\b[^\n]*?\b(?:rmtree|rm_rf|rm_r|remove_tree)\s*\(\s*['"](?:/|~/?|/(?:home|etc|usr|var|bin|sbin|lib|lib64|boot|opt|root|srv|Users|System|Library))/?['"]"#
+                .to_string(),
+            risk_level: RiskLevel::High,
+            description: "Interpreter one-liner deleting root, home or a system directory"
+                .to_string(),
             shell_specific: None,
         },
         // HIGH: Privilege escalation
@@ -272,13 +356,13 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         },
         // HIGH: Python/Perl exec with dangerous commands
         DangerPattern {
-            pattern: r"python\s+-c\s+.*os\.system.*rm\s+-rf".to_string(),
+            pattern: r"python[0-9.]*\s+-c\s+.*os\.system.*rm\s+-rf".to_string(),
             risk_level: RiskLevel::Critical,
             description: "Python executing recursive deletion".to_string(),
             shell_specific: None,
         },
         DangerPattern {
-            pattern: r"(python|perl|ruby)\s+-[ec]\s+.*system\s*\(".to_string(),
+            pattern: r"(python[0-9.]*|perl|ruby)\s+-[ec]\s+.*system\s*\(".to_string(),
             risk_level: RiskLevel::High,
             description: "Script language executing shell commands".to_string(),
             shell_specific: None,

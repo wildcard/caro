@@ -28,6 +28,7 @@
 
 pub mod cve_patterns;
 mod patterns;
+mod segments;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -479,6 +480,14 @@ impl SafetyValidator {
         // recursive flag somewhere before the drive-root target; other tokens
         // (including earlier targets) may sit between them.
         r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*-\S*r\S*\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?[A-Za-z]:[\\/]"#,
+        // ── Recursive world-writable chmod / find-delete on root or home ─────
+        // (#1054). Same bodies as the built-ins in `patterns.rs` (fragments
+        // TOK/REC/WW_MODE/ROOT_OR_HOME/FIND_ROOT_OR_HOME_DELETE), with the
+        // statement-head anchor so a quoted mention stays out of the floor.
+        // `floor_fragments_match_builtins` keeps the two copies in sync.
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)chmod\s+(?:[^\s;&|]+\s+)*?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)\s+(?:[^\s;&|]+\s+)*?(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)\s+(?:[^\s;&|]+\s+)*?['"]?(?:/+|~/?|\$\{?HOME\}?/?)\*?['"]?(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)chmod\s+(?:[^\s;&|]+\s+)*?(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)\s+(?:[^\s;&|]+\s+)*?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)\s+(?:[^\s;&|]+\s+)*?['"]?(?:/+|~/?|\$\{?HOME\}?/?)\*?['"]?(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)find\s+(?:-[HLP]\s+)*['"]?(?:/+|~/?|\$\{?HOME\}?/?)['"]?(?:\s+(?:[^\s;&|]|\\;)+)*?\s+(?:-delete\b|-exec(?:dir)?\s+(?:sudo\s+)?rm\b)"#,
         // ── Explicit root-protection bypass — always catastrophic ────────────
         r"--no-preserve-root",
         // ── Whole-disk / device destruction ──────────────────────────────────
@@ -605,6 +614,26 @@ impl SafetyValidator {
         (joined != command).then_some(joined)
     }
 
+    /// The strings the pattern scanners check for `command`: the command
+    /// itself, its statements and wrapper payloads (POSIX shells only), and
+    /// the shell-unescaped form of each destructive statement.
+    fn scan_targets(command: &str, shell: ShellType) -> Vec<String> {
+        let mut targets = vec![command.to_string()];
+        if !shell.is_windows() {
+            targets.extend(segments::scan_views(command));
+        }
+        let unescaped: Vec<String> = targets
+            .iter()
+            .filter_map(|t| Self::destructive_unescaped(t, shell))
+            .collect();
+        for u in unescaped {
+            if !targets.contains(&u) {
+                targets.push(u);
+            }
+        }
+        targets
+    }
+
     fn is_dangerous_in_context(command: &str, pattern_regex: &regex::Regex) -> bool {
         if !pattern_regex.is_match(command) {
             return false;
@@ -676,10 +705,12 @@ impl SafetyValidator {
         // (`rm -rf \/` → `/` = root wipe); scanning the unescaped form closes that
         // whole quote/escape-evasion class. `None` for benign commands, so their
         // quoted arguments are never re-exposed. See caro-pr3f.
-        let unescaped = Self::destructive_unescaped(command, shell);
-        let scan_targets: Vec<&str> = std::iter::once(command)
-            .chain(unescaped.as_deref())
-            .collect();
+        //
+        // Also scan each statement and each exec-wrapper payload
+        // (`git status; chmod -R 777 ~`, `bash -c 'rm -rf /'`), so a command
+        // cannot hide behind a separator or a wrapper. See `segments` (#1054).
+        let owned_targets = Self::scan_targets(command, shell);
+        let scan_targets: Vec<&str> = owned_targets.iter().map(String::as_str).collect();
 
         // The Critical-bypass guard is intentionally blunt: the broad
         // recursive-delete pattern (`rm -rf /…`) matches both the catastrophic
@@ -1410,6 +1441,58 @@ mod allowlist_catastrophic_tests {
                 SafetyValidator::targets_catastrophic_location(cmd),
                 "Critical class example {cmd:?} is not covered by the catastrophic \
                  floor — patterns.rs and targets_catastrophic_location have drifted"
+            );
+        }
+    }
+
+    /// The #1054 floor entries are expanded copies of the `patterns.rs`
+    /// fragments. Rebuild them from the fragments and compare, so an edit to
+    /// one copy cannot silently drift from the other.
+    #[test]
+    fn floor_fragments_match_builtins() {
+        use super::patterns::{FIND_ROOT_OR_HOME_DELETE, REC, ROOT_OR_HOME, TOK, WW_MODE};
+        let head = r"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)";
+        let expected = [
+            format!(
+                r"{head}chmod\s+(?:{TOK}\s+)*?{REC}\s+(?:{TOK}\s+)*?{WW_MODE}\s+(?:{TOK}\s+)*?{ROOT_OR_HOME}(?:\s|$)"
+            ),
+            format!(
+                r"{head}chmod\s+(?:{TOK}\s+)*?{WW_MODE}\s+(?:{TOK}\s+)*?{REC}\s+(?:{TOK}\s+)*?{ROOT_OR_HOME}(?:\s|$)"
+            ),
+            format!(r"{head}find\s+{FIND_ROOT_OR_HOME_DELETE}"),
+        ];
+        for e in &expected {
+            assert!(
+                SafetyValidator::CATASTROPHIC_PATTERNS.contains(&e.as_str()),
+                "floor is missing the expanded #1054 pattern:\n{e}"
+            );
+        }
+    }
+
+    #[test]
+    fn segment_evasions_hit_the_floor() {
+        for cmd in [
+            "chmod -R 777 ~",
+            "chmod 777 -R /",
+            "git status; chmod -R 777 $HOME",
+            "find / -delete",
+            "sudo find ~ -type f -delete",
+            "find / -name x -exec rm -rf {} \\;",
+        ] {
+            assert!(
+                SafetyValidator::targets_catastrophic_location(cmd),
+                "floor must treat {cmd:?} as catastrophic"
+            );
+        }
+        for cmd in [
+            "git log --grep='chmod -R 777 ~'",
+            "find / -name x; rm -rf build",
+            "find /tmp/app -delete",
+            "chmod -R 755 ~",
+        ] {
+            assert!(
+                !SafetyValidator::targets_catastrophic_location(cmd),
+                "floor must not treat {cmd:?} as catastrophic"
             );
         }
     }
