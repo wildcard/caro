@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Risk-gate gold subset: label guide and candidate list** (#1510).
+  `docs/ml/risk-gold-subset.md` fixes the judge-vs-gold disagreement
+  threshold (15 percentage points) before any label is reviewed, defines
+  the four tiers with ordered decision rules, and sets the stratification
+  plan; `docs/ml/risk-gold-candidates.jsonl` holds 121 unlabelled candidate
+  commands (42 from the published eval, 25 canonical commands for the
+  Safety prompts, 54 authored held-out) with the static validator's tier
+  beside each. No labels are included.
 - **Calibration and tail-latency metrics in the evaluation harness.**
   `EvaluationResult` now records the backend's reported `confidence`, and
   every `BackendResult` carries `brier`, `ece`, `p50_execution_time_ms` and
