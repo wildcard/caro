@@ -148,7 +148,7 @@
   }
 
   .terminal-header {
-    background: #2d2d2d;
+    background: var(--caro-grey-800);
     padding: 12px 16px;
     display: flex;
     align-items: center;
@@ -225,8 +225,9 @@
     gap: 8px;
   }
 
+  /* Console surface (#4f4f4f): every colour below is ≥ 4.5:1 on it. */
   .prompt {
-    color: #4ec9b0;
+    color: #8ee6a0;
     font-weight: 600;
     flex-shrink: 0;
   }
@@ -250,7 +251,7 @@
   }
 
   .result {
-    color: #ce9178;
+    color: var(--highlight);
     word-break: break-word;
   }
 
@@ -261,12 +262,12 @@
   }
 
   .safety-check {
-    color: #6a9955;
+    color: #8ee6a0;
     font-weight: 600;
   }
 
   .safety-text {
-    color: #6a9955;
+    color: var(--term-fg);
     font-size: 13px;
   }
 
