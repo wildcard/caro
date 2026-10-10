@@ -175,6 +175,12 @@ static matcher does not) and `CARO_EVAL_REFERENCE_JUDGE` set, each generated
 command gets both the backend's own risk verdict (the reference judge turns
 the local pass on, so `CARO_EVAL_JUDGE_RISK` is not needed as well) and the
 reference's, and the table reports per-backend agreement (#1466).
+The same run also prints the **risk-gate baseline** (#1510): the local
+verdict's confidence scored against agreement with the reference labeller,
+as Brier and ECE with 95% percentile-bootstrap intervals (1000 resamples,
+fixed seed) and the number of doubly-labelled rows. Agreement is consensus
+with another model, not correctness, so this baseline bounds how much
+calibration a gate classifier could gain before the human gold subset exists.
 For every backend with a measured ECE in both the baseline and the current
 run, `compare_with_ece` fails the run when that ECE rose by more than 0.05:
 calibration regressions block the same way pass-rate regressions do. A

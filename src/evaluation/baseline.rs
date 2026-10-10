@@ -403,6 +403,7 @@ mod tests {
                 decision_parse_failures: 0,
                 risk_agreement: None,
                 risk_disagreements: 0,
+                risk_gate: None,
             },
         );
 

@@ -41,21 +41,63 @@ fn usable_confidence(r: &EvaluationResult) -> Option<f64> {
 /// Number of equal-width confidence buckets used for ECE.
 pub const ECE_BINS: usize = 10;
 
+/// `(confidence, outcome)` pairs for results that reported a confidence,
+/// scored on pass/fail (the generation metric).
+fn generation_pairs<'a>(
+    results: impl IntoIterator<Item = &'a EvaluationResult>,
+) -> Vec<(f64, bool)> {
+    results
+        .into_iter()
+        .filter_map(|r| usable_confidence(r).map(|c| (c, r.passed)))
+        .collect()
+}
+
+/// Brier score over `(confidence, outcome)` pairs; `None` for an empty set.
+fn brier_of(pairs: &[(f64, bool)]) -> Option<f64> {
+    if pairs.is_empty() {
+        return None;
+    }
+    let sum: f64 = pairs
+        .iter()
+        .map(|&(c, hit)| (c - if hit { 1.0 } else { 0.0 }).powi(2))
+        .sum();
+    Some(sum / pairs.len() as f64)
+}
+
+/// Expected Calibration Error over `(confidence, outcome)` pairs with `bins`
+/// equal-width buckets on `[0, 1]`; `None` for an empty set.
+fn ece_of(pairs: &[(f64, bool)], bins: usize) -> Option<f64> {
+    let bins = bins.max(1);
+    let mut conf_sum = vec![0.0_f64; bins];
+    let mut hit_sum = vec![0.0_f64; bins];
+    let mut count = vec![0_usize; bins];
+    for &(c, hit) in pairs {
+        let idx = ((c * bins as f64) as usize).min(bins - 1);
+        conf_sum[idx] += c;
+        hit_sum[idx] += if hit { 1.0 } else { 0.0 };
+        count[idx] += 1;
+    }
+    let n = pairs.len();
+    if n == 0 {
+        return None;
+    }
+    let mut total = 0.0_f64;
+    for i in 0..bins {
+        if count[i] == 0 {
+            continue;
+        }
+        let k = count[i] as f64;
+        total += (k / n as f64) * (conf_sum[i] / k - hit_sum[i] / k).abs();
+    }
+    Some(total)
+}
+
 /// Brier score over results that reported a confidence.
 ///
 /// Returns `None` when no result carried a confidence, so a backend that
 /// never reports one shows up as "unmeasured" rather than "perfect".
 pub fn brier<'a>(results: impl IntoIterator<Item = &'a EvaluationResult>) -> Option<f64> {
-    let mut sum = 0.0_f64;
-    let mut n = 0_usize;
-    for r in results {
-        if let Some(c) = usable_confidence(r) {
-            let outcome = if r.passed { 1.0 } else { 0.0 };
-            sum += (c - outcome).powi(2);
-            n += 1;
-        }
-    }
-    (n > 0).then(|| sum / n as f64)
+    brier_of(&generation_pairs(results))
 }
 
 /// Expected Calibration Error over results that reported a confidence.
@@ -66,36 +108,7 @@ pub fn ece<'a>(
     results: impl IntoIterator<Item = &'a EvaluationResult>,
     bins: usize,
 ) -> Option<f64> {
-    let bins = bins.max(1);
-    let mut conf_sum = vec![0.0_f64; bins];
-    let mut hit_sum = vec![0.0_f64; bins];
-    let mut count = vec![0_usize; bins];
-    let mut n = 0_usize;
-
-    for r in results {
-        if let Some(c) = usable_confidence(r) {
-            let idx = ((c * bins as f64) as usize).min(bins - 1);
-            conf_sum[idx] += c;
-            hit_sum[idx] += if r.passed { 1.0 } else { 0.0 };
-            count[idx] += 1;
-            n += 1;
-        }
-    }
-    if n == 0 {
-        return None;
-    }
-
-    let mut total = 0.0_f64;
-    for i in 0..bins {
-        if count[i] == 0 {
-            continue;
-        }
-        let k = count[i] as f64;
-        let mean_conf = conf_sum[i] / k;
-        let accuracy = hit_sum[i] / k;
-        total += (k / n as f64) * (mean_conf - accuracy).abs();
-    }
-    Some(total)
+    ece_of(&generation_pairs(results), bins)
 }
 
 /// Calibration rollup over one backend's results.
@@ -170,6 +183,87 @@ pub fn risk_agreement<'a>(
     }
     let fraction = (both > 0).then(|| agree as f32 / both as f32);
     (fraction, both - agree)
+}
+
+/// Bootstrap resamples behind every confidence interval here.
+pub const BOOTSTRAP_RESAMPLES: usize = 1000;
+
+/// Fixed seed so two reports over the same results print the same
+/// intervals; the resampling noise is not a property of the backend.
+const BOOTSTRAP_SEED: u64 = 0x1510_C0DE_5EED;
+
+/// Risk-gate calibration (#1510): the backend's confidence in its own risk
+/// verdict, scored against *agreement with the reference labeller* on the
+/// same command. This is the baseline ADR-018's classifier has to beat; the
+/// generation [`CalibrationRollup`] measures a different decision.
+///
+/// Computed over results carrying both verdicts. Intervals are 95 %
+/// percentile bootstrap CIs over [`BOOTSTRAP_RESAMPLES`] resamples; with one
+/// row they collapse to the point estimate, so `n` is reported alongside.
+#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct RiskGateCalibration {
+    /// Rows with a local verdict, a reference verdict and a finite confidence.
+    pub n: u32,
+    /// Brier score of the local verdict's confidence against agreement.
+    pub brier: f32,
+    /// 95 % bootstrap interval for `brier` as `(low, high)`.
+    pub brier_ci: (f32, f32),
+    /// ECE (with [`ECE_BINS`] buckets) of the same.
+    pub ece: f32,
+    /// 95 % bootstrap interval for `ece` as `(low, high)`.
+    pub ece_ci: (f32, f32),
+}
+
+/// Risk-gate calibration over results carrying both risk verdicts; `None`
+/// when no result does (the judge or the reference labeller did not run).
+pub fn risk_gate_calibration<'a>(
+    results: impl IntoIterator<Item = &'a EvaluationResult>,
+) -> Option<RiskGateCalibration> {
+    let pairs: Vec<(f64, bool)> = results
+        .into_iter()
+        .filter_map(|r| {
+            let agree = r.risk_agreement()?;
+            let c = r.local_risk.as_ref()?.confidence;
+            c.is_finite().then(|| (c.clamp(0.0, 1.0), agree))
+        })
+        .collect();
+    let brier = brier_of(&pairs)?;
+    let ece = ece_of(&pairs, ECE_BINS)?;
+    let (b_lo, b_hi) = bootstrap_ci(&pairs, |p| brier_of(p).unwrap_or(0.0));
+    let (e_lo, e_hi) = bootstrap_ci(&pairs, |p| ece_of(p, ECE_BINS).unwrap_or(0.0));
+    Some(RiskGateCalibration {
+        n: pairs.len() as u32,
+        brier: brier as f32,
+        brier_ci: (b_lo as f32, b_hi as f32),
+        ece: ece as f32,
+        ece_ci: (e_lo as f32, e_hi as f32),
+    })
+}
+
+/// 95 % percentile bootstrap interval of `stat` over `pairs` (resampled with
+/// replacement, [`BOOTSTRAP_RESAMPLES`] times, fixed seed).
+fn bootstrap_ci(pairs: &[(f64, bool)], stat: impl Fn(&[(f64, bool)]) -> f64) -> (f64, f64) {
+    let n = pairs.len();
+    if n == 0 {
+        return (0.0, 0.0);
+    }
+    let mut rng = BOOTSTRAP_SEED;
+    let mut sample = vec![(0.0, false); n];
+    let mut stats = Vec::with_capacity(BOOTSTRAP_RESAMPLES);
+    for _ in 0..BOOTSTRAP_RESAMPLES {
+        for slot in sample.iter_mut() {
+            // xorshift64*: small, dependency-free, more than enough for resampling.
+            rng ^= rng >> 12;
+            rng ^= rng << 25;
+            rng ^= rng >> 27;
+            let idx = (rng.wrapping_mul(0x2545_F491_4F6C_DD1D) >> 33) as usize % n;
+            *slot = pairs[idx];
+        }
+        stats.push(stat(&sample));
+    }
+    stats.sort_by(|a, b| a.total_cmp(b));
+    let at = |q: f64| stats[((q * (stats.len() - 1) as f64).round() as usize).min(stats.len() - 1)];
+    (at(0.025), at(0.975))
 }
 
 /// Latency percentiles (milliseconds) over a set of results.
@@ -253,6 +347,59 @@ mod tests {
         // rows[2] never ran the judge
         assert_eq!(decision_failure_count(rows.iter()), 1);
         assert_eq!(decision_failure_count(std::iter::empty()), 0);
+    }
+
+    #[test]
+    fn risk_gate_calibration_scores_confidence_against_agreement() {
+        use crate::models::{RiskJudgment, RiskLevel};
+        let j = |risk, confidence| RiskJudgment {
+            risk,
+            reason: String::new(),
+            confidence,
+        };
+        let mut rows = [
+            result(true, None, 1),
+            result(true, None, 1),
+            result(true, None, 1),
+            result(true, None, 1),
+        ];
+        rows[0].local_risk = Some(j(RiskLevel::Safe, 0.9));
+        rows[0].reference_risk = Some(j(RiskLevel::Safe, 1.0));
+        rows[1].local_risk = Some(j(RiskLevel::Safe, 0.9));
+        rows[1].reference_risk = Some(j(RiskLevel::Safe, 1.0));
+        rows[2].local_risk = Some(j(RiskLevel::Safe, 0.8));
+        rows[2].reference_risk = Some(j(RiskLevel::High, 1.0)); // confident and wrong
+        rows[3].local_risk = Some(j(RiskLevel::High, 0.5)); // no reference label: excluded
+
+        let cal = risk_gate_calibration(rows.iter()).unwrap();
+        assert_eq!(cal.n, 3);
+        // ((0.1)^2 + (0.1)^2 + (0.8)^2) / 3
+        assert!((cal.brier - 0.22).abs() < 1e-6, "brier {}", cal.brier);
+        // bin 0.9: |0.9 - 1.0| * 2/3; bin 0.8: |0.8 - 0.0| * 1/3
+        assert!(
+            (cal.ece - (0.1 * 2.0 / 3.0 + 0.8 / 3.0) as f32).abs() < 1e-6,
+            "ece {}",
+            cal.ece
+        );
+        assert!(cal.brier_ci.0 <= cal.brier && cal.brier <= cal.brier_ci.1);
+        assert!(cal.ece_ci.0 <= cal.ece && cal.ece <= cal.ece_ci.1);
+        assert!(
+            cal.brier_ci.0 < cal.brier_ci.1,
+            "three distinct rows give a real interval"
+        );
+
+        // Deterministic: same rows, same intervals.
+        assert_eq!(risk_gate_calibration(rows.iter()), Some(cal));
+        // Unmeasured when nothing carries both labels.
+        assert_eq!(risk_gate_calibration(std::iter::once(&rows[3])), None);
+        assert_eq!(risk_gate_calibration(std::iter::empty()), None);
+    }
+
+    #[test]
+    fn bootstrap_ci_collapses_on_a_single_row() {
+        let (lo, hi) = bootstrap_ci(&[(0.7, true)], |p| brier_of(p).unwrap());
+        assert!((lo - 0.09).abs() < 1e-9 && (hi - 0.09).abs() < 1e-9);
+        assert_eq!(bootstrap_ci(&[], |_| 1.0), (0.0, 0.0));
     }
 
     #[test]

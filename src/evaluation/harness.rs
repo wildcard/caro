@@ -12,7 +12,8 @@ use tokio::time::timeout;
 use crate::backends::{CommandGenerator, GeneratorError};
 use crate::evaluation::baseline::DEFAULT_ECE_REGRESSION_THRESHOLD;
 use crate::evaluation::calibration::{
-    decision_failure_count, risk_agreement, source_counts, CalibrationRollup, LatencyPercentiles,
+    decision_failure_count, risk_agreement, risk_gate_calibration, source_counts,
+    CalibrationRollup, LatencyPercentiles,
 };
 use crate::evaluation::errors::Result;
 use crate::evaluation::{
@@ -370,6 +371,7 @@ impl EvaluationHarness {
             decision_parse_failures: decision_failure_count(all_results.iter()),
             risk_agreement: agreement,
             risk_disagreements: disagreements,
+            risk_gate: risk_gate_calibration(all_results.iter()),
         })
     }
 
@@ -867,6 +869,7 @@ impl EvaluationHarness {
                     decision_parse_failures: decision_failure_count(backend_tests.iter().copied()),
                     risk_agreement: agreement,
                     risk_disagreements: disagreements,
+                    risk_gate: risk_gate_calibration(backend_tests.iter().copied()),
                 },
             );
         }
@@ -1203,6 +1206,26 @@ mod tests {
             agreement("no_judge"),
             (None, 0),
             "reference alone is not agreement"
+        );
+
+        // Risk-gate baseline (#1510): confidence 0.9 scored against agreement.
+        let gate = |name: &str| report.backend_results[name].risk_gate;
+        let agrees = gate("agrees").expect("both verdicts present");
+        assert_eq!(agrees.n, 2);
+        assert!(
+            (agrees.brier - 0.01).abs() < 1e-6,
+            "0.9 confident, always right"
+        );
+        let disagrees = gate("disagrees").expect("both verdicts present");
+        assert!(
+            (disagrees.brier - 0.81).abs() < 1e-6,
+            "0.9 confident, always wrong"
+        );
+        assert!((disagrees.ece - 0.9).abs() < 1e-6);
+        assert_eq!(
+            gate("no_judge"),
+            None,
+            "no local verdict, no gate to calibrate"
         );
     }
 
