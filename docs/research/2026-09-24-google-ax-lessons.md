@@ -42,7 +42,7 @@ AX's machinery doesn't transfer, but several of its design choices do:
 | Execution | `src/execution/executor.rs` runs `sh -c` directly. No sandbox, rlimits or network fence. Before this PR, `with_timeout()` never killed anything. |
 | Sandbox | ADR-010 (bubblewrap) is *Proposed*, not implemented |
 | Task files | CaroML `.caro` / Carofile have no schema version. Only `caroml.lock` has one (`SCHEMA_VERSION = 2`). |
-| Runner semantics | `src/caroml/runner.rs`: sequential, stop on first failure. Documented and test-pinned in `docs/caroml/runner-contract.md`. |
+| Runner semantics | `src/caroml/runner.rs`: sequential, stop on first failure. Documented in `docs/caroml/runner-contract.md`; the step-by-step path is test-pinned, the runbook path is not (#1557). |
 | Credentials | Hard-coded env var names (`backends/remote/claude.rs`, `openrouter.rs`) |
 | Network egress | Only which backend URL you configure. Executed commands have unrestricted egress. |
 | Budgets | `AgentLoop` has `_max_iterations` (unused) and a 15s wall clock |

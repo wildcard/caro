@@ -6,7 +6,8 @@ idea comes from google/ax, which treats its runner's behavior as a spec
 (`docs/research/2026-09-24-google-ax-lessons.md`, lesson 3).
 
 Code: `src/caroml/runner.rs`. Contract tests: the `contract_*` tests in that
-file (`cargo test --lib caroml::runner::tests::contract`).
+file (`cargo test --lib caroml::runner::tests::contract`). They cover the
+step-by-step path only; the runbook path has no contract tests yet (#1557).
 
 ## Two execution paths
 
@@ -42,8 +43,9 @@ path.
 - **Environment.** Each step inherits caro's environment unchanged. Caro adds
   nothing and removes nothing.
 - **Exit code of `caro run`.** On any failure `caro run` exits `1`. It does not
-  pass the step's own exit code through. The run journal records the step's
-  real exit code.
+  pass the step's own exit code through. The run journal records more: on the
+  step-by-step path, the failed step's exit code and line; on the runbook
+  path, the exit status of the whole `bash` run (with line 0).
 - **Timeouts.** Steps have no time limit. `CommandExecutor` supports one, but
   the runner does not set it yet; that is blocked on signal forwarding (below).
   At the deadline the executor sends SIGKILL to the step's process group at
