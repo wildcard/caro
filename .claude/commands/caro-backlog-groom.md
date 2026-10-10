@@ -16,6 +16,18 @@ git fetch origin --prune --tags --quiet
 bd stats
 ```
 
+> **Runner constraint — do NOT wrap `bd` in `timeout`.** The scheduled runner
+> has no `timeout`/`gtimeout` on `PATH` (GNU coreutils is not installed). A
+> command like `timeout 25 bd stats` fails with `command not found`, and a
+> `|| echo STILL_STUCK`-style fallback then reads as a daemon hang — this
+> produced a **false P0 "daemon wedged" report** on #792 (2026-07-11 cycle)
+> when the daemon was healthy (`bd stats` returns in <1s, exit 0). Call `bd`
+> directly. If you must bound a call, use a Bash background-job + poll guard,
+> not `timeout`. Also: run orphan-branch `bd create`s **one per Bash call**
+> (or in the background) — a multi-branch create loop can exceed the 2-minute
+> tool wall on a single slow Dolt write and get killed mid-batch. Tracked:
+> `caro-xk0.104`.
+
 ## Phase A — Scan sources (parallel where possible)
 
 Produce four JSON streams:
