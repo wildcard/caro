@@ -4,6 +4,61 @@ Reading order: most recent first.
 
 ---
 
+## 2026-07-21 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B (16 PRs merged since 2026-05-07) + C.
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** (3m 13s, no errors; MSRV now 1.85)
+- `caro --version` → **PASS**: `caro 1.5.0 (be07b22 2026-07-18)`
+- `caro --help` → **PASS**: all subcommands present including CaroML and `ai` verbs
+- `caro doctor` → **PASS**: advisory only (no model downloaded, proxy detected at http://127.0.0.1:34433)
+- `caro -p 'list files in current directory' --dry-run` → **DEGRADED** (not a clean PASS or FLAKE): returned `echo 'Please clarify your request'` with exit 0. Root cause traced to two bugs — static matcher Pattern 43 regex rejects trailing context (→ #1362, P2) and CPU backend stub's `prompt.contains("rm")` fires on system-prompt words like "format" (→ #1361, P1). Filed as bugs, not tracked as a new flake.
+- Telemetry consent auto-declined in non-interactive mode; `~/.config/caro/config.toml` persisted `first_run = false, enabled = false` after first invocation. Second invocation (`caro --version`) showed no prompt. **PASS**.
+
+### Slot B — Recent diff (16 PRs since 2026-05-07)
+
+Key PRs covered:
+
+| PR | Surface | Smoke result |
+|----|---------|-------------|
+| #1315 `fix(safety): P0 — close quote/escape evasion` | Safety patterns | PASS — `cargo test --lib -- safety` 34/34 |
+| #1352 `fix(i18n): load all locale JSON files; overhaul Hebrew translations` | i18n locale JSON | PASS — 115 locale files all valid JSON (python3 json.load) |
+| #1244 `feat(agents): add ponytail reviewer` | Agent config only | not CLI-testable |
+| #1155–#1159 brand/website design PRs | website (no local server) | deferred to surface #25/#26 in future Slot C |
+| #1245 `feat: Fireworks hybrid-harness learnings` | eval/ml changes | deferred; no model available to test embedded inference quality |
+
+Surfaces flagged for future Slot C: website brand surfaces (#25, #26) touched by PRs #1155–#1159 and #1327.
+
+### Slot C — `caro ai --once` (surface #10)
+
+Surface chosen: **#10 — `caro ai --once` scripted conversational mode** (oldest = never; lowest `#` among 'never' surfaces).
+
+- `caro ai --help` → **PASS**: `--once`, `--new-session`, `--continue-session` flags documented; stdout described as generated command only for shell widget injection.
+- `caro ai --once 'list files in current directory'` → **FAIL**:
+  ```
+  # caro-ai: session 1 confidence=0.85 risk=Safe
+  echo 'Please clarify your request'
+  ```
+  Exit code: 0. Shell widgets would inject this placeholder into the user's readline buffer. The `confidence=0.85` value is fabricated — not derived from generation quality.
+- Root cause: CPU backend stub in `src/backends/embedded/cpu.rs` uses `prompt.contains("rm")` on the full prompt string; "rm" appears as a substring in common words in the system prompt ("format", "perform", "terminal"), causing the safety-fallback branch to fire for ALL queries regardless of user intent.
+
+### Findings
+
+- [#1361](https://github.com/wildcard/caro/issues/1361) — `ai: caro ai --once returns misleading placeholder command with confidence=0.85 when backend degraded` (P1)
+- [#1362](https://github.com/wildcard/caro/issues/1362) — `cli: static matcher Pattern 43 regex rejects "list files in <location>" despite matching required keywords` (P2)
+
+### Followups
+
+- FLAKE-001 behavior changed: previous run (2026-05-07) showed explicit download error; this run showed silent CPU-stub fallback. The CPU stub bug (#1361) is the underlying cause — it was presumably dormant until this run's code path exercised the stub.
+- Website brand surfaces (#25, #26) touched by multiple merged PRs; schedule for next available Slot C.
+- `caro ai --continue-session` (surface #11) not yet tested — pending model availability.
+- 16 PRs merged in the 75-day gap since last run; Slot B only spot-checked the two highest-risk PRs (#1315, #1352). Additional spot checks deferred.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
