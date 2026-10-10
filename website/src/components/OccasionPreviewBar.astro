@@ -1,0 +1,202 @@
+---
+/**
+ * Occasion preview bar — shown only when a page is opened with
+ * ?occasion=<id> (see the occasion init script in Layout.astro).
+ *
+ * Lets a reviewer switch between every occasion and color mode on the
+ * page they are looking at, and shows the CTA contrast ratio that the
+ * occasion's fill achieves with white text. Nothing is persisted.
+ * Works without JavaScript (plain GET form); JS only auto-submits.
+ */
+import { OCCASIONS, type Occasion } from '../config/occasions';
+import { occasionPalette } from '../lib/occasion-css';
+import { contrast } from '../lib/color';
+
+const groups: Array<[string, Occasion['kind']]> = [
+  ['Holidays', 'holiday'],
+  ['National days', 'national'],
+  ['Humanity events', 'humanity'],
+];
+const ratio = (o: Occasion) => contrast('#ffffff', occasionPalette(o).fill).toFixed(2);
+---
+
+<aside class="occasion-preview" aria-label="Occasion preview" hidden>
+  <form class="op-form" method="get">
+    <label class="op-label" for="op-select">Occasion preview</label>
+    <div class="op-row">
+      <select id="op-select" name="occasion" class="op-select">
+        {groups.map(([label, kind]) => (
+          <optgroup label={label}>
+            {OCCASIONS.filter((o) => o.kind === kind).map((o) => (
+              <option value={o.id} data-ratio={ratio(o)}>{o.name}</option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+      <input type="hidden" name="theme" class="op-theme" value="" />
+      <button type="submit" class="op-apply">Apply</button>
+    </div>
+    <div class="op-row op-meta">
+      <span class="op-ratio" aria-live="polite"></span>
+      <span class="op-modes" role="group" aria-label="Color mode">
+        <button type="submit" class="op-mode" data-mode="light">Light</button>
+        <button type="submit" class="op-mode" data-mode="dark">Dark</button>
+      </span>
+    </div>
+    <div class="op-row op-links">
+      <a href="/occasions">All occasions</a>
+      <a class="op-exit" href="?">Exit preview</a>
+    </div>
+  </form>
+</aside>
+
+<style is:global>
+  .occasion-preview {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 10000;
+    width: min(320px, calc(100vw - 32px));
+    padding: 12px 14px;
+    background: var(--bg-inverse);
+    color: var(--fg-inverse);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xl);
+    font-size: 14px;
+    border-top: 4px solid transparent;
+    border-image: var(--occasion-ribbon) 1;
+  }
+
+  html[data-occasion-preview] .occasion-preview {
+    display: block;
+  }
+
+  .occasion-preview[hidden] {
+    display: none;
+  }
+
+  .op-label {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: var(--track-wider);
+    text-transform: uppercase;
+    color: var(--highlight);
+    margin-bottom: 6px;
+  }
+
+  .op-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .op-row + .op-row {
+    margin-top: 8px;
+  }
+
+  .op-select {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    padding: 0 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--caro-grey-300);
+    background: var(--caro-grey-800);
+    color: var(--caro-beige-100);
+    font: inherit;
+  }
+
+  .op-apply,
+  .op-mode {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--caro-grey-300);
+    background: transparent;
+    color: var(--caro-beige-100);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .op-mode[aria-pressed='true'] {
+    background: var(--caro-beige-100);
+    color: var(--caro-grey-900);
+  }
+
+  .op-meta {
+    justify-content: space-between;
+  }
+
+  .op-ratio {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .op-modes {
+    display: inline-flex;
+    gap: 6px;
+  }
+
+  .op-links a {
+    color: var(--highlight);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .op-links {
+    justify-content: space-between;
+  }
+
+  .occasion-preview :is(a, button, select):focus-visible {
+    outline: 3px solid var(--highlight);
+    outline-offset: 2px;
+  }
+
+  /* With JS the select auto-applies; keep Apply for no-JS visitors. */
+  .occasion-preview.js .op-apply {
+    display: none;
+  }
+</style>
+
+<script>
+  const html = document.documentElement;
+  const bar = document.querySelector<HTMLElement>('.occasion-preview');
+  const current = html.dataset.occasionPreview;
+
+  if (bar && current) {
+    bar.hidden = false;
+    bar.classList.add('js');
+    const form = bar.querySelector('form')!;
+    const select = bar.querySelector<HTMLSelectElement>('#op-select')!;
+    const themeInput = bar.querySelector<HTMLInputElement>('.op-theme')!;
+    const ratioEl = bar.querySelector<HTMLElement>('.op-ratio')!;
+    const isDark = html.classList.contains('dark');
+
+    select.value = current;
+    themeInput.value = html.dataset.themePreview || (isDark ? 'dark' : 'light');
+
+    const showRatio = () => {
+      const r = select.selectedOptions[0]?.dataset.ratio;
+      ratioEl.textContent = r ? `CTA ${r}:1 ${Number(r) >= 4.5 ? 'AA ✓' : 'fails AA'}` : '';
+    };
+    showRatio();
+
+    bar.querySelectorAll<HTMLButtonElement>('.op-mode').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String((btn.dataset.mode === 'dark') === isDark));
+      btn.addEventListener('click', () => {
+        themeInput.value = btn.dataset.mode || 'light';
+      });
+    });
+
+    select.addEventListener('change', () => {
+      showRatio();
+      form.requestSubmit();
+    });
+
+    // "Exit preview" keeps the current path but drops the query string.
+    bar.querySelector<HTMLAnchorElement>('.op-exit')!.href = window.location.pathname;
+  }
+</script>

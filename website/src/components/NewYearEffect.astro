@@ -4,7 +4,7 @@
 // Triggered automatically on New Year's Day
 ---
 
-<div id="new-year-effect-container" class="effect-container"></div>
+<div id="new-year-effect-container" class="effect-container" aria-hidden="true"></div>
 
 <style is:global>
   .effect-container {
@@ -255,6 +255,8 @@
 
     public start(): void {
       if (this.isActive || !this.container) return;
+      // Fireworks are continuous motion: skip them under reduced motion.
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
       this.isActive = true;
       this.container.classList.add('active');

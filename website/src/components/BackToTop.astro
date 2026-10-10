@@ -2,12 +2,11 @@
 // Back to top button with elevator.js
 ---
 
-<button id="back-to-top" class="back-to-top" aria-label="Back to top">
-  ↑
+<button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top">
+  <span aria-hidden="true">↑</span>
 </button>
-
-<button id="mute-toggle" class="mute-toggle" aria-label="Toggle elevator music">
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<button id="mute-toggle" class="mute-toggle" type="button" aria-label="Elevator music" aria-pressed="true">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
     <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
     <path class="sound-waves" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
     <path class="sound-waves" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
@@ -17,83 +16,21 @@
 </button>
 
 <style>
-  .back-to-top {
-    position: fixed;
-    bottom: 40px;
-    right: 40px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: var(--accent-fill);
-    color: var(--on-accent);
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(239, 51, 51, 0.3);
-    transition: all 0.3s ease;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(100px);
-  }
-
-  .back-to-top.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-  }
-
-  .back-to-top:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(239, 51, 51, 0.4);
-  }
-
-  .back-to-top:active {
-    transform: translateY(-2px);
-  }
-
-  /* Dark mode adjustments */
-  .dark .back-to-top {
-    background: var(--accent);
-    box-shadow: 0 4px 12px rgba(239, 51, 51, 0.4);
-  }
-
-  .dark .back-to-top:hover {
-    box-shadow: 0 8px 20px rgba(239, 51, 51, 0.5);
-  }
-
-  /* Christmas theme */
-  .christmas .back-to-top {
-    background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-green) 100%);
-  }
-
-  .christmas .back-to-top:hover {
-    box-shadow: 0 8px 20px rgba(196, 30, 58, 0.5);
-  }
-
-  /* Hanukkah theme */
-  .hanukkah .back-to-top {
-    background: linear-gradient(135deg, var(--hanukkah-blue) 0%, var(--hanukkah-light-blue) 100%);
-  }
-
-  .hanukkah .back-to-top:hover {
-    box-shadow: 0 8px 20px rgba(0, 56, 184, 0.5);
-  }
-
-  /* Mute toggle button */
+  /* Both floating buttons use the accessible CTA fill, which also follows
+     the active occasion (occasion CSS overrides --accent-fill). */
+  .back-to-top,
   .mute-toggle {
     position: fixed;
-    bottom: 100px;
     right: 40px;
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: var(--accent-fill);
     color: var(--on-accent);
-    border: none;
+    border: 2px solid var(--bg);
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
-    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+    transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s;
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
@@ -103,33 +40,33 @@
     justify-content: center;
   }
 
+  .back-to-top {
+    bottom: 40px;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .mute-toggle {
+    bottom: 100px;
+  }
+
+  .back-to-top.visible,
   .mute-toggle.visible {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
   }
 
+  .back-to-top:hover,
   .mute-toggle:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 8px 20px rgba(155, 89, 182, 0.5);
-    background: var(--accent-hover);
+    background: var(--accent-fill-hover);
+    transform: translateY(-3px);
   }
 
-  .mute-toggle:active {
-    transform: translateY(-2px) scale(0.98);
-  }
-
-  .mute-toggle svg {
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-  }
-
-  .mute-toggle .sound-waves {
-    animation: soundWave 1.5s ease-in-out infinite;
-    transform-origin: center;
-  }
-
-  .mute-toggle .sound-waves:nth-child(3) {
-    animation-delay: 0.2s;
+  .back-to-top:focus-visible,
+  .mute-toggle:focus-visible {
+    outline: 3px solid var(--fg-strong);
+    outline-offset: 2px;
   }
 
   .mute-toggle .mute-x {
@@ -144,71 +81,29 @@
     display: block;
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    .mute-toggle .sound-waves {
+      animation: soundWave 1.5s ease-in-out infinite;
+    }
+
+    .mute-toggle .sound-waves:nth-child(3) {
+      animation-delay: 0.2s;
+    }
+  }
+
   @keyframes soundWave {
-    0%, 100% {
-      opacity: 0.5;
-      stroke-width: 2;
-    }
-    50% {
-      opacity: 1;
-      stroke-width: 2.5;
-    }
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
   }
 
-  /* Dark mode adjustments */
-  .dark .mute-toggle {
-    background: var(--accent-press);
-    box-shadow: 0 4px 12px rgba(142, 68, 173, 0.4);
-  }
-
-  .dark .mute-toggle:hover {
-    background: var(--accent);
-    box-shadow: 0 8px 20px rgba(155, 89, 182, 0.6);
-  }
-
-  /* Christmas theme */
-  .christmas .mute-toggle {
-    background: linear-gradient(135deg, var(--christmas-gold) 0%, #daa520 100%);
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
-  }
-
-  .christmas .mute-toggle:hover {
-    background: linear-gradient(135deg, #ffd700 0%, var(--christmas-gold) 100%);
-    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
-  }
-
-  /* Hanukkah theme */
-  .hanukkah .mute-toggle {
-    background: linear-gradient(135deg, var(--hanukkah-light-blue) 0%, var(--hanukkah-blue) 100%);
-    box-shadow: 0 4px 12px rgba(65, 105, 225, 0.3);
-  }
-
-  .hanukkah .mute-toggle:hover {
-    background: linear-gradient(135deg, #5a8dee 0%, var(--hanukkah-light-blue) 100%);
-    box-shadow: 0 8px 20px rgba(90, 141, 238, 0.5);
-  }
-
-  /* Mobile adjustments */
   @media (max-width: 768px) {
-    .back-to-top {
-      bottom: 20px;
-      right: 20px;
-      width: 45px;
-      height: 45px;
-      font-size: 20px;
-    }
-
+    .back-to-top,
     .mute-toggle {
-      bottom: 75px;
-      right: 20px;
-      width: 45px;
-      height: 45px;
+      right: 16px;
     }
 
-    .mute-toggle svg {
-      width: 20px;
-      height: 20px;
-    }
+    .back-to-top { bottom: 16px; }
+    .mute-toggle { bottom: 72px; }
   }
 </style>
 
@@ -226,11 +121,9 @@
 
     // Update mute button visual state
     const updateMuteButtonState = () => {
-      if (isMuted) {
-        muteToggle?.classList.add('is-muted');
-      } else {
-        muteToggle?.classList.remove('is-muted');
-      }
+      muteToggle?.classList.toggle('is-muted', isMuted);
+      // aria-pressed = "music on" so the label "Elevator music" reads naturally.
+      muteToggle?.setAttribute('aria-pressed', String(!isMuted));
     };
 
     updateMuteButtonState();
@@ -239,15 +132,21 @@
     let elevatorDuration = 3000; // 3 seconds
     let currentAudio: HTMLAudioElement | null = null;
 
-    // @ts-ignore - Elevator is loaded from external script
-    const elevator = new Elevator({
-      element: button,
-      duration: elevatorDuration,
-    });
+    // Reduced motion: jump to the top instead of the 3-second elevator ride.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      button?.addEventListener('click', () => window.scrollTo({ top: 0 }));
+    } else {
+      // @ts-ignore - Elevator is loaded from external script
+      new Elevator({
+        element: button,
+        duration: elevatorDuration,
+      });
+    }
 
     // Handle audio manually on button click
     button?.addEventListener('click', () => {
-      if (!isMuted) {
+      if (!isMuted && !reduceMotion) {
         // Create and play audio
         currentAudio = new Audio('/elevator-music.mp3');
         currentAudio.play().catch(() => {

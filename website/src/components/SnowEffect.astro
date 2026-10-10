@@ -4,7 +4,7 @@
 // Can be toggled on/off by the user
 ---
 
-<div id="snow-container" class="snow-container"></div>
+<div id="snow-container" class="snow-container" aria-hidden="true"></div>
 
 <style is:global>
   .snow-container {
@@ -72,6 +72,12 @@
     75% {
       margin-left: 10px;
     }
+  }
+
+  /* White flakes vanish on the beige paper page; use a cool slate there. */
+  html:not(.dark) .snowflake {
+    color: #8aa4b8;
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.9);
   }
 
   /* Hanukkah mode: blue-tinted snowflakes */
@@ -182,6 +188,8 @@
 
     public start(): void {
       if (this.isActive || !this.container) return;
+      // Continuous motion: never start for visitors who asked for less.
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
       this.isActive = true;
       this.container.classList.add('active');
