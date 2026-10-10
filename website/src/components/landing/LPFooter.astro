@@ -104,9 +104,12 @@ const { lang = 'en' } = Astro.props;
     color: var(--color-footer-text-muted);
   }
 
+  /* Links inside the tribute sentence are underlined: colour alone does not
+     separate them from the surrounding text (WCAG 1.4.1). */
   .mascot-tribute a {
     color: var(--color-footer-text);
-    text-decoration: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
     transition: color 0.2s;
   }
 
@@ -124,8 +127,9 @@ const { lang = 'en' } = Astro.props;
     color: #ea4aaa;
   }
 
+  /* Pink hover text is 2.4:1 on the light-mode console footer. */
   .sponsor-link:hover {
-    color: #ea4aaa !important;
+    color: var(--highlight) !important;
   }
 
   .footer-privacy-link {
@@ -136,6 +140,12 @@ const { lang = 'en' } = Astro.props;
 
   .footer-privacy-link:hover {
     color: var(--highlight);
+  }
+
+  /* Console surface: the global red focus ring is ~1.6:1 here. */
+  footer a:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
   }
 
   @media (max-width: 768px) {

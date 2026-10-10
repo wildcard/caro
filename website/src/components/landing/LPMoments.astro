@@ -13,7 +13,7 @@
       <!-- Moment 1: Did I type that right? -->
       <div class="moment-card">
         <div class="moment-before">
-          <div class="moment-icon">😰</div>
+          <div class="moment-icon" aria-hidden="true">😰</div>
           <h3 class="moment-pain">"Did I type that right?"</h3>
           <p class="moment-description">
             Staring at a command you found on Stack Overflow. Is that a backtick or a quote?
@@ -43,7 +43,7 @@
       <!-- Moment 2: What if this breaks prod? -->
       <div class="moment-card">
         <div class="moment-before">
-          <div class="moment-icon">💀</div>
+          <div class="moment-icon" aria-hidden="true">💀</div>
           <h3 class="moment-pain">"What if this breaks prod?"</h3>
           <p class="moment-description">
             That sinking feeling before hitting Enter on a production server.
@@ -69,7 +69,7 @@
       <!-- Moment 3: What runs on this machine? -->
       <div class="moment-card">
         <div class="moment-before">
-          <div class="moment-icon">🤔</div>
+          <div class="moment-icon" aria-hidden="true">🤔</div>
           <h3 class="moment-pain">"What runs on this machine?"</h3>
           <p class="moment-description">
             BSD? Linux? macOS? Is it GNU find or BSD find?
@@ -176,13 +176,17 @@
     position: relative;
   }
 
+  /* Console surface (grey-700 in both modes). Tints stay low so text
+     clears AA on the BLENDED card colour; red/green/cyan carry meaning via
+     tint, border and badge, while text uses console ink tokens:
+     --term-fg (beige), --caro-grey-300 (secondary), --highlight (accent). */
   .moment-example.bad {
-    background: rgba(255, 85, 85, 0.1);
-    border: 1px solid rgba(255, 85, 85, 0.2);
+    background: rgba(239, 51, 51, 0.1);
+    border: 1px solid rgba(239, 51, 51, 0.35);
   }
 
   .moment-example.bad code {
-    color: #ff8888;
+    color: var(--term-fg);
   }
 
   .moment-example .doubt {
@@ -230,44 +234,45 @@
   }
 
   .moment-example.validated {
-    background: rgba(80, 250, 123, 0.1);
-    border: 1px solid rgba(80, 250, 123, 0.2);
+    background: rgba(63, 163, 77, 0.12);
+    border: 1px solid rgba(124, 211, 137, 0.4);
   }
 
   .moment-example.validated code {
-    color: #50fa7b;
+    color: var(--highlight);
     display: block;
     margin-top: 8px;
   }
 
   .moment-example.blocked {
-    background: rgba(255, 85, 85, 0.1);
-    border: 1px solid rgba(255, 85, 85, 0.2);
+    background: rgba(239, 51, 51, 0.1);
+    border: 1px solid rgba(239, 51, 51, 0.35);
   }
 
   .moment-example.blocked code {
-    color: #50fa7b;
+    color: var(--highlight);
     display: block;
     margin-top: 12px;
-    background: rgba(80, 250, 123, 0.1);
+    background: rgba(63, 163, 77, 0.15);
+    border: 1px solid rgba(124, 211, 137, 0.4);
     padding: 8px 12px;
     border-radius: 6px;
   }
 
   .moment-example.platform-aware {
     background: rgba(139, 233, 253, 0.1);
-    border: 1px solid rgba(139, 233, 253, 0.2);
+    border: 1px solid rgba(139, 233, 253, 0.3);
   }
 
   .moment-example.platform-aware code {
-    color: #8be9fd;
+    color: var(--highlight);
     display: block;
     margin-top: 8px;
   }
 
   .caro-label {
     font-size: 0.7rem;
-    color: var(--caro-grey-300);
+    color: var(--term-fg);
     text-transform: uppercase;
     display: block;
     margin-bottom: 4px;
@@ -288,27 +293,30 @@
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
+  /* Solid status chips: dark ink on safe-green (5.4:1 light / 8:1 dark),
+     white on --accent-fill (5.0:1). */
   .badge.safe {
-    background: rgba(80, 250, 123, 0.2);
-    color: #50fa7b;
+    background: var(--status-safe);
+    color: var(--caro-grey-950);
     margin-left: 8px;
   }
 
   .badge.danger {
-    background: rgba(255, 85, 85, 0.2);
-    color: #ff5555;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     margin-bottom: 12px;
   }
 
   .badge.platform {
-    background: rgba(139, 233, 253, 0.2);
-    color: #8be9fd;
+    background: transparent;
+    border: 1px solid rgba(139, 233, 253, 0.5);
+    color: var(--term-fg);
     margin-bottom: 12px;
   }
 
   .warning-text, .platform-text {
     font-size: 0.8rem;
-    color: #888;
+    color: var(--term-fg);
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     margin: 8px 0;
   }

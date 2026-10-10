@@ -4,9 +4,11 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
 
 interface Props {
   lang?: Locale;
+  /** Anchor for the "See Demo" CTA. Must exist on the host page. */
+  demoHref?: string;
 }
 
-const { lang = 'en' } = Astro.props;
+const { lang = 'en', demoHref = '#scenarios' } = Astro.props;
 ---
 
 <div class="hero">
@@ -28,14 +30,16 @@ const { lang = 'en' } = Astro.props;
 
     <div class="cta-buttons">
       <a href="#download" class="cta-button primary">{t(lang, 'landing.hero.cta.primary')}</a>
-      <a href="#scenarios" class="cta-button secondary">{t(lang, 'landing.hero.cta.secondary')}</a>
+      <a href={demoHref} class="cta-button secondary">{t(lang, 'landing.hero.cta.secondary')}</a>
     </div>
 
+    <!-- Terminal glyphs (sanctioned set) where no pixel Glyph exists; same
+         mapping as the LPTestimonials proof bar (▸ telemetry, ❯ open source). -->
     <div class="trust-badges">
-<a href="/telemetry" class="badge badge-link"><span class="icon">🔒</span> {t(lang, 'landing.hero.trustBadges.zeroTelemetry')}</a>
+      <a href="/telemetry" class="badge badge-link"><span class="icon term-glyph" aria-hidden="true">▸</span> {t(lang, 'landing.hero.trustBadges.zeroTelemetry')}</a>
       <span class="badge"><Glyph name="shield" size={16} class="icon" /> {t(lang, 'landing.hero.trustBadges.validation')}</span>
       <span class="badge"><Glyph name="lightning" size={16} class="icon" /> {t(lang, 'landing.hero.trustBadges.local')}</span>
-      <span class="badge"><span class="icon">📖</span> {t(lang, 'landing.hero.trustBadges.openSource')}</span>
+      <span class="badge"><span class="icon term-glyph" aria-hidden="true">❯</span> {t(lang, 'landing.hero.trustBadges.openSource')}</span>
     </div>
   </div>
 </div>
@@ -188,6 +192,15 @@ const { lang = 'en' } = Astro.props;
     font-size: 16px;
   }
 
+  .term-glyph {
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1;
+  }
+
   .badge-link {
     text-decoration: none;
     transition: color 0.2s;
@@ -223,11 +236,11 @@ const { lang = 'en' } = Astro.props;
   import { track } from '@vercel/analytics';
 
   // Track hero CTA clicks
-  document.querySelector('.hero .btn-primary')?.addEventListener('click', () => {
+  document.querySelector('.hero .cta-button.primary')?.addEventListener('click', () => {
     track('cta_click', { location: 'hero', action: 'get_started' });
   });
 
-  document.querySelector('.hero .btn-secondary')?.addEventListener('click', () => {
+  document.querySelector('.hero .cta-button.secondary')?.addEventListener('click', () => {
     track('cta_click', { location: 'hero', action: 'see_demo' });
   });
 </script>
