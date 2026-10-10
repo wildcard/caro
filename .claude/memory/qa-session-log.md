@@ -53,7 +53,7 @@ Surface chosen: **`caro ai --once` scripted conversational mode** (oldest 'Last 
 - **GH_TOKEN is invalid** — the token must be rotated before the next QA run can file issues or open a PR. The branch `claude/qa-rotation-2026-10-10` was pushed for traceability.
 - FLAKE-001 second overall observation (2026-10-10). Still within tolerance (not 3x in 7 days); logged in qa-known-flakes.md.
 - Next Slot C: surface #11 `caro ai --continue-session` (still 'never' tested, lowest uncovered # after #10).
-- The 2026-10-10 pass confirms the static matcher improvement: `caro --dry-run` no longer FLAKEs on sandbox (was FLAKE-001 in May). Consider updating surface #2 result to PASS with a note.
+- Surface #2 (`--dry-run`) updated to PARTIAL in coverage matrix: static-matcher path PASS for known patterns; model-backed path remains FLAKE (novel prompts still trigger download). Full PASS requires sandbox with pre-downloaded model.
 - Consider filing a new issue for CLAUDE.md 1.4.0→1.5.0 drift once gh auth is restored (same class as #1044).
 
 ---

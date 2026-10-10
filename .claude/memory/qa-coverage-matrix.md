@@ -24,7 +24,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | # | Surface | Domain | Last tested | Result | Linked issue(s) |
 |---|---------|--------|-------------|--------|-----------------|
 | 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-05-07 | PASS | — |
-| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-10 | PASS | — (static matcher now intercepts basic patterns; FLAKE resolved) |
+| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-10 | PARTIAL | — (static-matcher path: PASS for known patterns in 34ms; model-backed path: FLAKE still — model download blocked in sandbox. Flake for novel prompts not resolved.) |
 | 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
