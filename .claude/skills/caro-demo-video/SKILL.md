@@ -41,21 +41,21 @@ These are caro-specific and not covered by `remotion-best-practices`.
 
 ### Visual tokens (mirror of `website/src/ui/tokens.css`)
 
-| Token | Hex | Use |
-|---|---|---|
-| `bgDeep` | `#0a0a0f` | Composition background |
-| `bgTerminal` | `#1a1a2e` | Terminal window body |
-| `bgChrome` | `#16161c` | Terminal title bar |
-| `borderSubtle` | `#1e1e24` | Window border |
-| `accent` | `#ff8c42` | Caro suggestions, primary CTA |
-| `accentDark` | `#ff6b35` | Hover states, secondary brand |
-| `prompt` | `#4ec9b0` | Shell prompt `$` |
-| `command` | `#9cdcfe` | Typed command text |
-| `success` | `#22c55e` | Safe / passed indicator |
-| `danger` | `#ef4444` | Blocked / error indicator |
-| `warning` | `#f59e0b` | High-risk warning |
-| `textPrimary` | `#e0e0e0` | Body text on dark bg |
-| `textMuted` | `#a0a0a0` | Captions, secondary text |
+| Token | Hex | CSS source | Use |
+|---|---|---|---|
+| `bgDeep` | `#1a1a1a` | `--caro-grey-950` | Composition background |
+| `bgTerminal` | `#4f4f4f` | `--caro-grey-700` = `--term-bg` | Terminal window body |
+| `bgChrome` | `#1a1a1a` | `--caro-grey-950` | Terminal title bar |
+| `borderSubtle` | `#3a3a3a` | `--caro-grey-800` | Window border |
+| `accent` | `#ef3333` | `--caro-red-500` = `--accent` | Caro suggestions, primary CTA |
+| `accentDark` | `#e63636` | `--caro-red-600` | Hover states, secondary brand |
+| `prompt` | `#fcfc62` | `--caro-yellow-400` = `--term-prompt` | Shell prompt `$` |
+| `command` | `#f4f1df` | `--caro-beige-100` = `--term-fg` | Typed command text |
+| `success` | `#22c55e` | `--color-success` | Safe / passed indicator |
+| `danger` | `#ef3333` | `--status-danger` | Blocked / error indicator |
+| `warning` | `#f59e0b` | `--color-warning` | High-risk warning |
+| `textPrimary` | `#f4f1df` | `--caro-beige-100` | Body text on dark bg |
+| `textMuted` | `#a0a0a0` | `--caro-grey-400` | Captions, secondary text |
 
 Mirror these in `demos/remotion-video/src/tokens.ts`. Do **not** import
 the website CSS — the Remotion build is isolated.
@@ -76,7 +76,7 @@ macOS traffic-light dots:
 | Minimize | `#ffbd2e` |
 | Maximize | `#27c93f` |
 
-Title bar background `#16161c`, 12px padding, dot diameter 12px, gap 8px.
+Title bar background `#1a1a1a`, 12px padding, dot diameter 12px, gap 8px.
 
 ### Authenticity rules
 
@@ -123,7 +123,7 @@ Total duration: 900 frames @ 30fps = **30 seconds**.
 |---|---|---|---|---|---|
 | 1 | ScenePain | 0–119 | 4s | "Forgot the syntax. Again." | Cursor blinks; `# how do I find...` types in then trails off |
 | 2 | SceneQueries | 120–539 | 14s | Per-query badge: `0.3s · 100% local` | 3 caro queries from test-cases.yaml render back-to-back, ~4.5s each |
-| 3 | SceneSafety | 540–779 | 8s | "52+ patterns. Blocked before damage." | `caro "delete everything in the current directory"` → red `✗ command blocked by safety validator (Critical)` |
+| 3 | SceneSafety | 540–779 | 8s | "67+ patterns. Blocked before damage." | `caro "delete everything in the current directory"` → red `✗ command blocked by safety validator (Critical)` |
 | 4 | SceneCloser | 780–899 | 4s | "Local. Private. No API key." | Logo + `cargo install caro` install line |
 
 Scene 2 queries (verified against `.claude/beta-testing/test-cases.yaml`):
@@ -203,7 +203,7 @@ explicitly extending scope.
 ## Drift Detection
 
 The video bakes in mutable facts: brand colors, terminal chrome design,
-real CLI output strings, the "52+" pattern count, install commands.
+real CLI output strings, the "67+" pattern count, install commands.
 These come from 7 specific files. Drift between those files and the
 shipped MP4 means the video is lying about the product.
 
@@ -228,7 +228,7 @@ is the source of truth. It records:
 | `website/src/components/landing/LPDemo.astro` | Terminal chrome design | All scenes |
 | `src/main.rs` (lines ~1014–1023) | CLI block-message string | Scene 3 |
 | `.claude/beta-testing/test-cases.yaml` | Verified caro queries + outputs | Scene 2 |
-| `src/safety/patterns.rs` | Pattern count (currently 52) | Scene 3 caption |
+| `src/safety/patterns.rs` | Pattern count (currently 67) | Scene 3 caption |
 | `homebrew-tap/README.md` | Install command | Scene 4 |
 | `install.sh` | Curl-pipe install | Scene 4 |
 
@@ -263,7 +263,7 @@ The re-rendered MP4 is a public-facing marketing asset. Two paths:
 | Drift type | Examples | Required action |
 |---|---|---|
 | **Output-equivalent** | tokens.css color literal renames (e.g. variable rename, same hex value); whitespace-only changes in LPDemo.astro; install.sh comment edits | Agent re-renders and ships directly. Visual diff against the prior poster.png must be within ±5% pixel delta. |
-| **Cosmetic but visible** | Hex color value changes; LPDemo chrome restyle; new pattern count claim ("52+" → "60+") | Agent renders, opens a PR with the new MP4 + poster, requests human review. |
+| **Cosmetic but visible** | Hex color value changes; LPDemo chrome restyle; new pattern count claim ("67+" → "80+") | Agent renders, opens a PR with the new MP4 + poster, requests human review. |
 | **Semantic** | Scene 2 query strings drift; block message changes; install command changes | Agent renders, opens a PR with side-by-side commentary (old vs new strings), requests human review. **Do not auto-ship.** |
 
 The agent decides which bucket applies by reading the
