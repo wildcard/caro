@@ -107,5 +107,103 @@ check "show on an unreachable remote exits non-zero" fails env CARO_STATUS_REMOT
 check "show on an unreachable remote does not claim 'no records'" bash -c \
   "! CARO_STATUS_REMOTE='$TMP/missing.git' '$TOOL' show 2>&1 | grep -q 'no status records yet'"
 
+# --- state get/put ----------------------------------------------------------
+# Routine working state (coverage matrix, bug backlog, ...) used to live in
+# PRs that never merged, so every run started from main's stale bootstrap copy
+# and re-filed the same bugs. State now lives on the status branch too.
+STATE="$TMP/state.git"
+git init -q --bare "$STATE"
+git -C "$STATE" symbolic-ref HEAD refs/heads/main
+st() { CARO_STATUS_REMOTE="$STATE" "$TOOL" "$@"; }
+rc_of() { "$@" >/dev/null 2>&1; echo $?; }
+# refused <stderr-pattern> <command>: fails AND says why (not a usage error).
+refused() { local pat="$1" out; shift; ! out="$("$@" 2>&1)" && grep -q -- "$pat" <<<"$out"; }
+blob() { git -C "$STATE" show "automation/routine-status:$1" 2>/dev/null; }
+
+check "get before any state exits 1 (first run)" test "$(rc_of st state get qa-rotation coverage.md)" = 1
+check "get on an unreachable remote exits 2, not 1" \
+  test "$(rc_of env CARO_STATUS_REMOTE="$TMP/missing.git" "$TOOL" state get qa-rotation coverage.md)" = 2
+check "get on an unreachable remote names the read error" refused "cannot read status branch" \
+  env CARO_STATUS_REMOTE="$TMP/missing.git" "$TOOL" state get qa-rotation coverage.md
+
+printf '| area | runs |\n|---|---|\n| find | 3 |\n' >"$TMP/coverage.md"
+check "put creates the status branch" bash -c "CARO_STATUS_REMOTE='$STATE' '$TOOL' state put qa-rotation coverage.md <'$TMP/coverage.md'"
+check "put stores state/<routine>/<file>" bash -c "diff <(git -C '$STATE' show automation/routine-status:state/qa-rotation/coverage.md) '$TMP/coverage.md'"
+check "put never writes main" fails git -C "$STATE" rev-parse -q --verify refs/heads/main
+check "get round-trips the exact bytes" bash -c "diff <(CARO_STATUS_REMOTE='$STATE' '$TOOL' state get qa-rotation coverage.md) '$TMP/coverage.md'"
+
+printf 'backlog v2\n' | st state put qa-rotation coverage.md >/dev/null
+check "a second put replaces the file" test "$(blob state/qa-rotation/coverage.md)" = "backlog v2"
+commits() { git -C "$STATE" rev-list --count automation/routine-status; }
+before="$(commits)"
+check "an unchanged put succeeds" bash -c "printf 'backlog v2\n' | CARO_STATUS_REMOTE='$STATE' '$TOOL' state put qa-rotation coverage.md >/dev/null"
+check "an unchanged put makes no new commit" test "$(commits)" = "$before"
+
+check "an empty put is refused (a broken pipe must not wipe state)" refused "refusing to write empty state" st state put qa-rotation coverage.md </dev/null
+check "the refused put kept the old state" test "$(blob state/qa-rotation/coverage.md)" = "backlog v2"
+check "a routine name with a slash is refused" refused "invalid routine name" bash -c "echo x | CARO_STATUS_REMOTE='$STATE' '$TOOL' state put ../escape f.md"
+check "a file name with a slash is refused" refused "invalid state file name" bash -c "echo x | CARO_STATUS_REMOTE='$STATE' '$TOOL' state put qa-rotation ../../runs.jsonl"
+check "a dot-dot file name is refused" refused "invalid state file name" bash -c "echo x | CARO_STATUS_REMOTE='$STATE' '$TOOL' state put qa-rotation .."
+check "put to main is refused" refused "refusing to write status to branch 'main'" bash -c "echo x | CARO_STATUS_REMOTE='$STATE' CARO_STATUS_BRANCH=main '$TOOL' state put qa-rotation f.md"
+check "get without a file name is a usage error" refused "usage: state get" st state get qa-rotation
+check "get of a missing file on an existing branch exits 1" test "$(rc_of st state get qa-rotation missing.md)" = 1
+
+# Any agent can push to the status branch. A symlink planted there must not
+# make get read, or put/record write, a file outside the clone.
+echo 'outside secret' >"$TMP/secret.txt"
+mkdir -p "$TMP/outside"
+plant() {
+  # plant <remote> <path> <target>: push a symlink at <path> to the status branch
+  local d="$TMP/plant"
+  rm -rf "$d"
+  if ! git clone -q --branch automation/routine-status "$1" "$d" 2>/dev/null; then
+    git init -q "$d"
+    git -C "$d" checkout -q --orphan automation/routine-status
+    git -C "$d" remote add origin "$1"
+  fi
+  mkdir -p "$d/$(dirname "$2")"
+  ln -s "$3" "$d/$2"
+  git -C "$d" add -A
+  git -C "$d" commit -qm "plant $2"
+  git -C "$d" push -q origin HEAD:refs/heads/automation/routine-status
+}
+plant "$STATE" state/evil/link.md "$TMP/secret.txt"
+check "get refuses a symlinked state file" refused "symlink" st state get evil link.md
+check "get does not print the symlink's target" bash -c \
+  "! CARO_STATUS_REMOTE='$STATE' '$TOOL' state get evil link.md 2>&1 | grep -q 'outside secret'"
+check "put refuses a symlinked state file" refused "symlink" \
+  bash -c "echo pwned | CARO_STATUS_REMOTE='$STATE' '$TOOL' state put evil link.md"
+check "put left the symlink's target unchanged" test "$(cat "$TMP/secret.txt")" = "outside secret"
+plant "$STATE" state/evildir "$TMP/outside"
+check "put refuses a symlinked state directory" refused "symlink" \
+  bash -c "echo pwned | CARO_STATUS_REMOTE='$STATE' '$TOOL' state put evildir f.md"
+check "put created nothing outside the tree" test ! -e "$TMP/outside/f.md"
+LINKED="$TMP/linked.git"
+git init -q --bare "$LINKED"
+plant "$LINKED" runs.jsonl "$TMP/secret.txt"
+check "record refuses a symlinked runs.jsonl" refused "symlink" \
+  env CARO_STATUS_REMOTE="$LINKED" "$TOOL" record qa Succeeded ok
+check "record left the symlink's target unchanged" test "$(cat "$TMP/secret.txt")" = "outside secret"
+check "show refuses a symlinked runs.jsonl" refused "symlink" env CARO_STATUS_REMOTE="$LINKED" "$TOOL" show
+
+# A branch that holds state but no run records yet: show must not crash.
+check "show with state but no records says so" bash -c "CARO_STATUS_REMOTE='$STATE' '$TOOL' show | grep -q 'no status records yet'"
+check "show --check with state but no records exits 1" test "$(rc_of st show --check)" = 1
+
+# Concurrent puts from parallel routines all land (shared retry loop).
+for i in 1 2 3 4; do
+  printf 'state %s\n' "$i" | st state put "parallel-$i" notes.md >/dev/null &
+done
+wait
+for i in 1 2 3 4; do
+  check "parallel put $i landed" test "$(blob "state/parallel-$i/notes.md")" = "state $i"
+done
+
+# State and records share the branch without clobbering each other.
+st record qa-rotation Succeeded "state seeded" >/dev/null
+check "a record after puts keeps the state" test "$(blob state/qa-rotation/coverage.md)" = "backlog v2"
+check "a put after a record keeps the records" bash -c \
+  "printf 'v3\n' | CARO_STATUS_REMOTE='$STATE' '$TOOL' state put qa-rotation coverage.md >/dev/null && git -C '$STATE' show automation/routine-status:runs.jsonl | grep -q 'state seeded'"
+
 echo "routine-status: $pass passed, $fail failed"
 [[ "$fail" == 0 ]]

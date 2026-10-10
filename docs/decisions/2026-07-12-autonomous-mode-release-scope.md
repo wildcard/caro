@@ -101,6 +101,12 @@ right state. (B) Demo videos via `caro-demo-video` — deferred: higher
 production cost; the Remotion pipeline exists but a written, runnable
 demo doc is the durable minimum. Videos can layer on top later.
 
+**Amended 2026-10-10**: the report now lives at
+`state/weekly-planning/<date>-weekly-demo.md` on the
+`automation/routine-status` branch, written with `bin/routine-status
+state put`, not in a PR. Reports from before the change stay in
+`docs/demos/`. See `.claude/automation/CONTRACT.md`, section 5.
+
 ## D5 — Fully-automated operation protocol
 
 **Decision**: Until the owner returns, sessions operate in
