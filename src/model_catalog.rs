@@ -11,9 +11,9 @@ use std::fmt;
 /// Model size categories for selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModelSize {
-    /// Tiny models (<100MB) - Best for CI/CD
+    /// Tiny models (<200MB) - Best for CI/CD
     Tiny,
-    /// Small models (100-500MB) - Good balance
+    /// Small models (200-500MB) - Good balance
     Small,
     /// Medium models (500-1500MB) - Better quality
     Medium,
