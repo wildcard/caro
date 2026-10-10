@@ -1,6 +1,6 @@
 # Caro as a Company
 
-**Last Updated**: 2026-07-12
+**Last Updated**: 2026-10-03
 **Companion docs**: [`MISSION.md`](./MISSION.md) (values),
 [`playbook/STAGE_MAP.md`](./playbook/STAGE_MAP.md) (where we are),
 [`docs/PITCH_DECK.md`](./docs/PITCH_DECK.md) (long-form pitch)
@@ -114,6 +114,23 @@ decision-maker inherits the reasoning):
   codified the evidence/demo/regression-guard requirement for every
   feature PR. Full record with alternatives:
   [`docs/decisions/2026-07-12-autonomous-mode-release-scope.md`](./docs/decisions/2026-07-12-autonomous-mode-release-scope.md).
+
+- **2026-10-03 — Release-reset drift and discovery-rule inertia named,
+  options recorded for the owner.** The 2026-07-12 autonomous release
+  bumped `Cargo.toml`/`README`/homebrew/nuget to 1.5.0 but the
+  owner-only tag + crates.io publish step never ran. Twelve PRs
+  accumulated on `main` on top of that bump; crates.io users have
+  been pinned to v1.4.0 since 2026-05-09. In parallel, the
+  `validation-discipline.md` 20-transcript gate shipped the same day
+  as the autonomous-ops decision (2026-05-25) and has seen **zero**
+  transcript activity in the four months since — the rule bit its own
+  author. This decision log entry does **not** pick a path on either
+  question: the follow-up session filed the renamed `v1.5.0` CHANGELOG
+  consolidation and surfaced three options for each (release: re-ship,
+  cut fresh v1.5.0 from current HEAD, codify shipped-under-1.4-forever;
+  discovery: resource it, retire the epic as `not_planned`, pause with
+  a 30-day deadline). Full record with trade-offs:
+  [`docs/decisions/2026-10-03-release-reset-and-discovery-decision.md`](./docs/decisions/2026-10-03-release-reset-and-discovery-decision.md).
 
 ## How to contribute to "the company part"
 

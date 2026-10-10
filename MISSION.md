@@ -3,14 +3,31 @@
 ## Where We Are
 
 Caro is at **late MVP → early Launch** on the
-[founder-arc stage map](./playbook/STAGE_MAP.md). The product loop ships
-(94.8% Command Success Rate), distribution ships (crates.io, Homebrew,
-npm, NuGet, install script), the public surface ships (caro.sh, docs,
-15-locale i18n). The next stage gate is **retention**, not features —
-we will not claim product-market fit until we publish a defended D7
-retention curve. The dual-track community/enterprise commercial model
-is documented in [`COMPANY.md`](./COMPANY.md) and
+[founder-arc stage map](./playbook/STAGE_MAP.md) (reconciled 2026-10-03).
+The product loop ships (94.8% Command Success Rate), distribution ships
+(crates.io, Homebrew, npm, NuGet, install script), the public surface
+ships (caro.sh, docs, 15-locale i18n). The next stage gate is
+**retention**, not features — we will not claim product-market fit until
+we publish a defended D7 retention curve. The dual-track
+community/enterprise commercial model is documented in
+[`COMPANY.md`](./COMPANY.md) and
 [ADR-001](./docs/adr/ADR-001-enterprise-community-architecture.md).
+
+Two systemic gaps surfaced in the 2026-10-03 playbook-arc audit and are
+tracked openly rather than papered over:
+
+1. **Release-reset drift.** The `chore(release): v1.5.0` bump landed
+   2026-07-12; the owner-only tag + crates.io publish step never ran,
+   and twelve subsequent PRs accumulated on `main`. Users on crates.io
+   have been pinned to v1.4.0 since 2026-05-09.
+2. **Discovery-rule inertia.** The validation-discipline rule's 20-
+   transcript gate has had **zero** interview activity since the rule
+   shipped on 2026-05-25. The author of the rule is also the owner
+   expected to meet it.
+
+Both gaps are named in [`playbook/STAGE_MAP.md`](./playbook/STAGE_MAP.md)
+under "Failure modes observed", and the options for each are in
+[`docs/decisions/2026-10-03-release-reset-and-discovery-decision.md`](./docs/decisions/2026-10-03-release-reset-and-discovery-decision.md).
 
 ## The Problem We Solve
 
