@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "generated": "2026-07-14T07:23:06.712Z",
+  "generated": "2026-10-10T18:59:22.810Z",
   "totalPages": 49,
   "pages": [
     {
@@ -9883,8 +9883,8 @@
         "Built with Rust. Privacy-first.",
         "Named after Kyaro , the goodest office dog. Read her story →"
       ],
-      "fullText": "Caro Safe shell commands, locally. GitHub AGPL-3.0 Contributing Report Issue Privacy Support Built with Rust. Privacy-first. Named after Kyaro , the goodest office dog. Read her story →",
-      "_searchText": "built with rust. privacy-first. named after kyaro , the goodest office dog. read her story → caro safe shell commands, locally. github agpl-3.0 contributing report issue privacy support built with rust. privacy-first. named after kyaro , the goodest office dog. read her story →"
+      "fullText": "Caro GitHub AGPL-3.0 Contributing Report Issue Privacy Support Built with Rust. Privacy-first. Named after Kyaro , the goodest office dog. Read her story →",
+      "_searchText": "built with rust. privacy-first. named after kyaro , the goodest office dog. read her story → caro github agpl-3.0 contributing report issue privacy support built with rust. privacy-first. named after kyaro , the goodest office dog. read her story →"
     },
     {
       "source": "/landing/LPHero.astro",
