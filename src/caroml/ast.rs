@@ -128,6 +128,30 @@ impl std::fmt::Display for ParseError {
 
 impl std::error::Error for ParseError {}
 
+/// The CaroML major version this build reads (ADR-019). A file without a
+/// `CAROML <major>` header is read as this version.
+pub const CAROML_MAJOR_VERSION: u32 = 1;
+
+/// Check a `CAROML <major>` header line. `seen_content` is true when any
+/// non-`REM` line came before it.
+pub(crate) fn check_version_header(
+    rest: &str,
+    line_no: usize,
+    seen_content: bool,
+) -> Result<(), ParseError> {
+    if seen_content {
+        return Err(ParseError::new(line_no, ParseErrorKind::MisplacedVersion));
+    }
+    let version = rest.trim();
+    if version.parse::<u32>() != Ok(CAROML_MAJOR_VERSION) {
+        return Err(ParseError::new(
+            line_no,
+            ParseErrorKind::UnsupportedVersion(version.to_string()),
+        ));
+    }
+    Ok(())
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseErrorKind {
     /// First non-comment line was not `TASK <title>`.
@@ -161,6 +185,11 @@ pub enum ParseErrorKind {
     RunOutsideJob,
     /// `RUN <alias>` referenced an alias not declared by any prior `USE`.
     UndefinedAlias(String),
+    // ---- Version header (ADR-019) ----
+    /// `CAROML <major>` named a major version this build does not know.
+    UnsupportedVersion(String),
+    /// `CAROML <major>` was not the first non-`REM` line, or appeared twice.
+    MisplacedVersion,
 }
 
 impl std::fmt::Display for ParseErrorKind {
@@ -195,6 +224,15 @@ impl std::fmt::Display for ParseErrorKind {
             ),
             Self::EmptyTaskTitle => write!(f, "TASK line has no title"),
             Self::NoSteps => write!(f, "task has no `DO` steps"),
+            Self::UnsupportedVersion(v) => write!(
+                f,
+                "unsupported CaroML version `{}`; this caro reads `CAROML {}`",
+                v, CAROML_MAJOR_VERSION
+            ),
+            Self::MisplacedVersion => write!(
+                f,
+                "`CAROML <version>` must be the first non-`REM` line, and appear once"
+            ),
             Self::MalformedUse => {
                 write!(f, "expected `USE <target> AS <alias>`")
             }
