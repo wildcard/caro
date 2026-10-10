@@ -29,6 +29,7 @@
 # exits 1 if there is no such state yet (a first run) and 2 if the branch
 # can't be read. `put` replaces the file with stdin. It refuses empty input,
 # so a broken pipe can't wipe state, and an unchanged file makes no commit.
+# No command follows a symlink on the branch (see no_symlinks).
 #
 # Environment:
 #   CARO_STATUS_REMOTE  git remote name or URL (default: origin)
@@ -58,6 +59,23 @@ now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 # A state path part is one plain path component: no slash, no leading dot.
 valid_part() { [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; }
+
+# Any agent can push to the status branch, and a symlink planted there would
+# make a read print, or a write overwrite, a file outside the clone. So no
+# part of <path> under <tree> may be a symlink, and an existing target must
+# be a regular file.
+no_symlinks() { # <tree> <path>
+  local p="$1" part
+  local -a parts
+  IFS=/ read -r -a parts <<<"$2"
+  for part in "${parts[@]}"; do
+    p="$p/$part"
+    if [[ -L "$p" ]]; then
+      die "refusing to follow a symlink at ${p#"$1"/} on $BRANCH"
+    fi
+  done
+  [[ ! -e "$p" || -f "$p" ]] || die "refusing ${p#"$1"/} on $BRANCH: not a regular file"
+}
 
 # Clone the status branch into "$WORK/wt". Returns 1 when the branch does not
 # exist yet. Only a confirmed-missing branch means "nothing yet": an
@@ -109,8 +127,14 @@ commit_change() {
   die "could not push to $BRANCH after $attempts attempts. Last error: ${err:-none}"
 }
 
-append_line() { printf '%s\n' "$1" >>"$2/$FILE"; }            # <line> <tree>
-write_file() { mkdir -p "$(dirname "$3/$2")" && cp "$1" "$3/$2"; } # <src> <path> <tree>
+append_line() { # <line> <tree>
+  no_symlinks "$2" "$FILE"
+  printf '%s\n' "$1" >>"$2/$FILE"
+}
+write_file() { # <src> <path> <tree>
+  no_symlinks "$3" "$2"
+  mkdir -p "$(dirname "$3/$2")" && cp "$1" "$3/$2"
+}
 
 record() {
   [[ $# -ge 3 ]] || die "usage: record <routine> <phase> <reason> [--started ts] [--pr n] [--issues n,n] [--max-age-hours n]"
@@ -169,6 +193,7 @@ show() {
     echo "no status records yet (branch $BRANCH not found)"
     return $((check))
   fi
+  no_symlinks "$WORK/wt" "$FILE"
   # `state put` can create the branch before any run records one.
   if [[ ! -f "$WORK/wt/$FILE" ]]; then
     echo "no status records yet ($BRANCH has no $FILE)"
@@ -211,11 +236,15 @@ state_cmd() {
   valid_part "$name" || die "invalid state file name '$name' (one path component: letters, digits, . _ -)"
   local path="state/$routine/$name"
   if [[ "$sub" == get ]]; then
-    if ! clone_branch || [[ ! -f "$WORK/wt/$path" ]]; then
-      echo "routine-status: no state yet at $path" >&2
-      return 1
+    if clone_branch; then
+      no_symlinks "$WORK/wt" "$path"
+      if [[ -f "$WORK/wt/$path" ]]; then
+        cat "$WORK/wt/$path"
+        return 0
+      fi
     fi
-    cat "$WORK/wt/$path"
+    echo "routine-status: no state yet at $path" >&2
+    return 1
   else
     WORK="$(mktemp -d)"
     cat >"$WORK/input"

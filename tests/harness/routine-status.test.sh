@@ -146,6 +146,45 @@ check "a file name with a slash is refused" refused "invalid state file name" ba
 check "a dot-dot file name is refused" refused "invalid state file name" bash -c "echo x | CARO_STATUS_REMOTE='$STATE' '$TOOL' state put qa-rotation .."
 check "put to main is refused" refused "refusing to write status to branch 'main'" bash -c "echo x | CARO_STATUS_REMOTE='$STATE' CARO_STATUS_BRANCH=main '$TOOL' state put qa-rotation f.md"
 check "get without a file name is a usage error" refused "usage: state get" st state get qa-rotation
+check "get of a missing file on an existing branch exits 1" test "$(rc_of st state get qa-rotation missing.md)" = 1
+
+# Any agent can push to the status branch. A symlink planted there must not
+# make get read, or put/record write, a file outside the clone.
+echo 'outside secret' >"$TMP/secret.txt"
+mkdir -p "$TMP/outside"
+plant() {
+  # plant <remote> <path> <target>: push a symlink at <path> to the status branch
+  local d="$TMP/plant"
+  rm -rf "$d"
+  if ! git clone -q --branch automation/routine-status "$1" "$d" 2>/dev/null; then
+    git init -q "$d"
+    git -C "$d" checkout -q --orphan automation/routine-status
+    git -C "$d" remote add origin "$1"
+  fi
+  mkdir -p "$d/$(dirname "$2")"
+  ln -s "$3" "$d/$2"
+  git -C "$d" add -A
+  git -C "$d" commit -qm "plant $2"
+  git -C "$d" push -q origin HEAD:refs/heads/automation/routine-status
+}
+plant "$STATE" state/evil/link.md "$TMP/secret.txt"
+check "get refuses a symlinked state file" refused "symlink" st state get evil link.md
+check "get does not print the symlink's target" bash -c \
+  "! CARO_STATUS_REMOTE='$STATE' '$TOOL' state get evil link.md 2>&1 | grep -q 'outside secret'"
+check "put refuses a symlinked state file" refused "symlink" \
+  bash -c "echo pwned | CARO_STATUS_REMOTE='$STATE' '$TOOL' state put evil link.md"
+check "put left the symlink's target unchanged" test "$(cat "$TMP/secret.txt")" = "outside secret"
+plant "$STATE" state/evildir "$TMP/outside"
+check "put refuses a symlinked state directory" refused "symlink" \
+  bash -c "echo pwned | CARO_STATUS_REMOTE='$STATE' '$TOOL' state put evildir f.md"
+check "put created nothing outside the tree" test ! -e "$TMP/outside/f.md"
+LINKED="$TMP/linked.git"
+git init -q --bare "$LINKED"
+plant "$LINKED" runs.jsonl "$TMP/secret.txt"
+check "record refuses a symlinked runs.jsonl" refused "symlink" \
+  env CARO_STATUS_REMOTE="$LINKED" "$TOOL" record qa Succeeded ok
+check "record left the symlink's target unchanged" test "$(cat "$TMP/secret.txt")" = "outside secret"
+check "show refuses a symlinked runs.jsonl" refused "symlink" env CARO_STATUS_REMOTE="$LINKED" "$TOOL" show
 
 # A branch that holds state but no run records yet: show must not crash.
 check "show with state but no records says so" bash -c "CARO_STATUS_REMOTE='$STATE' '$TOOL' show | grep -q 'no status records yet'"
