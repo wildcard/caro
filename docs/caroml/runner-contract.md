@@ -40,9 +40,10 @@ same code runs each step in PowerShell, but no contract test covers it yet.
 - **`LET` values are text, not variables.** `LET` is substituted into the
   `DO` intent at parse time ([grammar](grammar.md)). The generated command
   gets no environment variable for it.
-- **The lock.** The runner never writes the lock, so a failed run leaves it
-  unchanged (execution failure is not generation failure). No test pins this
-  yet, because the check needs a full `caro run` against a fixture lock.
+- **The lock.** The runner itself never writes the lock: an execution failure
+  is not a generation failure. A step's own command could still change or
+  delete it. No test pins this yet, because the check needs a full `caro run`
+  against a fixture lock.
 - **Environment.** Each step inherits caro's environment unchanged. Caro adds
   nothing and removes nothing.
 - **Exit code of `caro run`.** On any failure `caro run` exits `1`. It does not

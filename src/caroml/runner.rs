@@ -256,6 +256,11 @@ mod tests {
     // Each test pins one promise from the contract. Change the doc and the
     // test together.
 
+    /// Single-quote a path for the shell, so spaces in TMPDIR are safe.
+    fn sh_quote(path: &std::path::Path) -> String {
+        format!("'{}'", path.display().to_string().replace('\'', r"'\''"))
+    }
+
     fn plan_of(commands: &[&str]) -> RunPlan {
         RunPlan {
             platform: "linux".to_string(),
@@ -283,7 +288,7 @@ mod tests {
         let step = |expected: &str, me: &str| {
             format!(
                 "test \"$(cat {log} 2>/dev/null | tr '\\n' ' ')\" = \"{expected}\" && echo {me} >> {log} && echo {me}",
-                log = log.display()
+                log = sh_quote(&log)
             )
         };
         let steps = [
@@ -323,7 +328,7 @@ mod tests {
     fn contract_stops_on_first_failure_and_reports_it() {
         let dir = tempfile::tempdir().unwrap();
         let marker = dir.path().join("ran");
-        let third = format!("touch {}", marker.display());
+        let third = format!("touch {}", sh_quote(&marker));
         let err = execute_plan(&plan_of(&["true", "echo boom >&2; exit 7", &third])).unwrap_err();
         match err {
             RunError::StepFailed {
