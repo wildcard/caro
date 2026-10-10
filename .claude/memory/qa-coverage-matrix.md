@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-08-01
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -13,6 +13,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
+| 2026-08-01 | PASS | PASS (1.5.0) | PASS | PASS | FLAKE | FLAKE-001 reproduced (2nd observation); 597 lib tests PASS |
 
 ---
 
@@ -22,16 +23,16 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 
 | # | Surface | Domain | Last tested | Result | Linked issue(s) |
 |---|---------|--------|-------------|--------|-----------------|
-| 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-05-07 | PASS | — |
-| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-05-07 | FLAKE | — |
+| 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-08-01 | PASS | — |
+| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-08-01 | FLAKE | FLAKE-001 |
 | 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
-| 6 | Safety validation unit tests (cargo test safety) | safety | 2026-05-07 | PASS | — |
+| 6 | Safety validation unit tests (cargo test safety) | safety | 2026-08-01 | PASS | — |
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-05-07 | PASS | — |
-| 8 | Full library test suite (cargo test --lib) | cli | 2026-05-07 | PASS | — |
+| 8 | Full library test suite (cargo test --lib) | cli | 2026-08-01 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | never | — | — |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-08-01 | FAIL | [#1387](https://github.com/wildcard/caro/issues/1387) |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
@@ -63,7 +64,9 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | closed |
+| [#1387](https://github.com/wildcard/caro/issues/1387) | `caro ai --once` static matcher bypass | ai | 2026-08-01 | open |
+| [#1388](https://github.com/wildcard/caro/issues/1388) | CLAUDE.md version drift (1.4.0→1.5.0) | docs | 2026-08-01 | open |
 
 ---
 
@@ -72,3 +75,5 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 - Slot C tie-break: when multiple surfaces share 'never', pick lowest `#` number unless context suggests a riskier surface is more valuable to exercise.
 - Website surfaces (#25, #26) can be tested with `curl` + Python parsing alone — no caro build needed.
 - Surfaces requiring model download (#19, #20) should be tested from an environment with a pre-downloaded model; note in session log if sandbox blocks download.
+- **Slot B search**: use perPage:100 and paginate to avoid missing PRs when the window is large (>20 PRs). A 20-result cap silently drops older-in-window PRs from spot-checking.
+- **Next Slot C recommendation**: surface #11 (`caro ai --continue-session`) — oldest untested after #10. Alternatively prioritize #25/#31 (website/i18n) given recent PRs #1325/#1351/#1352.
