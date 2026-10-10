@@ -15,8 +15,11 @@
  *   banner change.
  * - `colors` and `ribbon` are decorative only. They never carry text, so
  *   they may use the occasion's traditional colors unchanged.
- * - Motifs are abstract and secular where a tradition is religious (lights,
- *   lanterns, crescent and stars); no sacred objects or scripture.
+ * - Motifs stay simple and respectful: lights, lanterns, a crescent with
+ *   four-point sparkles. No scripture, crests or sacred symbols. Where no
+ *   motif can represent a group without flattening it (Indigenous peoples'
+ *   occasions), the occasion uses `none`: ribbon, fill and banner only.
+ * - Reviewed by the cultural-heritage-expert agent (2026-10-10).
  */
 
 export type Motif =
@@ -35,7 +38,9 @@ export type Motif =
   | 'stars'
   | 'bunting'
   | 'orbits'
-  | 'hearts';
+  | 'hearts'
+  | 'waves'
+  | 'none';
 
 export interface Occasion {
   /** CSS class on <html>; must match the class the runtime applies. */
@@ -66,9 +71,9 @@ export const OCCASIONS: Occasion[] = [
   },
   {
     id: 'hanukkah', name: 'Hanukkah', kind: 'holiday', sources: ['hanukkah'],
-    fill: '#0038b8', motif: 'candles',
-    colors: ['#0038b8', '#4169e1', '#e0a800', '#9aa5b1'],
-    ribbon: ['#0038b8', '#9aa5b1'], sampleDate: '2026-12-06',
+    fill: '#1e40af', motif: 'candles',
+    colors: ['#1e40af', '#4169e1', '#e0a800', '#9aa5b1'],
+    ribbon: ['#1e40af', '#9aa5b1'], sampleDate: '2026-12-06',
   },
   {
     id: 'newyear', name: 'New Year', kind: 'holiday', sources: ['newyear'],
@@ -170,7 +175,7 @@ export const OCCASIONS: Occasion[] = [
     id: 'black-history-month', name: 'Black History Month', kind: 'humanity',
     sources: ['black-history-month'],
     fill: '#1f6b2c', motif: 'sunburst',
-    colors: ['#c41e3a', '#d4a017', '#228b22'],
+    colors: ['#d4a017', '#228b22', '#c41e3a'],
     ribbon: ['#c41e3a', '#2b2b2b', '#228b22'], sampleDate: '2027-02-15',
   },
   {
@@ -194,11 +199,12 @@ export const OCCASIONS: Occasion[] = [
     ribbon: ['#16a34a', '#0ea5e9'], sampleDate: '2027-04-22',
   },
   {
-    id: 'aapi-heritage-month', name: 'Asian Pacific American Heritage Month', kind: 'humanity',
+    id: 'aapi-heritage-month',
+    name: 'Asian American, Native Hawaiian and Pacific Islander Heritage Month', kind: 'humanity',
     sources: ['asian-pacific-heritage-month'],
-    fill: '#be185d', motif: 'blossoms',
-    colors: ['#f472b6', '#dc2626', '#eab308'],
-    ribbon: ['#db2777', '#eab308'], sampleDate: '2027-05-10',
+    fill: '#0f766e', motif: 'waves',
+    colors: ['#0f766e', '#f97316', '#d4a017'],
+    ribbon: ['#0f766e', '#d4a017'], sampleDate: '2027-05-10',
   },
   {
     id: 'mental-health-month', name: 'Mental Health Awareness Month', kind: 'humanity',
@@ -216,7 +222,7 @@ export const OCCASIONS: Occasion[] = [
   {
     id: 'juneteenth', name: 'Juneteenth', kind: 'humanity', sources: ['juneteenth'],
     fill: '#bf0a30', motif: 'stars',
-    colors: ['#bf0a30', '#002868', '#9aa5b1'],
+    colors: ['#bf0a30', '#002868', '#c9a227'],
     ribbon: ['#002868', '#bf0a30'], sampleDate: '2027-06-19',
   },
   {
@@ -229,8 +235,8 @@ export const OCCASIONS: Occasion[] = [
   {
     id: 'peace-day', name: 'International Day of Peace', kind: 'humanity',
     sources: ['international-day-of-peace'],
-    fill: '#0369a1', motif: 'orbits',
-    colors: ['#009edb', '#0077b6', '#9aa5b1'],
+    fill: '#0369a1', motif: 'leaves',
+    colors: ['#6b7c2e', '#9aa86b', '#0369a1'],
     ribbon: ['#009edb', '#f4f1df', '#009edb'], sampleDate: '2027-09-21',
   },
   {
@@ -243,16 +249,16 @@ export const OCCASIONS: Occasion[] = [
   {
     id: 'indigenous-peoples-day', name: "Indigenous Peoples' Day", kind: 'humanity',
     sources: ['indigenous-peoples-day'],
-    fill: '#92400e', motif: 'sunburst',
-    colors: ['#b45309', '#0d9488', '#15803d'],
-    ribbon: ['#b45309', '#0d9488'], sampleDate: '2026-10-12',
+    fill: '#92400e', motif: 'none',
+    colors: ['#92400e', '#b45309', '#4d7c0f'],
+    ribbon: ['#92400e', '#4d7c0f'], sampleDate: '2026-10-12',
   },
   {
     id: 'native-american-heritage-month', name: 'Native American Heritage Month', kind: 'humanity',
     sources: ['native-american-heritage-month'],
-    fill: '#9a3412', motif: 'sunburst',
-    colors: ['#d97706', '#0d9488', '#b45309'],
-    ribbon: ['#d97706', '#0d9488'], sampleDate: '2026-11-15',
+    fill: '#9a3412', motif: 'none',
+    colors: ['#92400e', '#b45309', '#4d7c0f'],
+    ribbon: ['#92400e', '#4d7c0f'], sampleDate: '2026-11-15',
   },
   {
     id: 'human-rights-day', name: 'Human Rights Day', kind: 'humanity',

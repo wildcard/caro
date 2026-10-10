@@ -110,8 +110,8 @@ const MOTIFS: Record<Motif, (c: Ctx) => string> = {
   },
 
   candles(c) {
-    // Nine slim lights along a gentle arc, the middle one raised: an
-    // abstract "festival of lights" without drawing a ritual object.
+    // Nine lights on a gentle arc with the middle (shamash) raised: the
+    // standard, widely used Hanukkah icon. Simple shapes, no inscriptions.
     const [wax, , gold, silver] = [c.colors[0], c.colors[1], c.colors[2], c.colors[3] ?? c.colors[0]];
     const band = c.variant === 'band';
     const n = 9;
@@ -244,8 +244,12 @@ const MOTIFS: Record<Motif, (c: Ctx) => string> = {
     const r = band ? 38 : 80;
     const cx = c.variant === 'right' ? c.w * 0.36 : c.w * 0.58;
     const cy = band ? c.h / 2 : c.h * 0.26;
-    let out = `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 1.3)}" fill="${pale}" opacity=".18"/>`;
-    out += `<path d="M${f(cx)} ${f(cy - r)} A ${f(r)} ${f(r)} 0 1 0 ${f(cx)} ${f(cy + r)} A ${f(r * 0.78)} ${f(r * 0.78)} 0 1 1 ${f(cx)} ${f(cy - r)} Z" fill="${gold}" transform="rotate(-20 ${f(cx)} ${f(cy)})"/>`;
+    // Crescent = gold disc minus an offset disc (mask). Sparkles are
+    // four-point only: a five-point star next to a crescent reads as a flag.
+    const id = `cm-${c.variant}`;
+    let out = `<defs><mask id="${id}"><rect width="${c.w}" height="${c.h}" fill="#fff"/><circle cx="${f(cx + r * 0.38)}" cy="${f(cy - r * 0.08)}" r="${f(r * 0.82)}" fill="#000"/></mask></defs>`;
+    out += `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 1.3)}" fill="${pale}" opacity=".18"/>`;
+    out += `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r)}" fill="${gold}" mask="url(#${id})"/>`;
     const n = band ? 7 : 11;
     for (const [x, y] of scatter(c, n, 20)) {
       if (Math.hypot(x - cx, y - cy) < r * 1.4) continue;
@@ -340,7 +344,7 @@ const MOTIFS: Record<Motif, (c: Ctx) => string> = {
   },
 
   bunting(c) {
-    // Papel-picado style garlands: strings of cut-paper flags.
+    // Pennant garlands of cut-paper flags (festive across Latin America).
     const band = c.variant === 'band';
     const lines = band ? 1 : 4;
     let out = '';
@@ -383,6 +387,35 @@ const MOTIFS: Record<Motif, (c: Ctx) => string> = {
     }
     out += `<circle cx="${f(cx)}" cy="${f(cy)}" r="${band ? 10 : 18}" fill="${c.colors[0]}" opacity=".85"/>`;
     return out;
+  },
+
+  waves(c) {
+    // Ocean swells with sun glints: shared by the Pacific and by the
+    // coastlines of Asia, without singling out one culture's iconography.
+    const band = c.variant === 'band';
+    const rows = band ? 3 : 7;
+    let out = '';
+    for (let i = 0; i < rows; i++) {
+      const y = band ? 30 + i * 26 : 60 + i * ((c.h - 120) / (rows - 1));
+      const amp = band ? 7 : c.between(8, 14);
+      const len = band ? 60 : c.between(50, 70);
+      const phase = c.between(0, len);
+      let d = `M${f(-phase)} ${f(y)}`;
+      for (let x = -phase; x < c.w + len; x += len) {
+        d += ` q ${f(len / 4)} ${f(-amp)} ${f(len / 2)} 0 t ${f(len / 2)} 0`;
+      }
+      out += `<path d="${d}" fill="none" stroke="${c.colors[i % 2 === 0 ? 0 : 2]}" stroke-width="${f(c.between(2, 3.2))}" stroke-linecap="round" opacity="${f(c.between(0.55, 0.9))}"/>`;
+    }
+    const glints = band ? 6 : 10;
+    for (let i = 0; i < glints; i++) {
+      out += `<circle cx="${f(c.between(10, c.w - 10))}" cy="${f(c.between(10, c.h - 10))}" r="${f(c.between(2, 4.5))}" fill="${c.colors[1]}" opacity=".75"/>`;
+    }
+    return out;
+  },
+
+  none() {
+    // Deliberately empty: ribbon, fill and banner carry the occasion.
+    return '';
   },
 
   hearts(c) {

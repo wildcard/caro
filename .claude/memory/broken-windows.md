@@ -19,6 +19,15 @@ Rules (see `.claude/rules/good-boy-scout.md` → "Stay in your lane"):
 
 ---
 
+### BW-041: OmniSearch inlines a 1.55 MB search index into every page
+
+**Found:** 2026-10-10, WCAG design pass (`feat/website-wcag-design-pass`)
+**Issue:** #1564
+**Status:** open
+**Needs human?:** no
+**Next step:** serve `search-index.json` statically and fetch it when the
+search overlay first opens (`website/src/components/OmniSearch.astro`).
+
 ### BW-002: CLAUDE.md version/MSRV drift, filed 42× (canonical + 41 duplicates)
 
 **Found:** 2026-09-27, PR #1470 session

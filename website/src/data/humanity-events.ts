@@ -220,12 +220,15 @@ export const HUMANITY_EVENTS: HumanityEvent[] = [
   // =========================================================================
   {
     id: 'asian-pacific-heritage-month',
-    name: 'Asian Pacific American Heritage Month',
+    // Official US name since 2021. The previous blossom/pagoda imagery was
+    // East-Asian shorthand that left out South Asian and Pacific Islander
+    // communities (cultural review, 2026-10-10).
+    name: 'Asian American, Native Hawaiian and Pacific Islander Heritage Month',
     category: 'heritage',
     dates: [{ month: 5 }],
-    message: 'Celebrating Asian and Pacific Islander heritage and contributions',
-    emoji: '🌸',
-    decorations: { left: '🌸', right: '🏯' },
+    message: 'Celebrating Asian American, Native Hawaiian and Pacific Islander heritage and contributions',
+    emoji: '🌊',
+    decorations: { left: '🌊', right: '✨' },
     link: 'https://asianpacificheritage.gov/',
     theme: {
       // Cherry blossom pink with red and gold
