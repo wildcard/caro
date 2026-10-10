@@ -1,6 +1,7 @@
 ---
 import Analytics from '@vercel/analytics/astro';
 import { KavanaCompanion } from '../ui/KavanaCompanion/KavanaCompanion';
+import Favicons from '../components/Favicons.astro';
 
 interface Props {
   title: string;
@@ -16,7 +17,7 @@ const { title, description } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/caro-pixel.png" />
+    <Favicons />
     <meta name="generator" content={Astro.generator} />
     <title>{title} - Caro Docs</title>
     <script is:inline>

@@ -99,6 +99,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   world-writable path (`chmod -R 777 /`) keep the label.
   Six pattern descriptions now start with a verb, not an -ing word
   ("Change file permissions"). Guarded by `tests/safety_text_contract.rs`.
+- **Every Caro site shows the Caro favicon.** caro.sh showed an empty orange
+  ring: its SVG favicon loaded the mascot through `<image href>`, which
+  browsers block in favicons. The docs, changelog, landing, slides, devrel and
+  Storybook sites had no favicon, an off-brand "C", or the framework default.
+  `scripts/favicons.py` now derives one set (SVG, ICO, Apple touch, PWA
+  icons) from the official pixel mark, in brand ink on brand paper, and
+  writes it to every site. Guarded by `scripts/favicons.py --check` in the
+  `Favicons` workflow.
 
 ### Documentation
 

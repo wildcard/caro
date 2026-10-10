@@ -3,6 +3,7 @@
  * SEO Component - Centralized meta tag management for Caro.sh
  * Handles Open Graph, Twitter Cards, canonical URLs, and structured data
  */
+import Favicons from './Favicons.astro';
 
 interface Props {
   title: string;
@@ -158,15 +159,8 @@ const articleSchema = type === 'article' && publishedTime ? {
 <meta name="theme-color" content="#1a1a2e" />
 <meta name="color-scheme" content="dark light" />
 
-<!-- Favicon Package
-     SVG favicon covers every modern browser. caro-pixel.png is the legacy
-     raster fallback for older Chromium / IE-Edge. The previous
-     favicon-32x32 / favicon-16x16 / apple-touch-icon PNG links pointed at
-     files that were never bundled and 404'd on every page load — removed
-     until a sized PNG pack is generated from favicon.svg. -->
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<link rel="icon" type="image/png" href="/caro-pixel.png" />
-<link rel="manifest" href="/site.webmanifest" />
+<!-- Favicon Package -->
+<Favicons />
 
 <!-- Structured Data -->
 {type === 'website' && (
