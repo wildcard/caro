@@ -20,15 +20,17 @@ use tracing::{debug, info, warn};
 use crate::knowledge::{default_knowledge_path, KnowledgeIndex};
 
 /// Most primary-backend calls [`AgentLoop`] makes for one request: the
-/// initial generation plus one repair or refinement.
+/// initial generation plus one repair or refinement. Advisor calls are not
+/// counted here; there is at most one per request.
 pub const MAX_BACKEND_CALLS: usize = 2;
 
 /// Agent loop for iterative command refinement.
 ///
-/// The loop has a fixed shape: one initial backend call, then at most one
-/// follow-up call (repair, advisor or refine). So the primary backend is
-/// called at most [`MAX_BACKEND_CALLS`] times per request. The tests pin
-/// that limit; there is no knob for it, because a knob that the code
+/// The loop has a fixed shape: one initial primary-backend call, then at
+/// most one primary follow-up (repair or refine). So the primary backend is
+/// called at most [`MAX_BACKEND_CALLS`] times per request. A configured
+/// advisor adds at most one call of its own, before the refine. The tests
+/// pin both limits; there is no knob for them, because a knob that the code
 /// cannot honour is a declared-but-unenforced budget.
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
@@ -1149,6 +1151,31 @@ mod tests {
         // error, never a retry loop.
         let invalid = "total 12\ndrwxr-xr-x 2 user user 4096 Jan 1 12:00 .";
         assert_eq!(backend_calls_for(invalid, 0.99).await, MAX_BACKEND_CALLS);
+    }
+
+    #[tokio::test]
+    async fn failed_advisor_adds_one_call_and_keeps_primary_cap() {
+        // Low confidence with an advisor that opts out: the advisor is asked
+        // once, then the primary refines. Primary calls stay at the cap.
+        let calls = Arc::new(AtomicUsize::new(0));
+        let primary = CountingBackend {
+            command: "ls".to_string(),
+            confidence: 0.3,
+            calls: calls.clone(),
+        };
+        let advised = Arc::new(AtomicBool::new(false));
+        let agent = AgentLoop::new(
+            Arc::new(primary),
+            ExecutionContext::detect(),
+            CapabilityProfile::ubuntu(),
+        )
+        .with_static_matcher(false)
+        .with_advisor(advisor_backend(None, advised.clone()));
+
+        let _ = agent.generate_command("list files").await;
+
+        assert!(advised.load(Ordering::SeqCst), "advisor was not asked");
+        assert_eq!(calls.load(Ordering::SeqCst), MAX_BACKEND_CALLS);
     }
 
     #[tokio::test]
