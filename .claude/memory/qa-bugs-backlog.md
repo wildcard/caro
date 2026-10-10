@@ -8,7 +8,9 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| pending-2 | P2 | ai | `caro ai --once` hangs silently (no output, no timeout msg) when no model; `doctor` doesn't warn | deferred — gh auth failed 2026-10-10 | 2026-10-10 |
+| pending-1 | P2 | docs | CLAUDE.md version banner shows 1.4.0 (GA) instead of 1.5.0 (recurrence of #1044) | deferred — gh auth failed 2026-10-10 | 2026-10-10 |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open (recurrence observed 2026-10-10; now 1.4.0 vs 1.5.0) | 2026-05-07 |
 
 ---
 
