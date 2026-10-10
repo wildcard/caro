@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-09-30
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -12,6 +12,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
+| 2026-09-30 | PASS | PASS (1.5.0) | PASS | PASS | FLAKE | FLAKE-001 again (EXIT:124, 30s timeout post-telemetry consent); proxy detected at 127.0.0.1:41305 |
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
 
 ---
@@ -27,11 +28,11 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
-| 6 | Safety validation unit tests (cargo test safety) | safety | 2026-05-07 | PASS | — |
+| 6 | Safety validation unit tests (cargo test safety) | safety | 2026-09-30 | PASS | 34 tests (up from 19 on 2026-05-07); PR #1315 P0 quote/escape fix verified |
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-05-07 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-05-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | never | — | — |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-09-30 | FLAKE | FLAKE-001 (model download); unit tests PASS (62); known hang issues #1404, #1393, #1455, #1468 |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
