@@ -22,7 +22,7 @@ Recognized platforms: `macos`, `linux`, `windows`, `posix`.
 
 ## Version header
 
-A file may start with `CAROML 1` ([ADR-019](../adr/ADR-019-caroml-version-header.md)).
+A file may start with `CAROML 1` ([ADR-018](../adr/ADR-018-caroml-version-header.md)).
 A file without it is read as version 1. The parser rejects any other version,
 so a file written for a newer caro fails loudly instead of running under old
 rules.

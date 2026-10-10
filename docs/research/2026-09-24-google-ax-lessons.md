@@ -41,7 +41,7 @@ AX's machinery doesn't transfer, but several of its design choices do:
 |---|---|
 | Execution | `src/execution/executor.rs` runs `sh -c` directly. No sandbox, rlimits or network fence. Before this PR, `with_timeout()` never killed anything. |
 | Sandbox | ADR-010 (bubblewrap) is *Proposed*, not implemented |
-| Task files | CaroML `.caro` / Carofile take an optional `CAROML 1` header; unknown versions are rejected (ADR-019). `caroml.lock` has its own `SCHEMA_VERSION = 2`. |
+| Task files | CaroML `.caro` / Carofile take an optional `CAROML 1` header; unknown versions are rejected (ADR-018). `caroml.lock` has its own `SCHEMA_VERSION = 2`. |
 | Runner semantics | `src/caroml/runner.rs`: sequential, stop on first failure. The behavior is not documented as a contract. |
 | Credentials | Hard-coded env var names (`backends/remote/claude.rs`, `openrouter.rs`) |
 | Network egress | Only which backend URL you configure. Executed commands have unrestricted egress. |
@@ -81,7 +81,7 @@ so any grammar change silently changes behavior for everyone's saved task
 library. Adopt an optional header such as `CAROML 1` (or `REM caroml:v1`). Its
 absence means v1, and the parser rejects unknown major versions with a clear
 error. The lock file already does this, so the task files that feed it should
-too. Done in ADR-019: `CAROML <major>`, enforced by both parsers.
+too. Done in ADR-018: `CAROML <major>`, enforced by both parsers.
 
 Note that AX *declares* `apiVersion` but never checks it: any string is
 accepted (`pkg/apis/v1alpha1/types.go`, `internal/store/redis/store.go`). A
@@ -181,7 +181,7 @@ trail and the governance spike together, without new infrastructure.
 | P1 | SIGINT forwarding to the process group, then a default step timeout in `caro run` / `caro do` | `src/execution/executor.rs`, `src/caroml/runner.rs`, `jobs.rs` |
 | P1 | SIGTERM, grace period, then SIGKILL | `src/execution/executor.rs` |
 | P1 | Wire or remove `AgentLoop._max_iterations` | `src/agent/mod.rs` |
-| P1 | ✅ ADR-019: CaroML version header, enforced by both parsers | `docs/adr/`, `src/caroml/ast.rs`, `parser.rs`, `carofile.rs` |
+| P1 | ✅ ADR-018: CaroML version header, enforced by both parsers | `docs/adr/`, `src/caroml/ast.rs`, `parser.rs`, `carofile.rs` |
 | P1 | Runner contract doc + contract test | `docs/caroml/`, `tests/` |
 | P2 | Network-off by default in ADR-010 sandbox, `NEED net:` opt-in | ADR-010, `src/caroml/` |
 | P2 | Named model profiles with `api_key_env` | `src/config/`, `src/backends/remote/` |

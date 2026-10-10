@@ -128,7 +128,7 @@ impl std::fmt::Display for ParseError {
 
 impl std::error::Error for ParseError {}
 
-/// The CaroML major version this build reads (ADR-019). A file without a
+/// The CaroML major version this build reads (ADR-018). A file without a
 /// `CAROML <major>` header is read as this version.
 pub const CAROML_MAJOR_VERSION: u32 = 1;
 
@@ -185,7 +185,7 @@ pub enum ParseErrorKind {
     RunOutsideJob,
     /// `RUN <alias>` referenced an alias not declared by any prior `USE`.
     UndefinedAlias(String),
-    // ---- Version header (ADR-019) ----
+    // ---- Version header (ADR-018) ----
     /// `CAROML <major>` named a major version this build does not know.
     UnsupportedVersion(String),
     /// `CAROML <major>` was not the first non-`REM` line, or appeared twice.
