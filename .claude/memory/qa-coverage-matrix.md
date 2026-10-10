@@ -23,12 +23,12 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 
 | # | Surface | Domain | Last tested | Result | Linked issue(s) |
 |---|---------|--------|-------------|--------|-----------------|
-| 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-05-07 | PASS | — |
+| 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-10-10 | PASS | — |
 | 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-10 | PARTIAL | — (static-matcher path: PASS for known patterns in 34ms; model-backed path: FLAKE still — model download blocked in sandbox. Flake for novel prompts not resolved.) |
 | 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
-| 6 | Safety validation unit tests (cargo test safety) | safety | 2026-05-07 | PASS | — |
+| 6 | Safety validation unit tests (cargo test safety) | safety | 2026-10-10 | PASS | — (38 tests PASS in Slot B, up from 19 in May; fix(safety) #1535) |
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-05-07 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-05-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
@@ -36,8 +36,8 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
-| 14 | `caro config get/set/show/reset` | cli | never | — | — |
-| 15 | `caro --output json` format correctness | cli | never | — | — |
+| 14 | `caro config get/set/show/reset` | cli | 2026-10-10 | PARTIAL | — (get/set verified for safety + log_level keys in Slot B via fix(cli) #1497; show/reset not tested) |
+| 15 | `caro --output json` format correctness | cli | 2026-10-10 | PASS | — (--dry-run --output json shows dry_run:true field; Slot B via fix(cli) #1532) |
 | 16 | `caro --output yaml` format correctness | cli | never | — | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
 | 18 | `caro test --backend static` eval harness | cli | never | — | — |
@@ -52,7 +52,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 27 | Install script `scripts/install.sh` | install | never | — | — |
 | 28 | Homebrew tap formula | install | never | — | — |
 | 29 | `caro --safety strict/moderate/permissive` modes | safety | never | — | — |
-| 30 | `caro --verbose` timing output | cli | never | — | — |
+| 30 | `caro --verbose` timing output | cli | 2026-10-10 | PASS | — (--dry-run --verbose confirmed Backend: static-matcher, Confidence: 1.00 in Slot A) |
 | 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | never | — | — |
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-05-07 | PASS | — |
 

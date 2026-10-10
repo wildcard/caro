@@ -13,11 +13,24 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **Context**: Remote CI/QA sandbox where `https://huggingface.co/` returns HTTP 200 but binary blob downloads time out or are blocked at a lower network layer.  
 **Impact**: Slot A `--dry-run` smoke check cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:
-- 2026-10-10: observed during `caro ai --once` Slot C test (command hung silently; no output). Note: `caro ai` bypasses the static matcher entirely so this is expected behavior when no model is present. Distinct UX failure: `--dry-run` eventually surfaces an error; `caro ai` hangs silently. Not within 7-day window of 2026-05-07 — still FLAKE status.
 - 2026-05-07: observed once
 
 **Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Workaround**: Run `caro -p "..." --dry-run` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama installed as fallback backend.
+
+---
+
+### FLAKE-002: `caro ai --once` silent hang when no model available
+
+**First observed**: 2026-10-10  
+**Symptom**: `caro ai --once '<prompt>'` hangs indefinitely with zero output — no progress indicator, no error message, no timeout. External kill required.  
+**Context**: Remote QA sandbox with no pre-downloaded model and no configured remote backend. `caro ai` calls `backend_arc()` directly (bypassing the `AgentLoop` and its static matcher), so the embedded backend attempts `generate_command` which blocks on model download.  
+**Impact**: `caro ai` is untestable in sandboxes without a pre-downloaded model or remote backend. Distinct from FLAKE-001: FLAKE-001's `--dry-run` path eventually surfaces an error after 3 retries; this path produces no output at all.  
+**Occurrence log**:
+- 2026-10-10: `caro ai --once 'show me the current date'` — hung silently until 20s external timeout; stdin `/dev/null` made no difference (Slot C surface #10).
+
+**Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces with a remote backend configured.  
+**Workaround**: Run `caro ai` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama configured as a backend.
 
 ---
 

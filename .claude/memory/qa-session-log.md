@@ -39,9 +39,9 @@ Surfaces flagged for next Slot C cycle:
 Surface chosen: **`caro ai --once` scripted conversational mode** (oldest 'Last tested' = 'never', lowest # = 10).
 
 - `caro ai --once 'show me the current date'` → **FLAKE**: command hung with zero output until 20s external timeout. No error message surfaced. Stdin `/dev/null` made no difference.
-- **Root cause**: `run_ai_once` calls `cli_app.backend_arc()` (raw embedded backend) not the `AgentLoop` (which has the static matcher). So `caro ai` always requires a real model; the static matcher bypass that makes `caro --dry-run` work does NOT apply to `caro ai`. In a sandbox with no pre-downloaded model, the command hangs indefinitely during `generate_command`.
+- **Root cause**: `run_ai_once` calls `cli_app.backend_arc()` directly rather than the `AgentLoop`, so it skips the static matcher. The configured backend still follows `--backend`, environment, and config; the observed embedded-backend run required a local model and hung indefinitely during `generate_command` because no model was present in the sandbox.
 - **Severity of hang**: The command produces NO output before hanging — no "downloading model…" progress, no timeout message, no error. This is silent freeze behavior, which is worse UX than the `--dry-run` FLAKE-001 path (which did eventually surface an error after retries).
-- FLAKE-001 second observation logged.
+- FLAKE-002 first observation logged (new flake — distinct from FLAKE-001; see qa-known-flakes.md).
 
 ### Findings
 
@@ -51,7 +51,7 @@ Surface chosen: **`caro ai --once` scripted conversational mode** (oldest 'Last 
 ### Followups
 
 - **GH_TOKEN is invalid** — the token must be rotated before the next QA run can file issues or open a PR. The branch `claude/qa-rotation-2026-10-10` was pushed for traceability.
-- FLAKE-001 second overall observation (2026-10-10). Still within tolerance (not 3x in 7 days); logged in qa-known-flakes.md.
+- FLAKE-002 first observation (2026-10-10): `caro ai --once` silent hang — distinct from FLAKE-001 (different surface, no error output at all). Logged as new FLAKE-002 in qa-known-flakes.md.
 - Next Slot C: surface #11 `caro ai --continue-session` (still 'never' tested, lowest uncovered # after #10).
 - Surface #2 (`--dry-run`) updated to PARTIAL in coverage matrix: static-matcher path PASS for known patterns; model-backed path remains FLAKE (novel prompts still trigger download). Full PASS requires sandbox with pre-downloaded model.
 - Consider filing a new issue for CLAUDE.md 1.4.0→1.5.0 drift once gh auth is restored (same class as #1044).
