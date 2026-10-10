@@ -197,6 +197,23 @@ class TestHooks(HarnessFixture):
         self.write(".claude/settings.json", self.SETTINGS % "python3 -m some.module")
         self.assertEqual(self.findings("hooks-wired"), [])
 
+    def test_whole_path_quoted_project_dir_resolves(self):
+        # The closing quote used to stay on the token: a false "does not exist".
+        self.write(".claude/hooks/guard.sh", "#!/bin/sh\n", executable=True)
+        self.write(".claude/settings.json",
+                   self.SETTINGS % '\\"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.sh\\"')
+        self.assertEqual(self.findings("hooks-wired"), [])
+
+    def test_quoted_relative_path_is_still_checked(self):
+        # A token that started with a quote used to be skipped silently.
+        self.write(".claude/settings.json", self.SETTINGS % '\\"./.claude/hooks/gone.sh\\"')
+        [f] = self.findings("hooks-wired")
+        self.assertIn("gone.sh, which does not exist", f.message)
+
+    def test_existing_directory_operand_is_not_missing(self):
+        self.write(".claude/settings.json", self.SETTINGS % "test -d ./.claude")
+        self.assertEqual(self.findings("hooks-wired"), [])
+
 
 class TestReferences(HarnessFixture):
     def test_dangling_ref_in_always_loaded_file_is_error(self):

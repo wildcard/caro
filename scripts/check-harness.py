@@ -29,6 +29,7 @@ import argparse
 import json
 import os
 import re
+import shlex
 import sys
 from collections import namedtuple
 from datetime import date
@@ -59,7 +60,7 @@ EXTERNAL = re.compile(r"^(?:[A-Za-z][A-Za-z0-9+.-]*:|#|/|~)")  # URLs, anchors, 
 PLACEHOLDER = re.compile(r"[*<>{}$]|YYYY|X\.Y\.Z|\bvX\b|NNN|XXX")
 FILE_SHAPED = re.compile(r"\.[A-Za-z0-9]{1,6}$")  # bare dir refs are usually shorthand
 REMOVAL_DATE = re.compile(r"(?i)\bremoved after (\d{4}-\d{2}-\d{2})")
-PROJECT_DIR_VAR = re.compile(r'^"?\$\{?CLAUDE_PROJECT_DIR\}?"?/')
+PROJECT_DIR_VAR = re.compile(r"^\$\{?CLAUDE_PROJECT_DIR\}?/")
 
 Finding = namedtuple("Finding", "level check path line message")
 LEVELS = ("error", "warn", "notice")
@@ -218,12 +219,16 @@ def check_hook_command(root, bad, event, command):
     """Every repo script a hook command names must exist. Only the one it runs
     directly (the first token) needs the exec bit: `bash ./x.sh` does not."""
     out = []
-    for i, token in enumerate(command.split()):
+    try:
+        tokens = shlex.split(command)  # quotes work as in the shell that runs it
+    except ValueError:
+        tokens = command.split()
+    for i, token in enumerate(tokens):
         script = PROJECT_DIR_VAR.sub("", token)
         if not script.startswith(("./", ".claude/")):
             continue  # an interpreter, a flag, or a binary on PATH
         path = root / script
-        if not path.is_file():
+        if not path.exists():
             out.append(bad(f"{event} hook runs {script}, which does not exist"))
         elif i == 0 and not os.access(path, os.X_OK):
             out.append(bad(f"{event} hook runs {script}, which is not executable"))
