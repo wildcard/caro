@@ -209,7 +209,9 @@ pub struct RiskGateCalibration {
     /// Rows with a local verdict, a reference verdict and a finite confidence.
     pub n: u32,
     /// `n` as a fraction (0.0..=1.0) of all results for the backend, the
-    /// same denominator as [`CalibrationRollup::coverage`].
+    /// same denominator as [`CalibrationRollup::coverage`]. Defaults to
+    /// `0.0` when read from a baseline stored before the field existed.
+    #[serde(default)]
     pub coverage: f32,
     /// Brier score of the local verdict's confidence against agreement.
     pub brier: f32,
