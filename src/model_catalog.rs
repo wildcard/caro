@@ -152,20 +152,6 @@ pub static MISTRAL_7B_Q3: ModelInfo = ModelInfo {
     ci_suitable: false,
 };
 
-/// StarCoder 1B Q4_K_M - Code-specialized (~700MB)
-/// Best for: Code generation and shell commands
-pub static STARCODER_1B_Q4: ModelInfo = ModelInfo {
-    id: "starcoder-1b-q4",
-    name: "StarCoder 1B Q4",
-    hf_repo: "TheBloke/starcoderbase-1b-GGUF",
-    filename: "starcoderbase-1b.Q4_K_M.gguf",
-    size_mb: 700,
-    size_category: ModelSize::Small,
-    description: "Code-specialized model, good for shell commands",
-    mlx_optimized: false,
-    ci_suitable: true,
-};
-
 /// Qwen2.5-Coder 1.5B Q4_K_M - Default model (~1.1GB)
 /// Best for: Balanced performance and size, good code understanding
 pub static QWEN_1_5B_Q4: ModelInfo = ModelInfo {
@@ -217,7 +203,6 @@ static ALL_MODELS: &[&ModelInfo] = &[
     &SMOLLM_135M_Q4,
     &QWEN_0_5B_Q4,
     &TINYLLAMA_1_1B_Q4,
-    &STARCODER_1B_Q4,
     &QWEN_1_5B_Q4,
     &PHI_2_2_7B_Q4,
     &MISTRAL_7B_Q3,

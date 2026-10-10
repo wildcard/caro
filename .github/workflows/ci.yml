@@ -267,9 +267,6 @@ jobs:
           - id: tinyllama-1.1b-q4
             name: TinyLlama 1.1B
             size_mb: 669
-          - id: starcoder-1b-q4
-            name: StarCoder 1B
-            size_mb: 700
 
     steps:
     - uses: actions/checkout@v6

@@ -12,10 +12,9 @@ Created a catalog of **7 GGUF models** from Hugging Face:
 
 | Model | Size | Category | CI-Suitable | MLX-Optimized |
 |-------|------|----------|-------------|---------------|
-| SmolLM 135M | 82 MB | Tiny | ✅ | ❌ |
+| SmolLM 135M | 145 MB | Tiny | ✅ | ❌ |
 | Qwen 0.5B | 352 MB | Small | ✅ | ✅ |
 | TinyLlama 1.1B | 669 MB | Small | ✅ | ❌ |
-| StarCoder 1B | 700 MB | Small | ✅ | ❌ |
 | Qwen 1.5B | 1.1 GB | Medium | ❌ | ✅ |
 | Phi-2 2.7B | 1.6 GB | Medium | ❌ | ❌ |
 | Mistral 7B | 3.5 GB | Large | ❌ | ❌ |
@@ -63,16 +62,13 @@ strategy:
     model:
       - id: smollm-135m-q4
         name: SmolLM 135M
-        size: 82MB
+        size: 145MB
       - id: qwen-0.5b-q4
         name: Qwen 0.5B  
         size: 352MB
       - id: tinyllama-1.1b-q4
         name: TinyLlama 1.1B
         size: 669MB
-      - id: starcoder-1b-q4
-        name: StarCoder 1B
-        size: 700MB
 ```
 
 **Test Coverage per Model:**
@@ -223,14 +219,14 @@ env:
 Use SmolLM:
 ```yaml
 env:
-  CARO_MODEL: smollm-135m-q4  # 82MB, fastest
+  CARO_MODEL: smollm-135m-q4  # 145MB, fastest
 ```
 
 ### For Code-Focused Tests
-Use StarCoder:
+Use Qwen2.5-Coder 0.5B (StarCoder 1B was dropped in #1341: its Hugging Face repo is gone):
 ```yaml
 env:
-  CARO_MODEL: starcoder-1b-q4  # 700MB, code-specialized
+  CARO_MODEL: qwen-0.5b-q4  # 352MB, code-specialized
 ```
 
 ## Success Metrics

@@ -9,7 +9,6 @@ caro supports multiple language models to suit different use cases, from ultra-t
 | **SmolLM 135M** | 145 MB | Ultra-fast testing, extreme resource constraints | ✅ | ❌ |
 | **Qwen 0.5B** | 352 MB | CI/CD, fast inference | ✅ | ✅ |
 | **TinyLlama 1.1B** | 669 MB | Balanced speed/quality for CI | ✅ | ❌ |
-| **StarCoder 1B** | 700 MB | Code-specialized, shell commands | ✅ | ❌ |
 | **Qwen 1.5B** (default) | 1117 MB | Best balance for local use | ❌ | ✅ |
 | **Phi-2 2.7B** | 1560 MB | Excellent code understanding | ❌ | ❌ |
 | **Mistral 7B Instruct** | 3520 MB | Highest quality, production | ❌ | ❌ |
@@ -121,14 +120,6 @@ Or for fastest tests:
 - **Pros**: Widely tested, good quality
 - **Cons**: Larger CI download time
 
-### StarCoder 1B
-- **Repository**: TheBloke/starcoderbase-1b-GGUF
-- **Quantization**: Q4_K_M
-- **Size**: 700 MB
-- **Use Case**: Code generation, shell commands
-- **Pros**: Code-specialized, good for command generation
-- **Cons**: Not chat-optimized
-
 ### Qwen2.5-Coder 1.5B (Default)
 - **Repository**: Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF
 - **Quantization**: Q4_K_M
@@ -193,7 +184,6 @@ env:
 ```
 Need fastest CI?          → SmolLM 135M (145MB)
 Need quality + speed?     → Qwen 0.5B (352MB)
-Need code specialization? → StarCoder 1B (700MB)
 Local development?        → Qwen 1.5B (1.1GB, default)
 Need best quality?        → Mistral 7B (3.5GB)
 ```
