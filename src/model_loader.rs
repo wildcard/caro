@@ -171,8 +171,10 @@ impl ModelLoader {
         const INITIAL_DELAY_SECS: u64 = 2;
 
         let mut last_error = None;
+        let mut attempts_made = 0;
 
         for attempt in 1..=MAX_RETRIES {
+            attempts_made = attempt;
             if attempt > 1 {
                 let delay = INITIAL_DELAY_SECS * 2u64.pow(attempt - 2);
                 warn!(
@@ -189,13 +191,19 @@ impl ModelLoader {
                     info!("Model downloaded successfully to: {}", dest_path.display());
                     return Ok(());
                 }
+                Err(e) if e.is::<DownloadStalled>() => {
+                    // hf-hub detaches its chunk tasks when the attempt is dropped,
+                    // so a retry would run beside them. Stop; process exit ends them.
+                    last_error = Some(e);
+                    break;
+                }
                 Err(e) => {
                     last_error = Some(e);
                 }
             }
         }
 
-        // All retries exhausted - provide helpful error message
+        // All retries exhausted (or the download stalled) - provide helpful error message
         Err(anyhow::anyhow!(
             "Failed to download model after {} attempts.\n\n\
             Troubleshooting:\n\
@@ -209,7 +217,7 @@ impl ModelLoader {
             4. Run diagnostics (if available):\n\
                caro doctor\n\n\
             Last error: {}",
-            MAX_RETRIES,
+            attempts_made,
             last_error.unwrap()
         ))
     }
@@ -368,6 +376,11 @@ impl hf_hub::api::tokio::Progress for StallWatch {
     async fn finish(&mut self) {}
 }
 
+/// A download attempt received no data for the given time.
+#[derive(Debug, thiserror::Error)]
+#[error("Model download stalled: no data received for {}s. Check the network, then run the command again.", .0.as_secs())]
+struct DownloadStalled(Duration);
+
 /// Run `fut` until it finishes, or fail once `watch` sees no progress for `stall`.
 async fn with_stall_timeout<F: Future>(
     fut: F,
@@ -381,10 +394,7 @@ async fn with_stall_timeout<F: Future>(
             out = &mut fut => return Ok(out),
             _ = tick.tick() => {
                 if watch.idle_for() >= stall {
-                    anyhow::bail!(
-                        "Model download stalled: no data received for {}s",
-                        stall.as_secs()
-                    );
+                    return Err(DownloadStalled(stall).into());
                 }
             }
         }
@@ -409,6 +419,8 @@ mod tests {
         .await
         .expect("watchdog must fire before the outer 5s guard");
         let err = result.unwrap_err();
+        // The retry loop stops on this type (hf-hub detaches its chunk tasks).
+        assert!(err.is::<DownloadStalled>(), "{err}");
         assert!(err.to_string().contains("stalled"), "{err}");
     }
 
