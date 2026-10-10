@@ -245,9 +245,9 @@ What is missing:
 - The final safety pass has **no regeneration hook** — a blocked command is a
   dead end even when the block reason ("uses `rm -rf`") is exactly the feedback a
   second attempt needs.
-- `_max_iterations: 2` (`src/agent/mod.rs:77`) is underscore-prefixed and unused;
-  repair is single-shot. `docs/research/2026-09-24-google-ax-lessons.md`
-  independently lists "wire or remove `_max_iterations`" as a P1 follow-up.
+- Repair is single-shot. The unused `_max_iterations: 2` field was removed in
+  #1549; the cap is now `MAX_BACKEND_CALLS` (2 primary-backend calls) in
+  `src/agent/mod.rs`, pinned by tests.
 - `confidence_score` **was a constant per backend** at the first draft (0.85
   embedded, 1.0 static, 0.8 Ollama, 0.75 AI-Horde, 0.95 Claude), so the `< 0.8`
   refinement gate was decided by *which backend answered*. ADR-017 and #1464
@@ -424,9 +424,9 @@ the reward's feedback until the threshold is met or N is exhausted.
 
 **Change**: when `SafetyValidator::validate_command` blocks at `cli/mod.rs:843`,
 feed the block reason through the existing `build_repair_prompt` for **one**
-regeneration, re-validate, then fail closed. Use the dormant `_max_iterations`
-as the bound. Static-matcher `Critical` blocks stay terminal — they are
-deliberate today and stay deliberate.
+regeneration, re-validate, then fail closed. Count that call against
+`MAX_BACKEND_CALLS` (or raise the cap and its test together). Static-matcher
+`Critical` blocks stay terminal — they are deliberate today and stay deliberate.
 
 **Why it pays**: the user asked for something legitimate ("clean up old logs")
 and the model reached for `rm -rf`; one retry with "that pattern is blocked; use

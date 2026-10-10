@@ -19,14 +19,25 @@ use tracing::{debug, info, warn};
 #[cfg(feature = "knowledge")]
 use crate::knowledge::{default_knowledge_path, KnowledgeIndex};
 
-/// Agent loop for iterative command refinement
+/// Most primary-backend calls [`AgentLoop`] makes for one request: the
+/// initial generation plus one repair or refinement. Advisor calls are not
+/// counted here; there is at most one per request.
+pub const MAX_BACKEND_CALLS: usize = 2;
+
+/// Agent loop for iterative command refinement.
+///
+/// The loop has a fixed shape: one initial primary-backend call, then at
+/// most one primary follow-up (repair or refine). So the primary backend is
+/// called at most [`MAX_BACKEND_CALLS`] times per request. A configured
+/// advisor adds at most one call of its own, before the refine. The tests
+/// pin both limits; there is no knob for them, because a knob that the code
+/// cannot honour is a declared-but-unenforced budget.
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
     static_matcher: Option<StaticMatcher>,
     validator: CommandValidator,
     context: ExecutionContext,
     directory_context: DirectoryContext,
-    _max_iterations: usize,
     timeout: Duration,
     confidence_threshold: f64,
     /// Optional frontier advisor consulted only on low-confidence drafts
@@ -74,8 +85,7 @@ impl AgentLoop {
             validator,
             context,
             directory_context,
-            _max_iterations: 2,
-            timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
+            timeout: Duration::from_secs(15), // Allow enough time for 2 backend calls
             confidence_threshold: 0.8,        // Default: refine if confidence < 80%
             advisor: None,
             #[cfg(feature = "knowledge")]
@@ -955,7 +965,7 @@ mod tests {
     use crate::models::{BackendType, RiskLevel};
     use crate::prompts::CapabilityProfile;
     use async_trait::async_trait;
-    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
     fn mock_command(command: &str, confidence: f64) -> GeneratedCommand {
         GeneratedCommand {
@@ -1077,6 +1087,113 @@ mod tests {
         async fn shutdown(&self) -> Result<(), GeneratorError> {
             Ok(())
         }
+    }
+
+    /// Mock that returns a fixed command and counts its calls.
+    struct CountingBackend {
+        command: String,
+        confidence: f64,
+        calls: Arc<AtomicUsize>,
+        /// Counts `advise` calls; this backend always opts out (`None`).
+        advise_calls: Arc<AtomicUsize>,
+    }
+
+    #[async_trait]
+    impl CommandGenerator for CountingBackend {
+        async fn generate_command(
+            &self,
+            _request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            Ok(mock_command(&self.command, self.confidence))
+        }
+        async fn advise(
+            &self,
+            _draft: &GeneratedCommand,
+            _request: &CommandRequest,
+        ) -> Option<GeneratedCommand> {
+            self.advise_calls.fetch_add(1, Ordering::SeqCst);
+            None
+        }
+        async fn is_available(&self) -> bool {
+            true
+        }
+        fn backend_info(&self) -> BackendInfo {
+            BackendInfo {
+                backend_type: BackendType::Mock,
+                model_name: "counting".to_string(),
+                supports_streaming: false,
+                max_tokens: 100,
+                typical_latency_ms: 1,
+                memory_usage_mb: 0,
+                version: "test".to_string(),
+            }
+        }
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    async fn backend_calls_for(command: &str, confidence: f64) -> usize {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let backend = CountingBackend {
+            command: command.to_string(),
+            confidence,
+            calls: calls.clone(),
+            advise_calls: Arc::new(AtomicUsize::new(0)),
+        };
+        let agent = AgentLoop::new(
+            Arc::new(backend),
+            ExecutionContext::detect(),
+            CapabilityProfile::ubuntu(),
+        )
+        .with_static_matcher(false);
+        let _ = agent.generate_command("list files").await;
+        calls.load(Ordering::SeqCst)
+    }
+
+    #[tokio::test]
+    async fn backend_call_budget_holds_on_every_path() {
+        // Confident, valid draft: one call, no follow-up.
+        assert_eq!(backend_calls_for("ls", 0.99).await, 1);
+        // Low confidence: initial + one refinement, never a third call.
+        assert_eq!(backend_calls_for("ls", 0.3).await, MAX_BACKEND_CALLS);
+        // Invalid draft that stays invalid: initial + one repair, then an
+        // error, never a retry loop.
+        let invalid = "total 12\ndrwxr-xr-x 2 user user 4096 Jan 1 12:00 .";
+        assert_eq!(backend_calls_for(invalid, 0.99).await, MAX_BACKEND_CALLS);
+    }
+
+    #[tokio::test]
+    async fn advisor_opt_out_adds_one_call_and_keeps_primary_cap() {
+        // Low confidence with an advisor that opts out: the advisor is asked
+        // exactly once, then the primary refines. Primary calls stay at the cap.
+        let calls = Arc::new(AtomicUsize::new(0));
+        let primary = CountingBackend {
+            command: "ls".to_string(),
+            confidence: 0.3,
+            calls: calls.clone(),
+            advise_calls: Arc::new(AtomicUsize::new(0)),
+        };
+        let advise_calls = Arc::new(AtomicUsize::new(0));
+        let advisor = CountingBackend {
+            command: "ls".to_string(),
+            confidence: 0.99,
+            calls: Arc::new(AtomicUsize::new(0)),
+            advise_calls: advise_calls.clone(),
+        };
+        let agent = AgentLoop::new(
+            Arc::new(primary),
+            ExecutionContext::detect(),
+            CapabilityProfile::ubuntu(),
+        )
+        .with_static_matcher(false)
+        .with_advisor(Arc::new(advisor));
+
+        let _ = agent.generate_command("list files").await;
+
+        assert_eq!(advise_calls.load(Ordering::SeqCst), 1);
+        assert_eq!(calls.load(Ordering::SeqCst), MAX_BACKEND_CALLS);
     }
 
     #[tokio::test]
