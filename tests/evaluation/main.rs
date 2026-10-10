@@ -495,6 +495,29 @@ fn output_table(
             );
         }
         println!("└─────────────────┴────────┴────────┴────────────┴─────────┴────────────────┘");
+        // Risk-gate baseline (#1510): the local verdict's confidence scored
+        // against agreement with the reference labeller, 95% bootstrap CIs.
+        // Only present when both judges ran.
+        let mut gated: Vec<_> = report
+            .backend_results
+            .iter()
+            .filter_map(|(name, r)| r.risk_gate.map(|g| (name.as_str(), g)))
+            .collect();
+        gated.sort_by_key(|(name, _)| *name);
+        for (backend_name, g) in gated {
+            println!(
+                "  {}: risk-gate ECE {:.3} [{:.3}, {:.3}], Brier {:.3} [{:.3}, {:.3}], n={} ({:.0}% of run)",
+                backend_name,
+                g.ece,
+                g.ece_ci.0,
+                g.ece_ci.1,
+                g.brier,
+                g.brier_ci.0,
+                g.brier_ci.1,
+                g.n,
+                g.coverage * 100.0
+            );
+        }
         println!();
     }
 

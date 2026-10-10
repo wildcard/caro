@@ -417,6 +417,13 @@ pub struct BackendResult {
     /// the interesting rows.
     #[serde(default)]
     pub risk_disagreements: u32,
+
+    /// Risk-gate calibration (#1510): how honest the backend's confidence in
+    /// its own risk verdict is, scored against agreement with the reference
+    /// labeller, with bootstrap CIs. `None` unless both verdicts were
+    /// collected. The ADR-018 baseline.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub risk_gate: Option<crate::evaluation::calibration::RiskGateCalibration>,
 }
 
 /// Aggregated results from a complete evaluation run
