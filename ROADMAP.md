@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: October 3, 2026
+**Last Updated**: October 10, 2026
 
 > **Recent Update**: Integrated 104 PRs (#557-660) into roadmap with milestone assignments and tracking issues.
 
@@ -50,12 +50,12 @@ gantt
 ## Release Milestones
 
 ### 🎉 v1.5.0 - Decision Layer & Release Reset
-**Released**: October 3, 2026 ✅
+**Released**: October 10, 2026 ✅
 **Status**: 100% Complete - **RELEASED**
 **Focus**: Consolidation of the stalled 2026-07-12 scope (safety-floor
 hardening, custom-pattern TOML, MSRV 1.85, backend-roster single-source)
-with twelve subsequent PRs that landed on `main` between 2026-07-12 and
-2026-10-03:
+with every later PR on `main` that changes the CLI, its docs or its CI
+(website-only changes are not listed):
 
 - **Decision layer, calibration and typed primitives** —
   [#1459](https://github.com/wildcard/caro/pull/1459)
@@ -81,6 +81,16 @@ with twelve subsequent PRs that landed on `main` between 2026-07-12 and
   pinned to Rust 1.98.1)
 - **Agent additions** — [#1244](https://github.com/wildcard/caro/pull/1244)
   (ponytail pragmatic-skeptic reviewer, additive)
+- **Also shipped** — [#1245](https://github.com/wildcard/caro/pull/1245)
+  (opt-in frontier advisor, cost-aware eval),
+  [#1509](https://github.com/wildcard/caro/pull/1509) (STE-lite `--explain`),
+  [#1519](https://github.com/wildcard/caro/pull/1519) and
+  [#1535](https://github.com/wildcard/caro/pull/1535) (safety warning text),
+  [#1532](https://github.com/wildcard/caro/pull/1532) (`dry_run` in JSON
+  output), [#1517](https://github.com/wildcard/caro/pull/1517) (static
+  matcher content search), [#1447](https://github.com/wildcard/caro/pull/1447)
+  (served-context warning), [#1522](https://github.com/wildcard/caro/pull/1522)
+  and [#1548](https://github.com/wildcard/caro/pull/1548) (dev workflow)
 
 **Release-reset note**: an earlier `chore(release): v1.5.0` landed
 2026-07-12 (commit `6f23d37`) and bumped `Cargo.toml`/`README`/
@@ -88,7 +98,8 @@ homebrew/nuget to 1.5.0, but the owner-only tag + crates.io publish
 step never ran — users on crates.io stayed pinned at v1.4.0
 (2026-05-09) for nearly five months. This release consolidates both
 scopes into a single honest 1.5.0 shipping entry. Rationale and
-options considered: [`docs/decisions/2026-10-03-release-reset-and-discovery-decision.md`](docs/decisions/2026-10-03-release-reset-and-discovery-decision.md).
+options considered: the decision record in
+[#1514](https://github.com/wildcard/caro/pull/1514).
 The v2.0.0 "Distributed Autonomy" milestone stays open pending
 validation-discipline Gate 1 (user discovery); see
 [`docs/decisions/2026-07-12-autonomous-mode-release-scope.md`](docs/decisions/2026-07-12-autonomous-mode-release-scope.md) (D1).
@@ -405,7 +416,7 @@ above.
 
 | Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
 |-----------|----------|---------------------|----------|----------|---------|
-| **v1.5.0** | Oct 3, 2026 | Decision layer, calibration, security bump + release reset | 15 | 100% | ✅ **RELEASED** |
+| **v1.5.0** | Oct 10, 2026 | Decision layer, calibration, security bump + release reset | 15 | 100% | ✅ **RELEASED** |
 | **v1.4.0** | May 9, 2026 | CaroML preview + safety hardening | 12 | 100% | ✅ **RELEASED** |
 | **v1.3.2** | May 9, 2026 | Static matcher coverage gaps | 7 | 100% | ✅ **RELEASED** |
 | **v1.3.1** | May 9, 2026 | P0/P1 safety patch | 4 | 100% | ✅ **RELEASED** |

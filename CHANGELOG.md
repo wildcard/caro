@@ -7,16 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.5.0] - 2026-10-03
+## [1.5.0] - 2026-10-10
 
 > **Release-reset note**: An earlier `chore(release): v1.5.0`
 > (commit `6f23d37`, 2026-07-12) bumped `Cargo.toml`/`README.md`/
 > `homebrew-tap/README.md`/`nuget/tools/install.ps1` to 1.5.0 but the
-> owner-only `git tag v1.5.0 && git push` step never ran. Twelve
-> additional PRs then landed on `main` on top of that bump. This
-> entry consolidates the 2026-07-12 planned content with the twelve
-> subsequent PRs into a single honest 1.5.0 shipping scope. See
-> [`docs/decisions/2026-10-03-release-reset-and-discovery-decision.md`](docs/decisions/2026-10-03-release-reset-and-discovery-decision.md)
+> owner-only `git tag v1.5.0 && git push` step never ran. More PRs
+> then landed on `main` on top of that bump. This entry consolidates
+> the 2026-07-12 planned content with every PR merged before the tag
+> that changes the CLI, its docs or its CI (website-only changes are
+> not listed) into a single honest 1.5.0 shipping scope. See the
+> decision record in [#1514](https://github.com/wildcard/caro/pull/1514)
 > for the rationale.
 
 ### Added
@@ -104,8 +105,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   additive read-only reviewer that interrogates a change for over-engineering
   (surplus code, abstractions, dependencies, ceremony). Deliberate complement
   to `devils-advocate` (which fights under-validation). Never trims safety,
-  security, accessibility, data-loss handling, or their tests. Invokable via
+  security, accessibility, data-loss handling, or their tests. Invocable via
   the `ponytail-review` skill.
+- **Opt-in frontier advisor for low-confidence drafts**
+  ([#1245](https://github.com/wildcard/caro/pull/1245)):
+  `--advisor claude` sends low-confidence drafts to a hosted model, and
+  caro warns when it starts that those prompts leave the machine. The
+  advised command goes through the same safety validator. If the advisor is
+  unavailable, opts out, or returns an unsafe command, caro keeps the
+  local command. Off by default, and it needs a build with the
+  `remote-backends` feature, which the default build does not include.
+- **Cost, mean score and SFT export in the evaluation harness**
+  ([#1245](https://github.com/wildcard/caro/pull/1245)): each result
+  carries estimated tokens and cost (local and self-hosted backends cost
+  nothing), and each backend reports its total cost and its cost per
+  passed task. A mean score (the fraction of criteria met) sits next to
+  the all-pass rate. `sft_export` writes passing trajectories as JSONL
+  training data; safety cases are excluded.
 
 ### Changed
 
@@ -157,6 +173,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   world-writable path (`chmod -R 777 /`) keep the label.
   Six pattern descriptions now start with a verb, not an -ing word
   ("Change file permissions"). Guarded by `tests/safety_text_contract.rs`.
+- **`--output json` says when a run was a dry run**
+  ([#1532](https://github.com/wildcard/caro/pull/1532)): with `--dry-run`,
+  the JSON now includes `"dry_run": true`, so a consumer can tell
+  "generated" from "ran". `executed` keeps its meaning, "passed safety
+  checks". Guarded by `tests/dry_run_output_contract.rs`.
+- **Static matcher: "search for X in python files" searches inside the
+  files** ([#1517](https://github.com/wildcard/caro/pull/1517)): it
+  returned `find . -name "*.py" -type f` for any search term. It now
+  returns a content search, such as `grep -rn 'TODO' --include='*.py' .`.
+  Guarded by `test_search_for_term_in_python_files_greps_contents` in
+  `tests/beta_regression.rs`.
+- **Ollama and vLLM warn when the served context window is too small**
+  ([#1447](https://github.com/wildcard/caro/pull/1447)): caro checks the
+  context length that the server actually serves, once per process
+  (Ollama's default `num_ctx` is 2048, whatever the model card says). It
+  logs a warning when that is below 4,096 tokens or, for Ollama, below
+  the model's declared window. The check never blocks generation.
 - **Static matcher: "find and kill the runaway process eating CPU" now emits
   the full website-promised pipeline** (`ps aux | sort -nrk 3,3 | head -1 |
   awk '{print $2}' | xargs kill`) instead of the bare `kill PID` placeholder.
@@ -244,9 +277,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/PERFORMANCE.md` — new "Decision Latency & Calibration" section.
 - `docs/research/2026-09-24-google-ax-lessons.md` — the "declared !=
   enforced" lesson underpinning #1470.
-- `docs/decisions/2026-10-03-release-reset-and-discovery-decision.md` —
-  rationale for consolidating this release scope from the stalled
-  2026-07-12 scope.
+- Release-reset decision record, filed in
+  [#1514](https://github.com/wildcard/caro/pull/1514) — rationale for
+  consolidating this release scope from the stalled 2026-07-12 scope.
+- `docs/research/siesta-autonomous-pipeline-takeaways.md`
+  ([#1447](https://github.com/wildcard/caro/pull/1447)) — patterns from the
+  siesta autonomous pipeline, mapped to where they apply in caro.
+- `docs/research/dspy-prompt-optimization.md`
+  ([#1448](https://github.com/wildcard/caro/pull/1448)) — DSPy
+  prompt-optimization learnings and an adoption roadmap.
 
 ### Internal
 
@@ -261,6 +300,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   commits.
 - **Vercel adapter astro-drift guard** (`4d7a855`): a test on the website
   build catches Astro-major churn before it reaches production.
+- **Plain `cargo run` works** ([#1522](https://github.com/wildcard/caro/pull/1522)):
+  `default-run = "caro"`, so `cargo run -- "query"` no longer asks which
+  binary to run. Guarded by `tests/cargo_default_run.rs`.
+- **`cargo test safety` works with the evaluation harness**
+  ([#1548](https://github.com/wildcard/caro/pull/1548)): the `evaluation`
+  harness accepts libtest's name filter and skips itself when the filter
+  does not match. Guarded by `tests/evaluation_filter_contract.rs`.
+- **Tag Release workflow** ([#1306](https://github.com/wildcard/caro/pull/1306)):
+  `tag-release.yml` creates the release tag from a `workflow_dispatch`, for
+  environments that cannot push tags. It fails closed unless the tag
+  matches the `Cargo.toml` version and the commit is on `main`.
+  `publish.yml` can now be dispatched too, because a tag that
+  `GITHUB_TOKEN` pushes does not trigger it.
+- The broken add-contributor job is removed from `pr-merged.yml`
+  ([#1527](https://github.com/wildcard/caro/pull/1527)); its action no
+  longer exists.
 
 ## [1.4.0] - 2026-05-09
 
