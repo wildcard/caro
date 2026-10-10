@@ -194,9 +194,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-03 (while fixing "search for TODO in all python files")
 **Issue:** #1516. `search for <X> in python files` returns `find . -name "*.py" -type f` for any X other than TODO.
-**Status:** open
+**Status:** fixed (#1517: content-search handler in `StaticMatcher::content_search_command`)
 **Needs human?:** no
-**Next step:** stop that pattern's regex from matching `for <X> in …` content searches; add phrasing tests.
+**Next step:** delete this entry a week after #1517 merges.
 
 ---
 
