@@ -205,7 +205,9 @@
 
   .with-caro {
     background: var(--bg-inverse);
-    color: var(--accent);
+    /* fg-inverse flips with bg-inverse → WCAG AA 7.2:1 light / 12.5:1 dark.
+       Not --accent: signal red fails contrast on both flipped panels. */
+    color: var(--fg-inverse);
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
