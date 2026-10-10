@@ -84,12 +84,23 @@ A routine that remembers anything between runs (a coverage matrix, a bug
 backlog, a flake log) keeps it on the status branch, never in a PR:
 
 ```bash
-bin/routine-status state get <routine> <file> > <file>   # first; exit 1 = first run
-bin/routine-status state put <routine> <file> < <file>   # last, before `record`
+# First, before any other work. Write to a new file: a redirect straight
+# onto <file> would empty your bootstrap copy before `get` can fail.
+rc=0; bin/routine-status state get <routine> <file> > <file>.new || rc=$?
+case $rc in
+  0) mv <file>.new <file> ;;       # the last run's state
+  1) rm <file>.new ;;              # no state yet: keep the bootstrap copy
+  *) rm <file>.new; exit "$rc" ;;  # 2: the branch can't be read
+esac
+
+# Last, before `record`:
+bin/routine-status state put <routine> <file> < <file>
 ```
 
 - Read state before any other work. Without it, the run starts from a stale
   copy and repeats old work.
+- `get` exits 1 when there is no state yet and 2 when the branch can't be
+  read. Treat 2 as `Blocked` (section 1), never as a first run.
 - Write state back before the run's `record`. `put` refuses empty input and
   makes no commit when nothing changed.
 - Do not open a PR to store state, reports or logs. A PR that waits for review

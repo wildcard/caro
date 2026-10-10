@@ -52,8 +52,10 @@ so absence of a report always means the routine failed, not that
 nothing happened.
 
 The routine stores the report with `bin/routine-status state put
-weekly-planning <date>-weekly-demo.md`, not in a PR (see
-`.claude/automation/CONTRACT.md`, section 5). It lives at
+weekly-planning <date>-weekly-demo.md < report.md` (the report goes on
+stdin), not in a PR (see `.claude/automation/CONTRACT.md`, section 5).
+`weekly-planning` is the routine's slug, so use the same name in `record`
+and `state get`. The report lives at
 `state/weekly-planning/<date>-weekly-demo.md` on the
 `automation/routine-status` branch. `docs/demos/` keeps the reports
 from before this change.
