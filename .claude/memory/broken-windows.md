@@ -147,9 +147,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1217 (dup #1417, closed)
-**Status:** open
+**Status:** claimed-by sweep/2026-10-06-BW-014 (#1532). Adds a `dry_run` field to the JSON. `executed` keeps its pinned meaning ("passed safety checks"); contract tests depend on it.
 **Needs human?:** no
-**Next step:** set `executed` from the real execution path.
+**Next step:** merge the PR.
 
 ### BW-015: main CI `Extended Tests` (4 model jobs) red: HF Hub model download fails
 
@@ -223,7 +223,23 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** no
 **Next step:** fix clap routing (`args_conflicts_with_subcommands`) so `caro --no-telemetry config show` runs `config`.
 
-### BW-024: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
+### BW-024: `caro config set backend` has no `auto` value to restore auto-detect
+
+**Found:** 2026-10-06 sweep
+**Issue:** #1530
+**Status:** open
+**Needs human?:** no
+**Next step:** accept `auto` (or `default`) in `config set backend` and clear the stored backend.
+
+### BW-025: GNU coreutils misdetected as BSD when `ls --version` exceeds 500 ms
+
+**Found:** 2026-10-06, CI on #1532 (`test_coreutils_detection` failed on ubuntu-24.04)
+**Issue:** #1533
+**Status:** open
+**Needs human?:** no
+**Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
+
+### BW-026: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
 
 **Found:** 2026-10-02, PR #1507 session (also red on main push be07b22 and every i18n-touching PR)
 **Issue:** #1508
