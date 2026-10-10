@@ -233,7 +233,7 @@ mod tests {
     fn test_smallest_model() {
         let model = ModelCatalog::smallest();
         assert_eq!(model.id, "smollm-135m-q4");
-        assert!(model.size_mb < 100);
+        assert!(model.size_mb < 200); // Q8_0 build, 145 MB (#1341)
     }
 
     #[test]
