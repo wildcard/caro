@@ -172,15 +172,8 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
      hex values here — a literal palette in this block shadows tokens.css
      and silently reverts the brand (that is how the site stayed white and
      navy after the v2.2 palette landed). */
+  /* --color-bg*, --color-text* and --color-border come from tokens.css. */
   :root {
-    --color-bg: var(--bg);
-    --color-bg-secondary: var(--bg-subtle);
-    --color-bg-tertiary: var(--bg-raised);
-    --color-text: var(--fg);
-    --color-text-secondary: var(--fg-muted);
-    --color-text-tertiary: var(--fg-strong);
-    --color-text-muted: var(--fg-muted);
-    --color-border: var(--border);
     --color-footer-bg: var(--bg-inverse);
     --color-footer-text: var(--fg-inverse);
     --color-footer-text-muted: var(--caro-grey-300); /* WCAG AA: 4.9:1 on #4f4f4f */
@@ -383,6 +376,10 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
 
     // Dark mode toggle
     const themeToggle = document.getElementById('theme-toggle');
+    // aria-pressed = dark mode on; the icons are aria-hidden.
+    const syncThemePressed = () =>
+      themeToggle?.setAttribute('aria-pressed', String(document.documentElement.classList.contains('dark')));
+    syncThemePressed();
 
     themeToggle?.addEventListener('click', () => {
       const isDark = document.documentElement.classList.contains('dark');
@@ -394,6 +391,7 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
         document.documentElement.classList.add('dark');
         localStorage.setItem('theme', 'dark');
       }
+      syncThemePressed();
     });
 
     // Listen for system theme changes
@@ -404,6 +402,7 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
         } else {
           document.documentElement.classList.remove('dark');
         }
+        syncThemePressed();
       }
     });
   });

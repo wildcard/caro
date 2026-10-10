@@ -29,17 +29,23 @@ import {
 const year = new Date().getFullYear();
 const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
+// One occasion can have several sources (Eid al-Fitr and Eid al-Adha), so
+// list every holiday range, not only the first.
 function when(o: Occasion): string {
+  const ranges: string[] = [];
   for (const src of o.sources) {
     const h = HOLIDAYS.find((x) => x.id === src);
     if (h) {
       const r = resolveDateRange(h.dateRange, year) ?? resolveDateRange(h.dateRange, year + 1);
-      if (r) return `${fmt(r.start)} – ${fmt(r.end)} ${r.start.getFullYear()} · opt-in`;
+      if (!r) continue;
+      const span = fmt(r.start) === fmt(r.end) ? fmt(r.start) : `${fmt(r.start)} – ${fmt(r.end)}`;
+      ranges.push(`${span} ${r.start.getFullYear()}`);
+      continue;
     }
     const e = HUMANITY_EVENTS.find((x) => x.id === src);
     if (e) return `${formatEventDates(e, year)} · ${e.hasFullTheme ? 'banner + theme' : 'banner'}`;
   }
-  return '';
+  return ranges.length ? `${ranges.join(' and ')} · opt-in` : '';
 }
 
 const groups: Array<[string, string, Occasion['kind']]> = [

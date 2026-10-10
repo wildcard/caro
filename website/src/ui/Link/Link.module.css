@@ -35,7 +35,7 @@
 }
 
 .default:hover {
-  color: var(--color-primary, var(--accent));
+  color: var(--accent-text);
 }
 
 :global(.dark) .default {
@@ -43,7 +43,7 @@
 }
 
 :global(.dark) .default:hover {
-  color: var(--color-primary, var(--accent));
+  color: var(--accent-text);
 }
 
 /* ============================================
@@ -64,12 +64,12 @@
    ============================================ */
 
 .arrow {
-  color: var(--color-primary, var(--accent));
+  color: var(--accent-text);
   font-weight: 600;
 }
 
 .arrow:hover {
-  color: var(--color-primary-dark, var(--accent-hover));
+  color: var(--color-link-hover);
 }
 
 .arrow:hover .arrow {
@@ -90,7 +90,7 @@
 }
 
 .external:hover {
-  color: var(--color-primary, var(--accent));
+  color: var(--accent-text);
 }
 
 .externalIcon {
@@ -119,7 +119,7 @@
 }
 
 .nav:hover {
-  color: var(--color-primary, var(--accent));
+  color: var(--accent-text);
 }
 
 :global(.dark) .nav {
@@ -127,7 +127,7 @@
 }
 
 :global(.dark) .nav:hover {
-  color: var(--color-primary, var(--accent));
+  color: var(--accent-text);
 }
 
 /* ============================================

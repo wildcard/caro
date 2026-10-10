@@ -13,6 +13,7 @@ import { OCCASIONS, occasionIdForSource, type Occasion } from '../config/occasio
 import { HOLIDAYS } from '../config/holidays';
 import { resolveDateRange } from './date-utils';
 import { ensureContrast, mix } from './color';
+import { timezonesForCountries } from './locale-detector';
 
 export const PAPER = '#f4f1df';
 export const WHITE = '#ffffff';
@@ -95,7 +96,7 @@ html.dark:is(${OCCASIONS.map((o) => '.' + o.id).join(',')}) ${art}::before,
 html.dark:is(${OCCASIONS.map((o) => '.' + o.id).join(',')}) ${art}::after{filter:brightness(1.6) saturate(1.1);}
 @media (max-width:1100px){
   ${any} ${art}::before{top:0;bottom:auto;left:0;right:0;width:auto;height:72px;
-    background-image:var(--occasion-art-band);background-size:auto 100%;background-position:center top;
+    background-image:var(--occasion-art-band);background-size:auto 100%;background-position:center top;background-repeat:repeat-x;
     -webkit-mask-image:linear-gradient(to bottom,#000 60%,transparent);mask-image:linear-gradient(to bottom,#000 60%,transparent);}
   ${any} ${art}::after{display:none;}
 }
@@ -139,6 +140,19 @@ export function holidayLocales(): Record<string, string[]> {
   for (const h of HOLIDAYS) {
     const id = occasionIdForSource(h.id);
     if (id && h.visibility === 'locale-only' && h.locales?.length) out[id] = h.locales;
+  }
+  return out;
+}
+
+/**
+ * Timezones allowed per locale-only occasion (national days). The pre-paint
+ * script drops a saved national-day theme outside these zones, so a visitor
+ * who travels or changes their clock does not keep another country's day.
+ */
+export function holidayTimezones(): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const [id, countries] of Object.entries(holidayLocales())) {
+    out[id] = timezonesForCountries(countries);
   }
   return out;
 }

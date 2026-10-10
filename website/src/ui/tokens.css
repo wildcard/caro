@@ -380,17 +380,12 @@
      NOT redeclared here: it is the "console" surface (terminals, the
      Moments/Waitlist stages, code blocks) and stays grey-700 with beige ink
      in both modes. Flipping it to beige made every terminal-styled panel
-     render light text on paper in dark mode (1.04:1). */
-  --color-bg: var(--bg);
-  --color-bg-secondary: var(--caro-grey-800);
-  --color-bg-tertiary: var(--caro-grey-800);
+     render light text on paper in dark mode (1.04:1).
+     --color-bg(-secondary/-tertiary), --color-text(-secondary/-tertiary) and
+     --color-border are NOT redeclared here either: their :root values route
+     through semantic tokens that flip below. The layouts also declared them,
+     so a second dark value here made the result depend on stylesheet order. */
   --color-bg-hover: rgba(239, 51, 51, 0.12);
-
-  --color-text: var(--caro-beige-100);
-  --color-text-secondary: var(--caro-grey-300);
-  --color-text-tertiary: var(--caro-beige-50);
-
-  --color-border: var(--caro-grey-500);
 
   /* Links stay brand red in dark mode via the lightened --accent-text
      (5.8:1 on the page). Text on the grey-700 console surface is a

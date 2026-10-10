@@ -16,6 +16,7 @@ import {
   PAPER,
   WHITE,
   buildOccasionCss,
+  holidayTimezones,
   holidayWindows,
   occasionPalette,
 } from '../lib/occasion-css';
@@ -81,13 +82,22 @@ describe('generated occasion CSS', () => {
   });
 
   it('paints CTAs with a solid fill, never a gradient', () => {
-    for (const m of css.matchAll(/--occasion-fill(?:-hover)?:([^;]+);/g)) {
-      expect(m[1]).toMatch(/^#[0-9a-f]{6}$/);
-    }
+    const fills = [...css.matchAll(/--occasion-fill(?:-hover)?:([^;]+);/g)];
+    // Rest + hover for every occasion: an empty list must fail, not pass.
+    expect(fills).toHaveLength(OCCASIONS.length * 2);
+    for (const m of fills) expect(m[1]).toMatch(/^#[0-9a-f]{6}$/);
   });
 
   it('stops hero art animation under reduced motion', () => {
     expect(css).toMatch(/prefers-reduced-motion:reduce\)\{[^}]*animation:none/);
+  });
+
+  it('limits saved national days to timezones in their country', () => {
+    const zones = holidayTimezones();
+    expect(zones['yom-haatzmaut']).toContain('Asia/Jerusalem');
+    expect(zones['yom-haatzmaut']).not.toContain('America/Los_Angeles');
+    expect(zones['july-4th']).toContain('America/New_York');
+    expect(zones.christmas).toBeUndefined();
   });
 
   it('builds opt-in holiday windows for the build year', () => {
@@ -109,4 +119,26 @@ describe('occasion art', () => {
       expect(renderOccasionArt(o, v)).toBe(svg);
     }
   });
+});
+
+describe('calculated holiday dates', () => {
+  // A bare 'YYYY-MM-DD' parses as UTC midnight: west of Greenwich the
+  // one-day Yom Ha'atzmaut window opened on the evening of Yom HaZikaron.
+  it.each(['America/Los_Angeles', 'UTC', 'Asia/Jerusalem', 'Pacific/Auckland'])(
+    'one-day windows follow the local calendar day in %s',
+    (zone) => {
+      const saved = process.env.TZ;
+      process.env.TZ = zone;
+      try {
+        const h = HOLIDAYS.find((x) => x.id === 'yom-haatzmaut')!;
+        expect(isDateInRange(new Date(2026, 3, 21, 20), h.dateRange)).toBe(false);
+        expect(isDateInRange(new Date(2026, 3, 22, 0, 30), h.dateRange)).toBe(true);
+        expect(isDateInRange(new Date(2026, 3, 22, 23, 30), h.dateRange)).toBe(true);
+        expect(isDateInRange(new Date(2026, 3, 23, 0, 30), h.dateRange)).toBe(false);
+      } finally {
+        if (saved === undefined) delete process.env.TZ;
+        else process.env.TZ = saved;
+      }
+    }
+  );
 });

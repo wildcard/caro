@@ -1,0 +1,389 @@
+---
+/**
+ * Occasion menu — the opt-in holiday picker, shared by Navigation (content
+ * pages) and LPNavigation (homepage).
+ *
+ * Hidden until script finds an opt-in holiday that is in season for this
+ * visitor (dates + locale rules in config/holidays.ts). The script also
+ * wires the mobile drawer controls in Navigation ([data-occasion-select],
+ * [data-snow-toggle], [data-effects-toggle]), so it queries the document,
+ * not only this component.
+ */
+import { t, type Locale } from '../i18n/config';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = 'en' } = Astro.props;
+---
+
+<div class="occasion-menu" data-occasion-menu hidden>
+  <button
+    class="occasion-trigger"
+    type="button"
+    aria-expanded="false"
+    aria-controls="occasion-panel"
+    aria-label={t(lang, 'common.aria.toggleHolidayTheme')}
+    title={t(lang, 'common.nav.appearance.holidayTheme')}
+  >
+    <span class="occasion-swatch" aria-hidden="true"></span>
+  </button>
+  <div class="occasion-panel" id="occasion-panel">
+    <p class="panel-header">{t(lang, 'common.nav.appearance.holidayTheme')}</p>
+    <div class="occasion-options" data-occasion-options></div>
+    <div class="panel-divider"></div>
+    <label class="panel-switch" data-snow-row hidden>
+      <span>{t(lang, 'common.nav.appearance.snowEffect')}</span>
+      <input type="checkbox" class="switch-input" data-snow-toggle />
+    </label>
+    <label class="panel-switch">
+      <span>{t(lang, 'common.nav.appearance.disableEffects')}</span>
+      <input type="checkbox" class="switch-input" data-effects-toggle />
+    </label>
+  </div>
+</div>
+
+<style>
+  .occasion-menu {
+    position: relative;
+  }
+
+  .occasion-menu[hidden] {
+    display: none;
+  }
+
+  /* Same 40px square as the other nav icon buttons. */
+  .occasion-trigger {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    color: var(--color-text);
+    transition: border-color 0.2s, background-color 0.2s;
+  }
+
+  .occasion-trigger:hover {
+    border-color: var(--fg);
+  }
+
+  .occasion-menu :is(button, input):focus-visible {
+    outline: 3px solid var(--accent-text);
+    outline-offset: 2px;
+  }
+
+  /* Swatch of the active occasion's ribbon; a brand two-tone when none. */
+  .occasion-swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--color-text);
+    background: var(--occasion-ribbon, linear-gradient(90deg, var(--accent) 0 50%, var(--highlight) 50% 100%));
+  }
+
+  .occasion-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 260px;
+    max-width: calc(100vw - 32px);
+    background: var(--bg-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 8px;
+    display: none;
+    z-index: 10;
+  }
+
+  .occasion-trigger[aria-expanded='true'] + .occasion-panel {
+    display: block;
+  }
+
+  .panel-header {
+    margin: 0;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: var(--track-wide);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .panel-divider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 6px 0;
+  }
+
+  /* Options are created by script, so these rules are global. */
+  :global(.occasion-option) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 40px;
+    padding: 0 10px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 14px;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  :global(.occasion-option:hover) {
+    background: var(--color-bg-hover);
+  }
+
+  :global(.occasion-option[aria-pressed='true']) {
+    font-weight: 700;
+  }
+
+  :global(.occasion-option[aria-pressed='true'])::after {
+    content: '✓';
+    margin-inline-start: auto;
+    color: var(--status-safe-text);
+  }
+
+  :global(.occasion-dot) {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 1px solid var(--border-strong);
+  }
+
+  .panel-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 40px;
+    padding: 0 10px;
+    font-size: 14px;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .panel-switch[hidden] {
+    display: none;
+  }
+
+  /* Native checkbox styled as a switch: keeps keyboard and AT semantics. */
+  .switch-input {
+    appearance: none;
+    position: relative;
+    flex-shrink: 0;
+    width: 44px;
+    height: 24px;
+    margin: 0;
+    border-radius: 12px;
+    background: var(--caro-grey-500);
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .switch-input::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--caro-white);
+    transition: transform 0.2s;
+  }
+
+  .switch-input:checked {
+    background: var(--accent-fill);
+  }
+
+  .switch-input:checked::before {
+    transform: translateX(20px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .occasion-trigger,
+    .switch-input,
+    .switch-input::before {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { holidayEngine } from '../lib/holiday-engine';
+  import { getOccasion, occasionIdForSource } from '../config/occasions';
+  import { SEASONS } from '../config/seasons';
+
+  const html = document.documentElement;
+
+  // ----------------------------------------------------------- disclosure
+  const menu = document.querySelector<HTMLElement>('.occasion-menu');
+  const trigger = menu?.querySelector<HTMLButtonElement>('.occasion-trigger');
+  const setOpen = (open: boolean) => trigger?.setAttribute('aria-expanded', String(open));
+  const isOpen = () => trigger?.getAttribute('aria-expanded') === 'true';
+
+  trigger?.addEventListener('click', () => setOpen(!isOpen()));
+
+  // Capture phase: nav dropdown triggers stop propagation of their clicks.
+  document.addEventListener(
+    'click',
+    (e) => {
+      if (menu && !menu.contains(e.target as Node)) setOpen(false);
+    },
+    true,
+  );
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen()) {
+      setOpen(false);
+      trigger?.focus();
+    }
+  });
+
+  // Close when keyboard focus leaves the menu.
+  menu?.addEventListener('focusout', (e) => {
+    const next = (e as FocusEvent).relatedTarget as Node | null;
+    if (next && !menu.contains(next)) setOpen(false);
+  });
+
+  // ------------------------------------------------------------- options
+  // Opt-in holidays that are in season for this visitor (date + locale).
+  const inSeason = Array.from(
+    new Set(
+      holidayEngine
+        .getVisibleThemes()
+        .map((h) => occasionIdForSource(h.id))
+        .filter((id): id is string => Boolean(id)),
+    ),
+  );
+
+  const previewing = Boolean(html.dataset.occasionPreview);
+
+  function savedHoliday(): string {
+    try {
+      return localStorage.getItem('holidayTheme') || 'none';
+    } catch {
+      return 'none';
+    }
+  }
+
+  function renderOccasionState(current: string) {
+    document.querySelectorAll<HTMLButtonElement>('.occasion-option').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.occasion === current));
+    });
+    document.querySelectorAll<HTMLSelectElement>('[data-occasion-select]').forEach((s) => {
+      s.value = current;
+    });
+  }
+
+  function applyHoliday(id: string) {
+    inSeason.forEach((h) => html.classList.remove(h));
+    if (id !== 'none') html.classList.add(id);
+    try {
+      localStorage.setItem('holidayTheme', id);
+    } catch {}
+    renderOccasionState(id);
+  }
+
+  if (inSeason.length && !previewing) {
+    document
+      .querySelectorAll<HTMLElement>('[data-occasion-menu], [data-occasion-menu-mobile]')
+      .forEach((m) => (m.hidden = false));
+    const choices = [...inSeason, 'none'];
+
+    document.querySelectorAll<HTMLElement>('[data-occasion-options]').forEach((box) => {
+      box.replaceChildren(
+        ...choices.map((id) => {
+          const o = getOccasion(id);
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'occasion-option';
+          btn.dataset.occasion = id;
+          const dot = document.createElement('span');
+          dot.className = 'occasion-dot';
+          dot.setAttribute('aria-hidden', 'true');
+          dot.style.background = o ? o.fill : 'transparent';
+          btn.append(dot, document.createTextNode(o ? o.name : 'No theme'));
+          btn.addEventListener('click', () => applyHoliday(id));
+          return btn;
+        }),
+      );
+    });
+
+    document.querySelectorAll<HTMLSelectElement>('[data-occasion-select]').forEach((sel) => {
+      sel.replaceChildren(...choices.map((id) => new Option(getOccasion(id)?.name ?? 'No theme', id)));
+      sel.addEventListener('change', () => applyHoliday(sel.value));
+    });
+
+    const saved = savedHoliday();
+    renderOccasionState(choices.includes(saved) ? saved : 'none');
+
+    // Snow is only offered while the winter-snow season is active.
+    const winter = SEASONS.find((s) => s.id === 'winter-snow');
+    const snowSeason = Boolean(winter && holidayEngine.isSeasonActive(winter));
+    document.querySelectorAll<HTMLElement>('[data-snow-row]').forEach((r) => (r.hidden = !snowSeason));
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const snowToggles = document.querySelectorAll<HTMLInputElement>('[data-snow-toggle]');
+    const effectsToggles = document.querySelectorAll<HTMLInputElement>('[data-effects-toggle]');
+    const effects = window as unknown as {
+      snowEffect?: { start(): void; stop(): void };
+      newYearEffect?: { stop(): void };
+    };
+
+    let snowOn = false;
+    let effectsOff = false;
+    try {
+      const stored = localStorage.getItem('snowEnabled');
+      snowOn = snowSeason && !reduceMotion && (stored === null ? true : stored === 'true');
+      effectsOff = localStorage.getItem('effectsDisabled') === 'true';
+    } catch {}
+
+    const setSnow = (on: boolean) => {
+      snowOn = on;
+      snowToggles.forEach((t) => (t.checked = on));
+      try {
+        localStorage.setItem('snowEnabled', String(on));
+      } catch {}
+      if (on && !effectsOff) effects.snowEffect?.start();
+      else effects.snowEffect?.stop();
+    };
+
+    const setEffectsOff = (off: boolean) => {
+      effectsOff = off;
+      effectsToggles.forEach((t) => (t.checked = off));
+      try {
+        localStorage.setItem('effectsDisabled', String(off));
+      } catch {}
+      if (off) {
+        effects.snowEffect?.stop();
+        effects.newYearEffect?.stop();
+        document.getElementById('new-year-countdown')?.classList.add('hidden');
+      } else if (snowOn) {
+        effects.snowEffect?.start();
+      }
+    };
+
+    snowToggles.forEach((t) => {
+      t.checked = snowOn;
+      t.addEventListener('change', () => setSnow(t.checked));
+    });
+    effectsToggles.forEach((t) => {
+      t.checked = effectsOff;
+      t.addEventListener('change', () => setEffectsOff(t.checked));
+    });
+    if (snowOn && !effectsOff) setTimeout(() => effects.snowEffect?.start(), 100);
+  }
+</script>

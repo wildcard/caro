@@ -127,7 +127,7 @@ export const Brand: Story = {
     docs: {
       description: {
         story:
-          'Brand variant designed for use on orange gradient backgrounds, like the download section.',
+          'Brand variant designed for use on red brand backgrounds, like the download section.',
       },
     },
   },

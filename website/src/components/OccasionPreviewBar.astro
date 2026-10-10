@@ -1,12 +1,14 @@
 ---
 /**
  * Occasion preview bar — shown only when a page is opened with
- * ?occasion=<id> (see the occasion init script in Layout.astro).
+ * ?occasion=<id> (see the init script in OccasionHead.astro).
  *
  * Lets a reviewer switch between every occasion and color mode on the
  * page they are looking at, and shows the CTA contrast ratio that the
  * occasion's fill achieves with white text. Nothing is persisted.
- * Works without JavaScript (plain GET form); JS only auto-submits.
+ * Previews need JavaScript (the init script applies the occasion class), so
+ * a script reveals the bar. Its controls are a plain GET form; the script
+ * only auto-submits on change.
  */
 import { OCCASIONS, type Occasion } from '../config/occasions';
 import { occasionPalette } from '../lib/occasion-css';

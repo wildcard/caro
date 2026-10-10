@@ -96,7 +96,7 @@ const previewGroups = [
         <p class="debug-label">Preview - {label}</p>
         <div class="debug-themes">
           {list.map((o) => (
-            <a class="theme-preview-btn" href={`?occasion=${o.id}`}>
+            <a class="theme-preview-btn" href={`?occasion=${o.id}`} data-theme={o.id}>
               <span class="dot" style={`background:${o.fill}`} aria-hidden="true"></span>{o.name}
             </a>
           ))}

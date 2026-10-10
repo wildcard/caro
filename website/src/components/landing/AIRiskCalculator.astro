@@ -292,8 +292,8 @@
 
   .enterprise-cta {
     text-align: center;
-    background: rgba(239, 51, 51, 0.08);
-    border: 1px solid rgba(239, 51, 51, 0.2);
+    background: color-mix(in srgb, var(--accent-fill) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-fill) 20%, transparent);
     border-radius: 12px;
     padding: 32px;
   }
@@ -319,7 +319,7 @@
   .cta-button:hover {
     background: var(--accent-fill-hover);
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(239, 51, 51, 0.3);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--accent-fill) 30%, transparent);
   }
 
   @media (max-width: 768px) {

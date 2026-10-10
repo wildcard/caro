@@ -17,6 +17,7 @@
 
 import { t, type Locale } from '../i18n/config';
 import GitHubMark from './icons/GitHubMark.astro';
+import OccasionMenu from './OccasionMenu.astro';
 
 interface Props {
   variant?: 'default' | 'use-cases';
@@ -26,6 +27,8 @@ interface Props {
 
 const { variant = 'default', currentPage, lang = 'en' } = Astro.props;
 const home = lang === 'en' ? '/' : `/${lang}/`;
+// The English homepage and the localized homepages use different section ids.
+const demoAnchor = lang === 'en' ? '#video-demo' : '#how-it-works';
 const repo = 'https://github.com/wildcard/caro';
 
 const personas = [
@@ -124,7 +127,7 @@ const resourceLinks = [
             </div>
           </li>
           <li class="nav-item">
-            <a href={`${home}#waitlist`}>Community</a>
+            <a href="/#waitlist">Community</a>
           </li>
           <li class="nav-item">
             <a href="/support" class="support-link"><span class="support-heart" aria-hidden="true">♥</span> {t(lang, 'common.nav.support')}</a>
@@ -140,24 +143,7 @@ const resourceLinks = [
         </a>
 
         <!-- Occasion menu: revealed by script only while an opt-in holiday is in season. -->
-        <div class="occasion-menu" data-occasion-menu hidden>
-          <button class="icon-button occasion-trigger" type="button" aria-expanded="false" aria-controls="occasion-panel" aria-label={t(lang, 'common.aria.toggleHolidayTheme')} title={t(lang, 'common.nav.appearance.holidayTheme')}>
-            <span class="occasion-swatch" aria-hidden="true"></span>
-          </button>
-          <div class="occasion-panel" id="occasion-panel">
-            <p class="panel-header">{t(lang, 'common.nav.appearance.holidayTheme')}</p>
-            <div class="occasion-options" data-occasion-options></div>
-            <div class="panel-divider"></div>
-            <label class="panel-switch" data-snow-row hidden>
-              <span>{t(lang, 'common.nav.appearance.snowEffect')}</span>
-              <input type="checkbox" class="switch-input" data-snow-toggle />
-            </label>
-            <label class="panel-switch">
-              <span>{t(lang, 'common.nav.appearance.disableEffects')}</span>
-              <input type="checkbox" class="switch-input" data-effects-toggle />
-            </label>
-          </div>
-        </div>
+        <OccasionMenu lang={lang} />
 
         <button id="theme-toggle-desktop" class="icon-button" type="button" aria-label={t(lang, 'common.aria.toggleDarkMode')} title={t(lang, 'common.aria.toggleDarkMode')}>
           <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -232,7 +218,7 @@ const resourceLinks = [
         <Fragment>
           <div class="drawer-section">
             <a href={`${home}#features`} class="drawer-link">{t(lang, 'common.nav.features')}</a>
-            <a href={`${home}#video-demo`} class="drawer-link">{t(lang, 'common.buttons.watchDemo')}</a>
+            <a href={`${home}${demoAnchor}`} class="drawer-link">{t(lang, 'common.buttons.watchDemo')}</a>
           </div>
           <div class="drawer-section">
             <p class="section-header">{t(lang, 'common.nav.compare')}</p>
@@ -248,7 +234,7 @@ const resourceLinks = [
             </a>
           </div>
           <div class="drawer-section">
-            <a href={`${home}#waitlist`} class="drawer-link">Join the Pack</a>
+            <a href="/#waitlist" class="drawer-link">Join the Pack</a>
             <a href="/support" class="drawer-link support-link"><span class="support-heart" aria-hidden="true">♥</span> {t(lang, 'common.nav.mobile.supportCaro')}</a>
           </div>
         </Fragment>
@@ -522,96 +508,9 @@ const resourceLinks = [
   :global(.dark) #theme-toggle-desktop .icon-sun { display: block; }
   :global(.dark) #theme-toggle-desktop .icon-moon { display: none; }
 
-  /* ---------- occasion menu ---------- */
-  .occasion-menu {
-    position: relative;
-  }
-
-  .occasion-menu[hidden],
+  /* ---------- occasion controls (drawer; the desktop menu is OccasionMenu) ---------- */
   [data-occasion-menu-mobile][hidden] {
     display: none;
-  }
-
-  /* Swatch of the active occasion's ribbon; a brand two-tone when none. */
-  .occasion-swatch {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 2px solid var(--color-text);
-    background: var(--occasion-ribbon, linear-gradient(90deg, var(--accent) 0 50%, var(--highlight) 50% 100%));
-  }
-
-  .occasion-panel {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    width: 260px;
-    background: var(--bg-raised);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    padding: 8px;
-    display: none;
-    z-index: 10;
-  }
-
-  .occasion-trigger[aria-expanded='true'] + .occasion-panel {
-    display: block;
-  }
-
-  .panel-header {
-    margin: 0;
-    padding: 6px 10px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: var(--track-wide);
-    text-transform: uppercase;
-    color: var(--color-text-secondary);
-  }
-
-  .panel-divider {
-    height: 1px;
-    background: var(--color-border);
-    margin: 6px 0;
-  }
-
-  :global(.occasion-option) {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    min-height: 40px;
-    padding: 0 10px;
-    border: none;
-    border-radius: var(--radius-md);
-    background: none;
-    color: var(--color-text);
-    font: inherit;
-    font-size: 14px;
-    text-align: start;
-    cursor: pointer;
-  }
-
-  :global(.occasion-option:hover) {
-    background: var(--color-bg-hover);
-  }
-
-  :global(.occasion-option[aria-pressed='true']) {
-    font-weight: 700;
-  }
-
-  :global(.occasion-option[aria-pressed='true'])::after {
-    content: '✓';
-    margin-inline-start: auto;
-    color: var(--status-safe-text);
-  }
-
-  :global(.occasion-dot) {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    border: 1px solid var(--border-strong);
   }
 
   .panel-switch,
@@ -880,15 +779,11 @@ const resourceLinks = [
 </style>
 
 <script>
-  import { holidayEngine } from '../lib/holiday-engine';
-  import { getOccasion, occasionIdForSource } from '../config/occasions';
-  import { SEASONS } from '../config/seasons';
-
   const html = document.documentElement;
 
   // ------------------------------------------------------------ dropdowns
   const triggers = document.querySelectorAll<HTMLButtonElement>(
-    '.navigation .dropdown-trigger, .navigation .occasion-trigger',
+    '.navigation .dropdown-trigger',
   );
 
   function closeAll(except?: HTMLButtonElement) {
@@ -907,7 +802,7 @@ const resourceLinks = [
   });
 
   document.addEventListener('click', (e) => {
-    if (!(e.target as Element).closest('.has-dropdown, .occasion-menu')) closeAll();
+    if (!(e.target as Element).closest('.has-dropdown')) closeAll();
   });
 
   document.addEventListener('keydown', (e) => {
@@ -920,7 +815,7 @@ const resourceLinks = [
   });
 
   // Close a dropdown when keyboard focus leaves it.
-  document.querySelectorAll('.navigation .has-dropdown, .navigation .occasion-menu').forEach((wrap) => {
+  document.querySelectorAll('.navigation .has-dropdown').forEach((wrap) => {
     wrap.addEventListener('focusout', (e) => {
       const next = (e as FocusEvent).relatedTarget as Node | null;
       if (next && !wrap.contains(next)) {
@@ -1001,132 +896,5 @@ const resourceLinks = [
   themeToggleMobile?.addEventListener('change', () => setDark(themeToggleMobile.checked));
   syncDarkToggles();
 
-  // ------------------------------------------------------- occasion menu
-  // Opt-in holidays that are in season for this visitor (date + locale).
-  const inSeason = Array.from(
-    new Set(
-      holidayEngine
-        .getVisibleThemes()
-        .map((h) => occasionIdForSource(h.id))
-        .filter((id): id is string => Boolean(id)),
-    ),
-  );
-
-  const previewing = Boolean(html.dataset.occasionPreview);
-
-  function savedHoliday(): string {
-    try {
-      return localStorage.getItem('holidayTheme') || 'none';
-    } catch {
-      return 'none';
-    }
-  }
-
-  function renderOccasionState(current: string) {
-    document.querySelectorAll<HTMLButtonElement>('.occasion-option').forEach((b) => {
-      b.setAttribute('aria-pressed', String(b.dataset.occasion === current));
-    });
-    document.querySelectorAll<HTMLSelectElement>('[data-occasion-select]').forEach((s) => {
-      s.value = current;
-    });
-  }
-
-  function applyHoliday(id: string) {
-    inSeason.forEach((h) => html.classList.remove(h));
-    if (id !== 'none') html.classList.add(id);
-    try {
-      localStorage.setItem('holidayTheme', id);
-    } catch {}
-    renderOccasionState(id);
-  }
-
-  if (inSeason.length && !previewing) {
-    document
-      .querySelectorAll<HTMLElement>('[data-occasion-menu], [data-occasion-menu-mobile]')
-      .forEach((m) => (m.hidden = false));
-    const choices = [...inSeason, 'none'];
-
-    document.querySelectorAll<HTMLElement>('[data-occasion-options]').forEach((box) => {
-      box.replaceChildren(
-        ...choices.map((id) => {
-          const o = getOccasion(id);
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'occasion-option';
-          btn.dataset.occasion = id;
-          const dot = document.createElement('span');
-          dot.className = 'occasion-dot';
-          dot.setAttribute('aria-hidden', 'true');
-          dot.style.background = o ? o.fill : 'transparent';
-          btn.append(dot, document.createTextNode(o ? o.name : 'No theme'));
-          btn.addEventListener('click', () => applyHoliday(id));
-          return btn;
-        }),
-      );
-    });
-
-    document.querySelectorAll<HTMLSelectElement>('[data-occasion-select]').forEach((sel) => {
-      sel.replaceChildren(...choices.map((id) => new Option(getOccasion(id)?.name ?? 'No theme', id)));
-      sel.addEventListener('change', () => applyHoliday(sel.value));
-    });
-
-    const saved = savedHoliday();
-    renderOccasionState(choices.includes(saved) ? saved : 'none');
-
-    // Snow is only offered while the winter-snow season is active.
-    const winter = SEASONS.find((s) => s.id === 'winter-snow');
-    const snowSeason = Boolean(winter && holidayEngine.isSeasonActive(winter));
-    document.querySelectorAll<HTMLElement>('[data-snow-row]').forEach((r) => (r.hidden = !snowSeason));
-
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const snowToggles = document.querySelectorAll<HTMLInputElement>('[data-snow-toggle]');
-    const effectsToggles = document.querySelectorAll<HTMLInputElement>('[data-effects-toggle]');
-    const effects = window as unknown as {
-      snowEffect?: { start(): void; stop(): void };
-      newYearEffect?: { stop(): void };
-    };
-
-    let snowOn = false;
-    let effectsOff = false;
-    try {
-      const stored = localStorage.getItem('snowEnabled');
-      snowOn = snowSeason && !reduceMotion && (stored === null ? true : stored === 'true');
-      effectsOff = localStorage.getItem('effectsDisabled') === 'true';
-    } catch {}
-
-    const setSnow = (on: boolean) => {
-      snowOn = on;
-      snowToggles.forEach((t) => (t.checked = on));
-      try {
-        localStorage.setItem('snowEnabled', String(on));
-      } catch {}
-      if (on && !effectsOff) effects.snowEffect?.start();
-      else effects.snowEffect?.stop();
-    };
-
-    const setEffectsOff = (off: boolean) => {
-      effectsOff = off;
-      effectsToggles.forEach((t) => (t.checked = off));
-      try {
-        localStorage.setItem('effectsDisabled', String(off));
-      } catch {}
-      if (off) {
-        effects.snowEffect?.stop();
-        effects.newYearEffect?.stop();
-        document.getElementById('new-year-countdown')?.classList.add('hidden');
-      } else if (snowOn) {
-        effects.snowEffect?.start();
-      }
-    };
-
-    snowToggles.forEach((t) => {
-      t.checked = snowOn;
-      t.addEventListener('change', () => setSnow(t.checked));
-    });
-    effectsToggles.forEach((t) => {
-      t.checked = effectsOff;
-      t.addEventListener('change', () => setEffectsOff(t.checked));
-    });
-    if (snowOn && !effectsOff) setTimeout(() => effects.snowEffect?.start(), 100);
-  }
+  // Occasion controls (desktop menu and drawer) are wired by OccasionMenu.
 </script>

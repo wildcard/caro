@@ -75,7 +75,7 @@
   }
 
   /* White flakes vanish on the beige paper page; use a cool slate there. */
-  html:not(.dark) .snowflake {
+  html:not(.dark):not(.hanukkah) .snowflake {
     color: #8aa4b8;
     text-shadow: 0 0 2px rgba(255, 255, 255, 0.9);
   }
@@ -84,6 +84,12 @@
   .hanukkah .snowflake {
     color: #e6f0ff;
     text-shadow: 0 0 5px rgba(0, 56, 184, 0.6);
+  }
+
+  /* On paper the pale Hanukkah blue disappears too; deepen it. */
+  html:not(.dark).hanukkah .snowflake {
+    color: #5b7fc7;
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.9);
   }
 
   /* Reduce motion for accessibility */

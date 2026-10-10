@@ -49,14 +49,8 @@ const { title, description, slug, persona, painPoint } = Astro.props;
 
   <style is:global>
     /* Alias the tokens.css semantic layer — never re-hardcode the palette. */
+    /* --color-bg, --color-text*, --color-border come from tokens.css. */
     :root {
-      --color-bg: var(--bg);
-      --color-bg-secondary: var(--bg-subtle);
-      --color-bg-tertiary: var(--bg-raised);
-      --color-text: var(--fg);
-      --color-text-secondary: var(--fg-muted);
-      --color-text-tertiary: var(--fg-strong);
-      --color-border: var(--border);
       --color-footer-bg: var(--bg-inverse);
       --color-footer-text: var(--fg-inverse);
       --color-footer-text-muted: var(--caro-grey-300);
@@ -143,6 +137,17 @@ const { title, description, slug, persona, painPoint } = Astro.props;
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
+  <script is:inline>
+    // Skip link: move keyboard focus into <main>, not only the scroll position.
+    document.querySelector('.skip-link').addEventListener('click', function (e) {
+      var main = document.getElementById('main-content') || document.querySelector('main');
+      if (!main) return;
+      e.preventDefault();
+      main.setAttribute('tabindex', '-1');
+      main.focus();
+      history.replaceState(null, '', '#main-content');
+    });
+  </script>
   <HumanityEventBanner />
   <OmniSearch />
   <slot />

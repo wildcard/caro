@@ -1,6 +1,7 @@
 ---
 import { t, type Locale } from '../../i18n/config';
 import GitHubMark from '../icons/GitHubMark.astro';
+import OccasionMenu from '../OccasionMenu.astro';
 
 interface Props {
   lang?: Locale;
@@ -47,10 +48,12 @@ const repo = 'https://github.com/wildcard/caro';
         <GitHubMark size={20} />
       </a>
       <a href="#download" class="nav-cta nav-cta-bar">{t(lang, 'landing.navigation.cta')}</a>
+      <OccasionMenu lang={lang} />
       <button
         id="theme-toggle"
         class="icon-button"
         type="button"
+        aria-pressed="false"
         aria-label={t(lang, 'landing.navigation.darkMode.toggle')}
         title={t(lang, 'landing.navigation.darkMode.toggle')}
       >

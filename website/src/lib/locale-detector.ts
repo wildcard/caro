@@ -223,6 +223,30 @@ function getUserLanguages(): string[] {
 // Country Detection
 // ============================================================================
 
+const KNOWN_CANADIAN_CITIES = [
+  'Toronto',
+  'Vancouver',
+  'Montreal',
+  'Edmonton',
+  'Winnipeg',
+  'Halifax',
+  'St_Johns',
+];
+
+/**
+ * Every timezone that detectCountryFromTimezone maps into `countries`.
+ * Lets the pre-paint occasion script check a locale without this module.
+ */
+export function timezonesForCountries(countries: string[]): string[] {
+  const zones = Object.keys(TIMEZONE_TO_COUNTRY).filter((tz) =>
+    countries.includes(TIMEZONE_TO_COUNTRY[tz])
+  );
+  if (countries.includes('CA')) {
+    for (const city of KNOWN_CANADIAN_CITIES) zones.push(`America/${city}`);
+  }
+  return [...new Set(zones)];
+}
+
 /**
  * Detect country from timezone
  */
@@ -235,17 +259,8 @@ function detectCountryFromTimezone(timezone: string): string | null {
   // Try prefix matching for America/* timezones (fallback to US)
   if (timezone.startsWith('America/')) {
     // Check if it's a known non-US timezone
-    const knownCanadian = [
-      'Toronto',
-      'Vancouver',
-      'Montreal',
-      'Edmonton',
-      'Winnipeg',
-      'Halifax',
-      'St_Johns',
-    ];
     const city = timezone.split('/')[1];
-    if (knownCanadian.includes(city)) {
+    if (KNOWN_CANADIAN_CITIES.includes(city)) {
       return 'CA';
     }
     // Default to US for other America/* timezones

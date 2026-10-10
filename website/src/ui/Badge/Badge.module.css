@@ -30,18 +30,19 @@
 
 /* ============================================
    VARIANT: PRIMARY
-   Orange - brand accent
+   Signal red - brand accent. AA text on paper, white and dark cards:
+   red-700 on an 8% tint is 4.8:1; #ffa3a3 on a 15% tint over grey-800 is 5.4:1.
    ============================================ */
 
 .primary {
-  background: rgba(239, 51, 51, 0.15);
-  color: var(--color-primary-dark);
+  background: rgba(239, 51, 51, 0.08);
+  color: var(--accent-text);
   border: 1px solid rgba(239, 51, 51, 0.3);
 }
 
 :global(.dark) .primary {
-  background: rgba(239, 51, 51, 0.2);
-  color: var(--color-primary);
+  background: rgba(239, 51, 51, 0.15);
+  color: #ffa3a3;
   border-color: rgba(239, 51, 51, 0.4);
 }
 

@@ -88,6 +88,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   31 holiday, national-day and humanity-event looks now come from one
   registry (`website/src/config/occasions.ts`) with solid, contrast-tested
   CTA fills, decorative SVG art and a `?occasion=` preview; see `/occasions`.
+  The homepage navigation now offers the in-season holiday picker too.
+  One-day holiday windows follow the visitor's local calendar day (Yom
+  Ha'atzmaut no longer starts on the evening of Yom HaZikaron west of
+  Greenwich), and a saved national-day theme applies only in that country's
+  timezones.
 
 - **`--explain` output is correct and legible.** The headline no longer reads
   "Use `find` Uses find to …". The option breakdown splits combined flags

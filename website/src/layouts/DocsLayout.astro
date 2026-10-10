@@ -122,7 +122,7 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
           ))}
         </nav>
       </aside>
-      <main id="main-content" class="docs-content">
+      <main id="main-content" class="docs-content" tabindex="-1">
         <article>
           <slot />
         </article>
@@ -136,14 +136,8 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 
 <style is:global>
   /* Alias the tokens.css semantic layer — never re-hardcode the palette. */
+  /* --color-bg*, --color-text* and --color-border come from tokens.css. */
   :root {
-    --color-bg: var(--bg);
-    --color-bg-secondary: var(--bg-subtle);
-    --color-bg-tertiary: var(--bg-raised);
-    --color-text: var(--fg);
-    --color-text-secondary: var(--fg-muted);
-    --color-text-tertiary: var(--fg-strong);
-    --color-border: var(--border);
     --color-accent: var(--accent-text); /* used as text (active links, headings) */
     --color-accent-light: var(--accent-hover);
     --color-code-bg: var(--bg-subtle);

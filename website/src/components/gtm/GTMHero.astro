@@ -333,9 +333,11 @@
       flex-direction: column;
       gap: 16px;
     }
+  }
 
-    /* On narrow screens the glow orbs sit behind the badge and trust copy
-       and pull it below AA, so drop them. */
+  /* Up to tablet width the glow orbs sit behind the badge and trust copy
+     and pull it below AA, so drop them. */
+  @media (max-width: 1100px) {
     .orb {
       display: none;
     }

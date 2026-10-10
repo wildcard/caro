@@ -114,24 +114,18 @@
 
 /* ============================================
    VARIANT: BRAND
-   Orange background
+   Solid CTA fill: white icon at 5:1 in both modes
    ============================================ */
 
 .brand {
-  background: var(--color-primary, var(--accent));
-  border-color: var(--color-primary-dark, var(--accent-hover));
-  color: white;
+  background: var(--accent-fill);
+  border-color: var(--accent-fill-hover);
+  color: var(--on-accent);
 }
 
 .brand:hover:not(:disabled) {
-  background: var(--color-primary-dark, var(--accent-hover));
-  border-color: var(--color-primary-dark, var(--accent-hover));
-}
-
-:global(.dark) .brand {
-  background: var(--color-primary, var(--accent));
-  border-color: var(--color-primary-dark, var(--accent-hover));
-  color: white;
+  background: var(--accent-fill-hover);
+  border-color: var(--accent-fill-hover);
 }
 
 /* ============================================
@@ -141,7 +135,7 @@
 .active {
   background: rgba(239, 51, 51, 0.15);
   border-color: var(--color-primary, var(--accent));
-  color: var(--color-primary, var(--accent));
+  color: var(--accent-text);
 }
 
 :global(.dark) .active {

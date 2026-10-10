@@ -6,21 +6,23 @@
  * Source of truth: src/config/occasions.ts.
  */
 import { OCCASION_IDS } from '../config/occasions';
-import { buildOccasionCss, holidayWindows } from '../lib/occasion-css';
+import { buildOccasionCss, holidayTimezones, holidayWindows } from '../lib/occasion-css';
 
 // Computed once at build.
 const occasionCss = buildOccasionCss();
 const occasionIds = OCCASION_IDS;
 const windows = holidayWindows();
+const zones = holidayTimezones();
 ---
 
-<script is:inline define:vars={{ occasionIds, windows }}>
+<script is:inline define:vars={{ occasionIds, windows, zones }}>
   // Occasion initialization (before render to prevent flash).
   // 1. ?occasion=<id> previews any occasion for this page view only
   //    (works on every host; nothing is stored). ?theme=dark|light
   //    previews a color mode the same way.
   // 2. Otherwise apply the holiday the visitor opted into, but only
   //    while that holiday's date window is open. Holidays are opt-in.
+  //    A national day also needs the visitor's timezone in its country.
   // Humanity events add their own class from HumanityEventBanner.
   (function () {
     var html = document.documentElement;
@@ -39,6 +41,11 @@ const windows = holidayWindows();
     var saved = null;
     try { saved = localStorage.getItem('holidayTheme'); } catch (e) {}
     if (!saved || saved === 'none' || !windows[saved]) return;
+    if (zones[saved]) {
+      var tz = '';
+      try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
+      if (zones[saved].indexOf(tz) === -1) return;
+    }
     var now = window.__CARO_TEST_DATE ? new Date(window.__CARO_TEST_DATE) : new Date();
     var today = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
     var open = windows[saved].some(function (w) { return today >= w[0] && today <= w[1]; });

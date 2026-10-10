@@ -1159,9 +1159,14 @@ const blockedPatterns = [
   }
 
   .cta-button:focus-visible,
-  .job-card:focus-visible,
-  .copy-btn:focus-visible {
+  .job-card:focus-visible {
     outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Copy buttons sit on the console surface, where red is under 3:1. */
+  .copy-btn:focus-visible {
+    outline: 2px solid var(--highlight);
     outline-offset: 2px;
   }
 

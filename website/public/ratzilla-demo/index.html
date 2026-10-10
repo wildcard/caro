@@ -29,6 +29,10 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
             align-items: center;
             justify-content: center;
         }
+        /* main is the flex item now; give it the width #ratzilla used to get from body. */
+        main {
+            width: min(100%, 900px);
+        }
         #ratzilla {
             width: 100%;
             max-width: 900px;

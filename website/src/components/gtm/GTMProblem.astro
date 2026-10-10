@@ -105,12 +105,15 @@
     transform: translateY(-4px);
   }
 
+  /* Severity as a full border, not a left stripe (brand card spec). Both
+     borders are at least 3:1 on the card in light and dark mode; yellow on
+     paper was 1.04:1. */
   .problem-card.danger {
-    border-left: 4px solid var(--accent);
+    border-color: var(--accent);
   }
 
   .problem-card.warning {
-    border-left: 4px solid var(--highlight);
+    border-color: var(--fg-muted);
   }
 
   .problem-icon {

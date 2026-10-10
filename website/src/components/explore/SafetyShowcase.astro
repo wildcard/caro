@@ -347,9 +347,10 @@ const validationFlow = [
   }
 
   /* Risk scale follows the CLI palette (--status-*): critical is the solid
-     red fill, high is the red tint. Labels use AA text tokens. */
+     red fill, high is the red tint. Labels use AA text tokens. Danger stays
+     red-700 (white 5.9:1) in every occasion; --accent-fill follows them. */
   .risk-critical {
-    background: var(--accent-fill);
+    background: var(--caro-red-700);
     color: var(--on-accent);
   }
 

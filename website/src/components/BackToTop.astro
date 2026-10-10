@@ -115,6 +115,10 @@
     // Get buttons and mute state
     const button = document.getElementById('back-to-top');
     const muteToggle = document.getElementById('mute-toggle');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Reduced motion: the button jumps instantly, so there is no ride to play
+    // music for. Remove the music toggle rather than show a dead control.
+    if (reduceMotion) muteToggle?.remove();
 
     // Check localStorage for mute preference (default: unmuted)
     let isMuted = localStorage.getItem('elevatorMuted') === 'true';
@@ -133,7 +137,6 @@
     let currentAudio: HTMLAudioElement | null = null;
 
     // Reduced motion: jump to the top instead of the 3-second elevator ride.
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) {
       button?.addEventListener('click', () => window.scrollTo({ top: 0 }));
     } else {

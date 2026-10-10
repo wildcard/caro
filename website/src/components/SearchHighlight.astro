@@ -127,14 +127,17 @@
   }
 
   /* Highlight styles for matched text */
+  /* Highlighter marks carry their own ink, so text stays AA in both modes
+     (grey-900 on the 55% tint is 5:1 over dark paper, 13:1 over beige). */
   .search-match {
-    background: rgba(255, 200, 0, 0.4);
+    background: color-mix(in srgb, var(--highlight) 55%, transparent);
+    color: var(--caro-grey-900);
     border-radius: 2px;
     scroll-margin-top: 100px;
   }
 
   .search-match.current {
-    background: rgba(239, 51, 51, 0.6);
+    background: var(--highlight);
     outline: 2px solid var(--accent);
     outline-offset: 1px;
   }
@@ -144,14 +147,6 @@
     background: var(--color-bg, #4f4f4f);
     border-color: var(--color-border, #444);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-  }
-
-  .dark .search-match {
-    background: rgba(255, 200, 0, 0.3);
-  }
-
-  .dark .search-match.current {
-    background: rgba(239, 51, 51, 0.5);
   }
 
   @media (max-width: 600px) {

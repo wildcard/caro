@@ -106,7 +106,7 @@ export const searchMeta = {
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="eza example commands"><code># List with icons and git status
+              <pre tabindex="0" role="group" aria-label="eza example commands"><code># List with icons and git status
 eza -la --icons --git
 
 # Tree view with git ignore
@@ -142,7 +142,7 @@ eza -lh --header</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="fd example commands"><code># Find files by pattern
+              <pre tabindex="0" role="group" aria-label="fd example commands"><code># Find files by pattern
 fd "\.rs$"
 
 # Find and execute
@@ -177,7 +177,7 @@ fd -H config</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="zoxide example commands"><code># Jump to best match
+              <pre tabindex="0" role="group" aria-label="zoxide example commands"><code># Jump to best match
 z projects
 
 # Interactive selection
@@ -212,7 +212,7 @@ eval "$(zoxide init zsh)"</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="broot example commands"><code># Launch interactive tree
+              <pre tabindex="0" role="group" aria-label="broot example commands"><code># Launch interactive tree
 br
 
 # Show sizes
@@ -247,7 +247,7 @@ br -f pattern</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="dust example commands"><code># Analyze current directory
+              <pre tabindex="0" role="group" aria-label="dust example commands"><code># Analyze current directory
 dust
 
 # Limit depth
@@ -282,7 +282,7 @@ dust -r</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="lsd example commands"><code># List with all features
+              <pre tabindex="0" role="group" aria-label="lsd example commands"><code># List with all features
 lsd -la
 
 # Tree view
@@ -331,7 +331,7 @@ lsd -lS</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="ripgrep (rg) example commands"><code># Search recursively
+              <pre tabindex="0" role="group" aria-label="ripgrep (rg) example commands"><code># Search recursively
 rg "pattern"
 
 # Search specific file types
@@ -367,7 +367,7 @@ rg -C 3 "TODO"</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="bat example commands"><code># View with syntax highlighting
+              <pre tabindex="0" role="group" aria-label="bat example commands"><code># View with syntax highlighting
 bat file.rs
 
 # Show line numbers only
@@ -402,7 +402,7 @@ bat -p file.json</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="sd example commands"><code># Simple replacement
+              <pre tabindex="0" role="group" aria-label="sd example commands"><code># Simple replacement
 sd 'before' 'after' file.txt
 
 # Regex capture groups
@@ -438,7 +438,7 @@ sd -i 'old' 'new' *.md</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="fzf example commands"><code># Fuzzy find files
+              <pre tabindex="0" role="group" aria-label="fzf example commands"><code># Fuzzy find files
 fzf
 
 # With preview
@@ -473,7 +473,7 @@ fzf --preview 'bat --color=always {}'
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="jq example commands"><code># Pretty print JSON
+              <pre tabindex="0" role="group" aria-label="jq example commands"><code># Pretty print JSON
 cat data.json | jq '.'
 
 # Extract field
@@ -508,7 +508,7 @@ jq '.[] | select(.active)' users.json</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="hexyl example commands"><code># View binary file
+              <pre tabindex="0" role="group" aria-label="hexyl example commands"><code># View binary file
 hexyl binary.exe
 
 # Limit bytes shown
@@ -557,7 +557,7 @@ hexyl --skip 512 file.dat</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="bottom (btm) example commands"><code># Launch bottom
+              <pre tabindex="0" role="group" aria-label="bottom (btm) example commands"><code># Launch bottom
 btm
 
 # Basic mode
@@ -592,7 +592,7 @@ btm --config ~/.config/bottom/bottom.toml</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="procs example commands"><code># List all processes
+              <pre tabindex="0" role="group" aria-label="procs example commands"><code># List all processes
 procs
 
 # Tree view
@@ -627,7 +627,7 @@ procs --watch</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="bandwhich example commands"><code># Monitor bandwidth (needs sudo)
+              <pre tabindex="0" role="group" aria-label="bandwhich example commands"><code># Monitor bandwidth (needs sudo)
 sudo bandwhich
 
 # Show raw mode
@@ -659,7 +659,7 @@ sudo bandwhich --raw</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="hyperfine example commands"><code># Benchmark a command
+              <pre tabindex="0" role="group" aria-label="hyperfine example commands"><code># Benchmark a command
 hyperfine 'rg pattern'
 
 # Compare commands
@@ -694,7 +694,7 @@ hyperfine --warmup 3 'cargo build'</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="tokei example commands"><code># Count lines in current dir
+              <pre tabindex="0" role="group" aria-label="tokei example commands"><code># Count lines in current dir
 tokei
 
 # Specific directory
@@ -743,7 +743,7 @@ tokei --exclude node_modules</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="delta example commands"><code># Configure as git pager
+              <pre tabindex="0" role="group" aria-label="delta example commands"><code># Configure as git pager
 [core]
     pager = delta
 
@@ -780,7 +780,7 @@ diff file1 file2 | delta</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="lazygit example commands"><code># Launch lazygit
+              <pre tabindex="0" role="group" aria-label="lazygit example commands"><code># Launch lazygit
 lazygit
 
 # In a specific repo
@@ -815,7 +815,7 @@ lazygit -ucf ~/.config/lazygit/config.yml</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="gitui example commands"><code># Launch gitui
+              <pre tabindex="0" role="group" aria-label="gitui example commands"><code># Launch gitui
 gitui
 
 # With custom key bindings
@@ -848,7 +848,7 @@ gitui -t ~/.config/gitui/theme.ron</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="gh example commands"><code># Create a PR
+              <pre tabindex="0" role="group" aria-label="gh example commands"><code># Create a PR
 gh pr create
 
 # View PR status
@@ -883,7 +883,7 @@ gh repo clone owner/repo</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="difftastic example commands"><code># Compare files
+              <pre tabindex="0" role="group" aria-label="difftastic example commands"><code># Compare files
 difft old.rs new.rs
 
 # Use as git diff
@@ -932,7 +932,7 @@ difft --display side-by-side old.py new.py</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="Starship example commands"><code># Add to .zshrc
+              <pre tabindex="0" role="group" aria-label="Starship example commands"><code># Add to .zshrc
 eval "$(starship init zsh)"
 
 # Add to .bashrc
@@ -968,7 +968,7 @@ symbol = "🌿 "</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="Nushell example commands"><code># List files as table
+              <pre tabindex="0" role="group" aria-label="Nushell example commands"><code># List files as table
 ls | where size > 1mb
 
 # Parse JSON directly
@@ -1003,7 +1003,7 @@ sys | get host.name</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="Zellij example commands"><code># Start zellij
+              <pre tabindex="0" role="group" aria-label="Zellij example commands"><code># Start zellij
 zellij
 
 # With layout
@@ -1038,7 +1038,7 @@ zellij attach my-session</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="Atuin example commands"><code># Search history
+              <pre tabindex="0" role="group" aria-label="Atuin example commands"><code># Search history
 atuin search docker
 
 # Interactive history (Ctrl+R)
@@ -1086,7 +1086,7 @@ atuin stats</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="tldr example commands"><code># Quick help for tar
+              <pre tabindex="0" role="group" aria-label="tldr example commands"><code># Quick help for tar
 tldr tar
 
 # Update local cache
@@ -1121,7 +1121,7 @@ tldr --list</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="just example commands"><code># justfile
+              <pre tabindex="0" role="group" aria-label="just example commands"><code># justfile
 build:
     cargo build --release
 
@@ -1157,7 +1157,7 @@ deploy: build test
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="xh example commands"><code># GET request
+              <pre tabindex="0" role="group" aria-label="xh example commands"><code># GET request
 xh httpbin.org/get
 
 # POST JSON
@@ -1192,7 +1192,7 @@ xh GET api.example.com Authorization:token</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="yazi example commands"><code># Launch yazi
+              <pre tabindex="0" role="group" aria-label="yazi example commands"><code># Launch yazi
 yazi
 
 # Start in directory
@@ -1240,7 +1240,7 @@ yazi --config ~/.config/yazi</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="dog example commands"><code># Query A records
+              <pre tabindex="0" role="group" aria-label="dog example commands"><code># Query A records
 dog example.com
 
 # Query MX records
@@ -1275,7 +1275,7 @@ dog example.com --https @cloudflare</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="gping example commands"><code># Ping with graph
+              <pre tabindex="0" role="group" aria-label="gping example commands"><code># Ping with graph
 gping google.com
 
 # Multiple hosts
@@ -1310,7 +1310,7 @@ gping -n 0.5 8.8.8.8</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre tabindex="0" role="region" aria-label="miniserve example commands"><code># Serve current directory
+              <pre tabindex="0" role="group" aria-label="miniserve example commands"><code># Serve current directory
 miniserve .
 
 # With upload support
@@ -1341,11 +1341,11 @@ miniserve --qrcode .</code></pre>
             <button type="button" class="install-tab" data-target="cargo" aria-controls="cargo" aria-pressed="false">Cargo</button>
           </div>
           <div class="install-content" id="macos">
-            <pre tabindex="0" role="region" aria-label="Install with Homebrew"><code># Install via Homebrew
+            <pre tabindex="0" role="group" aria-label="Install with Homebrew"><code># Install via Homebrew
 brew install eza bat ripgrep fd dust bottom sd git-delta fzf zoxide starship</code></pre>
           </div>
           <div class="install-content hidden" id="cargo">
-            <pre tabindex="0" role="region" aria-label="Install with Cargo"><code># Install via Cargo (requires Rust)
+            <pre tabindex="0" role="group" aria-label="Install with Cargo"><code># Install via Cargo (requires Rust)
 cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starship</code></pre>
           </div>
         </div>
