@@ -158,10 +158,12 @@ const { lang = 'en', demoHref = '#scenarios' } = Astro.props;
     box-shadow: var(--shadow-lg);
   }
 
+  /* Follows the active occasion (its ink is tested ≥ 4.5:1 in both modes)
+     so the outline button never clashes with a recoloured primary. */
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid var(--accent);
-    color: var(--accent-text);
+    border: 2px solid var(--occasion-ink, var(--accent));
+    color: var(--occasion-ink, var(--accent-text));
   }
 
   .cta-button.secondary:hover {

@@ -82,8 +82,9 @@ ${any} body::before{content:"";display:block;height:4px;background:var(--occasio
 /* Hero art: decorative side panels behind the hero content. */
 ${any} ${art}{position:relative;isolation:isolate;}
 ${any} ${art}::before,${any} ${art}::after{
-  content:"";position:absolute;top:0;bottom:0;width:min(22vw,300px);z-index:-1;pointer-events:none;
-  background-repeat:no-repeat;background-size:contain;opacity:.9;
+  content:"";position:absolute;top:0;bottom:0;z-index:-1;pointer-events:none;
+  width:min(22vw,300px,calc((100vw - 900px) / 2));
+  background-repeat:no-repeat;background-size:contain;
   animation:occasion-float 14s ease-in-out infinite alternate;}
 ${any} ${art}::before{left:0;background-image:var(--occasion-art-l);background-position:left center;
   -webkit-mask-image:linear-gradient(to right,#000 55%,transparent);mask-image:linear-gradient(to right,#000 55%,transparent);}
@@ -91,7 +92,7 @@ ${any} ${art}::after{right:0;background-image:var(--occasion-art-r);background-p
   -webkit-mask-image:linear-gradient(to left,#000 55%,transparent);mask-image:linear-gradient(to left,#000 55%,transparent);
   animation-delay:-7s;}
 html.dark:is(${OCCASIONS.map((o) => '.' + o.id).join(',')}) ${art}::before,
-html.dark:is(${OCCASIONS.map((o) => '.' + o.id).join(',')}) ${art}::after{opacity:.7;}
+html.dark:is(${OCCASIONS.map((o) => '.' + o.id).join(',')}) ${art}::after{filter:brightness(1.6) saturate(1.1);}
 @media (max-width:1100px){
   ${any} ${art}::before{top:0;bottom:auto;left:0;right:0;width:auto;height:72px;
     background-image:var(--occasion-art-band);background-size:auto 100%;background-position:center top;

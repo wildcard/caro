@@ -2,6 +2,9 @@
 import '../ui/tokens.css';
 import Analytics from '@vercel/analytics/astro';
 import GitHubMark from '../components/icons/GitHubMark.astro';
+import OccasionHead from '../components/OccasionHead.astro';
+import OccasionPreviewBar from '../components/OccasionPreviewBar.astro';
+import HumanityEventBanner from '../components/HumanityEventBanner.astro';
 import { KavanaCompanion } from '../ui/KavanaCompanion/KavanaCompanion';
 
 interface Props {
@@ -69,9 +72,11 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
         document.documentElement.classList.remove('dark');
       }
     </script>
+    <OccasionHead />
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
+    <HumanityEventBanner />
     <nav class="docs-nav" aria-label="Docs">
       <div class="nav-container">
         <a href="/" class="logo">
@@ -123,6 +128,7 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
         </article>
       </main>
     </div>
+    <OccasionPreviewBar />
     <KavanaCompanion client:load />
     <Analytics />
   </body>

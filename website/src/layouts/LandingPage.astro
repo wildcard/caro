@@ -4,6 +4,9 @@
 
 import '../ui/tokens.css';
 import OmniSearch from '../components/OmniSearch.astro';
+import OccasionHead from '../components/OccasionHead.astro';
+import OccasionPreviewBar from '../components/OccasionPreviewBar.astro';
+import HumanityEventBanner from '../components/HumanityEventBanner.astro';
 import SearchHighlight from '../components/SearchHighlight.astro';
 
 interface Props {
@@ -127,14 +130,7 @@ const { title, description, slug, persona, painPoint } = Astro.props;
       margin-bottom: 40px;
     }
   </style>
-</head>
-<body>
-  <a class="skip-link" href="#main-content">Skip to main content</a>
-  <OmniSearch />
-  <slot />
-  <SearchHighlight />
-
-  <!-- Theme initialization (prevent flash) -->
+  <!-- Theme initialization in <head> so dark-mode visitors see no light flash. -->
   <script is:inline>
     (function() {
       const savedTheme = localStorage.getItem('theme');
@@ -143,5 +139,14 @@ const { title, description, slug, persona, painPoint } = Astro.props;
       }
     })();
   </script>
+  <OccasionHead />
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <HumanityEventBanner />
+  <OmniSearch />
+  <slot />
+  <SearchHighlight />
+  <OccasionPreviewBar />
 </body>
 </html>

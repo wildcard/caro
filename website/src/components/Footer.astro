@@ -289,9 +289,11 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     justify-content: center;
   }
 
+  /* The mark inherits currentColor; the card is paper, so use dark ink. */
   .kyaro-emoji {
     font-size: 32px;
     line-height: 1;
+    color: var(--fg-strong);
   }
 
   .kyaro-info {

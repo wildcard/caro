@@ -59,7 +59,7 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
 </aside>
 
 <script>
-  import { getActiveEvents, getEventThemeClasses } from '../utils/humanity-events';
+  import { getActiveEvents } from '../utils/humanity-events';
   import { HUMANITY_EVENTS } from '../data/humanity-events';
   import { getOccasion, occasionIdForSource } from '../config/occasions';
 
@@ -153,11 +153,15 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
       });
     }
 
-    private applyThemeClasses(checkDate: Date): void {
-      const themeClasses = getEventThemeClasses(checkDate);
-      for (const className of themeClasses) {
-        document.documentElement.classList.add(className);
-      }
+    // One occasion at a time: the site wears the look of the event whose
+    // banner it shows, and only if that event has a full theme. Adding every
+    // active themed event's class put e.g. a green Mental Health Day banner
+    // over Hispanic Heritage Month CTAs and art.
+    private applyThemeClasses(_checkDate: Date): void {
+      const event = this.currentEvent;
+      if (!event?.hasFullTheme) return;
+      const occasion = occasionIdForSource(event.id);
+      if (occasion) document.documentElement.classList.add(occasion);
     }
 
     private show(event: NonNullable<typeof this.currentEvent>): void {

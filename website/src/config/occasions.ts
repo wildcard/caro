@@ -134,7 +134,7 @@ export const OCCASIONS: Occasion[] = [
   {
     id: 'german-unity', name: 'German Unity Day', kind: 'national', sources: ['german-unity'],
     fill: '#c00000', motif: 'fireworks',
-    colors: ['#2b2b2b', '#dd0000', '#ffcc00'],
+    colors: ['#4f4f4f', '#dd0000', '#ffcc00'],
     ribbon: ['#2b2b2b', '#dd0000', '#ffcc00'], sampleDate: '2027-10-03',
   },
   {
@@ -146,7 +146,7 @@ export const OCCASIONS: Occasion[] = [
   {
     id: 'uae-national-day', name: 'UAE National Day', kind: 'national', sources: ['uae-national-day'],
     fill: '#00732f', motif: 'fireworks',
-    colors: ['#00732f', '#ff0000', '#2b2b2b'],
+    colors: ['#00732f', '#ff0000', '#4f4f4f'],
     ribbon: ['#ff0000', '#00732f', '#f4f1df', '#2b2b2b'], sampleDate: '2026-12-02',
   },
   {

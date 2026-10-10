@@ -14,8 +14,7 @@ import SEO from '../components/SEO.astro';
 import { KavanaCompanion } from '../ui/KavanaCompanion/KavanaCompanion';
 import OccasionPreviewBar from '../components/OccasionPreviewBar.astro';
 import { isRtl, getAllLocales, t, type Locale } from '../i18n/config';
-import { OCCASION_IDS } from '../config/occasions';
-import { buildOccasionCss, holidayWindows } from '../lib/occasion-css';
+import OccasionHead from '../components/OccasionHead.astro';
 
 interface Props {
   title: string;
@@ -47,10 +46,6 @@ const {
   canonical,
 } = Astro.props;
 const dir = isRtl(lang) ? 'rtl' : 'ltr';
-// Occasion costume CSS + opt-in holiday windows, computed once at build.
-const occasionCss = buildOccasionCss();
-const occasionIds = OCCASION_IDS;
-const windows = holidayWindows();
 ---
 
 <!doctype html>
@@ -152,38 +147,7 @@ const windows = holidayWindows();
         }
       })();
     </script>
-    <script is:inline define:vars={{ occasionIds, windows }}>
-      // Occasion initialization (before render to prevent flash).
-      // 1. ?occasion=<id> previews any occasion for this page view only
-      //    (works on every host; nothing is stored). ?theme=dark|light
-      //    previews a color mode the same way.
-      // 2. Otherwise apply the holiday the visitor opted into, but only
-      //    while that holiday's date window is open. Holidays are opt-in.
-      // Humanity events add their own class from HumanityEventBanner.
-      (function () {
-        var html = document.documentElement;
-        var params = new URLSearchParams(window.location.search);
-        var mode = params.get('theme');
-        if (mode === 'dark' || mode === 'light') {
-          html.classList.toggle('dark', mode === 'dark');
-          html.dataset.themePreview = mode;
-        }
-        var preview = params.get('occasion');
-        if (preview && occasionIds.indexOf(preview) !== -1) {
-          html.classList.add(preview);
-          html.dataset.occasionPreview = preview;
-          return;
-        }
-        var saved = null;
-        try { saved = localStorage.getItem('holidayTheme'); } catch (e) {}
-        if (!saved || saved === 'none' || !windows[saved]) return;
-        var now = window.__CARO_TEST_DATE ? new Date(window.__CARO_TEST_DATE) : new Date();
-        var today = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
-        var open = windows[saved].some(function (w) { return today >= w[0] && today <= w[1]; });
-        if (open) html.classList.add(saved);
-      })();
-    </script>
-    <style is:inline set:html={occasionCss}></style>
+    <OccasionHead />
   </head>
   <body>
     <a class="skip-link" href="#main-content">{t(lang, 'landing.navigation.skipToContent')}</a>
