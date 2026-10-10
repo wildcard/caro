@@ -194,14 +194,18 @@ pub static QWEN_0_5B_Q4: ModelInfo = ModelInfo {
     ci_suitable: true,
 };
 
-/// SmolLM 135M Q4_K_M - Ultra-tiny for fastest tests (~80MB)
+/// SmolLM 135M Q8_0 - Ultra-tiny for fastest tests (~145MB)
 /// Best for: Unit tests, extreme resource constraints
+///
+/// The id keeps its `-q4` suffix so `CARO_MODEL=smollm-135m-q4` keeps working.
+/// The Q4_K_M repo it used to point at is gone from Hugging Face (#1341), so
+/// this is the Q8_0 build that `bundle.yml` already ships (Apache-2.0).
 pub static SMOLLM_135M_Q4: ModelInfo = ModelInfo {
     id: "smollm-135m-q4",
-    name: "SmolLM 135M Q4",
-    hf_repo: "HuggingFaceTB/SmolLM-135M-Instruct-GGUF",
-    filename: "smollm-135m-instruct-q4_k_m.gguf",
-    size_mb: 82,
+    name: "SmolLM 135M Q8",
+    hf_repo: "HuggingFaceTB/smollm-135M-instruct-v0.2-Q8_0-GGUF",
+    filename: "smollm-135m-instruct-add-basics-q8_0.gguf",
+    size_mb: 145,
     size_category: ModelSize::Tiny,
     description: "Ultra-tiny model for testing only",
     mlx_optimized: false,
