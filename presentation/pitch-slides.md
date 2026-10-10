@@ -2,6 +2,7 @@
 theme: seriph
 background: https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2574
 title: 'Caro: Your AI Shell Companion'
+favicon: /favicon.svg
 info: |
   ## Caro Investor Pitch Deck
 

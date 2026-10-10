@@ -303,6 +303,14 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** no
 **Next step:** delete this entry a week after #1517 merges.
 
+### BW-041: `apps/devrel` (cmdai) does not build on main
+
+**Found:** 2026-10-10 (while verifying favicons on every site)
+**Issue:** #1562. `next build` fails the type check (`Redaction` not exported from `@/types/privacy`). `next dev` returns 500: `@import "tailwindcss"` (line 1 of `app/globals.css`) expands into rules, so the Google Fonts `@import url(...)` on line 2 lands after rules in the generated CSS.
+**Status:** open
+**Needs human?:** no
+**Next step:** fix the `Redaction` import; put the Google Fonts `@import` before `@import "tailwindcss"` (or load the font with `next/font`).
+
 ---
 
 ## Dedup done (2026-10-09)
