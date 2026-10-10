@@ -198,12 +198,19 @@ const BOOTSTRAP_SEED: u64 = 0x1510_C0DE_5EED;
 /// generation [`CalibrationRollup`] measures a different decision.
 ///
 /// Computed over results carrying both verdicts. Intervals are 95 %
-/// percentile bootstrap CIs over [`BOOTSTRAP_RESAMPLES`] resamples; with one
-/// row they collapse to the point estimate, so `n` is reported alongside.
+/// percentile bootstrap CIs over [`BOOTSTRAP_RESAMPLES`] resamples. At small
+/// `n`, or when the labelled rows repeat the same (confidence, outcome),
+/// the percentile bootstrap under-covers and can collapse to the point
+/// estimate (one row, or two identical rows, print `[x, x]`), so `n` and
+/// `coverage` are reported alongside and the intervals are only read as a
+/// 95 % range once `n` is in the tens.
 #[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct RiskGateCalibration {
     /// Rows with a local verdict, a reference verdict and a finite confidence.
     pub n: u32,
+    /// `n` as a fraction (0.0..=1.0) of all results for the backend, the
+    /// same denominator as [`CalibrationRollup::coverage`].
+    pub coverage: f32,
     /// Brier score of the local verdict's confidence against agreement.
     pub brier: f32,
     /// 95 % bootstrap interval for `brier` as `(low, high)`.
@@ -219,8 +226,10 @@ pub struct RiskGateCalibration {
 pub fn risk_gate_calibration<'a>(
     results: impl IntoIterator<Item = &'a EvaluationResult>,
 ) -> Option<RiskGateCalibration> {
+    let mut total = 0usize;
     let pairs: Vec<(f64, bool)> = results
         .into_iter()
+        .inspect(|_| total += 1)
         .filter_map(|r| {
             let agree = r.risk_agreement()?;
             let c = r.local_risk.as_ref()?.confidence;
@@ -233,6 +242,7 @@ pub fn risk_gate_calibration<'a>(
     let (e_lo, e_hi) = bootstrap_ci(&pairs, |p| ece_of(p, ECE_BINS).unwrap_or(0.0));
     Some(RiskGateCalibration {
         n: pairs.len() as u32,
+        coverage: pairs.len() as f32 / total as f32,
         brier: brier as f32,
         brier_ci: (b_lo as f32, b_hi as f32),
         ece: ece as f32,
@@ -373,6 +383,10 @@ mod tests {
 
         let cal = risk_gate_calibration(rows.iter()).unwrap();
         assert_eq!(cal.n, 3);
+        assert!(
+            (cal.coverage - 0.75).abs() < 1e-6,
+            "3 of 4 rows carry both verdicts"
+        );
         // ((0.1)^2 + (0.1)^2 + (0.8)^2) / 3
         assert!((cal.brier - 0.22).abs() < 1e-6, "brier {}", cal.brier);
         // bin 0.9: |0.9 - 1.0| * 2/3; bin 0.8: |0.8 - 0.0| * 1/3

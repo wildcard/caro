@@ -506,7 +506,7 @@ fn output_table(
         gated.sort_by_key(|(name, _)| *name);
         for (backend_name, g) in gated {
             println!(
-                "  {}: risk-gate ECE {:.3} [{:.3}, {:.3}], Brier {:.3} [{:.3}, {:.3}], n={}",
+                "  {}: risk-gate ECE {:.3} [{:.3}, {:.3}], Brier {:.3} [{:.3}, {:.3}], n={} ({:.0}% of run)",
                 backend_name,
                 g.ece,
                 g.ece_ci.0,
@@ -514,7 +514,8 @@ fn output_table(
                 g.brier,
                 g.brier_ci.0,
                 g.brier_ci.1,
-                g.n
+                g.n,
+                g.coverage * 100.0
             );
         }
         println!();

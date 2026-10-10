@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   When a backend's own risk judge and the reference labeller both run,
   `BackendResult.risk_gate` carries the Brier score and ECE of the local
   verdict's confidence scored against agreement with the reference, with
-  95% bootstrap confidence intervals and the row count; the evaluation
+  95% bootstrap confidence intervals, the row count and its share of the
+  run; the evaluation
   report prints one line per measured backend under the Pareto view. This
   is the number ADR-018's gate classifier has to beat; the existing
   `brier`/`ece` fields stay a command-generation metric.

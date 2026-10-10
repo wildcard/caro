@@ -1211,7 +1211,7 @@ mod tests {
         // Risk-gate baseline (#1510): confidence 0.9 scored against agreement.
         let gate = |name: &str| report.backend_results[name].risk_gate;
         let agrees = gate("agrees").expect("both verdicts present");
-        assert_eq!(agrees.n, 2);
+        assert_eq!((agrees.n, agrees.coverage), (2, 1.0));
         assert!(
             (agrees.brier - 0.01).abs() < 1e-6,
             "0.9 confident, always right"
