@@ -1,0 +1,18 @@
+{
+  "waitlist": {
+    "badge": "COMING SOON",
+    "title": "Org Visibility for Teams",
+    "description": "See what commands your team runs. Audit shell activity across your organization. Identify training opportunities and security risks—without invading privacy.",
+    "features": {
+      "analytics": "Aggregated command analytics (no individual tracking)",
+      "detection": "Pattern detection for dangerous command attempts",
+      "selfHosted": "Self-hosted dashboard—your data never leaves your network"
+    },
+    "form": {
+      "emailLabel": "Work email",
+      "emailPlaceholder": "Enter your work email",
+      "cta": "Get Early Access"
+    },
+    "formNote": "Join 200+ engineering leaders on the waitlist. No spam, just launch updates."
+  }
+}
