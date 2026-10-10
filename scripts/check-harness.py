@@ -6,14 +6,16 @@ Adapted from tigerless-labs/autoharness (MIT). There, a model may only
 one spec before anything lands, and tests pin the agents' contracts
 (least-privilege tools, hooks wired to files that exist). Caro's harness is
 hand-written by many parallel sessions, so the same checks run in CI instead.
-Agent tool allowlists are left to #1534's Rust contract test
+Agent tool allowlists are left to the Rust contract test that #1534 adds
 (tests/agent_tools_contract.rs), so this script does not duplicate it.
 Rationale: docs/adr/ADR-018-autoharness-harness-hygiene.md
 
 Levels:
   error   fails the run: a broken registry entry, or drift in a file that is
-          loaded into every session (CLAUDE.md, .claude/rules/).
-  warn    legacy drift in on-demand files (skills, agents, commands). The count
+          loaded into every session (CLAUDE.md, and .claude/rules/ files
+          without `paths:` frontmatter).
+  warn    legacy drift in on-demand files (skills, agents, commands, and rules
+          scoped with `paths:`, which load only for matching files). The count
           must equal the budget in scripts/harness-budget.json (or
           --max-warnings), a ratchet: the PR that fixes a warning lowers the
           budget, so the slack can never be spent again.

@@ -134,8 +134,8 @@ mechanisms additively, in phases:
 ### Trade-offs
 
 - One more CI job (about 10 seconds, stdlib Python and no dependencies).
-- A PR that fixes a warning must also lower `--max-warnings` (CI says so and
-  fails until it does).
+- A PR that fixes a warning must also lower `max_warnings` in
+  `scripts/harness-budget.json` (CI says so and fails until it does).
 - The checks are regex heuristics. A support directory occasionally needs an
   entry in `SUPPORT_DIRS`, with a stated reason.
 
