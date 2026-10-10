@@ -295,7 +295,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** yes if the fix is to delete the job (CI gate); no for a root-cause fix.
 **Next step:** read the failing step's log and root-cause it.
 
-### BW-020: static matcher "Find Python files (simple)" swallows content searches
+### BW-040: static matcher "Find Python files (simple)" swallows content searches
 
 **Found:** 2026-10-03 (while fixing "search for TODO in all python files")
 **Issue:** #1516. `search for <X> in python files` returns `find . -name "*.py" -type f` for any X other than TODO.
