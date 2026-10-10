@@ -128,9 +128,22 @@ impl std::fmt::Display for ParseError {
 
 impl std::error::Error for ParseError {}
 
-/// The CaroML major version this build reads (ADR-018). A file without a
-/// `CAROML <major>` header is read as this version.
+/// The CaroML major version this build reads (ADR-018).
 pub const CAROML_MAJOR_VERSION: u32 = 1;
+
+/// The version of a file with no `CAROML <major>` header. It stays 1 for
+/// good: raising [`CAROML_MAJOR_VERSION`] must not change how existing
+/// headerless files parse.
+pub const IMPLICIT_CAROML_VERSION: u32 = 1;
+
+// This build has one grammar, so headerless files and `CAROML 1` files take
+// the same path. A second major version needs per-version dispatch first,
+// so headerless files keep version-1 rules (ADR-018). This stops the build
+// until that dispatch exists.
+const _: () = assert!(
+    CAROML_MAJOR_VERSION == IMPLICIT_CAROML_VERSION,
+    "add per-version parsing before raising CAROML_MAJOR_VERSION (ADR-018)"
+);
 
 /// Check a `CAROML <major>` header line. `seen_content` is true when any
 /// non-`REM` line came before it.

@@ -25,8 +25,9 @@ that nobody checks protects nothing. See
 1. A CaroML file (`.caro` or Carofile) may start with `CAROML <major>`.
 2. The header must be the first non-`REM` line, and it may appear once.
    Otherwise the parser returns `MisplacedVersion`.
-3. A file without the header is read as major version 1. All existing
-   files stay valid.
+3. A file without the header is read as major version 1, for good
+   (`IMPLICIT_CAROML_VERSION`). All existing files stay valid. Raising the
+   current version never changes how a headerless file parses.
 4. The parser rejects any value other than a known major version with
    `UnsupportedVersion`. Today the only known value is `1`
    (`CAROML_MAJOR_VERSION`). `1.1`, `v1` and an empty value are rejected.
@@ -81,8 +82,11 @@ A required header would make every existing file invalid on upgrade.
 
 ## Implementation Notes
 
-- `src/caroml/ast.rs`: `CAROML_MAJOR_VERSION`, `check_version_header`,
-  and the `UnsupportedVersion` and `MisplacedVersion` error kinds.
+- `src/caroml/ast.rs`: `CAROML_MAJOR_VERSION`, `IMPLICIT_CAROML_VERSION`,
+  `check_version_header`, and the `UnsupportedVersion` and
+  `MisplacedVersion` error kinds. A compile-time assert stops the build if
+  the two versions differ, so a second grammar cannot ship before
+  per-version dispatch exists.
 - `src/caroml/parser.rs` and `src/caroml/carofile.rs` call the check.
 - Tests: `caroml::parser::tests::version_header_v1_parses_like_no_header`,
   `rejects_unknown_version`, `rejects_misplaced_or_repeated_version`, and
