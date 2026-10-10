@@ -19,24 +19,10 @@ Rules (see `.claude/rules/good-boy-scout.md` → "Stay in your lane"):
 
 ---
 
-### BW-001: `cargo audit` red on main — h2 0.3.27 (RUSTSEC-2026-0258)
-
-**Found:** 2026-09-24, PR #1470 session
-**Issue:** #1472 (reqwest 0.11→0.12 + wiremock 0.5→0.6); lockfile part is #1471
-**Status:** fixed (#1488, merged 2026-10-01). reqwest 0.12 / wiremock 0.6.4,
-h2 0.4.19, rustls 0.23.45; h2 0.3.27 is gone from default builds. Maintainer
-approved a scoped `.cargo/audit.toml` ignore for RUSTSEC-2026-0258 (h2 0.3 only
-via the optional `chromadb`/`knowledge` features), review by 2026-12-31.
-**Needs human?:** no (decided)
-**Next step:** close #1471, #1472 and #1446 as fixed by #1488. Follow-ups:
-upgrade lancedb 0.23 → 0.39 and replace the `chromadb` crate (then remove the
-ignore); migrate `deny.toml` off keys removed in cargo-deny (it fails to parse,
-and its CI step has `continue-on-error`).
-
 ### BW-002: CLAUDE.md version/MSRV drift, filed 42× (canonical + 41 duplicates)
 
 **Found:** 2026-09-27, PR #1470 session
-**Issue:** canonical #1098 (oldest open); 41 duplicates closed 2026-10-03; new dup #1520 (see "Dedup pending")
+**Issue:** canonical #1098 (oldest open); 41 duplicates closed 2026-10-03; dups #1520, #1541 closed 2026-10-09
 **Status:** fix in #1478: `CLAUDE.md` points at `Cargo.toml` and repeats no
 version, and the PR closes #1098. #1432 was closed as superseded on 2026-10-09.
 **Needs human?:** no
@@ -71,14 +57,6 @@ downloads the ~1 GB default model, with no progress output (#1272, #1484).
 PR #1415 only prints a one-time "Initializing backend…" line, not download
 progress. Keep #1272 open until first-run download progress (or a clear
 "downloading model" message) lands; #1415 is a partial step.
-
-### BW-005: static matcher Pattern 43 drops "list files in current directory"
-
-**Found:** 2026-09-30 sweep dedup
-**Issue:** #1181 (dups #1274, #1362, #1396, #1399, #1412, closed)
-**Status:** fixed (#1487, merged 2026-10-01)
-**Needs human?:** no
-**Next step:** none; duplicates closed 2026-10-03. Delete after 2026-10-08.
 
 ### BW-006: embedded CPU stub always returns `echo 'Please clarify your request'`
 
@@ -116,9 +94,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1222 (dups #1252, #1413, closed); same root cause as #1164
-**Status:** fixed by #1522 (`default-run = "caro"`), pending merge
+**Status:** fixed (#1522, merged 2026-10-09)
 **Needs human?:** no
-**Next step:** none once #1522 merges; delete 7 days after.
+**Next step:** none. Delete after 2026-10-16.
 
 ### BW-011: `caro ai --once` has no static-matcher first pass
 
@@ -148,17 +126,23 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1217 (dup #1417, closed)
-**Status:** claimed-by sweep/2026-10-06-BW-014 (#1532). Adds a `dry_run` field to the JSON. `executed` keeps its pinned meaning ("passed safety checks"); contract tests depend on it.
+**Status:** fixed (#1532, merged 2026-10-10). Adds a `dry_run` field to the JSON. `executed` keeps its pinned meaning ("passed safety checks"); contract tests depend on it.
 **Needs human?:** no
-**Next step:** merge the PR.
+**Next step:** none. Delete after 2026-10-17.
 
 ### BW-015: main CI `Extended Tests` (4 model jobs) red: HF Hub model download fails
 
 **Found:** 2026-09-30 sweep, CI run 36658876598
 **Issue:** #1341
-**Status:** open
-**Needs human?:** no (probably CI caching or network; root-cause first)
-**Next step:** the logs show `Failed to download model after 3 attempts` for every e2e test.
+**Status:** open. Root-caused 2026-10-09 (nightly run 37873894155). Two causes, 9 of 29 e2e tests fail in each job:
+(1) SmolLM 135M and StarCoder 1B: their `src/model_catalog.rs` repos (`HuggingFaceTB/SmolLM-135M-Instruct-GGUF`,
+`TheBloke/starcoderbase-1b-GGUF`) no longer exist on Hugging Face (anonymous API returns 401), so every download fails.
+PR smoke tests stay green only because the model cache restores an old file. The download error text also tells
+users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
+(2) Qwen 0.5B and TinyLlama 1.1B download, then abort in llama.cpp Metal: `GGML_ASSERT ggml-metal.m:870 "unsupported op"`
+(`llama_cpp = "0.3"`, `n_gpu_layers: 99` in `src/backends/embedded/mlx.rs`).
+**Needs human?:** yes. (1) Pick replacement repos (for example `HuggingFaceTB/smollm-135M-instruct-v0.2-Q8_0-GGUF`, which bundle.yml uses), or drop the models. (2) Bump llama_cpp, or run CI with CPU layers only.
+**Next step:** maintainer picks both options on #1341.
 
 ### BW-016: 1.5.0 declared in-repo but never tagged or published
 
@@ -172,9 +156,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-01 sweep
 **Issue:** #1491 (action `all-contributors/add-contributor` not found)
-**Status:** claimed-by sweep/2026-10-05-BW-017 (#1527). The job is removed: the action repo does not exist and the repo has no `.all-contributorsrc`.
+**Status:** fixed (#1527, merged 2026-10-09). The job is removed: the action repo does not exist and the repo has no `.all-contributorsrc`.
 **Needs human?:** no (CI config). Pin a published action, or remove the job.
-**Next step:** merge the removal PR. Re-add a working all-contributors job only if the maintainer wants a contributors list.
+**Next step:** none. Delete after 2026-10-16. Re-add a working all-contributors job only if the maintainer wants a contributors list.
 
 ### BW-018: Claude Code plugin marketplace.json shape / install one-liner likely stale
 
@@ -195,7 +179,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ### BW-020: backend lists disagree across `--backend-info`, `--help` and the error text
 
 **Found:** 2026-10-03 sweep dedup
-**Issue:** #1221 (15 duplicates, see "Dedup pending")
+**Issue:** #1221 (15 duplicates, closed 2026-10-09)
 **Status:** open
 **Needs human?:** no
 **Next step:** derive `--backend-info`, the `--backend` help text and the "Unknown backend" error from one list, filtered by compiled features.
@@ -203,7 +187,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ### BW-021: user allowlist cannot override the Critical `rm -rf` pre-scan (regression from #1110)
 
 **Found:** 2026-10-03 sweep dedup
-**Issue:** #1165 (5 duplicates, see "Dedup pending"); `test_allowlist_functionality` fails
+**Issue:** #1165 (5 duplicates, closed 2026-10-09); `test_allowlist_functionality` fails
 **Status:** open
 **Needs human?:** yes (safety pattern / allowlist policy)
 **Next step:** maintainer decides whether user allowlists may bypass Critical patterns, then fix code or the contract test via `safety-pattern-developer`.
@@ -212,9 +196,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-03 sweep dedup
 **Issue:** #1162 (dup #1170)
-**Status:** open
+**Status:** claimed-by sweep/2026-10-09-BW-022 (#1548). The `evaluation` harness (`harness = false`) now accepts libtest's positional filter and skips itself when the filter does not match its name.
 **Needs human?:** no
-**Next step:** make the evaluation harness accept a positional filter, or document `cargo test --lib safety`.
+**Next step:** merge the PR.
 
 ### BW-023: global flags before a subcommand swallow the subcommand
 
@@ -248,7 +232,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** yes (CLI design: subcommands win, prompt fallback, or reserved names)
 **Next step:** the maintainer picks an option in #1550. Until then,
 `e2e_smoke_test_suite` and `e2e_shell_operator_truncation` fail in all 4
-Extended Tests jobs; BW-015 hides them, because most tests fail on the download first.
+Extended Tests jobs; BW-015 hides them, because most tests fail on the model first.
 
 ### BW-027: 8 stray `.worktrees/*` gitlinks on main, no `.gitmodules`
 
@@ -269,22 +253,94 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the download 
 the one-line sign phrase, as #1555 shows. Then ask #1296, #1390 and #1415 to comment
 `recheck`.
 
+### BW-031: ai_horde `Client-Agent` header hardcoded to `caro:1.4.0`
+
+**Found:** 2026-10-09 sweep register sync (issue filed 2026-09-22)
+**Issue:** #1467
+**Status:** open (#1454 mentions it)
+**Needs human?:** no
+**Next step:** build the header from `env!("CARGO_PKG_VERSION")` in `src/backends/remote/ai_horde.rs`.
+
+### BW-032: embedded model download hangs: `HfHubClient` has no HTTP timeout
+
+**Found:** 2026-10-09 sweep register sync (issue filed 2026-09-06)
+**Issue:** #1440
+**Status:** open (#1441, #1531, #1538 mention it)
+**Needs human?:** no
+**Next step:** set a connect and read timeout on the download client, and return a clear error when it fires.
+
+### BW-033: Gemini CLI row in integrations status is stale (product shut down 2026-06-18)
+
+**Found:** 2026-10-09 sweep register sync (issue filed 2026-09-06)
+**Issue:** #1439
+**Status:** open
+**Needs human?:** no
+**Next step:** retire the Gemini CLI row in `.claude/memory/integrations-status.md` and add Antigravity CLI.
+
+### BW-034: `caro ai --help` contradicts itself; `--continue-session` is a no-op
+
+**Found:** 2026-10-09 sweep register sync (issue filed 2026-09-05)
+**Issue:** #1435 (overlaps #1197, which covers only `--continue-session`)
+**Status:** open
+**Needs human?:** no
+**Next step:** fix the `--once` help text and map `--continue-session` to `SessionMode::ResumeStrict`.
+
+### BW-035: `caro ai --once` shows no feedback during model initialization
+
+**Found:** 2026-10-09 sweep register sync (issue filed 2026-08-15)
+**Issue:** #1408 (related to BW-004 / #1272, kept separate)
+**Status:** open (#1415 prints a one-time "Initializing backend…" line)
+**Needs human?:** no
+**Next step:** merge #1415, then add download progress (BW-004 cause 2).
+
+### BW-036: `caro config set backend` rejects mesh, ai-horde, hybrid
+
+**Found:** 2026-10-09 sweep register sync (issue filed 2026-07-27)
+**Issue:** #1379 (related: BW-020, BW-024)
+**Status:** open. PR #1348 (`integrator/20260718`) unifies the backend rosters; it is mergeable but idle since 2026-09-24. `src/main.rs` still hardcodes `["embedded", "ollama", "exo", "vllm"]`.
+**Needs human?:** no
+**Next step:** review and merge #1348, or rebase it.
+
+### BW-037: `caro ai --once` hint puts `--execute` after the subcommand
+
+**Found:** 2026-10-09 sweep register sync (issue filed 2026-07-23)
+**Issue:** #1369 (same root as BW-023: global flags and subcommand order)
+**Status:** open (#1443 mentions it)
+**Needs human?:** no
+**Next step:** fix the hint text to `caro --execute ai --once`, or accept `--execute` on `ai`.
+
+### BW-038: no config-dir override, so `caro config set` writes the real config in tests
+
+**Found:** 2026-10-09 sweep register sync (issue filed 2026-07-19)
+**Issue:** #1349
+**Status:** open
+**Needs human?:** no
+**Next step:** honor a `CARO_CONFIG_DIR` env var in `src/config/mod.rs` and use it in the config tests.
+
+### BW-039: `ChromaDB Integration Tests` CI job fails after ~14 minutes
+
+**Found:** 2026-10-09 sweep register sync (issue filed 2026-07-18)
+**Issue:** #1342
+**Status:** open
+**Needs human?:** yes if the fix is to delete the job (CI gate); no for a root-cause fix.
+**Next step:** read the failing step's log and root-cause it.
+
+### BW-040: static matcher "Find Python files (simple)" swallows content searches
+
+**Found:** 2026-10-03 (while fixing "search for TODO in all python files")
+**Issue:** #1516. `search for <X> in python files` returns `find . -name "*.py" -type f` for any X other than TODO.
+**Status:** fixed (#1517: content-search handler in `StaticMatcher::content_search_command`)
+**Needs human?:** no
+**Next step:** delete this entry a week after #1517 merges.
+
 ---
 
-## Dedup pending (2026-10-03)
+## Dedup done (2026-10-09)
 
-The 2026-09-30 table was cleared on 2026-10-03 (86 duplicates closed with the
-maintainer's approval). The groups below were found on 2026-10-03; the sweep's
-issue-close writes were refused again, so a maintainer (or an approved run)
-should close each as a duplicate of its canonical issue.
-
-| Canonical | Duplicates |
-|---|---|
-| #1098 | #1520 |
-| #1221 | #1247 #1250 #1251 #1256 #1257 #1258 #1268 #1270 #1278 #1284 #1287 #1291 #1293 #1294 #1392 |
-| #1165 | #1169 #1176 #1201 #1204 #1205 |
-| #1162 | #1170 |
-| #1163 | #1328 |
+The 2026-10-03 and 2026-10-07 tables are closed: 26 duplicates closed on
+2026-10-09 (#1520 #1541 → #1098; #1247 … #1392 → #1221; #1169 … #1205 → #1165;
+#1170 → #1162; #1328 → #1163; #1523 → #1269; #1540 → #1272), plus #985 → #917.
+#1329 closed as fixed by #1503 (guard: `test_needs_stdin_prompt`).
 
 Left open on purpose, because they are related but not the same defect: #1400
 (Pattern 43 plus the CPU stub together), #1408 (init feedback, vs #1272),

@@ -23,47 +23,30 @@
 //! cargo test --test evaluation -- --threshold 0.10
 //! ```
 
+mod cli;
+
 use caro::evaluation::{BaselineStore, Dataset, EvaluationHarness, HarnessConfig, TestCategory};
 use clap::Parser;
-use std::path::PathBuf;
+use cli::Args;
 use std::process;
 use std::sync::Arc;
-
-/// CLI arguments for evaluation harness
-#[derive(Parser, Debug)]
-#[command(name = "evaluation")]
-#[command(about = "Run LLM evaluation harness", long_about = None)]
-struct Args {
-    /// Test category to run (correctness, safety, posix, multi_backend)
-    #[arg(long)]
-    category: Option<String>,
-
-    /// Backend to test (static_matcher, mlx, ollama, vllm)
-    #[arg(long)]
-    backend: Option<String>,
-
-    /// Output format (json or table)
-    #[arg(long, default_value = "table")]
-    format: String,
-
-    /// Path to baseline JSON for comparison
-    #[arg(long)]
-    baseline: Option<PathBuf>,
-
-    /// Regression threshold (default: 0.05 for 5%)
-    #[arg(long, default_value = "0.05")]
-    threshold: f32,
-
-    /// Enable verbose logging
-    #[arg(long, short)]
-    verbose: bool,
-}
 
 /// Main entry point for custom test harness
 #[tokio::main]
 async fn main() {
     // Parse CLI arguments
     let args = Args::parse();
+
+    // `cargo test safety` passes "safety" to every test binary. Skip, as
+    // libtest does when no test name matches the filter.
+    if !cli::should_run(args.filter.as_deref()) {
+        println!(
+            "\nrunning 0 tests (filter {:?} does not match `{}`)\n",
+            args.filter.as_deref().unwrap_or_default(),
+            cli::TARGET_NAME
+        );
+        process::exit(0);
+    }
 
     // Configure logging
     if args.verbose {
