@@ -302,14 +302,16 @@ mod tests {
 
     #[test]
     #[cfg(unix)]
+    // Shares the lock with tests that change the process-wide cwd.
+    #[serial_test::serial]
     fn contract_each_step_gets_a_fresh_shell() {
         // Shell variables, exports and `cd` do not carry into the next step.
         let results = execute_plan(&plan_of(&[
             "export CARO_CONTRACT_X=1; cd /",
-            "echo \"x=${CARO_CONTRACT_X:-unset} cwd=$(pwd)\"",
+            "echo \"x=${CARO_CONTRACT_X:-unset} cwd=$(pwd -P)\"",
         ]))
         .unwrap();
-        let cwd = std::env::current_dir().unwrap();
+        let cwd = std::env::current_dir().unwrap().canonicalize().unwrap();
         assert_eq!(
             results[1].stdout.trim(),
             format!("x=unset cwd={}", cwd.display())
@@ -348,7 +350,10 @@ mod tests {
         if std::env::var_os(PROBE).is_some() {
             let results =
                 execute_plan(&plan_of(&["read line; echo \"got=[$line] rc=$?\""])).unwrap();
-            println!("{}", results[0].stdout.trim());
+            let out = results[0].stdout.trim();
+            println!("{out}");
+            // Also check here, so this branch never passes silently.
+            assert_eq!(out, "got=[] rc=1", "step read caro's stdin");
             return;
         }
         use std::io::Write;

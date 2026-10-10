@@ -24,6 +24,9 @@ path.
 
 ## Guarantees (step-by-step path)
 
+The contract tests run on Linux and macOS (`#[cfg(unix)]`). On Windows the
+same code runs each step in PowerShell, but no contract test covers it yet.
+
 | # | Guarantee | Pinned by |
 |---|---|---|
 | 1 | Steps run one at a time, in file order. Results come back in the same order. | `contract_steps_run_in_order_and_return_results_in_order` |
@@ -48,8 +51,9 @@ path.
   path, the exit status of the whole `bash` run (with line 0).
 - **Timeouts.** Steps have no time limit. `CommandExecutor` supports one, but
   the runner does not set it yet; that is blocked on signal forwarding (below).
-  At the deadline the executor sends SIGKILL to the step's process group at
-  once, so cleanup handlers do not run. #1545 proposes SIGTERM, a grace period,
+  At the deadline the executor kills the step at once, so cleanup handlers do
+  not run. On Unix it sends SIGKILL to the step's whole process group; on
+  Windows it kills only the step's own process. #1545 proposes SIGTERM, a grace period,
   then SIGKILL.
 - **Ctrl-C.** Without a timeout, a step runs in caro's own process group. A
   Ctrl-C at the terminal reaches both caro and the running step.
