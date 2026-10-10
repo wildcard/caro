@@ -30,6 +30,9 @@ on:
       - 'scripts/favicons.py'
       - '.github/workflows/favicons.yml'
 
+permissions:
+  contents: read
+
 jobs:
   check:
     name: Favicon contract
