@@ -171,10 +171,8 @@ impl ModelLoader {
         const INITIAL_DELAY_SECS: u64 = 2;
 
         let mut last_error = None;
-        let mut attempts_made = 0;
 
         for attempt in 1..=MAX_RETRIES {
-            attempts_made = attempt;
             if attempt > 1 {
                 let delay = INITIAL_DELAY_SECS * 2u64.pow(attempt - 2);
                 warn!(
@@ -191,19 +189,13 @@ impl ModelLoader {
                     info!("Model downloaded successfully to: {}", dest_path.display());
                     return Ok(());
                 }
-                Err(e) if e.is::<DownloadStalled>() => {
-                    // hf-hub detaches its chunk tasks when the attempt is dropped,
-                    // so a retry would run beside them. Stop; process exit ends them.
-                    last_error = Some(e);
-                    break;
-                }
                 Err(e) => {
                     last_error = Some(e);
                 }
             }
         }
 
-        // All retries exhausted (or the download stalled) - provide helpful error message
+        // All retries exhausted - provide helpful error message
         Err(anyhow::anyhow!(
             "Failed to download model after {} attempts.\n\n\
             Troubleshooting:\n\
@@ -217,7 +209,7 @@ impl ModelLoader {
             4. Run diagnostics (if available):\n\
                caro doctor\n\n\
             Last error: {}",
-            attempts_made,
+            MAX_RETRIES,
             last_error.unwrap()
         ))
     }
@@ -226,9 +218,6 @@ impl ModelLoader {
     async fn download_model_attempt(&self, dest_path: &Path, _variant: ModelVariant) -> Result<()> {
         use hf_hub::api::tokio::Api;
         use indicatif::{ProgressBar, ProgressStyle};
-
-        let api = Api::new().context("Failed to initialize Hugging Face API")?;
-        let repo = api.model(self.selected_model.hf_repo.to_string());
 
         info!(
             "Downloading {} from {}...",
@@ -253,11 +242,21 @@ impl ModelLoader {
             Some(path) => path,
             None => {
                 let watch = StallWatch::new(pb.clone());
-                let download =
-                    repo.download_with_progress(self.selected_model.filename, watch.clone());
-                with_stall_timeout(download, &watch, DOWNLOAD_STALL_TIMEOUT)
-                    .await?
-                    .context("Failed to download model from Hugging Face Hub")?
+                let (hf_repo, filename) =
+                    (self.selected_model.hf_repo, self.selected_model.filename);
+                let progress = watch.clone();
+                let download = async move {
+                    let api = Api::new().context("Failed to initialize Hugging Face API")?;
+                    api.model(hf_repo.to_string())
+                        .download_with_progress(filename, progress)
+                        .await
+                        .context("Failed to download model from Hugging Face Hub")
+                };
+                let result = run_isolated(download, &watch, DOWNLOAD_STALL_TIMEOUT).await;
+                if !matches!(result, Ok(Ok(_))) {
+                    pb.finish_and_clear();
+                }
+                result??
             }
         };
 
@@ -378,8 +377,29 @@ impl hf_hub::api::tokio::Progress for StallWatch {
 
 /// A download attempt received no data for the given time.
 #[derive(Debug, thiserror::Error)]
-#[error("Model download stalled: no data received for {}s. Check the network, then run the command again.", .0.as_secs())]
+#[error("Model download stalled: no data received for {}s.", .0.as_secs())]
 struct DownloadStalled(Duration);
+
+/// Run one download attempt on its own runtime, with the stall watchdog.
+///
+/// hf-hub starts each chunk with `tokio::spawn`, so dropping a stalled attempt
+/// would leave its chunk tasks running beside the next attempt. Shutting down
+/// the attempt's runtime cancels them too.
+async fn run_isolated<F>(fut: F, watch: &StallWatch, stall: Duration) -> Result<F::Output>
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(2)
+        .enable_all()
+        .build()
+        .context("Failed to start the download runtime")?;
+    let handle = rt.spawn(fut);
+    let result = with_stall_timeout(handle, watch, stall).await;
+    rt.shutdown_background();
+    result?.context("Download task panicked")
+}
 
 /// Run `fut` until it finishes, or fail once `watch` sees no progress for `stall`.
 async fn with_stall_timeout<F: Future>(
@@ -419,9 +439,34 @@ mod tests {
         .await
         .expect("watchdog must fire before the outer 5s guard");
         let err = result.unwrap_err();
-        // The retry loop stops on this type (hf-hub detaches its chunk tasks).
         assert!(err.is::<DownloadStalled>(), "{err}");
         assert!(err.to_string().contains("stalled"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn stalled_attempt_cancels_its_spawned_tasks() {
+        // hf-hub spawns its chunk tasks; a stalled attempt must not leave them
+        // running beside the next attempt (cubic/Codex review on #1561).
+        use std::sync::atomic::{AtomicBool, Ordering};
+        let watch = StallWatch::new(indicatif::ProgressBar::hidden());
+        let ran = Arc::new(AtomicBool::new(false));
+        let flag = ran.clone();
+        let attempt = async move {
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_millis(600)).await;
+                flag.store(true, Ordering::SeqCst);
+            });
+            std::future::pending::<()>().await
+        };
+        let err = run_isolated(attempt, &watch, Duration::from_millis(200))
+            .await
+            .unwrap_err();
+        assert!(err.is::<DownloadStalled>(), "{err}");
+        tokio::time::sleep(Duration::from_millis(800)).await;
+        assert!(
+            !ran.load(Ordering::SeqCst),
+            "a task spawned by the stalled attempt outlived it"
+        );
     }
 
     #[tokio::test]

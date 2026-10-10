@@ -235,7 +235,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-06)
 **Issue:** #1440
-**Status:** claimed-by sweep/2026-10-10-BW-032 (#1561). The real path is `ModelLoader` → hf-hub 0.5, whose own client has no timeout (not `HfHubClient`). A progress watchdog now fails an attempt after 60 s with no bytes, so the 3-attempt retry ends with a clear error.
+**Status:** claimed-by sweep/2026-10-10-BW-032 (#1561). The real path is `ModelLoader` → hf-hub 0.5, whose own client has no timeout (not `HfHubClient`). A progress watchdog fails an attempt after 60 s with no bytes. Each attempt runs on its own runtime, so a stalled attempt's hf-hub chunk tasks are cancelled before the retry. All errors keep the 3-attempt retry, which ends with a clear error.
 **Needs human?:** no
 **Next step:** merge #1561, then close #1440.
 
