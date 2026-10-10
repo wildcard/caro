@@ -119,9 +119,10 @@ expect 2 block-budget-leaks.sh "git -C <dir> commit is scanned" \
 expect 0 block-budget-leaks.sh "clean .beads change is allowed" \
   Bash "git commit -m x" "$CLEAN"
 
-# A merge stages lines the other branch already committed (public, if it is
-# main); only lines this side adds are new. Regression: merging main into
-# #1478 was blocked by main's "~1 GB default model" memory note.
+# A merge stages lines the other branch already committed. Lines that are
+# already on the remote are public, so only lines this side adds are new.
+# Regression: merging origin/main into #1478 was blocked by main's
+# "~1 GB default model" memory note.
 MERGING="$TMP/merging"
 git_init "$MERGING"
 git -C "$MERGING" remote add origin https://github.com/wildcard/caro.git
@@ -129,6 +130,7 @@ mkdir -p "$MERGING/.claude/memory"
 echo 'downloads the ~1 GB default model' > "$MERGING/.claude/memory/notes.md"
 git -C "$MERGING" add .claude/memory/notes.md
 git -C "$MERGING" -c user.email=t@t -c user.name=t commit -q -m note
+git -C "$MERGING" update-ref refs/remotes/origin/main main  # main is pushed
 git -C "$MERGING" checkout -q -b feat/y HEAD~1
 git -C "$MERGING" -c user.email=t@t -c user.name=t merge -q --no-ff --no-commit main >/dev/null 2>&1
 
@@ -139,6 +141,21 @@ echo 'spent $42 on inference' > "$MERGING/.beads/notes.md"
 git -C "$MERGING" add .beads/notes.md
 expect 2 block-budget-leaks.sh "line this side adds during a merge is blocked" \
   Bash "git commit -m x" "$MERGING"
+
+# An unpushed branch is not public, and its commits may never have passed this
+# hook (a commit made outside Claude skips it), so a merge scans its lines.
+TOPIC="$TMP/topic"
+git_init "$TOPIC"
+git -C "$TOPIC" remote add origin https://github.com/wildcard/caro.git
+git -C "$TOPIC" checkout -q -b topic
+mkdir -p "$TOPIC/.beads"
+echo 'spent $42 on inference' > "$TOPIC/.beads/notes.md"
+git -C "$TOPIC" add .beads/notes.md
+git -C "$TOPIC" -c user.email=t@t -c user.name=t commit -q -m unscanned
+git -C "$TOPIC" checkout -q -b feat/z main
+git -C "$TOPIC" -c user.email=t@t -c user.name=t merge -q --no-ff --no-commit topic >/dev/null 2>&1
+expect 2 block-budget-leaks.sh "line merged in from an unpushed branch is blocked" \
+  Bash "git commit -m x" "$TOPIC"
 
 echo "guard hooks: $pass passed, $fail failed"
 [[ "$fail" == 0 ]]

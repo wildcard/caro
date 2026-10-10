@@ -38,11 +38,15 @@ fi
 # - byte counts:       5 GB / 200 MB
 SENSITIVE_RE='\$[0-9]+([.,][0-9]+)?|\b[0-9]+[.,]?[0-9]*[[:space:]]*USD\b|\b[0-9]+[[:space:]]*(minutes?|mins?)\b|\b[0-9]+[[:space:]]*(GB|MB|TB|KB)\b'
 
-# During a merge, diff against the incoming branch: its lines are already
-# committed (public, if it is main), so only lines this side adds are new.
+# During a merge of an already-pushed branch (one that a remote-tracking ref
+# contains), its lines are public, so diff against it: only lines this side
+# adds are new. An unpushed branch is not public, and its commits may never
+# have passed this hook, so its lines are scanned like any other.
 diff_cached() {
-  if git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
-    git diff --cached MERGE_HEAD "$@"
+  local mh
+  mh="$(git rev-parse -q --verify MERGE_HEAD 2>/dev/null)" || mh=""
+  if [[ -n "$mh" && -n "$(git for-each-ref --count=1 --contains "$mh" refs/remotes/ 2>/dev/null)" ]]; then
+    git diff --cached "$mh" "$@"
   else
     git diff --cached "$@"
   fi
