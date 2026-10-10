@@ -37,14 +37,15 @@ and its CI step has `continue-on-error`).
 
 **Found:** 2026-09-27, PR #1470 session
 **Issue:** canonical #1098 (oldest open); 41 duplicates closed 2026-10-03; new dup #1520 (see "Dedup pending")
-**Status:** claimed-by integrator/20260903 (#1432). #1478 carries an overlapping
-fix; both are open and unmerged.
+**Status:** fix in #1478: `CLAUDE.md` points at `Cargo.toml` and repeats no
+version, and the PR closes #1098. #1432 was closed as superseded on 2026-10-09.
 **Needs human?:** no
-**Next step:** merge one of #1432 / #1478.
+**Next step:** merge #1478.
 Root cause: the daily QA routine (`trig_01Tk7DxyXV7LeYcFjgmTG1mZ`, 14:00 UTC)
 re-files instead of commenting on the existing issue. A "search before filing"
 edit was drafted 2026-10-03; only the maintainer can apply it (the routine was
-created via the API, so agents cannot update it).
+created via the API, so agents cannot update it). #1546 adds the
+search-before-filing step to the runner contract (CONTRACT.md section 6).
 
 ### BW-003: stale harness references (caro-eval, current-tasks.md, AGENTS.md, .kittify, --skill)
 
@@ -238,6 +239,25 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Status:** open
 **Needs human?:** no
 **Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
+
+### BW-026: an unquoted prompt that starts with "list" runs the `list` subcommand
+
+**Found:** 2026-10-10, nightly CI triage (harness-plan session)
+**Issue:** #1550
+**Status:** open
+**Needs human?:** yes (CLI design: subcommands win, prompt fallback, or reserved names)
+**Next step:** the maintainer picks an option in #1550. Until then,
+`e2e_smoke_test_suite` and `e2e_shell_operator_truncation` fail in all 4
+Extended Tests jobs; BW-015 hides them, because most tests fail on the download first.
+
+### BW-027: 8 stray `.worktrees/*` gitlinks on main, no `.gitmodules`
+
+**Found:** 2026-10-10, nightly CI triage (harness-plan session)
+**Issue:** #1551
+**Status:** open
+**Needs human?:** no
+**Next step:** `git rm --cached` the 8 paths listed in #1551 (all added by
+`9599ca7`). `.gitignore` already covers `.worktrees/`.
 
 ---
 
