@@ -223,6 +223,14 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** no
 **Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
 
+### BW-026: hybrid sanitizer leaks spaced paths and inline credentials
+
+**Found:** 2026-10-03 (cubic review on #1513)
+**Issue:** #1518. `PATH_RE` stops at whitespace, and there's no rule for `Authorization: Bearer`, `-u user:pass` or URL userinfo in the request input sent to hybrid remotes.
+**Status:** open
+**Needs human?:** yes (privacy policy: what may leave the machine)
+**Next step:** reuse `COMMAND_SECRETS` from `src/guard/log.rs` as reversible sanitizer rules; add tests.
+
 ### BW-031: ai_horde `Client-Agent` header hardcoded to `caro:1.4.0`
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-22)
@@ -287,7 +295,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** no
 **Next step:** honor a `CARO_CONFIG_DIR` env var in `src/config/mod.rs` and use it in the config tests.
 
-### BW-039: `ChromaDB Integration Tests` CI job fails after ~14 minutes
+### BW-039: `ChromaDB Integration Tests` CI job fails late in the run
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-07-18)
 **Issue:** #1342
