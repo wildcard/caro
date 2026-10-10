@@ -61,7 +61,8 @@
         "darkMode": "Modo Escuro",
         "holidayTheme": "Tema de Feriado",
         "snowEffect": "Efeito de Neve",
-        "disableEffects": "Desativar Todos os Efeitos"
+        "disableEffects": "Desativar Todos os Efeitos",
+        "noTheme": "No theme"
       },
       "useCases": {
         "allUseCases": "Todos os Casos de Uso",

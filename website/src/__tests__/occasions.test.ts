@@ -97,6 +97,8 @@ describe('generated occasion CSS', () => {
     expect(zones['yom-haatzmaut']).toContain('Asia/Jerusalem');
     expect(zones['yom-haatzmaut']).not.toContain('America/Los_Angeles');
     expect(zones['july-4th']).toContain('America/New_York');
+    expect(zones['july-4th']).toContain('America/Indiana/Knox');
+    expect(zones['canada-day']).toContain('America/Regina');
     expect(zones.christmas).toBeUndefined();
   });
 

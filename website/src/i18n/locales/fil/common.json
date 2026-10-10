@@ -61,7 +61,8 @@
         "darkMode": "Dark Mode",
         "holidayTheme": "Holiday Theme",
         "snowEffect": "Epekto ng Nyebe",
-        "disableEffects": "Huwag paganahin ang Lahat ng Epekto"
+        "disableEffects": "Huwag paganahin ang Lahat ng Epekto",
+        "noTheme": "No theme"
       },
       "useCases": {
         "allUseCases": "Lahat ng Kaso ng Paggamit",

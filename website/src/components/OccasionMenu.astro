@@ -18,7 +18,7 @@ interface Props {
 const { lang = 'en' } = Astro.props;
 ---
 
-<div class="occasion-menu" data-occasion-menu hidden>
+<div class="occasion-menu" data-occasion-menu data-no-theme={t(lang, 'common.nav.appearance.noTheme')} hidden>
   <button
     class="occasion-trigger"
     type="button"
@@ -233,6 +233,7 @@ const { lang = 'en' } = Astro.props;
   const trigger = menu?.querySelector<HTMLButtonElement>('.occasion-trigger');
   const setOpen = (open: boolean) => trigger?.setAttribute('aria-expanded', String(open));
   const isOpen = () => trigger?.getAttribute('aria-expanded') === 'true';
+  const noThemeLabel = menu?.dataset.noTheme || 'No theme';
 
   trigger?.addEventListener('click', () => setOpen(!isOpen()));
 
@@ -315,7 +316,7 @@ const { lang = 'en' } = Astro.props;
           dot.className = 'occasion-dot';
           dot.setAttribute('aria-hidden', 'true');
           dot.style.background = o ? o.fill : 'transparent';
-          btn.append(dot, document.createTextNode(o ? o.name : 'No theme'));
+          btn.append(dot, document.createTextNode(o ? o.name : noThemeLabel));
           btn.addEventListener('click', () => applyHoliday(id));
           return btn;
         }),
@@ -323,7 +324,7 @@ const { lang = 'en' } = Astro.props;
     });
 
     document.querySelectorAll<HTMLSelectElement>('[data-occasion-select]').forEach((sel) => {
-      sel.replaceChildren(...choices.map((id) => new Option(getOccasion(id)?.name ?? 'No theme', id)));
+      sel.replaceChildren(...choices.map((id) => new Option(getOccasion(id)?.name ?? noThemeLabel, id)));
       sel.addEventListener('change', () => applyHoliday(sel.value));
     });
 
@@ -370,10 +371,11 @@ const { lang = 'en' } = Astro.props;
       if (off) {
         effects.snowEffect?.stop();
         effects.newYearEffect?.stop();
-        document.getElementById('new-year-countdown')?.classList.add('hidden');
       } else if (snowOn) {
         effects.snowEffect?.start();
       }
+      // NewYearCountdown hides or restores its toast and badge on this event.
+      window.dispatchEvent(new CustomEvent('caro:effects-changed', { detail: { disabled: off } }));
     };
 
     snowToggles.forEach((t) => {

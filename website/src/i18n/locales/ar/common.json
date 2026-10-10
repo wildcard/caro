@@ -61,7 +61,8 @@
         "darkMode": "الوضع الداكن",
         "holidayTheme": "ثيم العطلة",
         "snowEffect": "تأثير الثلج",
-        "disableEffects": "تعطيل جميع التأثيرات"
+        "disableEffects": "تعطيل جميع التأثيرات",
+        "noTheme": "No theme"
       },
       "useCases": {
         "allUseCases": "جميع حالات الاستخدام",

@@ -11,7 +11,7 @@
 
   <div class="countdown-content">
     <div class="countdown-title">Happy New Year!</div>
-    <div class="countdown-subtitle">Ring in 2026</div>
+    <div class="countdown-subtitle">Ring in {new Date().getFullYear() + 1}</div>
     <div class="countdown-timer hidden">
       <div class="time-unit">
         <span class="time-value" id="days">00</span>
@@ -423,6 +423,22 @@
     }
 
     private setupEventListeners(): void {
+      // The "Disable all effects" switch (OccasionMenu) applies live:
+      // hide the toast and the badge, or bring them back.
+      window.addEventListener('caro:effects-changed', (e) => {
+        const { disabled } = (e as CustomEvent<{ disabled: boolean }>).detail;
+        if (disabled) {
+          if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+          }
+          this.container?.classList.add('hidden');
+          this.badge?.classList.add('hidden');
+        } else if (!this.intervalId) {
+          this.init();
+        }
+      });
+
       // Close button
       this.closeButton?.addEventListener('click', () => this.close());
 
@@ -447,6 +463,11 @@
       }, { passive: true });
     }
 
+    private currentYear(): number {
+      const w = window as any;
+      return (w.__CARO_TEST_DATE ? new Date(w.__CARO_TEST_DATE) : new Date()).getFullYear();
+    }
+
     private getHoursUntilMidnight(): number {
       let now = new Date();
       if ((window as any).__CARO_TEST_DATE) {
@@ -463,7 +484,7 @@
 
       // Update title and subtitle for countdown
       this.title.textContent = 'New Year Countdown';
-      this.subtitle.textContent = 'Ring in 2026';
+      this.subtitle.textContent = `Ring in ${this.currentYear() + 1}`;
 
       // Show timer
       this.timer.classList.remove('hidden');
@@ -498,7 +519,7 @@
 
       // Update for celebration
       this.title.textContent = 'Happy New Year!';
-      this.subtitle.textContent = 'Welcome to 2026!';
+      this.subtitle.textContent = `Welcome to ${this.currentYear()}!`;
       this.timer.classList.add('hidden');
 
       // Show celebration modal

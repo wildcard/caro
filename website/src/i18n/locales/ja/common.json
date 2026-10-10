@@ -61,7 +61,8 @@
         "darkMode": "ダークモード",
         "holidayTheme": "ホリデーテーマ",
         "snowEffect": "雪効果",
-        "disableEffects": "すべての効果を無効にする"
+        "disableEffects": "すべての効果を無効にする",
+        "noTheme": "No theme"
       },
       "useCases": {
         "allUseCases": "すべての使用例",

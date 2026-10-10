@@ -61,7 +61,8 @@
         "darkMode": "Mode Gelap",
         "holidayTheme": "Tema Liburan",
         "snowEffect": "Efek Salju",
-        "disableEffects": "Nonaktifkan Semua Efek"
+        "disableEffects": "Nonaktifkan Semua Efek",
+        "noTheme": "No theme"
       },
       "useCases": {
         "allUseCases": "Semua Kasus Penggunaan",
