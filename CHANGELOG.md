@@ -86,8 +86,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **`CARO_MODEL=smollm-135m-q4` downloads again** ([#1341](https://github.com/wildcard/caro/issues/1341)).
-  The old Q4_K_M repo is gone; the entry now uses the 145 MB Q8_0 build. The
+- **SmolLM catalog entry points to a live repo** ([#1341](https://github.com/wildcard/caro/issues/1341)).
+  The old Q4_K_M repo is gone, so `CARO_MODEL=smollm-135m-q4` could not
+  download. The entry now uses the 145 MB Q8_0 build. The
   model id is unchanged. `CARO_GPU_LAYERS=0` runs the Apple Silicon backend on
   the CPU only (the default stays all layers on Metal).
 
