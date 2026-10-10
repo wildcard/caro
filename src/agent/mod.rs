@@ -1094,6 +1094,8 @@ mod tests {
         command: String,
         confidence: f64,
         calls: Arc<AtomicUsize>,
+        /// Counts `advise` calls; this backend always opts out (`None`).
+        advise_calls: Arc<AtomicUsize>,
     }
 
     #[async_trait]
@@ -1104,6 +1106,14 @@ mod tests {
         ) -> Result<GeneratedCommand, GeneratorError> {
             self.calls.fetch_add(1, Ordering::SeqCst);
             Ok(mock_command(&self.command, self.confidence))
+        }
+        async fn advise(
+            &self,
+            _draft: &GeneratedCommand,
+            _request: &CommandRequest,
+        ) -> Option<GeneratedCommand> {
+            self.advise_calls.fetch_add(1, Ordering::SeqCst);
+            None
         }
         async fn is_available(&self) -> bool {
             true
@@ -1130,6 +1140,7 @@ mod tests {
             command: command.to_string(),
             confidence,
             calls: calls.clone(),
+            advise_calls: Arc::new(AtomicUsize::new(0)),
         };
         let agent = AgentLoop::new(
             Arc::new(backend),
@@ -1154,27 +1165,34 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn failed_advisor_adds_one_call_and_keeps_primary_cap() {
+    async fn advisor_opt_out_adds_one_call_and_keeps_primary_cap() {
         // Low confidence with an advisor that opts out: the advisor is asked
-        // once, then the primary refines. Primary calls stay at the cap.
+        // exactly once, then the primary refines. Primary calls stay at the cap.
         let calls = Arc::new(AtomicUsize::new(0));
         let primary = CountingBackend {
             command: "ls".to_string(),
             confidence: 0.3,
             calls: calls.clone(),
+            advise_calls: Arc::new(AtomicUsize::new(0)),
         };
-        let advised = Arc::new(AtomicBool::new(false));
+        let advise_calls = Arc::new(AtomicUsize::new(0));
+        let advisor = CountingBackend {
+            command: "ls".to_string(),
+            confidence: 0.99,
+            calls: Arc::new(AtomicUsize::new(0)),
+            advise_calls: advise_calls.clone(),
+        };
         let agent = AgentLoop::new(
             Arc::new(primary),
             ExecutionContext::detect(),
             CapabilityProfile::ubuntu(),
         )
         .with_static_matcher(false)
-        .with_advisor(advisor_backend(None, advised.clone()));
+        .with_advisor(Arc::new(advisor));
 
         let _ = agent.generate_command("list files").await;
 
-        assert!(advised.load(Ordering::SeqCst), "advisor was not asked");
+        assert_eq!(advise_calls.load(Ordering::SeqCst), 1);
         assert_eq!(calls.load(Ordering::SeqCst), MAX_BACKEND_CALLS);
     }
 
