@@ -195,9 +195,9 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-03 sweep dedup
 **Issue:** #1162 (dup #1170)
-**Status:** claimed-by sweep/2026-10-09-BW-022 (#1548). The `evaluation` harness (`harness = false`) now accepts libtest's positional filter and skips itself when the filter does not match its name.
+**Status:** fixed (#1548, merged 2026-10-10). The `evaluation` harness (`harness = false`) now accepts libtest's positional filter and skips itself when the filter does not match its name.
 **Needs human?:** no
-**Next step:** merge the PR.
+**Next step:** none. Delete after 2026-10-17.
 
 ### BW-023: global flags before a subcommand swallow the subcommand
 
@@ -235,9 +235,9 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-06)
 **Issue:** #1440
-**Status:** open (#1441, #1531, #1538 mention it)
+**Status:** claimed-by sweep/2026-10-10-BW-032 (#1561). The real path is `ModelLoader` → hf-hub 0.5, whose own client has no timeout (not `HfHubClient`). A progress watchdog now fails an attempt after 60 s with no bytes, so the 3-attempt retry ends with a clear error.
 **Needs human?:** no
-**Next step:** set a connect and read timeout on the download client, and return a clear error when it fires.
+**Next step:** merge #1561, then close #1440.
 
 ### BW-033: Gemini CLI row in integrations status is stale (product shut down 2026-06-18)
 
@@ -299,9 +299,57 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-03 (while fixing "search for TODO in all python files")
 **Issue:** #1516. `search for <X> in python files` returns `find . -name "*.py" -type f` for any X other than TODO.
-**Status:** fixed (#1517: content-search handler in `StaticMatcher::content_search_command`)
+**Status:** fixed (#1517, merged 2026-10-10: content-search handler in `StaticMatcher::content_search_command`)
 **Needs human?:** no
-**Next step:** delete this entry a week after #1517 merges.
+**Next step:** none. Delete after 2026-10-17.
+
+### BW-041: an unquoted prompt that starts with "list" runs the `list` subcommand
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10, from nightly run 38016340315)
+**Issue:** #1550. `caro list files` fails with `unexpected argument 'files'`; 2 e2e tests fail in every Extended Tests job.
+**Status:** open
+**Needs human?:** yes (CLI design: how a prompt and a subcommand name share the first word)
+**Next step:** maintainer picks the parsing rule in #1550; then fix `src/main.rs` routing.
+
+### BW-042: 8 stray `.worktrees/*` gitlinks on main with no `.gitmodules`
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
+**Issue:** #1551. Commit `9599ca7` added 8 local worktree dirs as mode-160000 gitlinks.
+**Status:** open
+**Needs human?:** no
+**Next step:** `git rm --cached` the 8 gitlinks and confirm `.worktrees/` is in `.gitignore`.
+
+### BW-043: CLA check never records a signature, so every external PR stays red
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
+**Issue:** #1555. `custom-pr-sign-comment` in `.github/workflows/cla.yml` holds the whole notice, not the sign phrase. Blocks #1296, #1390, #1415.
+**Status:** open
+**Needs human?:** yes (CI gate / contributor policy)
+**Next step:** maintainer approves the 2-line `cla.yml` change proposed in #1555.
+
+### BW-044: `caro run` runbook path and step path keep shell state differently
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
+**Issue:** #1557. The runbook runs all steps in one `bash`; the step path uses a fresh shell per step.
+**Status:** open
+**Needs human?:** yes (product: which behavior is the contract)
+**Next step:** maintainer picks an option in #1557; recommended option 1 (subshell per step in the runbook).
+
+### BW-045: static safety validator rates reverse shells, exfiltration and DROP DATABASE as Safe
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
+**Issue:** #1559
+**Status:** open
+**Needs human?:** yes (safety patterns)
+**Next step:** maintainer approves the pattern set; then add patterns with the `safety-pattern-developer` TDD flow.
+
+### BW-046: upgrade reqwest 0.11 → 0.12 to clear h2 RUSTSEC-2026-0258 (wiremock is already 0.6.4)
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-09-24)
+**Issue:** #1472 (related: #1446, the vulnerability report)
+**Status:** open
+**Needs human?:** yes (dependency major-version bump)
+**Next step:** maintainer approves the bump; note that hf-hub 0.5 already pulls reqwest 0.12.
 
 ---
 
