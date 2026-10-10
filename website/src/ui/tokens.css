@@ -377,7 +377,7 @@
    ============================================ */
 .dark {
   /* Dark surfaces are retro-console grey, never near-black. --bg-inverse is
-     NOT re-declared here: it is the "console" surface (terminals, the
+     NOT redeclared here: it is the "console" surface (terminals, the
      Moments/Waitlist stages, code blocks) and stays grey-700 with beige ink
      in both modes. Flipping it to beige made every terminal-styled panel
      render light text on paper in dark mode (1.04:1). */

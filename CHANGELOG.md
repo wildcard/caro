@@ -78,6 +78,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Website WCAG 2.2 AA pass and accessible occasion themes.** axe finds 0
+  violations across the 51 English pages, the 4 audited locale homepages
+  and the new gallery (light and dark, 1440px and 375px), down from 11,109
+  on the English pages; no page scrolls sideways at 375px (10 did). The
+  brand tokens gain an AA-safe muted grey, CTA fill and red text; docs pages
+  load the brand tokens at all. Navigation is keyboard-operable, exposes
+  Blog and a GitHub link on phones, and every layout has a skip link. The
+  31 holiday, national-day and humanity-event looks now come from one
+  registry (`website/src/config/occasions.ts`) with solid, contrast-tested
+  CTA fills, decorative SVG art and a `?occasion=` preview; see `/occasions`.
+
 - **`--explain` output is correct and legible.** The headline no longer reads
   "Use `find` Uses find to …". The option breakdown splits combined flags
   (`-rn`, `-la`) and no longer reports `-i` for `grep --include`. Destructive
