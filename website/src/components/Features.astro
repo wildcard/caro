@@ -1,5 +1,6 @@
 ---
 import { t, type Locale } from '../i18n/config';
+import Glyph from '../ui/Glyph/Glyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -7,14 +8,16 @@ interface Props {
 
 const { lang = 'en' } = Astro.props;
 
-// Feature card definitions with translation keys
-const featureKeys = [
-  { key: 'safetyGuardian', icon: '🛡️', status: 'implemented' },
-  { key: 'crossPlatform', icon: '🌍', status: 'implemented' },
-  { key: 'platformAware', icon: '🧠', status: 'implemented' },
-  { key: 'posixSpecialist', icon: '✅', status: 'implemented' },
-  { key: 'lightningFast', icon: '⚡', status: 'in-progress' },
-  { key: 'claudeCompanion', icon: '🤝', status: 'implemented' },
+// Feature card definitions with translation keys.
+// Emoji are not feature icons (Claude Design icon-system reframe): each card
+// uses a pixel Glyph where one exists, else a sanctioned terminal glyph.
+const featureKeys: { key: string; glyph?: 'shield' | 'brain' | 'lightning'; term?: string; status: string }[] = [
+  { key: 'safetyGuardian', glyph: 'shield', status: 'implemented' },
+  { key: 'crossPlatform', term: '▸', status: 'implemented' },
+  { key: 'platformAware', glyph: 'brain', status: 'implemented' },
+  { key: 'posixSpecialist', term: '$', status: 'implemented' },
+  { key: 'lightningFast', glyph: 'lightning', status: 'in-progress' },
+  { key: 'claudeCompanion', term: '❯', status: 'implemented' },
 ];
 
 // Map status to translation key
@@ -34,7 +37,9 @@ const statusLabels: Record<string, string> = {
       {featureKeys.map((feature) => (
         <div class={`feature feature-${feature.status}`}>
           <div class="feature-header">
-            <div class="feature-icon">{feature.icon}</div>
+            <div class="feature-icon" aria-hidden="true">
+              {feature.glyph ? <Glyph name={feature.glyph} size={40} /> : feature.term}
+            </div>
             <span
               class={`status-badge status-${feature.status}`}
               role="status"
@@ -78,6 +83,7 @@ const statusLabels: Record<string, string> = {
   }
 
   .feature {
+    min-width: 0;
     text-align: center;
     padding: 30px;
     border-radius: 12px;
@@ -104,8 +110,17 @@ const statusLabels: Record<string, string> = {
     margin-bottom: 20px;
   }
 
+  /* Terminal-glyph / pixel-glyph icon in brand red (decorative). */
   .feature-icon {
-    font-size: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    font-family: var(--font-mono);
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--accent);
   }
 
   .status-badge {
@@ -119,45 +134,29 @@ const statusLabels: Record<string, string> = {
     transition: all 0.3s ease;
   }
 
+  /* Tinted pills: text tokens pass AA on the blended tint in both modes. */
   .status-implemented {
-    background: rgba(34, 197, 94, 0.15);
-    color: #22c55e;
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    background: rgba(63, 163, 77, 0.12);
+    color: var(--status-safe-text);
+    border: 1px solid rgba(63, 163, 77, 0.4);
   }
 
   :global(.dark) .status-implemented {
-    background: rgba(34, 197, 94, 0.2);
-    border-color: rgba(34, 197, 94, 0.4);
+    background: rgba(124, 211, 137, 0.12);
+    border-color: rgba(124, 211, 137, 0.4);
   }
 
-  :root {
-    --status-in-progress-bg: rgba(59, 130, 246, 0.15);
-    --status-in-progress-border: rgba(59, 130, 246, 0.3);
-    --status-in-progress-color: #3b82f6;
-
-    --status-planned-bg: rgba(168, 85, 247, 0.15);
-    --status-planned-border: rgba(168, 85, 247, 0.3);
-    --status-planned-color: #a855f7;
-  }
-
-  :global(.dark) {
-    --status-in-progress-bg: rgba(59, 130, 246, 0.2);
-    --status-in-progress-border: rgba(59, 130, 246, 0.4);
-
-    --status-planned-bg: rgba(168, 85, 247, 0.2);
-    --status-planned-border: rgba(168, 85, 247, 0.4);
-  }
-
+  /* In development: highlighter yellow with dark ink (same in both modes). */
   .status-in-progress {
-    background: var(--status-in-progress-bg);
-    color: var(--status-in-progress-color);
-    border: 1px solid var(--status-in-progress-border);
+    background: var(--highlight);
+    color: var(--caro-grey-950);
+    border: 1px solid var(--caro-yellow-500);
   }
 
   .status-planned {
-    background: var(--status-planned-bg);
-    color: var(--status-planned-color);
-    border: 1px solid var(--status-planned-border);
+    background: var(--bg-subtle);
+    color: var(--fg-muted);
+    border: 1px solid var(--border);
   }
 
   .feature-planned {
@@ -166,6 +165,13 @@ const statusLabels: Record<string, string> = {
 
   .feature-planned:hover {
     opacity: 1;
+  }
+
+  /* Long compound words (de "Plattformübergreifender") must wrap at 375px. */
+  .feature h3,
+  .feature p {
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
 
   .feature h3 {

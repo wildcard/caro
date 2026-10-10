@@ -14,9 +14,9 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
 
 <div class="hero">
   <div class="container">
-    <div class="companion-badge">🐕 {t(lang, 'landing.hero.badge')}</div>
+    <div class="companion-badge"><span class="term-glyph" aria-hidden="true">▸</span> {t(lang, 'landing.hero.badge')}</div>
     <img src="/caro-prompting.gif" alt="Caro - 8-bit pixel art" class="pixel-art" />
-    <pre class="ascii-logo" aria-label="Caro">
+    <pre class="ascii-logo" role="img" aria-label="Caro">
  ██████╗ █████╗ ██████╗  ██████╗
 ██╔════╝██╔══██╗██╔══██╗██╔═══██╗
 ██║     ███████║██████╔╝██║   ██║
@@ -83,6 +83,11 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
     letter-spacing: 1px;
   }
 
+  .term-glyph {
+    font-family: var(--font-mono);
+    font-weight: 700;
+  }
+
   .tagline {
     font-size: 38px;
     font-weight: 600;
@@ -140,6 +145,11 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
     color: var(--accent-text);
     border: 1px solid rgba(239, 51, 51, 0.2);
     font-weight: 600;
+    /* Commands read left-to-right on RTL pages (he, ar, ur, fa). */
+    direction: ltr;
+    unicode-bidi: isolate;
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 
   :global(.dark) .install-command {
@@ -174,8 +184,16 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
   }
 
   .cta-button:hover {
+    background: var(--accent-fill-hover);
+    color: var(--on-accent);
+    text-decoration: none;
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(239, 51, 51, 0.3);
+  }
+
+  .cta-button:focus-visible {
+    outline: 3px solid var(--fg-strong);
+    outline-offset: 3px;
   }
 
   .cta-button.secondary {
@@ -185,6 +203,7 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
   }
 
   .cta-button.secondary:hover {
+    color: var(--accent-text);
     background: rgba(239, 51, 51, 0.1);
     box-shadow: 0 10px 25px rgba(239, 51, 51, 0.2);
   }

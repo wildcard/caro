@@ -3,7 +3,7 @@
 
 <div class="container">
   <div class="terminal">
-    <div class="terminal-header">
+    <div class="terminal-header" aria-hidden="true">
       <div class="terminal-dot red"></div>
       <div class="terminal-dot yellow"></div>
       <div class="terminal-dot green"></div>
@@ -23,16 +23,24 @@
 </div>
 
 <style>
+  /* Console surface (grey-700 in both modes). Text uses the console ink
+     tokens: --term-fg (beige), --term-prompt / --highlight (yellow accent).
+     Red and green cannot reach AA on #4f4f4f, so status colour is carried
+     by a rule, not by the text. */
   .terminal {
-    background: var(--bg-inverse);
+    background: var(--term-bg);
     border-radius: 8px;
     padding: 20px;
     margin: 40px auto;
     max-width: 700px;
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 14px;
-    color: #d4d4d4;
+    color: var(--term-fg);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    /* A terminal reads left-to-right on RTL pages too. */
+    direction: ltr;
+    text-align: left;
+    overflow-wrap: anywhere;
   }
 
   .terminal-header {
@@ -47,31 +55,34 @@
     border-radius: 50%;
   }
 
-  .terminal-dot.red { background: #ff5f56; }
-  .terminal-dot.yellow { background: #ffbd2e; }
-  .terminal-dot.green { background: #27c93f; }
+  .terminal-dot.red { background: var(--accent); }
+  .terminal-dot.yellow { background: var(--highlight); }
+  .terminal-dot.green { background: var(--status-safe); }
 
   .terminal-line {
     margin: 8px 0;
   }
 
   .terminal-prompt {
-    color: #4ec9b0;
+    color: var(--term-prompt);
   }
 
   .terminal-command {
-    color: #9cdcfe;
+    color: var(--term-fg);
   }
 
   .terminal-output {
-    color: #ce9178;
-  }
-
-  .terminal-caro {
     color: var(--highlight);
   }
 
+  .terminal-caro {
+    color: var(--caro-grey-300);
+  }
+
   .terminal-safe {
-    color: #6a9955;
+    display: inline-block;
+    color: var(--term-fg);
+    border-left: 3px solid var(--status-safe);
+    padding-left: 10px;
   }
 </style>

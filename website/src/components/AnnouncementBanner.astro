@@ -14,7 +14,7 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
 
 <div id="announcement-banner" class="announcement-banner" data-banner-id={bannerId} data-expiry={expiryDate} style="display: none;">
   <div class="announcement-content">
-    <span>{t(lang, 'landing.announcement.renameBanner.emoji')} <strong>{t(lang, 'landing.announcement.renameBanner.title')}</strong> {t(lang, 'landing.announcement.renameBanner.message')} <a href="/blog/announcing-caro">{t(lang, 'landing.announcement.renameBanner.linkText')}</a> →</span>
+    <span><span aria-hidden="true">{t(lang, 'landing.announcement.renameBanner.emoji')}</span> <strong>{t(lang, 'landing.announcement.renameBanner.title')}</strong> {t(lang, 'landing.announcement.renameBanner.message')} <a href="/blog/announcing-caro">{t(lang, 'landing.announcement.renameBanner.linkText')}</a> <span aria-hidden="true">→</span></span>
     <button id="dismiss-banner" class="dismiss-button" aria-label={t(lang, 'landing.announcement.renameBanner.dismissLabel')} title={t(lang, 'landing.announcement.renameBanner.dismissTitle')}>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <line x1="4" y1="4" x2="12" y2="12"/>
@@ -86,8 +86,9 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
   }
 
   .announcement-banner a {
-    color: white;
+    color: var(--on-accent);
     text-decoration: underline;
+    text-underline-offset: 2px;
     font-weight: 600;
   }
 
@@ -98,7 +99,7 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
   .dismiss-button {
     background: rgba(255, 255, 255, 0.2);
     border: none;
-    color: white;
+    color: var(--on-accent);
     padding: 6px;
     border-radius: 4px;
     cursor: pointer;
@@ -111,6 +112,12 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
 
   .dismiss-button:hover {
     background: rgba(255, 255, 255, 0.3);
+  }
+
+  .announcement-banner a:focus-visible,
+  .dismiss-button:focus-visible {
+    outline: 2px solid var(--on-accent);
+    outline-offset: 2px;
   }
 
   @media (max-width: 768px) {

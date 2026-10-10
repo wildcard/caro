@@ -1,5 +1,6 @@
 ---
 import { t, type Locale } from '../i18n/config';
+import Glyph from '../ui/Glyph/Glyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -23,11 +24,15 @@ interface ComparisonRow {
   values: Record<string, FeatureValue>;
 }
 
+// Category icons: pixel Glyph where one exists, else a sanctioned terminal
+// glyph. Emoji are not icons (Claude Design icon-system reframe).
+type CategoryIcon = { glyph: 'shield' | 'brain' } | { term: string };
+
 // Category and feature keys for translation lookup
-const comparisonData: { categoryKey: string; icon: string; rows: ComparisonRow[] }[] = [
+const comparisonData: { categoryKey: string; icon: CategoryIcon; rows: ComparisonRow[] }[] = [
   {
     categoryKey: 'privacyData',
-    icon: '🔒',
+    icon: { term: '▸' },
     rows: [
       { featureKey: 'worksOffline', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
       { featureKey: 'privacyFirst', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
@@ -37,7 +42,7 @@ const comparisonData: { categoryKey: string; icon: string; rows: ComparisonRow[]
   },
   {
     categoryKey: 'safetyControl',
-    icon: '🛡️',
+    icon: { glyph: 'shield' },
     rows: [
       { featureKey: 'ruleBasedSafety', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
       { featureKey: 'explicitConfirmation', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
@@ -47,7 +52,7 @@ const comparisonData: { categoryKey: string; icon: string; rows: ComparisonRow[]
   },
   {
     categoryKey: 'shellExpertise',
-    icon: '🖥️',
+    icon: { term: '>_' },
     rows: [
       { featureKey: 'posixFirst', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
       { featureKey: 'crossPlatform', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'macOS/Linux', 'kiro': 'yes', 'opencode': 'yes' } },
@@ -57,7 +62,7 @@ const comparisonData: { categoryKey: string; icon: string; rows: ComparisonRow[]
   },
   {
     categoryKey: 'modelBackend',
-    icon: '🧠',
+    icon: { glyph: 'brain' },
     rows: [
       { featureKey: 'localInference', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
       { featureKey: 'multiBackend', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
@@ -99,22 +104,22 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
     <!-- Quick Summary Cards -->
     <div class="summary-cards">
       <a href={telemetryHref} class="summary-card highlight summary-card-link">
-        <span class="summary-icon">🔒</span>
+        <span class="summary-icon term-glyph" aria-hidden="true">▸</span>
         <span class="summary-stat">{t(lang, 'landing.comparison.summary.privacy.stat')}</span>
         <span class="summary-label">{t(lang, 'landing.comparison.summary.privacy.label')}</span>
       </a>
       <div class="summary-card highlight">
-        <span class="summary-icon">🛡️</span>
+        <span class="summary-icon" aria-hidden="true"><Glyph name="shield" size={28} /></span>
         <span class="summary-stat">{t(lang, 'landing.comparison.summary.safety.stat')}</span>
         <span class="summary-label">{t(lang, 'landing.comparison.summary.safety.label')}</span>
       </div>
       <div class="summary-card highlight">
-        <span class="summary-icon">📡</span>
+        <span class="summary-icon term-glyph" aria-hidden="true">■</span>
         <span class="summary-stat">{t(lang, 'landing.comparison.summary.offline.stat')}</span>
         <span class="summary-label">{t(lang, 'landing.comparison.summary.offline.label')}</span>
       </div>
       <div class="summary-card highlight">
-        <span class="summary-icon">🦀</span>
+        <span class="summary-icon" aria-hidden="true"><Glyph name="lightning" size={28} /></span>
         <span class="summary-stat">{t(lang, 'landing.comparison.summary.speed.stat')}</span>
         <span class="summary-label">{t(lang, 'landing.comparison.summary.speed.label')}</span>
       </div>
@@ -124,10 +129,17 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
     {comparisonData.map((category) => (
       <div class="comparison-category">
         <h3 class="category-title">
-          <span class="category-icon">{category.icon}</span>
+          <span class="category-icon" aria-hidden="true">
+            {'glyph' in category.icon ? <Glyph name={category.icon.glyph} size={24} /> : category.icon.term}
+          </span>
           {t(lang, `landing.comparison.categories.${category.categoryKey}.title`)}
         </h3>
-        <div class="table-wrapper">
+        <div
+          class="table-wrapper"
+          tabindex="0"
+          role="region"
+          aria-label={t(lang, `landing.comparison.categories.${category.categoryKey}.title`)}
+        >
           <table class="comparison-table">
             <thead>
               <tr>
@@ -148,15 +160,16 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
                   <tr>
                     <td class="feature-cell" title={featureTooltip}>
                       {featureName}
-                      {featureTooltip && <span class="tooltip-icon" aria-label={featureTooltip}>?</span>}
+                      {featureTooltip && <span class="tooltip-icon" role="img" aria-label={featureTooltip}>?</span>}
                     </td>
                     {competitors.map((comp) => {
                       const display = getCellDisplay(row.values[comp.id]);
                       const displayLabel = display.isCustom ? display.customLabel : t(lang, `landing.comparison.values.${display.labelKey}`);
                       return (
                         <td class={`value-cell ${display.class} ${comp.highlight ? 'highlight-col' : ''}`}>
-                          <span class="cell-icon" aria-label={displayLabel}>{display.icon}</span>
-                          {display.icon === '' && <span class="cell-text-value">{displayLabel}</span>}
+                          {display.isCustom
+                            ? <span class="cell-text-value">{displayLabel}</span>
+                            : <span class="cell-icon" role="img" aria-label={displayLabel}>{display.icon}</span>}
                         </td>
                       );
                     })}
@@ -180,10 +193,10 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
 
     <!-- Legend -->
     <div class="legend">
-      <span class="legend-item"><span class="legend-icon cell-yes">✓</span> {t(lang, 'landing.comparison.legend.fullSupport')}</span>
-      <span class="legend-item"><span class="legend-icon cell-partial">◐</span> {t(lang, 'landing.comparison.legend.partial')}</span>
-      <span class="legend-item"><span class="legend-icon cell-no">✗</span> {t(lang, 'landing.comparison.legend.notSupported')}</span>
-      <span class="legend-item"><span class="legend-icon cell-planned">◎</span> {t(lang, 'landing.comparison.legend.planned')}</span>
+      <span class="legend-item"><span class="legend-icon cell-yes" aria-hidden="true">✓</span> {t(lang, 'landing.comparison.legend.fullSupport')}</span>
+      <span class="legend-item"><span class="legend-icon cell-partial" aria-hidden="true">◐</span> {t(lang, 'landing.comparison.legend.partial')}</span>
+      <span class="legend-item"><span class="legend-icon cell-no" aria-hidden="true">✗</span> {t(lang, 'landing.comparison.legend.notSupported')}</span>
+      <span class="legend-item"><span class="legend-icon cell-planned" aria-hidden="true">◎</span> {t(lang, 'landing.comparison.legend.planned')}</span>
     </div>
   </div>
 </section>
@@ -225,6 +238,8 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   }
 
   .summary-card {
+    min-width: 0;
+    overflow-wrap: anywhere;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: 12px;
@@ -256,7 +271,16 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   }
 
   .summary-icon {
+    display: flex;
+    justify-content: center;
     font-size: 28px;
+    line-height: 1;
+    color: var(--accent);
+  }
+
+  .term-glyph {
+    font-family: var(--font-mono);
+    font-weight: 700;
   }
 
   .summary-stat {
@@ -287,7 +311,12 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   }
 
   .category-icon {
-    font-size: 24px;
+    display: inline-flex;
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--accent);
   }
 
   /* Table Wrapper for horizontal scroll on mobile */
@@ -296,6 +325,12 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
     border-radius: 12px;
     border: 1px solid var(--color-border);
     background: var(--color-bg);
+  }
+
+  /* Keyboard users scroll the table on narrow screens (focusable region). */
+  .table-wrapper:focus-visible {
+    outline: 3px solid var(--accent-text);
+    outline-offset: 2px;
   }
 
   .comparison-table {
@@ -328,7 +363,7 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   }
 
   .feature-header {
-    text-align: left !important;
+    text-align: start !important;
     min-width: 200px;
   }
 
@@ -353,7 +388,7 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   }
 
   .feature-cell {
-    text-align: left !important;
+    text-align: start !important;
     font-size: 14px;
     color: var(--color-text);
     position: relative;
@@ -365,7 +400,7 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
     justify-content: center;
     width: 16px;
     height: 16px;
-    margin-left: 6px;
+    margin-inline-start: 6px;
     font-size: 10px;
     font-weight: 600;
     color: var(--color-text-secondary);
@@ -387,20 +422,26 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
     font-weight: 600;
   }
 
-  .cell-yes .cell-icon {
-    color: #22c55e;
+  /* Status glyphs meet 4.5:1 in both modes; the shape (✓ ◐ ✗ ◎) carries
+     the meaning, colour only reinforces it. */
+  .cell-yes .cell-icon,
+  .legend-icon.cell-yes {
+    color: var(--status-safe-text);
   }
 
-  .cell-no .cell-icon {
-    color: #ef4444;
+  .cell-no .cell-icon,
+  .legend-icon.cell-no {
+    color: var(--accent-text);
   }
 
-  .cell-partial .cell-icon {
-    color: #f59e0b;
+  .cell-partial .cell-icon,
+  .legend-icon.cell-partial {
+    color: var(--fg);
   }
 
-  .cell-planned .cell-icon {
-    color: #8b5cf6;
+  .cell-planned .cell-icon,
+  .legend-icon.cell-planned {
+    color: var(--fg-muted);
   }
 
   .cell-text-value {
@@ -449,6 +490,9 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   }
 
   .cta-button.primary:hover {
+    background: var(--accent-fill-hover);
+    color: var(--on-accent);
+    text-decoration: none;
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(239, 51, 51, 0.3);
   }
@@ -460,7 +504,13 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   }
 
   .cta-button.secondary:hover {
+    color: var(--accent-text);
     background: rgba(239, 51, 51, 0.1);
+  }
+
+  .cta-button:focus-visible {
+    outline: 3px solid var(--fg-strong);
+    outline-offset: 3px;
   }
 
   /* Legend */
