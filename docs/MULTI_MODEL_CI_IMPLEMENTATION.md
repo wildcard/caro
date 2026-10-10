@@ -2,13 +2,15 @@
 
 ## Overview
 
+> **Update 2026-10-10 (#1341):** SmolLM 135M now downloads a 145 MB Q8_0 build because the 82 MB Q4_K_M repo is gone. StarCoder 1B is removed for the same reason, and the model CI jobs run on CPU only (`CARO_GPU_LAYERS=0`). The "Performance Impact" and "Test Results" sections record the original 82 MB measurements.
+
 Successfully implemented comprehensive multi-model support with parallel testing on GitHub Actions for macOS runners.
 
 ## What Was Implemented
 
 ### 1. Model Catalog System (`src/model_catalog.rs`)
 
-Created a catalog of **7 GGUF models** from Hugging Face:
+Created a catalog of GGUF models from Hugging Face (6 since #1341):
 
 | Model | Size | Category | CI-Suitable | MLX-Optimized |
 |-------|------|----------|-------------|---------------|
@@ -142,7 +144,7 @@ Comprehensive guide covering:
 
 ## Matrix Strategy Benefits
 
-1. **Parallel Execution**: All 4 models test simultaneously
+1. **Parallel Execution**: All 3 models test simultaneously
 2. **Independent Results**: One model failure doesn't stop others
 3. **Model Validation**: Ensures all CI models work correctly
 4. **Easy Debugging**: Clear which model has issues
@@ -164,7 +166,7 @@ Comprehensive guide covering:
 
 ### GitHub Actions Tests
 Will run on next push:
-- 🔄 4 parallel jobs (one per model)
+- 🔄 3 parallel jobs (one per model)
 - 🔄 Each running full E2E, MLX, and embedded tests
 - 🔄 Independent pass/fail per model
 - 🔄 Cached models for faster subsequent runs
