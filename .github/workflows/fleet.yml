@@ -1,0 +1,47 @@
+name: Fleet queue
+
+# Rewrites one "Fleet: merge queue" issue: the merge dispatcher's path: labels
+# plus live CI and mergeability, so the owner sees what to merge next from a
+# phone. It never merges or closes anything. Rationale: scripts/fleet.py.
+
+on:
+  schedule:
+    - cron: "17 5 * * *"  # daily, before the owner's morning
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Print the issue body to the job summary and write nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  checks: read
+  statuses: read
+
+concurrency:
+  group: fleet
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Test fleet.py
+        run: python3 -m unittest discover -s scripts/tests -p 'test_fleet.py'
+
+      - name: Rewrite the Fleet issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            python3 scripts/fleet.py triage --repo "$GITHUB_REPOSITORY" --dry-run >> "$GITHUB_STEP_SUMMARY"
+          else
+            python3 scripts/fleet.py triage --repo "$GITHUB_REPOSITORY"
+          fi
