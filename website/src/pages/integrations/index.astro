@@ -86,7 +86,7 @@ const inb = grouped(inboundBackends);
                   </div>
                   <p class="row-desc">{row.description}</p>
                   {row.snippet && (
-                    <pre class="row-snippet"><code>{row.snippet}</code></pre>
+                    <pre class="row-snippet" tabindex="0" role="region" aria-label={`${row.name} setup snippet`}><code>{row.snippet}</code></pre>
                   )}
                   {row.homepage && (
                     <p class="row-link"><a href={row.homepage}>{row.homepage}</a></p>
@@ -156,7 +156,7 @@ const inb = grouped(inboundBackends);
               </div>
               <p class="row-desc">{row.description}</p>
               {row.snippet && (
-                <pre class="row-snippet"><code>{row.snippet}</code></pre>
+                <pre class="row-snippet" tabindex="0" role="region" aria-label={`${row.name} backend snippet`}><code>{row.snippet}</code></pre>
               )}
               {row.homepage && (
                 <p class="row-link"><a href={row.homepage}>{row.homepage}</a></p>
@@ -184,8 +184,9 @@ const inb = grouped(inboundBackends);
 </Layout>
 
 <style>
+  /* Paper-and-ink tokens so the page reads in both color modes. */
   .integrations-page {
-    color: var(--text, #e5e7eb);
+    color: var(--fg);
   }
   .container {
     max-width: 960px;
@@ -199,45 +200,51 @@ const inb = grouped(inboundBackends);
   .hero .badge {
     display: inline-block;
     padding: 0.25rem 0.75rem;
-    background: rgba(99, 102, 241, 0.15);
-    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: rgba(239, 51, 51, 0.08);
+    border: 1px solid rgba(239, 51, 51, 0.3);
     border-radius: 999px;
+    color: var(--accent-text);
     font-size: 0.85rem;
+    font-weight: 600;
     margin-bottom: 1rem;
   }
   .hero h1 {
-    font-size: 2.5rem;
+    font-size: clamp(1.9rem, 6vw, 2.5rem);
     margin: 0.5rem 0;
+    color: var(--fg-strong);
   }
   .hero .subtitle {
     font-size: 1.1rem;
     max-width: 640px;
     margin: 1rem auto;
-    opacity: 0.85;
+    color: var(--fg-muted);
   }
   .surfaces {
     padding: 2rem 0;
   }
   .surface-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
     gap: 1rem;
     margin-top: 1.5rem;
   }
   .surface-card {
+    min-width: 0;
     padding: 1.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--bg-raised);
   }
   .surface-card h3 {
     margin: 0 0 0.5rem;
     font-size: 1.1rem;
+    color: var(--fg-strong);
   }
   .surface-card p {
     margin: 0;
     font-size: 0.95rem;
-    opacity: 0.85;
+    color: var(--fg-muted);
+    overflow-wrap: anywhere;
   }
   .matrix {
     padding: 2rem 0;
@@ -245,11 +252,15 @@ const inb = grouped(inboundBackends);
   .matrix h2 {
     font-size: 1.6rem;
     margin-bottom: 0.5rem;
+    color: var(--fg-strong);
   }
   .matrix h3 {
     font-size: 1.15rem;
     margin: 1.5rem 0 0.75rem;
-    opacity: 0.85;
+    color: var(--fg-muted);
+  }
+  .lede {
+    color: var(--fg-muted);
   }
   .integration-list {
     list-style: none;
@@ -260,10 +271,11 @@ const inb = grouped(inboundBackends);
     gap: 0.75rem;
   }
   .integration-row {
+    min-width: 0;
     padding: 1rem 1.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--bg-raised);
   }
   .row-head {
     display: flex;
@@ -275,6 +287,7 @@ const inb = grouped(inboundBackends);
   .row-name {
     font-weight: 600;
     font-size: 1.05rem;
+    color: var(--fg-strong);
   }
   .row-badge,
   .row-surface,
@@ -282,49 +295,74 @@ const inb = grouped(inboundBackends);
     font-size: 0.8rem;
     padding: 0.15rem 0.5rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--fg);
+  }
+  .integration-row[data-status='working'] .row-badge {
+    color: var(--status-safe-text);
+    border-color: var(--status-safe);
   }
   .row-validated {
-    opacity: 0.7;
+    color: var(--fg-muted);
   }
   .row-desc {
     margin: 0.5rem 0;
-    opacity: 0.9;
     font-size: 0.95rem;
+    color: var(--fg);
   }
+  /* Snippets use the console surface (grey-700 + beige ink in both modes). */
   .row-snippet {
     margin: 0.75rem 0 0;
     padding: 0.75rem 1rem;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--term-bg);
+    color: var(--term-fg);
+    border: 1px solid var(--border);
     border-radius: 6px;
     overflow-x: auto;
     font-size: 0.85rem;
   }
+  .row-snippet:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .row-link {
+    margin: 0.5rem 0 0;
+    overflow-wrap: anywhere;
+  }
   .row-link a,
   .cta-strip a {
-    color: #a5b4fc;
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .row-link a:focus-visible,
+  .cta-strip a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
   .row-tracking {
     margin: 0.5rem 0 0;
     font-size: 0.85rem;
-    opacity: 0.75;
+    color: var(--fg-muted);
+    overflow-wrap: anywhere;
   }
   .cta-strip {
     padding: 3rem 0;
     text-align: center;
-    opacity: 0.85;
+    color: var(--fg-muted);
   }
   code {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.9em;
     padding: 0.1em 0.3em;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--bg);
+    color: var(--fg-strong);
     border-radius: 4px;
   }
   pre code {
     background: none;
+    color: inherit;
     padding: 0;
   }
 </style>

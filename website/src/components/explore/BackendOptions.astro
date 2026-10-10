@@ -263,6 +263,7 @@ const backends = [
     border: 2px solid var(--color-border);
     border-radius: 12px;
     padding: 30px;
+    min-width: 0;
     transition: transform 0.3s, box-shadow 0.3s, background 0.3s ease, border-color 0.3s ease;
   }
 
@@ -317,24 +318,28 @@ const backends = [
     white-space: nowrap;
   }
 
+  /* Status hue lives in the tint and border; labels use AA text tokens. */
   .status-in-development {
     background: rgba(33, 150, 243, 0.1);
-    color: #2196f3;
+    border: 1px solid rgba(33, 150, 243, 0.45);
+    color: var(--fg-strong);
   }
 
   .status-available {
     background: rgba(76, 175, 80, 0.1);
-    color: #4caf50;
+    color: var(--status-safe-text);
   }
 
   .status-planned {
     background: rgba(156, 39, 176, 0.1);
-    color: #9c27b0;
+    border: 1px solid rgba(156, 39, 176, 0.45);
+    color: var(--fg-strong);
   }
 
   .status-untested {
-    background: rgba(255, 152, 0, 0.1);
-    color: #ff9800;
+    background: rgba(240, 237, 59, 0.2);
+    border: 1px solid var(--status-warn);
+    color: var(--fg-strong);
   }
 
   .backend-description {
@@ -387,7 +392,7 @@ const backends = [
 
   .metrics {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
     gap: 15px;
   }
 
@@ -426,6 +431,7 @@ const backends = [
     color: var(--color-text-tertiary);
     font-size: 14px;
     line-height: 1.6;
+    overflow-wrap: anywhere;
     transition: color 0.3s ease;
   }
 
@@ -459,6 +465,14 @@ const backends = [
     border-color: var(--accent);
     transform: translateY(-1px);
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .backend-card:hover,
+    .tag:hover {
+      transform: none;
+    }
+  }
+
 
   .comparison-note {
     background: rgba(239, 51, 51, 0.1);

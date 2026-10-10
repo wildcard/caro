@@ -19,6 +19,7 @@ import { SITE_CONFIG } from '../../config/site';
   <AnnouncementBanner />
   <Navigation />
 
+  <main id="main-content">
   <!-- Hero Section -->
   <section class="explore-hero">
     <div class="container">
@@ -79,22 +80,22 @@ import { SITE_CONFIG } from '../../config/site';
         Caro is open source and built with the community. Contribute, report issues, or join the conversation.
       </p>
       <div class="community-links">
-        <a href={SITE_CONFIG.github.url} target="_blank" class="community-card">
+        <a href={SITE_CONFIG.github.url} target="_blank" rel="noopener noreferrer" class="community-card">
           <span class="community-icon">⭐</span>
           <h3>Star on GitHub</h3>
           <p>Show your support and stay updated with the latest releases</p>
         </a>
-        <a href={`${SITE_CONFIG.github.url}/issues`} target="_blank" class="community-card">
+        <a href={`${SITE_CONFIG.github.url}/issues`} target="_blank" rel="noopener noreferrer" class="community-card">
           <span class="community-icon">🐛</span>
           <h3>Report Issues</h3>
           <p>Found a bug or have a feature request? Let us know</p>
         </a>
-        <a href={`${SITE_CONFIG.github.url}/blob/main/CONTRIBUTING.md`} target="_blank" class="community-card">
+        <a href={`${SITE_CONFIG.github.url}/blob/main/CONTRIBUTING.md`} target="_blank" rel="noopener noreferrer" class="community-card">
           <span class="community-icon">🤝</span>
           <h3>Contribute</h3>
           <p>Help make Caro better for everyone</p>
         </a>
-        <a href="/" class="community-card">
+        <a href="/blog/" class="community-card">
           <span class="community-icon">📚</span>
           <h3>Read the Blog</h3>
           <p>Learn about the story and philosophy behind Caro</p>
@@ -102,6 +103,7 @@ import { SITE_CONFIG } from '../../config/site';
       </div>
     </div>
   </section>
+  </main>
 
   <Footer />
 </Layout>
@@ -121,8 +123,8 @@ import { SITE_CONFIG } from '../../config/site';
   .early-dev-badge {
     display: inline-block;
     background: rgba(33, 150, 243, 0.1);
-    border: 1px solid rgba(33, 150, 243, 0.3);
-    color: #2196f3;
+    border: 1px solid rgba(33, 150, 243, 0.45);
+    color: var(--fg-strong);
     padding: 8px 16px;
     border-radius: 20px;
     font-size: 13px;
@@ -170,6 +172,7 @@ import { SITE_CONFIG } from '../../config/site';
   }
 
   .cta-primary:hover {
+    background: var(--accent-fill-hover);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(239, 51, 51, 0.4);
   }
@@ -185,9 +188,26 @@ import { SITE_CONFIG } from '../../config/site';
     transform: translateY(-2px);
   }
 
+  .cta-primary:focus-visible,
+  .cta-secondary:focus-visible,
+  .nav-item:focus-visible,
+  .community-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-primary:hover,
+    .cta-secondary:hover,
+    .nav-item:hover,
+    .community-card:hover {
+      transform: none;
+    }
+  }
+
   .quick-nav {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr));
     gap: 15px;
     max-width: 900px;
     margin: 0 auto;
@@ -235,7 +255,7 @@ import { SITE_CONFIG } from '../../config/site';
 
   .community-links {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
     gap: 25px;
     margin-top: 40px;
   }
@@ -309,7 +329,7 @@ import { SITE_CONFIG } from '../../config/site';
     }
 
     .community-links {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 

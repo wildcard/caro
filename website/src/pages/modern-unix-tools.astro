@@ -18,7 +18,7 @@ export const searchMeta = {
 >
   <Navigation />
 
-  <div class="modern-tools-page">
+  <main id="main-content" class="modern-tools-page">
     <!-- Hero Section -->
     <section class="hero">
       <div class="container">
@@ -49,8 +49,9 @@ export const searchMeta = {
     </section>
 
     <!-- Why Modern Tools Section -->
-    <section class="intro-section">
+    <section class="intro-section" aria-labelledby="why-modern-heading">
       <div class="container">
+        <h2 id="why-modern-heading" class="visually-hidden">Why modern tools</h2>
         <div class="intro-grid">
           <div class="intro-card">
             <span class="intro-icon">🚀</span>
@@ -105,7 +106,7 @@ export const searchMeta = {
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># List with icons and git status
+              <pre tabindex="0" role="region" aria-label="eza example commands"><code># List with icons and git status
 eza -la --icons --git
 
 # Tree view with git ignore
@@ -141,7 +142,7 @@ eza -lh --header</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Find files by pattern
+              <pre tabindex="0" role="region" aria-label="fd example commands"><code># Find files by pattern
 fd "\.rs$"
 
 # Find and execute
@@ -176,7 +177,7 @@ fd -H config</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Jump to best match
+              <pre tabindex="0" role="region" aria-label="zoxide example commands"><code># Jump to best match
 z projects
 
 # Interactive selection
@@ -211,7 +212,7 @@ eval "$(zoxide init zsh)"</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Launch interactive tree
+              <pre tabindex="0" role="region" aria-label="broot example commands"><code># Launch interactive tree
 br
 
 # Show sizes
@@ -246,7 +247,7 @@ br -f pattern</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Analyze current directory
+              <pre tabindex="0" role="region" aria-label="dust example commands"><code># Analyze current directory
 dust
 
 # Limit depth
@@ -281,7 +282,7 @@ dust -r</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># List with all features
+              <pre tabindex="0" role="region" aria-label="lsd example commands"><code># List with all features
 lsd -la
 
 # Tree view
@@ -330,7 +331,7 @@ lsd -lS</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Search recursively
+              <pre tabindex="0" role="region" aria-label="ripgrep (rg) example commands"><code># Search recursively
 rg "pattern"
 
 # Search specific file types
@@ -366,7 +367,7 @@ rg -C 3 "TODO"</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># View with syntax highlighting
+              <pre tabindex="0" role="region" aria-label="bat example commands"><code># View with syntax highlighting
 bat file.rs
 
 # Show line numbers only
@@ -401,7 +402,7 @@ bat -p file.json</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Simple replacement
+              <pre tabindex="0" role="region" aria-label="sd example commands"><code># Simple replacement
 sd 'before' 'after' file.txt
 
 # Regex capture groups
@@ -437,7 +438,7 @@ sd -i 'old' 'new' *.md</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Fuzzy find files
+              <pre tabindex="0" role="region" aria-label="fzf example commands"><code># Fuzzy find files
 fzf
 
 # With preview
@@ -472,7 +473,7 @@ fzf --preview 'bat --color=always {}'
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Pretty print JSON
+              <pre tabindex="0" role="region" aria-label="jq example commands"><code># Pretty print JSON
 cat data.json | jq '.'
 
 # Extract field
@@ -507,7 +508,7 @@ jq '.[] | select(.active)' users.json</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># View binary file
+              <pre tabindex="0" role="region" aria-label="hexyl example commands"><code># View binary file
 hexyl binary.exe
 
 # Limit bytes shown
@@ -556,7 +557,7 @@ hexyl --skip 512 file.dat</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Launch bottom
+              <pre tabindex="0" role="region" aria-label="bottom (btm) example commands"><code># Launch bottom
 btm
 
 # Basic mode
@@ -591,7 +592,7 @@ btm --config ~/.config/bottom/bottom.toml</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># List all processes
+              <pre tabindex="0" role="region" aria-label="procs example commands"><code># List all processes
 procs
 
 # Tree view
@@ -626,7 +627,7 @@ procs --watch</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Monitor bandwidth (needs sudo)
+              <pre tabindex="0" role="region" aria-label="bandwhich example commands"><code># Monitor bandwidth (needs sudo)
 sudo bandwhich
 
 # Show raw mode
@@ -658,7 +659,7 @@ sudo bandwhich --raw</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Benchmark a command
+              <pre tabindex="0" role="region" aria-label="hyperfine example commands"><code># Benchmark a command
 hyperfine 'rg pattern'
 
 # Compare commands
@@ -693,7 +694,7 @@ hyperfine --warmup 3 'cargo build'</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Count lines in current dir
+              <pre tabindex="0" role="region" aria-label="tokei example commands"><code># Count lines in current dir
 tokei
 
 # Specific directory
@@ -742,7 +743,7 @@ tokei --exclude node_modules</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Configure as git pager
+              <pre tabindex="0" role="region" aria-label="delta example commands"><code># Configure as git pager
 [core]
     pager = delta
 
@@ -779,7 +780,7 @@ diff file1 file2 | delta</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Launch lazygit
+              <pre tabindex="0" role="region" aria-label="lazygit example commands"><code># Launch lazygit
 lazygit
 
 # In a specific repo
@@ -814,7 +815,7 @@ lazygit -ucf ~/.config/lazygit/config.yml</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Launch gitui
+              <pre tabindex="0" role="region" aria-label="gitui example commands"><code># Launch gitui
 gitui
 
 # With custom key bindings
@@ -847,7 +848,7 @@ gitui -t ~/.config/gitui/theme.ron</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Create a PR
+              <pre tabindex="0" role="region" aria-label="gh example commands"><code># Create a PR
 gh pr create
 
 # View PR status
@@ -882,7 +883,7 @@ gh repo clone owner/repo</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Compare files
+              <pre tabindex="0" role="region" aria-label="difftastic example commands"><code># Compare files
 difft old.rs new.rs
 
 # Use as git diff
@@ -931,7 +932,7 @@ difft --display side-by-side old.py new.py</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Add to .zshrc
+              <pre tabindex="0" role="region" aria-label="Starship example commands"><code># Add to .zshrc
 eval "$(starship init zsh)"
 
 # Add to .bashrc
@@ -967,7 +968,7 @@ symbol = "🌿 "</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># List files as table
+              <pre tabindex="0" role="region" aria-label="Nushell example commands"><code># List files as table
 ls | where size > 1mb
 
 # Parse JSON directly
@@ -1002,7 +1003,7 @@ sys | get host.name</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Start zellij
+              <pre tabindex="0" role="region" aria-label="Zellij example commands"><code># Start zellij
 zellij
 
 # With layout
@@ -1037,7 +1038,7 @@ zellij attach my-session</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Search history
+              <pre tabindex="0" role="region" aria-label="Atuin example commands"><code># Search history
 atuin search docker
 
 # Interactive history (Ctrl+R)
@@ -1085,7 +1086,7 @@ atuin stats</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Quick help for tar
+              <pre tabindex="0" role="region" aria-label="tldr example commands"><code># Quick help for tar
 tldr tar
 
 # Update local cache
@@ -1120,7 +1121,7 @@ tldr --list</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># justfile
+              <pre tabindex="0" role="region" aria-label="just example commands"><code># justfile
 build:
     cargo build --release
 
@@ -1156,7 +1157,7 @@ deploy: build test
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># GET request
+              <pre tabindex="0" role="region" aria-label="xh example commands"><code># GET request
 xh httpbin.org/get
 
 # POST JSON
@@ -1191,7 +1192,7 @@ xh GET api.example.com Authorization:token</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Launch yazi
+              <pre tabindex="0" role="region" aria-label="yazi example commands"><code># Launch yazi
 yazi
 
 # Start in directory
@@ -1239,7 +1240,7 @@ yazi --config ~/.config/yazi</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Query A records
+              <pre tabindex="0" role="region" aria-label="dog example commands"><code># Query A records
 dog example.com
 
 # Query MX records
@@ -1274,7 +1275,7 @@ dog example.com --https @cloudflare</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Ping with graph
+              <pre tabindex="0" role="region" aria-label="gping example commands"><code># Ping with graph
 gping google.com
 
 # Multiple hosts
@@ -1309,7 +1310,7 @@ gping -n 0.5 8.8.8.8</code></pre>
               <div class="example-header">
                 <span>Example</span>
               </div>
-              <pre><code># Serve current directory
+              <pre tabindex="0" role="region" aria-label="miniserve example commands"><code># Serve current directory
 miniserve .
 
 # With upload support
@@ -1336,15 +1337,15 @@ miniserve --qrcode .</code></pre>
         <p>Get started with the most popular modern tools in one command:</p>
         <div class="install-block">
           <div class="install-tabs">
-            <button class="install-tab active" data-target="macos">macOS</button>
-            <button class="install-tab" data-target="cargo">Cargo</button>
+            <button type="button" class="install-tab active" data-target="macos" aria-controls="macos" aria-pressed="true">macOS</button>
+            <button type="button" class="install-tab" data-target="cargo" aria-controls="cargo" aria-pressed="false">Cargo</button>
           </div>
           <div class="install-content" id="macos">
-            <pre><code># Install via Homebrew
+            <pre tabindex="0" role="region" aria-label="Install with Homebrew"><code># Install via Homebrew
 brew install eza bat ripgrep fd dust bottom sd git-delta fzf zoxide starship</code></pre>
           </div>
           <div class="install-content hidden" id="cargo">
-            <pre><code># Install via Cargo (requires Rust)
+            <pre tabindex="0" role="region" aria-label="Install with Cargo"><code># Install via Cargo (requires Rust)
 cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starship</code></pre>
           </div>
         </div>
@@ -1367,7 +1368,7 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
         </div>
       </div>
     </section>
-  </div>
+  </main>
 
   <Footer />
 </Layout>
@@ -1475,7 +1476,7 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
 
   .intro-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
     gap: 24px;
   }
 
@@ -1491,6 +1492,13 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
   .intro-card:hover {
     border-color: var(--accent);
     transform: translateY(-4px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .intro-card:hover,
+    .cta-button.primary:hover {
+      transform: none;
+    }
   }
 
   .intro-icon {
@@ -1550,7 +1558,7 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
   /* Tools Grid */
   .tools-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr));
     gap: 24px;
   }
 
@@ -1563,6 +1571,7 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
     transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
 
   .tool-card:hover {
@@ -1608,7 +1617,7 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 12px;
-    color: #e74c3c;
+    color: var(--accent-text);
   }
 
   .tool-badges {
@@ -1626,18 +1635,22 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
     letter-spacing: 0.5px;
   }
 
+  /* Language hue lives in the tint and border; the label uses strong ink so
+     it clears AA on the blended tint in both modes. */
   .badge.rust {
     background: rgba(222, 165, 132, 0.15);
-    color: #dea584;
+    border: 1px solid rgba(222, 165, 132, 0.6);
+    color: var(--fg-strong);
   }
 
   .badge.go {
     background: rgba(0, 173, 216, 0.15);
-    color: #00add8;
+    border: 1px solid rgba(0, 173, 216, 0.5);
+    color: var(--fg-strong);
   }
 
   .badge.popular {
-    background: rgba(239, 51, 51, 0.15);
+    background: rgba(239, 51, 51, 0.08);
     color: var(--accent-text);
   }
 
@@ -1682,6 +1695,12 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
     overflow-x: auto;
   }
 
+  .example pre:focus-visible,
+  .install-content pre:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
   .example code {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 13px;
@@ -1702,8 +1721,10 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
     border-radius: 6px;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 12px;
-    color: #27ae60;
+    color: var(--status-safe-text);
     margin-right: 8px;
+    max-width: 100%;
+    overflow-wrap: anywhere;
     margin-bottom: 4px;
   }
 
@@ -1716,7 +1737,6 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
   }
 
   .tool-link:hover {
-    color: var(--accent-hover);
     text-decoration: underline;
   }
 
@@ -1794,7 +1814,7 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
   .install-content code {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 14px;
-    color: #27ae60;
+    color: var(--status-safe-text);
   }
 
   /* CTA Section */
@@ -1852,6 +1872,7 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
   }
 
   .cta-button.primary:hover {
+    background: var(--accent-fill-hover);
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(239, 51, 51, 0.4);
     text-decoration: none;
@@ -1867,6 +1888,19 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.5);
     text-decoration: none;
+  }
+
+  /* CTAs sit on the console surface: yellow ring reads there, red does not. */
+  .cta-button:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+  }
+
+  .nav-pill:focus-visible,
+  .install-tab:focus-visible,
+  .tool-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   /* Responsive */
@@ -1888,11 +1922,11 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
     }
 
     .tools-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .intro-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .quick-nav {
@@ -1919,7 +1953,7 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
   }
 
   .dark .tool-card.featured {
-    background: linear-gradient(135deg, rgba(239, 51, 51, 0.05) 0%, var(--color-bg-secondary) 100%);
+    background: var(--color-bg-secondary);
   }
 
   .dark .example {
@@ -1953,8 +1987,12 @@ cargo install eza bat ripgrep fd-find du-dust bottom sd git-delta zoxide starshi
       tab.addEventListener('click', () => {
         const target = tab.getAttribute('data-target');
 
-        tabs.forEach(t => t.classList.remove('active'));
+        tabs.forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-pressed', 'false');
+        });
         tab.classList.add('active');
+        tab.setAttribute('aria-pressed', 'true');
 
         contents.forEach(c => {
           if (c.id === target) {

@@ -224,7 +224,7 @@ const platforms = [
 <style>
   .platforms {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(450px, 100%), 1fr));
     gap: 30px;
     margin-top: 50px;
   }
@@ -234,6 +234,7 @@ const platforms = [
     border: 2px solid var(--color-border);
     border-radius: 12px;
     padding: 30px;
+    min-width: 0;
     transition: transform 0.3s, box-shadow 0.3s, background 0.3s ease, border-color 0.3s ease;
   }
 
@@ -261,6 +262,7 @@ const platforms = [
 
   .header-info {
     flex: 1;
+    min-width: 0;
   }
 
   .platform-card h3 {
@@ -346,6 +348,7 @@ const platforms = [
     color: var(--color-text);
     line-height: 1.6;
     display: block;
+    overflow-wrap: anywhere;
     transition: color 0.3s ease;
   }
 
@@ -430,12 +433,19 @@ const platforms = [
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 14px;
     color: var(--color-text);
+    overflow-wrap: anywhere;
     transition: color 0.3s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .platform-card:hover {
+      transform: none;
+    }
   }
 
   @media (max-width: 1000px) {
     .platforms {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 

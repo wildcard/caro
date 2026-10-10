@@ -165,7 +165,7 @@ const useCases = [
 <style>
   .use-cases {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
     gap: 30px;
     margin-top: 50px;
   }
@@ -175,6 +175,7 @@ const useCases = [
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 25px;
+    min-width: 0;
     transition: transform 0.3s, box-shadow 0.3s, background 0.3s ease, border-color 0.3s ease;
   }
 
@@ -258,7 +259,8 @@ const useCases = [
     font-size: 13px;
     color: var(--color-text);
     flex-grow: 1;
-    overflow-x: auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
     transition: color 0.3s ease;
   }
 
@@ -273,17 +275,26 @@ const useCases = [
 
   .safety-safe {
     background: rgba(76, 175, 80, 0.1);
-    color: #4caf50;
+    color: var(--status-safe-text);
   }
 
+  /* Warn hue (highlighter yellow) lives in the tint and border; label in strong ink. */
   .safety-moderate {
-    background: rgba(255, 152, 0, 0.1);
-    color: #ff9800;
+    background: rgba(240, 237, 59, 0.2);
+    border: 1px solid var(--status-warn);
+    color: var(--fg-strong);
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .use-case-card:hover {
+      transform: none;
+    }
+  }
+
 
   @media (max-width: 900px) {
     .use-cases {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 
