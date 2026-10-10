@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   commands (42 from the published eval, 25 canonical commands for the
   Safety prompts, 54 authored held-out), and
   `docs/ml/risk-gold-static-tiers.jsonl` keeps the static validator's
-  verdicts apart so the labeller is blind to them. No labels are included.
+  verdicts in a separate file for later reporting; the guide lists no
+  command with its static tier. No labels are included.
 - **Calibration and tail-latency metrics in the evaluation harness.**
   `EvaluationResult` now records the backend's reported `confidence`, and
   every `BackendResult` carries `brier`, `ece`, `p50_execution_time_ms` and

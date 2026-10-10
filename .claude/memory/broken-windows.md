@@ -245,7 +245,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Issue:** #1559
 **Status:** open
 **Needs human?:** yes (safety patterns are a security-policy decision; not applied from a feature branch)
-**Next step:** `SafetyConfig::moderate()` returns `Safe` for `bash -i >& /dev/tcp/…`, `curl -F 'key=@~/.ssh/id_rsa' …`, `env | curl --data-binary @- …`, `sudo setenforce 0`, a uid-0 `useradd`, `mysql -e 'DROP DATABASE …'`, `redis-cli FLUSHALL`, `aws s3 rm --recursive`, `kubectl delete namespace`, `aws ec2 terminate-instances`, and `sudo truncate -s 0 /var/log/*.log`, while `rm -rf ./target` is `Critical`. The 121-row candidate file carries each command with its static verdict; decide which gaps become patterns. BW-026 is reserved by #1507 (Validate Translations).
+**Next step:** `SafetyConfig::moderate()` returns `Safe` for `bash -i >& /dev/tcp/…`, `curl -F "key=@$HOME/.ssh/id_rsa" …`, `env | curl --data-binary @- …`, `sudo setenforce 0`, a uid-0 `useradd`, `mysql -e 'DROP DATABASE …'`, `redis-cli FLUSHALL`, `aws s3 rm --recursive`, `kubectl delete namespace`, `aws ec2 terminate-instances`, and `sudo truncate -s 0 /var/log/*.log`, while `rm -rf ./target` is `Critical`. The 121-row candidate file (`docs/ml/risk-gold-candidates.jsonl`) and its companion static-tier file (`docs/ml/risk-gold-static-tiers.jsonl`, joined on `id`) record each command and its static verdict; decide which gaps become patterns. BW-026 is reserved by #1507 (Validate Translations).
 
 ---
 
