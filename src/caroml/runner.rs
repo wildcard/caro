@@ -251,4 +251,82 @@ mod tests {
             other => panic!("expected StepFailed, got {:?}", other),
         }
     }
+
+    // ---- Runner contract (docs/caroml/runner-contract.md) ----
+    // Each test pins one promise from the contract. Change the doc and the
+    // test together.
+
+    fn plan_of(commands: &[&str]) -> RunPlan {
+        RunPlan {
+            platform: "linux".to_string(),
+            steps: commands
+                .iter()
+                .enumerate()
+                .map(|(i, c)| PlanStep {
+                    line: i + 1,
+                    intent: format!("step {}", i + 1),
+                    command: c.to_string(),
+                    risk_level: "Safe".to_string(),
+                    generation_id: format!("g{}", i + 1),
+                })
+                .collect(),
+        }
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn contract_steps_run_in_order_and_return_results_in_order() {
+        let results = execute_plan(&plan_of(&["echo one", "echo two", "echo three"])).unwrap();
+        let out: Vec<_> = results
+            .iter()
+            .map(|r| r.stdout.trim().to_string())
+            .collect();
+        assert_eq!(out, ["one", "two", "three"]);
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn contract_each_step_gets_a_fresh_shell() {
+        // Shell variables, exports and `cd` do not carry into the next step.
+        let results = execute_plan(&plan_of(&[
+            "export CARO_CONTRACT_X=1; cd /",
+            "echo \"x=${CARO_CONTRACT_X:-unset} cwd=$(pwd)\"",
+        ]))
+        .unwrap();
+        let cwd = std::env::current_dir().unwrap();
+        assert_eq!(
+            results[1].stdout.trim(),
+            format!("x=unset cwd={}", cwd.display())
+        );
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn contract_stops_on_first_failure_and_reports_it() {
+        let dir = tempfile::tempdir().unwrap();
+        let marker = dir.path().join("ran");
+        let third = format!("touch {}", marker.display());
+        let err = execute_plan(&plan_of(&["true", "echo boom >&2; exit 7", &third])).unwrap_err();
+        match err {
+            RunError::StepFailed {
+                line,
+                intent,
+                exit_code,
+                stderr,
+            } => {
+                assert_eq!((line, intent.as_str(), exit_code), (2, "step 2", 7));
+                assert_eq!(stderr.trim(), "boom");
+            }
+            other => panic!("expected StepFailed, got {other:?}"),
+        }
+        assert!(!marker.exists(), "a step after the failure ran");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn contract_steps_get_no_stdin() {
+        // A step that reads stdin sees end-of-file at once instead of waiting.
+        let results = execute_plan(&plan_of(&["read line; echo rc=$?"])).unwrap();
+        assert_eq!(results[0].stdout.trim(), "rc=1");
+    }
 }

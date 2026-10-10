@@ -42,7 +42,7 @@ AX's machinery doesn't transfer, but several of its design choices do:
 | Execution | `src/execution/executor.rs` runs `sh -c` directly. No sandbox, rlimits or network fence. Before this PR, `with_timeout()` never killed anything. |
 | Sandbox | ADR-010 (bubblewrap) is *Proposed*, not implemented |
 | Task files | CaroML `.caro` / Carofile have no schema version. Only `caroml.lock` has one (`SCHEMA_VERSION = 2`). |
-| Runner semantics | `src/caroml/runner.rs`: sequential, stop on first failure. The behavior is not documented as a contract. |
+| Runner semantics | `src/caroml/runner.rs`: sequential, stop on first failure. Documented and test-pinned in `docs/caroml/runner-contract.md`. |
 | Credentials | Hard-coded env var names (`backends/remote/claude.rs`, `openrouter.rs`) |
 | Network egress | Only which backend URL you configure. Executed commands have unrestricted egress. |
 | Budgets | `AgentLoop` has `_max_iterations` (unused) and a 15s wall clock |
@@ -182,7 +182,7 @@ trail and the governance spike together, without new infrastructure.
 | P1 | SIGTERM, grace period, then SIGKILL | `src/execution/executor.rs` |
 | P1 | Wire or remove `AgentLoop._max_iterations` | `src/agent/mod.rs` |
 | P1 | ADR: CaroML version header (next free number) | `docs/adr/`, `src/caroml/parser.rs` |
-| P1 | Runner contract doc + contract test | `docs/caroml/`, `tests/` |
+| P1 | ✅ Runner contract doc + contract tests (`docs/caroml/runner-contract.md`, `caroml::runner::tests::contract_*`) | `docs/caroml/`, `src/caroml/runner.rs` |
 | P2 | Network-off by default in ADR-010 sandbox, `NEED net:` opt-in | ADR-010, `src/caroml/` |
 | P2 | Named model profiles with `api_key_env` | `src/config/`, `src/backends/remote/` |
 | P2 | Per-task capability grants for `--approval auto` / `allow_public` | `src/main.rs`, `src/caroml/` |
