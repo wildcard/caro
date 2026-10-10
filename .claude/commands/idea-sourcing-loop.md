@@ -260,6 +260,6 @@ idea_sourcing:
 
 ## Related
 
-- [IDEA_SOURCING_DRS.md](../.claude/automation/specs/IDEA_SOURCING_DRS.md)
+- [IDEA_SOURCING_DRS.md](../automation/specs/IDEA_SOURCING_DRS.md)
 - `/social-queue` - Content ideas feed into social
 - `/caro.roadmap` - Product ideas feed into roadmap

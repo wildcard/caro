@@ -182,4 +182,4 @@ See `.claude/automation/config/schedule.yaml` for full configuration options.
 
 ## DRS Reference
 
-See [AUTOMATED_DEV_FLOW_DRS.md](../.claude/automation/specs/AUTOMATED_DEV_FLOW_DRS.md) for complete specification.
+See [AUTOMATED_DEV_FLOW_DRS.md](../automation/specs/AUTOMATED_DEV_FLOW_DRS.md) for complete specification.

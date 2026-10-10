@@ -1,0 +1,32 @@
+name: Harness Lint
+
+# Deterministic checks on the Claude Code harness (CLAUDE.md + .claude/):
+# skill dirs that silently fail to load, rules missing from the constitution
+# index, unwired hooks, dangling file references, and near-twin skill
+# descriptions. Rationale: docs/adr/ADR-018-autoharness-harness-hygiene.md
+# No path filter: renaming a file outside .claude/ can break a reference to it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  harness-lint:
+    name: Harness Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Test the linter
+        run: python3 -m unittest discover -s scripts/tests -p 'test_check_harness.py'
+
+      - name: Lint the harness
+        # The warning budget lives in scripts/harness-budget.json, so lowering
+        # it never edits this workflow. It must equal the warning count: the PR
+        # that fixes a warning lowers it (CI fails until it does). Never raise it.
+        run: python3 scripts/check-harness.py
