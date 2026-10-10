@@ -259,6 +259,16 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the download 
 **Next step:** `git rm --cached` the 8 paths listed in #1551 (all added by
 `9599ca7`). `.gitignore` already covers `.worktrees/`.
 
+### BW-028: the CLA check never records a signature, so every external PR stays red
+
+**Found:** 2026-10-10, preparing first responses to external PRs (harness-plan session)
+**Issue:** #1555
+**Status:** open
+**Needs human?:** yes (a CI gate in `.github/workflows/cla.yml`, and part of the legal process)
+**Next step:** rename `custom-pr-sign-comment` to `custom-notsigned-prcomment` and set
+the one-line sign phrase, as #1555 shows. Then ask #1296, #1390 and #1415 to comment
+`recheck`.
+
 ---
 
 ## Dedup pending (2026-10-03)
