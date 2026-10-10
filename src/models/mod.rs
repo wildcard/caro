@@ -994,6 +994,10 @@ impl BackendsConfig {
         match &self.ai_horde_key_env {
             Some(name) => match std::env::var(name) {
                 Ok(value) if !value.is_empty() => Ok(Some(value)),
+                Err(std::env::VarError::NotUnicode(_)) => Err(format!(
+                    "backends.ai_horde_key_env names ${}, but its value is not valid UTF-8",
+                    name
+                )),
                 _ => Err(format!(
                     "backends.ai_horde_key_env names ${}, but that variable is unset or empty",
                     name
@@ -1623,6 +1627,22 @@ mod backends_config_tests {
             ..Default::default()
         };
         assert!(cfg.resolve_ai_horde_key().is_err());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn non_utf8_key_env_value_gets_its_own_error() {
+        use std::os::unix::ffi::OsStrExt;
+        std::env::set_var(
+            "CARO_TEST_HORDE_KEY_BADUTF8",
+            std::ffi::OsStr::from_bytes(b"key\xff"),
+        );
+        let cfg = BackendsConfig {
+            ai_horde_key_env: Some("CARO_TEST_HORDE_KEY_BADUTF8".into()),
+            ..Default::default()
+        };
+        let err = cfg.resolve_ai_horde_key().unwrap_err();
+        assert!(err.contains("not valid UTF-8"), "{err}");
     }
 
     #[test]
