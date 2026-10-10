@@ -42,7 +42,7 @@ a leak. We hold the same line on caro's hot paths:
   acquire/release; checksum verification before any read returns
 - **Embedded backend**: model load → inference → unload, with errors
   returning `GeneratorError` rather than propagating panics through the loop
-- **Agent loop**: hard `_max_iterations: 2` cap and a 15‑second timeout,
+- **Agent loop**: at most 2 primary-backend calls (`MAX_BACKEND_CALLS`, test-pinned) and a 15‑second timeout,
   re‑checked mid‑refinement so a slow backend cannot starve the user
 - **No `unsafe`**: zero `unsafe { }` blocks in the crate; FFI/concurrency
   ride on `tokio`, `Arc`, `Mutex`, `RwLock` and the `regex` crate
