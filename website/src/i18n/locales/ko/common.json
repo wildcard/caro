@@ -61,8 +61,7 @@
         "darkMode": "다크 모드",
         "holidayTheme": "휴일 테마",
         "snowEffect": "눈 효과",
-        "disableEffects": "모든 효과 비활성화",
-        "noTheme": "No theme"
+        "disableEffects": "모든 효과 비활성화"
       },
       "useCases": {
         "allUseCases": "모든 사용 사례",

@@ -18,7 +18,7 @@ interface Props {
 const { lang = 'en' } = Astro.props;
 ---
 
-<div class="occasion-menu" data-occasion-menu data-no-theme={t(lang, 'common.nav.appearance.noTheme')} hidden>
+<div class="occasion-menu" data-occasion-menu data-no-theme={t(lang, 'navigation.holidayTheme.options.noTheme')} hidden>
   <button
     class="occasion-trigger"
     type="button"
@@ -225,7 +225,6 @@ const { lang = 'en' } = Astro.props;
   import { holidayEngine } from '../lib/holiday-engine';
   import { getOccasion, occasionIdForSource } from '../config/occasions';
   import { SEASONS } from '../config/seasons';
-  import { HOLIDAYS } from '../config/holidays';
 
   const html = document.documentElement;
 
@@ -235,18 +234,6 @@ const { lang = 'en' } = Astro.props;
   const setOpen = (open: boolean) => trigger?.setAttribute('aria-expanded', String(open));
   const isOpen = () => trigger?.getAttribute('aria-expanded') === 'true';
   const noThemeLabel = menu?.dataset.noTheme || 'No theme';
-  const pageLang = document.documentElement.lang || 'en';
-  // Holiday names come from holidays.ts localizedNames where a translation
-  // exists; otherwise the registry's English name.
-  const occasionName = (id: string): string => {
-    const o = getOccasion(id);
-    if (!o) return noThemeLabel;
-    for (const src of o.sources) {
-      const local = HOLIDAYS.find((h) => h.id === src)?.localizedNames?.[pageLang];
-      if (local) return local;
-    }
-    return o.name;
-  };
 
   trigger?.addEventListener('click', () => setOpen(!isOpen()));
 
@@ -274,14 +261,25 @@ const { lang = 'en' } = Astro.props;
 
   // ------------------------------------------------------------- options
   // Opt-in holidays that are in season for this visitor (date + locale).
+  const visibleHolidays = holidayEngine.getVisibleThemes();
   const inSeason = Array.from(
     new Set(
-      holidayEngine
-        .getVisibleThemes()
+      visibleHolidays
         .map((h) => occasionIdForSource(h.id))
         .filter((id): id is string => Boolean(id)),
     ),
   );
+
+  // Name an occasion after the holiday that put it in season, in the page
+  // language when holidays.ts has a translation (Eid al-Adha, not Eid
+  // al-Fitr, during Eid al-Adha); otherwise the registry's English name.
+  const pageLang = document.documentElement.lang || 'en';
+  const occasionName = (id: string): string => {
+    const o = getOccasion(id);
+    if (!o) return noThemeLabel;
+    const source = visibleHolidays.find((h) => occasionIdForSource(h.id) === id);
+    return source?.localizedNames?.[pageLang] || o.name;
+  };
 
   const previewing = Boolean(html.dataset.occasionPreview);
 

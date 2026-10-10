@@ -367,6 +367,7 @@
     private closeButton: HTMLElement | null;
     private minimizeButton: HTMLElement | null;
     private intervalId: number | null = null;
+    private celebrated = false; // the Jan 1 greeting runs once per page view
     private isMinimized: boolean = false;
     private isClosed: boolean = false;
 
@@ -434,7 +435,7 @@
           }
           this.container?.classList.add('hidden');
           this.badge?.classList.add('hidden');
-        } else if (!this.intervalId) {
+        } else if (!this.intervalId && !this.celebrated) {
           this.init();
         }
       });
@@ -516,6 +517,7 @@
 
     private showCelebration(): void {
       if (!this.container || !this.timer || !this.title || !this.subtitle) return;
+      this.celebrated = true;
 
       // Update for celebration
       this.title.textContent = 'Happy New Year!';

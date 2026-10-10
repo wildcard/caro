@@ -61,8 +61,7 @@
         "darkMode": "Темний режим",
         "holidayTheme": "Святкова тема",
         "snowEffect": "Ефект снігу",
-        "disableEffects": "Вимкнути всі ефекти",
-        "noTheme": "No theme"
+        "disableEffects": "Вимкнути всі ефекти"
       },
       "useCases": {
         "allUseCases": "Всі випадки використання",

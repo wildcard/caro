@@ -61,8 +61,7 @@
         "darkMode": "מצב כהה",
         "holidayTheme": "ערכת חג",
         "snowEffect": "אפקט שלג",
-        "disableEffects": "כבה את כל האפקטים",
-        "noTheme": "ללא ערכת נושא"
+        "disableEffects": "כבה את כל האפקטים"
       },
       "useCases": {
         "allUseCases": "כל התרחישים",
