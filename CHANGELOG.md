@@ -103,10 +103,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ring: its SVG favicon loaded the mascot through `<image href>`, which
   browsers block in favicons. The docs, changelog, landing, slides, devrel and
   Storybook sites had no favicon, an off-brand "C", or the framework default.
-  `scripts/favicons.py` now derives one set (SVG, ICO, Apple touch, PWA
-  icons) from the official pixel mark, in brand ink on brand paper, and
-  writes it to every site. Guarded by `scripts/favicons.py --check` in the
-  `Favicons` workflow.
+  `scripts/favicons.py` now derives the icons (SVG, ICO, Apple touch, and
+  PWA icons for caro.sh) from the official pixel mark, in brand ink on brand
+  paper, and writes the files each site uses. Guarded by
+  `scripts/favicons.py --check` in the `Favicons` workflow.
 
 ### Documentation
 
