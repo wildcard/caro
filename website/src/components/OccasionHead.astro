@@ -34,7 +34,10 @@ const zones = holidayTimezones();
     var m = testDate && testDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (m && (host === 'localhost' || host === '127.0.0.1' || /\.vercel\.app$/.test(host))) {
       var fake = new Date(+m[1], +m[2] - 1, +m[3]);
-      if (!isNaN(fake.getTime())) window.__CARO_TEST_DATE = fake.toISOString();
+      // Reject dates that roll over (2026-02-31 would become March 3).
+      if (fake.getFullYear() === +m[1] && fake.getMonth() === +m[2] - 1 && fake.getDate() === +m[3]) {
+        window.__CARO_TEST_DATE = fake.toISOString();
+      }
     }
     var mode = params.get('theme');
     if (mode === 'dark' || mode === 'light') {

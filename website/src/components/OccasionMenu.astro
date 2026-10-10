@@ -225,6 +225,7 @@ const { lang = 'en' } = Astro.props;
   import { holidayEngine } from '../lib/holiday-engine';
   import { getOccasion, occasionIdForSource } from '../config/occasions';
   import { SEASONS } from '../config/seasons';
+  import { HOLIDAYS } from '../config/holidays';
 
   const html = document.documentElement;
 
@@ -234,6 +235,18 @@ const { lang = 'en' } = Astro.props;
   const setOpen = (open: boolean) => trigger?.setAttribute('aria-expanded', String(open));
   const isOpen = () => trigger?.getAttribute('aria-expanded') === 'true';
   const noThemeLabel = menu?.dataset.noTheme || 'No theme';
+  const pageLang = document.documentElement.lang || 'en';
+  // Holiday names come from holidays.ts localizedNames where a translation
+  // exists; otherwise the registry's English name.
+  const occasionName = (id: string): string => {
+    const o = getOccasion(id);
+    if (!o) return noThemeLabel;
+    for (const src of o.sources) {
+      const local = HOLIDAYS.find((h) => h.id === src)?.localizedNames?.[pageLang];
+      if (local) return local;
+    }
+    return o.name;
+  };
 
   trigger?.addEventListener('click', () => setOpen(!isOpen()));
 
@@ -316,7 +329,7 @@ const { lang = 'en' } = Astro.props;
           dot.className = 'occasion-dot';
           dot.setAttribute('aria-hidden', 'true');
           dot.style.background = o ? o.fill : 'transparent';
-          btn.append(dot, document.createTextNode(o ? o.name : noThemeLabel));
+          btn.append(dot, document.createTextNode(occasionName(id)));
           btn.addEventListener('click', () => applyHoliday(id));
           return btn;
         }),
@@ -324,7 +337,7 @@ const { lang = 'en' } = Astro.props;
     });
 
     document.querySelectorAll<HTMLSelectElement>('[data-occasion-select]').forEach((sel) => {
-      sel.replaceChildren(...choices.map((id) => new Option(getOccasion(id)?.name ?? noThemeLabel, id)));
+      sel.replaceChildren(...choices.map((id) => new Option(occasionName(id), id)));
       sel.addEventListener('change', () => applyHoliday(sel.value));
     });
 
