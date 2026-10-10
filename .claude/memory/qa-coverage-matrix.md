@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-09-26
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -12,6 +12,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
+| 2026-09-26 | PASS | PASS (1.5.0) | PASS (24 cmds) | PASS | FLAKE | FLAKE-001 4th occurrence; --backend-info PASS; caro test --backend static 11/11 PASS |
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
 
 ---
@@ -31,7 +32,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-05-07 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-05-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | never | — | — |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-09-26 | FLAKE | [#1375](https://github.com/wildcard/caro/issues/1375) |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
@@ -63,7 +64,10 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
+| [#1375](https://github.com/wildcard/caro/issues/1375) | `caro ai --once` CpuBackend placeholder (all prompts) | ai | 2026-07-26 | open |
+| [#1442](https://github.com/wildcard/caro/issues/1442) | CLAUDE.md version+MSRV drift (1.4.0→1.5.0, MSRV 1.83→1.85) | docs | 2026-09-07 | open |
+| [#1372](https://github.com/wildcard/caro/issues/1372) | CLAUDE.md version drift (1.4.0 vs 1.5.0) | docs | 2026-07-25 | open |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | closed |
 
 ---
 
