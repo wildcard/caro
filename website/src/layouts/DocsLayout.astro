@@ -168,11 +168,11 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
+  /* Sticky, not fixed: an occasion banner above it pushes it down instead
+     of covering it, and it still pins to the top once the banner scrolls away. */
   .docs-nav {
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
     height: 60px;
     background: var(--color-bg);
     border-bottom: 1px solid var(--color-border);
@@ -258,7 +258,6 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 
   .docs-wrapper {
     display: flex;
-    margin-top: 60px;
     min-height: calc(100vh - 60px);
   }
 
@@ -267,9 +266,10 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
     background: var(--color-sidebar-bg);
     border-right: 1px solid var(--color-border);
     padding: 24px 0;
-    position: fixed;
+    position: sticky;
     top: 60px;
-    left: 0;
+    flex-shrink: 0;
+    align-self: flex-start;
     height: calc(100vh - 60px);
     overflow-y: auto;
   }
@@ -329,7 +329,6 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
   }
 
   .docs-content {
-    margin-left: 260px;
     flex: 1;
     min-width: 0;
     max-width: 900px;

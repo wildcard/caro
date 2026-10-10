@@ -118,34 +118,7 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
       } else {
         document.documentElement.classList.remove('dark');
       }
-
-      // Test date override (for development and preview deployments)
-      (function() {
-        const hostname = window.location.hostname;
-        const isDevOrPreview = hostname === 'localhost'
-          || hostname === '127.0.0.1'
-          || hostname.endsWith('.vercel.app');
-
-        if (isDevOrPreview) {
-          const params = new URLSearchParams(window.location.search);
-          const testDate = params.get('testDate');
-
-          if (testDate) {
-            // Parse YYYY-MM-DD format
-            const match = testDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-            if (match) {
-              const [_, year, month, day] = match;
-              const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-
-              if (!isNaN(date.getTime())) {
-                window.__CARO_TEST_DATE = date.toISOString();
-                console.log('🧪 Test date activated:', testDate, '→', date.toDateString());
-                console.log('🔬 Components will use this date for initialization');
-              }
-            }
-          }
-        }
-      })();
+      // ?testDate= is parsed in OccasionHead, shared by every layout.
     </script>
     <OccasionHead />
   </head>

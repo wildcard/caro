@@ -242,6 +242,7 @@
   --term-bg:     var(--caro-grey-700);
   --term-fg:     var(--caro-beige-100);
   --term-prompt: var(--caro-yellow-400);
+  --term-safe:   #8ee6a0;   /* safe/OK green on the console: 5.4:1 on grey-700 */
   --term-dim:    var(--caro-grey-400);
 
   /* ============================================

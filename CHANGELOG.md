@@ -79,9 +79,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Website WCAG 2.2 AA pass and accessible occasion themes.** axe finds 0
-  violations across the 51 English pages, the 4 audited locale homepages
-  and the new gallery (light and dark, 1440px and 375px), down from 11,109
-  on the English pages; no page scrolls sideways at 375px (10 did). The
+  violations in 220 runs: the 50 English pages, the new gallery and 4
+  locale homepages, each in light and dark at 1440px and 375px. The same
+  50 English pages had 11,109 before; no page scrolls sideways at 375px
+  (10 did). The
   brand tokens gain an AA-safe muted grey, CTA fill and red text; docs pages
   load the brand tokens at all. Navigation is keyboard-operable, exposes
   Blog and a GitHub link on phones, and every layout has a skip link. The

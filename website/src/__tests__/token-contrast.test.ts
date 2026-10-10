@@ -48,6 +48,7 @@ const PAIRS: Array<[string, string, number]> = [
   ['--fg-inverse', '--bg-inverse', 4.5],
   ['--highlight', '--bg-inverse', 4.5],
   ['--term-fg', '--term-bg', 4.5],
+  ['--term-safe', '--term-bg', 4.5],
   ['--status-safe-text', '--bg', 4.5],
   ['--fg', '--bg-stage', 4.5],
 ];

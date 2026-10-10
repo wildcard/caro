@@ -166,13 +166,11 @@ const { lang = 'en', demoHref = '#scenarios' } = Astro.props;
     color: var(--occasion-ink, var(--accent-text));
   }
 
+  /* --bg-raised (white / grey-800) is one of the surfaces every occasion
+     ink is tested on, so hover stays AA and never tints red mid-occasion. */
   .cta-button.secondary:hover {
-    background: rgba(239, 51, 51, 0.1);
+    background: var(--bg-raised);
     transform: translateY(-2px);
-  }
-
-  :global(.dark) .cta-button.secondary:hover {
-    background: rgba(239, 51, 51, 0.15);
   }
 
   .trust-badges {

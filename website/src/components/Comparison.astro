@@ -562,3 +562,17 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
     }
   }
 </style>
+
+<script>
+  // A table region needs a tab stop only while it scrolls sideways (WCAG
+  // 2.1.1). The markup ships tabindex="0" so it still works without script.
+  const wrappers = document.querySelectorAll<HTMLElement>('.table-wrapper[role="region"]');
+  const syncTabStops = () => {
+    wrappers.forEach((w) => {
+      if (w.scrollWidth > w.clientWidth + 1) w.setAttribute('tabindex', '0');
+      else w.removeAttribute('tabindex');
+    });
+  };
+  syncTabStops();
+  window.addEventListener('resize', syncTabStops);
+</script>

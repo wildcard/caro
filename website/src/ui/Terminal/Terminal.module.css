@@ -136,7 +136,7 @@
 
 /* Line type: command */
 .command .prefix {
-  color: #8ee6a0;
+  color: var(--term-safe);
 }
 
 .command .content {
@@ -159,11 +159,11 @@
 
 /* Line type: status */
 .status .prefix {
-  color: #8ee6a0;
+  color: var(--term-safe);
 }
 
 .status .content {
-  color: #8ee6a0;
+  color: var(--term-safe);
   font-size: 13px;
 }
 
