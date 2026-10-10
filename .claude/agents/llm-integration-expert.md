@@ -1,6 +1,7 @@
 ---
 name: llm-integration-expert
 description: Use this agent when working on LLM integration aspects of the caro CLI tool, including model backend architecture, prompt engineering, inference optimization, and safety validation. Examples: <example>Context: User is implementing a new model backend for caro. user: "I need to add support for Anthropic's Claude API to caro" assistant: "I'll use the llm-integration-expert agent to help design and implement the Claude backend integration with proper error handling and safety validation."</example> <example>Context: User is debugging JSON parsing issues with model responses. user: "The MLX backend is returning malformed JSON responses intermittently" assistant: "Let me use the llm-integration-expert agent to analyze the JSON parsing logic and implement robust fallback strategies for handling malformed responses."</example> <example>Context: User needs to optimize prompt engineering for better command generation. user: "The generated commands are too verbose and sometimes unsafe" assistant: "I'll engage the llm-integration-expert agent to refine the system prompt and add better safety constraints for command generation."</example>
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

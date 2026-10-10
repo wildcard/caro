@@ -145,6 +145,7 @@ jobs:
         cargo test --test platform_detection_contract --verbose
         cargo test --test config_contract --verbose
         cargo test --test execution_contract --verbose
+        cargo test --test agent_tools_contract --verbose
       env:
         RUST_BACKTRACE: 1
 

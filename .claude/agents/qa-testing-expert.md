@@ -1,6 +1,7 @@
 ---
 name: qa-testing-expert
 description: Use this agent when you need comprehensive testing strategies, test implementation, or quality assurance for software projects. Examples: <example>Context: The user has just implemented a new safety validation feature for their CLI tool and wants to ensure it's thoroughly tested. user: 'I just added a safety module that blocks dangerous shell commands. Can you help me create comprehensive tests for this?' assistant: 'I'll use the qa-testing-expert agent to create a comprehensive testing strategy for your safety validation feature.' <commentary>Since the user needs testing expertise for a critical safety feature, use the qa-testing-expert agent to provide thorough test planning and implementation.</commentary></example> <example>Context: The user is preparing for a release and wants to establish quality gates and CI/CD testing pipelines. user: 'We're about to release our CLI tool. What testing should we have in place before we ship?' assistant: 'Let me use the qa-testing-expert agent to design a comprehensive pre-release testing strategy and quality gates.' <commentary>The user needs release-readiness testing guidance, which requires the qa-testing-expert's expertise in test strategy and quality assurance.</commentary></example>
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

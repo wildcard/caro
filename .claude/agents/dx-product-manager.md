@@ -1,6 +1,7 @@
 ---
 name: dx-product-manager
 description: Use this agent when you need comprehensive developer experience strategy, CLI tool design, user onboarding flows, documentation architecture, or product management guidance for developer tools. Examples: <example>Context: User is building a CLI tool and needs to design the complete user experience from installation to daily usage. user: 'I'm building a CLI tool that converts natural language to shell commands. I need help designing the complete user experience - from installation to daily usage, including error handling and safety features.' assistant: 'I'll use the dx-product-manager agent to help design a comprehensive developer experience strategy for your CLI tool.' <commentary>The user needs comprehensive DX strategy for a CLI tool, which is exactly what this agent specializes in.</commentary></example> <example>Context: User has a working CLI tool but users are struggling with onboarding and adoption. user: 'My CLI tool works but users are having trouble getting started and many abandon it after the first try. I need to redesign the onboarding experience.' assistant: 'Let me use the dx-product-manager agent to analyze your onboarding flow and design a better user experience.' <commentary>This is a classic DX problem that requires the specialized expertise of this agent.</commentary></example>
+tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

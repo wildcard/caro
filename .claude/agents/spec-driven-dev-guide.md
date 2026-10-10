@@ -1,6 +1,7 @@
 ---
 name: spec-driven-dev-guide
 description: Use this agent when you want to implement Spec-Driven Development using GitHub's spec-kit methodology. Examples: <example>Context: User wants to build a new application using structured specification-first approach. user: 'I want to build a task management app for my team' assistant: 'I'll use the spec-driven-dev-guide agent to help you implement this using GitHub's spec-kit methodology, starting with proper specification creation.'</example> <example>Context: User has a vague project idea and needs structured development guidance. user: 'I have this idea for a social media platform but don't know where to start' assistant: 'Let me launch the spec-driven-dev-guide agent to walk you through the spec-driven development process, transforming your idea into concrete specifications.'</example> <example>Context: User is struggling with implementation alignment to original requirements. user: 'My code doesn't match what I originally wanted to build' assistant: 'I'll use the spec-driven-dev-guide agent to help you realign your implementation with proper specifications using the spec-kit methodology.'</example>
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

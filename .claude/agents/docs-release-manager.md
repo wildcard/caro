@@ -1,6 +1,7 @@
 ---
 name: docs-release-manager
 description: Use this agent when you need to maintain project documentation, track development progress, manage releases, or update project status. Examples: <example>Context: User has just merged a PR that implements the safety validation module and wants to update project documentation. user: 'I just finished implementing the safety validation patterns. Can you update the documentation to reflect this?' assistant: 'I'll use the docs-release-manager agent to update the README.md status section, move this feature from "In Progress" to "Completed", and update the CHANGELOG.md with the new functionality.' <commentary>Since the user completed a feature and needs documentation updates, use the docs-release-manager agent to maintain accurate project status across all documentation files.</commentary></example> <example>Context: User is preparing for a release and needs comprehensive documentation review. user: 'We're ready to release v0.2.0. Can you prepare all the release documentation?' assistant: 'I'll use the docs-release-manager agent to handle the complete release preparation including updating CHANGELOG.md, creating release notes, updating version numbers, and ensuring all documentation reflects the current state.' <commentary>Since this is a release preparation task requiring comprehensive documentation management, use the docs-release-manager agent.</commentary></example>
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 
