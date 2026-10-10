@@ -287,13 +287,23 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** no
 **Next step:** honor a `CARO_CONFIG_DIR` env var in `src/config/mod.rs` and use it in the config tests.
 
-### BW-039: `ChromaDB Integration Tests` CI job fails after ~14 minutes
+### BW-039: `ChromaDB Integration Tests` CI job fails partway through the run
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-07-18)
 **Issue:** #1342
 **Status:** open
 **Needs human?:** yes if the fix is to delete the job (CI gate); no for a root-cause fix.
 **Next step:** read the failing step's log and root-cause it.
+
+---
+
+### BW-040: CI never runs 23 of 46 integration test targets
+
+**Found:** 2026-10-07 (while driving #1536)
+**Issue:** #1537. CI runs only targets named by `cargo test --test <name>`; 23 targets in `tests/` are named nowhere, including 5 `*_contract` guards (e.g. `explain_ste_contract`, `clarification_gate_contract`).
+**Status:** open
+**Needs human?:** yes (CI gate). Options on #1537: run `cargo test --tests` in Unit Tests, or add a check that every target is named.
+**Next step:** maintainer picks an option on #1537.
 
 ---
 
