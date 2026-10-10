@@ -276,7 +276,23 @@ mod tests {
     #[test]
     #[cfg(unix)]
     fn contract_steps_run_in_order_and_return_results_in_order() {
-        let results = execute_plan(&plan_of(&["echo one", "echo two", "echo three"])).unwrap();
+        // Each step checks that exactly the earlier steps already ran, then
+        // records itself. A reordered or overlapping run fails a step.
+        let dir = tempfile::tempdir().unwrap();
+        let log = dir.path().join("log");
+        let step = |expected: &str, me: &str| {
+            format!(
+                "test \"$(cat {log} 2>/dev/null | tr '\\n' ' ')\" = \"{expected}\" && echo {me} >> {log} && echo {me}",
+                log = log.display()
+            )
+        };
+        let steps = [
+            step("", "one"),
+            step("one ", "two"),
+            step("one two ", "three"),
+        ];
+        let refs: Vec<&str> = steps.iter().map(String::as_str).collect();
+        let results = execute_plan(&plan_of(&refs)).unwrap();
         let out: Vec<_> = results
             .iter()
             .map(|r| r.stdout.trim().to_string())
@@ -325,8 +341,31 @@ mod tests {
     #[test]
     #[cfg(unix)]
     fn contract_steps_get_no_stdin() {
-        // A step that reads stdin sees end-of-file at once instead of waiting.
-        let results = execute_plan(&plan_of(&["read line; echo rc=$?"])).unwrap();
-        assert_eq!(results[0].stdout.trim(), "rc=1");
+        // A step must not see caro's stdin. To test that even where the test
+        // process's own stdin is already empty (CI), re-run this test as a
+        // child with readable stdin, and check that the step sees EOF.
+        const PROBE: &str = "CARO_RUNNER_STDIN_PROBE";
+        if std::env::var_os(PROBE).is_some() {
+            let results =
+                execute_plan(&plan_of(&["read line; echo \"got=[$line] rc=$?\""])).unwrap();
+            println!("{}", results[0].stdout.trim());
+            return;
+        }
+        use std::io::Write;
+        use std::process::{Command, Stdio};
+        let mut child = Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "caroml::runner::tests::contract_steps_get_no_stdin",
+                "--nocapture",
+            ])
+            .env(PROBE, "1")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        child.stdin.take().unwrap().write_all(b"secret\n").unwrap();
+        let out = String::from_utf8(child.wait_with_output().unwrap().stdout).unwrap();
+        assert!(out.contains("got=[] rc=1"), "step read caro's stdin: {out}");
     }
 }
