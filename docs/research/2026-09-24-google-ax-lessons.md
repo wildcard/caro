@@ -45,7 +45,7 @@ AX's machinery doesn't transfer, but several of its design choices do:
 | Runner semantics | `src/caroml/runner.rs`: sequential, stop on first failure. The behavior is not documented as a contract. |
 | Credentials | Hard-coded env var names (`backends/remote/claude.rs`, `openrouter.rs`) |
 | Network egress | Only which backend URL you configure. Executed commands have unrestricted egress. |
-| Budgets | `AgentLoop` makes at most 2 primary-backend calls (`MAX_BACKEND_CALLS`) plus at most 1 advisor call, tested, within a 15s wall clock |
+| Budgets | `AgentLoop` makes at most 2 primary-backend calls (`MAX_BACKEND_CALLS`) plus at most 1 advisor call, tested; its 15s timeout is a soft check before follow-up work, not a wall-clock cap |
 | MCP | None in `src/` |
 | Governance | `src/governance/` is a Phase 0 agentmesh build spike |
 
@@ -75,7 +75,7 @@ Follow-ups:
   backend at one initial call plus one repair or refine, now named
   `MAX_BACKEND_CALLS`. An advisor adds at most one call of its own. Pinned by
   `agent::tests::backend_call_budget_holds_on_every_path` and
-  `agent::tests::failed_advisor_adds_one_call_and_keeps_primary_cap`.
+  `agent::tests::advisor_opt_out_adds_one_call_and_keeps_primary_cap`.
 
 ### 2. Version the declarative contract (P1)
 
