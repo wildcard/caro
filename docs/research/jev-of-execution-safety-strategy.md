@@ -75,7 +75,7 @@ Inventory with the signal each uses today (from the exploration):
 7. **Knowledge layer** (`src/knowledge/`, `should_index`, `record_correction`): the correction log is the DPO/RLCD training source (`docs/ml/sft-data-pipeline.md:37-48`); today it stores no probability, so it cannot teach calibration.
 8. **Telemetry** (`src/telemetry/events.rs:49-122`): records backend, duration, success, risk_level, advisor accepted — but **no confidence and no outcome label**, so live calibration is impossible today.
 9. **MCP server / OpenAI-compatible endpoint** ("in progress", `docs/GUARDIAN_AGENT.md:63-76`) — the natural delivery surface for a decision API; today they would return free text plus a risk string.
-10. **Eval**: three harnesses, CSR 94.8% headline over 55 TOML cases; Brier/ECE just added; no consensus labels, no Pareto view; `ml_fine_tune_loop` routine runs nightly with nothing calibrated to train on.
+10. **Eval**: three harnesses, CSR 94.8% headline recorded on the 58-case beta suite in January 2026 (ROADMAP.md) and re-asserted as `csr >= 0.948` over the 55-case `tests/evaluation/test_cases.toml` by `tests/evaluation/harness.rs`; the 101-case `dataset.yaml` feeds `src/evaluation/` and carries no CSR headline (three suites, as `jev-system-one-gap-analysis.md` describes); Brier/ECE just added; no consensus labels, no Pareto view; `ml_fine_tune_loop` routine runs nightly with nothing calibrated to train on.
 11. **Hermes** monitors PRs, market, integration health — not model quality or calibration.
 12. **Dogma rule engine / enterprise dashboard** (research-only, `hypothesis-ledger.md:36,40`): custom rules are user-authored decisions; the dashboard is where decisions with probabilities get audited (ADR-003). Both become cheaper once decisions are typed, but both stay behind Gate 1.
 
@@ -100,7 +100,7 @@ crate's token API. No OpenAI-compatible request sends `logprobs`.
 - **Telemetry**: add `confidence`, `confidence_source`, and an outcome field (executed / edited / rejected) to `CommandGeneration` so live ECE is computable; consent unchanged.
 - Guard: `calibration::tests::excludes_unsourced_confidence`; per-backend contract tests.
 
-### Phase 2 — The decision API surface (new ADR-018)
+### Phase 2 — The decision API surface (shipped under ADR-017; no separate ADR, so 018 went to Phase 4)
 - `caro decide "<request or command>"` (and `--output json`) returning one typed record: `{risk: Choice<RiskLevel>, should_run: Noul, needs_clarification: Noul, intent: Choice, confidence: Score, source, floor_applied: bool, latency_ms}`. Every field is a `caro::decision` type; the JSON Schema is published.
 - Same record from MCP `validate_command` / `explain_safety` and the OpenAI-compatible endpoint (the two "in progress" integrations in `GUARDIAN_AGENT.md`).
 - `should_run` = calibrated composition of static floor + judge (`blend_smart_decision`) with the invariant: `p_run == 0.0` whenever the floor says Critical.
@@ -119,13 +119,13 @@ crate's token API. No OpenAI-compatible request sends `logprobs`.
 Gated on Phase 3 data, per the research doc's "not on enthusiasm".
 - Dataset: consensus-labelled gate decisions + correction-log triples with recorded p (Phase 1 telemetry) through `src/ai/privacy.rs` redaction.
 - Target: a small local classifier (or LoRA on the smoke model) for the Noul gates — risk, injection, needs_clarification — with a calibration objective (Brier/ECE), i.e. caro's RLCD-lite. Command *generation* stays free text.
-- Owner: `ml-ds-engineer` agent; deliverable an ADR-019 with before/after ECE, not a model drop.
+- Owner: `ml-ds-engineer` agent; deliverable an ADR with before/after ECE, not a model drop. Landed as ADR-018 (Phase 2 shipped without its own ADR, and ADR numbers have no gaps); tracking issue #1510; the eval binary's `CARO_EVAL_EXPORT_LABELS` writes the corpus.
 
 ### Phase 5 — Product surfaces (after Gate 1)
 - Enterprise dashboard (ADR-003) audits decisions with probabilities; Dogma becomes "custom decision rules" layered under the same floor. Both wait on the 20 transcripts already scheduled in the ledger.
 
 ## Documentation milestones
-- ADR-017 → Accepted (Phase 1); ADR-018 decision API (Phase 2); ADR-019 gate model (Phase 4); add rows to `docs/adr/README.md`; reconcile the two untracked legacy ADR files.
+- ADR-017 → Accepted (Phase 1); no separate decision-API ADR (Phase 2 shipped under ADR-017); ADR-018 gate classifier (Phase 4); add rows to `docs/adr/README.md`; reconcile the two untracked legacy ADR files.
 - `ROADMAP.md`: new `### v1.6.0 — Calibrated decisions` milestone above v1.5.0; update "Last Updated"; remove Karo/voice from v2.0 success criteria (contradicts the Research section).
 - `COMPANY.md:14-23` positioning gains one sentence: "the calibrated, deterministic-floored decision layer for execution safety".
 - `playbook/STAGE_MAP.md` Stage 2 evidence: calibration metrics as anti-demoware discipline; Stage 3: `caro.sh/evals` as proactive-recall surface.
@@ -147,9 +147,9 @@ Gated on Phase 3 data, per the research doc's "not on enthusiasm".
 | Phase | Size | Depends on |
 |---|---|---|
 | 1 #1464 | 1 PR (~600 LOC) | #1459 merged |
-| 2 ADR-018 + `caro decide` + #1465 | ADR + 2 PRs | Phase 1 |
+| 2 `caro decide` + #1465 (under ADR-017) | 2 PRs | Phase 1 |
 | 3 #1466 + evals page | 2 PRs | Phase 1 |
-| 4 gate model | ADR + experiment | Phase 3 data |
+| 4 gate classifier (ADR-018, #1510) | ADR + experiment | Phase 3 data |
 | 5 product | interviews first | Gate 1 |
 
 Phases 2 and 3 can run in parallel sessions on separate branches.
@@ -158,5 +158,5 @@ Phases 2 and 3 can run in parallel sessions on separate branches.
 - Phase 1: `cargo test --lib -- calibration decision`, `cargo test --test evaluation` shows a `source` column and ECE only over sourced rows; vLLM contract test asserts `Measured`.
 - Phase 2: `caro decide --output json "rm -rf /"` returns `should_run.p_yes == 0.0`, `floor_applied == true`; JSON validates against the published schema; p95 of the static path < 100 ms in `benches/`.
 - Phase 3: baseline JSON carries ECE per gate; a deliberately mis-calibrated constant fails the regression gate; website-claims suite passes on the new evals page.
-- Phase 4: ADR-019 reports ECE before/after on held-out consensus labels; no safety-pattern change.
+- Phase 4: ADR-018 reports ECE before/after on held-out consensus labels; no safety-pattern change.
 - Docs: `grep -n "Last Updated" ROADMAP.md`, ADR README rows sequential, README/ROADMAP CSR figures agree.

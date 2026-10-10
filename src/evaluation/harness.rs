@@ -213,6 +213,19 @@ impl EvaluationHarness {
     ///
     /// Returns error if evaluation cannot complete
     pub async fn run(&self) -> Result<BenchmarkReport> {
+        self.run_with_results().await.map(|(report, _)| report)
+    }
+
+    /// Runs the full evaluation and also returns every per-result record the
+    /// report was aggregated from, in the order they were produced.
+    ///
+    /// The report is a summary; the per-result records carry the fields that
+    /// summary drops (the generated command, the local and reference risk
+    /// verdicts, the confidence and its source). The consensus-label export
+    /// for the gate classifier (`sft_export::decision_label_pairs`, ADR-018)
+    /// needs those, so callers that write training data use this entry point
+    /// and `run` stays the summary-only path.
+    pub async fn run_with_results(&self) -> Result<(BenchmarkReport, Vec<EvaluationResult>)> {
         let start_time = Instant::now();
 
         // Filter available backends
@@ -229,9 +242,9 @@ impl EvaluationHarness {
 
         // Aggregate results
         let execution_time_ms = start_time.elapsed().as_millis() as u64;
-        let report = self.aggregate_results(all_results, execution_time_ms)?;
+        let report = self.aggregate_results(&all_results, execution_time_ms)?;
 
-        Ok(report)
+        Ok((report, all_results))
     }
 
     /// Runs evaluation for a specific category only
@@ -740,7 +753,7 @@ impl EvaluationHarness {
     /// Aggregates evaluation results into a benchmark report
     fn aggregate_results(
         &self,
-        results: Vec<EvaluationResult>,
+        results: &[EvaluationResult],
         execution_time_ms: u64,
     ) -> Result<BenchmarkReport> {
         // Calculate overall metrics
@@ -1065,6 +1078,28 @@ mod tests {
         for backend in report.backend_results.values() {
             assert!((backend.mean_score - backend.pass_rate).abs() < 1e-6);
         }
+    }
+
+    #[tokio::test]
+    async fn test_run_with_results_returns_every_result() {
+        // Regression guard for the consensus-label export (ADR-018): the
+        // per-result records must cover exactly what the report summarises,
+        // or the JSONL written from them silently drops cases.
+        let dataset = create_simple_dataset();
+        let mut harness = EvaluationHarness::new(dataset, HarnessConfig::default()).unwrap();
+        harness.add_backend(
+            "mock-backend".to_string(),
+            Arc::new(MockBackend::new("mock")),
+        );
+
+        let (report, results) = harness.run_with_results().await.unwrap();
+
+        assert_eq!(results.len(), report.total_tests);
+        assert_eq!(
+            results.iter().filter(|r| r.passed).count(),
+            report.total_passed
+        );
+        assert!(results.iter().all(|r| r.backend_name == "mock-backend"));
     }
 
     #[tokio::test]
