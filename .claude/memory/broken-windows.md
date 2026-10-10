@@ -125,9 +125,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1217 (dup #1417, closed)
-**Status:** open
+**Status:** fixed (#1532, merged 2026-10-10). Adds a `dry_run` field to the JSON. `executed` keeps its pinned meaning ("passed safety checks"); contract tests depend on it.
 **Needs human?:** no
-**Next step:** set `executed` from the real execution path.
+**Next step:** none. Delete after 2026-10-17.
 
 ### BW-015: main CI `Extended Tests` (4 model jobs) red: HF Hub model download fails
 
@@ -207,6 +207,22 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** no
 **Next step:** fix clap routing (`args_conflicts_with_subcommands`) so `caro --no-telemetry config show` runs `config`.
 
+### BW-024: `caro config set backend` has no `auto` value to restore auto-detect
+
+**Found:** 2026-10-06 sweep
+**Issue:** #1530
+**Status:** open
+**Needs human?:** no
+**Next step:** accept `auto` (or `default`) in `config set backend` and clear the stored backend.
+
+### BW-025: GNU coreutils misdetected as BSD when `ls --version` exceeds 500 ms
+
+**Found:** 2026-10-06, CI on #1532 (`test_coreutils_detection` failed on ubuntu-24.04)
+**Issue:** #1533
+**Status:** open
+**Needs human?:** no
+**Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
+
 ### BW-031: ai_horde `Client-Agent` header hardcoded to `caro:1.4.0`
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-22)
@@ -250,7 +266,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 ### BW-036: `caro config set backend` rejects mesh, ai-horde, hybrid
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-07-27)
-**Issue:** #1379 (related: BW-020, and BW-024 on the #1532 branch)
+**Issue:** #1379 (related: BW-020, BW-024)
 **Status:** open. PR #1348 (`integrator/20260718`) unifies the backend rosters; it is mergeable but idle since 2026-09-24. `src/main.rs` still hardcodes `["embedded", "ollama", "exo", "vllm"]`.
 **Needs human?:** no
 **Next step:** review and merge #1348, or rebase it.
