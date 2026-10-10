@@ -8,7 +8,9 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | closed (2026-05-09) | 2026-05-07 |
+| [#1483](https://github.com/wildcard/caro/issues/1483) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (regression of #1044) | open | 2026-09-29 |
+| [#1484](https://github.com/wildcard/caro/issues/1484) | P2 | ai | caro ai --once silently blocks indefinitely when no model is available | open | 2026-09-29 |
 
 ---
 
