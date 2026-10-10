@@ -18,7 +18,8 @@ raises it.
   routine, search open PRs for the same work, then extend the closest existing
   file. Add a file only when nothing covers that class of work.
 - **Least privilege.** An agent that says it is read-only declares a `tools:`
-  allowlist without Write, Edit, or Bash (the shell can write too).
+  allowlist without Write, Edit, NotebookEdit, or Bash (the shell can write
+  too).
 - **No unwired promises.** Call a check "enforced" (hook, CI job, "blocks
   pushes") only once it is wired. Until then, document it as manual.
 - **Retire, don't let rot.** Removal is a `git rm` whose commit body states

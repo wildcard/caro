@@ -196,7 +196,8 @@ mechanisms additively, in phases:
   least privilege, no unwired promises, retire with evidence). Its `paths:`
   frontmatter loads it only when harness files are touched, and the linter
   treats such rules as on-demand.
-- `~ CLAUDE.md`, rules, the `validate-constitution` skill and agent,
+- `~ CLAUDE.md`, rules, the `validate-constitution` skill and the
+  `constitution-validator` agent,
   `.claude/memory/consolidated-knowledge-rules.md`, six commands and one skill: the drift
   fixes listed in Context.
 
