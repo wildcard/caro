@@ -163,6 +163,17 @@ backend switch dressed as a decision.
 - The three eval harnesses should converge before calibration becomes a
   release gate; which one survives is out of scope here.
 
+## Status
+
+| Phase | Scope | Where it landed |
+| --- | --- | --- |
+| 1 | `caro::decision`, Brier/ECE/p50/p95 in the harness, measured confidence for LLM backends (#1461–#1464) | PR #1459, merged |
+| 2 | Constrained decoding on Ollama/vLLM with one corrective retry (#1465) | PR #1459, merged |
+| 3 | Consensus risk labels, Pareto view in the weekly demo report, ECE release gate (#1466) | PR #1489, merged |
+| 3 | `caro.sh/evals` page rendered from `website/src/data/evals.ts`, verified by the website-claims suite | this change |
+| 4 | Gate model (ADR-019) | not started; waits on Phase 3 consensus data |
+| 5 | Product surfaces | waits on Gate 1 transcripts |
+
 ## See also
 
 - `docs/research/jev-of-execution-safety-strategy.md` — the phased

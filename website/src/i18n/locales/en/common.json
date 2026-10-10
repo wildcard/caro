@@ -43,6 +43,8 @@
         "commonQuestions": "Common questions",
         "roadmap": "Roadmap",
         "whatsNext": "What's coming next",
+        "evals": "Evals",
+        "evalsDesc": "Published accuracy and calibration numbers",
         "glossary": "Glossary",
         "terminalTerms": "Terminal & Unix terms",
         "github": "GitHub",

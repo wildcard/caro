@@ -111,6 +111,12 @@ user cohort.
   triage + competitive intel + weekly briefings; agents handle QA loop,
   PR management, beta feedback, idea sourcing. Inventory and gap
   analysis in [`docs/launch-os.md`](../docs/launch-os.md) (Phase 4).
+- **Public evals**: [caro.sh/evals](https://caro.sh/evals) publishes the
+  harness's per-backend accuracy, calibration (Brier/ECE), latency tail and
+  cost from a committed snapshot (`website/src/data/evals.ts`) that the
+  website-claims suite checks against the dataset. A page users can come
+  back to for numbers is a proactive-recall surface, and the calibration
+  columns are the anti-demoware discipline from Stage 2 made public.
 - **Telemetry infrastructure**: opt-in, privacy-first, session events
   collected. Enough raw material to compute D1/D7/D30 retention; the
   computation itself is spec'd in

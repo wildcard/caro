@@ -223,6 +223,14 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** no
 **Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
 
+### BW-026: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
+
+**Found:** 2026-10-02, PR #1507 session (also red on main push be07b22 and every i18n-touching PR)
+**Issue:** #1508
+**Status:** open
+**Needs human?:** no (run `translate.yml` or copy the English files; or relax the validator for missing namespaces)
+**Next step:** `en/playbook.json` (#1174) and `en/waitlist.json` (#599) were never mirrored into 13 locales. CI runs the validator without `--strict`, so the missing-file errors are the failure; the 207 untranslated warnings are only fatal in strict mode.
+
 ### BW-031: ai_horde `Client-Agent` header hardcoded to `caro:1.4.0`
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-22)
