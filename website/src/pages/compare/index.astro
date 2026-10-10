@@ -111,7 +111,7 @@ function renderValue(value: boolean | string) {
 >
   <Navigation />
 
-  <main class="compare-page">
+  <main id="main-content" class="compare-page">
     <section class="hero">
       <div class="container">
         <h1>Compare Caro to Alternatives</h1>
@@ -613,8 +613,8 @@ function renderValue(value: boolean | string) {
   .final-cta {
     padding: 80px 20px;
     text-align: center;
-    background: var(--accent);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .final-cta h2 {

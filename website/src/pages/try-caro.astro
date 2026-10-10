@@ -24,7 +24,7 @@ import RatzillaDemo from '../components/RatzillaDemo.astro';
 >
   <Navigation />
 
-  <main class="try-page">
+  <main id="main-content" class="try-page">
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="container">
@@ -192,8 +192,8 @@ import RatzillaDemo from '../components/RatzillaDemo.astro';
 
   .badge {
     display: inline-block;
-    background: var(--accent);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 14px;
@@ -402,9 +402,9 @@ import RatzillaDemo from '../components/RatzillaDemo.astro';
   }
 
   .copy-btn {
-    background: var(--accent);
+    background: var(--accent-fill);
     border: none;
-    color: white;
+    color: var(--on-accent);
     padding: 6px 12px;
     border-radius: 6px;
     font-size: 12px;
@@ -415,7 +415,7 @@ import RatzillaDemo from '../components/RatzillaDemo.astro';
   }
 
   .copy-btn:hover {
-    background: var(--accent-hover);
+    background: var(--accent-fill-hover);
   }
 
   .copy-btn.copied {
@@ -439,8 +439,8 @@ import RatzillaDemo from '../components/RatzillaDemo.astro';
   }
 
   .cta-button.primary {
-    background: var(--accent);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .cta-button.primary:hover {

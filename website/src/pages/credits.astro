@@ -31,7 +31,7 @@ import Navigation from '../components/Navigation.astro';
     </section>
 
     <!-- Main Credits Roll -->
-    <main class="credits-content">
+    <main id="main-content" class="credits-content">
 
       <!-- Special Thanks Section -->
       <section class="credits-section special-thanks">
@@ -786,8 +786,8 @@ import Navigation from '../components/Navigation.astro';
   }
 
   .social-link:hover {
-    background: var(--accent);
-    color: #fff;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     border-color: var(--accent);
   }
 
@@ -984,8 +984,8 @@ import Navigation from '../components/Navigation.astro';
   .cta-button {
     display: inline-block;
     padding: 16px 32px;
-    background: var(--accent);
-    color: #fff;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     font-size: 18px;
     font-weight: 700;
     text-decoration: none;

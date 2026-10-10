@@ -1,5 +1,7 @@
 ---
+import '../ui/tokens.css';
 import Analytics from '@vercel/analytics/astro';
+import GitHubMark from '../components/icons/GitHubMark.astro';
 import { KavanaCompanion } from '../ui/KavanaCompanion/KavanaCompanion';
 
 interface Props {
@@ -38,7 +40,8 @@ const { title, description } = Astro.props;
     </script>
   </head>
   <body>
-    <nav class="docs-nav">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <nav class="docs-nav" aria-label="Docs">
       <div class="nav-container">
         <a href="/" class="logo">
           <img src="/caro-pixel.png" alt="Caro" width="32" height="32" />
@@ -46,9 +49,9 @@ const { title, description } = Astro.props;
         </a>
         <div class="nav-links">
           <a href="/docs">Docs</a>
-          <a href="https://github.com/wildcard/caro" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/wildcard/caro" class="github-link" target="_blank" rel="noopener noreferrer" aria-label="Caro on GitHub (opens in a new tab)"><GitHubMark size={18} /><span>GitHub</span></a>
         </div>
-        <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <button id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
           <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="5"/>
             <line x1="12" y1="1" x2="12" y2="3"/>
@@ -68,7 +71,7 @@ const { title, description } = Astro.props;
     </nav>
     <div class="docs-wrapper">
       <aside class="docs-sidebar">
-        <nav class="sidebar-nav">
+        <nav class="sidebar-nav" aria-label="Documentation sections">
           <h3>Getting Started</h3>
           <ul>
             <li><a href="/docs">Overview</a></li>
@@ -89,7 +92,7 @@ const { title, description } = Astro.props;
           </ul>
         </nav>
       </aside>
-      <main class="docs-content">
+      <main id="main-content" class="docs-content">
         <article>
           <slot />
         </article>
@@ -110,22 +113,16 @@ const { title, description } = Astro.props;
     --color-text-secondary: var(--fg-muted);
     --color-text-tertiary: var(--fg-strong);
     --color-border: var(--border);
-    --color-accent: var(--accent);
+    --color-accent: var(--accent-text); /* used as text (active links, headings) */
     --color-accent-light: var(--accent-hover);
     --color-code-bg: var(--bg-subtle);
     --color-sidebar-bg: var(--bg-subtle);
   }
 
+  /* Semantic tokens flip via tokens.css; only docs-specific surfaces here. */
   .dark {
-    --color-bg: var(--caro-grey-900);
-    --color-bg-secondary: #2d2d2d;
-    --color-bg-tertiary: #252525;
-    --color-text: #e0e0e0;
-    --color-text-secondary: #a0a0a0;
-    --color-text-tertiary: #c0c0c0;
-    --color-border: #3a3a3a;
-    --color-code-bg: #2d2d2d;
-    --color-sidebar-bg: #1f1f1f;
+    --color-code-bg: var(--caro-grey-800);
+    --color-sidebar-bg: var(--caro-grey-950);
   }
 
   * {
@@ -188,6 +185,9 @@ const { title, description } = Astro.props;
   }
 
   .nav-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     color: var(--color-text-secondary);
     text-decoration: none;
     font-size: 14px;
@@ -352,9 +352,12 @@ const { title, description } = Astro.props;
     padding: 0;
   }
 
+  /* In-prose links are underlined so they are not identified by color
+     alone (WCAG 1.4.1). */
   .docs-content a {
     color: var(--color-accent);
-    text-decoration: none;
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
   .docs-content a:hover {
@@ -437,8 +440,9 @@ const { title, description } = Astro.props;
     const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
     sidebarLinks.forEach(link => {
       if (link.getAttribute('href') === currentPath) {
-        link.style.background = 'var(--color-accent)';
-        link.style.color = 'white';
+        link.style.background = 'var(--accent-fill)';
+        link.style.color = 'var(--on-accent)';
+        link.setAttribute('aria-current', 'page');
       }
     });
   });

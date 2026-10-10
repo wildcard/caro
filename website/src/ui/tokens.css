@@ -104,7 +104,8 @@
   --caro-grey-900: #2b2b2b;
   --caro-grey-800: #3a3a3a;
   --caro-grey-700: #4f4f4f; /* PRIMARY — retro console grey */
-  --caro-grey-500: #7a7a7a;
+  --caro-grey-600: #636363; /* muted TEXT on paper — 5.3:1 on beige-100, 6.0:1 on white */
+  --caro-grey-500: #7a7a7a; /* borders / decorative only: 3.8:1 on paper fails AA as text */
   --caro-grey-400: #a0a0a0; /* eyebrow / FOUNDER label grey */
   --caro-grey-300: #c9c7c1;
   --caro-grey-200: #d1cfc9; /* business-card back */
@@ -164,7 +165,7 @@
   --color-text: var(--fg);
   --color-text-secondary: var(--fg-muted);
   --color-text-tertiary: var(--fg-strong);
-  --color-text-on-primary: var(--fg-inverse);
+  --color-text-on-primary: var(--on-accent);
 
   /* ============================================
      BORDERS
@@ -179,9 +180,10 @@
      here propagates the new red to every consumer (Layout, LandingPage,
      support, credits, etc.) without touching their call sites.
      ============================================ */
-  --color-link: var(--accent);
-  --color-link-hover: var(--accent-hover);
-  --color-link-visited: var(--accent);
+  /* Link TEXT uses --accent-text (5.3:1 on paper); bare --accent is 3.6:1. */
+  --color-link: var(--accent-text);
+  --color-link-hover: #a81c1c;
+  --color-link-visited: var(--accent-text);
 
   /* ============================================
      CARO SEMANTIC TOKENS — brand-aligned aliases for new components
@@ -197,8 +199,12 @@
 
   --fg:            var(--caro-grey-700);
   --fg-strong:     var(--caro-grey-900);
-  --fg-muted:      var(--caro-grey-500);
-  --fg-subtle:     var(--caro-grey-400);    /* eyebrow / meta labels */
+  /* Muted and subtle copy must still clear WCAG AA (4.5:1) on paper, white
+     and beige-50. grey-500/400 do not (3.8:1 / 2.4:1), so text tokens use
+     grey-600; hierarchy comes from size, weight and tracking, not from
+     fading the ink below the AA line. */
+  --fg-muted:      var(--caro-grey-600);
+  --fg-subtle:     var(--caro-grey-600);    /* eyebrow / meta labels */
   --fg-inverse:    var(--caro-beige-100);
 
   --accent:        var(--caro-red-500);
@@ -209,6 +215,13 @@
      fills/borders/icons; use --accent-text wherever red is the foreground of
      readable copy (links, labels, inline code). #c02020 → 6.1:1 on paper. */
   --accent-text:   var(--caro-red-700);
+  /* Accessible red for FILLS that carry white text (buttons, CTAs, pills).
+     White on signal red #ef3333 is 4.05:1 — just under AA for 14–16px
+     labels. #d42a2a keeps the signal-red hue and reads 5.0:1 with white.
+     Identical in both color modes so a CTA looks the same everywhere. */
+  --accent-fill:       #d42a2a;
+  --accent-fill-hover: var(--caro-red-700);
+  --on-accent:         var(--caro-white);
   /* NOTE: red as small body text on a DARK panel cannot meet WCAG AA — on the
      spec's #4f4f4f surface every red tops out below 3:1 (a compliant red would
      be a washed-out pink). The brand's accent-on-dark is --highlight (yellow),
@@ -220,6 +233,7 @@
 
   /* Status / command-risk levels (mirrored in the Rust CLI palette) */
   --status-safe:     #3fa34d;
+  --status-safe-text: #1f6b2c;   /* green as TEXT: 5.8:1 on paper (#3fa34d is 2.8:1) */
   --status-warn:     var(--caro-yellow-400);
   --status-danger:   var(--caro-red-500);
   --status-critical: var(--caro-red-700);
@@ -362,9 +376,11 @@
    DARK MODE OVERRIDES
    ============================================ */
 .dark {
-  /* Dark surfaces are retro-console grey, never near-black. NOTE: this block
-     re-declares --bg-inverse to beige (paper panel on a dark page), so the
-     dark-page background must alias --bg, not --bg-inverse. */
+  /* Dark surfaces are retro-console grey, never near-black. --bg-inverse is
+     NOT re-declared here: it is the "console" surface (terminals, the
+     Moments/Waitlist stages, code blocks) and stays grey-700 with beige ink
+     in both modes. Flipping it to beige made every terminal-styled panel
+     render light text on paper in dark mode (1.04:1). */
   --color-bg: var(--bg);
   --color-bg-secondary: var(--caro-grey-800);
   --color-bg-tertiary: var(--caro-grey-800);
@@ -376,12 +392,13 @@
 
   --color-border: var(--caro-grey-500);
 
-  /* Signal red fails contrast on grey-700 (~2.4:1). Dark surfaces use
-     highlighter yellow for links — the same accent-on-dark precedent the
-     brand already sets with --term-prompt. */
-  --color-link: var(--highlight);
-  --color-link-hover: var(--caro-yellow-500);
-  --color-link-visited: var(--highlight);
+  /* Links stay brand red in dark mode via the lightened --accent-text
+     (5.8:1 on the page). Text on the grey-700 console surface is a
+     different case: red cannot reach AA there, so those panels use
+     --highlight (yellow) for their links. */
+  --color-link: var(--accent-text);
+  --color-link-hover: #ffa3a3;
+  --color-link-visited: var(--accent-text);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
@@ -407,21 +424,20 @@
   --bg:            var(--caro-grey-900);    /* dark-paper background */
   --bg-subtle:     var(--caro-grey-950);
   --bg-raised:     var(--caro-grey-800);    /* cards on dark paper */
-  --bg-inverse:    var(--caro-beige-100);   /* paper panel on dark page */
   --bg-stage:      var(--caro-grey-800);
 
   --fg:            var(--caro-beige-100);   /* primary copy */
   --fg-strong:     var(--caro-white);
-  --fg-muted:      var(--caro-grey-400);
-  --fg-subtle:     var(--caro-grey-500);    /* eyebrow / meta labels */
-  --fg-inverse:    var(--caro-grey-900);    /* dark text on paper panels */
+  --fg-muted:      #b0aea8;                 /* 6.4:1 on page, 5.1:1 on raised cards */
+  --fg-subtle:     #b0aea8;                 /* eyebrow / meta labels */
 
   --accent:        #ff6464;                 /* lighter brand red for dark-mode contrast */
   --accent-hover:  var(--caro-red-500);
   --accent-press:  var(--caro-red-600);
-  /* In dark mode the whole page is dark, so red text uses the lightened red
-     (mirrors --accent above). The dark #c02020 would be ~1.5:1 here. */
-  --accent-text:   #ff6464;
+  /* In dark mode the whole page is dark, so red text needs a lighter red.
+     #ff6464 is 4.9:1 on the page but 3.9:1 on raised cards; #ff8080 clears
+     AA on both (5.8:1 / 4.7:1). */
+  --accent-text:   #ff8080;
   --highlight:     var(--caro-yellow-400);
 
   --border:        var(--caro-grey-800);
@@ -429,6 +445,7 @@
 
   /* Status colours: keep semantic meaning but lift luminance for contrast */
   --status-safe:     #7cd389;
+  --status-safe-text: #7cd389;
   --status-warn:     var(--caro-yellow-400);
   --status-danger:   #ff6464;
   --status-critical: var(--caro-red-500);
@@ -437,6 +454,32 @@
 /* ============================================
    UTILITY CLASSES
    ============================================ */
+
+/* Skip link: first focusable element on every page (WCAG 2.4.1). Hidden
+   until keyboard focus, then pinned top-left above the sticky nav. */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -100px;
+  z-index: 10001;
+  padding: 10px 16px;
+  background: var(--accent-fill);
+  color: var(--on-accent);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 12px;
+  outline: 3px solid var(--fg-strong);
+  outline-offset: 2px;
+}
+
+/* The skip target receives programmatic focus; no ring on the whole region. */
+#main-content:focus {
+  outline: none;
+}
 .visually-hidden {
   position: absolute;
   width: 1px;

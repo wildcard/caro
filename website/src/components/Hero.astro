@@ -64,11 +64,7 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
     line-height: 1.1;
     margin-bottom: 20px;
     font-weight: 700;
-    background: var(--accent);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent;
+    color: var(--accent-text);
     white-space: pre;
     text-align: center;
     letter-spacing: 0;
@@ -76,8 +72,8 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
 
   .companion-badge {
     display: inline-block;
-    background: var(--accent);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 14px;
@@ -168,8 +164,8 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
   .cta-button {
     display: inline-block;
     padding: 16px 40px;
-    background: var(--accent);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     text-decoration: none;
     border-radius: 8px;
     font-size: 18px;

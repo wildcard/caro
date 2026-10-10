@@ -60,7 +60,7 @@ const repo = 'https://github.com/wildcard/caro';
 >
   <Navigation />
 
-  <main class="pricing">
+  <main id="main-content" class="pricing">
     <div class="banner">
       <strong>Preview.</strong> Enterprise pricing finalizes with v2.0.
       Today this page exists so you can tell us which tier you'd
@@ -282,8 +282,8 @@ const repo = 'https://github.com/wildcard/caro';
   }
 
   .cta--primary {
-    background: var(--accent);
-    color: var(--caro-white, #ffffff);
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .cta--secondary {

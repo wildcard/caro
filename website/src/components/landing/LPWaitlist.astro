@@ -289,8 +289,8 @@ const { lang = 'en' } = Astro.props;
     padding: 16px 24px;
     font-size: 1rem;
     font-weight: 600;
-    color: var(--fg-inverse);
-    background: var(--accent);
+    color: var(--on-accent);
+    background: var(--accent-fill);
     border: none;
     border-radius: var(--radius-md);
     cursor: pointer;
@@ -299,7 +299,7 @@ const { lang = 'en' } = Astro.props;
 
   .submit-button:hover:not(:disabled) {
     transform: translateY(-2px);
-    background: var(--accent-hover);
+    background: var(--accent-fill-hover);
     box-shadow: var(--shadow-lg);
   }
 

@@ -2,6 +2,7 @@
 // LandingPage.astro - Base layout for conversion-focused landing pages
 // These pages target specific pain points and personas
 
+import '../ui/tokens.css';
 import OmniSearch from '../components/OmniSearch.astro';
 import SearchHighlight from '../components/SearchHighlight.astro';
 
@@ -56,27 +57,15 @@ const { title, description, slug, persona, painPoint } = Astro.props;
       --color-footer-bg: var(--bg-inverse);
       --color-footer-text: var(--fg-inverse);
       --color-footer-text-muted: var(--caro-grey-300);
-      --color-links-muted: var(--caro-grey-300);
-      /* Link colors - brand primary */
-      --color-link: var(--accent);
-      --color-link-hover: var(--accent-hover);
+      --color-links-muted: var(--fg-muted);
+      /* Link colors come from tokens.css (--accent-text family). */
     }
 
+    /* Semantic tokens flip via tokens.css; only the footer differs. */
     .dark {
-      --color-bg: var(--caro-grey-900);
-      --color-bg-secondary: #242424;
-      --color-bg-tertiary: #2a2a2a;
-      --color-text: #e0e0e0;
-      --color-text-secondary: #a0a0a0;
-      --color-text-tertiary: #b0b0b0;
-      --color-border: #404040;
       --color-footer-bg: var(--caro-grey-950);
-      --color-footer-text: #e0e0e0;
-      --color-footer-text-muted: #888;
-      --color-links-muted: #666;
-      /* Lighter link colors for dark mode contrast */
-      --color-link: #ffa76c;
-      --color-link-hover: var(--accent);
+      --color-footer-text: var(--caro-beige-100);
+      --color-footer-text-muted: var(--caro-grey-300);
     }
 
     * {
@@ -140,6 +129,7 @@ const { title, description, slug, persona, painPoint } = Astro.props;
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <OmniSearch />
   <slot />
   <SearchHighlight />

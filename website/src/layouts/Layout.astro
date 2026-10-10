@@ -12,7 +12,7 @@ import HolidayDebugPanel from '../components/HolidayDebugPanel.astro';
 import HumanityEventBanner from '../components/HumanityEventBanner.astro';
 import SEO from '../components/SEO.astro';
 import { KavanaCompanion } from '../ui/KavanaCompanion/KavanaCompanion';
-import { isRtl, getAllLocales, type Locale } from '../i18n/config';
+import { isRtl, getAllLocales, t, type Locale } from '../i18n/config';
 
 interface Props {
   title: string;
@@ -173,6 +173,7 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
     </script>
   </head>
   <body>
+    <a class="skip-link" href="#main-content">{t(lang, 'landing.navigation.skipToContent')}</a>
     <HumanityEventBanner />
     <SnowEffect />
     <NewYearCountdown />
@@ -206,27 +207,15 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
     --color-footer-text: var(--fg-inverse);
     --color-footer-text-muted: var(--caro-grey-300); /* WCAG AA: 4.9:1 on #4f4f4f */
     --color-links-muted: var(--fg-muted);
-    /* Link colors - brand primary */
-    --color-link: var(--accent);
-    --color-link-hover: var(--accent-hover);
+    /* Link colors come from tokens.css (--accent-text family). */
   }
 
+  /* Dark mode: the semantic tokens above already flip via tokens.css, so
+     only the footer (darker than the page) needs its own values here. */
   .dark {
-    --color-bg: var(--caro-grey-900);
-    --color-bg-secondary: #2d2d2d;
-    --color-bg-tertiary: #252525;
-    --color-text: #e0e0e0;
-    --color-text-secondary: #a0a0a0;
-    --color-text-tertiary: #c0c0c0;
-    --color-text-muted: #888888;
-    --color-border: #3a3a3a;
     --color-footer-bg: var(--caro-grey-950);
-    --color-footer-text: #e0e0e0;
-    --color-footer-text-muted: #c0c8cc; /* WCAG AA: 11.3:1 on #0f0f0f — paired with light-mode token */
-    --color-links-muted: #a0a0a0;
-    /* Lighter link colors for dark mode contrast */
-    --color-link: #ffa76c;
-    --color-link-hover: var(--accent);
+    --color-footer-text: var(--caro-beige-100);
+    --color-footer-text-muted: var(--caro-grey-300); /* 10.3:1 on grey-950 */
   }
 
   /* ============================================
@@ -1464,15 +1453,27 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
         const href = this.getAttribute('href');
         if (!href || href === '#') return;
 
-        const target = document.querySelector(href);
-        if (target) {
+        // Skip link falls back to the first <main> if a page lacks #main-content.
+        const target = document.querySelector(href)
+          || (href === '#main-content' ? document.querySelector('main') : null);
+        if (target instanceof HTMLElement) {
           const offset = getScrollOffset();
           const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+          const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
           window.scrollTo({
             top: targetPosition,
-            behavior: 'smooth'
+            behavior: reduce ? 'auto' : 'smooth'
           });
+
+          // preventDefault() cancels the browser's own focus move, so move
+          // focus ourselves: keyboard and screen-reader users land on the
+          // target, not back at the top of the page (WCAG 2.4.3).
+          if (!target.matches('a, button, input, select, textarea, [tabindex]')) {
+            target.setAttribute('tabindex', '-1');
+          }
+          target.focus({ preventScroll: true });
+          history.replaceState(null, '', href);
         }
       });
     });

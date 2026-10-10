@@ -91,7 +91,7 @@ const repo = 'https://github.com/wildcard/caro';
 >
   <Navigation />
 
-  <main class="playbook">
+  <main id="main-content" class="playbook">
     <header class="hero">
       <p class="eyebrow">Founder Playbook</p>
       <h1>Where Caro is on the founder arc</h1>
@@ -285,8 +285,8 @@ const repo = 'https://github.com/wildcard/caro';
   }
 
   .status--current {
-    background: var(--accent);
-    color: var(--caro-white, #ffffff);
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .status--planned {
