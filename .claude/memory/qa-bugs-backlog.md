@@ -8,7 +8,10 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1520](https://github.com/wildcard/caro/issues/1520) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (recurring drift, root cause unresolved) | open | 2026-10-03 |
+| [#1440](https://github.com/wildcard/caro/issues/1440) | P1 | embedded | Model download hangs indefinitely — HfHubClient has no HTTP timeout | open | 2026-09-06 |
+| [#1179](https://github.com/wildcard/caro/issues/1179) | P1 | ai | `caro ai --once` lacks static-matcher fallback — always requires model download | open | 2026-05-28 |
+| [#1408](https://github.com/wildcard/caro/issues/1408) | P2 | ai | `caro ai --once` provides zero user feedback during model initialization | open | 2026-08-15 |
 
 ---
 
@@ -49,3 +52,4 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 ## Resolved (closed issues)
 
 - **BUG-001**: Search highlight double-counting with global regex — Fixed 2026-01-02
+- [**#1044**](https://github.com/wildcard/caro/issues/1044): CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 — Closed 2026-05-09

@@ -4,6 +4,51 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-07 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B (many PRs merged since 2026-05-07) + C.
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** (build succeeded; binary at `target/release/caro`)
+- `caro --version` → **PASS**: `caro 1.5.0 (11c472e 2026-10-07)`
+- `caro --help` → **PASS**: all subcommands listed including `ai`, `shell-init`, CaroML verbs, `skill`
+- `caro doctor` → **PASS**: advisory only (no model downloaded, expected in fresh sandbox)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: used static backend, generated `ls -la`, telemetry consent shown once and persisted
+
+### Slot B — Recent diff
+
+PRs merged since 2026-05-07 (sampling past 7 days — many more total):
+
+- **PR #1497** `fix(cli): accept every config show key in config set/get` → tested `caro config get` for all 8 keys (`backend`, `model-name`, `shell`, `safety`, `telemetry.enabled`, `log_level`, `cache_max_size`, `log_rotation`) — **PASS**: all keys return correct values
+- **PR #1519/#1535** safety text/label fixes → `cargo test --lib -- safety` → **PASS**: 38/38 safety tests
+- **PR #1509** `fix(explain): STE-lite explain mode` → `caro -p '...' --dry-run --explain` → **PASS**: clean STE-lite output produced
+- **PR #1503** `fix(ai): don't block on stdin when ai --once has a trailing prompt` → code-verified: `needs_stdin_prompt` returns false when trailing words present; functional test blocked by FLAKE-001/backend hang (see Slot C)
+
+### Slot C — `caro ai --once` (surface #10, never previously tested)
+
+- `caro ai --once list files in current directory` → **FLAKE**: hangs indefinitely (>45s) — model download stalls in sandbox; same underlying issue as FLAKE-001 extended to the `ai` subcommand
+- Error path tested: `echo "" | caro ai --once` → **PASS**: exits immediately with `Error: no prompt provided (pass text, pipe stdin, or use -p)`
+- Stdin-piped path: `echo "prompt" | caro ai --once` → **FLAKE**: reads stdin correctly (exits prompt-resolution), then hangs on backend init
+- `caro ai --help` → **PASS**: `--once` documented as "Run one turn and return — no TTY REPL"
+- Code inspection confirms PR #1503 fix is in place (`needs_stdin_prompt` guards stdin read)
+- Duplicate of open issues: #1440 (no HTTP download timeout), #1179 (no static fallback), #1408 (no feedback during init)
+
+### Findings
+
+- No new issues filed — all observations are duplicates of existing open issues
+- CLAUDE.md version drift (1.4.0 vs 1.5.0): duplicate of open #1520
+- `caro ai --once` hang: duplicate of open #1440, #1179, #1408
+
+### Followups
+
+- FLAKE-001 observation count updated: 2 (2026-05-07, 2026-10-07) — not yet at 3×/7d threshold, but note the `ai --once` variant of the same failure is separately tracked as #1440 (open, unresolved)
+- CLAUDE.md shows 1.4.0 (GA) vs caro 1.5.0. Open issue #1520 (filed 2026-10-03) covers this. The root-cause fix (adding CLAUDE.md to `release-version-alignment.md` checklist) has not landed despite dozens of filings since May 2026.
+- Next Slot C candidate: surface #11 (`caro ai --continue-session` shell widget) or surface #12 (`caro assess`) — both "never" tested, pick #11 by lowest-# tie-break rule.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
