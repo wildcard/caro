@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-09-07
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -13,6 +13,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
+| 2026-09-07 | PASS | PASS (1.5.0) | PASS | PASS | FLAKE | FLAKE-001 2nd occurrence; telemetry prompt required TTY; proxy blocks www.caro.sh redirect |
 
 ---
 
@@ -27,15 +28,15 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
-| 6 | Safety validation unit tests (cargo test safety) | safety | 2026-05-07 | PASS | — |
-| 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-05-07 | PASS | — |
-| 8 | Full library test suite (cargo test --lib) | cli | 2026-05-07 | PASS | — |
+| 6 | Safety validation unit tests (cargo test safety) | safety | 2026-09-07 | PASS | — |
+| 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-09-07 | PASS | — |
+| 8 | Full library test suite (cargo test --lib) | cli | 2026-09-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | never | — | — |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-09-07 | HANG | #1375, #1421, #1422 |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
-| 14 | `caro config get/set/show/reset` | cli | never | — | — |
+| 14 | `caro config get/set/show/reset` | cli | 2026-09-07 | PASS | — |
 | 15 | `caro --output json` format correctness | cli | never | — | — |
 | 16 | `caro --output yaml` format correctness | cli | never | — | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
@@ -52,7 +53,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 28 | Homebrew tap formula | install | never | — | — |
 | 29 | `caro --safety strict/moderate/permissive` modes | safety | never | — | — |
 | 30 | `caro --verbose` timing output | cli | never | — | — |
-| 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | never | — | — |
+| 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | 2026-09-07 | PASS | — |
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-05-07 | PASS | — |
 
 ---
@@ -63,7 +64,8 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | closed |
+| [#1442](https://github.com/wildcard/caro/issues/1442) | CLAUDE.md version drift recurrence (1.4.0 vs 1.5.0) | docs | 2026-09-07 | open |
 
 ---
 
@@ -72,3 +74,6 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 - Slot C tie-break: when multiple surfaces share 'never', pick lowest `#` number unless context suggests a riskier surface is more valuable to exercise.
 - Website surfaces (#25, #26) can be tested with `curl` + Python parsing alone — no caro build needed.
 - Surfaces requiring model download (#19, #20) should be tested from an environment with a pre-downloaded model; note in session log if sandbox blocks download.
+- `caro.sh` root redirects to `www.caro.sh` (HTTP 307); sandbox proxy blocks redirect target. `/he/` and other locale paths work directly.
+- `caro.sh/en/` returns 404 by design: `prefixDefaultLocale: false` in `website/astro.config.mjs` — English lives at `/`.
+- P1 bug #1375: `caro ai --once` CPU backend always returns `echo 'Please clarify your request'` on Linux x86_64. Re-test surface #10 after fix.
