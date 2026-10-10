@@ -78,9 +78,10 @@ const blogPosts = [
 </section>
 
 <style>
+  /* Flat paper surface (brand rule: no gradients); cards sit raised on it. */
   .blog-section {
     padding: 80px 20px;
-    background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-tertiary) 100%);
+    background: var(--bg);
     transition: background 0.3s ease;
   }
 
@@ -114,7 +115,7 @@ const blogPosts = [
   }
 
   .blog-card {
-    background: var(--color-bg);
+    background: var(--bg-raised);
     border-radius: 12px;
     padding: 30px;
     border: 1px solid var(--color-border);

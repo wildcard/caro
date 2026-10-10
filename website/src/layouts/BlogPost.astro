@@ -47,7 +47,7 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
               day: 'numeric'
             })}
           </time>
-          <span class="separator">•</span>
+          <span class="separator" aria-hidden="true">•</span>
           <span>{readTime}</span>
         </div>
 
@@ -68,6 +68,33 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
     </div>
   </main>
 </Layout>
+
+<script>
+  // Code blocks that scroll sideways must be reachable by keyboard
+  // (WCAG 2.1.1 / axe scrollable-region-focusable). Only blocks that
+  // actually overflow get a tab stop; re-check when the viewport changes.
+  const blocks = Array.from(document.querySelectorAll<HTMLElement>('.blog-post-content pre'));
+  const syncScrollable = () => {
+    blocks.forEach((pre, i) => {
+      if (pre.scrollWidth > pre.clientWidth + 1) {
+        pre.tabIndex = 0;
+        pre.setAttribute('role', 'region');
+        pre.setAttribute('aria-label', `Code sample ${i + 1}`);
+      } else if (pre.getAttribute('role') === 'region') {
+        pre.removeAttribute('tabindex');
+        pre.removeAttribute('role');
+        pre.removeAttribute('aria-label');
+      }
+    });
+  };
+  syncScrollable();
+  document.fonts?.ready.then(syncScrollable);
+  let resizeFrame = 0;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(syncScrollable);
+  });
+</script>
 
 <style>
   .blog-post {
@@ -185,33 +212,51 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 16px;
     color: var(--accent-text);
+    overflow-wrap: anywhere;
     transition: background-color 0.3s ease;
   }
 
+  /* Code blocks sit on the console surface in both modes. */
   .blog-post-content :global(pre) {
-    background: var(--bg-inverse);
+    background: var(--term-bg);
     padding: 20px;
     border-radius: 8px;
     overflow-x: auto;
+    max-width: 100%;
     margin: 30px 0;
   }
 
   .blog-post-content :global(pre code) {
     background: transparent;
-    color: #d4d4d4;
+    color: var(--term-fg);
     padding: 0;
     font-size: 14px;
+    overflow-wrap: normal;
   }
 
+  .blog-post-content :global(pre:focus-visible) {
+    outline: 2px solid var(--fg-strong);
+    outline-offset: 2px;
+  }
+
+  /* In-prose links are underlined so they are not identified by color
+     alone (WCAG 1.4.1, axe link-in-text-block). */
   .blog-post-content :global(a) {
     color: var(--accent-text);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.2s;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
   }
 
   .blog-post-content :global(a:hover) {
-    border-bottom-color: var(--accent);
+    text-decoration-thickness: 2px;
+  }
+
+  .blog-post-content :global(a:focus-visible),
+  .back-link:focus-visible,
+  .back-link-footer:focus-visible {
+    outline: 2px solid var(--fg-strong);
+    outline-offset: 2px;
   }
 
   .blog-post-content :global(img) {
@@ -259,6 +304,13 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
 
   .back-link-footer:hover {
     transform: translateX(-4px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .back-link:hover,
+    .back-link-footer:hover {
+      transform: none;
+    }
   }
 
   @media (max-width: 768px) {

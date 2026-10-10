@@ -71,34 +71,36 @@ const posts = [
   <AnnouncementBanner />
   <Navigation />
 
-  <!-- Hero -->
-  <div class="hero">
-    <div class="container">
-      <h1>From the Pack</h1>
-      <p>Stories, updates, and insights from Caro's journey</p>
-    </div>
-  </div>
-
-  <!-- Posts -->
-  <section class="posts">
-    <div class="container">
-      <div class="blog-posts">
-        {posts.map(post => (
-          <a href={`/blog/${post.slug}`} class="blog-card">
-            {post.badge && <div class="blog-badge">{post.badge}</div>}
-            <div class="blog-meta">
-              <span>{post.date}</span>
-              <span>•</span>
-              <span>{post.readTime}</span>
-            </div>
-            <h2>{post.title}</h2>
-            <p>{post.description}</p>
-            <span class="read-more">Read more</span>
-          </a>
-        ))}
+  <main id="main-content">
+    <!-- Hero -->
+    <div class="hero">
+      <div class="container">
+        <h1>From the Pack</h1>
+        <p>Stories, updates, and insights from Caro's journey</p>
       </div>
     </div>
-  </section>
+
+    <!-- Posts -->
+    <section class="posts">
+      <div class="container">
+        <div class="blog-posts">
+          {posts.map(post => (
+            <a href={`/blog/${post.slug}`} class="blog-card">
+              {post.badge && <div class="blog-badge">{post.badge}</div>}
+              <div class="blog-meta">
+                <span>{post.date}</span>
+                <span aria-hidden="true">•</span>
+                <span>{post.readTime}</span>
+              </div>
+              <h2>{post.title}</h2>
+              <p>{post.description}</p>
+              <span class="read-more">Read more</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
 
   <Footer />
 </Layout>
@@ -149,9 +151,26 @@ const posts = [
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
   }
 
+  .blog-card:focus-visible {
+    outline: 2px solid var(--fg-strong);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .blog-card:hover {
+      transform: none;
+    }
+
+    .blog-card:hover .read-more:after {
+      transform: none;
+    }
+  }
+
+  /* Red-tinted pill: --accent-text clears AA on the blended tint in both
+     modes (4.7:1 light, 4.9:1 dark). */
   .blog-badge {
     display: inline-block;
-    background: #fff3e6;
+    background: rgba(239, 51, 51, 0.1);
     color: var(--accent-text);
     padding: 4px 12px;
     border-radius: 12px;
@@ -160,7 +179,7 @@ const posts = [
     margin-bottom: 15px;
   }
 
-  .dark .blog-badge {
+  :global(.dark) .blog-badge {
     background: rgba(239, 51, 51, 0.2);
     color: var(--accent-text);
   }

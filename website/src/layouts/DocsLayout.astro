@@ -10,6 +10,37 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+
+// Sidebar sections. The current page is marked with aria-current at build
+// time; URLs are compared without a trailing slash so /docs/cli/ matches
+// the /docs/cli link.
+const sections = [
+  {
+    heading: 'Getting Started',
+    links: [
+      { href: '/docs', label: 'Overview' },
+      { href: '/docs/installation', label: 'Installation' },
+      { href: '/docs/quickstart', label: 'Quick Start' },
+      { href: '/docs/kavana', label: 'Meet Kavana' },
+    ],
+  },
+  {
+    heading: 'Guides',
+    links: [
+      { href: '/docs/configuration', label: 'Configuration' },
+      { href: '/docs/safety', label: 'Safety Levels' },
+      { href: '/docs/backends', label: 'Model Backends' },
+    ],
+  },
+  {
+    heading: 'Reference',
+    links: [
+      { href: '/docs/cli', label: 'CLI Reference' },
+      { href: '/docs/security', label: 'Security' },
+    ],
+  },
+];
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 ---
 
 <!doctype html>
@@ -44,15 +75,15 @@ const { title, description } = Astro.props;
     <nav class="docs-nav" aria-label="Docs">
       <div class="nav-container">
         <a href="/" class="logo">
-          <img src="/caro-pixel.png" alt="Caro" width="32" height="32" />
+          <img src="/caro-pixel.png" alt="" width="32" height="32" />
           <span>Caro</span>
         </a>
         <div class="nav-links">
           <a href="/docs">Docs</a>
           <a href="https://github.com/wildcard/caro" class="github-link" target="_blank" rel="noopener noreferrer" aria-label="Caro on GitHub (opens in a new tab)"><GitHubMark size={18} /><span>GitHub</span></a>
         </div>
-        <button id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
-          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button id="theme-toggle" type="button" aria-label="Dark mode" aria-pressed="false" title="Toggle dark mode">
+          <svg class="sun-icon" aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="5"/>
             <line x1="12" y1="1" x2="12" y2="3"/>
             <line x1="12" y1="21" x2="12" y2="23"/>
@@ -63,7 +94,7 @@ const { title, description } = Astro.props;
             <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
           </svg>
-          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <svg class="moon-icon" aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
           </svg>
         </button>
@@ -72,24 +103,18 @@ const { title, description } = Astro.props;
     <div class="docs-wrapper">
       <aside class="docs-sidebar">
         <nav class="sidebar-nav" aria-label="Documentation sections">
-          <h3>Getting Started</h3>
-          <ul>
-            <li><a href="/docs">Overview</a></li>
-            <li><a href="/docs/installation">Installation</a></li>
-            <li><a href="/docs/quickstart">Quick Start</a></li>
-            <li><a href="/docs/kavana">Meet Kavana</a></li>
-          </ul>
-          <h3>Guides</h3>
-          <ul>
-            <li><a href="/docs/configuration">Configuration</a></li>
-            <li><a href="/docs/safety">Safety Levels</a></li>
-            <li><a href="/docs/backends">Model Backends</a></li>
-          </ul>
-          <h3>Reference</h3>
-          <ul>
-            <li><a href="/docs/cli">CLI Reference</a></li>
-            <li><a href="/docs/security">Security</a></li>
-          </ul>
+          {sections.map((section) => (
+            <Fragment>
+              <h3>{section.heading}</h3>
+              <ul>
+                {section.links.map((link) => (
+                  <li>
+                    <a href={link.href} aria-current={link.href === currentPath ? 'page' : undefined}>{link.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </Fragment>
+          ))}
         </nav>
       </aside>
       <main id="main-content" class="docs-content">
@@ -188,6 +213,7 @@ const { title, description } = Astro.props;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    min-height: 32px;
     color: var(--color-text-secondary);
     text-decoration: none;
     font-size: 14px;
@@ -288,6 +314,20 @@ const { title, description } = Astro.props;
     color: var(--color-text);
   }
 
+  .sidebar-nav a[aria-current='page'] {
+    background: var(--accent-fill);
+    color: var(--on-accent);
+  }
+
+  .docs-nav a:focus-visible,
+  .sidebar-nav a:focus-visible,
+  #theme-toggle:focus-visible,
+  .docs-content a:focus-visible,
+  .docs-content pre:focus-visible {
+    outline: 2px solid var(--fg-strong);
+    outline-offset: 2px;
+  }
+
   .docs-content {
     margin-left: 260px;
     flex: 1;
@@ -337,6 +377,7 @@ const { title, description } = Astro.props;
     border-radius: 4px;
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
     font-size: 14px;
+    overflow-wrap: anywhere; /* long inline flags/paths wrap at 320px */
   }
 
   .docs-content pre {
@@ -344,6 +385,7 @@ const { title, description } = Astro.props;
     padding: 16px 20px;
     border-radius: 8px;
     overflow-x: auto;
+    max-width: 100%;
     margin: 20px 0;
   }
 
@@ -405,9 +447,47 @@ const { title, description } = Astro.props;
     margin-bottom: 8px;
   }
 
+  /* Narrow screens: the fixed sidebar becomes a compact, wrapping list of
+     links above the article, so every docs page stays one tap away
+     (WCAG 1.4.10: no loss of navigation at 320px). */
   @media (max-width: 900px) {
+    .docs-wrapper {
+      flex-direction: column;
+    }
+
     .docs-sidebar {
-      display: none;
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      border-right: none;
+      border-bottom: 1px solid var(--color-border);
+      padding: 12px 0;
+    }
+
+
+    .sidebar-nav h3 {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    /* Inline lists let all sections share rows instead of one row each. */
+    .sidebar-nav ul {
+      display: inline;
+    }
+
+    .sidebar-nav li {
+      display: inline-block;
+      margin: 2px 4px 2px 0;
+    }
+
+    .sidebar-nav a {
+      padding: 6px 10px;
+      font-size: 13px;
     }
 
     .docs-content {
@@ -420,30 +500,42 @@ const { title, description } = Astro.props;
 </style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const themeToggle = document.getElementById('theme-toggle');
+  const root = document.documentElement;
+  const themeToggle = document.getElementById('theme-toggle');
+  const syncToggle = () =>
+    themeToggle?.setAttribute('aria-pressed', String(root.classList.contains('dark')));
+  syncToggle();
 
-    themeToggle?.addEventListener('click', () => {
-      const isDark = document.documentElement.classList.contains('dark');
+  themeToggle?.addEventListener('click', () => {
+    const isDark = root.classList.toggle('dark');
+    try {
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    } catch {}
+    syncToggle();
+  });
 
-      if (isDark) {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      } else {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
+  // Code blocks that scroll sideways must be reachable by keyboard
+  // (WCAG 2.1.1 / axe scrollable-region-focusable). Only blocks that
+  // actually overflow get a tab stop; re-check when the viewport changes.
+  const blocks = Array.from(document.querySelectorAll<HTMLElement>('.docs-content pre'));
+  const syncScrollable = () => {
+    blocks.forEach((pre, i) => {
+      if (pre.scrollWidth > pre.clientWidth + 1) {
+        pre.tabIndex = 0;
+        pre.setAttribute('role', 'region');
+        pre.setAttribute('aria-label', `Code sample ${i + 1}`);
+      } else if (pre.getAttribute('role') === 'region') {
+        pre.removeAttribute('tabindex');
+        pre.removeAttribute('role');
+        pre.removeAttribute('aria-label');
       }
     });
-
-    // Highlight current page in sidebar
-    const currentPath = window.location.pathname;
-    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
-    sidebarLinks.forEach(link => {
-      if (link.getAttribute('href') === currentPath) {
-        link.style.background = 'var(--accent-fill)';
-        link.style.color = 'var(--on-accent)';
-        link.setAttribute('aria-current', 'page');
-      }
-    });
+  };
+  syncScrollable();
+  document.fonts?.ready.then(syncScrollable);
+  let resizeFrame = 0;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(syncScrollable);
   });
 </script>
