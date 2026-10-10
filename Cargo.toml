@@ -3,6 +3,8 @@ name = "caro"
 version = "1.5.0"
 edition = "2021"
 rust-version = "1.85"
+# Two [[bin]] targets: plain `cargo run` (README, tests' fallback) must pick caro (#1222, #1164).
+default-run = "caro"
 description = "Convert natural language to shell commands using local LLMs"
 license = "AGPL-3.0"
 authors = ["Wildcard <kobi@caro.sh>", "Claude Code <noreply@anthropic.com>"]
