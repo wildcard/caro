@@ -55,7 +55,7 @@ When the eval harness runs with a reference labeller
 does not), every generated command carries the local backend's risk verdict
 and the reference's. A result missing either verdict yields no record. `sft_export::decision_label_pairs`
 turns them into two record kinds for the gate classifier planned in the
-calibrated-decisions strategy (ADR-017 → ADR-018):
+calibrated-decisions strategy (ADR-017 → ADR-019):
 
 - `accepted`: local == reference and local confidence ≥ 0.7 — an SFT
   positive for the risk gate;

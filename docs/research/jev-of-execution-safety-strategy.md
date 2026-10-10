@@ -119,13 +119,13 @@ crate's token API. No OpenAI-compatible request sends `logprobs`.
 Gated on Phase 3 data, per the research doc's "not on enthusiasm".
 - Dataset: consensus-labelled gate decisions + correction-log triples with recorded p (Phase 1 telemetry) through `src/ai/privacy.rs` redaction.
 - Target: a small local classifier (or LoRA on the smoke model) for the Noul gates — risk, injection, needs_clarification — with a calibration objective (Brier/ECE), i.e. caro's RLCD-lite. Command *generation* stays free text.
-- Owner: `ml-ds-engineer` agent; deliverable an ADR-018 with before/after ECE, not a model drop.
+- Owner: `ml-ds-engineer` agent; deliverable an ADR-019 with before/after ECE, not a model drop.
 
 ### Phase 5 — Product surfaces (after Gate 1)
 - Enterprise dashboard (ADR-003) audits decisions with probabilities; Dogma becomes "custom decision rules" layered under the same floor. Both wait on the 20 transcripts already scheduled in the ledger.
 
 ## Documentation milestones
-- ADR-017 → Accepted (Phase 1); ADR-018 decision API (Phase 2); ADR-018 gate model (Phase 4); add rows to `docs/adr/README.md`; reconcile the two untracked legacy ADR files.
+- ADR-017 → Accepted (Phase 1); ADR-018 decision API (Phase 2); ADR-019 gate model (Phase 4); add rows to `docs/adr/README.md`; reconcile the two untracked legacy ADR files.
 - `ROADMAP.md`: new `### v1.6.0 — Calibrated decisions` milestone above v1.5.0; update "Last Updated"; remove Karo/voice from v2.0 success criteria (contradicts the Research section).
 - `COMPANY.md:14-23` positioning gains one sentence: "the calibrated, deterministic-floored decision layer for execution safety".
 - `playbook/STAGE_MAP.md` Stage 2 evidence: calibration metrics as anti-demoware discipline; Stage 3: `caro.sh/evals` as proactive-recall surface.
@@ -158,5 +158,5 @@ Phases 2 and 3 can run in parallel sessions on separate branches.
 - Phase 1: `cargo test --lib -- calibration decision`, `cargo test --test evaluation` shows a `source` column and ECE only over sourced rows; vLLM contract test asserts `Measured`.
 - Phase 2: `caro decide --output json "rm -rf /"` returns `should_run.p_yes == 0.0`, `floor_applied == true`; JSON validates against the published schema; p95 of the static path < 100 ms in `benches/`.
 - Phase 3: baseline JSON carries ECE per gate; a deliberately mis-calibrated constant fails the regression gate; website-claims suite passes on the new evals page.
-- Phase 4: ADR-018 reports ECE before/after on held-out consensus labels; no safety-pattern change.
+- Phase 4: ADR-019 reports ECE before/after on held-out consensus labels; no safety-pattern change.
 - Docs: `grep -n "Last Updated" ROADMAP.md`, ADR README rows sequential, README/ROADMAP CSR figures agree.
