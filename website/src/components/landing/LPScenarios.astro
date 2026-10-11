@@ -23,19 +23,19 @@ const roles = [
         context: "3 AM incident: Database logs filling disk",
         dangerous: "rm -rf /var/log/*",
         problem: "Recursive delete could cascade across mounted volumes",
-        caroSays: "⚠️ High Risk: Recursive delete in system directory. Suggesting: find /var/log -name '*.log' -mtime +7 -delete"
+        caroSays: "High Risk: Recursive delete in system directory. Suggesting: find /var/log -name '*.log' -mtime +7 -delete"
       },
       {
         context: "Cleaning up Docker resources",
         dangerous: "docker system prune -a --volumes -f",
         problem: "Silently removes ALL volumes including named ones with data",
-        caroSays: "⚠️ Warning: This removes named volumes. Use --filter to exclude production data volumes."
+        caroSays: "Warning: This removes named volumes. Use --filter to exclude production data volumes."
       },
       {
         context: "Fixing file permissions after deployment",
         dangerous: "chmod -R 777 /var/www",
         problem: "World-writable files are a security vulnerability",
-        caroSays: "🛑 Blocked: chmod 777 creates security vulnerabilities. Suggesting: chmod -R 755 for directories, 644 for files."
+        caroSays: "Blocked: chmod 777 creates security vulnerabilities. Suggesting: chmod -R 755 for directories, 644 for files."
       }
     ]
   },
@@ -48,19 +48,19 @@ const roles = [
         context: "Emergency: Need to restart all services",
         dangerous: "systemctl restart *",
         problem: "Could restart critical system services causing cascading failures",
-        caroSays: "⚠️ High Risk: Wildcard service restart. List specific services or use --show-transaction first."
+        caroSays: "High Risk: Wildcard service restart. List specific services or use --show-transaction first."
       },
       {
         context: "Disk space critical on production",
         dangerous: "find / -size +100M -delete",
         problem: "Could delete critical system files, binaries, or database files",
-        caroSays: "🛑 Blocked: Recursive delete from root. Suggesting: find /var/log -size +100M -mtime +30 -delete"
+        caroSays: "Blocked: Recursive delete from root. Suggesting: find /var/log -size +100M -mtime +30 -delete"
       },
       {
         context: "Rolling back a deployment",
         dangerous: "kubectl delete pods --all -n production",
         problem: "Deletes all pods simultaneously causing downtime",
-        caroSays: "⚠️ Warning: Mass pod deletion. Suggesting: kubectl rollout undo deployment/[name] for zero-downtime rollback."
+        caroSays: "Warning: Mass pod deletion. Suggesting: kubectl rollout undo deployment/[name] for zero-downtime rollback."
       }
     ]
   },
@@ -73,19 +73,19 @@ const roles = [
         context: "Cleaning up old database backups",
         dangerous: "rm -rf ~/backups/db*",
         problem: "Glob pattern could match more than intended",
-        caroSays: "⚠️ Caution: Glob pattern rm -rf. Showing matches first: ls ~/backups/db* (3 files). Proceed?"
+        caroSays: "Caution: Glob pattern rm -rf. Showing matches first: ls ~/backups/db* (3 files). Proceed?"
       },
       {
         context: "Killing a stuck process",
         dangerous: "pkill -9 -f java",
         problem: "Could kill all Java processes including critical services",
-        caroSays: "⚠️ Warning: Pattern matches 4 processes. Suggesting: kill -9 [specific-pid] or use pgrep -l first."
+        caroSays: "Warning: Pattern matches 4 processes. Suggesting: kill -9 [specific-pid] or use pgrep -l first."
       },
       {
         context: "Fixing git history",
         dangerous: "git push --force origin main",
         problem: "Rewrites shared history, breaks teammates' work",
-        caroSays: "🛑 Blocked: Force push to main. Suggesting: git push --force-with-lease or push to a feature branch."
+        caroSays: "Blocked: Force push to main. Suggesting: git push --force-with-lease or push to a feature branch."
       }
     ]
   },
@@ -98,19 +98,19 @@ const roles = [
         context: "Cleaning up temporary data files",
         dangerous: "rm -rf /data/tmp/*",
         problem: "Could remove files still being processed",
-        caroSays: "⚠️ Warning: Active processes accessing these files. Suggesting: find /data/tmp -mtime +1 -delete"
+        caroSays: "Warning: Active processes accessing these files. Suggesting: find /data/tmp -mtime +1 -delete"
       },
       {
         context: "Dropping unused database tables",
         dangerous: "DROP TABLE users_backup;",
         problem: "No safety check, immediate irreversible action",
-        caroSays: "⚠️ High Risk: DROP without backup verification. Last backup: 7 days ago. Proceed with caution."
+        caroSays: "High Risk: DROP without backup verification. Last backup: 7 days ago. Proceed with caution."
       },
       {
         context: "Resetting Kafka offsets",
         dangerous: "kafka-consumer-groups --reset-offsets --to-earliest --all-topics --execute",
         problem: "Reprocesses ALL data, potentially causing duplicates",
-        caroSays: "⚠️ Warning: This will reprocess ~2.3TB of data. Suggesting: --to-datetime or --topic for specific reset."
+        caroSays: "Warning: This will reprocess ~2.3TB of data. Suggesting: --to-datetime or --topic for specific reset."
       }
     ]
   }
@@ -158,7 +158,7 @@ const roles = [
                 </div>
                 <div class="caro-response">
                   <span class="caro-label">Caro:</span>
-                  <span class="caro-text">{scenario.caroSays}</span>
+                  <span class="caro-text"><TermGlyph g={scenario.caroSays.startsWith('Blocked') ? '✗' : '■'} /> {scenario.caroSays}</span>
                 </div>
               </div>
             </div>

@@ -322,7 +322,7 @@
         "rank": "ランク #{{rank}}!",
         "finalScore": "レベル{{level}}で{{score}}ポイント到達!"
       },
-      "streak": "🔥 連続:",
+      "streak": "連続:",
       "messages": {
         "correct": [
           "素晴らしい! 🎉",
@@ -414,7 +414,7 @@
       "bottom": {
         "built": "🦀 Rustで構築 |",
         "brandName": "caro.sh",
-        "heart": "❤️",
+        "heart": "♥",
         "inspiration": "Portalのキャロラインに触発—忠誠心がデジタルコンパニオンシップに変容",
         "heritagePre": "誇りを持って構築された基盤:",
         "gnu": "GNU",

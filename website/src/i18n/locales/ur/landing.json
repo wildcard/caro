@@ -339,7 +339,7 @@
       "bottom": {
         "built": "🦀 Rust کے ساتھ بنایا |",
         "brandName": "caro.sh",
-        "heart": "❤️",
+        "heart": "♥",
         "inspiration": "Portal کی Caroline سے متاثر",
         "heritagePre": "ان کی بنیاد پر فخر سے بنایا گیا",
         "gnu": "GNU",
@@ -377,7 +377,7 @@
         "rank": "RANK #{{rank}}!",
         "finalScore": "You reached Level {{level}} with {{score}} points!"
       },
-      "streak": "🔥 سٹریک:",
+      "streak": "سٹریک:",
       "messages": {
         "correct": [
           "Great job! 🎉",
@@ -469,7 +469,7 @@
         "stats": {
           "level": "لیول"
         },
-        "streak": "🔥 اسٹریک:"
+        "streak": "اسٹریک:"
       },
       "blog": {
         "title": "پیک سے"

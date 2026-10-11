@@ -335,7 +335,7 @@
         "rank": "RANGGO #{{rank}}!",
         "finalScore": "Umabot ka sa Antas {{level}} na may {{score}} puntos!"
       },
-      "streak": "🔥 Sunod-sunod na panalo:",
+      "streak": "Sunod-sunod na panalo:",
       "messages": {
         "correct": [
           "Great job! 🎉",
@@ -427,7 +427,7 @@
       "bottom": {
         "built": "Gawa gamit ang 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "❤️",
+        "heart": "♥",
         "inspiration": "Inspirado ni Caroline mula sa Portal",
         "heritagePre": "Ipinagmamalaki na itinayo sa mga pundasyon ng",
         "gnu": "GNU",
@@ -499,7 +499,7 @@
         "stats": {
           "level": "ANTAS"
         },
-        "streak": "🔥 Streak:",
+        "streak": "Streak:",
         "title": "Maglaro kasama si Caro",
         "subtitle": "Subukan ang iyong kaalaman sa shell command!",
         "header": "LIGTAS O DELIKADO?",
@@ -578,7 +578,7 @@
         },
         "bottom": {
           "built": "Gawa sa 🦀 Rust |",
-          "heart": "❤️",
+          "heart": "♥",
           "inspiration": "Inspirado ni Caroline mula sa Portal",
           "heritagePre": "Proudly built on the foundations laid by",
           "freebsd": "FreeBSD",

@@ -322,7 +322,7 @@
         "rank": "МЕСТО #{{rank}}!",
         "finalScore": "Вы достигли уровня {{level}} с {{score}} очками!"
       },
-      "streak": "🔥 Серия:",
+      "streak": "Серия:",
       "messages": {
         "correct": [
           "Отличная работа! 🎉",
@@ -414,7 +414,7 @@
       "bottom": {
         "built": "Создано на 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "❤️",
+        "heart": "♥",
         "inspiration": "Вдохновлено Caroline из Portal — преданность, превращённая в цифровое товарищество",
         "heritagePre": "С гордостью построено на фундаменте, заложенном",
         "gnu": "GNU",

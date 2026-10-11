@@ -322,7 +322,7 @@
         "rank": "순위 #{{rank}}!",
         "finalScore": "레벨 {{level}}에 도달하여 {{score}}점을 획득했습니다!"
       },
-      "streak": "🔥 연속:",
+      "streak": "연속:",
       "messages": {
         "correct": [
           "잘했어요! 🎉",
@@ -414,7 +414,7 @@
       "bottom": {
         "built": "🦀 Rust로 제작 |",
         "brandName": "caro.sh",
-        "heart": "❤️",
+        "heart": "♥",
         "inspiration": "Portal의 Caroline에서 영감—충성이 디지털 동반자로 변모",
         "heritagePre": "다음의 기반 위에 자랑스럽게 제작",
         "gnu": "GNU",

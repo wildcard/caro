@@ -322,7 +322,7 @@
         "rank": "PERINGKAT #{{rank}}!",
         "finalScore": "Anda mencapai Level {{level}} dengan {{score}} poin!"
       },
-      "streak": "🔥 Beruntun:",
+      "streak": "Beruntun:",
       "messages": {
         "correct": [
           "Keren! 🎉",
@@ -415,7 +415,7 @@
       "bottom": {
         "built": "Dibangun dengan 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "❤️",
+        "heart": "♥",
         "inspiration": "Terinspirasi oleh Caroline dari Portal",
         "heritagePre": "Dengan bangga dibangun di atas fondasi yang diletakkan oleh",
         "gnu": "GNU",
@@ -492,7 +492,7 @@
           "level": "LEVEL",
           "score": "SKOR"
         },
-        "streak": "🔥 Streak:"
+        "streak": "Streak:"
       },
       "blog": {
         "title": "Dari Pack",
@@ -543,7 +543,7 @@
         },
         "bottom": {
           "built": "Dibangun dengan 🦀 Rust |",
-          "heart": "❤️",
+          "heart": "♥",
           "inspiration": "Terinspirasi oleh Caroline dari Portal",
           "heritagePre": "Dengan bangga dibangun di atas fondasi yang diletakkan oleh",
           "gnu": "GNU",

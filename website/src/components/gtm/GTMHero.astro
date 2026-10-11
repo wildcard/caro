@@ -71,7 +71,7 @@ import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
     <!-- Trust Indicators -->
     <div class="trust-row">
       <div class="trust-item">
-        <TermGlyph g="▸" />
+        <span class="trust-icon trust-glyph"><TermGlyph g="▸" /></span>
         <span>Zero telemetry</span>
       </div>
       <div class="trust-item">
@@ -83,7 +83,7 @@ import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
         <span>Apple Silicon optimized</span>
       </div>
       <div class="trust-item">
-        <TermGlyph g="$" />
+        <span class="trust-icon trust-glyph"><TermGlyph g="$" /></span>
         <span>Single binary</span>
       </div>
     </div>
@@ -259,7 +259,15 @@ import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
   }
 
   .trust-icon {
+    display: inline-flex;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 20px;
     font-size: 18px;
+  }
+
+  .trust-glyph {
+    font-size: 14px;
   }
 
   /* Decorative orbs */

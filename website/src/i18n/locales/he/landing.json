@@ -322,7 +322,7 @@
         "rank": "מקום #{{rank}}!",
         "finalScore": "הגעת לשלב {{level}} עם {{score}} נקודות!"
       },
-      "streak": "🔥 רצף:",
+      "streak": "רצף:",
       "messages": {
         "correct": [
           "עבודה מעולה! 🎉",
@@ -414,7 +414,7 @@
       "bottom": {
         "built": "נבנה עם 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "❤️",
+        "heart": "♥",
         "inspiration": "Caro בהשראת Caroline מ-Portal — נאמנות שהפכה לליווי דיגיטלי",
         "heritagePre": "נבנה בגאווה על היסודות שהניחו",
         "gnu": "GNU",

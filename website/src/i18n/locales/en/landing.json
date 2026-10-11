@@ -310,7 +310,7 @@
         "rank": "RANK #{{rank}}!",
         "finalScore": "You reached Level {{level}} with {{score}} points!"
       },
-      "streak": "🔥 Streak:",
+      "streak": "Streak:",
       "messages": {
         "correct": ["Great job! 🎉", "Correct! ✓", "You know your stuff!", "Safe choice! 👍", "Well done!", "Excellent! 🌟"],
         "wrong": ["Oops! That's dangerous! 💥", "Watch out! ⚠️", "That could wipe your system!", "Dangerous! Never run that!", "Yikes! Bad command!"],
@@ -380,7 +380,7 @@
       "bottom": {
         "built": "Built with 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "❤️",
+        "heart": "♥",
         "inspiration": "Inspired by Portal's Caroline—loyalty transformed into digital companionship",
         "heritagePre": "Proudly built on the foundations laid by",
         "gnu": "GNU",

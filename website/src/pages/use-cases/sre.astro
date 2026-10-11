@@ -335,7 +335,7 @@ const blockedPatterns = [
                 </>
               ) : (
                 <div class="safe-line">
-                  <span class="safe-icon">✓</span>
+                  <span class="safe-icon"><TermGlyph g="✓" /></span>
                   <span class="safe-text">{scenario.safe_message}</span>
                 </div>
               )}
@@ -812,6 +812,7 @@ const blockedPatterns = [
     border: 1px solid rgba(34, 197, 94, 0.3);
   }
 
+  .safe-icon { color: var(--term-safe); }
   .safe-text { color: var(--term-fg); }
 
   .scenario-lesson {

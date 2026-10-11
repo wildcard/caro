@@ -322,7 +322,7 @@
         "rank": "¡RANGO #{{rank}}!",
         "finalScore": "¡Alcanzaste el Nivel {{level}} con {{score}} puntos!"
       },
-      "streak": "🔥 Racha:",
+      "streak": "Racha:",
       "messages": {
         "correct": [
           "¡Buen trabajo! 🎉",
@@ -414,7 +414,7 @@
       "bottom": {
         "built": "Construido con 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "❤️",
+        "heart": "♥",
         "inspiration": "Inspirado en Caroline de Portal—lealtad transformada en compañerismo digital",
         "heritagePre": "Construido con orgullo sobre los cimientos establecidos por",
         "gnu": "GNU",
