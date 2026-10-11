@@ -207,13 +207,13 @@ impl CommandExecutor {
         let deadline = Instant::now() + Duration::from_millis(timeout_ms);
         let status = loop {
             if let Some(sig) = signals::pending() {
-                Self::kill_tree(&mut child, sig);
+                Self::kill_tree(&mut child, sig, || false);
                 return Err(ExecutorError::Interrupted(sig));
             }
             match child.try_wait() {
                 Ok(Some(status)) => break status,
                 Ok(None) if Instant::now() >= deadline => {
-                    Self::kill_tree(&mut child, signals::SIGTERM);
+                    Self::kill_tree(&mut child, signals::SIGTERM, || false);
                     return Err(ExecutorError::Timeout(timeout_ms));
                 }
                 Ok(None) => thread::sleep(POLL),
@@ -226,7 +226,8 @@ impl CommandExecutor {
         let (mut stdout, mut stderr) = (None, None);
         while stdout.is_none() || stderr.is_none() {
             if let Some(sig) = signals::pending() {
-                Self::kill_tree(&mut child, sig);
+                let open = usize::from(stdout.is_none()) + usize::from(stderr.is_none());
+                Self::kill_tree(&mut child, sig, Self::pipes_open(&rx, open));
                 return Err(ExecutorError::Interrupted(sig));
             }
             let remaining = deadline.saturating_duration_since(Instant::now());
@@ -234,7 +235,8 @@ impl CommandExecutor {
                 Ok((true, buf)) => stdout = Some(buf),
                 Ok((false, buf)) => stderr = Some(buf),
                 Err(mpsc::RecvTimeoutError::Timeout) if remaining <= POLL => {
-                    Self::kill_tree(&mut child, signals::SIGTERM);
+                    let open = usize::from(stdout.is_none()) + usize::from(stderr.is_none());
+                    Self::kill_tree(&mut child, signals::SIGTERM, Self::pipes_open(&rx, open));
                     return Err(ExecutorError::Timeout(timeout_ms));
                 }
                 Err(mpsc::RecvTimeoutError::Timeout) => {}
@@ -251,7 +253,7 @@ impl CommandExecutor {
         // A signal that came after the command finished still stops the
         // caller, so `caro run` does not start the next step.
         if let Some(sig) = signals::pending() {
-            Self::kill_tree(&mut child, sig);
+            Self::kill_tree(&mut child, sig, || false);
             return Err(ExecutorError::Interrupted(sig));
         }
 
@@ -260,6 +262,21 @@ impl CommandExecutor {
             stdout: stdout.unwrap_or_default(),
             stderr: stderr.unwrap_or_default(),
         })
+    }
+
+    /// Once the shell is gone, a descendant can still hold the pipes. Returns
+    /// a check that stays true until the `open` streams left reach EOF (each
+    /// drain thread sends once, at EOF), so the grace period covers it too.
+    fn pipes_open(
+        rx: &mpsc::Receiver<(bool, Vec<u8>)>,
+        mut open: usize,
+    ) -> impl FnMut() -> bool + '_ {
+        move || {
+            while open > 0 && rx.try_recv().is_ok() {
+                open -= 1;
+            }
+            open > 0
+        }
     }
 
     /// Read `pipe` to EOF on a thread and send `(is_stdout, bytes)` on `tx`.
@@ -278,8 +295,9 @@ impl CommandExecutor {
     }
 
     /// Send `sig` to the child's whole process group (Unix). Give the shell
-    /// `KILL_GRACE` to exit, then SIGKILL the group and reap the child.
-    fn kill_tree(child: &mut Child, sig: i32) {
+    /// `KILL_GRACE` to exit, and `pipes_open` to turn false, then SIGKILL the
+    /// group and reap the child.
+    fn kill_tree(child: &mut Child, sig: i32, mut pipes_open: impl FnMut() -> bool) {
         #[cfg(unix)]
         {
             // The child leads its own group (process_group(0)), so its pid is
@@ -288,7 +306,9 @@ impl CommandExecutor {
             let pgid = child.id() as libc::pid_t;
             if Self::signal_group(pgid, sig) {
                 let grace_end = Instant::now() + KILL_GRACE;
-                while matches!(child.try_wait(), Ok(None)) && Instant::now() < grace_end {
+                while (matches!(child.try_wait(), Ok(None)) || pipes_open())
+                    && Instant::now() < grace_end
+                {
                     thread::sleep(POLL);
                 }
                 // Stops any descendant that outlived the shell.
@@ -296,7 +316,7 @@ impl CommandExecutor {
             }
         }
         #[cfg(not(unix))]
-        let _ = sig;
+        let _ = (sig, &mut pipes_open);
         let _ = child.kill();
         let _ = child.wait();
     }
@@ -523,6 +543,23 @@ mod tests {
 
         assert!(matches!(result, Err(ExecutorError::Timeout(300))));
         assert!(marker.exists(), "the TERM trap did not run");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_timeout_gives_pipe_holder_a_grace_period() {
+        // The shell exits at once; a background subshell keeps the pipes
+        // open. It must still get SIGTERM and time to run its trap.
+        let dir = tempfile::tempdir().unwrap();
+        let marker = dir.path().join("cleaned");
+        let executor = CommandExecutor::new(ShellType::Bash).with_timeout(300);
+        let result = executor.execute(&format!(
+            "(trap 'touch {}; exit 1' TERM; sleep 5 & wait) &",
+            marker.display()
+        ));
+
+        assert!(matches!(result, Err(ExecutorError::Timeout(300))));
+        assert!(marker.exists(), "the pipe holder got no grace period");
     }
 
     #[test]

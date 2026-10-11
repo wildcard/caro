@@ -633,7 +633,7 @@ enum Commands {
         dry_run: bool,
 
         /// Stop each step after this many seconds. A timed step runs in its
-        /// own process group with no stdin. Caro forwards Ctrl-C (SIGINT),
+        /// own process group. Caro forwards Ctrl-C (SIGINT),
         /// SIGTERM and SIGHUP to that group. Unix only.
         #[arg(long, value_name = "SECONDS", value_parser = clap::value_parser!(u64).range(1..))]
         timeout: Option<u64>,
@@ -714,7 +714,7 @@ enum Commands {
         dry_run: bool,
 
         /// Stop each step after this many seconds. A timed step runs in its
-        /// own process group with no stdin. Caro forwards Ctrl-C (SIGINT),
+        /// own process group. Caro forwards Ctrl-C (SIGINT),
         /// SIGTERM and SIGHUP to that group. Unix only.
         #[arg(long, value_name = "SECONDS", value_parser = clap::value_parser!(u64).range(1..))]
         timeout: Option<u64>,

@@ -70,8 +70,9 @@ Follow-ups:
   Regression guard: `execution_contract::signal_forwarding`.
 - ✅ SIGTERM, a 2-second grace period, then SIGKILL (AX's shutdown order).
   Regression guard: `test_timeout_kills_command_that_ignores_sigterm`.
-- Open: pick a default step timeout. A timed step has no stdin, so a default
-  would break steps that prompt. That needs a decision, not code.
+- Open: pick a default step timeout. This needs a decision about how long a
+  step may run, not code. (Stdin is not the blocker: untimed steps get no
+  stdin either, because `Command::output()` does not pass it on.)
 - Either wire `AgentLoop._max_iterations` or delete it. A declared but unused
   budget is worse than none.
 
@@ -204,10 +205,9 @@ because our own harness has the same kind.
 
 - **Supervise the process group, not just the process.** The runner starts
   the command with `Setpgid: true`. On shutdown it sends SIGTERM to `-pid`,
-  waits 10s, then SIGKILLs the group (`runner/runner.go`). This PR copies
-  the process-group supervision into `CommandExecutor`, but not the shutdown
-  sequence: on timeout it sends SIGKILL immediately. Adding SIGTERM and a
-  grace period is a P1 follow-up.
+  waits 10s, then SIGKILLs the group (`runner/runner.go`). `CommandExecutor`
+  now copies both: the process-group supervision, and the shutdown sequence
+  (SIGTERM, a 2-second grace period, then SIGKILL).
 - **Stay inspectable after the command exits.** The runner remains PID 1 and
   keeps its metadata server up once the agent finishes, so you can still look
   at what happened. For our harness, a routine should leave its worktree and

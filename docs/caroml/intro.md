@@ -102,11 +102,11 @@ step from the lock, even when the runbook is clean, so each step gets its
 own deadline. On other platforms caro refuses `--timeout`, because it
 cannot stop a step's child processes there.
 
-A timed step runs in its own process group with no stdin. A terminal
-Ctrl-C then reaches only caro, so caro forwards SIGINT, SIGTERM and SIGHUP
-to the step's group and stops. The exit status is 128 + the signal number
-(130 for Ctrl-C), the same as a shell reports. Without `--timeout`, steps
-share caro's terminal and have no deadline.
+A timed step runs in its own process group. A terminal Ctrl-C then reaches
+only caro, so caro forwards SIGINT, SIGTERM and SIGHUP to the step's group
+and stops. The exit status is 128 + the signal number (130 for Ctrl-C), the
+same as a shell reports. Without `--timeout`, steps stay in caro's process
+group and have no deadline. Steps get no stdin either way.
 
 ## See also
 
