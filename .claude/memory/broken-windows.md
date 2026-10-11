@@ -408,7 +408,7 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 
 ### BW-048: unrendered website components and unread locale fields hold 156 emoji
 
-**Found:** 2026-10-11, emoji-icon inventory (`docs/icon-definitions`, #1590)
+**Found:** 2026-10-11, emoji-icon inventory (`docs/brand/icons/definitions.json`, #1590)
 **Issue:** #1591
 **Status:** open
 **Needs human?:** yes for the distro-preferences UI (planned feature or remove); no for the rest

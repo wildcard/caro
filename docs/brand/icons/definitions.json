@@ -1111,6 +1111,7 @@
       "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It stands on the bottom row of the grid, like Kyaro's feet. Subject: Kyaro, the Shiba Inu from the reference frames, sits with ears flat, eyes wide, and one white sweat drop beside the head: nervous before running a command. Reference frames: assets/kyaro/001-idle/idlea_animation/animation_Idle1.png, assets/kyaro/008-shocked/shocked_animation/animation-Shocked5.png. It must show: Kyaro's proportions, outline and colors exactly as in the frames; the sweat drop in #ffffff with a #000000 outline (the palette has no blue). It must not show: red; exclamation marks; the shocked frame's raised fur (that is `danger`).",
       "status": "to-generate",
       "priority": 2,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 2,
         "glyph": 0
@@ -2432,6 +2433,7 @@
       "status": "owner-call",
       "question": "Six one-off icons for one row of /use-cases/air-gapped. Default: drop the icons from that row; the cards keep their titles.",
       "priority": 3,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 6,
         "glyph": 0
@@ -2685,6 +2687,7 @@
       "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It floats in the middle of the grid, with 4 px clear at the bottom too. Subject: A globe with a latitude and longitude grid, without a stand. It must show: a white and grey sphere with #000000 grid lines (the palette has no blue). It must not show: continents; wifi waves; a browser window.",
       "status": "to-generate",
       "priority": 1,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 5,
         "glyph": 0
@@ -3064,6 +3067,7 @@
       "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It floats in the middle of the grid, with 4 px clear at the bottom too. Subject: One line that splits into two branches, with a round node at each of its three ends. It must show: black lines; nodes as hollow or filled circles. It must not show: the Git logo; a dinner fork; leaves or a tree.",
       "status": "to-generate",
       "priority": 2,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 4,
         "glyph": 0
@@ -3136,6 +3140,7 @@
       "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It stands on the bottom row of the grid, like Kyaro's feet. Subject: Two closed books stacked flat, spines toward the viewer. It must show: one book in #d95763, one in #8f563b. It must not show: an open book (that is `open-source`); a graduation cap; text on the spines.",
       "status": "to-generate",
       "priority": 2,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 4,
         "glyph": 0
@@ -3405,6 +3410,7 @@
       "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It floats in the middle of the grid, with 4 px clear at the bottom too. Subject: A page of text lines with a solid cursor block at the end of the last line. It must show: the cursor block in #343434. It must not show: scissors; a magnifying glass (that is `audit`); letters.",
       "status": "to-generate",
       "priority": 2,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 3,
         "glyph": 0
@@ -3464,6 +3470,7 @@
       "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It floats in the middle of the grid, with 4 px clear at the bottom too. Subject: A small rocket that points up and to the right, with a short flame. It must show: body in #ffffff and #a0a0a0; flame in #fcfc62 and #ef3333. It must not show: stars or planets; speed lines (speed is Kyaro `running`).",
       "status": "to-generate",
       "priority": 2,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 3,
         "glyph": 0
@@ -3543,6 +3550,7 @@
       "status": "owner-call",
       "question": "Three one-off icons for one row of /use-cases/air-gapped. Default: drop the icons from that row; the cards keep their titles.",
       "priority": 3,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 3,
         "glyph": 0
@@ -3602,6 +3610,7 @@
       "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It floats in the middle of the grid, with 4 px clear at the bottom too. Subject: A half-circle gauge in four segments, from white through yellow and red to dark red, with a black needle. It must show: segments #ffffff, #fcfc62, #ef3333, #c02020 (the palette has no green). It must not show: a traffic light; numbers.",
       "status": "to-generate",
       "priority": 2,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 2,
         "glyph": 0
@@ -3652,6 +3661,7 @@
       "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It floats in the middle of the grid, with 4 px clear at the bottom too. Subject: A clipboard that holds a sheet with three checkbox lines; the first two are checked. It must show: board in #8f563b; sheet in #ffffff. It must not show: people; text.",
       "status": "to-generate",
       "priority": 2,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 2,
         "glyph": 0
@@ -3751,6 +3761,7 @@
       "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It stands on the bottom row of the grid, like Kyaro's feet. Subject: One square keycap seen slightly from the front, with a blank top. It must show: the cap in #f4f1df with #a0a0a0 sides. It must not show: a letter on the key; a full keyboard.",
       "status": "to-generate",
       "priority": 3,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 1,
         "glyph": 0
@@ -3790,6 +3801,7 @@
       "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It floats in the middle of the grid, with 4 px clear at the bottom too. Subject: A painter's palette with four paint dabs. It must show: board in #d9a066; dabs in #ef3333, #fcfc62, #ffffff and #343434. It must not show: a rainbow; a brush.",
       "status": "to-generate",
       "priority": 3,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 1,
         "glyph": 0
@@ -3829,6 +3841,7 @@
       "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It floats in the middle of the grid, with 4 px clear at the bottom too. Subject: A memory module (a RAM stick) in front of a shield. It must show: the module's gold contacts in #fcfc62. It must not show: a crab; a padlock; Kyaro (`danger` would read as 'memory danger').",
       "status": "to-generate",
       "priority": 3,
+      "small_slot_glyph": "▸",
       "count": {
         "icon": 1,
         "glyph": 0

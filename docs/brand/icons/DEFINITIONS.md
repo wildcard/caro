@@ -95,8 +95,9 @@ The inventory of 2026-10-11 found 510 emoji in `website/src`:
 ```
 510 emoji
  ├─ 289 carry a meaning ──▶ 44 definitions below
- │    ├─ 150 slots of 28 px or more ──▶ an icon
- │    └─ 139 smaller or inline slots ──▶ the definition's small-slot glyph
+ │    ├─ 141 slots ──▶ an icon
+ │    ├─   9 slots of 28 px ──▶ the small-slot glyph for now (decision 3)
+ │    └─ 139 smaller or inline slots ──▶ the small-slot glyph
  ├─ 194 show an OS, vendor or tool ──▶ out of scope (decision 4)
  └─ 27 are not icons (dead code, doc comments, prose)
 ```
@@ -110,7 +111,8 @@ surface and label.
 Every generated definition uses the 48 grid: each one has a slot of 32 px
 or more. A slot from 32 to 48 px grows to the 56 px tile, as
 `LPFeatures` did. A 28 px slot shows the small-slot glyph until a 24 grid
-version exists (decision 3).
+version exists (decision 3). The `icon` slot counts below include those
+28 px slots. Every definition names a small-slot glyph; `▸` is the default.
 
 **P** is the priority: 1 = the drawing fills 5 or more slots, 2 = 2 to 4,
 3 = one slot. Generate in priority order.

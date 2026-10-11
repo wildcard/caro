@@ -60,9 +60,17 @@ class IconDefinitions(unittest.TestCase):
 
     def test_kyaro_icons_exist(self):
         for d in DATA["definitions"]:
-            for name in filter(None, (d.get("kyaro"), d.get("interim_kyaro"))):
-                with self.subTest(icon=d["id"]):
+            with self.subTest(icon=d["id"]):
+                if d["family"] == "kyaro-existing":
+                    self.assertIn("kyaro", d)
+                for name in filter(None, (d.get("kyaro"), d.get("interim_kyaro"))):
                     self.assertIn(name, ICONS)
+
+    def test_every_icon_has_a_small_slot_glyph(self):
+        for d in DATA["definitions"]:
+            with self.subTest(icon=d["id"]):
+                glyph = d.get("glyph") if d["family"] == "terminal-glyph" else d.get("small_slot_glyph")
+                self.assertTrue(glyph)
 
     def test_palette_matches_the_spec_and_the_snap_tool(self):
         row = next(line for line in DOC.splitlines() if line.startswith("| Palette |"))
@@ -82,6 +90,8 @@ class IconDefinitions(unittest.TestCase):
         self.assertEqual(slots, inv["concept_slots"])
         for d in DATA["definitions"]:
             with self.subTest(icon=d["id"]):
+                for fit in ("icon", "glyph"):
+                    self.assertEqual(sum(s["fit"] == fit for s in d["slots"]), d["count"][fit])
                 self.assertEqual(len(d["slots"]), d["count"]["icon"] + d["count"]["glyph"])
         third = sum(m["slots"] for m in DATA["third_party_marks"])
         self.assertEqual(third, inv["third_party_slots"])
