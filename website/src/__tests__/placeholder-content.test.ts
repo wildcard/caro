@@ -24,21 +24,22 @@ function sourceFiles(dir: string): string[] {
 }
 
 const files = ['pages', 'layouts', 'components'].flatMap((dir) => sourceFiles(join(src, dir)));
-const importsOf = (name: string) => new RegExp(`from\\s+['"][^'"]*/${name}\\.astro['"]`);
+// Static (`from '…/Name.astro'`) and dynamic (`import('…/Name.astro')`) imports.
+const importsOf = (name: string) => new RegExp(`(?:from\\s+|import\\s*\\(\\s*)(['"])[^'"]*/${name}\\.astro\\1`);
 
 describe('placeholder content', () => {
   const placeholders = files
     .filter((file) => file.endsWith('.astro') && readFileSync(file, 'utf8').includes(MARKER))
-    .map((file) => basename(file, '.astro'));
+    .map((file) => ({ name: basename(file, '.astro'), file }));
 
   it('detects component imports (scanner self-check)', () => {
     const index = readFileSync(join(src, 'pages/index.astro'), 'utf8');
     expect(importsOf('LPHero').test(index)).toBe(true);
   });
 
-  it.each(placeholders)('no file imports the placeholder component %s', (name) => {
+  it.each(placeholders)('no file imports the placeholder component $name', ({ name, file: placeholder }) => {
     const importers = files
-      .filter((file) => basename(file, '.astro') !== name && importsOf(name).test(readFileSync(file, 'utf8')))
+      .filter((file) => file !== placeholder && importsOf(name).test(readFileSync(file, 'utf8')))
       .map((file) => file.slice(src.length));
     expect(importers, `${name} is marked ${MARKER}`).toEqual([]);
   });
