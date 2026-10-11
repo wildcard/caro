@@ -74,6 +74,18 @@ describe('fitTitle', () => {
     expect(result.lines.join(' ')).toBe('The Feedback Loop Series Part 1: Test-Driven Development');
   });
 
+  it('never starts a line with a lone "&"', () => {
+    // 14 characters a line: without the rule, "& Secure" would open line 3.
+    const result = fitTitle('Caro for Air-Gapped & Secure Environments', measure, {
+      ...base,
+      maxWidth: 140,
+      maxHeight: 400,
+      sizes: [20],
+    });
+    expect(result.lines.some((line) => line.startsWith('&'))).toBe(false);
+    expect(result.lines.join(' ')).toBe('Caro for Air-Gapped & Secure Environments');
+  });
+
   it('keeps a single over-wide word inside the column', () => {
     const result = fitTitle('https://example.com/a-very-long-unbroken-path-segment', measure, {
       ...base,

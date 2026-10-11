@@ -54,6 +54,25 @@ export const OG_LOCALES: Record<Locale, string> = {
   id: 'id_ID',
 };
 
+/** Each locale's name in its own language, as in src/i18n/config.ts. Card eyebrows on translated pages. */
+export const NATIVE_NAMES: Record<Locale, string> = {
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  pt: 'Português',
+  de: 'Deutsch',
+  he: 'עברית',
+  ar: 'العربية',
+  uk: 'Українська',
+  ru: 'Русский',
+  ja: '日本語',
+  ko: '한국어',
+  hi: 'हिन्दी',
+  ur: 'اردو',
+  fil: 'Filipino',
+  id: 'Bahasa Indonesia',
+};
+
 /** Section labels, by first path segment, in llms.txt order. Used on cards and in breadcrumbs. */
 export const SECTION_LABELS: Record<string, string> = {
   docs: 'Docs',
@@ -167,7 +186,8 @@ export function sectionOf(pathname: string): string | undefined {
 }
 
 /**
- * The short labels over a card's title: the section, and for articles the
+ * The short labels over a card's title: the section (or, on a translated
+ * page, the language's own name), and for articles the
  * publish date (UTC, so every build machine prints the same card) and the
  * reading time.
  */
@@ -180,7 +200,9 @@ export function cardEyebrow({
   publishedTime?: string;
   readingTime?: string;
 }): string[] {
-  const items = [sectionOf(pathname) ?? DEFAULT_EYEBROW];
+  const locale = localeOf(pathname);
+  const fallback = locale === DEFAULT_LOCALE ? DEFAULT_EYEBROW : NATIVE_NAMES[locale];
+  const items = [sectionOf(pathname) ?? fallback];
   const date = publishedTime ? new Date(publishedTime) : undefined;
   if (date && !Number.isNaN(date.getTime())) items.push(CARD_DATE.format(date));
   if (readingTime) items.push(readingTime);

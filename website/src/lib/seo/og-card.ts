@@ -65,15 +65,21 @@ function loadFonts(): Promise<Fonts> {
 const PAD_X = 80;
 const PAD_TOP = 76;
 const PAD_BOTTOM = 72;
+/** Height of the mark's source box (the PNG with its white margin) on the card. */
 const MARK_HEIGHT = 400;
 /** Gap between the text column and the mark. */
 const COLUMN_GAP = 64;
-const LABEL_SIZE = 20;
+const LABEL_SIZE = 24;
 /** Label tracking, in 1/1000 em. */
 const LABEL_TRACKING = 80;
-const URL_SIZE = 24;
+const URL_SIZE = 28;
 const TITLE_LINE_HEIGHT = 1.12;
 const TITLE_SIZES = [72, 68, 64, 60, 56, 52, 48, 44, 40] as const;
+/**
+ * Down to this size, a title takes the size that needs the fewest lines, so
+ * "Caro vs Warp: Feature Comparison" sets in two lines, not four short ones.
+ */
+const TITLE_MIN_PREFERRED = 56;
 const TITLE_MAX_LINES = 5;
 
 interface TextOptions {
@@ -140,20 +146,29 @@ function hexToRgb(hex: string): [number, number, number] {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-const marks = new Map<string, Promise<{ png: Buffer; width: number }>>();
+type Mark = { png: Buffer; width: number; height: number };
+
+const marks = new Map<string, Promise<Mark>>();
 
 /**
- * The mark, scaled to MARK_HEIGHT and mapped onto the line from ink (black)
- * to paper (white). The source is black on a white box; mapped, the box
+ * The mark, without its white margin, scaled as if its box were MARK_HEIGHT
+ * tall, and mapped onto the line from ink (black) to paper (white). The source is black on a white box; mapped, the box
  * becomes the card's own paper and the mark sits on it.
  */
-function loadMark(file: string): Promise<{ png: Buffer; width: number }> {
+function loadMark(file: string): Promise<Mark> {
   let loading = marks.get(file);
   if (!loading) {
     loading = (async () => {
-      const { data, info } = await sharp(file)
+      // Trim the source's white margin, at the scale the full box would
+      // have, so the visible mark lines up with the card's padding.
+      const source = await sharp(file).metadata();
+      const trimmed = await sharp(file)
         .flatten({ background: '#ffffff' })
-        .resize({ height: MARK_HEIGHT })
+        .trim({ background: '#ffffff', threshold: 10 })
+        .toBuffer({ resolveWithObject: true });
+      const scale = MARK_HEIGHT / (source.height ?? MARK_HEIGHT);
+      const { data, info } = await sharp(trimmed.data)
+        .resize({ height: Math.round(trimmed.info.height * scale) })
         .greyscale()
         .raw()
         .toBuffer({ resolveWithObject: true });
@@ -171,7 +186,7 @@ function loadMark(file: string): Promise<{ png: Buffer; width: number }> {
       })
         .png()
         .toBuffer();
-      return { png, width: info.width };
+      return { png, width: info.width, height: info.height };
     })();
     marks.set(file, loading);
   }
@@ -229,13 +244,21 @@ function compose(input: CardInput, fonts: Fonts, markWidth: number): ComposedCar
   const measure = (text: string, size: number) => advance(text, { font: fonts.display, size });
   const titleTop = eyebrowBaseline + 52;
   const titleBottom = footerBaseline - URL_SIZE - 56;
-  const title = fitTitle(input.title, measure, {
-    maxWidth: columnWidth,
-    maxHeight: titleBottom - titleTop,
-    lineHeight: TITLE_LINE_HEIGHT,
-    sizes: TITLE_SIZES,
-    maxLines: TITLE_MAX_LINES,
-  });
+  const fit = (sizes: readonly number[]) =>
+    fitTitle(input.title, measure, {
+      maxWidth: columnWidth,
+      maxHeight: titleBottom - titleTop,
+      lineHeight: TITLE_LINE_HEIGHT,
+      sizes,
+      maxLines: TITLE_MAX_LINES,
+    });
+  // Fewest lines first, then the larger size, among the preferred sizes that
+  // fit; below them, the largest size that fits at all.
+  const preferred = TITLE_SIZES.filter((size) => size >= TITLE_MIN_PREFERRED)
+    .map((size) => fit([size]))
+    .filter((result) => !result.overflow)
+    .sort((a, b) => a.lines.length - b.lines.length || b.size - a.size);
+  const title = preferred[0] ?? fit(TITLE_SIZES);
   const os2 = fonts.display.tables.os2 as { sCapHeight?: number } | undefined;
   const capHeight = (os2?.sCapHeight ?? 0.7 * fonts.display.unitsPerEm) / fonts.display.unitsPerEm;
   title.lines.forEach((line, i) => {
@@ -270,7 +293,7 @@ export async function renderCard(input: CardInput, markFile: string): Promise<Bu
         {
           input: mark.png,
           left: width - PAD_X - mark.width,
-          top: Math.round((height - MARK_HEIGHT) / 2),
+          top: Math.round((height - mark.height) / 2),
         },
       ])
       // Everything lies on a few brand colors, so a 256-color palette is

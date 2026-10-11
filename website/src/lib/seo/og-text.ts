@@ -3,8 +3,9 @@
 // subtitle colon ("Why Caro? / The Story Behind…"). Pure, so it is testable
 // without fonts: callers pass a `measure` that returns an advance width.
 //
-// Ported unchanged from kobi.kadosh.me (apps/site/src/brand/og-text.ts), the
-// card system this site's cards follow.
+// Ported from kobi.kadosh.me (apps/site/src/brand/og-text.ts), the card
+// system this site's cards follow. One change: `words()` also keeps a lone
+// "&" with the word before it.
 
 /** Advance width of `text` at font size `size`, in the same units as `maxWidth`. */
 export type Measure = (text: string, size: number) => number;
@@ -32,13 +33,14 @@ interface FitResult {
 
 /**
  * Splits a title into wrap units. A bare number rides with the word before it,
- * so "Part 1:" never breaks across lines.
+ * so "Part 1:" never breaks across lines, and so does a lone "&" (Caro
+ * addition), so no line starts with one.
  */
 function words(text: string): string[] {
   const tokens: string[] = [];
   for (const token of text.trim().split(/\s+/).filter(Boolean)) {
     const previous = tokens[tokens.length - 1];
-    if (previous && /^\d+[:.,;]?$/.test(token)) tokens[tokens.length - 1] = `${previous} ${token}`;
+    if (previous && /^(\d+[:.,;]?|&)$/.test(token)) tokens[tokens.length - 1] = `${previous} ${token}`;
     else tokens.push(token);
   }
   return tokens;

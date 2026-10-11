@@ -55,8 +55,8 @@ const agents = [
             >{name}</a>
           </li>
         ))}
-        <li>
-          <button type="button" class="share-action" data-share-native data-title={title} data-url={url} hidden>
+        <li data-share-native-item hidden>
+          <button type="button" class="share-action" data-share-native data-title={title} data-url={url}>
             Share…
           </button>
         </li>
@@ -114,8 +114,9 @@ const agents = [
       };
 
       const native = bar.querySelector<HTMLButtonElement>('[data-share-native]');
-      if (native && typeof navigator.share === 'function') {
-        native.hidden = false;
+      const nativeItem = bar.querySelector<HTMLElement>('[data-share-native-item]');
+      if (native && nativeItem && typeof navigator.share === 'function') {
+        nativeItem.hidden = false;
         native.addEventListener('click', () => {
           navigator
             .share({ title: native.dataset.title, url: native.dataset.url })
@@ -167,10 +168,11 @@ const agents = [
 
   .share-bar .share-label {
     margin: 0;
-    min-width: 9ch;
+    /* Wide enough for "For AI agents", so both rows' buttons line up. */
+    min-width: 15ch;
     font-size: 12px;
     line-height: 1.4;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--track-wide);
     text-transform: uppercase;
     color: var(--fg-muted);
   }
@@ -190,10 +192,15 @@ const agents = [
     margin: 0;
   }
 
+  .share-bar .share-list li[hidden] {
+    display: none;
+  }
+
   .share-bar .share-action {
     display: inline-block;
     padding: 6px 12px;
-    border: 1px solid var(--border);
+    /* --border is 1.5:1 on the page; grey-500 keeps the button edge visible (≈3.8:1 light, 3.3:1 dark). */
+    border: 1px solid var(--caro-grey-500);
     border-radius: var(--radius-sm);
     background: transparent;
     color: var(--fg);
@@ -202,11 +209,11 @@ const agents = [
     line-height: 1.4;
     text-decoration: none;
     cursor: pointer;
-    transition: border-color 0.15s ease, color 0.15s ease;
+    transition: border-color var(--transition-fast), color var(--transition-fast);
   }
 
   .share-bar .share-action:hover {
-    border-color: var(--border-strong);
+    border-color: var(--accent);
     color: var(--accent-text);
     text-decoration: none;
   }
@@ -216,16 +223,20 @@ const agents = [
     outline-offset: 2px;
   }
 
-  .share-bar .share-action[hidden] {
-    display: none;
-  }
-
   .share-bar .share-status {
     min-height: 1.4em;
     margin: 0;
     font-size: 13px;
     line-height: 1.4;
     color: var(--fg-muted);
+  }
+
+  /* Touch: buttons reach the 44px target. */
+  @media (max-width: 600px) {
+    .share-bar .share-action {
+      min-height: var(--touch-target-min);
+      padding: 12px 14px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

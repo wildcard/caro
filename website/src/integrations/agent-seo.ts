@@ -71,7 +71,10 @@ async function write(file: string, data: string | Buffer) {
   await writeFile(file, data);
 }
 
-/** The card for a page; a translated title the fonts can't draw uses the English page's text. */
+/**
+ * The card for a page. A translated page whose title or eyebrow the Latin
+ * card fonts can't draw uses the English page's text, under its own URL.
+ */
 async function cardFor(
   page: BuiltPage,
   byPath: Map<string, BuiltPage>,
@@ -82,7 +85,7 @@ async function cardFor(
   const input = (source: BuiltPage): CardInput => ({
     title: cardTitle(source.meta.ogTitle || source.meta.title),
     eyebrow: cardEyebrow({
-      pathname: page.path,
+      pathname: source.path,
       publishedTime: source.meta.publishedTime,
       readingTime: source.meta.readingTime,
     }),

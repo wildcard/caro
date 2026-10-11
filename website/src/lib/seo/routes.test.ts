@@ -108,6 +108,11 @@ describe('cardEyebrow', () => {
     expect(eyebrow).toEqual(['Blog', 'Dec 17, 2025', '8 min read']);
   });
 
+  it("names a translated page's language", () => {
+    expect(cardEyebrow({ pathname: '/es/' })).toEqual(['Español']);
+    expect(cardEyebrow({ pathname: '/fil' })).toEqual(['Filipino']);
+  });
+
   it('ignores a date it cannot parse', () => {
     expect(cardEyebrow({ pathname: '/blog/x', publishedTime: 'soon' })).toEqual(['Blog']);
   });
