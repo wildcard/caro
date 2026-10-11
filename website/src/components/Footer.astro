@@ -4,14 +4,17 @@
  * Multi-column layout organizing site content into logical sections
  */
 import { SITE_CONFIG } from '../config/site';
-import { t } from '../i18n/config';
+import { t, type Locale } from '../i18n/config';
 import Glyph from '../ui/Glyph/Glyph.astro';
 
 interface Props {
-  lang: string;
+  lang?: Locale;
 }
 
-const { lang } = Astro.props;
+const { lang = 'en' } = Astro.props;
+const home = lang === 'en' ? '/' : `/${lang}/`;
+// The English homepage and the localized homepages use different section ids.
+const demoAnchor = lang === 'en' ? '#video-demo' : '#how-it-works';
 const currentYear = new Date().getFullYear();
 const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
 ---
@@ -58,10 +61,10 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
       <div class="footer-column">
         <h3 class="column-title">{t(lang, 'landing.footer.columns.product.title')}</h3>
         <ul class="column-links">
-          <li><a href="/#features">{t(lang, 'landing.footer.columns.product.features')}</a></li>
-          <li><a href="/#video-demo">{t(lang, 'landing.footer.columns.product.howItWorks')}</a></li>
+          <li><a href={`${home}#features`}>{t(lang, 'landing.footer.columns.product.features')}</a></li>
+          <li><a href={`${home}${demoAnchor}`}>{t(lang, 'landing.footer.columns.product.howItWorks')}</a></li>
           <li><a href="/explore">{t(lang, 'landing.footer.columns.product.explore')}</a></li>
-          <li><a href="/#download">{t(lang, 'landing.footer.columns.product.download')}</a></li>
+          <li><a href={`${home}#download`}>{t(lang, 'landing.footer.columns.product.download')}</a></li>
           <li><a href="/roadmap">{t(lang, 'landing.footer.columns.product.roadmap')}</a></li>
         </ul>
       </div>
