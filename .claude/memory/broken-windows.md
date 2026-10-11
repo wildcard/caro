@@ -411,6 +411,16 @@ fails at `Test setup.sh on bash` with `caro: command not found` (exit 127), afte
 **Next step:** remove `OmniMenu.astro`, `Waitlist.astro`,
 `landing/LPUseCases.astro` and the unread locale fields listed in #1591.
 
+### BW-052: the caro-demo-video skill tells agents to merge or push to `main`
+
+**Found:** 2026-10-11, rewriting the demo-drift routine prompt (harness-plan session)
+**Issue:** #1602
+**Status:** open
+**Needs human?:** no (two lines in a skill; the owner already decided that agents never merge)
+**Next step:** in `.claude/skills/caro-demo-video/SKILL.md`, change line 274 ("may push directly
+to main") and line 293 ("commit + merge directly"), so that every trust bucket opens or updates
+one PR and requests review.
+
 ---
 
 ## Dedup done (2026-10-09)
