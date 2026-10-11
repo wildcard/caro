@@ -852,7 +852,7 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
       hearts.forEach((h, i) => h.classList.toggle('lost', i >= lives));
       // The hearts are aria-hidden glyphs; the count is the accessible name.
       livesEl!.setAttribute('aria-label', `${livesEl!.dataset.label}: ${lives}`);
-      livesDisplayEl!.textContent = '♥ '.repeat(lives).trim() || '♡';
+      livesDisplayEl!.textContent = '♥ '.repeat(lives).trim() || '0';
     }
 
     // Disabling or removing a focused option drops focus to <body> in

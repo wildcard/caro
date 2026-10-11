@@ -6,6 +6,7 @@
 import { SITE_CONFIG } from '../config/site';
 import { t, type Locale } from '../i18n/config';
 import KyaroIcon from '../ui/KyaroIcon/KyaroIcon.astro';
+import TermGlyph, { type Glyph } from '../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -123,7 +124,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     <div class="footer-bottom">
       <div class="bottom-content">
         <p class="copyright">
-          {t(lang, 'landing.footer.bottom.built')} <strong>{t(lang, 'landing.footer.bottom.brandName')}</strong> {t(lang, 'landing.footer.bottom.heart')}
+          {t(lang, 'landing.footer.bottom.built')} <strong>{t(lang, 'landing.footer.bottom.brandName')}</strong> <TermGlyph g={t(lang, 'landing.footer.bottom.heart') as Glyph} />
         </p>
         <p class="inspiration">
           {t(lang, 'landing.footer.bottom.inspiration')}

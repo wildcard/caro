@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { extractStructuredContent } from '../../scripts/generate-search-index.mjs';
 
-const EMOJI_BUDGET = 1818;
+const EMOJI_BUDGET = 1817;
 
 const GLYPHS = ['▸', '■', '$', '❯', '>_', '✓', '✗', '♥'];
 // Pictographic code points that render as plain text in our fonts.
