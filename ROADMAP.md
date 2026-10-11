@@ -81,7 +81,7 @@ with the PRs that landed on `main` after it:
 - **Agent additions** — [#1244](https://github.com/wildcard/caro/pull/1244)
   (ponytail pragmatic-skeptic reviewer, additive)
 - **Also shipped** — [#1315](https://github.com/wildcard/caro/pull/1315)
-  (P0: quoted or escaped `rm` targets no longer pass as Safe),
+  (P0: dangerous quoted or escaped `rm` targets no longer pass as Safe),
   [#1245](https://github.com/wildcard/caro/pull/1245)
   (opt-in frontier advisor, cost-aware eval),
   [#1509](https://github.com/wildcard/caro/pull/1509) (STE-lite `--explain`),
