@@ -98,18 +98,20 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             // Recursive chmod that gives "others" write access, on any path
             // (caro#1592). A world-writable mode is an octal mode whose last
             // digit has the write bit (2, 3, 6, 7), or a symbolic clause such
-            // as `o+w`, `a+rwx` or `o=rwx`. `-R` / `--recursive` may come
-            // before or after the mode. `[^;&|]` keeps the match inside one
-            // command of a list or pipeline.
+            // as `o+w`, `a+rwx` or `o=rwx`. The mode is the first argument
+            // that is not an option. `-R` / `--recursive` may come among the
+            // options before it, or later in the same command. Spans use
+            // `[ \t]` and stop at `;`, `&`, `|` and newlines, so the match
+            // stays inside one command.
             pattern: concat!(
-                r"\bchmod\s(?:[^;&|]*\s)?(?:",
-                // flag, then mode
-                r"(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)\s(?:[^;&|]*\s)?",
+                r"\bchmod(?:[ \t]+-\S+)*[ \t]+(?:",
+                // a recursive flag among the options, then the mode
+                r"(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)(?:[ \t]+-\S+)*[ \t]+",
                 r"(?:0?[0-7]?[0-7]{2}[2367]|[ugoa+=,rwxXst-]*[oa][ugoa]*[+=][rwxXst]*w[ugoa+=,rwxXst-]*)",
                 r"|",
-                // mode, then flag
+                // the mode, then a recursive flag later in the command
                 r"(?:0?[0-7]?[0-7]{2}[2367]|[ugoa+=,rwxXst-]*[oa][ugoa]*[+=][rwxXst]*w[ugoa+=,rwxXst-]*)",
-                r"\s(?:[^;&|]*\s)?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)",
+                r"[ \t](?:[^;&|\n]*[ \t])?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)",
                 r")(?:\s|$)",
             )
             .to_string(),
@@ -698,6 +700,8 @@ mod tests {
             "chmod -R go+w shared",            // symbolic, group and others
             "chmod -R u=rwx,o=rwx public",     // comma-separated clauses
             "cd /srv && chmod -R 777 app",     // inside a command list
+            "chmod -v -R 777 app",             // another option first
+            "chmod -R -- 777 app",             // end-of-options marker
         ];
         for cmd in must_flag {
             assert!(
@@ -710,15 +714,17 @@ mod tests {
         // raise these. Relative paths keep the older root-path patterns out
         // of the result.
         let must_not_flag = [
-            "chmod -R 755 public",    // the landing page's own suggestion
-            "chmod -R 775 shared",    // group-writable only
-            "chmod -R 750 app",       // no access for others
-            "chmod -R o-w public",    // removes world write
-            "chmod -R u+w src",       // owner only
-            "chmod -R g+w shared",    // group only
-            "chmod 777 notes.txt",    // not recursive (stays Moderate)
-            "chmod +x deploy.sh",     // execute bit only
-            "chmod -R 755 a; ls 777", // `777` is in another command
+            "chmod -R 755 public",                      // the landing page's own suggestion
+            "chmod -R 775 shared",                      // group-writable only
+            "chmod -R 750 app",                         // no access for others
+            "chmod -R o-w public",                      // removes world write
+            "chmod -R u+w src",                         // owner only
+            "chmod -R g+w shared",                      // group only
+            "chmod 777 notes.txt",                      // not recursive (stays Moderate)
+            "chmod +x deploy.sh",                       // execute bit only
+            "chmod -R 755 a; ls 777",                   // `777` is in another command
+            "chmod -R 755 o+w",                         // `o+w` is a file name, not the mode
+            "chmod 777 notes.txt\nchmod -R 755 public", // two commands, two lines
         ];
         for cmd in must_not_flag {
             assert!(
