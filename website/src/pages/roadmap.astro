@@ -80,9 +80,9 @@ const milestones = [
 ];
 
 const strategicThemes = [
-  { quarter: "Q1 2026", theme: "Foundation", description: "Establish production-ready core, optimize performance, build reliable infrastructure", icon: "▸", color: "#22c55e" },
-  { quarter: "Q2 2026", theme: "Launch", description: "Public website launch, comprehensive documentation, marketing and community building", icon: "▸", color: "#3b82f6" },
-  { quarter: "Q3 2026", theme: "Innovation", description: "Advanced AI features, distributed intelligence, voice interaction, next-gen capabilities", icon: "▸", color: "#a855f7" }
+  { quarter: "Q1 2026", theme: "Foundation", description: "Establish production-ready core, optimize performance, build reliable infrastructure", icon: "▸", detailIcon: "🏗️", color: "#22c55e" },
+  { quarter: "Q2 2026", theme: "Launch", description: "Public website launch, comprehensive documentation, marketing and community building", icon: "▸", detailIcon: "🚀", color: "#3b82f6" },
+  { quarter: "Q3 2026", theme: "Innovation", description: "Advanced AI features, distributed intelligence, voice interaction, next-gen capabilities", icon: "▸", detailIcon: "✨", color: "#a855f7" }
 ];
 
 const totalItems = milestones.reduce((sum, m) => sum + m.totalItems, 0);
@@ -198,7 +198,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
               {milestones.map((milestone, index) => (
                 <div class="timeline-milestone" style={`--milestone-color: ${milestone.color}`}>
                   <div class="milestone-marker">
-                    <span class="milestone-icon">{milestone.icon}</span>
+                    <span class="milestone-icon"><TermGlyph g={milestone.icon as Glyph} /></span>
                   </div>
                   <div class="milestone-info">
                     <span class="milestone-version">{milestone.version}</span>
@@ -389,7 +389,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
           <div class="themes-detail">
             {strategicThemes.map((theme, index) => (
               <div class="theme-detail-card" style={`--theme-color: ${theme.color}; --delay: ${index * 0.2}s`}>
-                <div class="theme-detail-icon">{theme.icon}</div>
+                <div class="theme-detail-icon">{theme.detailIcon}</div>
                 <div class="theme-detail-content">
                   <div class="theme-detail-header">
                     <span class="theme-detail-quarter">{theme.quarter}</span>
@@ -843,7 +843,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .milestone-icon {
-    font-size: 28px;
+    font-size: 22px;
   }
 
   .milestone-info {
