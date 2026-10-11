@@ -53,7 +53,7 @@
     align-items: center;
     text-align: center;
     padding: 80px 20px 60px;
-    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    background: var(--bg);
   }
 
   .container {
@@ -62,9 +62,9 @@
 
   .hero-badge {
     display: inline-block;
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 107, 53, 0.1) 100%);
-    border: 1px solid rgba(255, 140, 66, 0.3);
-    color: #ff8c42;
+    background: rgba(239, 51, 51, 0.08);
+    border: 1px solid rgba(239, 51, 51, 0.3);
+    color: var(--accent-text);
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 14px;
@@ -83,10 +83,7 @@
   }
 
   .danger-cmd {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent-text);
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
     font-size: 0.9em;
   }
@@ -102,8 +99,8 @@
   }
 
   .incident-warning {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(239, 51, 51, 0.06);
+    border: 1px solid rgba(239, 51, 51, 0.3);
     border-radius: 8px;
     padding: 20px 28px;
     margin-bottom: 30px;
@@ -119,8 +116,10 @@
   }
 
   .incident-text code {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
+    background: var(--color-bg);
+    border: 1px solid rgba(239, 51, 51, 0.3);
+    overflow-wrap: anywhere;
+    color: var(--accent-text);
     padding: 2px 8px;
     border-radius: 4px;
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
@@ -132,7 +131,7 @@
   }
 
   .incident-link a {
-    color: #ef4444;
+    color: var(--accent-text);
     text-decoration: none;
     font-weight: 500;
   }
@@ -144,7 +143,7 @@
   .social-proof {
     background: var(--color-bg);
     border: 1px solid var(--color-border);
-    border-left: 4px solid #ff8c42;
+    border-left: 4px solid var(--accent);
     padding: 24px 32px;
     border-radius: 8px;
     margin-bottom: 40px;
@@ -185,28 +184,29 @@
   }
 
   .cta-button.primary {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .cta-button.primary:hover {
+    background: var(--accent-fill-hover);
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 10px 25px rgba(239, 51, 51, 0.3);
   }
 
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid #ff8c42;
-    color: #ff8c42;
+    border: 2px solid var(--accent);
+    color: var(--accent-text);
   }
 
   .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.1);
+    background: rgba(239, 51, 51, 0.1);
     transform: translateY(-2px);
   }
 
   :global(.dark) .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.15);
+    background: rgba(239, 51, 51, 0.15);
   }
 
   .trust-badges {
@@ -234,7 +234,7 @@
   }
 
   .badge-link:hover {
-    color: #ff8c42;
+    color: var(--accent-text);
   }
 
   .privacy-link {
@@ -245,7 +245,7 @@
   }
 
   .privacy-link:hover {
-    color: #ff8c42;
+    color: var(--accent-text);
   }
 
   @media (max-width: 768px) {
@@ -259,5 +259,15 @@
     .cta-buttons { flex-direction: column; align-items: center; }
     .cta-button { width: 100%; max-width: 280px; }
     .trust-badges { flex-direction: column; gap: 12px; }
+  }
+
+  .cta-button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-button { transition: none; }
+    .cta-button:hover { transform: none; }
   }
 </style>

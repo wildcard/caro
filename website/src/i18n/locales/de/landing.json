@@ -5,7 +5,16 @@
       "cta": "Kostenlos starten",
       "darkMode": {
         "toggle": "Dunkelmodus umschalten"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "Begleiter-Agent",
@@ -405,7 +414,7 @@
       "bottom": {
         "built": "Gebaut mit 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "❤️",
         "inspiration": "Inspiriert von Portals Caroline – Loyalität transformiert in digitale Begleitung",
         "heritagePre": "Stolz gebaut auf den Fundamenten von",
         "gnu": "GNU",

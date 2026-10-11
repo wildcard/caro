@@ -92,7 +92,7 @@ const featureGlyphs = ['■', '▸', '❯', '$'] as const;
 
   .feature-highlight {
     border-color: rgba(239, 51, 51, 0.3);
-    background: linear-gradient(135deg, rgba(239, 51, 51, 0.03) 0%, var(--color-bg) 100%);
+    background: var(--bg);
   }
 
   /* Terminal-glyph feature icon: monospaced ink at display weight, brand
@@ -132,7 +132,7 @@ const featureGlyphs = ['■', '▸', '❯', '$'] as const;
   }
 
   .cta-link {
-    color: var(--accent);
+    color: var(--accent-text);
     font-weight: 600;
     text-decoration: none;
     font-size: 16px;
@@ -144,7 +144,7 @@ const featureGlyphs = ['■', '▸', '❯', '$'] as const;
   }
 
   .privacy-asterisk {
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: none;
     font-size: 0.8em;
     vertical-align: super;

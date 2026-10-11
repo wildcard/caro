@@ -5,7 +5,16 @@
       "cta": "무료로 시작하기",
       "darkMode": {
         "toggle": "다크 모드 전환"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "컴패니언 에이전트",
@@ -405,7 +414,7 @@
       "bottom": {
         "built": "🦀 Rust로 제작 |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "❤️",
         "inspiration": "Portal의 Caroline에서 영감—충성이 디지털 동반자로 변모",
         "heritagePre": "다음의 기반 위에 자랑스럽게 제작",
         "gnu": "GNU",

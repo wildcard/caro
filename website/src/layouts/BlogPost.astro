@@ -34,10 +34,10 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
   <AnnouncementBanner />
   <Navigation />
 
-  <div class="blog-post">
+  <main id="main-content" class="blog-post">
     <div class="blog-post-header">
       <div class="container">
-        <a href="/#blog" class="back-link">← Back to all stories</a>
+        <a href="/blog" class="back-link">← Back to all stories</a>
 
         <div class="blog-post-meta">
           <time datetime={date}>
@@ -47,7 +47,7 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
               day: 'numeric'
             })}
           </time>
-          <span class="separator">•</span>
+          <span class="separator" aria-hidden="true">•</span>
           <span>{readTime}</span>
         </div>
 
@@ -63,11 +63,38 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
 
     <div class="blog-post-footer">
       <div class="container">
-        <a href="/#blog" class="back-link-footer">← Back to all stories</a>
+        <a href="/blog" class="back-link-footer">← Back to all stories</a>
       </div>
     </div>
-  </div>
+  </main>
 </Layout>
+
+<script>
+  // Code blocks that scroll sideways must be reachable by keyboard
+  // (WCAG 2.1.1 / axe scrollable-region-focusable). Only blocks that
+  // actually overflow get a tab stop; re-check when the viewport changes.
+  const blocks = Array.from(document.querySelectorAll<HTMLElement>('.blog-post-content pre'));
+  const syncScrollable = () => {
+    blocks.forEach((pre, i) => {
+      if (pre.scrollWidth > pre.clientWidth + 1) {
+        pre.tabIndex = 0;
+        pre.setAttribute('role', 'region');
+        pre.setAttribute('aria-label', `Code sample ${i + 1}`);
+      } else if (pre.getAttribute('role') === 'region') {
+        pre.removeAttribute('tabindex');
+        pre.removeAttribute('role');
+        pre.removeAttribute('aria-label');
+      }
+    });
+  };
+  syncScrollable();
+  document.fonts?.ready.then(syncScrollable);
+  let resizeFrame = 0;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(syncScrollable);
+  });
+</script>
 
 <style>
   .blog-post {
@@ -84,7 +111,7 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
 
   .blog-post-header {
     padding: 80px 20px 40px;
-    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    background: var(--bg);
     border-bottom: 1px solid var(--color-border);
     transition: background 0.3s ease, border-color 0.3s ease;
   }
@@ -92,7 +119,7 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
   .back-link {
     display: inline-flex;
     align-items: center;
-    color: #ff8c42;
+    color: var(--accent-text);
     text-decoration: none;
     font-weight: 500;
     margin-bottom: 30px;
@@ -167,7 +194,7 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
 
   .blog-post-content :global(blockquote) {
     background: var(--color-bg-tertiary);
-    border-left: 4px solid #ff8c42;
+    border-left: 4px solid var(--accent);
     padding: 20px 30px;
     margin: 30px 0;
     border-radius: 4px;
@@ -184,34 +211,52 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
     border-radius: 3px;
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 16px;
-    color: #ff8c42;
+    color: var(--accent-text);
+    overflow-wrap: anywhere;
     transition: background-color 0.3s ease;
   }
 
+  /* Code blocks sit on the console surface in both modes. */
   .blog-post-content :global(pre) {
-    background: #1e1e1e;
+    background: var(--term-bg);
     padding: 20px;
     border-radius: 8px;
     overflow-x: auto;
+    max-width: 100%;
     margin: 30px 0;
   }
 
   .blog-post-content :global(pre code) {
     background: transparent;
-    color: #d4d4d4;
+    color: var(--term-fg);
     padding: 0;
     font-size: 14px;
+    overflow-wrap: normal;
   }
 
+  .blog-post-content :global(pre:focus-visible) {
+    outline: 2px solid var(--fg-strong);
+    outline-offset: 2px;
+  }
+
+  /* In-prose links are underlined so they are not identified by color
+     alone (WCAG 1.4.1, axe link-in-text-block). */
   .blog-post-content :global(a) {
-    color: #ff8c42;
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.2s;
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
   }
 
   .blog-post-content :global(a:hover) {
-    border-bottom-color: #ff8c42;
+    text-decoration-thickness: 2px;
+  }
+
+  .blog-post-content :global(a:focus-visible),
+  .back-link:focus-visible,
+  .back-link-footer:focus-visible {
+    outline: 2px solid var(--fg-strong);
+    outline-offset: 2px;
   }
 
   .blog-post-content :global(img) {
@@ -222,8 +267,8 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
   }
 
   .blog-post-content :global(.highlight) {
-    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
-    border-left: 4px solid #ff8c42;
+    background: var(--bg);
+    border-left: 4px solid var(--accent);
     padding: 25px 30px;
     margin: 30px 0;
     border-radius: 8px;
@@ -251,7 +296,7 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
   .back-link-footer {
     display: inline-flex;
     align-items: center;
-    color: #ff8c42;
+    color: var(--accent-text);
     text-decoration: none;
     font-weight: 500;
     transition: transform 0.2s;
@@ -259,6 +304,13 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
 
   .back-link-footer:hover {
     transform: translateX(-4px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .back-link:hover,
+    .back-link-footer:hover {
+      transform: none;
+    }
   }
 
   @media (max-width: 768px) {

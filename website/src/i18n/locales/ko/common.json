@@ -46,7 +46,11 @@
         "glossary": "용어집",
         "terminalTerms": "터미널 & Unix 용어",
         "github": "GitHub",
-        "sourceCode": "소스 코드"
+        "sourceCode": "소스 코드",
+        "useCases": "Use Cases",
+        "byRoleSummary": "By role: SRE, DevOps, security",
+        "docs": "Docs",
+        "installAndReference": "Install, configure, reference"
       },
       "mobile": {
         "allComparisons": "모든 비교",

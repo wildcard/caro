@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+# Routine status write-back: one JSON line per routine run.
+#
+# Modeled on google/ax's task phase + conditions. A routine's platform status
+# ("SUCCEEDED") only means its session ended, so each routine records what it
+# actually did. Records live on their own branch, so writing one needs no PR
+# and never touches main. Contract: .claude/automation/CONTRACT.md
+#
+# Usage:
+#   bin/routine-status record <routine> <phase> <reason> [--started <iso8601>]
+#                             [--pr <n>] [--issues <n,n,...>] [--max-age-hours <n>]
+#   bin/routine-status show [--max-age-hours <n>] [--check]
+#
+# Phases: Succeeded | Failed | TimedOut | Blocked
+#   Blocked = preflight failed (no repo, no GitHub access, ...); nothing was done.
+#
+# `show` prints the latest record per routine. Rows that are not Succeeded, or
+# overdue, are marked with "!". A routine is overdue when its latest record is
+# older than the --max-age-hours it recorded (its own cadence, e.g. 26 for a
+# daily routine, 170 for a weekly one), else the default from `show
+# --max-age-hours` (26). With --check it exits 1 if any row is marked, and it
+# exits 2 if the status branch can't be read.
+#
+# Environment:
+#   CARO_STATUS_REMOTE  git remote name or URL (default: origin)
+#   CARO_STATUS_BRANCH  status branch (default: automation/routine-status)
+#   CARO_STATUS_ATTEMPTS  push attempts before giving up (default: 10)
+
+set -euo pipefail
+
+REMOTE="${CARO_STATUS_REMOTE:-origin}"
+BRANCH="${CARO_STATUS_BRANCH:-automation/routine-status}"
+FILE="runs.jsonl"
+
+WORK=""
+trap '[[ -n "$WORK" ]] && rm -rf "$WORK"' EXIT
+
+die() { echo "routine-status: $*" >&2; exit 2; }
+
+case "$BRANCH" in
+  main | master | "") die "refusing to write status to branch '$BRANCH'" ;;
+esac
+
+remote_url() {
+  git remote get-url "$REMOTE" 2>/dev/null || printf '%s\n' "$REMOTE"
+}
+
+now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
+
+record() {
+  [[ $# -ge 3 ]] || die "usage: record <routine> <phase> <reason> [--started ts] [--pr n] [--issues n,n] [--max-age-hours n]"
+  local routine="$1" phase="$2" reason="$3" started="" pr="" issues="" max_age=""
+  shift 3
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --started) started="${2:-}"; shift 2 ;;
+      --pr) pr="${2:-}"; shift 2 ;;
+      --issues) issues="${2:-}"; shift 2 ;;
+      --max-age-hours) max_age="${2:-}"; shift 2 ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+  case "$phase" in
+    Succeeded | Failed | TimedOut | Blocked) ;;
+    *) die "phase must be Succeeded, Failed, TimedOut or Blocked (got '$phase')" ;;
+  esac
+  [[ -n "$routine" && -n "$reason" ]] || die "routine and reason must be non-empty"
+  [[ -z "$pr" || "$pr" =~ ^[0-9]+$ ]] || die "--pr must be a number"
+  [[ -z "$issues" || "$issues" =~ ^[0-9]+(,[0-9]+)*$ ]] || die "--issues must be n,n,..."
+  [[ -z "$max_age" || "$max_age" =~ ^[1-9][0-9]*$ ]] || die "--max-age-hours must be a positive number"
+
+  local line
+  line="$(python3 - "$routine" "$phase" "$reason" "${started:-$(now)}" "$(now)" "$pr" "$issues" "$max_age" <<'PY'
+import json, sys
+routine, phase, reason, started, finished, pr, issues, max_age = sys.argv[1:]
+rec = {
+    "routine": routine, "phase": phase, "reason": reason,
+    "started": started, "finished": finished,
+    "pr": int(pr) if pr else None,
+    "issues": [int(i) for i in issues.split(",")] if issues else [],
+}
+if max_age:
+    rec["max_age_hours"] = int(max_age)
+print(json.dumps(rec, separators=(",", ":")))
+PY
+)"
+
+  local url tmp attempt err="" attempts="${CARO_STATUS_ATTEMPTS:-10}"
+  url="$(remote_url)"
+  WORK="$(mktemp -d)"
+  tmp="$WORK"
+  # Concurrent writers: a rejected push re-clones and re-appends. The backoff
+  # is randomized so simultaneous writers don't keep colliding in lockstep.
+  for ((attempt = 1; attempt <= attempts; attempt++)); do
+    rm -rf "$tmp/wt"
+    if ! git clone -q --depth 1 --single-branch --branch "$BRANCH" "$url" "$tmp/wt" 2>/dev/null; then
+      git init -q "$tmp/wt"
+      git -C "$tmp/wt" checkout -q --orphan "$BRANCH"
+      git -C "$tmp/wt" remote add origin "$url"
+    fi
+    printf '%s\n' "$line" >>"$tmp/wt/$FILE"
+    git -C "$tmp/wt" add "$FILE"
+    git -C "$tmp/wt" config user.email >/dev/null || git -C "$tmp/wt" config user.email "routine@caro.invalid"
+    git -C "$tmp/wt" config user.name >/dev/null || git -C "$tmp/wt" config user.name "caro routine"
+    git -C "$tmp/wt" commit -q -m "status: $routine $phase"
+    if err="$(git -C "$tmp/wt" push -q origin "HEAD:refs/heads/$BRANCH" 2>&1)"; then
+      printf '%s\n' "$line"
+      return 0
+    fi
+    sleep "$((RANDOM % (attempt + 1))).$((RANDOM % 10))"
+  done
+  die "could not push status record after $attempts attempts. Last error: ${err:-none}"
+}
+
+show() {
+  local max_age=26 check=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --max-age-hours) max_age="${2:-}"; shift 2 ;;
+      --check) check=1; shift ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+  [[ "$max_age" =~ ^[0-9]+$ ]] || die "--max-age-hours must be a number"
+
+  local tmp url rc=0 err
+  url="$(remote_url)"
+  # Only a confirmed-missing branch means "no records". An unreachable remote
+  # or expired auth is an error, not an empty history.
+  err="$(git ls-remote --exit-code --heads "$url" "$BRANCH" 2>&1 >/dev/null)" || rc=$?
+  if [[ $rc -eq 2 ]]; then
+    echo "no status records yet (branch $BRANCH not found)"
+    return $((check))
+  elif [[ $rc -ne 0 ]]; then
+    die "cannot read status branch from $url: ${err:-git ls-remote exit $rc}"
+  fi
+  WORK="$(mktemp -d)"
+  tmp="$WORK"
+  err="$(git clone -q --depth 1 --single-branch --branch "$BRANCH" "$url" "$tmp/wt" 2>&1)" ||
+    die "cannot read status branch from $url: $err"
+  python3 - "$tmp/wt/$FILE" "$max_age" "$check" <<'PY'
+import json, sys
+from datetime import datetime, timezone
+
+path, max_age, check = sys.argv[1], int(sys.argv[2]), sys.argv[3] == "1"
+latest = {}
+with open(path) as f:
+    for raw in f:
+        raw = raw.strip()
+        if not raw:
+            continue
+        rec = json.loads(raw)
+        latest[rec["routine"]] = rec  # append-only, so the last line wins
+
+now = datetime.now(timezone.utc)
+flagged = 0
+print(f"{'':1} {'routine':32} {'phase':10} {'age':>6}  reason")
+for name in sorted(latest):
+    rec = latest[name]
+    finished = datetime.fromisoformat(rec["finished"].replace("Z", "+00:00"))
+    hours = (now - finished).total_seconds() / 3600
+    bad = rec["phase"] != "Succeeded" or hours > rec.get("max_age_hours", max_age)
+    flagged += bad
+    extra = f" (PR #{rec['pr']})" if rec.get("pr") else ""
+    print(f"{'!' if bad else ' ':1} {name:32} {rec['phase']:10} {hours:5.1f}h  {rec['reason']}{extra}")
+sys.exit(1 if check and flagged else 0)
+PY
+}
+
+cmd="${1:-}"
+shift || true
+case "$cmd" in
+  record) record "$@" ;;
+  show) show "$@" ;;
+  *) die "usage: $0 record|show ... (see header)" ;;
+esac
