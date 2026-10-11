@@ -5,8 +5,9 @@ name: Kyaro Icons
 # scripts/kyaro_icons.py. `--check` rebuilds each icon from its frame and
 # fails on a hand-edited icon, a recolor, a changed frame or a stale file.
 # The vitest guard checks how the site uses the icons (real names, whole-number
-# scales), that the removed hand-drawn glyph pack does not come back, and
-# that every navigation shows the official vector mark.
+# scales), that the removed hand-drawn glyph pack does not come back, that
+# every navigation shows the official vector mark, and that the emoji count
+# under website/src never grows.
 
 on:
   pull_request:
@@ -57,4 +58,4 @@ jobs:
 
       - name: Usage guard
         working-directory: website
-        run: npx vitest run src/__tests__/kyaro-icons.test.ts src/__tests__/brand-mark.test.ts
+        run: npx vitest run src/__tests__/kyaro-icons.test.ts src/__tests__/brand-mark.test.ts src/__tests__/emoji-icons.test.ts

@@ -16,8 +16,8 @@
 - The favicon of the six sites that `scripts/favicons.py` covers is
   Kyaro's face, cut the same way. Every navigation on the caro.sh website
   (`website/`) shows the official Caro mark as a vector.
-- A slot too small for a sprite gets a terminal glyph (`▸ ■ $ ❯ >_`), never
-  an emoji or a third-party icon font.
+- A slot too small for a sprite gets a terminal glyph (`▸ ■ $ ❯ >_ ✓ ✗ ♥`)
+  through `<TermGlyph>`, never an emoji or a third-party icon font.
 
 ## Why the v2.1 glyph pack was removed
 
@@ -55,7 +55,8 @@ website/src/data/kyaro-icons.json                       name → src, size, fram
 
 CI  kyaro-icons.yml
     ├─ python3 scripts/kyaro_icons.py --check   rebuild in memory, compare byte for byte
-    └─ vitest src/__tests__/kyaro-icons.test.ts real names, whole scales, no glyph pack
+    ├─ vitest src/__tests__/kyaro-icons.test.ts real names, whole scales, no glyph pack
+    └─ vitest src/__tests__/emoji-icons.test.ts  glyph family only, emoji count never grows
 ```
 
 The script needs only the Python standard library. It reads the PNG frames
@@ -81,7 +82,8 @@ with its own small decoder, so CI needs no install step for the check.
    56 px tile and a 24 px face a 28 px tile. The color does not change in
    dark mode. The padding is `content-box`, so it never shrinks the art.
 7. **Size floor.** A figure needs a 56 px slot. A face needs 28 px. Below
-   that, use a terminal glyph.
+   that, use a terminal glyph: `<TermGlyph g="▸" />` (`website/src/ui/TermGlyph/`).
+   It accepts only `▸ ■ $ ❯ >_ ✓ ✗ ♥` and fails the build on anything else.
 8. **No emoji and no icon fonts as icons.** Do not import Lucide or similar.
 
 ## The icon set (v1)
