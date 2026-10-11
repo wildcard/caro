@@ -1,5 +1,6 @@
 ---
 // LPPersonas.astro - Three personas section with interactive CTAs
+import KyaroIcon from '../../ui/KyaroIcon/KyaroIcon.astro';
 ---
 
 <section class="personas" id="personas">
@@ -13,7 +14,7 @@
       <!-- The Accelerator -->
       <div class="persona-card accelerator" data-persona="accelerator">
         <div class="persona-icon">
-          <span class="term-glyph" aria-hidden="true">❯</span>
+          <KyaroIcon name="running" />
         </div>
         <h3 class="persona-title">The Accelerator</h3>
         <p class="persona-role">Individual Developer</p>
@@ -54,7 +55,7 @@
       <!-- The Guardian -->
       <div class="persona-card guardian" data-persona="guardian">
         <div class="persona-icon">
-          <span class="term-glyph" aria-hidden="true">■</span>
+          <KyaroIcon name="danger" />
         </div>
         <h3 class="persona-title">The Guardian</h3>
         <p class="persona-role">Security & Platform Lead</p>
@@ -99,7 +100,7 @@
       <!-- The Operator -->
       <div class="persona-card operator" data-persona="operator">
         <div class="persona-icon">
-          <span class="term-glyph" aria-hidden="true">&gt;_</span>
+          <KyaroIcon name="asking" />
         </div>
         <h3 class="persona-title">The Operator</h3>
         <p class="persona-role">SRE / DevOps Engineer</p>
@@ -289,15 +290,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
     margin-bottom: 20px;
-    color: var(--accent-text);
-  }
-
-  .term-glyph {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    line-height: 1;
   }
 
   .persona-title {

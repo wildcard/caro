@@ -1,0 +1,62 @@
+---
+/**
+ * KyaroIcon - one icon from the Kyaro icon set.
+ *
+ * The icons are cut 1:1 from Alrezky Caesaria's Kyaro sprite frames by
+ * scripts/kyaro_icons.py; the rules are in docs/brand/ICONOGRAPHY.md.
+ * Pixel art stays sharp only at whole-number scales, so the rendered size is
+ * the icon's native size (48 px figures, 24 px faces) times `scale`. There is
+ * no free `size` prop on purpose. Kyaro is never recolored, so there is no
+ * currentColor either.
+ *
+ * Decorative by default (alt=""): the card or link around it carries the
+ * name. Pass `label` when the icon is the only thing that says what it is.
+ *
+ * @example
+ * <KyaroIcon name="danger" />
+ * <KyaroIcon name="face-ready" scale={2} label="Kyaro" />
+ */
+import manifest from '../../data/kyaro-icons.json';
+
+export type KyaroIconName = keyof typeof manifest.icons;
+
+interface Props {
+  name: KyaroIconName;
+  scale?: 1 | 2 | 3;
+  label?: string;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+}
+
+const { name, scale = 1, label, class: className, loading = 'lazy' } = Astro.props;
+
+const icon = manifest.icons[name];
+if (!icon) {
+  throw new Error(`[KyaroIcon] unknown icon "${name}"; see website/src/data/kyaro-icons.json`);
+}
+if (!Number.isInteger(scale) || scale < 1) {
+  throw new Error(`[KyaroIcon] scale must be a whole number, got ${scale}`);
+}
+const px = icon.size * scale;
+---
+
+<img
+  src={icon.src}
+  width={px}
+  height={px}
+  alt={label ?? ''}
+  loading={loading}
+  decoding="async"
+  draggable="false"
+  class:list={['kyaro-icon', className]}
+/>
+
+<style>
+  .kyaro-icon {
+    display: inline-block;
+    flex-shrink: 0;
+    max-width: none;
+    image-rendering: pixelated;
+    vertical-align: bottom;
+  }
+</style>

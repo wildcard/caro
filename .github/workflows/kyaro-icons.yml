@@ -1,0 +1,55 @@
+name: Kyaro Icons
+
+# Guards the Caro icon set (docs/brand/ICONOGRAPHY.md). Every icon is a 1:1
+# cut of a Kyaro sprite frame by Alrezky Caesaria, made by
+# scripts/kyaro_icons.py. `--check` rebuilds each icon from its frame and
+# fails on a hand-edited icon, a recolor, a changed frame or a stale file.
+# The vitest guard checks how the site uses the icons (real names, whole-number
+# scales) and that the removed hand-drawn glyph pack does not come back.
+
+on:
+  pull_request:
+    paths:
+      - 'assets/kyaro/**'
+      - 'website/**'
+      - 'scripts/kyaro_icons.py'
+      - '.github/workflows/kyaro-icons.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'assets/kyaro/**'
+      - 'website/**'
+      - 'scripts/kyaro_icons.py'
+      - '.github/workflows/kyaro-icons.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  icons:
+    name: Icons match their Kyaro frames
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Standard library only: no install step.
+      - name: Check icons
+        run: python3 scripts/kyaro_icons.py --check
+
+  usage:
+    name: Site uses the icon set correctly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install (cold, lockfile-exact)
+        run: npm ci --no-audit --no-fund
+
+      - name: Usage guard
+        working-directory: website
+        run: npx vitest run src/__tests__/kyaro-icons.test.ts

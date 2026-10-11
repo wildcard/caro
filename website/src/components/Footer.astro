@@ -5,6 +5,7 @@
  */
 import { SITE_CONFIG } from '../config/site';
 import { t, type Locale } from '../i18n/config';
+import KyaroIcon from '../ui/KyaroIcon/KyaroIcon.astro';
 
 interface Props {
   lang?: Locale;
@@ -25,7 +26,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
       <!-- Brand Column -->
       <div class="footer-brand">
         <a href="/" class="brand-link">
-          <span class="brand-icon" aria-hidden="true">&gt;_</span>
+          <KyaroIcon name="face-ready" />
           <span class="brand-name">Caro</span>
         </a>
         <p class="brand-tagline">{t(lang, 'landing.footer.brand.tagline')}</p>
@@ -107,6 +108,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     <!-- Kyaro Mascot Section -->
     <div class="kyaro-banner">
       <div class="kyaro-content">
+        <KyaroIcon name="ready" />
         <div class="kyaro-info">
           <p class="kyaro-title">{t(lang, 'landing.footer.kyaro.title')}</p>
           <p class="kyaro-text">
@@ -173,13 +175,6 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     margin-bottom: 12px;
   }
 
-  /* Same terminal-glyph lockup as the navigation brand (>_ Caro). */
-  .brand-icon {
-    font-family: var(--font-mono);
-    font-size: 21px;
-    font-weight: 700;
-    color: var(--accent);
-  }
 
   .brand-name {
     font-size: 26px;
