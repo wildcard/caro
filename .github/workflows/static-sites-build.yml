@@ -1,6 +1,7 @@
 name: Static Sites Build
 
-# Cold-build guard for the two static sites hosted on Cloudflare Pages.
+# Cold-build guard for the static sites: docs-site and Storybook (Cloudflare
+# Pages) and the main website (Vercel).
 #
 # Why this exists: before this workflow, no CI job built docs-site or
 # Storybook. Both were only ever built by the hosting provider from a warm
@@ -65,6 +66,55 @@ jobs:
 
       - name: Assert output
         run: test -f docs-site/dist/index.html
+
+  # The main site deploys through Vercel's Git integration, which builds it
+  # but runs no tests. This job runs the website unit tests and a cold build.
+  # The build's caro:agent-seo step (website/src/integrations/agent-seo.ts)
+  # fails it when any page lacks its share card, Markdown twin, canonical URL
+  # or description, so a green run means every page shipped with them.
+  website:
+    name: Build website (caro.sh)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install (cold, lockfile-exact)
+        run: npm ci --no-audit --no-fund
+
+      - name: Unit tests
+        run: npm test --workspace=caro-website
+
+      # Vitest and `astro build` strip types without checking them. This
+      # checks the build-time SEO code; the rest of the site still has older
+      # type errors (see the comment in website/tsconfig.seo.json).
+      - name: Type-check build-time SEO code
+        working-directory: website
+        run: npx tsc -p tsconfig.seo.json
+
+      # `npm run build` adds `--remote`, which needs the production Turso
+      # database. A local SQLite file builds the same pages.
+      - name: Build
+        working-directory: website
+        env:
+          ASTRO_DATABASE_FILE: ${{ runner.temp }}/caro.db
+          ASTRO_TELEMETRY_DISABLED: '1'
+        run: |
+          node scripts/extract-version.mjs
+          node scripts/generate-search-index.mjs
+          npx astro build
+
+      - name: Assert agent and share files
+        working-directory: website
+        run: |
+          for f in llms.txt llms-full.txt rss.xml index.md docs/cli.md og/index.png og/docs/cli.png; do
+            test -s ".vercel/output/static/$f" || { echo "missing $f"; exit 1; }
+          done
+          grep -q 'text/markdown' .vercel/output/config.json
 
   storybook:
     name: Build Storybook (Cloudflare Pages)
