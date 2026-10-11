@@ -3415,15 +3415,26 @@ async fn main() {
     // Load config to get telemetry settings
     // Keep ConfigManager reference to save changes later
     let config_manager = ConfigManager::new().ok();
-    let mut user_config = config_manager
-        .as_ref()
-        .and_then(|cm| cm.load().ok())
-        .unwrap_or_default();
+    // An unreadable config.toml must never be saved over (#1566): the
+    // defaults below would replace every setting the user wrote. The
+    // command path reports the load error itself, so only skip the
+    // first-run prompt and save here, and keep telemetry off.
+    let mut config_readable = true;
+    let mut user_config = match config_manager.as_ref().map(|cm| cm.load()) {
+        Some(Ok(config)) => config,
+        Some(Err(e)) => {
+            tracing::warn!("Config unreadable, not saving telemetry preferences: {}", e);
+            config_readable = false;
+            Default::default()
+        }
+        None => Default::default(),
+    };
 
     // Session-scoped telemetry override: --no-telemetry disables telemetry
     // for this invocation only. We do NOT persist this to user_config — the
     // next invocation will use whatever the stored preference is.
-    let telemetry_enabled_for_session = user_config.telemetry.enabled && !cli.no_telemetry;
+    let telemetry_enabled_for_session =
+        config_readable && user_config.telemetry.enabled && !cli.no_telemetry;
 
     // Check for first-run consent
     // Skip interactive consent for non-human output formats (json, yaml)
@@ -3435,7 +3446,11 @@ async fn main() {
         .as_deref()
         .is_none_or(|format| format != "json" && format != "yaml");
 
-    if user_config.telemetry.first_run && is_interactive_output && !cli.no_telemetry {
+    if config_readable
+        && user_config.telemetry.first_run
+        && is_interactive_output
+        && !cli.no_telemetry
+    {
         // Prompt user for consent
         let consent = caro::telemetry::consent::prompt_consent();
 
@@ -3456,7 +3471,7 @@ async fn main() {
                 tracing::warn!("Failed to save telemetry preferences: {}", e);
             }
         }
-    } else if user_config.telemetry.first_run && !is_interactive_output {
+    } else if config_readable && user_config.telemetry.first_run && !is_interactive_output {
         // Non-interactive mode (JSON/YAML output): use default setting without prompting
         // Mark first_run as false to prevent future prompts
         user_config.telemetry.first_run = false;
