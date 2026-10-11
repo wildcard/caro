@@ -46,3 +46,15 @@ From the session that built it:
 1. Run `merge.py <workdir> <prs.txt>`. The PR heads come from `git fetch origin refs/pull/<n>/head`.
 2. Run `refresh_status.py <seed> <issue-states.txt>`.
 3. Run `annotate_v2.py <first-seed> <seed>` to add the notes above.
+
+## Added after seeding: #1604 (2026-10-11)
+
+The 14:07 run on 2026-10-11 still used the routine's old prompt. So it read main's May copy, filed #1603 about that stale copy, and opened PR #1604. Its changes were folded in by hand, with the rules above:
+
+- **Session log:** its entry goes on top.
+- **Its rows win:** #1408 (now P1), the 2026-10-11 smoke row, and surfaces 1, 2, 3, 10 and 25. #1272 and #1603 are new rows.
+- **FLAKE-002:** takes its labels, its new "Root cause" and "Stall watchdog caveat" lines, and the 2026-10-11 observation. The "Duplicate of" line stays.
+- **FLAKE-001 stays active.** #1604 marked it resolved, because `--dry-run` passed through the static matcher. It did not retest prompts that need the LLM, so a dated line records the observation instead.
+- **Not taken:** its resolved-list line for #1044 ("Fixed 2026-05-09"). #1044 closed as a duplicate of #1098, which #1478 fixed on 2026-10-11.
+
+With #1604, 34 of the 35 runs tested Slot C surface #10. This branch is the fix that #1603 asks for: #1603 can close after a run reads this state with `state get`.
