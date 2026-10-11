@@ -140,7 +140,7 @@ The full table covers 20 harnesses: [`auto-modes.md`](./2026-10-11-competitive-r
 
 **The gap:**
 
-- Users who bring their own model have no auto mode: no vendor judge serves them.
+- Users who bring their own model get no Claude, Codex or Cursor judge. (goose Smart Approve uses the user's own provider, and Cline lets the model mark its own commands.)
 - A policy written for one harness does not carry over to another.
 - Vendor judges are not deterministic, and the vendor can change them server-side.
 - They send parts of the transcript to the vendor.
