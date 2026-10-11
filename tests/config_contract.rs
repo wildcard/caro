@@ -579,7 +579,9 @@ mod model_profiles {
             .env("CARO_TELEMETRY_ENABLED", "false")
             .env_remove("CARO_MODEL_PROFILE")
             .env_remove("CARO_BACKEND")
-            .env_remove("CARO_MODEL");
+            .env_remove("CARO_MODEL")
+            // The profile tests rely on this key variable being unset.
+            .env_remove("CARO_TEST_PROFILE_KEY_UNSET");
         for (k, v) in env {
             cmd.env(k, v);
         }
