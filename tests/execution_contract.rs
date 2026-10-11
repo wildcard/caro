@@ -531,13 +531,18 @@ mod signal_forwarding {
     /// Write `tasks/demo.caro`, generate its lock with the mock backend, then
     /// replace the generated step with `command`.
     fn task_with_step(work: &Path, command: &str) {
+        task_with_steps(work, &[command]);
+    }
+
+    /// Like `task_with_step`, with one DO line per command.
+    fn task_with_steps(work: &Path, commands: &[&str]) {
         let bin = env!("CARGO_BIN_EXE_caro");
         fs::create_dir_all(work.join("tasks")).unwrap();
-        fs::write(
-            work.join("tasks/demo.caro"),
-            "TASK Demo\nWHY test\n\nDO say hello\n",
-        )
-        .unwrap();
+        let mut task = String::from("TASK Demo\nWHY test\n\n");
+        for i in 0..commands.len() {
+            task.push_str(&format!("DO say hello {i}\n"));
+        }
+        fs::write(work.join("tasks/demo.caro"), task).unwrap();
         let status = caro(bin, work)
             .args(["generate", "demo", "--backend", "mock"])
             .stdout(Stdio::null())
@@ -547,14 +552,13 @@ mod signal_forwarding {
         assert!(status.success(), "caro generate failed");
 
         let lock_path = work.join("tasks/demo.caro.lock");
-        let lock = fs::read_to_string(&lock_path).unwrap();
-        let generated = "command = 'echo \"say hello\"'";
-        assert!(lock.contains(generated), "unexpected mock lock:\n{lock}");
-        fs::write(
-            &lock_path,
-            lock.replace(generated, &format!("command = '{command}'")),
-        )
-        .unwrap();
+        let mut lock = fs::read_to_string(&lock_path).unwrap();
+        for (i, command) in commands.iter().enumerate() {
+            let generated = format!("command = 'echo \"say hello {i}\"'");
+            assert!(lock.contains(&generated), "unexpected mock lock:\n{lock}");
+            lock = lock.replace(&generated, &format!("command = '{command}'"));
+        }
+        fs::write(&lock_path, lock).unwrap();
     }
 
     fn caro(bin: &str, work: &Path) -> Command {
@@ -626,6 +630,30 @@ mod signal_forwarding {
     #[test]
     fn sigterm_reaches_the_step() {
         signal_stops_the_step(RUN, libc::SIGTERM);
+    }
+
+    #[test]
+    fn timeout_is_per_step_with_a_clean_runbook() {
+        // A clean runbook runs as one `bash` call. Two 0.7 s steps must not
+        // share one 1 s deadline.
+        let dir = tempfile::tempdir().unwrap();
+        let work = dir.path();
+        let bin = env!("CARGO_BIN_EXE_caro");
+        task_with_steps(work, &["sleep 0.7", "sleep 0.7"]);
+        let export = caro(bin, work).args(["export", "demo"]).output().unwrap();
+        assert!(export.status.success(), "caro export failed: {:?}", export);
+
+        let output = caro(bin, work)
+            .args(["run", "demo", "--yes", "--timeout", "1"])
+            .output()
+            .unwrap();
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            output.status.success(),
+            "stdout: {stdout}\nstderr: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(stdout.contains("--timeout is per step"), "stdout: {stdout}");
     }
 
     #[test]

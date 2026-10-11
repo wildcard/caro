@@ -634,7 +634,7 @@ enum Commands {
 
         /// Stop each step after this many seconds. A timed step runs in its
         /// own process group with no stdin. Caro forwards Ctrl-C (SIGINT),
-        /// SIGTERM and SIGHUP to that group.
+        /// SIGTERM and SIGHUP to that group. Unix only.
         #[arg(long, value_name = "SECONDS", value_parser = clap::value_parser!(u64).range(1..))]
         timeout: Option<u64>,
     },
@@ -715,7 +715,7 @@ enum Commands {
 
         /// Stop each step after this many seconds. A timed step runs in its
         /// own process group with no stdin. Caro forwards Ctrl-C (SIGINT),
-        /// SIGTERM and SIGHUP to that group.
+        /// SIGTERM and SIGHUP to that group. Unix only.
         #[arg(long, value_name = "SECONDS", value_parser = clap::value_parser!(u64).range(1..))]
         timeout: Option<u64>,
     },
@@ -1494,6 +1494,8 @@ enum RunbookStatus {
     Clean,
     Drift,
     NoStamp,
+    /// The runbook is clean, but `--timeout` needs per-step execution.
+    TimedSteps,
 }
 
 fn runbook_status_for_active(
@@ -1529,7 +1531,7 @@ fn run_caroml_run(
 ) -> Result<(), String> {
     use caro::caroml::{discovery, lock::Lock, platform as caro_platform, runner};
     use std::io::{self, Write};
-    let timeout_ms = timeout_secs.map(|s| s.saturating_mul(1000));
+    let timeout_ms = step_timeout_ms(timeout_secs)?;
 
     let task_path = discovery::resolve_task_path(name)
         .ok_or_else(|| format!("could not find task `{}`", name))?;
@@ -1558,7 +1560,12 @@ fn run_caroml_run(
     // user would `bash`). Falls back to step-by-step otherwise.
     use caro::caroml::runbook;
     let runbook_path = runbook::runbook_path(&task_path, &target_platform);
-    let runbook_status = runbook_status_for_active(&lock, &target_platform, &runbook_path);
+    let mut runbook_status = runbook_status_for_active(&lock, &target_platform, &runbook_path);
+    // A runbook is one `bash` call, so a timeout there would cover the whole
+    // task. `--timeout` is per step, so run step by step from the lock.
+    if timeout_ms.is_some() && runbook_status == RunbookStatus::Clean {
+        runbook_status = RunbookStatus::TimedSteps;
+    }
 
     println!("{}", runner::render_plan(&plan));
     match &runbook_status {
@@ -1570,6 +1577,9 @@ fn run_caroml_run(
                 "(runbook clean — will run `bash {}`)",
                 runbook_path.display()
             )
+        }
+        RunbookStatus::TimedSteps => {
+            println!("(--timeout is per step: will execute step-by-step from the lock)")
         }
         RunbookStatus::Drift => {
             eprintln!(
@@ -1609,7 +1619,7 @@ fn run_caroml_run(
     let started = Instant::now();
     // Prefer runbook execution when it's hash-clean; fall back to per-step.
     let result = match runbook_status {
-        RunbookStatus::Clean => match runner::execute_runbook(&runbook_path, timeout_ms) {
+        RunbookStatus::Clean => match runner::execute_runbook(&runbook_path) {
             Ok(0) => Ok(vec![]),
             Ok(other) => Err(runner::RunError::StepFailed {
                 line: 0,
@@ -1861,7 +1871,7 @@ fn run_caroml_skill(command: &SkillSubcommand) -> Result<(), String> {
 /// `caro do <name>` — Carofile JOB / external-alias / native-alias / fallback.
 fn run_caroml_do(name: &str, dry_run: bool, timeout_secs: Option<u64>) -> Result<(), String> {
     use caro::caroml::{carofile, discovery, jobs, platform as caro_platform, runner::RunError};
-    let timeout_ms = timeout_secs.map(|s| s.saturating_mul(1000));
+    let timeout_ms = step_timeout_ms(timeout_secs)?;
 
     // Try to load the Carofile (optional).
     let carofile_path = discovery::find_carofile();
@@ -1911,6 +1921,18 @@ fn run_caroml_do(name: &str, dry_run: bool, timeout_secs: Option<u64>) -> Result
 
     println!("Completed {} step(s) in caro do {}.", results.len(), name);
     Ok(())
+}
+
+/// Convert `--timeout <SECONDS>` to milliseconds. Refused off Unix: there a
+/// timeout kills only the shell, and the step's own processes keep running.
+fn step_timeout_ms(timeout_secs: Option<u64>) -> Result<Option<u64>, String> {
+    match timeout_secs {
+        Some(_) if !cfg!(unix) => Err(
+            "--timeout is supported only on Unix: on this platform caro cannot stop a step's child processes"
+                .to_string(),
+        ),
+        secs => Ok(secs.map(|s| s.saturating_mul(1000))),
+    }
 }
 
 /// Exit the way a shell reports a command stopped by `sig`: status 128 + sig.

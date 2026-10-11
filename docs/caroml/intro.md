@@ -95,9 +95,12 @@ caro jobs            # list declared JOBs
 
 ### Step timeouts and Ctrl-C
 
-`caro run` and `caro do` take `--timeout <SECONDS>`. Each step stops at
-that deadline: caro sends SIGTERM to the step's process group, waits two
-seconds, then sends SIGKILL.
+`caro run` and `caro do` take `--timeout <SECONDS>` (Unix only). Each step
+stops at that deadline: caro sends SIGTERM to the step's process group,
+waits two seconds, then sends SIGKILL. A timed `caro run` executes step by
+step from the lock, even when the runbook is clean, so each step gets its
+own deadline. On other platforms caro refuses `--timeout`, because it
+cannot stop a step's child processes there.
 
 A timed step runs in its own process group with no stdin. A terminal
 Ctrl-C then reaches only caro, so caro forwards SIGINT, SIGTERM and SIGHUP

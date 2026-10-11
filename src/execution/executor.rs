@@ -187,19 +187,22 @@ impl CommandExecutor {
         // on SIGTTIN and hang until the deadline), so give it no stdin.
         cmd.stdin(Stdio::null());
 
-        let mut child = cmd
-            .spawn()
-            .map_err(|e| ExecutorError::SpawnError(format!("Failed to execute command: {}", e)))?;
+        // The child is not in the terminal's foreground group, so a Ctrl-C
+        // reaches only caro. Catch it and pass it on to the child's group.
+        // Install the handler before the spawn, so a signal that comes
+        // during the spawn is not lost.
+        #[cfg(unix)]
+        let _signals = signals::Guard::install();
+
+        let mut child = cmd.spawn().map_err(|e| match signals::pending() {
+            Some(sig) => ExecutorError::Interrupted(sig),
+            None => ExecutorError::SpawnError(format!("Failed to execute command: {}", e)),
+        })?;
 
         // Drain pipes on threads so a chatty command can't block on a full pipe.
         let (tx, rx) = mpsc::channel();
         Self::drain(child.stdout.take(), true, tx.clone());
         Self::drain(child.stderr.take(), false, tx);
-
-        // The child is not in the terminal's foreground group, so a Ctrl-C
-        // reaches only caro. Catch it and pass it on to the child's group.
-        #[cfg(unix)]
-        let _signals = signals::Guard::install();
 
         let deadline = Instant::now() + Duration::from_millis(timeout_ms);
         let status = loop {

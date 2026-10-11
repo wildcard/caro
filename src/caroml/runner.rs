@@ -99,8 +99,8 @@ pub fn execute_plan(
 
 /// Execute a runbook file (`.<platform>.sh`) directly via `bash`.
 /// Returns the exit code on success.
-pub fn execute_runbook(path: &Path, timeout_ms: Option<u64>) -> Result<i32, RunError> {
-    let executor = executor_for(ShellType::Bash, timeout_ms);
+pub fn execute_runbook(path: &Path) -> Result<i32, RunError> {
+    let executor = CommandExecutor::new(ShellType::Bash);
     let cmd = format!("bash {}", quote_path(path));
     let result = executor.execute(&cmd)?;
     Ok(result.exit_code)
