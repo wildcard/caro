@@ -15,6 +15,7 @@
  */
 
 import { PAGES_INDEX } from '../config/pages';
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 import searchIndexData from '../config/search-index.json';
 
 // Search is always enabled - no feature flag needed
@@ -72,7 +73,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
         <kbd>esc</kbd>
       </div>
       <div class="omni-hotkey-hint">
-        <span class="omni-hint-icon">💡</span>
+        <TermGlyph g="▸" />
         <span>Tip: Use <kbd>⌘/</kbd> or <kbd>Ctrl+/</kbd> anywhere to open search</span>
       </div>
       <div id="omni-list" class="omni-list" role="listbox"></div>
@@ -249,10 +250,6 @@ const searchIndex = searchIndexData?.pages?.length > 0
     display: none;
   }
 
-  .omni-hint-icon {
-    font-size: 14px;
-  }
-
   .omni-hotkey-hint kbd {
     padding: 1px 5px;
     font-size: 10px;
@@ -286,7 +283,8 @@ const searchIndex = searchIndexData?.pages?.length > 0
     font-size: 13px;
     color: var(--color-text-secondary, #666);
   }
-  .omni-fuzzy-hint .omni-fuzzy-icon { font-size: 16px; }
+  /* Built with innerHTML, so the glyph gets TermGlyph's look from here. */
+  .omni-fuzzy-hint .omni-fuzzy-icon { font-family: var(--font-mono); font-weight: 700; line-height: 1; }
   .omni-fuzzy-hint .omni-fuzzy-correction {
     color: var(--accent-text);
     font-weight: 500;
@@ -311,7 +309,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
   /* No opacity: it pulled titles under AA. Italic marks a fuzzy result. */
   .omni-item.fuzzy .omni-title { font-style: italic; }
 
-  .omni-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+  .omni-icon { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0; font-family: var(--font-mono); font-weight: 700; line-height: 1; }
   .omni-info { flex: 1; min-width: 0; }
   .omni-title {
     font-size: 14px;
@@ -614,7 +612,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
 
         html += `
           <div class="omni-fuzzy-hint">
-            <span class="omni-fuzzy-icon">💡</span>
+            <span class="omni-fuzzy-icon" aria-hidden="true">▸</span>
             <span>Did you mean ${correctionText}?</span>
           </div>
         `;
@@ -635,7 +633,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
     function renderItem(page: any, idx: number, query: string, corrections: Map<string, string>, isFuzzy: boolean): string {
       const cls = `omni-item${idx === 0 ? ' active' : ''}${isFuzzy ? ' fuzzy' : ''}`;
       return `<a href="${page.path}" class="${cls}" data-idx="${idx}" role="option">
-        <span class="omni-icon">${page.icon || '📄'}</span>
+        <span class="omni-icon" aria-hidden="true">${page.icon || '▸'}</span>
         <div class="omni-info">
           <div class="omni-title">${highlight(page.title, query, corrections)}</div>
           ${page.description ? `<div class="omni-desc">${highlight(page.description, query, corrections)}</div>` : ''}

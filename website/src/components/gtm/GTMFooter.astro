@@ -1,5 +1,6 @@
 ---
 // GTM Footer - Clean, informative, community-focused
+import KyaroIcon from '../../ui/KyaroIcon/KyaroIcon.astro';
 
 const currentYear = new Date().getFullYear();
 ---
@@ -9,7 +10,7 @@ const currentYear = new Date().getFullYear();
     <div class="footer-grid">
       <div class="footer-brand">
         <a href="/" class="logo">
-          <span class="logo-icon">🐕</span>
+          <KyaroIcon name="face-ready" />
           <span class="logo-text">caro</span>
         </a>
         <p class="tagline">Natural language to safe shell commands.<br />100% local. Open source.</p>
@@ -93,10 +94,6 @@ const currentYear = new Date().getFullYear();
     font-size: 24px;
     color: var(--fg-inverse);
     margin-bottom: 16px;
-  }
-
-  .logo-icon {
-    font-size: 28px;
   }
 
   .tagline {

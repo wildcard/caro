@@ -1,6 +1,7 @@
 ---
 // GTM Hero - Daytona-inspired, community-first positioning
 // Emphasizes: Open source, local-first, community-driven
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
 ---
 
 <section class="hero">
@@ -70,7 +71,7 @@
     <!-- Trust Indicators -->
     <div class="trust-row">
       <div class="trust-item">
-        <span class="trust-icon">🔒</span>
+        <span class="trust-icon trust-glyph"><TermGlyph g="▸" /></span>
         <span>Zero telemetry</span>
       </div>
       <div class="trust-item">
@@ -82,7 +83,7 @@
         <span>Apple Silicon optimized</span>
       </div>
       <div class="trust-item">
-        <span class="trust-icon">📦</span>
+        <span class="trust-icon trust-glyph"><TermGlyph g="$" /></span>
         <span>Single binary</span>
       </div>
     </div>
@@ -258,7 +259,15 @@
   }
 
   .trust-icon {
+    display: inline-flex;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 20px;
     font-size: 18px;
+  }
+
+  .trust-glyph {
+    font-size: 14px;
   }
 
   /* Decorative orbs */

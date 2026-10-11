@@ -402,6 +402,15 @@ runs by PR number and falls back to `github.run_id`, so runs on `main` are never
 fails at `Test setup.sh on bash` with `caro: command not found` (exit 127), after
 `install.sh` reports success.
 
+### BW-051: unrendered website components and unread locale fields hold 156 emoji
+
+**Found:** 2026-10-11, emoji-icon inventory (`docs/brand/icons/definitions.json`, #1590)
+**Issue:** #1591
+**Status:** open
+**Needs human?:** yes for the distro-preferences UI (planned feature or remove); no for the rest
+**Next step:** remove `OmniMenu.astro`, `Waitlist.astro`,
+`landing/LPUseCases.astro` and the unread locale fields listed in #1591.
+
 ---
 
 ## Dedup done (2026-10-09)
