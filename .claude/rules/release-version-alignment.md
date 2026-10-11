@@ -24,7 +24,7 @@ Every `chore(release): vX.Y.Z` PR must touch these files:
 | 3 | `CHANGELOG.md` | New `## [X.Y.Z] - YYYY-MM-DD` entry with Added / Changed / Fixed / Security / Internal subsections (Keep a Changelog format) |
 | 4 | `README.md` | `**Current Version:** X.Y.Z` banner line — plus any other version strings in the landing section |
 | 5 | `ROADMAP.md` | (a) `**Last Updated**: <today>`; (b) Status table row marked ✅ RELEASED with the release date; (c) New `### 🎉 vX.Y.Z - <headline>` milestone section prepended to `## Release Milestones` |
-| 6 | Install-script defaults | `homebrew-tap/README.md` checksum snippet `VERSION=X.Y.Z`; `nuget/tools/install.ps1` `[string]$Version = "X.Y.Z"`; any `scripts/install.sh` fallback version |
+| 6 | Install-script defaults | `homebrew-tap/README.md` checksum snippet `VERSION=X.Y.Z`; `nuget/tools/install.ps1` `[string]$Version = "X.Y.Z"`; any `install.sh` fallback version |
 
 ## After-Merge GitHub Release
 
