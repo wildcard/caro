@@ -253,11 +253,11 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-10, preparing first responses to external PRs (harness-plan session)
 **Issue:** #1555
-**Status:** open
+**Status:** fixed (#1584)
 **Needs human?:** yes (a CI gate in `.github/workflows/cla.yml`, and part of the legal process)
-**Next step:** rename `custom-pr-sign-comment` to `custom-notsigned-prcomment` and set
-the one-line sign phrase, as #1555 shows. Then ask #1296, #1390 and #1415 to comment
-`recheck`.
+**Next step:** none. On 2026-10-11, #1296, #1390 and #1415 were asked to comment
+`recheck`. Each `recheck` should add an entry to `.github/cla-signatures.json` on the
+`cla-signatures` branch. Delete this entry after 2026-10-18.
 
 ### BW-029: an unquoted prompt that starts with "list" runs the `list` subcommand
 
@@ -366,30 +366,6 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Needs human?:** no
 **Next step:** none. Delete after 2026-10-17.
 
-### BW-042: an unquoted prompt that starts with "list" runs the `list` subcommand
-
-**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10, from nightly run 38016340315)
-**Issue:** #1550. `caro list files` fails with `unexpected argument 'files'`; 2 e2e tests fail in every Extended Tests job.
-**Status:** open
-**Needs human?:** yes (CLI design: how a prompt and a subcommand name share the first word)
-**Next step:** maintainer picks the parsing rule in #1550; then fix `src/main.rs` routing.
-
-### BW-043: 8 stray `.worktrees/*` gitlinks on main with no `.gitmodules`
-
-**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
-**Issue:** #1551. Commit `9599ca7` added 8 local worktree dirs as mode-160000 gitlinks.
-**Status:** open
-**Needs human?:** no
-**Next step:** `git rm --cached` the 8 gitlinks and confirm `.worktrees/` is in `.gitignore`.
-
-### BW-044: CLA check never records a signature, so every external PR stays red
-
-**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
-**Issue:** #1555. `custom-pr-sign-comment` in `.github/workflows/cla.yml` holds the whole notice, not the sign phrase. Blocks #1296, #1390, #1415.
-**Status:** open
-**Needs human?:** yes (CI gate / contributor policy)
-**Next step:** maintainer approves the 2-line `cla.yml` change proposed in #1555.
-
 ### BW-045: `caro run` runbook path and step path keep shell state differently
 
 **Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
@@ -398,14 +374,6 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Needs human?:** yes (product: which behavior is the contract)
 **Next step:** maintainer picks an option in #1557; recommended option 1 (subshell per step in the runbook).
 
-### BW-046: static safety validator rates reverse shells, exfiltration and DROP DATABASE as Safe
-
-**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
-**Issue:** #1559
-**Status:** open
-**Needs human?:** yes (safety patterns)
-**Next step:** maintainer approves the pattern set; then add patterns with the `safety-pattern-developer` TDD flow.
-
 ### BW-047: upgrade reqwest 0.11 → 0.12 to clear h2 RUSTSEC-2026-0258 (wiremock is already 0.6.4)
 
 **Found:** 2026-10-10 sweep register sync (issue filed 2026-09-24)
@@ -413,6 +381,26 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Status:** open
 **Needs human?:** yes (dependency major-version bump)
 **Next step:** maintainer approves the bump; note that hf-hub 0.5 already pulls reqwest 0.12.
+
+### BW-049: PR workflows never cancel superseded runs, so the macOS queue backs up
+
+**Found:** 2026-10-11, waiting on CI for #1546, #1584 and #1515 (harness-plan session)
+**Issue:** #1593
+**Status:** open
+**Needs human?:** yes (CI workflows: `ci.yml`, `cross-platform-ci.yml`, `llm-tests.yml`,
+`evaluation.yml` and `website-claims.yml`)
+**Next step:** add the `concurrency` block from #1593 to each PR-triggered workflow. It groups
+runs by PR number and falls back to `github.run_id`, so runs on `main` are never cancelled.
+
+### BW-050: the Install workflow fails on every `main` push
+
+**Found:** 2026-10-11, checking main's CI before the v1.5.0 tag (harness-plan session)
+**Issue:** #1340
+**Status:** open
+**Needs human?:** yes (a CI workflow, `.github/workflows/installer.yml`)
+**Next step:** finish the investigation in #1340. Since at least 2026-05-17, every `main` run
+fails at `Test setup.sh on bash` with `caro: command not found` (exit 127), after
+`install.sh` reports success.
 
 ---
 
