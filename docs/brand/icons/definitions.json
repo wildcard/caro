@@ -2438,7 +2438,7 @@
         "icon": 6,
         "glyph": 0
       },
-      "notes": "One row of six 40 px cards on /use-cases/air-gapped, used nowhere else. Six variant icons, or drop icons from this row.",
+      "notes": "Six one-off icons for one row of /use-cases/air-gapped. Decided: drop the icons from that row; the cards keep their titles.",
       "slots": [
         {
           "file": "pages/use-cases/air-gapped.astro",
@@ -3555,7 +3555,7 @@
         "icon": 3,
         "glyph": 0
       },
-      "notes": "One row of three 36 px cards on /use-cases/air-gapped. Three variants, or drop icons from this row.",
+      "notes": "Three one-off icons for one row of /use-cases/air-gapped. Decided: drop the icons from that row; the cards keep their titles.",
       "slots": [
         {
           "file": "pages/use-cases/air-gapped.astro",
