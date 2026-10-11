@@ -142,15 +142,15 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep, CI run 36658876598
 **Issue:** #1341
-**Status:** open. Root-caused 2026-10-09 (nightly run 37873894155). Two causes, 9 of 29 e2e tests fail in each job:
+**Status:** claimed-by sweep/2026-10-10-BW-015 (#1553). Root-caused 2026-10-09 (nightly run 37873894155). Two causes, 9 of 29 e2e tests fail in each job:
 (1) SmolLM 135M and StarCoder 1B: their `src/model_catalog.rs` repos (`HuggingFaceTB/SmolLM-135M-Instruct-GGUF`,
 `TheBloke/starcoderbase-1b-GGUF`) no longer exist on Hugging Face (anonymous API returns 401), so every download fails.
 PR smoke tests stay green only because the model cache restores an old file. The download error text also tells
 users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 (2) Qwen 0.5B and TinyLlama 1.1B download, then abort in llama.cpp Metal: `GGML_ASSERT ggml-metal.m:870 "unsupported op"`
 (`llama_cpp = "0.3"`, `n_gpu_layers: 99` in `src/backends/embedded/mlx.rs`).
-**Needs human?:** yes. (1) Pick replacement repos (for example `HuggingFaceTB/smollm-135M-instruct-v0.2-Q8_0-GGUF`, which bundle.yml uses), or drop the models. (2) Bump llama_cpp, or run CI with CPU layers only.
-**Next step:** maintainer picks both options on #1341.
+**Needs human?:** no (decided 2026-10-10: SmolLM uses the bundle.yml Q8_0 repo, StarCoder is dropped, CI runs on CPU only).
+**Next step:** merge #1553, then confirm the next nightly Extended Tests run is green and close #1341.
 
 ### BW-016: 1.5.0 declared in-repo but never tagged or published
 
