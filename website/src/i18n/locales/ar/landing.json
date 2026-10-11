@@ -5,7 +5,16 @@
       "cta": "ابدأ مجاناً",
       "darkMode": {
         "toggle": "تبديل الوضع الداكن"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "وكيل مرافق",
@@ -405,7 +414,7 @@
       "bottom": {
         "built": "مبني بـ 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "❤️",
         "inspiration": "مستوحى من Caroline في Portal - الولاء المتحول إلى رفقة رقمية",
         "heritagePre": "مبني بفخر على الأسس التي وضعتها",
         "gnu": "GNU",
