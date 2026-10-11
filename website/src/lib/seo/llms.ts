@@ -56,7 +56,7 @@ export function buildLlmsTxt(header: string, pages: LlmsPage[], site: URL): stri
       '',
       `- Every page has a Markdown twin: add \`.md\` to its path (\`${origin}/docs/cli\` → \`${origin}/docs/cli.md\`). The home page is \`${origin}/index.md\`.`,
       '- A request with `Accept: text/markdown` to any page URL gets the Markdown twin.',
-      `- \`${origin}/llms-full.txt\` holds every page below in one file.`,
+      `- \`${origin}/llms-full.txt\` holds every page below, except the Optional translations, in one file.`,
       `- Each page links its twin with \`<link rel="alternate" type="text/markdown">\`, and \`${origin}/sitemap-index.xml\` lists every page.`,
     ].join('\n'),
     ...groupBySection(primary).map(

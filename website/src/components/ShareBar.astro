@@ -7,8 +7,8 @@
  * - For AI agents: the page's Markdown twin (view or copy), and "Ask Claude" /
  *   "Ask ChatGPT" links that start a chat with the twin's URL.
  *
- * Links work without JavaScript; the script adds the copy and share-sheet
- * buttons. `data-md-skip` keeps the bar out of the Markdown twin itself.
+ * Links work without JavaScript; the copy and share-sheet buttons start
+ * hidden and the script shows them where the browser supports them. `data-md-skip` keeps the bar out of the Markdown twin itself.
  */
 import { markdownPath, normalizePath } from '../lib/seo/routes';
 
@@ -60,7 +60,7 @@ const agents = [
             Share…
           </button>
         </li>
-        <li>
+        <li data-needs-clipboard hidden>
           <button type="button" class="share-action" data-copy-link={url}>Copy link</button>
         </li>
       </ul>
@@ -72,7 +72,7 @@ const agents = [
       <li>
         <a class="share-action" href={markdownUrl} type="text/markdown">View as Markdown</a>
       </li>
-      <li>
+      <li data-needs-clipboard hidden>
         <button type="button" class="share-action" data-copy-markdown={markdownUrl}>Copy as Markdown</button>
       </li>
       {agents.map(({ name, href }) => (
@@ -112,6 +112,14 @@ const agents = [
           say('Copy failed. Select the text and copy it by hand.');
         }
       };
+
+      // The copy buttons start hidden, so a page without JavaScript (or
+      // without the Clipboard API) shows no button that does nothing.
+      if (navigator.clipboard) {
+        bar.querySelectorAll<HTMLElement>('[data-needs-clipboard]').forEach((item) => {
+          item.hidden = false;
+        });
+      }
 
       const native = bar.querySelector<HTMLButtonElement>('[data-share-native]');
       const nativeItem = bar.querySelector<HTMLElement>('[data-share-native-item]');

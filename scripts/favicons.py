@@ -71,9 +71,11 @@ WIRING = {
         'href="/favicon.svg"',
         'href="/favicon.ico"',
     ],
+    # Every website layout renders <SEO>, and SEO renders <Favicons />.
     "website/src/components/SEO.astro": ["<Favicons />"],
-    "website/src/layouts/LandingPage.astro": ["<Favicons />"],
-    "website/src/layouts/DocsLayout.astro": ["<Favicons />"],
+    "website/src/layouts/Layout.astro": ["<SEO"],
+    "website/src/layouts/LandingPage.astro": ["<SEO"],
+    "website/src/layouts/DocsLayout.astro": ["<SEO"],
     "website/public/site.webmanifest": [
         '"/icon-192.png"',
         '"/icon-512.png"',

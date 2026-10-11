@@ -55,6 +55,7 @@ describe('extractMeta', () => {
       readingTime: '3 min read',
       markdownHref: 'https://caro.sh/docs/cli.md',
       hreflang: [{ hreflang: 'es', href: 'https://caro.sh/es' }],
+      robots: 'index, follow',
       isRedirect: false,
     });
   });
@@ -97,6 +98,8 @@ Use \`caro\`.
     expect(md).toContain('[Safety](https://caro.sh/docs/safety)');
     expect(md).toContain('[Flags](https://caro.sh/docs/cli#flags)');
     expect(md).not.toContain('javascript:');
+    const spaced = await markdown('<main><h1>T</h1><p><a href=" javascript:alert(1)">X</a> <img src=" data:image/png;base64,AA" alt="D"></p></main>');
+    expect(spaced).not.toMatch(/javascript:|data:/);
     expect(md).toContain('![Caro](https://caro.sh/caro-pixel.png)');
   });
 
@@ -120,6 +123,13 @@ Use \`caro\`.
   it('adds the page title as H1 when the content has none', async () => {
     const md = stripFrontMatter(await markdown('<main><p>No heading here.</p></main>'));
     expect(md).toBe('# CLI Reference\n\nNo heading here.\n');
+  });
+
+  it('adds the H1 even when a code block has a "# comment" line', async () => {
+    const md = stripFrontMatter(
+      await markdown('<main><h2>Usage</h2><pre><code># Generate a command\ncaro "list"\n</code></pre></main>'),
+    );
+    expect(md.startsWith('# CLI Reference\n\n## Usage')).toBe(true);
   });
 
   it('keeps tables as GFM tables', async () => {

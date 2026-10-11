@@ -149,6 +149,7 @@ const BLOCK_TAGS = new Set([
   'ul',
 ]);
 const HEADING = /^h[1-6]$/;
+const SAFE_PROTOCOLS = new Set(['http:', 'https:', 'mailto:']);
 
 /**
  * A card link (`<a>` around a whole block) would become one link per line in
@@ -203,14 +204,16 @@ function clean(el: Element, base: URL, inHeading = HEADING.test(el.tagName)): El
   for (const key of ['href', 'src'] as const) {
     const value = attr(el, key);
     if (!value) continue;
-    if (/^(javascript|data):/i.test(value)) delete properties[key];
-    else {
-      try {
-        properties[key] = new URL(value, base).href;
-      } catch {
-        delete properties[key];
-      }
+    // Judge the parsed URL, not the raw text: URL() strips leading spaces,
+    // so " javascript:…" would otherwise slip through.
+    let url: URL | undefined;
+    try {
+      url = new URL(value, base);
+    } catch {
+      url = undefined;
     }
+    if (url && SAFE_PROTOCOLS.has(url.protocol)) properties[key] = url.href;
+    else delete properties[key];
   }
   return { ...el, properties, children };
 }
@@ -256,13 +259,17 @@ export async function pageToMarkdown(
       setext: false,
     });
   const mdast = await processor.run(content);
+  // Read the H1 from the tree: a `# comment` line in a code block is not one.
+  const hasH1 = (mdast as { children: { type: string; depth?: number }[] }).children.some(
+    (node) => node.type === 'heading' && node.depth === 1,
+  );
   let body = String(processor.stringify(mdast as Parameters<typeof processor.stringify>[0]));
   body = body
     .replace(/ /g, ' ')
     .replace(/[ \t]+$/gm, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
-  if (!/^# /m.test(body)) body = `# ${options.title}\n\n${body}`;
+  if (!hasH1) body = `# ${options.title}\n\n${body}`;
 
   const fields: Record<string, string | undefined> = {
     title: options.title,

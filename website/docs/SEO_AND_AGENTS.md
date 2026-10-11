@@ -34,7 +34,7 @@ fails if a page has no description.
 | hreflang | `<head>`, only on paths in `LOCALIZED_PATHS` | `routes.ts` |
 
 Site-wide files: `/llms.txt` (index of every twin), `/llms-full.txt` (every
-twin in one file), `/rss.xml` (blog posts), `/robots.txt` (open to all
+English twin in one file; translations are listed in llms.txt only), `/rss.xml` (blog posts), `/robots.txt` (open to all
 crawlers and named AI agents), `/sitemap-index.xml`. `/llm.txt` and
 `/llm-full.txt` are aliases kept for old links.
 
