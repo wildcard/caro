@@ -47,10 +47,15 @@ jobs:
 
       # The snap tool turns generated candidates into grid-true icons
       # (docs/brand/icons/DEFINITIONS.md). It needs Pillow; the check does not.
+      # The runner's system Python refuses pip installs (PEP 668).
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Snap tool round trip
         run: |
-          python3 -m pip install --quiet pillow
-          python3 -m unittest scripts/tests/test_pixel_snap.py
+          python -m pip install --quiet pillow
+          python -m unittest scripts/tests/test_pixel_snap.py
 
   usage:
     name: Site uses the icon set correctly

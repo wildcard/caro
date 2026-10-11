@@ -45,7 +45,7 @@ def nearest(color):
 
     def dist(p):
         pr, pg, pb = rgb(p)
-        return ((r - pr) * 0.30) ** 2 + ((g - pg) * 0.59) ** 2 + ((b - pb) * 0.11) ** 2
+        return 0.30 * (r - pr) ** 2 + 0.59 * (g - pg) ** 2 + 0.11 * (b - pb) ** 2
 
     best = min(PALETTE, key=dist)
     return best, dist(best) ** 0.5
@@ -97,7 +97,8 @@ def to_svg(cells, name):
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {size} {size}"'
         f' width="{size}" height="{size}" shape-rendering="crispEdges">\n'
-        f"  <!-- {name}: snapped by scripts/pixel_snap.py from a generated candidate."
+        # "--" is not allowed inside an XML comment.
+        f"  <!-- {name.replace('-', ' ')}: snapped by scripts/pixel_snap.py from a generated candidate."
         " Not Kyaro art by Alrezky Caesaria. -->\n"
         f"{body}</svg>\n"
     )
@@ -135,7 +136,7 @@ def main():
 
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("image", type=Path)
-    parser.add_argument("--grid", type=int, default=48, help="art pixels per side (48 or 24)")
+    parser.add_argument("--grid", type=int, choices=(24, 48), default=48, help="art pixels per side")
     parser.add_argument("--out", type=Path, default=Path("assets/icons/snapped"))
     parser.add_argument("--name", help="output name (default: the input file name)")
     args = parser.parse_args()
@@ -153,13 +154,13 @@ def main():
 
     print(f"{name}: {args.grid}x{args.grid}, art {shape['art']}, {len(shape['colors'])} colors")
     print(f"  margins: left {shape['left']}, right {shape['right']}, top {shape['top']}, bottom {shape['bottom']}")
-    print(f"  palette distance: {report['palette_distance']:.1f} (0 = already on palette; above 40 = recolored)")
+    print(f"  palette distance: {report['palette_distance']:.1f} (0 = already on palette; above 60 = recolored)")
     print(f"  unsure cells: {len(report['unsure'])} (no clear majority color; check these by eye)")
     warnings = []
     # The bottom edge is the ground: grounded art may touch it (DEFINITIONS.md).
     if min(shape["left"], shape["right"], shape["top"]) < 4:
         warnings.append("art is closer than 4 px to the top, left or right edge")
-    if report["palette_distance"] > 40:
+    if report["palette_distance"] > 60:
         warnings.append("input colors are far from the palette; the snap changed them a lot")
     if len(report["unsure"]) > args.grid:
         warnings.append("many unsure cells; the grid size may be wrong")
