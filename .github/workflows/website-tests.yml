@@ -47,8 +47,10 @@ jobs:
           if [ "$EVENT" = "pull_request" ]; then
             # Read the whole list before grep: under the runner's pipefail,
             # `git diff | grep -q` fails on SIGPIPE when grep exits early on
-            # a large PR, which would skip the tests wrongly.
-            changed=$(git diff --name-only HEAD^1 HEAD)
+            # a large PR, which would skip the tests wrongly. --no-renames
+            # lists both paths of a move out of website/; quotePath=false
+            # keeps non-ASCII paths unquoted so the ^website/ anchor matches.
+            changed=$(git -c core.quotePath=false diff --no-renames --name-only HEAD^1 HEAD)
             grep -qE '^(website/|package\.json$|package-lock\.json$|\.github/workflows/website-tests\.yml$)' <<<"$changed" ||
               website=false
           fi
