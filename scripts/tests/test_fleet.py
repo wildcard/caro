@@ -100,6 +100,14 @@ class TestChecks(unittest.TestCase):
         self.assertEqual(fleet.check_state([run("queued")], "success"), "running")
         self.assertEqual(fleet.check_state([run("completed", "success")], "failure"), "red")
         self.assertEqual(fleet.check_state([], "pending"), "running")
+        # A status that is still pending (a Vercel deploy, say) keeps the PR running,
+        # even when every check run has finished (cubic, #1601).
+        self.assertEqual(fleet.check_state([run("completed", "success")], "pending", status_count=1),
+                         "running")
+        # GitHub also reports "pending" for a commit with no statuses at all;
+        # then the check runs decide.
+        self.assertEqual(fleet.check_state([run("completed", "success")], "pending", status_count=0),
+                         "green")
 
 
 class TestRender(unittest.TestCase):

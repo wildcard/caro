@@ -60,13 +60,17 @@ def parse(ts):
     return datetime.fromisoformat(ts.replace("Z", "+00:00"))
 
 
-def check_state(runs, combined_status):
-    """green, red or running, from check runs plus the legacy commit status."""
+def check_state(runs, combined_status, status_count=0):
+    """green, red or running, from check runs plus the legacy commit status.
+
+    GitHub reports the combined status as "pending" both when a status is still
+    pending and when the commit has no statuses at all, so `status_count` (the
+    combined status's `total_count`) tells the two apart."""
     if combined_status == "failure" or combined_status == "error":
         return "red"
     if any(r.get("conclusion") in RED for r in runs):
         return "red"
-    if combined_status == "pending" and not runs:
+    if combined_status == "pending" and (status_count or not runs):
         return "running"
     if any(r.get("status") != "completed" for r in runs):
         return "running"
@@ -195,10 +199,10 @@ def triage(repo, dry_run, get=gh, now=None):
             continue
         sha = p["head"]["sha"]
         runs = get(f"repos/{repo}/commits/{sha}/check-runs?per_page=100").get("check_runs", [])
-        status = get(f"repos/{repo}/commits/{sha}/status").get("state")
+        status = get(f"repos/{repo}/commits/{sha}/status")
         details[p["number"]] = {
             "mergeable_state": get(f"repos/{repo}/pulls/{p['number']}").get("mergeable_state"),
-            "checks": check_state(runs, status)}
+            "checks": check_state(runs, status.get("state"), status.get("total_count", 0))}
     since = now - timedelta(days=7)
     closed = get(f"repos/{repo}/pulls?state=closed&sort=updated&direction=desc&per_page=100")
     merged_7d = sum(1 for p in closed if p.get("merged_at") and parse(p["merged_at"]) > since)
