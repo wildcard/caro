@@ -190,6 +190,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Homepage no longer shows invented testimonials.** The "What Engineers
+  Are Saying" section quoted three made-up people under "Real results from
+  developers who made the switch". The homepage no longer renders it (#1569).
+  The component stays, marked `PLACEHOLDER CONTENT`, and
+  `placeholder-content.test.ts` fails if a page imports a marked component.
 - **Website footer links.** The footer's "How it works" and "Blog" links
   pointed at homepage sections that do not exist (`/#how-it-works`,
   `/#blog`), so they opened the top of the homepage. They now open the
