@@ -4315,7 +4315,7 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
 // Unit Tests
 // =============================================================================
 
-/// `caro guard` (spec 011 / ADR-019). Returns the process exit code.
+/// `caro guard` (spec 011 / ADR-020). Returns the process exit code.
 async fn handle_guard(
     action: Option<GuardAction>,
     harness: caro::guard::Harness,

