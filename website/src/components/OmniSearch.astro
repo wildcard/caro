@@ -112,7 +112,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
   }
 
   .omni-search-trigger:focus-visible {
-    outline: 2px solid var(--color-accent, #ff8c42);
+    outline: 2px solid var(--color-accent, var(--accent));
     outline-offset: 2px;
   }
 
@@ -153,7 +153,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
   }
 
   .dark .omni-trigger-kbd {
-    background: var(--color-bg, #1a1a1a);
+    background: var(--color-bg, #4f4f4f);
     border-color: var(--color-border, #555);
   }
 
@@ -239,7 +239,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: rgba(255, 140, 66, 0.06);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
     border-bottom: 1px solid var(--color-border, #e0e0e0);
     font-size: 12px;
     color: var(--color-text-secondary, #666);
@@ -260,7 +260,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
     background: var(--color-bg, #fff);
     border: 1px solid var(--color-border, #ddd);
     border-radius: 3px;
-    color: #ff8c42;
+    color: var(--accent-text);
   }
 
   .omni-list { flex: 1; overflow-y: auto; padding: 8px; }
@@ -280,15 +280,15 @@ const searchIndex = searchIndexData?.pages?.length > 0
     gap: 8px;
     padding: 10px 12px;
     margin: 4px 0 8px;
-    background: rgba(255, 140, 66, 0.08);
-    border: 1px dashed rgba(255, 140, 66, 0.3);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    border: 1px dashed color-mix(in srgb, var(--accent) 30%, transparent);
     border-radius: 8px;
     font-size: 13px;
     color: var(--color-text-secondary, #666);
   }
   .omni-fuzzy-hint .omni-fuzzy-icon { font-size: 16px; }
   .omni-fuzzy-hint .omni-fuzzy-correction {
-    color: #ff8c42;
+    color: var(--accent-text);
     font-weight: 500;
   }
 
@@ -305,9 +305,11 @@ const searchIndex = searchIndexData?.pages?.length > 0
     transition: background 0.1s;
   }
   .omni-item:hover { background: var(--color-bg-secondary, #f5f5f5); }
-  .omni-item.active { background: rgba(255,140,66,0.12); }
-  .omni-item.active .omni-title { color: #ff8c42; }
-  .omni-item.fuzzy { opacity: 0.85; }
+  /* 8% tint keeps --accent-text at 4.8:1 on paper. */
+  .omni-item.active { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .omni-item.active .omni-title { color: var(--accent-text); }
+  /* No opacity: it pulled titles under AA. Italic marks a fuzzy result. */
+  .omni-item.fuzzy .omni-title { font-style: italic; }
 
   .omni-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
   .omni-info { flex: 1; min-width: 0; }
@@ -358,8 +360,9 @@ const searchIndex = searchIndexData?.pages?.length > 0
     border-radius: 3px;
   }
 
-  .omni-match { background: rgba(255,140,66,0.25); border-radius: 2px; }
-  .omni-fuzzy-match { background: rgba(255,140,66,0.15); border-radius: 2px; text-decoration: underline; text-decoration-style: dotted; }
+  /* Highlighter marks with their own ink: AA on any row, either mode (13:1). */
+  .omni-match { background: var(--highlight); color: var(--caro-grey-900); border-radius: 2px; }
+  .omni-fuzzy-match { background: var(--highlight); color: var(--caro-grey-900); border-radius: 2px; text-decoration: underline; text-decoration-style: dotted; }
 
   @media (max-width: 600px) {
     .omni-overlay { padding: 8vh 12px 12px; }

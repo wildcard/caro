@@ -126,6 +126,9 @@ const roles = [
         <button
           class={`role-btn ${index === 0 ? 'active' : ''}`}
           data-role={role.id}
+          type="button"
+          aria-label={role.name}
+          aria-pressed={index === 0 ? "true" : "false"}
         >
           <span class="role-icon">{role.icon}</span>
           <span class="role-name">{role.name}</span>
@@ -220,7 +223,7 @@ const roles = [
   .role-btn.active {
     background: rgba(239, 51, 51, 0.08);
     border-color: var(--accent);
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   .role-icon {
@@ -258,8 +261,8 @@ const roles = [
     flex-shrink: 0;
     width: 36px;
     height: 36px;
-    background: var(--accent);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -292,8 +295,8 @@ const roles = [
 
   .dangerous-command {
     display: inline-block;
-    background: rgba(239, 51, 51, 0.1);
-    color: var(--accent);
+    background: var(--color-bg);
+    color: var(--accent-text);
     padding: 8px 14px;
     border-radius: 6px;
     font-family: 'SF Mono', 'Monaco', monospace;
@@ -307,7 +310,7 @@ const roles = [
     gap: 8px;
     margin-bottom: 16px;
     padding: 12px;
-    background: rgba(245, 158, 11, 0.08);
+    background: rgba(252, 252, 98, 0.15);
     border-radius: 6px;
   }
 
@@ -317,7 +320,7 @@ const roles = [
 
   .problem-text {
     font-size: 14px;
-    color: var(--color-text-secondary);
+    color: var(--color-text);
     line-height: 1.5;
   }
 
@@ -325,12 +328,12 @@ const roles = [
     padding: 14px;
     background: rgba(34, 197, 94, 0.08);
     border-radius: 6px;
-    border-top: 3px solid #22c55e;
+    border-top: 3px solid var(--status-safe);
   }
 
   .caro-label {
     font-weight: 600;
-    color: var(--accent);
+    color: var(--status-safe-text);
     margin-right: 8px;
   }
 
@@ -369,6 +372,27 @@ const roles = [
       font-size: 14px;
     }
   }
+
+  .role-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .dangerous-command {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scenario-card,
+    .role-btn {
+      transition: none;
+    }
+
+    .scenario-card:hover {
+      transform: none;
+    }
+  }
 </style>
 
 <script>
@@ -381,8 +405,12 @@ const roles = [
         const roleId = btn.getAttribute('data-role');
 
         // Update button states
-        roleButtons.forEach(b => b.classList.remove('active'));
+        roleButtons.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
         btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
 
         // Update content visibility
         roleContents.forEach(content => {

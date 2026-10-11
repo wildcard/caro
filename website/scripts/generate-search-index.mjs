@@ -91,8 +91,18 @@ function extractAllTextContent(content) {
     .replace(/import\s+['"][^'"]+['"]\s*;?/g, '')
     // Remove Astro/JSX expressions but keep text content
     .replace(/\{`([^`]*)`\}/g, '$1') // Template literals
-    .replace(/\{['"]([^'"]*)['"]\}/g, '$1') // String literals
-    .replace(/\{[^}]+\}/g, ' ') // Other expressions
+    .replace(/\{['"]([^'"]*)['"]\}/g, '$1'); // String literals
+
+  // Remove remaining JSX expressions innermost-first so nested braces such as
+  // `{items.map((i) => (<li>{i.label}</li>))}` collapse completely instead of
+  // leaving `))}` fragments behind (a non-nested regex stops at the first `}`).
+  let withoutExpressions;
+  do {
+    withoutExpressions = text;
+    text = text.replace(/\{[^{}]*\}/g, ' ');
+  } while (text !== withoutExpressions);
+
+  text = text
     // Extract text from HTML tags
     .replace(/<[^>]+>/g, ' ')
     // Decode common HTML entities
@@ -253,6 +263,42 @@ function extractFrontmatterData(content) {
   return { strings, title, description };
 }
 
+// Pages that render data from `src/data/*.ts` carry none of that data in
+// their own source, so index the imported module's string and numeric fields
+// too. Only relative `../data/<name>` imports are followed.
+function extractImportedDataStrings(content, filePath) {
+  const strings = [];
+  const importMatches = content.matchAll(/import\s+[^;]*?from\s+['"]((?:\.\.?\/)+data\/[\w./-]+)['"]/g);
+  for (const match of importMatches) {
+    const base = path.resolve(path.dirname(filePath), match[1]);
+    const candidate = ['', '.ts', '.js', '.mjs', '.json']
+      .map((ext) => base + ext)
+      .find((file) => fs.existsSync(file) && fs.statSync(file).isFile());
+    if (!candidate) continue;
+
+    // Drop comments and type declarations first so JSDoc prose and union
+    // members (`'measured' | 'none'`) are not indexed as page content.
+    const data = fs
+      .readFileSync(candidate, 'utf-8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '')
+      .replace(/^\s*(?:export\s+)?type\s+.*$/gm, '')
+      .replace(/^\s*(?:export\s+)?interface\s+\w+[^{]*\{[\s\S]*?^\}/gm, '');
+    // Only `key: 'value'` object fields count as rendered content.
+    for (const str of data.matchAll(/\b[A-Za-z_]\w*\s*:\s*(['"])((?:(?!\1)[^\\\n]|\\.)*)\1/g)) {
+      const value = str[2];
+      if (value.length > 3 && value.length < 300 && !value.includes('/') && !value.startsWith('.')) {
+        strings.push(value);
+      }
+    }
+    // `key: 77.2,` becomes "key 77.2" so the number is searchable with its meaning.
+    for (const pair of data.matchAll(/\b([A-Za-z_]\w*)\s*:\s*(-?\d+(?:\.\d+)?)\s*[,\n}]/g)) {
+      strings.push(`${pair[1]} ${pair[2]}`);
+    }
+  }
+  return strings;
+}
+
 // Extract text from specific elements for structured content
 function extractStructuredContent(content) {
   const result = {
@@ -273,7 +319,7 @@ function extractStructuredContent(content) {
   }
 
   // Extract paragraphs
-  const paragraphMatches = content.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi);
+  const paragraphMatches = content.matchAll(/<p(?:\s[^>]*)?>([\s\S]*?)<\/p>/gi);
   for (const match of paragraphMatches) {
     const text = extractAllTextContent(match[1]).trim();
     if (text.length > 3) {
@@ -283,10 +329,11 @@ function extractStructuredContent(content) {
   }
 
   // Extract list items
-  const listMatches = content.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi);
+  const listMatches = content.matchAll(/<li(?:\s[^>]*)?>([\s\S]*?)<\/li>/gi);
   for (const match of listMatches) {
     const text = extractAllTextContent(match[1]).trim();
-    if (text.length > 2) {
+    // Items whose only text came from interpolations leave punctuation behind.
+    if (text.length > 2 && /[\p{L}\d]/u.test(text)) {
       result.listItems.push(text);
       result.allText.push(text);
     }
@@ -311,7 +358,7 @@ function extractStructuredContent(content) {
   }
 
   // Extract link text
-  const linkMatches = content.matchAll(/<a[^>]*>([\s\S]*?)<\/a>/gi);
+  const linkMatches = content.matchAll(/<a(?:\s[^>]*)?>([\s\S]*?)<\/a>/gi);
   for (const match of linkMatches) {
     const text = extractAllTextContent(match[1]).trim();
     if (text.length > 1) {
@@ -457,6 +504,7 @@ function scanPage(filePath, pagesDir) {
   // Extract from component props (Layout/LandingPage) - highest priority
   const componentProps = extractComponentProps(content);
   const frontmatterData = extractFrontmatterData(content);
+  const importedData = extractImportedDataStrings(content, filePath);
   const structured = extractStructuredContent(content);
   const fullText = extractAllTextContent(content);
 
@@ -477,6 +525,7 @@ function scanPage(filePath, pagesDir) {
     title,
     description,
     ...frontmatterData.strings, // Include all extracted string data
+    ...importedData, // Strings and numbers from imported src/data modules
     ...structured.allText,
     fullText,
   ].join(' ');
