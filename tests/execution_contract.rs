@@ -634,17 +634,18 @@ mod signal_forwarding {
 
     #[test]
     fn timeout_is_per_step_with_a_clean_runbook() {
-        // A clean runbook runs as one `bash` call. Two 0.7 s steps must not
-        // share one 1 s deadline.
+        // A clean runbook runs as one `bash` call. Two 1.2 s steps must not
+        // share one 2 s deadline. Each step keeps 0.8 s of headroom for slow
+        // CI runners.
         let dir = tempfile::tempdir().unwrap();
         let work = dir.path();
         let bin = env!("CARGO_BIN_EXE_caro");
-        task_with_steps(work, &["sleep 0.7", "sleep 0.7"]);
+        task_with_steps(work, &["sleep 1.2", "sleep 1.2"]);
         let export = caro(bin, work).args(["export", "demo"]).output().unwrap();
         assert!(export.status.success(), "caro export failed: {:?}", export);
 
         let output = caro(bin, work)
-            .args(["run", "demo", "--yes", "--timeout", "1"])
+            .args(["run", "demo", "--yes", "--timeout", "2"])
             .output()
             .unwrap();
         let stdout = String::from_utf8_lossy(&output.stdout);
