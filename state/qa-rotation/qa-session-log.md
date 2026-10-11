@@ -4,6 +4,55 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-11 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B (PRs merged today) + C (surface #10: `caro ai --once`).
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 40s, no errors; v1.5.0)
+- `caro --version` → **PASS**: `caro 1.5.0 (be3389b 2026-10-11)`
+- `caro --help` → **PASS**: all subcommands listed (doctor, config, test, suggest, ai, shell-init, guard, check, list, jobs, new, generate, run, export, experiment, adopt, history, why, do, render, skill, completion, integration, init)
+- `caro doctor` → **PASS**: advisory (no model downloaded), proxy detected
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: returned `ls -la` via static matcher, ~100ms (improvement from FLAKE-001 in May 2026)
+- Note: telemetry consent prompt shown (fresh sandbox); second invocation showed no repeat
+
+### Slot B — Recent diff
+
+PRs merged since last memory update (2026-05-07). Non-QA feature PRs merged today:
+- **#1590** `feat(brand): icon definitions for Codex generation, plus the pixel snap tool` — surface: website/brand. Verified: website homepage loads (HTTP 200), favicon.svg HTTP 200. ✅
+- **#1582** `feat(website): Kyaro icon set, Kyaro favicon and the vector Caro mark, replacing the v2.1 glyph pack` — surface: website icons. Verified: `/kyaro/icons/running.svg`, `/kyaro/icons/danger.svg`, `/kyaro/icons/asking.svg`, `/kyaro/icons/ready.svg`, `/kyaro/icons/success.svg` all HTTP 200 (after redirect). ✅
+- **#1515** `chore(release): v1.5.0 (reset from 2026-07-12 revert)` — surface: release artifacts. `caro --version` confirms `1.5.0`. ✅
+- `CLAUDE.md` version field: **FIXED** — now reads `**Version**: \`version\` in \`Cargo.toml\` (single source; not repeated here so it cannot drift)`. Issue #1044 closed.
+
+Surfaces flagged for future Slot C: website brand/icon integrity (#25 in matrix; exercised above as Slot B only).
+
+### Slot C — `caro ai --once` (surface #10)
+
+Exercised `caro ai --once 'show me the current date'` with 15-second timeout.
+
+- **Result**: **FLAKE/CONFIRMED HANG** — zero output, exit 124 (killed by timeout). Silent indefinitely.
+- Root cause confirmed: `src/main.rs:1152-1161` builds embedded backend via `CliApp::with_overrides` but calls `run_once` without a pre-flight `is_available()` check. `run_once` → `backend.generate_command()` in `src/ai/runner.rs:117` hangs awaiting model download (blocked in sandbox).
+- Contrast: `caro --dry-run` uses static-matcher fallback → PASS. `caro ai --once` bypasses static matcher.
+- Existing open issues: **#1272** (`ai: caro ai --once hangs silently with zero output when no backend is available`) and **#1408** (`ai: caro ai --once provides zero user feedback during model initialization`). **No new issue filed** (duplicate).
+- Note: `fix(embedded): fail a stalled model download instead of hanging forever (#1561)` landed in v1.5.0 but applies to the embedded model-download path, not the `ai` subcommand dispatch — `caro ai --once` still hangs via a separate code path.
+
+### Findings
+
+- **#1603** — `docs: QA rotation memory files stuck at 2026-05-07 bootstrap — 25+ update PRs unmerged` (P2) — **NEW**
+- `caro ai --once` silent hang → **DUPLICATE** of #1272, #1408 (both open) — not re-filed
+- `CLAUDE.md` version drift → **RESOLVED** — issue #1044 closed, fix applied in v1.5.0
+
+### Followups
+
+- FLAKE-001 (`--dry-run` model download): **RESOLVED** — `--dry-run` now PASS via static matcher. Confirm it remains resolved on the next pass.
+- FLAKE-002 (`caro ai --once` silent hang): second observation this session (first in PR #1560 2026-10-10, per that PR's body). Logs in qa-known-flakes.md updated.
+- QA memory staleness: see #1603. Next Slot C should advance to surface #11 if #1603 is addressed and memory is current.
+- 25+ previous QA rotation PRs were closed without merging — this run is the first memory update to land on `main` since bootstrap.
+
+---
+
 ## 2026-10-10 — Scheduled run (Slot A + Slot B + Slot C)
 
 **Trigger**: scheduled cron 14:00 UTC.
