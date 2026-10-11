@@ -378,7 +378,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 ---
 
-### BW-042: CI never runs 23 of 46 integration test targets
+### BW-048: CI never runs 23 of 46 integration test targets
 
 **Found:** 2026-10-07 (while driving #1536)
 **Issue:** #1537. CI runs only targets named by `cargo test --test <name>`; 23 targets in `tests/` are named nowhere, including 5 `*_contract` guards (e.g. `explain_ste_contract`, `clarification_gate_contract`).
