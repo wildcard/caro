@@ -19,6 +19,15 @@ Rules (see `.claude/rules/good-boy-scout.md` → "Stay in your lane"):
 
 ---
 
+### BW-041: OmniSearch inlines its full search index into every page
+
+**Found:** 2026-10-10, WCAG design pass (`feat/website-wcag-design-pass`)
+**Issue:** #1564
+**Status:** open
+**Needs human?:** no
+**Next step:** serve `search-index.json` statically and fetch it when the
+search overlay first opens (`website/src/components/OmniSearch.astro`).
+
 ### BW-002: CLAUDE.md version/MSRV drift, filed 42× (canonical + 41 duplicates)
 
 **Found:** 2026-09-27, PR #1470 session
@@ -223,7 +232,23 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** no
 **Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
 
-### BW-026: hybrid sanitizer leaks spaced paths and inline credentials
+### BW-026: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
+
+**Found:** 2026-10-02, PR #1507 session (also red on main push be07b22 and every i18n-touching PR)
+**Issue:** #1508
+**Status:** open
+**Needs human?:** no (run `translate.yml` or copy the English files; or relax the validator for missing namespaces)
+**Next step:** `en/playbook.json` (#1174) and `en/waitlist.json` (#599) were never mirrored into 13 locales. CI runs the validator without `--strict`, so the missing-file errors are the failure; the 207 untranslated warnings are only fatal in strict mode.
+
+### BW-027: static safety floor rates reverse shells, credential exfiltration and `DROP DATABASE` as Safe
+
+**Found:** 2026-10-10, while stratifying the risk-gate gold subset (`docs/ml/risk-gold-subset.md`, "What the static floor got wrong")
+**Issue:** #1559
+**Status:** open
+**Needs human?:** yes (safety patterns are a security-policy decision; not applied from a feature branch)
+**Next step:** `SafetyConfig::moderate()` returns `Safe` for `bash -i >& /dev/tcp/…`, `curl -F "key=@$HOME/.ssh/id_rsa" …`, `env | curl --data-binary @- …`, `sudo setenforce 0`, a uid-0 `useradd`, `mysql -e 'DROP DATABASE …'`, `redis-cli FLUSHALL`, `aws s3 rm --recursive`, `kubectl delete namespace`, `aws ec2 terminate-instances`, and `sudo truncate -s 0 /var/log/*.log`, while `rm -rf ./target` is `Critical`. The 121-row candidate file (`docs/ml/risk-gold-candidates.jsonl`) and its companion static-tier file (`docs/ml/risk-gold-static-tiers.jsonl`, joined on `id`) record each command and its static verdict; decide which gaps become patterns. BW-026 is reserved by #1507 (Validate Translations).
+
+### BW-042: hybrid sanitizer leaks spaced paths and inline credentials
 
 **Found:** 2026-10-03 (cubic review on #1513)
 **Issue:** #1518. `PATH_RE` stops at whitespace, and there's no rule for `Authorization: Bearer`, `-u user:pass` or URL userinfo in the request input sent to hybrid remotes.
@@ -302,6 +327,14 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Status:** open
 **Needs human?:** yes if the fix is to delete the job (CI gate); no for a root-cause fix.
 **Next step:** read the failing step's log and root-cause it.
+
+### BW-040: static matcher "Find Python files (simple)" swallows content searches
+
+**Found:** 2026-10-03 (while fixing "search for TODO in all python files")
+**Issue:** #1516. `search for <X> in python files` returns `find . -name "*.py" -type f` for any X other than TODO.
+**Status:** fixed (#1517: content-search handler in `StaticMatcher::content_search_command`)
+**Needs human?:** no
+**Next step:** delete this entry a week after #1517 merges.
 
 ---
 

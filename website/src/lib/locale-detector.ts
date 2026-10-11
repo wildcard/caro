@@ -32,6 +32,27 @@ const TIMEZONE_TO_COUNTRY: Record<string, string> = {
   'America/Detroit': 'US',
   'America/Indianapolis': 'US',
   'America/Boise': 'US',
+  // Remaining US zones (IANA), so a saved July 4th theme survives travel.
+  'America/Adak': 'US',
+  'America/Juneau': 'US',
+  'America/Sitka': 'US',
+  'America/Metlakatla': 'US',
+  'America/Yakutat': 'US',
+  'America/Nome': 'US',
+  'America/Menominee': 'US',
+  'America/Kentucky/Louisville': 'US',
+  'America/Kentucky/Monticello': 'US',
+  'America/Indiana/Indianapolis': 'US',
+  'America/Indiana/Knox': 'US',
+  'America/Indiana/Marengo': 'US',
+  'America/Indiana/Petersburg': 'US',
+  'America/Indiana/Tell_City': 'US',
+  'America/Indiana/Vevay': 'US',
+  'America/Indiana/Vincennes': 'US',
+  'America/Indiana/Winamac': 'US',
+  'America/North_Dakota/Beulah': 'US',
+  'America/North_Dakota/Center': 'US',
+  'America/North_Dakota/New_Salem': 'US',
 
   // Canada
   'America/Toronto': 'CA',
@@ -50,6 +71,7 @@ const TIMEZONE_TO_COUNTRY: Record<string, string> = {
 
   // Germany
   'Europe/Berlin': 'DE',
+  'Europe/Busingen': 'DE',
 
   // Spain
   'Europe/Madrid': 'ES',
@@ -97,6 +119,7 @@ const TIMEZONE_TO_COUNTRY: Record<string, string> = {
 
   // Indonesia
   'Asia/Jakarta': 'ID',
+  'Asia/Pontianak': 'ID',
   'Asia/Makassar': 'ID',
   'Asia/Jayapura': 'ID',
 
@@ -223,6 +246,53 @@ function getUserLanguages(): string[] {
 // Country Detection
 // ============================================================================
 
+// Every Canadian IANA zone under America/.
+const KNOWN_CANADIAN_CITIES = [
+  'Toronto',
+  'Vancouver',
+  'Montreal',
+  'Edmonton',
+  'Winnipeg',
+  'Halifax',
+  'St_Johns',
+  'Regina',
+  'Swift_Current',
+  'Moncton',
+  'Glace_Bay',
+  'Goose_Bay',
+  'Whitehorse',
+  'Dawson',
+  'Dawson_Creek',
+  'Fort_Nelson',
+  'Creston',
+  'Yellowknife',
+  'Inuvik',
+  'Iqaluit',
+  'Pangnirtung',
+  'Rankin_Inlet',
+  'Resolute',
+  'Cambridge_Bay',
+  'Atikokan',
+  'Blanc-Sablon',
+  'Thunder_Bay',
+  'Nipigon',
+  'Rainy_River',
+];
+
+/**
+ * Every timezone that detectCountryFromTimezone maps into `countries`.
+ * Lets the pre-paint occasion script check a locale without this module.
+ */
+export function timezonesForCountries(countries: string[]): string[] {
+  const zones = Object.keys(TIMEZONE_TO_COUNTRY).filter((tz) =>
+    countries.includes(TIMEZONE_TO_COUNTRY[tz])
+  );
+  if (countries.includes('CA')) {
+    for (const city of KNOWN_CANADIAN_CITIES) zones.push(`America/${city}`);
+  }
+  return [...new Set(zones)];
+}
+
 /**
  * Detect country from timezone
  */
@@ -235,17 +305,8 @@ function detectCountryFromTimezone(timezone: string): string | null {
   // Try prefix matching for America/* timezones (fallback to US)
   if (timezone.startsWith('America/')) {
     // Check if it's a known non-US timezone
-    const knownCanadian = [
-      'Toronto',
-      'Vancouver',
-      'Montreal',
-      'Edmonton',
-      'Winnipeg',
-      'Halifax',
-      'St_Johns',
-    ];
     const city = timezone.split('/')[1];
-    if (knownCanadian.includes(city)) {
+    if (KNOWN_CANADIAN_CITIES.includes(city)) {
       return 'CA';
     }
     // Default to US for other America/* timezones

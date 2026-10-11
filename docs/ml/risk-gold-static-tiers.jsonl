@@ -1,0 +1,121 @@
+{"id": "gold-001", "static_tier": "moderate", "static_patterns": ["change file permissions"]}
+{"id": "gold-002", "static_tier": "moderate", "static_patterns": ["change file permissions"]}
+{"id": "gold-003", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-004", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-005", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-006", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-007", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-008", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-009", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-010", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-011", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-012", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-013", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-014", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-015", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-016", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-017", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-018", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-019", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-020", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-021", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-022", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-023", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-024", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-025", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-026", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-027", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-028", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-029", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-030", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-031", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-032", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-033", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-034", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-035", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-036", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-037", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-038", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-039", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-040", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-041", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-042", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-043", "static_tier": "critical", "static_patterns": ["recursive deletion of root, home, current, or parent directory", "force recursive deletion from root", "delete files with elevated privileges"]}
+{"id": "gold-044", "static_tier": "critical", "static_patterns": ["recursive deletion of root, home, current, or parent directory"]}
+{"id": "gold-045", "static_tier": "critical", "static_patterns": ["format disk destroying all data"]}
+{"id": "gold-046", "static_tier": "critical", "static_patterns": ["recursive deletion of root, home, current, or parent directory", "force recursive deletion from root", "delete files with elevated privileges"]}
+{"id": "gold-047", "static_tier": "critical", "static_patterns": ["overwrite disk with random data"]}
+{"id": "gold-048", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-049", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-050", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-051", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-052", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-053", "static_tier": "critical", "static_patterns": ["recursive deletion of root, home, current, or parent directory"]}
+{"id": "gold-054", "static_tier": "moderate", "static_patterns": ["force kill all processes or init"]}
+{"id": "gold-055", "static_tier": "moderate", "static_patterns": ["flush all firewall rules"]}
+{"id": "gold-056", "static_tier": "high", "static_patterns": ["permission change making root world-writable (recursive or direct)", "recursive chmod on root directory"]}
+{"id": "gold-057", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-058", "static_tier": "critical", "static_patterns": ["overwrite disk with random data"]}
+{"id": "gold-059", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-060", "static_tier": "critical", "static_patterns": ["fork bomb - exponential process creation"]}
+{"id": "gold-061", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-062", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-063", "static_tier": "high", "static_patterns": ["modification of critical system directories"]}
+{"id": "gold-064", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-065", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-066", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-067", "static_tier": "critical", "static_patterns": ["download and execute remote script with root privileges"]}
+{"id": "gold-068", "static_tier": "high", "static_patterns": ["modify system services with elevated privileges"]}
+{"id": "gold-069", "static_tier": "critical", "static_patterns": ["recursive deletion of root, home, current, or parent directory"]}
+{"id": "gold-070", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-071", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-072", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-073", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-074", "static_tier": "moderate", "static_patterns": ["make files executable"]}
+{"id": "gold-075", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-076", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-077", "static_tier": "moderate", "static_patterns": ["install python packages in user directory"]}
+{"id": "gold-078", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-079", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-080", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-081", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-082", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-083", "static_tier": "high", "static_patterns": ["remove all cron jobs"]}
+{"id": "gold-084", "static_tier": "moderate", "static_patterns": ["secure copy to/from remote server"]}
+{"id": "gold-085", "static_tier": "moderate", "static_patterns": ["ssh connection to remote server"]}
+{"id": "gold-086", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-087", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-088", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-089", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-090", "static_tier": "moderate", "static_patterns": ["change file ownership"]}
+{"id": "gold-091", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-092", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-093", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-094", "static_tier": "high", "static_patterns": ["docker container with full host access"]}
+{"id": "gold-095", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-096", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-097", "static_tier": "critical", "static_patterns": ["recursive deletion of root, home, current, or parent directory"]}
+{"id": "gold-098", "static_tier": "critical", "static_patterns": ["critical: command targets a catastrophic, irrecoverable location"]}
+{"id": "gold-099", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-100", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-101", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-102", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-103", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-104", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-105", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-106", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-107", "static_tier": "critical", "static_patterns": ["download and execute remote script without inspection", "critical: command targets a catastrophic, irrecoverable location"]}
+{"id": "gold-108", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-109", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-110", "static_tier": "critical", "static_patterns": ["recursive deletion of root, home, current, or parent directory", "modification of critical system directories", "delete files with elevated privileges"]}
+{"id": "gold-111", "static_tier": "moderate", "static_patterns": ["change file permissions"]}
+{"id": "gold-112", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-113", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-114", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-115", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-116", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-117", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-118", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-119", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-120", "static_tier": "safe", "static_patterns": []}
+{"id": "gold-121", "static_tier": "safe", "static_patterns": []}

@@ -224,7 +224,7 @@ const platforms = [
 <style>
   .platforms {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(450px, 100%), 1fr));
     gap: 30px;
     margin-top: 50px;
   }
@@ -234,17 +234,18 @@ const platforms = [
     border: 2px solid var(--color-border);
     border-radius: 12px;
     padding: 30px;
+    min-width: 0;
     transition: transform 0.3s, box-shadow 0.3s, background 0.3s ease, border-color 0.3s ease;
   }
 
   .platform-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.15);
-    border-color: #ff8c42;
+    box-shadow: 0 10px 30px rgba(239, 51, 51, 0.15);
+    border-color: var(--accent);
   }
 
   :global(.dark) .platform-card:hover {
-    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.25);
+    box-shadow: 0 10px 30px rgba(239, 51, 51, 0.25);
   }
 
   .platform-header {
@@ -261,6 +262,7 @@ const platforms = [
 
   .header-info {
     flex: 1;
+    min-width: 0;
   }
 
   .platform-card h3 {
@@ -319,7 +321,7 @@ const platforms = [
 
   .method h5 {
     font-size: 15px;
-    color: #ff8c42;
+    color: var(--accent-text);
     margin-bottom: 10px;
     font-weight: 600;
   }
@@ -346,6 +348,7 @@ const platforms = [
     color: var(--color-text);
     line-height: 1.6;
     display: block;
+    overflow-wrap: anywhere;
     transition: color 0.3s ease;
   }
 
@@ -394,8 +397,8 @@ const platforms = [
   }
 
   .universal-note {
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.08) 100%);
-    border: 2px solid rgba(255, 140, 66, 0.3);
+    background: rgba(239, 51, 51, 0.08);
+    border: 2px solid rgba(239, 51, 51, 0.3);
     border-radius: 12px;
     padding: 30px;
     margin-top: 50px;
@@ -430,12 +433,19 @@ const platforms = [
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 14px;
     color: var(--color-text);
+    overflow-wrap: anywhere;
     transition: color 0.3s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .platform-card:hover {
+      transform: none;
+    }
   }
 
   @media (max-width: 1000px) {
     .platforms {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 

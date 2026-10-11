@@ -2,7 +2,11 @@
 // LandingPage.astro - Base layout for conversion-focused landing pages
 // These pages target specific pain points and personas
 
+import '../ui/tokens.css';
 import OmniSearch from '../components/OmniSearch.astro';
+import OccasionHead from '../components/OccasionHead.astro';
+import OccasionPreviewBar from '../components/OccasionPreviewBar.astro';
+import HumanityEventBanner from '../components/HumanityEventBanner.astro';
 import SearchHighlight from '../components/SearchHighlight.astro';
 
 interface Props {
@@ -44,38 +48,21 @@ const { title, description, slug, persona, painPoint } = Astro.props;
   <title>{title}</title>
 
   <style is:global>
+    /* Alias the tokens.css semantic layer — never re-hardcode the palette. */
+    /* --color-bg, --color-text*, --color-border come from tokens.css. */
     :root {
-      --color-bg: #ffffff;
-      --color-bg-secondary: #f8f9fa;
-      --color-bg-tertiary: #f0f0f0;
-      --color-text: #2c3e50;
-      --color-text-secondary: #666;
-      --color-text-tertiary: #555;
-      --color-border: #e0e0e0;
-      --color-footer-bg: #2c3e50;
-      --color-footer-text: #ecf0f1;
-      --color-footer-text-muted: #95a5a6;
-      --color-links-muted: #bdc3c7;
-      /* Link colors - brand primary */
-      --color-link: #ff8c42;
-      --color-link-hover: #ff6b35;
+      --color-footer-bg: var(--bg-inverse);
+      --color-footer-text: var(--fg-inverse);
+      --color-footer-text-muted: var(--caro-grey-300);
+      --color-links-muted: var(--fg-muted);
+      /* Link colors come from tokens.css (--accent-text family). */
     }
 
+    /* Semantic tokens flip via tokens.css; only the footer differs. */
     .dark {
-      --color-bg: #1a1a1a;
-      --color-bg-secondary: #242424;
-      --color-bg-tertiary: #2a2a2a;
-      --color-text: #e0e0e0;
-      --color-text-secondary: #a0a0a0;
-      --color-text-tertiary: #b0b0b0;
-      --color-border: #404040;
-      --color-footer-bg: #0f0f0f;
-      --color-footer-text: #e0e0e0;
-      --color-footer-text-muted: #888;
-      --color-links-muted: #666;
-      /* Lighter link colors for dark mode contrast */
-      --color-link: #ffa76c;
-      --color-link-hover: #ff8c42;
+      --color-footer-bg: var(--caro-grey-950);
+      --color-footer-text: var(--caro-beige-100);
+      --color-footer-text-muted: var(--caro-grey-300);
     }
 
     * {
@@ -85,7 +72,7 @@ const { title, description, slug, persona, painPoint } = Astro.props;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      font-family: var(--font-body);
       background: var(--color-bg);
       color: var(--color-text);
       line-height: 1.6;
@@ -137,13 +124,7 @@ const { title, description, slug, persona, painPoint } = Astro.props;
       margin-bottom: 40px;
     }
   </style>
-</head>
-<body>
-  <OmniSearch />
-  <slot />
-  <SearchHighlight />
-
-  <!-- Theme initialization (prevent flash) -->
+  <!-- Theme initialization in <head> so dark-mode visitors see no light flash. -->
   <script is:inline>
     (function() {
       const savedTheme = localStorage.getItem('theme');
@@ -152,5 +133,25 @@ const { title, description, slug, persona, painPoint } = Astro.props;
       }
     })();
   </script>
+  <OccasionHead />
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <script is:inline>
+    // Skip link: move keyboard focus into <main>, not only the scroll position.
+    document.querySelector('.skip-link').addEventListener('click', function (e) {
+      var main = document.getElementById('main-content') || document.querySelector('main');
+      if (!main) return;
+      e.preventDefault();
+      main.setAttribute('tabindex', '-1');
+      main.focus();
+      history.replaceState(null, '', '#main-content');
+    });
+  </script>
+  <HumanityEventBanner />
+  <OmniSearch />
+  <slot />
+  <SearchHighlight />
+  <OccasionPreviewBar />
 </body>
 </html>

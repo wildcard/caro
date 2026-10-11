@@ -14,9 +14,9 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
 
 <div class="hero">
   <div class="container">
-    <div class="companion-badge">🐕 {t(lang, 'landing.hero.badge')}</div>
+    <div class="companion-badge"><span class="term-glyph" aria-hidden="true">▸</span> {t(lang, 'landing.hero.badge')}</div>
     <img src="/caro-prompting.gif" alt="Caro - 8-bit pixel art" class="pixel-art" />
-    <pre class="ascii-logo" aria-label="Caro">
+    <pre class="ascii-logo" role="img" aria-label="Caro">
  ██████╗ █████╗ ██████╗  ██████╗
 ██╔════╝██╔══██╗██╔══██╗██╔═══██╗
 ██║     ███████║██████╔╝██║   ██║
@@ -54,7 +54,7 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
     align-items: center;
     text-align: center;
     padding: 60px 20px;
-    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    background: var(--bg);
     transition: background 0.3s ease;
   }
 
@@ -64,11 +64,7 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
     line-height: 1.1;
     margin-bottom: 20px;
     font-weight: 700;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent;
+    color: var(--accent-text);
     white-space: pre;
     text-align: center;
     letter-spacing: 0;
@@ -76,8 +72,8 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
 
   .companion-badge {
     display: inline-block;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 14px;
@@ -85,6 +81,11 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
     margin-bottom: 20px;
     text-transform: uppercase;
     letter-spacing: 1px;
+  }
+
+  .term-glyph {
+    font-family: var(--font-mono);
+    font-weight: 700;
   }
 
   .tagline {
@@ -105,18 +106,18 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
   }
 
   .subtitle code {
-    background: rgba(255, 140, 66, 0.1);
+    background: rgba(239, 51, 51, 0.1);
     padding: 2px 8px;
     border-radius: 4px;
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 0.9em;
-    color: #ff8c42;
-    border: 1px solid rgba(255, 140, 66, 0.2);
+    color: var(--accent-text);
+    border: 1px solid rgba(239, 51, 51, 0.2);
   }
 
   :global(.dark) .subtitle code {
-    background: rgba(255, 140, 66, 0.15);
-    border-color: rgba(255, 140, 66, 0.3);
+    background: rgba(239, 51, 51, 0.15);
+    border-color: rgba(239, 51, 51, 0.3);
   }
 
   .plugin-install {
@@ -136,19 +137,24 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
   }
 
   .install-command {
-    background: rgba(255, 140, 66, 0.1);
+    background: rgba(239, 51, 51, 0.1);
     padding: 8px 16px;
     border-radius: 6px;
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 16px;
-    color: #ff8c42;
-    border: 1px solid rgba(255, 140, 66, 0.2);
+    color: var(--accent-text);
+    border: 1px solid rgba(239, 51, 51, 0.2);
     font-weight: 600;
+    /* Commands read left-to-right on RTL pages (he, ar, ur, fa). */
+    direction: ltr;
+    unicode-bidi: isolate;
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 
   :global(.dark) .install-command {
-    background: rgba(255, 140, 66, 0.15);
-    border-color: rgba(255, 140, 66, 0.3);
+    background: rgba(239, 51, 51, 0.15);
+    border-color: rgba(239, 51, 51, 0.3);
   }
 
   .github-star-wrapper {
@@ -168,8 +174,8 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
   .cta-button {
     display: inline-block;
     padding: 16px 40px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     text-decoration: none;
     border-radius: 8px;
     font-size: 18px;
@@ -178,23 +184,32 @@ const demoHref = lang === 'en' ? '#how-it-works' : `/${lang}/#how-it-works`;
   }
 
   .cta-button:hover {
+    background: var(--accent-fill-hover);
+    color: var(--on-accent);
+    text-decoration: none;
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 10px 25px color-mix(in srgb, var(--accent-fill) 30%, transparent);
+  }
+
+  .cta-button:focus-visible {
+    outline: 3px solid var(--fg-strong);
+    outline-offset: 3px;
   }
 
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid #ff8c42;
-    color: #ff8c42;
+    border: 2px solid var(--accent);
+    color: var(--accent-text);
   }
 
   .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.1);
-    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.2);
+    color: var(--accent-text);
+    background: rgba(239, 51, 51, 0.1);
+    box-shadow: 0 10px 25px rgba(239, 51, 51, 0.2);
   }
 
   :global(.dark) .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.15);
+    background: rgba(239, 51, 51, 0.15);
   }
 
   .pixel-art {
