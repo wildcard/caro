@@ -35,6 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   full schema. Idea sourced from
   [adolfousier/opencrabs](https://github.com/adolfousier/opencrabs)'s
   `tools.toml` ergonomic; re-implemented from scratch in caro.
+- **Gold-subset labels report.** `scripts/gold-labels-report.py` validates a
+  labelled `docs/ml/risk-gold-candidates.jsonl` (only the five labeller fields
+  may change, no static fields, tiers in `RiskLevel`) and prints the per-tier
+  counts against the stratification plan and the uncertain rate for the labels
+  PR body; `--static` joins the floor's verdicts once labels are frozen.
+  Guarded by `scripts/tests/test_gold_labels_report.py`. The gold-subset guide
+  now links ADR-018 (merged in #1511) and ADR-018's revision history records
+  the #1554 and #1558 data-gate items.
 - **Consensus-label export and ADR-018.** `CARO_EVAL_EXPORT_LABELS=<path>.jsonl`
   makes `cargo test --test evaluation` append `sft_export::decision_label_pairs`
   (local vs reference risk verdicts, #1466, now with `test_id` and including
@@ -75,6 +83,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   figure to the 94.8% CSR on the 58-case beta suite that ROADMAP.md records
   (README and CLAUDE.md quoted the older 93.1% v1.1.0 figure) and corrected
   the "zero telemetry" use-case copy to "off unless you opt in".
+- **`caro guard` (experimental): a PreToolUse guardian for agent harnesses.**
+  Claude Code, Grok Build and Codex send each shell command their agent is
+  about to run to `caro guard`, and OpenCode does the same through
+  `integrations/opencode/caro-guard.ts`. In shadow mode (the default) the
+  guard only logs what it would have decided, and `caro guard report`
+  summarizes the log. With `--mode enforce` it denies Critical commands and
+  asks about High ones. It never emits `allow`. See spec 011 and ADR-020.
+- **xAI Grok backend.** `--backend grok`, `--advisor grok`, and
+  `hybrid_remote = "grok"` (`XAI_API_KEY`, `remote-backends` feature), built
+  on a new shared OpenAI-compatible client. `openrouter` and `claude` are
+  now selectable with `--backend` as well.
 - **Calibration and tail-latency metrics in the evaluation harness.**
   `EvaluationResult` now records the backend's reported `confidence`, and
   every `BackendResult` carries `brier`, `ece`, `p50_execution_time_ms` and
@@ -198,6 +217,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`/ai-agent-safety` no longer shows invented testimonials.** The "What
+  Enterprise Teams Are Saying" section quoted three unnamed people ("Platform
+  Engineering Lead, Series B SaaS Company", …). An AI agent wrote the quotes
+  with the page; no customer gave them. The page no longer renders the
+  section, and `AITestimonials.astro` is marked `PLACEHOLDER CONTENT`.
 - **Homepage no longer shows invented testimonials.** The "What Engineers
   Are Saying" section quoted three made-up people under "Real results from
   developers who made the switch". The homepage no longer renders it (#1569).

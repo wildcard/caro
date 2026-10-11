@@ -19,7 +19,7 @@ Rules (see `.claude/rules/good-boy-scout.md` → "Stay in your lane"):
 
 ---
 
-### BW-041: OmniSearch inlines a 1.55 MB search index into every page
+### BW-041: OmniSearch inlines its full search index into every page
 
 **Found:** 2026-10-10, WCAG design pass (`feat/website-wcag-design-pass`)
 **Issue:** #1564
@@ -32,14 +32,15 @@ search overlay first opens (`website/src/components/OmniSearch.astro`).
 
 **Found:** 2026-09-27, PR #1470 session
 **Issue:** canonical #1098 (oldest open); 41 duplicates closed 2026-10-03; dups #1520, #1541 closed 2026-10-09
-**Status:** claimed-by integrator/20260903 (#1432). #1478 carries an overlapping
-fix; both are open and unmerged.
+**Status:** fix in #1478: `CLAUDE.md` points at `Cargo.toml` and repeats no
+version, and the PR closes #1098. #1432 was closed as superseded on 2026-10-09.
 **Needs human?:** no
-**Next step:** merge one of #1432 / #1478.
+**Next step:** merge #1478.
 Root cause: the daily QA routine (`trig_01Tk7DxyXV7LeYcFjgmTG1mZ`, 14:00 UTC)
 re-files instead of commenting on the existing issue. A "search before filing"
 edit was drafted 2026-10-03; only the maintainer can apply it (the routine was
-created via the API, so agents cannot update it).
+created via the API, so agents cannot update it). #1546 adds the
+search-before-filing step to the runner contract (CONTRACT.md section 6).
 
 ### BW-003: stale harness references (caro-eval, current-tasks.md, AGENTS.md, .kittify, --skill)
 
@@ -248,6 +249,43 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** yes (safety patterns are a security-policy decision; not applied from a feature branch)
 **Next step:** `SafetyConfig::moderate()` returns `Safe` for `bash -i >& /dev/tcp/…`, `curl -F "key=@$HOME/.ssh/id_rsa" …`, `env | curl --data-binary @- …`, `sudo setenforce 0`, a uid-0 `useradd`, `mysql -e 'DROP DATABASE …'`, `redis-cli FLUSHALL`, `aws s3 rm --recursive`, `kubectl delete namespace`, `aws ec2 terminate-instances`, and `sudo truncate -s 0 /var/log/*.log`, while `rm -rf ./target` is `Critical`. The 121-row candidate file (`docs/ml/risk-gold-candidates.jsonl`) and its companion static-tier file (`docs/ml/risk-gold-static-tiers.jsonl`, joined on `id`) record each command and its static verdict; decide which gaps become patterns. BW-026 is reserved by #1507 (Validate Translations).
 
+### BW-028: the CLA check never records a signature, so every external PR stays red
+
+**Found:** 2026-10-10, preparing first responses to external PRs (harness-plan session)
+**Issue:** #1555
+**Status:** open
+**Needs human?:** yes (a CI gate in `.github/workflows/cla.yml`, and part of the legal process)
+**Next step:** rename `custom-pr-sign-comment` to `custom-notsigned-prcomment` and set
+the one-line sign phrase, as #1555 shows. Then ask #1296, #1390 and #1415 to comment
+`recheck`.
+
+### BW-029: an unquoted prompt that starts with "list" runs the `list` subcommand
+
+**Found:** 2026-10-10, nightly CI triage (harness-plan session)
+**Issue:** #1550
+**Status:** open
+**Needs human?:** yes (CLI design: subcommands win, prompt fallback, or reserved names)
+**Next step:** the maintainer picks an option in #1550. Until then,
+`e2e_smoke_test_suite` and `e2e_shell_operator_truncation` fail in all 4
+Extended Tests jobs; BW-015 hides them, because most tests fail on the model first.
+
+### BW-030: 8 stray `.worktrees/*` gitlinks on main, no `.gitmodules`
+
+**Found:** 2026-10-10, nightly CI triage (harness-plan session)
+**Issue:** #1551
+**Status:** open
+**Needs human?:** no
+**Next step:** `git rm --cached` the 8 paths listed in #1551 (all added by
+`9599ca7`). `.gitignore` already covers `.worktrees/`.
+
+### BW-048: hybrid sanitizer leaks spaced paths and inline credentials
+
+**Found:** 2026-10-03 (cubic review on #1513)
+**Issue:** #1518. `PATH_RE` stops at whitespace, and there's no rule for `Authorization: Bearer`, `-u user:pass` or URL userinfo in the request input sent to hybrid remotes.
+**Status:** open
+**Needs human?:** yes (privacy policy: what may leave the machine)
+**Next step:** reuse `COMMAND_SECRETS` from `src/guard/log.rs` as reversible sanitizer rules; add tests.
+
 ### BW-031: ai_horde `Client-Agent` header hardcoded to `caro:1.4.0`
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-22)
@@ -312,7 +350,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** no
 **Next step:** honor a `CARO_CONFIG_DIR` env var in `src/config/mod.rs` and use it in the config tests.
 
-### BW-039: `ChromaDB Integration Tests` CI job fails after ~14 minutes
+### BW-039: `ChromaDB Integration Tests` CI job fails late in the run
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-07-18)
 **Issue:** #1342
