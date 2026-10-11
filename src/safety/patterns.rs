@@ -94,6 +94,29 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             description: "Recursive chmod on root directory".to_string(),
             shell_specific: None,
         },
+        DangerPattern {
+            // Recursive chmod that gives "others" write access, on any path
+            // (caro#1592). A world-writable mode is an octal mode whose last
+            // digit has the write bit (2, 3, 6, 7), or a symbolic clause such
+            // as `o+w`, `a+rwx` or `o=rwx`. `-R` / `--recursive` may come
+            // before or after the mode. `[^;&|]` keeps the match inside one
+            // command of a list or pipeline.
+            pattern: concat!(
+                r"\bchmod\s(?:[^;&|]*\s)?(?:",
+                // flag, then mode
+                r"(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)\s(?:[^;&|]*\s)?",
+                r"(?:0?[0-7]?[0-7]{2}[2367]|[ugoa+=,rwxXst-]*[oa][ugoa]*[+=][rwxXst]*w[ugoa+=,rwxXst-]*)",
+                r"|",
+                // mode, then flag
+                r"(?:0?[0-7]?[0-7]{2}[2367]|[ugoa+=,rwxXst-]*[oa][ugoa]*[+=][rwxXst]*w[ugoa+=,rwxXst-]*)",
+                r"\s(?:[^;&|]*\s)?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)",
+                r")(?:\s|$)",
+            )
+            .to_string(),
+            risk_level: RiskLevel::High,
+            description: "Recursive chmod that makes files world-writable".to_string(),
+            shell_specific: None,
+        },
         // HIGH: Privilege escalation
         DangerPattern {
             pattern: r"sudo\s+su\s*$".to_string(),
@@ -653,6 +676,54 @@ mod tests {
                 matches_high_or_critical(cmd),
                 "command {cmd:?} must match at least one High-or-Critical pattern \
                  (would be blocked by --safety strict)"
+            );
+        }
+    }
+
+    /// Regression test for caro#1592: a recursive chmod that makes a tree
+    /// world-writable is High risk on any path, not only on `/`. The
+    /// landing page's DevOps scenario shows `chmod -R 777 /var/www`.
+    #[test]
+    fn test_chmod_recursive_world_writable_is_high() {
+        let must_flag = [
+            "chmod -R 777 /var/www",           // the landing-page scenario
+            "sudo chmod -R 777 /var/www/html", // with sudo
+            "chmod -Rv 0777 ./uploads",        // relative path, 4-digit octal
+            "chmod --recursive 777 storage",   // GNU long flag
+            "chmod -R 777 folder/",            // /docs/safety lists this as High
+            "chmod 777 -R /srv/app",           // flag after the mode
+            "chmod -R 666 data",               // world-writable without execute
+            "chmod -R a+rwx /var/www",         // symbolic, all
+            "chmod -R o+w public",             // symbolic, others only
+            "chmod -R go+w shared",            // symbolic, group and others
+            "chmod -R u=rwx,o=rwx public",     // comma-separated clauses
+            "cd /srv && chmod -R 777 app",     // inside a command list
+        ];
+        for cmd in must_flag {
+            assert!(
+                matches_high_or_critical(cmd),
+                "command {cmd:?} makes a tree world-writable and must be High or Critical"
+            );
+        }
+
+        // Not world-writable, or not recursive: the new pattern must not
+        // raise these. Relative paths keep the older root-path patterns out
+        // of the result.
+        let must_not_flag = [
+            "chmod -R 755 public",    // the landing page's own suggestion
+            "chmod -R 775 shared",    // group-writable only
+            "chmod -R 750 app",       // no access for others
+            "chmod -R o-w public",    // removes world write
+            "chmod -R u+w src",       // owner only
+            "chmod -R g+w shared",    // group only
+            "chmod 777 notes.txt",    // not recursive (stays Moderate)
+            "chmod +x deploy.sh",     // execute bit only
+            "chmod -R 755 a; ls 777", // `777` is in another command
+        ];
+        for cmd in must_not_flag {
+            assert!(
+                !matches_high_or_critical(cmd),
+                "command {cmd:?} does not make a tree world-writable and must stay below High"
             );
         }
     }

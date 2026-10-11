@@ -126,6 +126,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Recursive world-writable `chmod` is High risk on any path (#1592).** The
+  validator flagged `chmod -R 777` only when the path started with `/`, and
+  never flagged symbolic modes. A new pattern flags a recursive `chmod` whose
+  mode gives others write access (`777`, `666`, `a+rwx`, `o+w`, `o=rwx`) on
+  any path, with `-R` before or after the mode. `chmod -R 755` and `o-w` stay
+  below High. The landing page's DevOps scenario now says "High Risk", not
+  "Blocked": High asks for confirmation in the default mode and is blocked
+  only in strict mode. Guarded by
+  `safety::patterns::tests::test_chmod_recursive_world_writable_is_high`.
 - **`/ai-agent-safety` no longer shows invented testimonials.** The "What
   Enterprise Teams Are Saying" section quoted three unnamed people ("Platform
   Engineering Lead, Series B SaaS Company", …). An AI agent wrote the quotes

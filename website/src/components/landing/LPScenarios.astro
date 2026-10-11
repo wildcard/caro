@@ -34,7 +34,7 @@ const roles = [
         context: "Fixing file permissions after deployment",
         dangerous: "chmod -R 777 /var/www",
         problem: "World-writable files are a security vulnerability",
-        caroSays: "🛑 Blocked: chmod 777 creates security vulnerabilities. Suggesting: chmod -R 755 for directories, 644 for files."
+        caroSays: "⚠️ High Risk: Recursive chmod 777 makes every file world-writable. Suggesting: chmod -R 755 for directories, 644 for files."
       }
     ]
   },
