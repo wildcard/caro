@@ -46,7 +46,11 @@
         "glossary": "शब्दावली",
         "terminalTerms": "टर्मिनल और Unix शब्द",
         "github": "GitHub",
-        "sourceCode": "सोर्स कोड"
+        "sourceCode": "सोर्स कोड",
+        "useCases": "Use Cases",
+        "byRoleSummary": "By role: SRE, DevOps, security",
+        "docs": "Docs",
+        "installAndReference": "Install, configure, reference"
       },
       "mobile": {
         "allComparisons": "सभी तुलनाएँ",

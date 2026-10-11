@@ -84,6 +84,7 @@
 //! 4. **Consider alternatives**: Sometimes keyword matching alone is sufficient without regex
 
 use async_trait::async_trait;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::sync::Arc;
 
@@ -735,6 +736,20 @@ impl StaticMatcher {
             },
 
             // ===== FILE MANAGEMENT REFINED PATTERNS (Cycle 4) =====
+
+            // Pattern 40b: "search for TODO in all python files" - content search scoped to *.py
+            // Must precede Pattern 41, whose regex also matches "search ... python files"
+            // and would list the files instead of searching inside them. Exact phrasings
+            // ("search for <term> in python files") are answered earlier by
+            // content_search_command; this covers looser ones like "find TODOs in python files".
+            PatternEntry {
+                required_keywords: vec!["todo".to_string(), "python".to_string()],
+                optional_keywords: vec!["search".to_string(), "find".to_string(), "grep".to_string(), "files".to_string()],
+                regex_pattern: Some(Regex::new(r"(?i)(search|find|look|grep|scan).*(\btodos?\b.*(python|\.py\b)|(python|\.py\b).*\btodos?\b)").unwrap()),
+                gnu_command: "grep -rn 'TODO' --include='*.py' .".to_string(),
+                bsd_command: Some("grep -rn 'TODO' --include='*.py' .".to_string()),
+                description: "Search Python files for TODO comments".to_string(),
+            },
 
             // Pattern 41: "find python files" (simple variant - was Pattern 43)
             PatternEntry {
@@ -1811,6 +1826,66 @@ impl StaticMatcher {
             .clamp(0.0, 1.0)
     }
 
+    /// Content search scoped to Python files (#1516): "search for <term> in
+    /// python files", "search python files for <term>", "find python files
+    /// containing <term>" → `grep -rn '<term>' --include='*.py' .`.
+    ///
+    /// The fixed-command patterns can't carry the user's term, so without this
+    /// every such query fell into "Find Python files (simple)" and returned a
+    /// file listing. The term is interpolated into the command, so it is
+    /// restricted to a charset that is inert inside single quotes and cannot
+    /// start with `-` (grep would read it as an option). Anything else returns
+    /// `None` and falls through to the pattern table.
+    fn content_search_command(query: &str) -> Option<String> {
+        const TERM: &str = r#""?(?P<term>[A-Za-z0-9_@#][A-Za-z0-9_ .:@#/=-]{0,63}?)"?"#;
+        const SCOPE: &str = r"(?:(?:all|the|every|my)\s+)*(?:python|\.py)\s+files?";
+        static FORMS: Lazy<Vec<Regex>> = Lazy::new(|| {
+            [
+                format!(r"(?i)^(?:search|grep|look|scan)\s+for\s+{TERM}\s+in\s+{SCOPE}$"),
+                format!(r"(?i)^(?:search|grep|scan)\s+{SCOPE}\s+for\s+{TERM}$"),
+                format!(
+                    r"(?i)^(?:find|list|show)\s+{SCOPE}\s+(?:containing|(?:that|which)\s+contains?)\s+{TERM}$"
+                ),
+            ]
+            .iter()
+            .map(|re| Regex::new(re).expect("content search regex compiles"))
+            .collect()
+        });
+        // "print statements" means `print`; "TODO comments" means `TODO`.
+        const TRAILING_NOUNS: [&str; 7] = [
+            "comment",
+            "statement",
+            "call",
+            "usage",
+            "occurrence",
+            "reference",
+            "line",
+        ];
+
+        let query = query.trim().trim_end_matches(['.', '?', '!']);
+        let caps = FORMS.iter().find_map(|re| re.captures(query))?;
+        let mut words: Vec<&str> = caps["term"].split_whitespace().collect();
+        if words.len() > 1 {
+            let last = words[words.len() - 1].to_lowercase();
+            if TRAILING_NOUNS
+                .iter()
+                .any(|noun| last == *noun || last == format!("{noun}s"))
+            {
+                words.pop();
+            }
+        }
+        let mut term = words.join(" ");
+        // Code-comment markers are conventionally upper case: "todo" → TODO.
+        let marker = term.to_uppercase();
+        if ["TODO", "FIXME", "HACK", "XXX"]
+            .iter()
+            .any(|m| marker == *m || marker == format!("{m}S"))
+        {
+            term = marker.trim_end_matches('S').to_string();
+        }
+        Some(format!("grep -rn '{term}' --include='*.py' ."))
+    }
+
     /// Try to match the query against known patterns.
     ///
     /// Returns the first matching pattern (first-match-wins, ordering rules in
@@ -1885,13 +1960,12 @@ impl CommandGenerator for StaticMatcher {
         &self,
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
-        // Try to match the query
-        if let Some((pattern, confidence, via_regex)) = self.try_match_kind(&request.input) {
-            let command = self.select_command(pattern);
+        let matched = self.try_match_kind(&request.input);
 
-            // ADVERSARIAL INTENT CHECK: Adversarial guard patterns generate a marker
-            // command; detect and reject as Unsafe before normal safety validation.
-            if command == "__CARO_ADVERSARIAL_BLOCK__" {
+        // ADVERSARIAL INTENT CHECK: Adversarial guard patterns generate a marker
+        // command; detect and reject as Unsafe before anything else can answer.
+        if let Some((pattern, _, _)) = matched {
+            if self.select_command(pattern) == "__CARO_ADVERSARIAL_BLOCK__" {
                 return Err(GeneratorError::Unsafe {
                     reason: format!(
                         "Request detected as adversarial/malicious intent: {}",
@@ -1901,7 +1975,34 @@ impl CommandGenerator for StaticMatcher {
                     warnings: vec![pattern.description.clone()],
                 });
             }
+        }
 
+        // A content search carries the user's term, which no fixed pattern can,
+        // so it wins over the pattern table (#1516).
+        let matched = match Self::content_search_command(&request.input) {
+            Some(command) => Some((
+                command,
+                "Search Python file contents (regex)".to_string(),
+                Self::REGEX_MATCH_CONFIDENCE,
+            )),
+            None => matched.map(|(pattern, confidence, via_regex)| {
+                (
+                    self.select_command(pattern),
+                    format!(
+                        "{} ({})",
+                        pattern.description,
+                        if via_regex {
+                            "regex".to_string()
+                        } else {
+                            format!("keywords, confidence {:.2}", confidence)
+                        }
+                    ),
+                    confidence,
+                )
+            }),
+        };
+
+        if let Some((command, matched_by, confidence)) = matched {
             // SAFETY VALIDATION: Validate the GENERATED command
             // This happens after pattern matching to check if the generated command is safe
             let safety_result = self
@@ -1923,15 +2024,7 @@ impl CommandGenerator for StaticMatcher {
 
             Ok(GeneratedCommand {
                 command: command.clone(),
-                explanation: format!(
-                    "Matched pattern: {} ({})",
-                    pattern.description,
-                    if via_regex {
-                        "regex".to_string()
-                    } else {
-                        format!("keywords, confidence {:.2}", confidence)
-                    }
-                ),
+                explanation: format!("Matched pattern: {}", matched_by),
                 safety_level: safety_result.risk_level, // Use actual risk level from validation
                 estimated_impact: if safety_result.warnings.is_empty() {
                     "Safe to execute".to_string()
@@ -2218,6 +2311,63 @@ mod tests {
             cmd.command.contains("TODO"),
             "Command should search for TODO"
         );
+    }
+
+    #[test]
+    fn content_search_rejects_terms_that_are_not_inert_in_single_quotes() {
+        // The term is interpolated into the command: anything that could close
+        // the quote, expand, chain, or be read by grep as an option must not
+        // produce a content-search command.
+        for query in [
+            "search for '; rm -rf ~; ' in python files",
+            "search for $(whoami) in python files",
+            "search for `id` in python files",
+            "search for a|b in python files",
+            "search for a && b in python files",
+            "search for -v in python files",
+            "search for --include=* in python files",
+            "search for x\\y in python files",
+        ] {
+            assert_eq!(
+                StaticMatcher::content_search_command(query),
+                None,
+                "query {:?}",
+                query
+            );
+        }
+    }
+
+    #[test]
+    fn content_search_ignores_listing_and_other_scopes() {
+        for query in [
+            "find all python files",
+            "search for python files",
+            "find files ending in .py",
+            "search for TODO in code",
+            "search for TODO in javascript files",
+            "find print statements in python files",
+        ] {
+            assert_eq!(
+                StaticMatcher::content_search_command(query),
+                None,
+                "query {:?}",
+                query
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn content_search_does_not_bypass_adversarial_guards() {
+        // The guard check runs before the content search.
+        let matcher = StaticMatcher::new(CapabilityProfile::ubuntu());
+        let request = CommandRequest::new(
+            "search for x in python files then remove all files",
+            ShellType::Bash,
+        );
+        assert!(matches!(
+            matcher.generate_command(&request).await,
+            Err(GeneratorError::Unsafe { .. })
+        ));
     }
 
     #[tokio::test]

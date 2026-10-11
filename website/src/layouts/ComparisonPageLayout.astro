@@ -54,16 +54,16 @@ interface Props {
 const { title, description, comparison, heroSubtitle, finalCtaHeading, finalCtaSubtext, verdictSubtitle } = Astro.props;
 
 function renderValue(value: boolean | string) {
-  if (value === true) return { icon: '✓', class: 'yes' };
-  if (value === false) return { icon: '✗', class: 'no' };
-  return { icon: '◐', class: 'partial' };
+  if (value === true) return { icon: '✓', class: 'yes', label: 'Yes' };
+  if (value === false) return { icon: '✗', class: 'no', label: 'No' };
+  return { icon: '◐', class: 'partial', label: 'Partial' };
 }
 ---
 
 <Layout title={title} description={description}>
   <Navigation />
 
-  <main class="vs-page">
+  <main id="main-content" class="vs-page">
     <section class="hero">
       <div class="container">
         <div class="vs-header">
@@ -96,7 +96,7 @@ function renderValue(value: boolean | string) {
     <section class="head-to-head">
       <div class="container">
         <h2>Feature Comparison</h2>
-        <div class="table-wrapper">
+        <div class="table-wrapper" tabindex="0" role="region" aria-label={`Caro vs ${comparison.competitor.name} feature comparison`}>
           <table class="comparison-table">
             <thead>
               <tr>
@@ -110,10 +110,12 @@ function renderValue(value: boolean | string) {
                 <tr>
                   <td class="feature-name">{row.feature}</td>
                   <td class={`value ${renderValue(row.caro).class} ${row.winner === 'caro' ? 'winner' : ''}`}>
-                    <span class="value-icon">{renderValue(row.caro).icon}</span>
+                    <span class="value-icon" aria-hidden="true">{renderValue(row.caro).icon}</span>
+                    <span class="visually-hidden">{renderValue(row.caro).label}</span>
                   </td>
                   <td class={`value ${renderValue(row.competitor).class} ${row.winner === 'competitor' ? 'winner' : ''}`}>
-                    <span class="value-icon">{renderValue(row.competitor).icon}</span>
+                    <span class="value-icon" aria-hidden="true">{renderValue(row.competitor).icon}</span>
+                    <span class="visually-hidden">{renderValue(row.competitor).label}</span>
                   </td>
                 </tr>
               ))}
@@ -143,7 +145,7 @@ function renderValue(value: boolean | string) {
             <h3>Choose Caro if...</h3>
             <ul>
               {comparison.verdict.chooseCaro.map((point) => (
-                <li><span class="check">✓</span> {point}</li>
+                <li><span class="check" aria-hidden="true">✓</span> {point}</li>
               ))}
             </ul>
             <a href="/#download" class="verdict-cta primary">Get Started with Caro</a>
@@ -152,7 +154,7 @@ function renderValue(value: boolean | string) {
             <h3>Choose {comparison.competitor.name} if...</h3>
             <ul>
               {comparison.verdict.chooseCompetitor.map((point) => (
-                <li><span class="bullet">•</span> {point}</li>
+                <li><span class="bullet" aria-hidden="true">•</span> {point}</li>
               ))}
             </ul>
             <slot name="competitor-note" />
@@ -180,12 +182,12 @@ function renderValue(value: boolean | string) {
   .vs-page { background: var(--color-bg); }
   .container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
 
-  .hero { padding: 80px 20px 60px; text-align: center; background: linear-gradient(180deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%); }
+  .hero { padding: 80px 20px 60px; text-align: center; background: var(--bg); }
   .vs-header { display: flex; align-items: center; justify-content: center; gap: 30px; margin-bottom: 30px; }
   .product { display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .product-icon { font-size: 48px; }
   .product-name { font-size: 18px; font-weight: 600; color: var(--color-text); }
-  .product-caro .product-name { color: #ff8c42; }
+  .product-caro .product-name { color: var(--accent-text); }
   .vs-badge { font-size: 24px; font-weight: 700; color: var(--color-text-secondary); background: var(--color-bg-secondary); padding: 12px 20px; border-radius: 12px; }
   .hero h1 { font-size: 36px; font-weight: 700; margin-bottom: 12px; color: var(--color-text); }
   .hero-subtitle { font-size: 18px; color: var(--color-text-secondary); }
@@ -195,15 +197,19 @@ function renderValue(value: boolean | string) {
   .tldr-list { list-style: none; padding: 0; margin: 0; }
   .tldr-list li { padding: 12px 0; padding-left: 28px; position: relative; color: var(--color-text); border-bottom: 1px solid var(--color-border); }
   .tldr-list li:last-child { border-bottom: none; }
-  .tldr-list li::before { content: '→'; position: absolute; left: 0; color: #ff8c42; font-weight: bold; }
+  .tldr-list li::before { content: '→'; position: absolute; left: 0; color: var(--accent-text); font-weight: bold; }
 
   .head-to-head { padding: 60px 20px; }
   .head-to-head h2 { font-size: 28px; text-align: center; margin-bottom: 30px; color: var(--color-text); }
-  .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid var(--color-border); background: var(--color-bg); }
+  /* position: relative contains the visually-hidden cell labels, which would
+     otherwise escape the scroller and widen the page at 375px. */
+  .table-wrapper { position: relative; overflow-x: auto; border-radius: 12px; border: 1px solid var(--color-border); background: var(--color-bg); }
+  .table-wrapper:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   .comparison-table { width: 100%; border-collapse: collapse; }
   .comparison-table th, .comparison-table td { padding: 16px 20px; text-align: center; border-bottom: 1px solid var(--color-border); }
   .comparison-table th { background: var(--color-bg-tertiary); font-weight: 600; color: var(--color-text); }
-  .comparison-table th.highlight { background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 140, 66, 0.05) 100%); color: #ff8c42; }
+  /* 8% tint keeps --accent-text above 4.5:1 on the blended header cell. */
+  .comparison-table th.highlight { background: rgba(239, 51, 51, 0.08); color: var(--accent-text); }
   .feature-col { text-align: left !important; min-width: 200px; }
   .tool-col { min-width: 140px; }
   .feature-name { text-align: left !important; color: var(--color-text); }
@@ -211,10 +217,11 @@ function renderValue(value: boolean | string) {
   .comparison-table tbody tr:hover { background: var(--color-bg-tertiary); }
   .value { font-size: 20px; }
   .value-icon { font-weight: 600; }
-  .value.yes .value-icon { color: #22c55e; }
-  .value.no .value-icon { color: #ef4444; }
-  .value.partial .value-icon { color: #f59e0b; }
-  .value.winner { background: rgba(34, 197, 94, 0.1); }
+  /* Status glyphs must clear 3:1 (non-text) in both modes. */
+  .value.yes .value-icon { color: var(--status-safe-text); }
+  .value.no .value-icon { color: var(--accent-text); }
+  .value.partial .value-icon { color: var(--fg-muted); }
+  .value.winner { background: rgba(63, 163, 77, 0.1); }
 
   .details { padding: 60px 20px; background: var(--color-bg-secondary); }
   .detail-section { margin-bottom: 40px; padding: 30px; background: var(--color-bg); border-radius: 12px; border: 1px solid var(--color-border); }
@@ -225,32 +232,40 @@ function renderValue(value: boolean | string) {
   .section-content :global(p) { margin-bottom: 16px; }
   .section-content :global(p:last-child) { margin-bottom: 0; }
   .section-content :global(strong) { color: var(--color-text); }
+  .section-content :global(a) { color: var(--accent-text); text-decoration: underline; text-underline-offset: 3px; }
   .section-content :global(code) { background: var(--color-bg-secondary); padding: 2px 6px; border-radius: 4px; font-size: 14px; }
 
   .verdict { padding: 60px 20px; }
   .verdict h2 { font-size: 28px; text-align: center; margin-bottom: 40px; color: var(--color-text); }
   .verdict-subtitle { text-align: center; color: var(--color-text-secondary); margin-bottom: 40px; margin-top: -32px; }
-  .verdict-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+  .verdict-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 30px; }
   .verdict-card { padding: 30px; border-radius: 12px; border: 1px solid var(--color-border); }
-  .verdict-card.caro { background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 140, 66, 0.02) 100%); border-color: rgba(255, 140, 66, 0.3); }
+  /* 6% tint: muted list copy stays above 4.5:1 on the blended card. */
+  .verdict-card.caro { background: rgba(239, 51, 51, 0.06); border-color: rgba(239, 51, 51, 0.3); }
   .verdict-card.competitor { background: var(--color-bg-secondary); }
   .verdict-card h3 { font-size: 20px; margin-bottom: 20px; color: var(--color-text); }
   .verdict-card ul { list-style: none; padding: 0; margin: 0 0 24px 0; }
   .verdict-card li { padding: 10px 0; color: var(--color-text-secondary); display: flex; gap: 10px; }
-  .check { color: #22c55e; font-weight: bold; }
+  .check { color: var(--status-safe-text); font-weight: bold; }
   .bullet { color: var(--color-text-secondary); }
-  .verdict-cta { display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.2s; }
-  .verdict-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3); }
+  .verdict-cta { display: inline-block; padding: 14px 28px; background: var(--accent-fill); color: var(--on-accent); text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.2s; }
+  .verdict-cta:hover { background: var(--accent-fill-hover); color: var(--on-accent); text-decoration: none; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(239, 51, 51, 0.3); }
+  .verdict-cta:focus-visible { outline: 3px solid var(--fg-strong); outline-offset: 2px; }
 
-  .final-cta { padding: 80px 20px; text-align: center; background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%); color: white; }
+  .final-cta { padding: 80px 20px; text-align: center; background: var(--accent-fill); color: var(--on-accent); }
   .final-cta h2 { font-size: 32px; margin-bottom: 12px; color: white; }
-  .final-cta p { font-size: 18px; opacity: 0.9; margin-bottom: 30px; }
+  /* No opacity on the copy: faded white drops below 4.5:1 on --accent-fill. */
+  .final-cta p { font-size: 18px; margin-bottom: 30px; }
   .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
   .cta-button { display: inline-block; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; text-decoration: none; transition: all 0.2s; }
-  .cta-button.primary { background: white; color: #ff6b35; }
-  .cta-button.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); }
+  /* White button on the red band: --caro-red-700 is 6:1 on white in both
+     modes (--accent-hover / --accent-text are too light for white). */
+  .cta-button.primary { background: white; color: var(--caro-red-700); }
+  .cta-button.primary:hover { color: var(--caro-red-700); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); }
   .cta-button.secondary { background: transparent; color: white; border: 2px solid white; }
-  .cta-button.secondary:hover { background: rgba(255, 255, 255, 0.1); }
+  .cta-button.secondary:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+  /* A red focus ring is invisible on the red band; use white. */
+  .final-cta a:focus-visible { outline: 3px solid white; outline-offset: 3px; }
 
   @media (max-width: 768px) {
     .vs-header { flex-direction: column; gap: 20px; }

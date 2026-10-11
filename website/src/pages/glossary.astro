@@ -18,7 +18,7 @@ export const searchMeta = {
 >
   <Navigation />
 
-  <div class="glossary-page">
+  <main id="main-content" class="glossary-page">
     <!-- Hero Section -->
     <section class="glossary-hero">
       <div class="container">
@@ -929,7 +929,7 @@ export const searchMeta = {
         </div>
       </div>
     </section>
-  </div>
+  </main>
 
   <Footer />
 </Layout>
@@ -950,14 +950,14 @@ export const searchMeta = {
   .glossary-hero {
     text-align: center;
     padding: 100px 20px 70px;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: var(--bg-inverse);
     color: #fff;
   }
 
   .hero-badge {
     display: inline-block;
-    background: rgba(255, 140, 66, 0.2);
-    color: #ff8c42;
+    background: rgba(239, 51, 51, 0.2);
+    color: var(--highlight);
     padding: 6px 16px;
     border-radius: 20px;
     font-size: 14px;
@@ -975,7 +975,7 @@ export const searchMeta = {
 
   .glossary-hero .tagline {
     font-size: 24px;
-    color: #ff8c42;
+    color: var(--highlight);
     margin: 0 0 24px;
     font-weight: 500;
   }
@@ -1023,9 +1023,9 @@ export const searchMeta = {
   }
 
   .nav-pill:hover {
-    background: #ff8c42;
-    border-color: #ff8c42;
-    color: #fff;
+    background: var(--accent-fill);
+    border-color: var(--accent);
+    color: var(--on-accent);
     text-decoration: none;
   }
 
@@ -1070,12 +1070,12 @@ export const searchMeta = {
   /* Terms Grid */
   .terms-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 24px;
   }
 
   .terms-grid.three-col {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   }
 
   /* Term Cards */
@@ -1085,16 +1085,17 @@ export const searchMeta = {
     border-radius: 12px;
     padding: 24px;
     transition: all 0.2s ease;
+    min-width: 0;
   }
 
   .term-card:hover {
-    border-color: #ff8c42;
-    box-shadow: 0 8px 24px rgba(255, 140, 66, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 8px 24px rgba(239, 51, 51, 0.1);
   }
 
   .term-card.featured {
-    border-color: #ff8c42;
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.05) 0%, var(--color-bg) 100%);
+    border-color: var(--accent);
+    background: var(--bg);
   }
 
   .term-card.compact {
@@ -1129,33 +1130,39 @@ export const searchMeta = {
     border-radius: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    background: rgba(255, 140, 66, 0.1);
-    color: #ff8c42;
+    background: rgba(239, 51, 51, 0.1);
+    color: var(--accent-text);
   }
 
+  /* Category hue lives in the tint and border; labels use text tokens that
+     clear AA on the blended tint in both modes. */
   .badge.cmd {
     background: rgba(52, 152, 219, 0.1);
-    color: #3498db;
+    border: 1px solid rgba(52, 152, 219, 0.45);
+    color: var(--fg-strong);
   }
 
   .badge.cmd.danger {
     background: rgba(231, 76, 60, 0.1);
-    color: #e74c3c;
+    border-color: rgba(231, 76, 60, 0.45);
+    color: var(--accent-text);
   }
 
   .badge.operator {
     background: rgba(155, 89, 182, 0.1);
-    color: #9b59b6;
+    border: 1px solid rgba(155, 89, 182, 0.45);
+    color: var(--fg-strong);
   }
 
   .badge.safety {
     background: rgba(46, 204, 113, 0.1);
-    color: #27ae60;
+    color: var(--status-safe-text);
   }
 
   .badge.privacy {
     background: rgba(26, 188, 156, 0.1);
-    color: #16a085;
+    border: 1px solid rgba(26, 188, 156, 0.45);
+    color: var(--fg-strong);
   }
 
   .definition {
@@ -1170,7 +1177,7 @@ export const searchMeta = {
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 13px;
-    color: #e74c3c;
+    color: var(--accent-text);
   }
 
   .definition strong {
@@ -1178,7 +1185,7 @@ export const searchMeta = {
   }
 
   .definition em {
-    color: #e74c3c;
+    color: var(--accent-text);
     font-style: normal;
     font-weight: 500;
   }
@@ -1192,9 +1199,10 @@ export const searchMeta = {
 
   .example code {
     display: block;
+    overflow-wrap: anywhere;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 14px;
-    color: #ff8c42;
+    color: var(--accent-text);
     margin-bottom: 4px;
   }
 
@@ -1208,8 +1216,8 @@ export const searchMeta = {
     display: flex;
     align-items: flex-start;
     gap: 16px;
-    background: rgba(255, 140, 66, 0.08);
-    border: 1px solid rgba(255, 140, 66, 0.2);
+    background: rgba(239, 51, 51, 0.08);
+    border: 1px solid rgba(239, 51, 51, 0.2);
     border-radius: 12px;
     padding: 20px 24px;
     margin-top: 40px;
@@ -1235,7 +1243,7 @@ export const searchMeta = {
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 13px;
-    color: #ff8c42;
+    color: var(--accent-text);
   }
 
   /* Permissions Chart */
@@ -1257,7 +1265,7 @@ export const searchMeta = {
 
   .chart-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
     gap: 16px;
   }
 
@@ -1274,7 +1282,7 @@ export const searchMeta = {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 18px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent-text);
     min-width: 40px;
   }
 
@@ -1287,7 +1295,7 @@ export const searchMeta = {
   /* Shortcuts Grid */
   .shortcuts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
     gap: 30px;
   }
 
@@ -1297,7 +1305,7 @@ export const searchMeta = {
     margin: 0 0 16px;
     color: var(--color-text);
     padding-bottom: 8px;
-    border-bottom: 2px solid #ff8c42;
+    border-bottom: 2px solid var(--accent);
     display: inline-block;
   }
 
@@ -1334,7 +1342,7 @@ export const searchMeta = {
 
   /* CTA Section */
   .glossary-cta {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: var(--bg-inverse);
     padding: 80px 20px;
     text-align: center;
   }
@@ -1374,14 +1382,32 @@ export const searchMeta = {
   }
 
   .cta-button.primary {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: #fff;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .cta-button.primary:hover {
+    background: var(--accent-fill-hover);
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
+    box-shadow: 0 8px 20px rgba(239, 51, 51, 0.4);
     text-decoration: none;
+  }
+
+  /* CTAs sit on the console surface: yellow ring reads there, red does not. */
+  .cta-button:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+  }
+
+  .nav-pill:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-button.primary:hover {
+      transform: none;
+    }
   }
 
   .cta-button.secondary {
@@ -1415,11 +1441,11 @@ export const searchMeta = {
     }
 
     .terms-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .shortcuts-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .quick-nav {
@@ -1442,7 +1468,7 @@ export const searchMeta = {
   }
 
   .dark .term-card.featured {
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, var(--color-bg-secondary) 100%);
+    background: var(--color-bg-secondary);
   }
 
   .dark .example {

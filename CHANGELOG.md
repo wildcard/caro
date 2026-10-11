@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Consensus-label export and ADR-018.** `CARO_EVAL_EXPORT_LABELS=<path>.jsonl`
+  makes `cargo test --test evaluation` append `sft_export::decision_label_pairs`
+  (local vs reference risk verdicts, #1466, now with `test_id` and including
+  Safety cases) to disk via the new `EvaluationHarness::run_with_results`, so
+  the gate-classifier experiment proposed in
+  `docs/adr/ADR-018-gate-classifier-calibration-experiment.md` (Phase 4 of the
+  Jev strategy, tracking #1510) has a data source. Result collection is
+  guarded by `evaluation::harness::tests::test_run_with_results_returns_every_result`;
+  the record shape by `evaluation::sft_export::tests::decision_pairs_split_accepted_and_corrected`.
 - **Risk-gate calibration baseline in the evaluation harness** (#1510).
   When a backend's own risk judge and the reference labeller both run,
   `BackendResult.risk_gate` carries the Brier score and ECE of the local
@@ -86,6 +95,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the model prompt; that waits on eval evidence.
 
 ### Fixed
+
+- **Website WCAG 2.2 AA pass and accessible occasion themes.** axe finds 0
+  violations in 220 runs: the 50 English pages, the new gallery and 4
+  locale homepages, each in light and dark at 1440px and 375px. The same
+  50 English pages had 11,109 before; no page scrolls sideways at 375px
+  (10 did). The
+  brand tokens gain an AA-safe muted grey, CTA fill and red text; docs pages
+  load the brand tokens at all. Navigation is keyboard-operable, exposes
+  Blog and a GitHub link on phones, and every layout has a skip link. The
+  31 holiday, national-day and humanity-event looks now come from one
+  registry (`website/src/config/occasions.ts`) with solid, contrast-tested
+  CTA fills, decorative SVG art and a `?occasion=` preview; see `/occasions`.
+  The homepage navigation now offers the in-season holiday picker too.
+  One-day holiday windows follow the visitor's local calendar day (Yom
+  Ha'atzmaut no longer starts on the evening of Yom HaZikaron west of
+  Greenwich), and a saved national-day theme applies only in that country's
+  timezones.
 
 - **`--explain` output is correct and legible.** The headline no longer reads
   "Use `find` Uses find to …". The option breakdown splits combined flags

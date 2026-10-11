@@ -174,7 +174,10 @@ With `CARO_EVAL_BACKENDS=ollama:<model>` (a backend that has a judge; the
 static matcher does not) and `CARO_EVAL_REFERENCE_JUDGE` set, each generated
 command gets both the backend's own risk verdict (the reference judge turns
 the local pass on, so `CARO_EVAL_JUDGE_RISK` is not needed as well) and the
-reference's, and the table reports per-backend agreement (#1466).
+reference's, and the table reports per-backend agreement (#1466). Add
+`CARO_EVAL_EXPORT_LABELS=<path>.jsonl` to the same run to write those paired
+verdicts as the consensus-label corpus for the gate-classifier experiment
+(ADR-018); without a reference judge the file is written empty.
 The same run also prints the **risk-gate baseline** (#1510): the local
 verdict's confidence scored against agreement with the reference labeller,
 as Brier and ECE with 95% percentile-bootstrap intervals (1000 resamples,
