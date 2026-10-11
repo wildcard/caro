@@ -55,7 +55,8 @@ Example: `ADR-001-enterprise-community-architecture.md`
 | [ADR-016](./ADR-016-ponytail-pragmatic-reviewer.md) | Ponytail Pragmatic-Skeptic Reviewer (Additive Adoption) | Accepted | 2026-06-14 |
 | [ADR-017](./ADR-017-typed-decisions-and-calibrated-confidence.md) | Typed Decisions and Calibrated Confidence for Pipeline Gates | Accepted | 2026-09-22 |
 | [ADR-018](./ADR-018-gate-classifier-calibration-experiment.md) | Gate-Classifier Experiment with a Calibration Objective | Proposed | 2026-10-03 |
-| [ADR-019](./ADR-019-caroml-version-header.md) | CaroML Version Header | Accepted | 2026-10-10 |
+| [ADR-019](./ADR-019-autoharness-harness-hygiene.md) | Harness Hygiene Lessons from autoharness (Additive Adoption) | Proposed | 2026-09-26 |
+| [ADR-020](./ADR-020-caroml-version-header.md) | CaroML Version Header | Accepted | 2026-10-10 |
 
 ## Contributing to ADRs
 

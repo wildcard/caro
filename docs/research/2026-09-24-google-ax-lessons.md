@@ -41,7 +41,7 @@ AX's machinery doesn't transfer, but several of its design choices do:
 |---|---|
 | Execution | `src/execution/executor.rs` runs `sh -c` directly. No sandbox, rlimits or network fence. Before this PR, `with_timeout()` never killed anything. |
 | Sandbox | ADR-010 (bubblewrap) is *Proposed*, not implemented |
-| Task files | CaroML `.caro` / Carofile take an optional `CAROML 1` header; unknown versions are rejected (ADR-019). `caroml.lock` has its own `SCHEMA_VERSION = 2`. |
+| Task files | CaroML `.caro` / Carofile take an optional `CAROML 1` header; unknown versions are rejected (ADR-020). `caroml.lock` has its own `SCHEMA_VERSION = 2`. |
 | Runner semantics | `src/caroml/runner.rs`: sequential, stop on first failure. The behavior is not documented as a contract. |
 | Credentials | Hard-coded env var names (`backends/remote/claude.rs`, `openrouter.rs`) |
 | Network egress | Only which backend URL you configure. Executed commands have unrestricted egress. |
@@ -81,7 +81,7 @@ so any grammar change silently changes behavior for everyone's saved task
 library. Adopt an optional header such as `CAROML 1` (or `REM caroml:v1`). Its
 absence means v1, and the parser rejects unknown major versions with a clear
 error. The lock file already does this, so the task files that feed it should
-too. Done in ADR-019: `CAROML <major>`, enforced by both parsers.
+too. Done in ADR-020: `CAROML <major>`, enforced by both parsers.
 
 Note that AX *declares* `apiVersion` but never checks it: any string is
 accepted (`pkg/apis/v1alpha1/types.go`, `internal/store/redis/store.go`). A
@@ -181,7 +181,7 @@ trail and the governance spike together, without new infrastructure.
 | P1 | SIGINT forwarding to the process group, then a default step timeout in `caro run` / `caro do` | `src/execution/executor.rs`, `src/caroml/runner.rs`, `jobs.rs` |
 | P1 | SIGTERM, grace period, then SIGKILL | `src/execution/executor.rs` |
 | P1 | Wire or remove `AgentLoop._max_iterations` | `src/agent/mod.rs` |
-| P1 | ✅ ADR-019: CaroML version header, enforced by both parsers | `docs/adr/`, `src/caroml/ast.rs`, `parser.rs`, `carofile.rs` |
+| P1 | ✅ ADR-020: CaroML version header, enforced by both parsers | `docs/adr/`, `src/caroml/ast.rs`, `parser.rs`, `carofile.rs` |
 | P1 | Runner contract doc + contract test | `docs/caroml/`, `tests/` |
 | P2 | Network-off by default in ADR-010 sandbox, `NEED net:` opt-in | ADR-010, `src/caroml/` |
 | P2 | Named model profiles with `api_key_env` | `src/config/`, `src/backends/remote/` |
@@ -287,12 +287,12 @@ full survey on 2026-09-24.
 | Pri | AX concept | Harness gap | Concrete change |
 |---|---|---|---|
 | ✅ | Budgets are part of the Task spec | `loop.sh` defaulted to `RALPH_MAX_ITERATIONS=0` (unlimited), with no per-iteration time limit | **Done in this PR:** default cap 20, `RALPH_ITERATION_TIMEOUT` (30m) when `timeout` or `gtimeout` is installed (otherwise iterations are unlimited, with a warning), and a non-integer cap is rejected. Guard: `tests/harness/loop.test.sh`. Still open: `schedule.yaml` `timeout_minutes` is not enforced by anything in-repo |
-| P1 | Status conditions written back | `.claude/automation/state/last_run.json` and `metrics.json` have been null since 2026-01-11 | Each routine appends one JSONL record per run: `{routine, started, finished, phase: Succeeded/Failed/TimedOut, reason, pr, issues}`, much like AX's phase plus conditions |
+| ✅ | Status conditions written back | `.claude/automation/state/last_run.json` and `metrics.json` had been null since 2026-01-11, and a routine's platform status only means its session ended | **Done:** `bin/routine-status record` appends one JSONL record per run (`routine, phase: Succeeded/Failed/TimedOut/Blocked, reason, started, finished, pr, issues`) to the `automation/routine-status` branch; `show --check` flags failed or overdue routines. The two never-written state files are removed. Guard: `tests/harness/routine-status.test.sh`. Still open: no routine calls the helper yet; each routine's prompt (stored in its trigger, not the repo) needs the `record` call |
 | ✅ | Never fabricate success | `evaluation.yml` masked the harness exit with `\|\| true`. Worse, the harness rejects `embedded-*` (`Invalid backend`, exit 2), which the job read as "not available" and passed. It also ignores `--backend` for `mlx`, so the "mlx" job reported static_matcher's numbers | **Done in this PR:** harness errors now fail the job. Backends the harness doesn't support are skipped with a visible `::notice::` instead of fake results. Follow-up: wire real backends into `tests/evaluation/main.rs` (its TODOs) |
-| P2 | Workspace prepared once, with a marker | No SessionStart `startup` hook, so cloud sessions start cold (no `cargo fetch`, no `bd`, no node for the continuity hooks) | Add a `startup` hook that runs idempotent setup, keeps a marker in `target/` (durable), and skips on resume. The existing `session-start-continuity.sh` only handles `resume\|compact\|clear` |
+| ✅ | Workspace prepared once | No SessionStart `startup` hook, so cloud sessions started cold | **Done (#1470):** `.claude/hooks/session-start.sh` runs `cargo fetch`, checks the toolchain and guard hooks, and prints READY / NOT READY. No marker: the fetch is idempotent and ~0.7 s once cached |
 | P2 | Least privilege per role | 31 of 34 agents inherit every tool | Give every agent an explicit `tools:` line. The ones that file issues or run caro need Bash; reviewers and researchers don't |
 | P2 | Gateway egress allowlist | No CI job restricts egress. Agents run the real `caro` binary with full Bash | Add `step-security/harden-runner` in audit mode to CI, then `block` for jobs with a known host set. Pair with open PR #1438 (sandboxed execution for verification) |
-| P2 | Runner contract document | Routines are prose. Their inputs, outputs and exit semantics aren't written down | A short `.claude/automation/CONTRACT.md` covering what a routine reads (env, schedule entry), what it must write (the status record above), how it signals failure, and a max runtime |
+| ✅ | Runner contract document | Routines are prose. Their inputs, outputs and exit semantics aren't written down | **Done:** `.claude/automation/CONTRACT.md`: preflight first (`Blocked`), exactly one status record per run, never `Succeeded` on a failure path, a stated max runtime (`TimedOut`) |
 | P2 | Model as named resource | `model: sonnet` is hard-coded in 33 agent files | One place to change it: prefer `inherit`, or a single profile for the default |
 | P3 | Two-phase delete | Worktree cleanup relies on the `caro.prune` audit plus a hook | Keep it. AX confirms the "mark, tear down, then delete the record" order. Also untrack the 8 empty `.worktrees/` stubs that are in git even though the directory is gitignored |
 | P3 | Declarative, versioned specs | `schedule.yaml` has no version field, and the `ml_fine_tune_loop` entry is malformed (no `enabled` or `timeout`) | Add `version: 1` and a schema check in CI (strict decoding, per AX's `types.go`) |

@@ -128,7 +128,7 @@ impl std::fmt::Display for ParseError {
 
 impl std::error::Error for ParseError {}
 
-/// The CaroML major version this build reads (ADR-019).
+/// The CaroML major version this build reads (ADR-020).
 pub const CAROML_MAJOR_VERSION: u32 = 1;
 
 /// The version of a file with no `CAROML <major>` header. It stays 1 for
@@ -138,11 +138,11 @@ pub const IMPLICIT_CAROML_VERSION: u32 = 1;
 
 // This build has one grammar, so headerless files and `CAROML 1` files take
 // the same path. A second major version needs per-version dispatch first,
-// so headerless files keep version-1 rules (ADR-019). This stops the build
+// so headerless files keep version-1 rules (ADR-020). This stops the build
 // until that dispatch exists.
 const _: () = assert!(
     CAROML_MAJOR_VERSION == IMPLICIT_CAROML_VERSION,
-    "add per-version parsing before raising CAROML_MAJOR_VERSION (ADR-019)"
+    "add per-version parsing before raising CAROML_MAJOR_VERSION (ADR-020)"
 );
 
 /// Check a `CAROML <major>` header line. `seen_content` is true when any
@@ -198,7 +198,7 @@ pub enum ParseErrorKind {
     RunOutsideJob,
     /// `RUN <alias>` referenced an alias not declared by any prior `USE`.
     UndefinedAlias(String),
-    // ---- Version header (ADR-019) ----
+    // ---- Version header (ADR-020) ----
     /// `CAROML <major>` named a major version this build does not know.
     UnsupportedVersion(String),
     /// `CAROML <major>` was not the first non-`REM` line, or appeared twice.
