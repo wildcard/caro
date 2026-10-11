@@ -31,7 +31,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1500](https://github.com/wildcard/caro/issues/1500) | P2 | embedded | CPU backend stub returns misleading "What exactly should be deleted?" for all queries | closed (duplicate) | 2026-10-02 |
 | [#1501](https://github.com/wildcard/caro/issues/1501) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 — drift recurred after #1044 | closed (duplicate) | 2026-10-02 |
 | [#1179](https://github.com/wildcard/caro/issues/1179) | P1 | ai | `caro ai --once` lacks static-matcher fallback — always requires model download | open | 2026-05-28 |
-| [#1408](https://github.com/wildcard/caro/issues/1408) | P2 | ai | `caro ai --once` provides zero user feedback during model initialization | open | 2026-08-15 |
+| [#1408](https://github.com/wildcard/caro/issues/1408) | P1 | ai | `caro ai --once` provides zero user feedback during model initialization | open | 2026-08-15 |
 | [#1540](https://github.com/wildcard/caro/issues/1540) | P2 | ai | caro ai --once hangs silently with no feedback when no backend is ready | closed (duplicate) | 2026-10-08 |
 | [#1541](https://github.com/wildcard/caro/issues/1541) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (recurrence of #1044) | closed (duplicate) | 2026-10-08 |
 | pending-2 | P2 | ai | `caro ai --once` hangs silently (no output, no timeout msg) when no model; `doctor` doesn't warn | duplicate of #1408 and #1179 (both open), see #1540 — do not file | 2026-10-10 |
@@ -66,6 +66,8 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1523](https://github.com/wildcard/caro/issues/1523) | P1 | embedded | all embedded CPU paths return wrong "Clarification needed" error — cpu.rs:63 checks full system prompt (contains "rm -rf") instead of user request text; affects ai --once, --force-llm, and any static-matcher miss | closed (duplicate) | 2026-10-04 |
 | [#1248](https://github.com/wildcard/caro/issues/1248) | P2 | ai | caro ai silently hangs in non-TTY; no error or --once suggestion | open | pre-2026-10-05 |
 | [#1530](https://github.com/wildcard/caro/issues/1530) | P2 | cli | config set backend has no 'auto' option — can't restore auto-detect without full config reset | open | 2026-10-06 |
+| [#1272](https://github.com/wildcard/caro/issues/1272) | P1 | ai | `caro ai --once` hangs silently with zero output when no backend is available | open | 2026-06-26 |
+| [#1603](https://github.com/wildcard/caro/issues/1603) | P2 | docs/ops | QA memory files stuck at 2026-05-07 bootstrap — 25+ update PRs unmerged | open | 2026-10-11 |
 
 ---
 
