@@ -9,9 +9,15 @@ and the static validator's verdicts kept apart in
 [`risk-gold-static-tiers.jsonl`](./risk-gold-static-tiers.jsonl).
 **Not** a set of labels: every `gold_tier` in the candidates file is `null`.
 
-ADR-018 is cited throughout. It is on PR #1511 and not yet on `main`, so this
-document does not link to it; the stop rule and the raise-only invariant are
-restated here where they are used.
+ADR-018 is cited throughout:
+[`docs/adr/ADR-018-gate-classifier-calibration-experiment.md`](../adr/ADR-018-gate-classifier-calibration-experiment.md)
+(merged in #1511). The stop rule and the raise-only invariant are restated
+here where they are used, so this document reads on its own.
+
+Before opening the labels PR, run
+`python3 scripts/gold-labels-report.py docs/ml/risk-gold-candidates.jsonl`.
+It checks that only the five labeller fields changed and prints the per-tier
+counts and the uncertain rate for the PR body.
 
 ## Why
 
@@ -201,9 +207,10 @@ In this order, so the proxy is measured before it is used:
 ## See also
 
 - `.claude/rules/validation-discipline.md` — the gate this subset serves
-- ADR-018, gate-classifier calibration experiment (PR #1511, not yet on
-  `main`; the file lands at `docs/adr/ADR-018-gate-classifier-calibration-experiment.md`)
+- [`docs/adr/ADR-018-gate-classifier-calibration-experiment.md`](../adr/ADR-018-gate-classifier-calibration-experiment.md)
   — the experiment design; item 4 of its decision is this document
+- `scripts/gold-labels-report.py` — validates the labelled file and prints
+  the labels-PR report
 - `docs/ml/sft-data-pipeline.md` — why Safety-category rows are dropped from
   generation SFT and kept for the risk-label feed
 - `docs/PERFORMANCE.md` — the risk-gate baseline this subset calibrates
