@@ -63,8 +63,9 @@ Run one icon at a time, from [`definitions.json`](definitions.json).
    16× blocks).
 3. Save them as `assets/icons/candidates/<id>/<id>-<n>.png` (`n` = 1–4).
    Keep them out of `assets/kyaro/`: generated art is not Alrezky's.
-4. Snap and vectorize each candidate before review:
-   `python3 scripts/pixel_snap.py assets/icons/candidates/<id>/<id>-<n>.png --grid 48 --out assets/icons/candidates/<id>/snapped`.
+4. Snap and vectorize each candidate before review, with the definition's
+   own `grid` (48 for card and feature slots, 24 for small slots):
+   `python3 scripts/pixel_snap.py assets/icons/candidates/<id>/<id>-<n>.png --grid <grid> --out assets/icons/candidates/<id>/snapped`.
    It writes the native PNG, the SVG and an 8× preview, and prints the
    report (palette distance, unsure cells, margins).
 5. Add `assets/icons/candidates/<id>/NOTES.md` with the model, the prompt
