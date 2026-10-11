@@ -439,6 +439,8 @@ pub enum BackendType {
     AiHorde,
     /// Hybrid privacy gateway (local sanitizer + remote enhancer)
     Hybrid,
+    /// xAI Grok via its OpenAI-compatible API
+    Grok,
 }
 
 impl std::str::FromStr for BackendType {
@@ -457,6 +459,7 @@ impl std::str::FromStr for BackendType {
             "mesh" | "mesh-llm" => Ok(Self::Mesh),
             "ai-horde" | "aihorde" | "horde" => Ok(Self::AiHorde),
             "hybrid" => Ok(Self::Hybrid),
+            "grok" | "xai" => Ok(Self::Grok),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -476,6 +479,7 @@ impl std::fmt::Display for BackendType {
             Self::Mesh => write!(f, "mesh"),
             Self::AiHorde => write!(f, "ai-horde"),
             Self::Hybrid => write!(f, "hybrid"),
+            Self::Grok => write!(f, "grok"),
         }
     }
 }
@@ -952,8 +956,12 @@ pub struct BackendsConfig {
     /// not both.
     #[serde(default)]
     pub ai_horde_key_env: Option<String>,
-    /// Which remote enhancer the `hybrid` backend wraps: `"mesh"` (default) or
-    /// `"ai-horde"`.
+    /// xAI Grok API base URL (default `https://api.x.ai/v1`, or
+    /// `$XAI_API_BASE_URL`). The key always comes from `$XAI_API_KEY`.
+    #[serde(default)]
+    pub xai_url: Option<String>,
+    /// Which remote enhancer the `hybrid` backend wraps: `"mesh"` (default),
+    /// `"ai-horde"`, or `"grok"`.
     #[serde(default)]
     pub hybrid_remote: Option<String>,
     /// Allow sending prompts to public/untrusted inference networks. When
@@ -1408,6 +1416,7 @@ impl ConfigSchema {
             "backends.ai_horde_key_env".to_string(),
             "String".to_string(),
         );
+        known_keys.insert("backends.xai_url".to_string(), "String".to_string());
         known_keys.insert("backends.hybrid_remote".to_string(), "String".to_string());
         known_keys.insert("backends.allow_public".to_string(), "bool".to_string());
 

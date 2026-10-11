@@ -31,8 +31,8 @@ fn no_backend_prompt_asks_for_echo_clarify() {
             include_str!("../src/backends/remote/ollama.rs"),
         ),
         (
-            "remote/openrouter.rs",
-            include_str!("../src/backends/remote/openrouter.rs"),
+            "remote/openai_compat.rs",
+            include_str!("../src/backends/remote/openai_compat.rs"),
         ),
         (
             "remote/vllm.rs",
