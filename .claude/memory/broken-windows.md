@@ -390,7 +390,7 @@ waitlist/playbook locale files; #1508 is the CI symptom of both).
 
 **Found:** 2026-10-11, broken-window sweep (main health)
 **Issue:** #1340. The cleanup step deletes `~/.cargo/bin/caro` but not cargo's install record. `setup.sh` runs `cargo install caro`, which prints "already installed" and installs nothing.
-**Status:** claimed-by sweep/2026-10-11-BW-052
+**Status:** claimed-by sweep/2026-10-11-BW-052 (#1605)
 **Needs human?:** no (test-step fix; no gate changes)
 **Next step:** merge the PR; the Install workflow runs on it.
 
