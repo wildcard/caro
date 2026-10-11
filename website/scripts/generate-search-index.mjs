@@ -41,8 +41,8 @@ function getCategoryFromPath(filePath) {
   return 'main';
 }
 
-// Every search row shows the same terminal glyph: the page title carries the
-// meaning, and the site uses no emoji as icons (docs/brand/ICONOGRAPHY.md).
+// Every search row shows the same terminal glyph (docs/brand/ICONOGRAPHY.md):
+// the page title carries the meaning.
 const SEARCH_ICON = '▸';
 
 // Extract ALL text content from HTML/Astro content

@@ -607,11 +607,11 @@ const vsAlternatives = [
         {commonMistakes.map((mistake) => (
           <div class="mistake-card">
             <div class="mistake-wrong">
-              <span class="wrong-label">✗ Common mistake</span>
+              <span class="wrong-label"><TermGlyph g="✗" /> Common mistake</span>
               <code>{mistake.wrong}</code>
             </div>
             <div class="mistake-right">
-              <span class="right-label">✓ Better approach</span>
+              <span class="right-label"><TermGlyph g="✓" /> Better approach</span>
               <code>{mistake.right}</code>
             </div>
             <div class="mistake-explain">{mistake.explanation}</div>

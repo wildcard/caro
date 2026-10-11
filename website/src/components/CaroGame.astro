@@ -93,7 +93,7 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
 
         <!-- Lives indicator -->
         <div class="footer-bar">
-          <div id="lives" class="lives">
+          <div id="lives" class="lives" role="img" data-label={t(lang, 'landing.game.overlay.lives')} aria-label={`${t(lang, 'landing.game.overlay.lives')}: 3`}>
             <TermGlyph g="♥" class="heart" />
             <TermGlyph g="♥" class="heart" />
             <TermGlyph g="♥" class="heart" />
@@ -850,6 +850,8 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
     function updateLives() {
       const hearts = livesEl!.querySelectorAll('.heart');
       hearts.forEach((h, i) => h.classList.toggle('lost', i >= lives));
+      // The hearts are aria-hidden glyphs; the count is the accessible name.
+      livesEl!.setAttribute('aria-label', `${livesEl!.dataset.label}: ${lives}`);
       livesDisplayEl!.textContent = '♥ '.repeat(lives).trim() || '♡';
     }
 

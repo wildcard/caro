@@ -13,7 +13,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-const EMOJI_BUDGET = 1877;
+const EMOJI_BUDGET = 1868;
 
 const GLYPHS = ['▸', '■', '$', '❯', '>_', '✓', '✗', '♥'];
 // Pictographic code points that render as plain text in our fonts.
