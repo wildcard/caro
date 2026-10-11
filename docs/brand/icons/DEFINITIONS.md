@@ -6,9 +6,10 @@
 
 ## What this is
 
-The website uses emoji as icons in about 380 places. This file defines
-every icon the site needs instead: one definition per meaning, not per
-emoji. A definition says what the icon means, where it goes, and what it
+The website uses emoji as icons. The inventory of 2026-10-11 found 510
+emoji in `website/src`; 289 of them carry a meaning (see Catalog). This
+file defines every icon the site needs instead: one definition per
+meaning, not per emoji. A definition says what the icon means, where it goes, and what it
 must and must not show. It is the input for three steps:
 
 ```
@@ -53,6 +54,9 @@ The bar is the Kyaro sprite set. Open the style sheet before you start.
 ## Brief for Codex
 
 Run one icon at a time, from [`definitions.json`](definitions.json).
+Take only definitions with `"status": "to-generate"`, in `priority` order
+(1 first). Skip `exists` and `glyph`. An `owner-call` definition waits
+for the owner's decision; its `variants` each carry their own `prompt`.
 
 1. Read the icon's definition and open
    `docs/brand/icons/reference/kyaro-style-sheet.png`. For a Kyaro pose,
@@ -86,4 +90,142 @@ A candidate passes when every answer is yes:
 
 ## Catalog
 
-_The per-icon definitions follow below and in [`definitions.json`](definitions.json)._
+The inventory of 2026-10-11 found 510 emoji in `website/src`:
+
+```
+510 emoji
+ ├─ 289 carry a meaning ──▶ 44 definitions below
+ │    ├─ 150 slots of 28 px or more ──▶ an icon
+ │    └─ 139 smaller or inline slots ──▶ the definition's small-slot glyph
+ ├─ 194 show an OS, vendor or tool ──▶ out of scope (decision 4)
+ └─ 27 are not icons (dead code, doc comments, prose)
+```
+
+The same emoji means different things on different pages: 🔒 lands in
+seven definitions and 🚀 in four. Swap icons slot by slot, never by
+find-and-replace on the emoji. `definitions.json` lists every slot with its
+file, line, size, surface and label. Lines drift, so match a slot by its
+surface and label.
+
+Every generated definition uses the 48 grid: each one has a slot of 32 px
+or more. A slot from 32 to 48 px grows to the 56 px tile, as
+`LPFeatures` did. A 28 px slot shows the small-slot glyph until a 24 grid
+version exists (decision 3).
+
+**P** is the priority: 1 = the drawing fills 5 or more slots, 2 = 2 to 4,
+3 = one slot. Generate in priority order.
+
+### Decisions for the owner
+
+Each has a default. Reply with the number to change one (for example `2: generate`).
+
+1. **Rows that mix Kyaro and objects.** In five places a Kyaro state
+   would sit beside object icons or third-party stand-ins, for example
+   the `/glossary` section headers (`shell` beside `files` and
+   `network-web`). The list is below.
+   Default: **allow.** Both are pixel art on the same grid, palette and
+   stage tile. ICONOGRAPHY Rule 5 still forbids pixel icons and terminal
+   glyphs in one row.
+2. **`regulated-sector` and `install-method`.** Nine one-off icons for two
+   rows of `/use-cases/air-gapped`. Default: **drop the icons from those
+   rows;** the cards keep their titles. The variant prompts are ready if
+   you want them.
+3. **24 grid versions.** Nine 28 px slots could take a 24 px drawing:
+   the `/roadmap` milestone cards, the safety best-practice lists and the
+   open-source benefits on `/open-source-shell-ai`. Default: **not now;**
+   they show the glyph.
+4. **Third-party marks.** 194 slots show an OS, vendor or tool (Rust 🦀,
+   Windows 🪟, macOS 🍎, Linux 🐧…). 136 of them are in
+   `config/distros.ts` and `ui/DistroSelector`. No website page renders
+   those; only Storybook shows the selector. Default: **out of scope
+   here.** The live slots keep their emoji until you choose official
+   marks or text, because each vendor's brand rules differ.
+
+Mixed rows (decision 1):
+
+- /glossary and /modern-unix-tools section headers: shell -> Kyaro `asking` beside object icons (folder, globe, key...)
+- /open-source-shell-ai problem cards: hallucination, privacy, platform-aware, incident mix object and Kyaro
+- /explore community cards: breakage (Kyaro `error`) beside objects (heart, people, books)
+- /use-cases persona cards and /product who-it's-for: all objects, while the / personas use Kyaro states
+- /try-caro tech cards and /explore backend options: one Caro concept beside third-party stand-ins
+
+### Kyaro, existing (7): wire, do not generate
+
+These icons exist. A follow-up PR can wire them into their slots now.
+
+| Id | Kyaro icon | Meaning | Replaces | Slots (icon / glyph) | Small-slot glyph |
+|---|---|---|---|---|---|
+| `safety` | `danger` | Caro's safety layer: risky commands are caught and checked before they run; risk warnings. | ⚠ 🛡 🎯 📄 🔒 | 10 / 19 | ■ |
+| `speed` | `running` | Fast: sub-2 s inference, instant results, no waiting on cloud APIs. | ⚡ 🚀 | 5 / 3 | ❯ |
+| `platform-aware` | `thinking` | Caro reads the context (OS, shell, BSD vs GNU) before it answers. | 💻 🖥 🎯 ⚙ 🤔 🌍 🔧 | 5 / 3 | ▸ |
+| `shell` | `asking` | The shell itself: terminal, CLI, prompt, shell expertise. | 🐚 💻 🖥 ⌨ 🚀 | 4 / 4 | >_ |
+| `commands-that-work` | `success` | Commands that work first time on any platform: correct, POSIX-portable, cross-platform. | ⚡ 🌐 ✅ 🌍 | 6 / 0 | ✓ |
+| `caro-brand` | `ready` | Caro itself, brand presence next to the Caro name. | 🐕 🥕 | 4 / 1 | ▸ |
+| `breakage` | `error` | Something broke: a destructive command wiped data, prod is down, or a bug to report. | 🐛 💥 💀 | 3 / 1 | ▸ |
+
+`caro-brand` takes `face-ready` in its 28 px slots.
+
+### Kyaro, new pose (2)
+
+Generate with the frames in `reference` open. Kyaro must look like the
+frames: same head, ears, outline and colors. If no candidate passes, these
+go to Alrezky Caesaria first.
+
+| Id | P | Subject | Replaces | Slots (icon / glyph) |
+|---|---|---|---|---|
+| `privacy` | 1 | Kyaro, the Shiba Inu from the reference frames, lies in front of a closed grey laptop with the chin resting on its lid, eyes open, guarding it. | 🔒 🔇 ☁ | 5 / 10 |
+| `anxiety` | 2 | Kyaro, the Shiba Inu from the reference frames, sits with ears flat, eyes wide, and one white sweat drop beside the head: nervous before running a command. | ⚠ 😰 | 2 / 0 |
+
+`privacy` shows `ready` today (in `LPFeatures`), but `ready` also means
+Caro itself. The pose ends that overlap.
+
+### Objects (33)
+
+| Id | P | Subject | Replaces | Slots (icon / glyph) |
+|---|---|---|---|---|
+| `hallucination` | 1 | One white six-sided die, tilted mid-roll, with black pips. | 🎯 🎲 🎰 🎭 💀 | 6 / 4 |
+| `incident` | 1 | A red rotating siren beacon on a short grey base, with two short light rays. | 🚨 ⚡ 📅 🛡 ⏰ | 6 / 2 |
+| `tools-config` | 1 | A wrench crossed over a gear. | 🏗 ⚙ 🧰 🔧 | 6 / 1 |
+| `local-offline` | 1 | A small desktop computer with a dark screen; its network cable hangs unplugged, with a clear gap between the plug and the wall socket. | ✈ 🔐 📡 ☁ 🔒 | 5 / 5 |
+| `network-web` | 1 | A globe with a latitude and longitude grid, without a stand. | 🌐 | 5 / 0 |
+| `team` | 1 | Three small people stand side by side; the middle one is a little taller. | 👥 🤝 🔧 | 5 / 1 |
+| `audit` | 2 | A magnifying glass held over a page of log lines. | 👁 📋 📝 🔍 | 4 / 0 |
+| `developer` | 2 | An open laptop whose screen shows three short indented lines of code. | 💻 👨‍💻 | 4 / 1 |
+| `files` | 2 | One closed folder with a tab on the top left. | 📂 📁 | 4 / 1 |
+| `git-fork` | 2 | One line that splits into two branches, with a round node at each of its three ends. | 🌿 🔀 🍴 🚀 | 4 / 0 |
+| `learn-docs` | 2 | Two closed books stacked flat, spines toward the viewer. | 📖 🔄 🎓 📚 | 4 / 0 |
+| `local-model` | 2 | A square microchip with pins on all four sides and a simple brain shape on its top. | 🧠 🔐 ⚙ 📦 | 4 / 2 |
+| `permissions` | 2 | A single old-style key, lying diagonal: bow at the top left, bit at the bottom right. | 🔐 🔒 👤 | 4 / 0 |
+| `binary-package` | 2 | One closed cardboard box, taped shut, with one small blank label on the front. | 🐕 📦 | 3 / 4 |
+| `focus-target` | 2 | A round target of red and white rings with one arrow in the center. | 🎯 | 3 / 2 |
+| `judgment` | 2 | Balance scales: two pans hang level from a beam on a central post. | ⚖ 🔓 📜 🧠 | 3 / 5 |
+| `launch` | 2 | A small rocket that points up and to the right, with a short flame. | 🚀 | 3 / 0 |
+| `metrics` | 2 | A bar chart of three bars that rise from left to right, on a short base line. | 📊 | 3 / 1 |
+| `text-processing` | 2 | A page of text lines with a solid cursor block at the end of the last line. | 📝 🔍 ✂ | 3 / 0 |
+| `tip-idea` | 2 | A lit light bulb with a grey screw base and three short yellow rays. | 💡 ✨ | 3 / 5 |
+| `integration` | 2 | A two-prong plug about to enter a wall socket, with a small gap between them. | 📡 🔌 | 2 / 1 |
+| `policy-rules` | 2 | A clipboard that holds a sheet with three checkbox lines; the first two are checked. | 📋 👥 | 2 / 0 |
+| `risk-levels` | 2 | A half-circle gauge in four segments, from white through yellow and red to dark red, with a black needle. | 🔒 📊 | 2 / 0 |
+| `support-thanks` | 2 | A pixel heart. | ♥ 🎁 ⭐ | 2 / 2 |
+| `ai-agent` | 3 | A small boxy robot head with one antenna and two square eyes. | 🤖 | 1 / 2 |
+| `beautiful-output` | 3 | A painter's palette with four paint dabs. | 🎨 | 1 / 0 |
+| `blocked` | 3 | A round no-entry sign: a red disc with one white horizontal bar. | 🚫 ⛔ ❌ | 1 / 5 |
+| `keyboard` | 3 | One square keycap seen slightly from the front, with a blank top. | ⌨ | 1 / 0 |
+| `memory-safe` | 3 | A memory module (a RAM stick) in front of a shield. | 🔒 | 1 / 0 |
+| `open-source` | 3 | An open book; both pages show short indented lines, like source code. | 📖 💻 🦀 ⭐ | 1 / 5 |
+| `verified` | 3 | A round seal with a scalloped edge and a check mark in the middle. | ✅ | 1 / 1 |
+| `regulated-sector` | 3 | **Decision 2.** One drawing per card: SCIFs (government): a building with a triangular roof and four columns; Financial Trading: a line chart that zigzags up to the right, on two axes; Healthcare: a stethoscope; Industrial (OT/SCADA): a factory with a saw-tooth roof and one chimney; Defense Contractors: a shield with a five-point star; Research Labs: a microscope. | 🏛 📈 🏥 🏭 🛡 🔬 | 6 / 0 |
+| `install-method` | 3 | **Decision 2.** One drawing per card: USB Transfer: a USB stick with its cap off; Build from Source: a page of indented code lines with a small hammer across it; Internal Mirror: a server rack with three blinking lights. | 💾 🔧 🏢 | 3 / 0 |
+
+Each definition in `definitions.json` also carries `must` and `must_not`
+lists and the full `prompt`. Read them before you generate.
+
+### Terminal glyphs (2): no art
+
+| Id | Glyph | Meaning | Slots |
+|---|---|---|---|
+| `list-marker` | ▸ | A small item marker whose emoji carries no meaning a glyph can keep: search results, FAQ bullets, example-prompt chips, banner prefixes, link lists. | 45 |
+| `game-life` | ♥ | One life in the Safe-or-Danger game. | 3 |
+
+`game-life` keeps ♥ as text (U+2665 with U+FE0E), so the lost-life color
+change still works.

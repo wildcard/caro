@@ -16,6 +16,8 @@ on:
       - 'scripts/kyaro_icons.py'
       - 'scripts/pixel_snap.py'
       - 'scripts/tests/test_pixel_snap.py'
+      - 'scripts/tests/test_icon_definitions.py'
+      - 'docs/brand/icons/**'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/kyaro-icons.yml'
@@ -27,6 +29,8 @@ on:
       - 'scripts/kyaro_icons.py'
       - 'scripts/pixel_snap.py'
       - 'scripts/tests/test_pixel_snap.py'
+      - 'scripts/tests/test_icon_definitions.py'
+      - 'docs/brand/icons/**'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/kyaro-icons.yml'
@@ -45,8 +49,12 @@ jobs:
       - name: Check icons
         run: python3 scripts/kyaro_icons.py --check
 
-      # The snap tool turns generated candidates into grid-true icons
-      # (docs/brand/icons/DEFINITIONS.md). It needs Pillow; the check does not.
+      # definitions.json is the input Codex reads (docs/brand/icons/DEFINITIONS.md).
+      - name: Icon definitions are complete
+        run: python3 -m unittest scripts/tests/test_icon_definitions.py
+
+      # The snap tool turns generated candidates into grid-true icons.
+      # It needs Pillow; the checks above do not.
       # The runner's system Python refuses pip installs (PEP 668).
       - uses: actions/setup-python@v5
         with:
