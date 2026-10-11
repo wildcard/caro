@@ -3,6 +3,7 @@
  * Why Flags Fail - Contrasting flag-based vs pattern-based approaches
  * Shows real examples of how safety flags failed in Claude and Gemini
  */
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
 
 const flagFailures = [
   {
@@ -54,7 +55,7 @@ const flagFailures = [
       <div class="comparison-grid">
         <div class="approach flag-approach">
           <div class="approach-header bad">
-            <span class="approach-icon">❌</span>
+            <span class="approach-icon"><TermGlyph g="✗" /></span>
             <span class="approach-title">Flag-Based (Others)</span>
           </div>
           <ul class="approach-list">
@@ -67,7 +68,7 @@ const flagFailures = [
         </div>
         <div class="approach pattern-approach">
           <div class="approach-header good">
-            <span class="approach-icon">✓</span>
+            <span class="approach-icon"><TermGlyph g="✓" /></span>
             <span class="approach-title">Pattern-Based (Caro)</span>
           </div>
           <ul class="approach-list">
@@ -246,12 +247,12 @@ const flagFailures = [
 
   .approach-header.bad .approach-icon {
     color: var(--accent-text);
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .approach-header.good .approach-icon {
     color: var(--status-safe-text);
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .approach-title {

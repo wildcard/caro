@@ -10,6 +10,7 @@ import LandingPage from '../../layouts/LandingPage.astro';
 import Navigation from '../../components/Navigation.astro';
 import LPDownload from '../../components/landing/LPDownload.astro';
 import LPFooter from '../../components/landing/LPFooter.astro';
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
 
 const platformDifferences = [
   {
@@ -308,13 +309,13 @@ const jobs = [
               </div>
               {!example.safe && (
                 <div class="warning-box">
-                  <span class="warning-icon">⚠️</span>
+                  <span class="warning-icon"><TermGlyph g="■" /></span>
                   <span>{example.warning}</span>
                 </div>
               )}
               {example.saferAlt && (
                 <div class="safer-box">
-                  <span class="safer-icon">💡</span>
+                  <span class="safer-icon"><TermGlyph g="▸" /></span>
                   <span>Safer: <code>{example.saferAlt}</code></span>
                 </div>
               )}

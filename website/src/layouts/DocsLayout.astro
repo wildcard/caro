@@ -2,6 +2,7 @@
 import '../ui/tokens.css';
 import Analytics from '@vercel/analytics/astro';
 import GitHubMark from '../components/icons/GitHubMark.astro';
+import CaroMark from '../components/icons/CaroMark.astro';
 import OccasionHead from '../components/OccasionHead.astro';
 import OccasionPreviewBar from '../components/OccasionPreviewBar.astro';
 import HumanityEventBanner from '../components/HumanityEventBanner.astro';
@@ -81,7 +82,7 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
     <nav class="docs-nav" aria-label="Docs">
       <div class="nav-container">
         <a href="/" class="logo">
-          <img src="/caro-pixel.png" alt="" width="32" height="32" />
+          <CaroMark size={26} />
           <span>Caro</span>
         </a>
         <div class="nav-links">
@@ -198,10 +199,6 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
     color: var(--color-text);
     font-weight: 600;
     font-size: 18px;
-  }
-
-  .logo img {
-    border-radius: 4px;
   }
 
   .nav-links {
