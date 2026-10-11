@@ -115,7 +115,7 @@ function verify(pages: BuiltPage[], dir: URL, site: URL): string[] {
     if (!meta.title) fail('no <title>');
     if (!meta.description) fail('no meta description');
     if (!meta.canonical) fail('no canonical URL');
-    else if (new URL(meta.canonical, site).host !== site.host) fail(`canonical is off-site: ${meta.canonical}`);
+    else if (new URL(meta.canonical, site).origin !== site.origin) fail(`canonical is off-site: ${meta.canonical}`);
     if (!meta.ogImage) fail('no og:image');
     else {
       const file = localFile(meta.ogImage);

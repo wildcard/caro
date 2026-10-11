@@ -23,7 +23,7 @@ export interface LlmsPage {
 const OTHER = 'Pages';
 
 function byPathThenTitle(a: LlmsPage, b: LlmsPage): number {
-  const depth = (p: LlmsPage) => p.path.split('/').length;
+  const depth = (p: LlmsPage) => p.path.split('/').filter(Boolean).length;
   return depth(a) - depth(b) || cardTitle(a.title).localeCompare(cardTitle(b.title));
 }
 

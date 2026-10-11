@@ -25,7 +25,7 @@ describe('balancedWrap', () => {
     expect(balanced).toHaveLength(greedy.length);
     const spread = (lines: string[]) =>
       Math.max(...lines.map((l) => l.length)) - Math.min(...lines.map((l) => l.length));
-    expect(spread(balanced)).toBeLessThanOrEqual(spread(greedy));
+    expect(spread(balanced)).toBeLessThan(spread(greedy));
   });
 });
 

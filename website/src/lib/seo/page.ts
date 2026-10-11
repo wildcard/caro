@@ -150,6 +150,8 @@ const BLOCK_TAGS = new Set([
 ]);
 const HEADING = /^h[1-6]$/;
 const SAFE_PROTOCOLS = new Set(['http:', 'https:', 'mailto:']);
+/** Site chrome directly under <body>, dropped when a page has no <main>. */
+const BODY_CHROME = new Set(['header', 'footer', 'nav', 'aside']);
 
 /**
  * A card link (`<a>` around a whole block) would become one link per line in
@@ -243,8 +245,17 @@ export async function pageToMarkdown(
   meta: PageMeta,
   options: MarkdownOptions,
 ): Promise<string> {
+  const main = find(tree, (el) => el.tagName === 'main');
+  const bodyElement = find(tree, (el) => el.tagName === 'body');
+  // Without a <main>, use <body> minus its top-level site chrome.
   const root =
-    find(tree, (el) => el.tagName === 'main') ?? find(tree, (el) => el.tagName === 'body');
+    main ??
+    (bodyElement && {
+      ...bodyElement,
+      children: bodyElement.children.filter(
+        (child) => !(isElement(child) && BODY_CHROME.has(child.tagName)),
+      ),
+    });
   const base = new URL(options.url);
   const content: Root = { type: 'root', children: root ? [clean(root, base)] : [] };
 

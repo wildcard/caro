@@ -4,7 +4,7 @@ import react from '@astrojs/react';
 import db from '@astrojs/db';
 import vercel from '@astrojs/vercel';
 import agentSeo from './src/integrations/agent-seo.ts';
-import { isIndexablePath, normalizePath } from './src/lib/seo/routes.ts';
+import { isIndexablePath, LOCALES, normalizePath } from './src/lib/seo/routes.ts';
 
 // Sitemap URLs match each page's canonical URL (no trailing slash, see
 // src/components/SEO.astro) and skip i18n fallback stubs and noindex pages.
@@ -39,10 +39,7 @@ export default defineConfig({
       }),
       i18n: {
         defaultLocale: 'en',
-        locales: {
-          en: 'en', es: 'es', fr: 'fr', pt: 'pt', de: 'de', he: 'he', ar: 'ar', uk: 'uk',
-          ru: 'ru', ja: 'ja', ko: 'ko', hi: 'hi', ur: 'ur', fil: 'fil', id: 'id',
-        },
+        locales: Object.fromEntries(LOCALES.map((locale) => [locale, locale])),
       },
     }),
     react(),

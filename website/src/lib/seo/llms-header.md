@@ -4,9 +4,9 @@
 
 Caro is a single Rust binary for macOS, Linux and Windows, at version {{version}}. It is open source under the AGPL-3.0 license.
 
-- Install: `cargo install caro`, or `brew install wildcard/tap/caro`. Apple Silicon users can add `--features embedded-mlx`. Details: https://caro.sh/docs/installation
+- Install: `cargo install caro`, or `brew install wildcard/tap/caro`. Details: https://caro.sh/docs/installation
 - Use: `caro "list all PDF files in Downloads larger than 10MB"` prints the command and asks before it runs it.
 - Safety: deterministic pattern checks rate each command as Safe, Moderate, High or Critical risk, and block or warn. They do not depend on the model's judgement.
-- Backends: an embedded local model by default (MLX on Apple Silicon, CPU elsewhere). Ollama, vLLM, Exo, Mesh-LLM and AI-Horde backends are optional.
+- Backends: an embedded local model by default (MLX on Apple Silicon, CPU elsewhere). The Ollama, vLLM, Exo, Mesh-LLM and AI-Horde backends need a build with `--features remote-backends`.
 - Privacy: telemetry is opt-in. Policy: https://caro.sh/telemetry
 - Source: https://github.com/wildcard/caro. Crate: https://crates.io/crates/caro

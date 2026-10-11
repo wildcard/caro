@@ -45,6 +45,10 @@ describe('buildLlmsTxt', () => {
     }
   });
 
+  it('lists the home page first among the other pages', () => {
+    expect(txt).toContain('## Pages\n\n- [Terminal mastery, unlocked](https://caro.sh/index.md)');
+  });
+
   it('puts translations under Optional', () => {
     expect(txt).toContain('## Optional\n\n- [Dein treuer Shell-Begleiter (de)](https://caro.sh/de.md)');
   });

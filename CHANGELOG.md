@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Share card, Markdown twin and full SEO head for every website page**
-  (#156). Each caro.sh page gets a generated 1200x630 card at
+  (#1588, closes #156). Each caro.sh page gets a generated 1200x630 card at
   `/og/<page>.png` (every `og:image` pointed at a missing `/og-image.png`
   before), a Markdown version at `/<page>.md` (also served for
   `Accept: text/markdown`), and one `SEO.astro` head with canonical,

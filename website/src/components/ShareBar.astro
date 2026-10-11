@@ -39,7 +39,12 @@ const agents = [
 ];
 ---
 
-<aside class="share-bar" aria-label="Share this page" data-share-bar data-md-skip>
+<aside
+  class="share-bar"
+  aria-label={agentsOnly ? 'Use this page with AI agents' : 'Share this page'}
+  data-share-bar
+  data-md-skip
+>
   {!agentsOnly && (
     <div class="share-row">
       <p class="share-label" id="share-people">Share</p>
@@ -222,7 +227,7 @@ const agents = [
 
   .share-bar .share-action:hover {
     border-color: var(--accent);
-    color: var(--accent-text);
+    color: var(--color-link-hover);
     text-decoration: none;
   }
 

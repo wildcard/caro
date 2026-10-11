@@ -91,6 +91,16 @@ Use \`caro\`.
     expect(md).not.toMatch(/Home|Footer/);
   });
 
+  it('without a <main>, uses <body> minus its header, nav, aside and footer', async () => {
+    const html = `<!doctype html><html><head><title>T</title></head><body>
+      <header>Site header</header><nav>Menu</nav>
+      <h1>Body page</h1><p>Kept.</p>
+      <aside>Sidebar</aside><footer>Footer links</footer></body></html>`;
+    const tree = parseHtml(html);
+    const md = stripFrontMatter(await pageToMarkdown(tree, extractMeta(tree), options));
+    expect(md).toBe('# Body page\n\nKept.\n');
+  });
+
   it('makes links and images absolute and drops script links', async () => {
     const md = await markdown(
       '<main><h1>T</h1><p><a href="/docs/safety">Safety</a> <a href="#flags">Flags</a> <a href="javascript:void(0)">X</a></p><img src="/caro-pixel.png" alt="Caro"></main>',
