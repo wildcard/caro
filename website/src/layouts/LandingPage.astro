@@ -3,6 +3,7 @@
 // These pages target specific pain points and personas
 
 import '../ui/tokens.css';
+import Favicons from '../components/Favicons.astro';
 import OmniSearch from '../components/OmniSearch.astro';
 import OccasionHead from '../components/OccasionHead.astro';
 import OccasionPreviewBar from '../components/OccasionPreviewBar.astro';
@@ -44,7 +45,7 @@ const { title, description, slug, persona, painPoint } = Astro.props;
   {persona && <meta name="lp:persona" content={persona} />}
   {painPoint && <meta name="lp:pain-point" content={painPoint} />}
 
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <Favicons />
   <title>{title}</title>
 
   <style is:global>
