@@ -72,7 +72,7 @@ describe('buildRss', () => {
     const rss = buildRss(
       [
         { url: 'https://caro.sh/blog/a', title: 'Old & gold - Caro Blog', description: '<b>a</b>', publishedTime: '2025-01-01T00:00:00Z' },
-        { url: 'https://caro.sh/blog/b', title: 'New', description: 'b', publishedTime: '2026-01-01T00:00:00Z', image: 'https://caro.sh/og/blog/b.png', imageLength: 1234 },
+        { url: 'https://caro.sh/blog/b', title: 'New', description: 'b', publishedTime: '2026-01-01T00:00:00Z', image: 'https://caro.sh/og/blog/b.png', imageLength: 1234, imageType: 'image/png' },
       ],
       site,
     );

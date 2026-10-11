@@ -54,6 +54,15 @@ const HUGE_ATTRIBUTE = /\s[\w:-]+="[^"]{65536,}"/g;
 
 const CONCURRENCY = 8;
 
+/** Enclosure types for local images, by extension; others get no enclosure. */
+const IMAGE_TYPES: Record<string, string> = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+};
+
 async function eachLimit<T>(items: T[], limit: number, run: (item: T) => Promise<void>) {
   let next = 0;
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
@@ -243,13 +252,15 @@ export default function agentSeo(): AstroIntegration {
                 const file = image && new URL(image, site).host === site.host
                   ? outFile(dir, new URL(image, site).pathname)
                   : undefined;
+                const imageType = file && IMAGE_TYPES[path.extname(file).toLowerCase()];
                 return {
                   url: page.meta.canonical || new URL(page.path, site).href,
                   title: page.meta.ogTitle || page.meta.title,
                   description: page.meta.description,
                   publishedTime: page.meta.publishedTime as string,
                   image,
-                  imageLength: file && existsSync(file) ? (await stat(file)).size : undefined,
+                  imageType,
+                  imageLength: imageType && existsSync(file) ? (await stat(file)).size : undefined,
                 };
               }),
             ),

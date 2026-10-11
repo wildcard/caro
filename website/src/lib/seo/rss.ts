@@ -13,6 +13,8 @@ export interface RssPost {
   image?: string;
   /** The image's size in bytes; RSS requires it on an enclosure. */
   imageLength?: number;
+  /** The image's MIME type, e.g. `image/png`. */
+  imageType?: string;
 }
 
 function xml(text: string): string {
@@ -35,8 +37,8 @@ export function buildRss(posts: RssPost[], site: URL): string {
         `      <guid isPermaLink="true">${xml(post.url)}</guid>`,
         `      <description>${xml(post.description)}</description>`,
         `      <pubDate>${new Date(post.publishedTime).toUTCString()}</pubDate>`,
-        post.image && post.imageLength
-          ? `      <enclosure url="${xml(post.image)}" type="image/png" length="${post.imageLength}"/>`
+        post.image && post.imageLength && post.imageType
+          ? `      <enclosure url="${xml(post.image)}" type="${post.imageType}" length="${post.imageLength}"/>`
           : '',
         '    </item>',
       ]
