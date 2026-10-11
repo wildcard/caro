@@ -234,8 +234,8 @@ export const PAGES_INDEX: PageEntry[] = [
     icon: '🐙',
   }),
   getEntry('/compare/warp', {
-    title: 'vs Warp AI',
-    description: 'Caro vs Warp AI',
+    title: 'vs Warp',
+    description: 'Caro vs Warp',
     category: 'compare',
     keywords: ['warp', 'terminal', 'compare'],
     icon: '🚀',

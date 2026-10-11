@@ -8,7 +8,10 @@ interface Props {
 
 const { lang = 'en' } = Astro.props;
 
-// Comparison table data structured for growth-hacking SEO and conversion
+// Comparison table data structured for growth-hacking SEO and conversion.
+// Competitor values last checked against vendor docs on 2026-10-11; see
+// docs/research/2026-10-11-competitive-landscape-refresh.md. 'partial' means
+// opt-in, configurable or incomplete (e.g. user-written rules, BYO local model).
 const competitors = [
   { id: 'caro', nameKey: 'caro', highlight: true },
   { id: 'copilot-cli', nameKey: 'copilotCli' },
@@ -34,18 +37,18 @@ const comparisonData: { categoryKey: string; icon: CategoryIcon; rows: Compariso
     categoryKey: 'privacyData',
     icon: { term: '▸' },
     rows: [
-      { featureKey: 'worksOffline', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
-      { featureKey: 'privacyFirst', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
-      { featureKey: 'airGapped', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
-      { featureKey: 'openSource', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
+      { featureKey: 'worksOffline', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
+      { featureKey: 'privacyFirst', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
+      { featureKey: 'airGapped', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
+      { featureKey: 'openSource', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'partial', 'kiro': 'no', 'opencode': 'yes' } },
     ]
   },
   {
     categoryKey: 'safetyControl',
     icon: { glyph: 'shield' },
     rows: [
-      { featureKey: 'ruleBasedSafety', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
-      { featureKey: 'explicitConfirmation', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
+      { featureKey: 'ruleBasedSafety', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
+      { featureKey: 'explicitConfirmation', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'no' } },
       { featureKey: 'blocksDangerous', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
       { featureKey: 'riskLevel', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
     ]
@@ -55,8 +58,8 @@ const comparisonData: { categoryKey: string; icon: CategoryIcon; rows: Compariso
     icon: { term: '>_' },
     rows: [
       { featureKey: 'posixFirst', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
-      { featureKey: 'crossPlatform', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'macOS/Linux', 'kiro': 'yes', 'opencode': 'yes' } },
-      { featureKey: 'existingTerminal', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'no', 'kiro': 'yes', 'opencode': 'yes' } },
+      { featureKey: 'crossPlatform', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'partial', 'kiro': 'yes', 'opencode': 'yes' } },
+      { featureKey: 'existingTerminal', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'partial', 'kiro': 'yes', 'opencode': 'yes' } },
       { featureKey: 'platformAware', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
     ]
   },
@@ -64,10 +67,10 @@ const comparisonData: { categoryKey: string; icon: CategoryIcon; rows: Compariso
     categoryKey: 'modelBackend',
     icon: { glyph: 'brain' },
     rows: [
-      { featureKey: 'localInference', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
-      { featureKey: 'multiBackend', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
-      { featureKey: 'appleSilicon', values: { 'caro': 'partial', 'copilot-cli': 'no', 'warp': 'partial', 'kiro': 'no', 'opencode': 'no' } },
-      { featureKey: 'selfHostable', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
+      { featureKey: 'localInference', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
+      { featureKey: 'multiBackend', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'partial', 'kiro': 'no', 'opencode': 'yes' } },
+      { featureKey: 'appleSilicon', values: { 'caro': 'partial', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
+      { featureKey: 'selfHostable', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'no', 'opencode': 'yes' } },
     ]
   },
 ];

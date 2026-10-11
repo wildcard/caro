@@ -1,6 +1,9 @@
 ---
 import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
 
+// Competitor facts checked against kiro.dev docs, pricing, license and
+// changelog on 2026-10-11. Research notes:
+// docs/research/2026-10-11-competitive-landscape-refresh.md
 const comparison = {
   competitor: {
     name: 'Kiro CLI',
@@ -9,70 +12,84 @@ const comparison = {
   tldr: {
     title: 'TL;DR',
     points: [
-      'Kiro CLI (formerly Amazon Q CLI) is AWS-owned; Caro is cloud-agnostic',
-      'Kiro requires internet and sends data to AWS; Caro runs 100% locally',
-      'Caro has rule-based safety validation; Kiro relies on model discretion',
-      'Kiro excels at AWS-specific tasks; Caro specializes in general shell commands',
-      'Caro is free and open source; Kiro has usage limits and pricing tiers'
+      'Kiro CLI (formerly Amazon Q Developer CLI) is closed source. The old Amazon Q CLI repo is open source but gets only critical security fixes.',
+      'Kiro runs every model on Amazon Bedrock and needs a sign-in. It has no local models and no bring-your-own endpoint. Caro runs local models and needs no account.',
+      'Kiro asks before most shell commands and lets you write deny/ask/allow rules. It does not ship a built-in list of dangerous commands. Caro checks every command against 52+ curated patterns with risk levels.',
+      'Kiro is a full coding agent with MCP, custom agents and hooks. Caro does one job: natural language to a safe shell command.',
+      'Caro is free and open source. Kiro has a free tier with 50 credits and paid plans from $20 per month.'
     ]
   },
   headToHead: [
-    { feature: 'Works 100% offline', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Privacy-first design', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'No account required', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Rule-based safety checks', caro: true, competitor: false, winner: 'caro' },
     { feature: 'Open source', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'AWS service integration', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'Works 100% offline', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Local models', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'No account required', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Built-in dangerous-command patterns', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Risk level for each command', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Your own deny/ask/allow rules', caro: true, competitor: true, winner: 'tie' },
+    { feature: 'Uses your existing terminal', caro: true, competitor: true, winner: 'tie' },
     { feature: 'MCP tool integration', caro: false, competitor: true, winner: 'competitor' },
-    { feature: 'Custom agents support', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'Custom agents', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'AWS service integration', caro: false, competitor: true, winner: 'competitor' },
   ],
   sections: [
     {
       title: 'Cloud Dependency',
       icon: '☁️',
       content: `
-        <p><strong>Kiro CLI</strong> (formerly Amazon Q CLI) is built by AWS and requires an internet connection. Your prompts and context are sent to AWS for processing, and the tool is optimized for AWS-specific workflows.</p>
-        <p><strong>Caro</strong> has zero cloud dependency. It runs entirely on your machine with local models. No accounts, no API keys, no internet required. This makes it suitable for any environment, not just AWS.</p>
+        <p><strong>Kiro CLI</strong> sends every request to models hosted on Amazon Bedrock: Claude, GPT and open-weight models. It needs a sign-in with GitHub, Google, AWS Builder ID or IAM Identity Center. It does not need an AWS account. It has no local-model or custom-endpoint option today.</p>
+        <p><strong>Caro</strong> runs a local model on your machine. After a one-time model download it needs no internet, no account and no API key, on any cloud or on bare metal.</p>
       `
     },
     {
-      title: 'Privacy & Data',
+      title: 'Privacy and Data',
       icon: '🔒',
       content: `
-        <p><strong>Kiro CLI</strong> sends your terminal context to AWS for processing. While AWS has enterprise security policies, your shell commands traverse their infrastructure.</p>
-        <p><strong>Caro</strong> processes everything locally. Your commands, prompts, and terminal context never leave your machine. Perfect for organizations with strict data sovereignty requirements or developers who prefer to keep their workflow private.</p>
-      `
-    },
-    {
-      title: 'Features & Capabilities',
-      icon: '🎯',
-      content: `
-        <p><strong>Kiro CLI</strong> offers interactive chat, custom agents, MCP integration for external tools, smart hooks, and agent steering for team practices. It shines with AWS-specific tasks and enterprise workflows.</p>
-        <p><strong>Caro</strong> specializes in general shell commands with POSIX compliance and cross-platform support. It's cloud-agnostic and works equally well whether you're on AWS, GCP, Azure, or bare metal.</p>
+        <p><strong>Kiro CLI</strong> collects usage data and metrics by default for free-tier and individual users, and can use content to improve the service. You can opt out. Enterprise users signed in through IAM Identity Center are opted out automatically.</p>
+        <p><strong>Caro</strong> processes prompts and commands locally. They do not leave your machine.</p>
       `
     },
     {
       title: 'Safety Approach',
       icon: '🛡️',
       content: `
-        <p><strong>Kiro CLI</strong> relies on its model to generate safe commands. There's no systematic pre-execution validation layer for dangerous patterns.</p>
-        <p><strong>Caro</strong> validates every command against 52+ safety patterns before presenting it. Dangerous operations like <code>rm -rf /</code>, fork bombs, and privilege escalations are blocked independently of what the model suggests.</p>
+        <p><strong>Kiro CLI</strong> runs read-only commands like <code>git status</code> and <code>pwd</code> on its own and asks before everything else. It splits compound commands on <code>;</code>, <code>&amp;&amp;</code>, <code>||</code> and <code>|</code> and checks each part. You can write deny/ask/allow rules in <code>permissions.yaml</code>, and admins can enforce them. <code>--trust-all-tools</code> turns the prompts off for a session. It does not ship a curated list of dangerous commands.</p>
+        <p><strong>Caro</strong> checks every command against 52+ curated patterns, rates it CRITICAL, HIGH, MEDIUM or LOW, and blocks critical commands such as <code>rm -rf /</code> and fork bombs, with no configuration.</p>
+      `
+    },
+    {
+      title: 'Features and Scope',
+      icon: '🎯',
+      content: `
+        <p><strong>Kiro CLI</strong> is a full coding agent: interactive chat, custom agents, MCP servers, hooks, headless mode for CI and the Agent Client Protocol. It shares a subscription with the Kiro IDE.</p>
+        <p><strong>Caro</strong> specializes in shell commands, with POSIX-first output, platform detection and GNU/BSD awareness. It works the same on AWS, GCP, Azure or bare metal.</p>
       `
     },
   ],
   verdict: {
     chooseCaro: [
-      'You work across multiple cloud providers or on-premise',
-      'You need 100% offline capability',
-      'You want zero cloud dependency and no account required',
-      'You require rule-based safety guarantees',
+      'You need offline or air-gapped capability',
+      'You want no account and no cloud dependency',
+      'You want a built-in safety library with risk levels',
+      'You work across clouds or on-premise',
       'You prefer free, open-source tools',
     ],
     chooseCompetitor: [
-      'You\'re deeply invested in the AWS ecosystem',
-      'You need MCP integration for external tools',
-      'Custom agents and team workflows are important',
-      'You\'re already paying for AWS and want unified tooling',
+      'You want a full coding agent in the terminal',
+      'You need MCP integration and custom agents',
+      'You already use the Kiro IDE or the AWS ecosystem',
+      'You want hosted frontier models',
+    ]
+  },
+  verification: {
+    date: '2026-10-11',
+    sources: [
+      { label: 'Kiro docs: models', url: 'https://kiro.dev/docs/models/' },
+      { label: 'Kiro docs: permissions', url: 'https://kiro.dev/docs/permissions/' },
+      { label: 'Kiro docs: data protection', url: 'https://kiro.dev/docs/privacy-and-security/data-protection/' },
+      { label: 'Kiro license', url: 'https://kiro.dev/license/' },
+      { label: 'Kiro pricing', url: 'https://kiro.dev/pricing/' },
+      { label: 'aws/amazon-q-developer-cli README', url: 'https://github.com/aws/amazon-q-developer-cli' },
     ]
   }
 };
@@ -80,9 +97,9 @@ const comparison = {
 
 <ComparisonPageLayout
   title="Caro vs Kiro CLI - Feature Comparison | Shell AI Tools"
-  description="Compare Caro and Kiro CLI (formerly Amazon Q CLI). Local-first, cloud-agnostic shell companion vs AWS-integrated AI assistant."
+  description="Compare Caro and Kiro CLI (formerly Amazon Q CLI). An open-source, offline shell CLI with built-in safety patterns vs a cloud-hosted coding agent."
   comparison={comparison}
-  heroSubtitle="Cloud-agnostic local tool vs AWS-integrated assistant"
+  heroSubtitle="Open, offline shell companion vs cloud-hosted coding agent"
   finalCtaHeading="Cloud-Agnostic. Privacy-First."
-  finalCtaSubtext="Works on any infrastructure. No cloud dependency."
+  finalCtaSubtext="Works on any infrastructure. No account, no cloud dependency."
 />

@@ -3,6 +3,7 @@ import Layout from '../../../layouts/Layout.astro';
 import Navigation from '../../../components/Navigation.astro';
 import Footer from '../../../components/Footer.astro';
 import { languages, type Locale } from '../../../i18n/config';
+import { vsPages } from '../../../data/compare-pages';
 
 export function getStaticPaths() {
   return Object.keys(languages)
@@ -11,43 +12,6 @@ export function getStaticPaths() {
 }
 
 const { lang } = Astro.params as { lang: Locale };
-
-// VS page data for SEO and internal linking
-const vsPages = [
-  {
-    slug: 'github-copilot-cli',
-    name: 'GitHub Copilot CLI',
-    tagline: 'Cloud-dependent vs local-first',
-    description: 'Compare Caro\'s offline-first, safety-focused approach with GitHub Copilot CLI\'s cloud-powered convenience.',
-    icon: '🐙',
-    keyDiff: 'Privacy & Offline'
-  },
-  {
-    slug: 'warp',
-    name: 'Warp',
-    tagline: 'New terminal vs your terminal',
-    description: 'Caro works in your existing terminal. Warp requires switching to a new AI-native terminal emulator.',
-    icon: '🚀',
-    keyDiff: 'No App Switch'
-  },
-  {
-    // There is no amazon-q-cli page: Amazon Q CLI is now Kiro CLI.
-    slug: 'kiro-cli',
-    name: 'Kiro CLI',
-    tagline: 'Enterprise cloud vs local control',
-    description: 'Compare Kiro CLI\'s (formerly Amazon Q) AWS-integrated approach with Caro\'s self-contained, privacy-first design.',
-    icon: '👻',
-    keyDiff: 'Self-Contained'
-  },
-  {
-    slug: 'opencode',
-    name: 'OpenCode',
-    tagline: 'Chat-first vs command-first',
-    description: 'Caro focuses on single-shot commands. OpenCode prioritizes conversational exploration.',
-    icon: '💬',
-    keyDiff: 'Task-Optimized'
-  }
-];
 ---
 
 <Layout
@@ -62,8 +26,8 @@ const vsPages = [
       <div class="container">
         <h1>How Caro Compares</h1>
         <p class="subtitle">
-          Caro isn't the only AI shell tool—but it's the only one that runs 100% locally with
-          pre-execution safety validation. Here's how we stack up against the alternatives.
+          Caro isn't the only AI shell tool. It runs locally by default and checks every command
+          against a built-in safety library before you run it. Here's how we stack up against the alternatives.
         </p>
       </div>
     </section>
