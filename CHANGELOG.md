@@ -118,6 +118,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`/ai-agent-safety` no longer shows invented testimonials.** The "What
+  Enterprise Teams Are Saying" section quoted three unnamed people ("Platform
+  Engineering Lead, Series B SaaS Company", …). An AI agent wrote the quotes
+  with the page; no customer gave them. The page no longer renders the
+  section, and `AITestimonials.astro` is marked `PLACEHOLDER CONTENT`.
 - **Homepage no longer shows invented testimonials.** The "What Engineers
   Are Saying" section quoted three made-up people under "Real results from
   developers who made the switch". The homepage no longer renders it (#1569).

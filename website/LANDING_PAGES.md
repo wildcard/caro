@@ -46,7 +46,7 @@ website/src/
         ├── AIWhyFlagsFail.astro       # Flag vs pattern comparison
         ├── AIRiskCalculator.astro     # Interactive risk calculator
         ├── AIIncidents.astro          # Real incidents with HN links
-        └── AITestimonials.astro       # Enterprise testimonials
+        └── AITestimonials.astro       # Enterprise testimonials (placeholder, not rendered)
 ```
 
 ## URL Strategy
@@ -145,7 +145,7 @@ Examples:
 - AIWhyFlagsFail (flag vs pattern comparison)
 - AIRiskCalculator (interactive enterprise risk demo)
 - AIIncidents (documented incidents with HN links)
-- AITestimonials (enterprise-focused quotes)
+- ~~AITestimonials~~ (invented quotes; not rendered, marked `PLACEHOLDER CONTENT`)
 - LPBestPractices (defense in depth)
 - LPFAQ (AI-focused questions)
 
