@@ -21,6 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `website/src/lib/seo/*.test.ts`, `website/src/__tests__/seo-coverage.test.ts`
   and the new `Build website (caro.sh)` CI job. System doc:
   `website/docs/SEO_AND_AGENTS.md`.
+- **Gold-subset labels report.** `scripts/gold-labels-report.py` validates a
+  labelled `docs/ml/risk-gold-candidates.jsonl` (only the five labeller fields
+  may change, no static fields, tiers in `RiskLevel`) and prints the per-tier
+  counts against the stratification plan and the uncertain rate for the labels
+  PR body; `--static` joins the floor's verdicts once labels are frozen.
+  Guarded by `scripts/tests/test_gold_labels_report.py`. The gold-subset guide
+  now links ADR-018 (merged in #1511) and ADR-018's revision history records
+  the #1554 and #1558 data-gate items.
 - **Consensus-label export and ADR-018.** `CARO_EVAL_EXPORT_LABELS=<path>.jsonl`
   makes `cargo test --test evaluation` append `sft_export::decision_label_pairs`
   (local vs reference risk verdicts, #1466, now with `test_id` and including
@@ -61,6 +69,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   figure to the 94.8% CSR on the 58-case beta suite that ROADMAP.md records
   (README and CLAUDE.md quoted the older 93.1% v1.1.0 figure) and corrected
   the "zero telemetry" use-case copy to "off unless you opt in".
+- **`caro guard` (experimental): a PreToolUse guardian for agent harnesses.**
+  Claude Code, Grok Build and Codex send each shell command their agent is
+  about to run to `caro guard`, and OpenCode does the same through
+  `integrations/opencode/caro-guard.ts`. In shadow mode (the default) the
+  guard only logs what it would have decided, and `caro guard report`
+  summarizes the log. With `--mode enforce` it denies Critical commands and
+  asks about High ones. It never emits `allow`. See spec 011 and ADR-020.
+- **xAI Grok backend.** `--backend grok`, `--advisor grok`, and
+  `hybrid_remote = "grok"` (`XAI_API_KEY`, `remote-backends` feature), built
+  on a new shared OpenAI-compatible client. `openrouter` and `claude` are
+  now selectable with `--backend` as well.
 - **Calibration and tail-latency metrics in the evaluation harness.**
   `EvaluationResult` now records the backend's reported `confidence`, and
   every `BackendResult` carries `brier`, `ece`, `p50_execution_time_ms` and
@@ -128,8 +147,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   template wins ties) instead of a raw substring match. Not yet wired into
   the model prompt; that waits on eval evidence.
 
+### Removed
+
+- **StarCoder 1B is no longer in the model catalog** ([#1341](https://github.com/wildcard/caro/issues/1341)).
+  Its Hugging Face repo (`TheBloke/starcoderbase-1b-GGUF`) no longer exists, so
+  the model could not download. `CARO_MODEL=starcoder-1b-q4` now fails with
+  "Model not found", and the public `caro::model_catalog::STARCODER_1B_Q4`
+  constant is removed.
+
 ### Fixed
 
+- **`/ai-agent-safety` no longer shows invented testimonials.** The "What
+  Enterprise Teams Are Saying" section quoted three unnamed people ("Platform
+  Engineering Lead, Series B SaaS Company", …). An AI agent wrote the quotes
+  with the page; no customer gave them. The page no longer renders the
+  section, and `AITestimonials.astro` is marked `PLACEHOLDER CONTENT`.
 - **Homepage no longer shows invented testimonials.** The "What Engineers
   Are Saying" section quoted three made-up people under "Real results from
   developers who made the switch". The homepage no longer renders it (#1569).
@@ -189,6 +221,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   PWA icons for caro.sh) from the official pixel mark, in brand ink on brand
   paper, and writes the files each site uses. Guarded by
   `scripts/favicons.py --check` in the `Favicons` workflow.
+
+- **SmolLM catalog entry points to a live repo** ([#1341](https://github.com/wildcard/caro/issues/1341)).
+  The old Q4_K_M repo is gone, so `CARO_MODEL=smollm-135m-q4` could not
+  download. The entry now uses the 145 MB Q8_0 build. The
+  model id is unchanged. `CARO_GPU_LAYERS=0` runs the Apple Silicon backend on
+  the CPU only (the default stays all layers on Metal).
 
 ### Documentation
 

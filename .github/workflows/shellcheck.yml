@@ -33,3 +33,6 @@ jobs:
 
       - name: Test SessionStart readiness hook
         run: tests/harness/session-start.test.sh
+
+      - name: Test routine status write-back
+        run: tests/harness/routine-status.test.sh
