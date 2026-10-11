@@ -303,7 +303,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** no
 **Next step:** none. Delete after 2026-10-17.
 
-### BW-041: an unquoted prompt that starts with "list" runs the `list` subcommand
+### BW-042: an unquoted prompt that starts with "list" runs the `list` subcommand
 
 **Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10, from nightly run 38016340315)
 **Issue:** #1550. `caro list files` fails with `unexpected argument 'files'`; 2 e2e tests fail in every Extended Tests job.
@@ -311,7 +311,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** yes (CLI design: how a prompt and a subcommand name share the first word)
 **Next step:** maintainer picks the parsing rule in #1550; then fix `src/main.rs` routing.
 
-### BW-042: 8 stray `.worktrees/*` gitlinks on main with no `.gitmodules`
+### BW-043: 8 stray `.worktrees/*` gitlinks on main with no `.gitmodules`
 
 **Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
 **Issue:** #1551. Commit `9599ca7` added 8 local worktree dirs as mode-160000 gitlinks.
@@ -319,7 +319,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** no
 **Next step:** `git rm --cached` the 8 gitlinks and confirm `.worktrees/` is in `.gitignore`.
 
-### BW-043: CLA check never records a signature, so every external PR stays red
+### BW-044: CLA check never records a signature, so every external PR stays red
 
 **Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
 **Issue:** #1555. `custom-pr-sign-comment` in `.github/workflows/cla.yml` holds the whole notice, not the sign phrase. Blocks #1296, #1390, #1415.
@@ -327,7 +327,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** yes (CI gate / contributor policy)
 **Next step:** maintainer approves the 2-line `cla.yml` change proposed in #1555.
 
-### BW-044: `caro run` runbook path and step path keep shell state differently
+### BW-045: `caro run` runbook path and step path keep shell state differently
 
 **Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
 **Issue:** #1557. The runbook runs all steps in one `bash`; the step path uses a fresh shell per step.
@@ -335,7 +335,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** yes (product: which behavior is the contract)
 **Next step:** maintainer picks an option in #1557; recommended option 1 (subshell per step in the runbook).
 
-### BW-045: static safety validator rates reverse shells, exfiltration and DROP DATABASE as Safe
+### BW-046: static safety validator rates reverse shells, exfiltration and DROP DATABASE as Safe
 
 **Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
 **Issue:** #1559
@@ -343,7 +343,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** yes (safety patterns)
 **Next step:** maintainer approves the pattern set; then add patterns with the `safety-pattern-developer` TDD flow.
 
-### BW-046: upgrade reqwest 0.11 → 0.12 to clear h2 RUSTSEC-2026-0258 (wiremock is already 0.6.4)
+### BW-047: upgrade reqwest 0.11 → 0.12 to clear h2 RUSTSEC-2026-0258 (wiremock is already 0.6.4)
 
 **Found:** 2026-10-10 sweep register sync (issue filed 2026-09-24)
 **Issue:** #1472 (related: #1446, the vulnerability report)
