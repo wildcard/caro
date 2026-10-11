@@ -1,6 +1,6 @@
 # Caro
 
-> Caro converts natural language into safe POSIX shell commands. It runs a local LLM on your machine, checks every generated command against more than 52 dangerous-command patterns, and asks before it runs anything.
+> Caro converts natural language into safe POSIX shell commands. It runs a local LLM on your machine and checks each generated command against more than 52 dangerous-command patterns. A command that a user explicitly allowlists skips those checks, except a floor of catastrophic patterns that always applies.
 
 Caro is a single Rust binary for macOS, Linux and Windows, at version {{version}}. It is open source under the AGPL-3.0 license.
 

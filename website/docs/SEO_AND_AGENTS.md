@@ -2,7 +2,8 @@
 
 Every page on caro.sh ships with a share card, a Markdown twin and a full
 SEO head. Nothing is registered per page: a new page gets all of it from its
-path and its `<title>`.
+path and the `title` and `description` it passes to its layout. The build
+fails if a page has no description.
 
 ```
  page.astro ─▶ Layout / DocsLayout / LandingPage ─▶ <SEO>          (render time)

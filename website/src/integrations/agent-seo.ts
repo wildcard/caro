@@ -16,7 +16,7 @@
  * Markdown twin, or has an hreflang alternate that is a redirect stub.
  */
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AstroIntegration, AstroIntegrationLogger } from 'astro';
@@ -237,13 +237,22 @@ export default function agentSeo(): AstroIntegration {
         await write(
           outFile(dir, '/rss.xml'),
           buildRss(
-            posts.map((page) => ({
-              url: page.meta.canonical || new URL(page.path, site).href,
-              title: page.meta.ogTitle || page.meta.title,
-              description: page.meta.description,
-              publishedTime: page.meta.publishedTime as string,
-              image: page.meta.ogImage || undefined,
-            })),
+            await Promise.all(
+              posts.map(async (page) => {
+                const image = page.meta.ogImage || undefined;
+                const file = image && new URL(image, site).host === site.host
+                  ? outFile(dir, new URL(image, site).pathname)
+                  : undefined;
+                return {
+                  url: page.meta.canonical || new URL(page.path, site).href,
+                  title: page.meta.ogTitle || page.meta.title,
+                  description: page.meta.description,
+                  publishedTime: page.meta.publishedTime as string,
+                  image,
+                  imageLength: file && existsSync(file) ? (await stat(file)).size : undefined,
+                };
+              }),
+            ),
             site,
           ),
         );

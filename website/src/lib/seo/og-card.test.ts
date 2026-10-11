@@ -27,7 +27,7 @@ describe('renderCard', () => {
 
 describe('planCard', () => {
   // The longest titles on the site when this test was written.
-  it.each([
+  it.each<[string, string, string?, string?]>([
     ['/blog/founders-playbook-adaptation', "Caro's founder arc: adopting Anthropic's playbook with a safety-first execution layer - Caro Blog", '2026-05-25T00:00:00.000Z', '8 min read'],
     ['/blog/claude-skill-launch', 'Introducing the Caro Claude Skill: Safe Shell Commands in Your AI Workflow - Caro Blog', '2025-12-23T00:00:00.000Z', '6 min read'],
     ['/use-cases/sre', 'Caro for SREs & On-Call Engineers | Safe Production Commands'],

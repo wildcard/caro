@@ -39,6 +39,12 @@ describe('buildLlmsTxt', () => {
     expect(txt).toContain('- [Terminal mastery, unlocked](https://caro.sh/index.md)');
   });
 
+  it('lists every page exactly once', () => {
+    for (const p of pages) {
+      expect(txt.split(`](${p.markdownUrl})`).length - 1, p.path).toBe(1);
+    }
+  });
+
   it('puts translations under Optional', () => {
     expect(txt).toContain('## Optional\n\n- [Dein treuer Shell-Begleiter (de)](https://caro.sh/de.md)');
   });
@@ -51,6 +57,9 @@ describe('buildLlmsFullTxt', () => {
     expect(full).toContain('# CLI Reference - Caro Docs\n\nSource: https://caro.sh/docs/cli\n\nBody of /docs/cli.');
     expect(full).not.toContain('Body of /de.');
     expect(full).not.toContain('title: "');
+    for (const p of pages.filter((page) => page.locale === 'en')) {
+      expect(full, p.path).toContain(`Source: ${p.url}\n\nBody of ${p.path}.`);
+    }
   });
 });
 
@@ -59,7 +68,7 @@ describe('buildRss', () => {
     const rss = buildRss(
       [
         { url: 'https://caro.sh/blog/a', title: 'Old & gold - Caro Blog', description: '<b>a</b>', publishedTime: '2025-01-01T00:00:00Z' },
-        { url: 'https://caro.sh/blog/b', title: 'New', description: 'b', publishedTime: '2026-01-01T00:00:00Z' },
+        { url: 'https://caro.sh/blog/b', title: 'New', description: 'b', publishedTime: '2026-01-01T00:00:00Z', image: 'https://caro.sh/og/blog/b.png', imageLength: 1234 },
       ],
       site,
     );
@@ -67,5 +76,8 @@ describe('buildRss', () => {
     expect(rss).toContain('<title>Old &amp; gold</title>');
     expect(rss).toContain('<description>&lt;b&gt;a&lt;/b&gt;</description>');
     expect(rss).toContain('<pubDate>Thu, 01 Jan 2026 00:00:00 GMT</pubDate>');
+    expect(rss).toContain('<enclosure url="https://caro.sh/og/blog/b.png" type="image/png" length="1234"/>');
+    // No size, no enclosure: RSS requires a real length.
+    expect(rss.match(/<enclosure/g)).toHaveLength(1);
   });
 });

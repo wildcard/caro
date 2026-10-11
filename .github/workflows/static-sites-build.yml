@@ -85,6 +85,13 @@ jobs:
       - name: Unit tests
         run: npm test --workspace=caro-website
 
+      # Vitest and `astro build` strip types without checking them. This
+      # checks the build-time SEO code; the rest of the site still has older
+      # type errors (see the comment in website/tsconfig.seo.json).
+      - name: Type-check build-time SEO code
+        working-directory: website
+        run: npx tsc -p tsconfig.seo.json
+
       # `npm run build` adds `--remote`, which needs the production Turso
       # database. A local SQLite file builds the same pages.
       - name: Build
