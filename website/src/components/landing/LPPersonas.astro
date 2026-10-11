@@ -1,6 +1,7 @@
 ---
 // LPPersonas.astro - Three personas section with interactive CTAs
 import KyaroIcon from '../../ui/KyaroIcon/KyaroIcon.astro';
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
 ---
 
 <section class="personas" id="personas">
@@ -81,11 +82,11 @@ import KyaroIcon from '../../ui/KyaroIcon/KyaroIcon.astro';
             <h4>What Caro Catches</h4>
             <div class="use-case danger">
               <code class="input blocked">rm -rf /</code>
-              <span class="blocked-badge">⛔ BLOCKED</span>
+              <span class="blocked-badge"><TermGlyph g="✗" /> BLOCKED</span>
             </div>
             <div class="use-case danger">
               <code class="input blocked">:()&#123; :|:& &#125;;:</code>
-              <span class="blocked-badge">⛔ FORK BOMB</span>
+              <span class="blocked-badge"><TermGlyph g="✗" /> FORK BOMB</span>
             </div>
             <p class="expanded-note">52+ dangerous patterns are validated before any command runs. Your team is protected by default.</p>
           </div>

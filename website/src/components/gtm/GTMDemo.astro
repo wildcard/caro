@@ -1,5 +1,6 @@
 ---
 // GTM Demo Section - Interactive terminal showcase
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
 ---
 
 <section id="demo" class="demo">
@@ -55,15 +56,15 @@
 
       <div class="demo-features">
         <div class="feature-tag">
-          <span class="tag-icon">🚀</span>
+          <TermGlyph g="❯" />
           <span>&lt;2s response</span>
         </div>
         <div class="feature-tag">
-          <span class="tag-icon">🔒</span>
+          <TermGlyph g="$" />
           <span>Runs locally</span>
         </div>
         <div class="feature-tag">
-          <span class="tag-icon">🛡️</span>
+          <TermGlyph g="■" />
           <span>Pre-validated</span>
         </div>
       </div>
@@ -276,10 +277,6 @@
     border-radius: 24px;
     font-size: 14px;
     color: var(--color-text-secondary);
-  }
-
-  .tag-icon {
-    font-size: 16px;
   }
 
   /* Safety Showcase */

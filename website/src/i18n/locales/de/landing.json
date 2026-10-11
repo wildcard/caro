@@ -263,32 +263,32 @@
         {
           "question": "Moment, Caro läuft lokal. Wie bleibt es mit neuen gefährlichen Mustern aktuell?",
           "answer": "Caros Sicherheitsmuster sind in die Binary eingebacken – kein Netzwerk nötig. Wenn du Caro aktualisierst (cargo install caro --force), erhältst du die neuesten Muster. Die Kern-Gefahrenbefehle (rm -rf /, Fork-Bomben, Disk-Wiper) ändern sich nicht. Wir akzeptieren auch Musterbeiträge via GitHub.",
-          "icon": "🔄"
+          "icon": "▸"
         },
         {
           "question": "Wird das meine Incident-Response verlangsamen?",
           "answer": "Nein. Caro fügt <100ms zur Befehlsgenerierung hinzu. Die Sicherheitsprüfung ist instant (Pattern Matching, keine KI-Inferenz). In einem echten Incident sind das 100ms, die dich davor bewahren könnten, alles 10x schlimmer zu machen. Die Validierung ist synchron – du siehst die Warnung sofort.",
-          "icon": "⚡"
+          "icon": "❯"
         },
         {
           "question": "Woher kennt es mein spezifisches System-Setup (BSD vs GNU usw.)?",
           "answer": "Caro erkennt dein OS und deine Shell zur Laufzeit. Auf macOS weiß es, dass du BSD-Tools nutzt. Auf Linux passt es sich an GNU-Syntax an. Es liest dein $SHELL und passt sich entsprechend an. Keine Konfiguration nötig – es funktioniert einfach.",
-          "icon": "🖥️"
+          "icon": "▸"
         },
         {
           "question": "Was, wenn ich tatsächlich einen gefährlichen Befehl ausführen MUSS?",
           "answer": "Caro warnt, es sperrt nicht ein. Wenn du eine Warnung siehst, kannst du trotzdem fortfahren – wir stellen nur sicher, dass du es absichtlich tust. Bei wirklich destruktiven Befehlen (rm -rf /) musst du bestätigen. Das ist dein Sicherheitsgurt, keine Zwangsjacke.",
-          "icon": "🔓"
+          "icon": "▸"
         },
         {
           "question": "Ist das nur ein weiterer KI-Wrapper, der meine Befehle in die Cloud schickt?",
           "answer": "Nein. Caro läuft 100% lokal. Deine Befehle, Dateipfade, Servernamen und Verzeichnisstrukturen verlassen nie deine Maschine. Die Inferenz geschieht auf deiner Hardware. Wir haben null Telemetrie. Check den Quellcode – er ist AGPL-3.0-lizenziert.",
-          "icon": "🔒"
+          "icon": "▸"
         },
         {
           "question": "Warum sollte ich KI-generierten Shell-Befehlen überhaupt vertrauen?",
           "answer": "Solltest du nicht blind – das ist der Punkt. Caro generiert Befehle UND validiert sie, bevor du sie ausführst. Es geht nicht um 'vertraue der KI' – es geht um 'vertraue dem musterbasierten Sicherheitslayer, der fängt, was die KI falsch machen könnte.' Die Validierung ist deterministisch, nicht probabilistisch.",
-          "icon": "🎯"
+          "icon": "■"
         }
       ]
     },
@@ -360,7 +360,7 @@
     },
     "announcement": {
       "renameBanner": {
-        "emoji": "🎉",
+        "emoji": "▸",
         "title": "Caro ist da!",
         "message": "Wir haben uns von cmdai in caro umbenannt.",
         "linkText": "Ankündigung lesen",

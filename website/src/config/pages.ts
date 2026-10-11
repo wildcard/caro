@@ -10,7 +10,7 @@
  * - description: Short description for search results
  * - category: One of 'main', 'use-cases', 'compare', 'blog', 'docs'
  * - keywords: Array of search terms
- * - icon: Emoji icon for the search result
+ * - icon: Terminal glyph for the search result (▸; see ui/TermGlyph)
  *
  * @see scripts/generate-search-index.mjs for automated index generation
  */
@@ -108,70 +108,70 @@ export const PAGES_INDEX: PageEntry[] = [
     description: 'Caro - Your loyal shell companion',
     category: 'main',
     keywords: ['home', 'main', 'landing'],
-    icon: '🏠',
+    icon: '▸',
   }),
   getEntry('/safe-shell-commands', {
     title: 'Safe Shell Commands',
     description: 'Generate safe shell commands with AI',
     category: 'main',
     keywords: ['safe', 'shell', 'commands', 'cli'],
-    icon: '🛡️',
+    icon: '▸',
   }),
   getEntry('/ai-command-safety', {
     title: 'AI Command Safety',
     description: 'How Caro validates AI-generated commands',
     category: 'main',
     keywords: ['ai', 'safety', 'validation', 'llm'],
-    icon: '🔒',
+    icon: '▸',
   }),
   getEntry('/ai-agent-safety', {
     title: 'AI Agent Safety',
     description: 'MCP integration for AI agents',
     category: 'main',
     keywords: ['ai', 'agent', 'mcp', 'claude'],
-    icon: '🤖',
+    icon: '▸',
   }),
   getEntry('/roadmap', {
     title: 'Roadmap',
     description: 'Product roadmap and upcoming features',
     category: 'main',
     keywords: ['roadmap', 'features', 'planned', 'future'],
-    icon: '🗺️',
+    icon: '▸',
   }),
   getEntry('/support', {
     title: 'Sponsor',
     description: 'Fund Caro open source development',
     category: 'main',
     keywords: ['sponsor', 'donate', 'fund', 'github sponsors', 'open collective', 'support development'],
-    icon: '💖',
+    icon: '▸',
   }),
   getEntry('/credits', {
     title: 'Credits',
     description: 'Acknowledgments and credits',
     category: 'main',
     keywords: ['credits', 'thanks', 'acknowledgments'],
-    icon: '🙏',
+    icon: '▸',
   }),
   getEntry('/explore', {
     title: 'Explore',
     description: 'Explore Caro features',
     category: 'main',
     keywords: ['explore', 'discover', 'features'],
-    icon: '🔍',
+    icon: '▸',
   }),
   getEntry('/faq', {
     title: 'FAQ',
     description: 'Frequently asked questions about Caro',
     category: 'main',
     keywords: ['faq', 'questions', 'help', 'support', 'how to', 'troubleshooting', 'installation', 'usage', 'safety', 'backends'],
-    icon: '❓',
+    icon: '▸',
   }),
   getEntry('/telemetry', {
     title: 'Telemetry',
     description: 'Privacy and telemetry information',
     category: 'main',
     keywords: ['telemetry', 'privacy', 'data', 'analytics'],
-    icon: '📊',
+    icon: '▸',
   }),
 
   // Use Cases
@@ -180,42 +180,42 @@ export const PAGES_INDEX: PageEntry[] = [
     description: 'All use cases and personas',
     category: 'use-cases',
     keywords: ['use cases', 'personas', 'jtbd', 'jobs'],
-    icon: '📋',
+    icon: '▸',
   }),
   getEntry('/use-cases/sre', {
     title: 'SRE & On-Call',
     description: 'For Site Reliability Engineers',
     category: 'use-cases',
     keywords: ['sre', 'on-call', 'incident', 'production'],
-    icon: '🚨',
+    icon: '▸',
   }),
   getEntry('/use-cases/air-gapped', {
     title: 'Air-Gapped Security',
     description: 'For air-gapped and secure environments',
     category: 'use-cases',
     keywords: ['air-gapped', 'security', 'offline', 'scif'],
-    icon: '🔐',
+    icon: '▸',
   }),
   getEntry('/use-cases/devops', {
     title: 'DevOps & Platform',
     description: 'For DevOps and Platform Engineers',
     category: 'use-cases',
     keywords: ['devops', 'platform', 'cross-platform', 'ci/cd'],
-    icon: '🔧',
+    icon: '▸',
   }),
   getEntry('/use-cases/tech-lead', {
     title: 'Tech Leads',
     description: 'For Tech Leads and Engineering Managers',
     category: 'use-cases',
     keywords: ['tech lead', 'manager', 'team', 'safety'],
-    icon: '👥',
+    icon: '▸',
   }),
   getEntry('/use-cases/developer', {
     title: 'Developers',
     description: 'For developers learning the terminal',
     category: 'use-cases',
     keywords: ['developer', 'learning', 'terminal', 'beginner'],
-    icon: '💻',
+    icon: '▸',
   }),
 
   // Comparisons
@@ -224,7 +224,7 @@ export const PAGES_INDEX: PageEntry[] = [
     description: 'Compare Caro with alternatives',
     category: 'compare',
     keywords: ['compare', 'alternatives', 'vs'],
-    icon: '⚖️',
+    icon: '▸',
   }),
   getEntry('/compare/github-copilot-cli', {
     title: 'vs GitHub Copilot CLI',
@@ -261,42 +261,42 @@ export const PAGES_INDEX: PageEntry[] = [
     description: 'Caro blog and updates',
     category: 'blog',
     keywords: ['blog', 'news', 'updates', 'articles'],
-    icon: '📝',
+    icon: '▸',
   }),
   getEntry('/blog/announcing-caro', {
     title: 'Announcing Caro',
     description: 'Introducing Caro to the world',
     category: 'blog',
     keywords: ['announcement', 'launch', 'intro'],
-    icon: '🎉',
+    icon: '▸',
   }),
   getEntry('/blog/why-caro', {
     title: 'Why Caro?',
     description: 'Why we built Caro',
     category: 'blog',
     keywords: ['why', 'motivation', 'story'],
-    icon: '❓',
+    icon: '▸',
   }),
   getEntry('/blog/security-practices', {
     title: 'Security Practices',
     description: 'Security best practices with Caro',
     category: 'blog',
     keywords: ['security', 'practices', 'safety'],
-    icon: '🔐',
+    icon: '▸',
   }),
   getEntry('/blog/claude-skill-launch', {
     title: 'Claude Skill Launch',
     description: 'Claude Code skill integration',
     category: 'blog',
     keywords: ['claude', 'skill', 'integration'],
-    icon: '🤖',
+    icon: '▸',
   }),
   getEntry('/blog/batteries-included', {
     title: 'Batteries Included',
     description: 'Everything included out of the box',
     category: 'blog',
     keywords: ['batteries', 'included', 'features'],
-    icon: '🔋',
+    icon: '▸',
   }),
   getEntry('/blog/rust-unix-tools', {
     title: 'The Rust Revolution',
@@ -317,7 +317,7 @@ export const PAGES_INDEX: PageEntry[] = [
     description: 'Terminal & Unix terminology explained',
     category: 'main',
     keywords: ['glossary', 'unix', 'posix', 'shell', 'terminal', 'commands', 'cli', 'bash', 'zsh', 'linux', 'macos', 'cheatsheet', 'reference', 'beginner', 'learn'],
-    icon: '📖',
+    icon: '▸',
   }),
 ];
 

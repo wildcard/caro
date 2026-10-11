@@ -12,6 +12,7 @@ import LandingPage from '../../layouts/LandingPage.astro';
 import Navigation from '../../components/Navigation.astro';
 import LPDownload from '../../components/landing/LPDownload.astro';
 import LPFooter from '../../components/landing/LPFooter.astro';
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
 
 const jobs = [
   {
@@ -536,7 +537,7 @@ const vsAlternatives = [
                   <code class="output-command">{ex.command}</code>
                 </div>
                 <div class="translation-explain">
-                  <span class="explain-icon">💡</span>
+                  <span class="explain-icon"><TermGlyph g="▸" /></span>
                   <span class="explain-text">{ex.explanation}</span>
                 </div>
               </div>
@@ -572,14 +573,14 @@ const vsAlternatives = [
 
             {example.warning && (
               <div class="learning-warning">
-                <span class="warning-icon">⚠️</span>
+                <span class="warning-icon"><TermGlyph g="■" /></span>
                 <span>{example.warning}</span>
               </div>
             )}
 
             {example.tip && (
               <div class="learning-tip">
-                <span class="tip-icon">💡</span>
+                <span class="tip-icon"><TermGlyph g="▸" /></span>
                 <span>{example.tip}</span>
               </div>
             )}
@@ -606,7 +607,7 @@ const vsAlternatives = [
         {commonMistakes.map((mistake) => (
           <div class="mistake-card">
             <div class="mistake-wrong">
-              <span class="wrong-label">❌ Common mistake</span>
+              <span class="wrong-label">✗ Common mistake</span>
               <code>{mistake.wrong}</code>
             </div>
             <div class="mistake-right">

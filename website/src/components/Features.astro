@@ -1,6 +1,7 @@
 ---
 import { t, type Locale } from '../i18n/config';
 import KyaroIcon, { type KyaroIconName } from '../ui/KyaroIcon/KyaroIcon.astro';
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -31,7 +32,7 @@ const statusLabels: Record<string, string> = {
   <div class="container">
     <h2>{t(lang, 'landing.features.title')}</h2>
     <p class="section-subtitle">{t(lang, 'landing.features.subtitle')}</p>
-    <p class="alpha-notice"><span aria-hidden="true">🚧</span> <strong>{t(lang, 'landing.features.alphaLabel')}</strong> — {t(lang, 'landing.features.alphaNotice')}</p>
+    <p class="alpha-notice"><TermGlyph g="▸" /> <strong>{t(lang, 'landing.features.alphaLabel')}</strong> — {t(lang, 'landing.features.alphaNotice')}</p>
     <div class="features">
       {featureKeys.map((feature) => (
         <div class={`feature feature-${feature.status}`}>

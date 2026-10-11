@@ -19,16 +19,19 @@ export type Glyph = (typeof GLYPHS)[number];
 interface Props {
   g: Glyph;
   class?: string;
+  [attr: `data-${string}`]: string | undefined;
 }
 
-const { g, class: className } = Astro.props;
+// The rest carries the parent's scope attribute (data-astro-cid-*), so a
+// parent's scoped CSS still reaches <TermGlyph class="...">.
+const { g, class: className, ...rest } = Astro.props;
 
 if (!(GLYPHS as readonly string[]).includes(g)) {
   throw new Error(`[TermGlyph] "${g}" is not a terminal glyph; use one of ${GLYPHS.join(' ')}`);
 }
 ---
 
-<span class:list={['term-glyph', className]} aria-hidden="true">{g}</span>
+<span class:list={['term-glyph', className]} aria-hidden="true" {...rest}>{g}</span>
 
 <style>
   .term-glyph {

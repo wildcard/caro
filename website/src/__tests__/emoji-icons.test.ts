@@ -13,7 +13,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-const EMOJI_BUDGET = 2135;
+const EMOJI_BUDGET = 1877;
 
 const GLYPHS = ['▸', '■', '$', '❯', '>_', '✓', '✗', '♥'];
 // Pictographic code points that render as plain text in our fonts.
@@ -34,10 +34,12 @@ const files = sourceFiles(src).map((path) => ({
   text: readFileSync(path, 'utf8'),
 }));
 
+// A flag (two regional indicators), a keycap (4️⃣), or a pictograph with its
+// optional emoji selector U+FE0F. "♥" is text; "♥️" (with U+FE0F) is emoji.
+const EMOJI = /\p{Regional_Indicator}{2}|[#*0-9]\uFE0F?\u20E3|\p{Extended_Pictographic}\uFE0F?/gu;
+
 function emojiIn(text: string): string[] {
-  return [...text.matchAll(/\p{Extended_Pictographic}/gu)]
-    .map((m) => m[0])
-    .filter((c) => !TEXT_SYMBOLS.has(c));
+  return [...text.matchAll(EMOJI)].map((m) => m[0]).filter((e) => !TEXT_SYMBOLS.has(e));
 }
 
 describe('emoji used as icons', () => {

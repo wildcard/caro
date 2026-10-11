@@ -1,5 +1,6 @@
 ---
 import { type Locale } from '../../i18n/config';
+import TermGlyph, { type Glyph } from '../../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -16,7 +17,7 @@ const roles = [
   {
     id: "devops",
     name: "DevOps Engineer",
-    icon: "🔧",
+    icon: "▸",
     scenarios: [
       {
         context: "3 AM incident: Database logs filling disk",
@@ -41,7 +42,7 @@ const roles = [
   {
     id: "sre",
     name: "SRE",
-    icon: "🛡️",
+    icon: "▸",
     scenarios: [
       {
         context: "Emergency: Need to restart all services",
@@ -66,7 +67,7 @@ const roles = [
   {
     id: "backend",
     name: "Backend Developer",
-    icon: "💻",
+    icon: "▸",
     scenarios: [
       {
         context: "Cleaning up old database backups",
@@ -91,7 +92,7 @@ const roles = [
   {
     id: "data",
     name: "Data Engineer",
-    icon: "📊",
+    icon: "▸",
     scenarios: [
       {
         context: "Cleaning up temporary data files",
@@ -130,7 +131,7 @@ const roles = [
           aria-label={role.name}
           aria-pressed={index === 0 ? "true" : "false"}
         >
-          <span class="role-icon">{role.icon}</span>
+          <span class="role-icon"><TermGlyph g={role.icon as Glyph} /></span>
           <span class="role-name">{role.name}</span>
         </button>
       ))}
@@ -152,7 +153,7 @@ const roles = [
                   <code class="dangerous-command">{scenario.dangerous}</code>
                 </div>
                 <div class="scenario-problem">
-                  <span class="problem-icon">⚠️</span>
+                  <span class="problem-icon"><TermGlyph g="■" /></span>
                   <span class="problem-text">{scenario.problem}</span>
                 </div>
                 <div class="caro-response">
@@ -227,7 +228,7 @@ const roles = [
   }
 
   .role-icon {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .role-scenarios {
@@ -314,8 +315,11 @@ const roles = [
     border-radius: 6px;
   }
 
+  /* Same size and line box as .problem-text, so the glyph sits on its first line. */
   .problem-icon {
     flex-shrink: 0;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   .problem-text {
@@ -357,7 +361,8 @@ const roles = [
       font-size: 13px;
     }
 
-    .role-name {
+    /* The name carries the meaning; every role shares the same glyph. */
+    .role-icon {
       display: none;
     }
 

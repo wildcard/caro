@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 
 // Roadmap data
 const milestones = [
@@ -249,9 +250,9 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
             <h2>{milestones[0].title}</h2>
             <p class="milestone-focus">{milestones[0].focus}</p>
             <div class="milestone-meta">
-              <span class="meta-item">📅 Due: {milestones[0].dueDate}</span>
+              <span class="meta-item"><TermGlyph g="▸" /> Due: {milestones[0].dueDate}</span>
               <span class="meta-item">⏳ {milestones[0].daysRemaining} days</span>
-              <span class="meta-item">📊 {milestones[0].completedItems}/{milestones[0].totalItems} items</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[0].completedItems}/{milestones[0].totalItems} items</span>
             </div>
           </div>
 
@@ -295,9 +296,9 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
             <h2>{milestones[1].title}</h2>
             <p class="milestone-focus">{milestones[1].focus}</p>
             <div class="milestone-meta">
-              <span class="meta-item">📅 Due: {milestones[1].dueDate}</span>
+              <span class="meta-item"><TermGlyph g="▸" /> Due: {milestones[1].dueDate}</span>
               <span class="meta-item">⏳ {milestones[1].daysRemaining} days</span>
-              <span class="meta-item">📊 {milestones[1].completedItems}/{milestones[1].totalItems} items</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[1].completedItems}/{milestones[1].totalItems} items</span>
             </div>
           </div>
 
@@ -341,9 +342,9 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
             <h2>{milestones[2].title}</h2>
             <p class="milestone-focus">{milestones[2].focus}</p>
             <div class="milestone-meta">
-              <span class="meta-item">📅 Due: {milestones[2].dueDate}</span>
+              <span class="meta-item"><TermGlyph g="▸" /> Due: {milestones[2].dueDate}</span>
               <span class="meta-item">⏳ {milestones[2].daysRemaining} days</span>
-              <span class="meta-item">📊 {milestones[2].completedItems}/{milestones[2].totalItems} items</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[2].completedItems}/{milestones[2].totalItems} items</span>
             </div>
           </div>
 
@@ -405,12 +406,12 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
             <h4>Project Tracking</h4>
             <div class="links-grid">
               <a href="https://github.com/users/wildcard/projects/2" target="_blank" rel="noopener noreferrer" class="tracking-link">
-                <span class="link-icon">🔧</span>
+                <span class="link-icon"><TermGlyph g="▸" /></span>
                 <span class="link-text">Product Development</span>
                 <span class="link-count">36 items</span>
               </a>
               <a href="https://github.com/users/wildcard/projects/3" target="_blank" rel="noopener noreferrer" class="tracking-link">
-                <span class="link-icon">📢</span>
+                <span class="link-icon"><TermGlyph g="▸" /></span>
                 <span class="link-text">Marketing & DevRel</span>
                 <span class="link-count">29 items</span>
               </a>
@@ -1177,7 +1178,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .link-icon {
-    font-size: 24px;
+    font-size: 18px;
   }
 
   .link-text {

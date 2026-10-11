@@ -19,6 +19,7 @@ import { t, type Locale } from '../i18n/config';
 import GitHubMark from './icons/GitHubMark.astro';
 import CaroMark from './icons/CaroMark.astro';
 import OccasionMenu from './OccasionMenu.astro';
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   variant?: 'default' | 'use-cases';
@@ -132,7 +133,7 @@ const resourceLinks = [
             <a href="/#waitlist">Community</a>
           </li>
           <li class="nav-item">
-            <a href="/support" class="support-link"><span class="support-heart" aria-hidden="true">♥</span> {t(lang, 'common.nav.support')}</a>
+            <a href="/support" class="support-link"><span class="support-heart" aria-hidden="true"><TermGlyph g="♥" /></span> {t(lang, 'common.nav.support')}</a>
           </li>
         </ul>
       )}
@@ -237,7 +238,7 @@ const resourceLinks = [
           </div>
           <div class="drawer-section">
             <a href="/#waitlist" class="drawer-link">Join the Pack</a>
-            <a href="/support" class="drawer-link support-link"><span class="support-heart" aria-hidden="true">♥</span> {t(lang, 'common.nav.mobile.supportCaro')}</a>
+            <a href="/support" class="drawer-link support-link"><span class="support-heart" aria-hidden="true"><TermGlyph g="♥" /></span> {t(lang, 'common.nav.mobile.supportCaro')}</a>
           </div>
         </Fragment>
       )}

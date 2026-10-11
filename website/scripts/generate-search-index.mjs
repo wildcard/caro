@@ -41,36 +41,9 @@ function getCategoryFromPath(filePath) {
   return 'main';
 }
 
-// Get icon based on category and path
-function getIconFromPath(urlPath, category) {
-  const iconMap = {
-    blog: '📝',
-    compare: '⚖️',
-    'use-cases': '📋',
-    explore: '🔍',
-    docs: '📚',
-    main: '📄',
-  };
-
-  // Special icons for specific pages
-  if (urlPath.includes('sre')) return '🚨';
-  if (urlPath.includes('air-gapped')) return '🔐';
-  if (urlPath.includes('devops')) return '🔧';
-  if (urlPath.includes('tech-lead')) return '👥';
-  if (urlPath.includes('developer')) return '💻';
-  if (urlPath.includes('safety') || urlPath.includes('security')) return '🛡️';
-  if (urlPath.includes('roadmap')) return '🗺️';
-  if (urlPath.includes('support')) return '💬';
-  if (urlPath.includes('credits')) return '🙏';
-  if (urlPath.includes('github') || urlPath.includes('copilot')) return '🐙';
-  if (urlPath.includes('warp')) return '🚀';
-  if (urlPath.includes('amazon')) return '📦';
-  if (urlPath.includes('opencode')) return '💡';
-  if (urlPath.includes('claude')) return '🤖';
-  if (urlPath === '/' || urlPath === '') return '🏠';
-
-  return iconMap[category] || '📄';
-}
+// Every search row shows the same terminal glyph: the page title carries the
+// meaning, and the site uses no emoji as icons (docs/brand/ICONOGRAPHY.md).
+const SEARCH_ICON = '▸';
 
 // Extract ALL text content from HTML/Astro content
 function extractAllTextContent(content) {
@@ -539,7 +512,7 @@ function scanPage(filePath, pagesDir) {
     description,
     category,
     keywords,
-    icon: getIconFromPath(urlPath, category),
+    icon: SEARCH_ICON,
     // Structured content for display
     content: {
       headings: structured.headings,
