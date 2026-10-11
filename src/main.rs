@@ -3,6 +3,7 @@ use caro::backends::{CommandGenerator, StaticMatcher};
 use caro::cli::{CliApp, CliError, IntoCliArgs};
 use caro::config::ConfigManager;
 use caro::eval::{CategoryResults, EvalResults, EvalSuite, IndividualResult};
+use caro::execution::ExecutorError;
 use caro::models::{CommandRequest, ShellType};
 use caro::prompts::CapabilityProfile;
 use caro::setup::{needs_setup, SetupWizard};
@@ -630,6 +631,12 @@ enum Commands {
         /// Print the plan and exit without executing.
         #[arg(long)]
         dry_run: bool,
+
+        /// Stop each step after this many seconds. A timed step runs in its
+        /// own process group with no stdin. Caro forwards Ctrl-C (SIGINT),
+        /// SIGTERM and SIGHUP to that group.
+        #[arg(long, value_name = "SECONDS", value_parser = clap::value_parser!(u64).range(1..))]
+        timeout: Option<u64>,
     },
 
     /// Write the per-platform `.<platform>.sh` runbook from the active
@@ -705,6 +712,12 @@ enum Commands {
         /// Print the resolved dispatch plan and exit.
         #[arg(long)]
         dry_run: bool,
+
+        /// Stop each step after this many seconds. A timed step runs in its
+        /// own process group with no stdin. Caro forwards Ctrl-C (SIGINT),
+        /// SIGTERM and SIGHUP to that group.
+        #[arg(long, value_name = "SECONDS", value_parser = clap::value_parser!(u64).range(1..))]
+        timeout: Option<u64>,
     },
 
     /// Render a CaroML task as Markdown documentation.
@@ -1512,9 +1525,11 @@ fn run_caroml_run(
     platform_override: Option<&str>,
     yes: bool,
     dry_run: bool,
+    timeout_secs: Option<u64>,
 ) -> Result<(), String> {
     use caro::caroml::{discovery, lock::Lock, platform as caro_platform, runner};
     use std::io::{self, Write};
+    let timeout_ms = timeout_secs.map(|s| s.saturating_mul(1000));
 
     let task_path = discovery::resolve_task_path(name)
         .ok_or_else(|| format!("could not find task `{}`", name))?;
@@ -1594,7 +1609,7 @@ fn run_caroml_run(
     let started = Instant::now();
     // Prefer runbook execution when it's hash-clean; fall back to per-step.
     let result = match runbook_status {
-        RunbookStatus::Clean => match runner::execute_runbook(&runbook_path) {
+        RunbookStatus::Clean => match runner::execute_runbook(&runbook_path, timeout_ms) {
             Ok(0) => Ok(vec![]),
             Ok(other) => Err(runner::RunError::StepFailed {
                 line: 0,
@@ -1604,7 +1619,7 @@ fn run_caroml_run(
             }),
             Err(e) => Err(e),
         },
-        _ => runner::execute_plan(&plan),
+        _ => runner::execute_plan(&plan, timeout_ms),
     };
     let elapsed_ms = started.elapsed().as_millis() as u64;
 
@@ -1620,6 +1635,11 @@ fn run_caroml_run(
             *exit_code,
             Some(format!("step on line {}: {}", line, intent)),
             stderr.clone(),
+        ),
+        Err(runner::RunError::Executor(ExecutorError::Interrupted(sig))) => (
+            128 + sig,
+            Some(format!("interrupted by signal {}", sig)),
+            String::new(),
         ),
         Err(other) => (255, Some(format!("{}", other)), String::new()),
     };
@@ -1642,6 +1662,9 @@ fn run_caroml_run(
         eprintln!("warning: could not write run journal: {}", e);
     }
 
+    if let Err(runner::RunError::Executor(ExecutorError::Interrupted(sig))) = &result {
+        exit_interrupted(*sig);
+    }
     let results = result.map_err(|e| e.to_string())?;
     println!(
         "All {} steps completed in {} ms.",
@@ -1836,8 +1859,9 @@ fn run_caroml_skill(command: &SkillSubcommand) -> Result<(), String> {
 }
 
 /// `caro do <name>` — Carofile JOB / external-alias / native-alias / fallback.
-fn run_caroml_do(name: &str, dry_run: bool) -> Result<(), String> {
-    use caro::caroml::{carofile, discovery, jobs, platform as caro_platform};
+fn run_caroml_do(name: &str, dry_run: bool, timeout_secs: Option<u64>) -> Result<(), String> {
+    use caro::caroml::{carofile, discovery, jobs, platform as caro_platform, runner::RunError};
+    let timeout_ms = timeout_secs.map(|s| s.saturating_mul(1000));
 
     // Try to load the Carofile (optional).
     let carofile_path = discovery::find_carofile();
@@ -1862,20 +1886,41 @@ fn run_caroml_do(name: &str, dry_run: bool) -> Result<(), String> {
     }
 
     let platform = caro_platform::current().to_string();
-    let results = jobs::dispatch(name, carofile.as_ref(), |alias_or_name, task_path_opt| {
-        // Native task or bare-task: load the lock and execute it.
-        let task_path = match task_path_opt {
-            Some(p) => p.to_path_buf(),
-            None => discovery::resolve_task_path(alias_or_name).ok_or_else(|| {
-                jobs::DoError::Other(format!("could not find task `{}`", alias_or_name))
-            })?,
-        };
-        jobs::run_native_task(&task_path, &platform)
-    })
-    .map_err(|e| e.to_string())?;
+    let results = jobs::dispatch(
+        name,
+        carofile.as_ref(),
+        timeout_ms,
+        |alias_or_name, task_path_opt| {
+            // Native task or bare-task: load the lock and execute it.
+            let task_path = match task_path_opt {
+                Some(p) => p.to_path_buf(),
+                None => discovery::resolve_task_path(alias_or_name).ok_or_else(|| {
+                    jobs::DoError::Other(format!("could not find task `{}`", alias_or_name))
+                })?,
+            };
+            jobs::run_native_task(&task_path, &platform, timeout_ms)
+        },
+    )
+    .map_err(|e| match e {
+        jobs::DoError::Executor(ExecutorError::Interrupted(sig))
+        | jobs::DoError::StepRun(RunError::Executor(ExecutorError::Interrupted(sig))) => {
+            exit_interrupted(sig)
+        }
+        other => other.to_string(),
+    })?;
 
     println!("Completed {} step(s) in caro do {}.", results.len(), name);
     Ok(())
+}
+
+/// Exit the way a shell reports a command stopped by `sig`: status 128 + sig.
+/// The step's process group already got the signal.
+fn exit_interrupted(sig: i32) -> ! {
+    eprintln!(
+        "caro: interrupted by signal {}; stopped the running step",
+        sig
+    );
+    process::exit(128 + sig);
 }
 
 /// `caro why <name>` — explain the RegenEvaluator decision.
@@ -3301,7 +3346,8 @@ async fn main() {
             yes,
             ref platform,
             dry_run,
-        }) => match run_caroml_run(name, platform.as_deref(), yes, dry_run) {
+            timeout,
+        }) => match run_caroml_run(name, platform.as_deref(), yes, dry_run, timeout) {
             Ok(()) => process::exit(0),
             Err(e) => {
                 eprintln!("Error: {}", e);
@@ -3363,7 +3409,11 @@ async fn main() {
                 process::exit(1);
             }
         },
-        Some(Commands::Do { ref name, dry_run }) => match run_caroml_do(name, dry_run) {
+        Some(Commands::Do {
+            ref name,
+            dry_run,
+            timeout,
+        }) => match run_caroml_do(name, dry_run, timeout) {
             Ok(()) => process::exit(0),
             Err(e) => {
                 eprintln!("Error: {}", e);

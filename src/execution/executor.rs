@@ -33,6 +33,104 @@ pub enum ExecutorError {
 
     #[error("Invalid command: {0}")]
     InvalidCommand(String),
+
+    /// Caro got this signal while the command ran. The command's process
+    /// group got the same signal.
+    #[error("Command interrupted by signal {0}")]
+    Interrupted(i32),
+}
+
+/// How long a stopped command may clean up after SIGTERM (or a forwarded
+/// signal) before its process group gets SIGKILL.
+#[cfg_attr(not(unix), allow(dead_code))]
+const KILL_GRACE: Duration = Duration::from_secs(2);
+
+/// How often a timed command's wait loop checks the deadline and signals.
+const POLL: Duration = Duration::from_millis(10);
+
+/// Catch SIGINT, SIGTERM and SIGHUP while a timed command runs, so caro can
+/// forward them to the command's process group (AX's runner does the same).
+#[cfg(unix)]
+mod signals {
+    use std::sync::atomic::{AtomicI32, Ordering};
+    use std::sync::Mutex;
+
+    pub use libc::SIGTERM;
+
+    const CAUGHT: [libc::c_int; 3] = [libc::SIGINT, libc::SIGTERM, libc::SIGHUP];
+
+    /// The last signal caught while a guard was installed, or 0.
+    static PENDING: AtomicI32 = AtomicI32::new(0);
+
+    /// Number of live guards, and the handlers they replaced.
+    static INSTALLED: Mutex<(usize, Vec<libc::sigaction>)> = Mutex::new((0, Vec::new()));
+
+    extern "C" fn record(sig: libc::c_int) {
+        // Only async-signal-safe work here: one atomic store.
+        PENDING.store(sig, Ordering::SeqCst);
+    }
+
+    /// The signal caught since the first live guard was installed.
+    pub fn pending() -> Option<i32> {
+        match PENDING.load(Ordering::SeqCst) {
+            0 => None,
+            sig => Some(sig),
+        }
+    }
+
+    /// Installs the handler while alive. Commands can run on several threads,
+    /// so the first guard installs it and the last one restores the old one.
+    pub struct Guard;
+
+    impl Guard {
+        pub fn install() -> Guard {
+            let mut installed = INSTALLED.lock().unwrap_or_else(|e| e.into_inner());
+            if installed.0 == 0 {
+                PENDING.store(0, Ordering::SeqCst);
+                installed.1 = CAUGHT
+                    .iter()
+                    .map(|&sig| {
+                        // SAFETY: sigaction structs are plain data, and
+                        // `record` is async-signal-safe.
+                        unsafe {
+                            let mut action: libc::sigaction = std::mem::zeroed();
+                            action.sa_sigaction = record as extern "C" fn(libc::c_int) as usize;
+                            action.sa_flags = libc::SA_RESTART;
+                            libc::sigemptyset(&mut action.sa_mask);
+                            let mut old: libc::sigaction = std::mem::zeroed();
+                            libc::sigaction(sig, &action, &mut old);
+                            old
+                        }
+                    })
+                    .collect();
+            }
+            installed.0 += 1;
+            Guard
+        }
+    }
+
+    impl Drop for Guard {
+        fn drop(&mut self) {
+            let mut installed = INSTALLED.lock().unwrap_or_else(|e| e.into_inner());
+            installed.0 -= 1;
+            if installed.0 == 0 {
+                for (sig, old) in CAUGHT.iter().zip(installed.1.drain(..)) {
+                    // SAFETY: restores the handler that `install` replaced.
+                    unsafe { libc::sigaction(*sig, &old, std::ptr::null_mut()) };
+                }
+            }
+        }
+    }
+}
+
+/// Without Unix signals there is nothing to forward.
+#[cfg(not(unix))]
+mod signals {
+    pub const SIGTERM: i32 = 15;
+
+    pub fn pending() -> Option<i32> {
+        None
+    }
 }
 
 /// Command executor for running shell commands
@@ -98,15 +196,24 @@ impl CommandExecutor {
         Self::drain(child.stdout.take(), true, tx.clone());
         Self::drain(child.stderr.take(), false, tx);
 
+        // The child is not in the terminal's foreground group, so a Ctrl-C
+        // reaches only caro. Catch it and pass it on to the child's group.
+        #[cfg(unix)]
+        let _signals = signals::Guard::install();
+
         let deadline = Instant::now() + Duration::from_millis(timeout_ms);
         let status = loop {
+            if let Some(sig) = signals::pending() {
+                Self::kill_tree(&mut child, sig);
+                return Err(ExecutorError::Interrupted(sig));
+            }
             match child.try_wait() {
                 Ok(Some(status)) => break status,
                 Ok(None) if Instant::now() >= deadline => {
-                    Self::kill_tree(&mut child);
+                    Self::kill_tree(&mut child, signals::SIGTERM);
                     return Err(ExecutorError::Timeout(timeout_ms));
                 }
-                Ok(None) => thread::sleep(Duration::from_millis(10)),
+                Ok(None) => thread::sleep(POLL),
                 Err(e) => return Err(ExecutorError::WaitError(e.to_string())),
             }
         };
@@ -115,14 +222,19 @@ impl CommandExecutor {
         // stdout/stderr open, so keep enforcing the deadline while draining.
         let (mut stdout, mut stderr) = (None, None);
         while stdout.is_none() || stderr.is_none() {
+            if let Some(sig) = signals::pending() {
+                Self::kill_tree(&mut child, sig);
+                return Err(ExecutorError::Interrupted(sig));
+            }
             let remaining = deadline.saturating_duration_since(Instant::now());
-            match rx.recv_timeout(remaining) {
+            match rx.recv_timeout(remaining.min(POLL)) {
                 Ok((true, buf)) => stdout = Some(buf),
                 Ok((false, buf)) => stderr = Some(buf),
-                Err(mpsc::RecvTimeoutError::Timeout) => {
-                    Self::kill_tree(&mut child);
+                Err(mpsc::RecvTimeoutError::Timeout) if remaining <= POLL => {
+                    Self::kill_tree(&mut child, signals::SIGTERM);
                     return Err(ExecutorError::Timeout(timeout_ms));
                 }
+                Err(mpsc::RecvTimeoutError::Timeout) => {}
                 Err(mpsc::RecvTimeoutError::Disconnected) => {
                     // Each drain thread sends exactly once, so this means one
                     // died without delivering; don't report a truncated stream.
@@ -131,6 +243,13 @@ impl CommandExecutor {
                     ));
                 }
             }
+        }
+
+        // A signal that came after the command finished still stops the
+        // caller, so `caro run` does not start the next step.
+        if let Some(sig) = signals::pending() {
+            Self::kill_tree(&mut child, sig);
+            return Err(ExecutorError::Interrupted(sig));
         }
 
         Ok(Output {
@@ -155,23 +274,43 @@ impl CommandExecutor {
         });
     }
 
-    /// SIGKILL the child's whole process group (Unix), then reap the child.
-    fn kill_tree(child: &mut Child) {
+    /// Send `sig` to the child's whole process group (Unix). Give the shell
+    /// `KILL_GRACE` to exit, then SIGKILL the group and reap the child.
+    fn kill_tree(child: &mut Child, sig: i32) {
         #[cfg(unix)]
         {
             // The child leads its own group (process_group(0)), so its pid is
-            // the pgid. ESRCH means the group already exited, which is fine.
+            // the pgid. Like AX's runner, wait on the leader only: an orphan
+            // can stay a zombie in the group if PID 1 does not reap it.
             let pgid = child.id() as libc::pid_t;
-            // SAFETY: kill(2) takes plain integers and has no memory effects.
-            if unsafe { libc::kill(-pgid, libc::SIGKILL) } != 0 {
-                let err = std::io::Error::last_os_error();
-                if err.raw_os_error() != Some(libc::ESRCH) {
-                    eprintln!("caro: failed to kill process group {}: {}", pgid, err);
+            if Self::signal_group(pgid, sig) {
+                let grace_end = Instant::now() + KILL_GRACE;
+                while matches!(child.try_wait(), Ok(None)) && Instant::now() < grace_end {
+                    thread::sleep(POLL);
                 }
+                // Stops any descendant that outlived the shell.
+                Self::signal_group(pgid, libc::SIGKILL);
             }
         }
+        #[cfg(not(unix))]
+        let _ = sig;
         let _ = child.kill();
         let _ = child.wait();
+    }
+
+    /// Send `sig` to process group `pgid`. Returns false if the group is
+    /// gone (ESRCH).
+    #[cfg(unix)]
+    fn signal_group(pgid: libc::pid_t, sig: i32) -> bool {
+        // SAFETY: kill(2) takes plain integers and has no memory effects.
+        if unsafe { libc::kill(-pgid, sig) } == 0 {
+            return true;
+        }
+        let err = std::io::Error::last_os_error();
+        if err.raw_os_error() != Some(libc::ESRCH) {
+            eprintln!("caro: failed to signal process group {}: {}", pgid, err);
+        }
+        false
     }
 
     /// Create shell command based on platform and shell type
@@ -364,6 +503,40 @@ mod tests {
 
         assert!(matches!(result, Err(ExecutorError::Timeout(300))));
         assert!(start.elapsed().as_millis() < 2000);
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_timeout_sends_sigterm_before_sigkill() {
+        // A command that handles SIGTERM gets to clean up before the group
+        // is killed.
+        let dir = tempfile::tempdir().unwrap();
+        let marker = dir.path().join("cleaned");
+        let executor = CommandExecutor::new(ShellType::Bash).with_timeout(300);
+        let result = executor.execute(&format!(
+            "trap 'touch {}; exit 1' TERM; sleep 5 & wait",
+            marker.display()
+        ));
+
+        assert!(matches!(result, Err(ExecutorError::Timeout(300))));
+        assert!(marker.exists(), "the TERM trap did not run");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_timeout_kills_command_that_ignores_sigterm() {
+        // Regression guard for the escalation: SIGKILL follows KILL_GRACE.
+        let executor = CommandExecutor::new(ShellType::Bash).with_timeout(300);
+        let start = Instant::now();
+        let result = executor.execute("trap '' TERM; sleep 30");
+
+        assert!(matches!(result, Err(ExecutorError::Timeout(300))));
+        let elapsed = start.elapsed();
+        assert!(
+            elapsed >= KILL_GRACE,
+            "SIGKILL came before the grace period"
+        );
+        assert!(elapsed < KILL_GRACE + Duration::from_secs(2));
     }
 
     #[test]

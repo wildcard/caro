@@ -62,14 +62,16 @@ grandchildren that keep the pipes open.
 Regression guard: `execution::executor::tests::test_timeout_kills_hung_command`.
 
 Follow-ups:
-- Wire a default timeout into `caro run` / `caro do` steps (`caroml/runner.rs`,
-  `caroml/jobs.rs`). Today no production caller sets one. **Blocked on signal
-  forwarding.** A timed command runs in its own process group, so a Ctrl-C would
-  kill `caro` but leave the step running. AX's runner forwards the signal to the
-  group (`syscall.Kill(-pid, SIGTERM)`, `runner/runner.go`), and we need the same
-  before a default timeout can ship.
-- Use SIGTERM, then a grace period, then SIGKILL (AX's shutdown order) instead of
-  an immediate SIGKILL, so commands can clean up.
+- ✅ Signal forwarding. A timed command runs in its own process group, so a
+  Ctrl-C used to kill `caro` and leave the step running. Like AX's runner
+  (`syscall.Kill(-pid, SIGTERM)`, `runner/runner.go`), the executor now catches
+  SIGINT, SIGTERM and SIGHUP and sends them to the group. `caro run` and
+  `caro do` take an opt-in `--timeout <SECONDS>`, and exit 128 + signal.
+  Regression guard: `execution_contract::signal_forwarding`.
+- ✅ SIGTERM, a 2-second grace period, then SIGKILL (AX's shutdown order).
+  Regression guard: `test_timeout_kills_command_that_ignores_sigterm`.
+- Open: pick a default step timeout. A timed step has no stdin, so a default
+  would break steps that prompt. That needs a decision, not code.
 - Either wire `AgentLoop._max_iterations` or delete it. A declared but unused
   budget is worse than none.
 
@@ -178,8 +180,8 @@ trail and the governance spike together, without new infrastructure.
 | Pri | Item | Touches |
 |---|---|---|
 | P0 | ✅ Real timeout enforcement (this PR) | `src/execution/executor.rs` |
-| P1 | SIGINT forwarding to the process group, then a default step timeout in `caro run` / `caro do` | `src/execution/executor.rs`, `src/caroml/runner.rs`, `jobs.rs` |
-| P1 | SIGTERM, grace period, then SIGKILL | `src/execution/executor.rs` |
+| P1 | ✅ SIGINT forwarding to the process group, plus an opt-in `--timeout` on `caro run` / `caro do`. A default value is still open. | `src/execution/executor.rs`, `src/caroml/runner.rs`, `jobs.rs` |
+| P1 | ✅ SIGTERM, grace period, then SIGKILL | `src/execution/executor.rs` |
 | P1 | Wire or remove `AgentLoop._max_iterations` | `src/agent/mod.rs` |
 | P1 | ADR: CaroML version header (next free number) | `docs/adr/`, `src/caroml/parser.rs` |
 | P1 | Runner contract doc + contract test | `docs/caroml/`, `tests/` |

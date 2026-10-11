@@ -93,6 +93,18 @@ caro do cleanup-logs # falls back to `caro run cleanup-logs`
 caro jobs            # list declared JOBs
 ```
 
+### Step timeouts and Ctrl-C
+
+`caro run` and `caro do` take `--timeout <SECONDS>`. Each step stops at
+that deadline: caro sends SIGTERM to the step's process group, waits two
+seconds, then sends SIGKILL.
+
+A timed step runs in its own process group with no stdin. A terminal
+Ctrl-C then reaches only caro, so caro forwards SIGINT, SIGTERM and SIGHUP
+to the step's group and stops. The exit status is 128 + the signal number
+(130 for Ctrl-C), the same as a shell reports. Without `--timeout`, steps
+share caro's terminal and have no deadline.
+
 ## See also
 
 - `grammar.md` — the full `.caro` grammar reference
