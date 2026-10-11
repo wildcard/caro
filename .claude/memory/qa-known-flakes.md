@@ -9,9 +9,10 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 ### FLAKE-002: `caro ai --once` hangs silently with no model present
 
 **First observed**: 2026-10-10 (documented in PR #1560 body)  
-**Symptom**: `caro ai --once '<prompt>'` produces zero output and hangs indefinitely when no model is downloaded. Exit code 124 when killed by `timeout`. No error message, no stderr, no progress indicator.  
+**Symptom**: `caro ai --once '<prompt>'` produces zero output and silently waits when no model is downloaded. Exit code 124 when killed by a 15-second QA timeout. No error message, no stderr, no progress indicator.  
 **Context**: Remote sandbox with no pre-downloaded model. `caro doctor` shows "No ready backend available" but the `ai` subcommand does not check backend availability before blocking on `generate_command`.  
 **Root cause**: `src/main.rs:1152-1161` — `run_ai_once` calls `backend.generate_command().await` without checking model-download readiness. `src/ai/runner.rs:117` — generation blocks waiting for the embedded backend to download a missing model (blocked by sandbox networking). Note: `embedded_backend.is_available()` always returns `true`, so a pre-flight check on that method would not prevent the hang; the fix requires checking model-file readiness or adding a download timeout.  
+**Stall watchdog caveat** (per Codex review): `src/model_loader.rs:337-338` defines `DOWNLOAD_STALL_TIMEOUT = 60s`. The QA 15-second timeout is shorter than this watchdog, so the observation does not prove an indefinite hang — the process may terminate naturally after 60s with an error (the #1561 fix). Verify with a ≥90-second timeout in a future pass; if exit 1 with an error message is observed, reclassify as "slow/silent download" and close this flake as resolved.  
 **Impact**: Slot C testing of `ai` surfaces is blocked in sandbox. Use `--dry-run` for prompt-generation coverage; use unit tests for `ai` session logic.  
 **Occurrence log**:
 - 2026-10-10: observed (per PR #1560)
