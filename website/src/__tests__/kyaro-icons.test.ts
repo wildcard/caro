@@ -54,15 +54,21 @@ describe('<KyaroIcon> component', () => {
 });
 
 describe('<KyaroIcon> usage', () => {
-  const uses = files.flatMap(({ file, text }) =>
-    [...text.matchAll(/<KyaroIcon\b([^>]*?)\/>/g)].map((m) => ({ file, attrs: m[1] })),
-  );
+  // The component's own JSDoc examples are not site uses.
+  const uses = files
+    .filter(({ file }) => !file.startsWith('ui/KyaroIcon/'))
+    .flatMap(({ file, text }) =>
+      [...text.matchAll(/<KyaroIcon\b([^>]*?)\/>/g)].map((m) => ({ file, attrs: m[1] })),
+    );
 
   it('is used on the site', () => {
     expect(uses.length).toBeGreaterThan(0);
   });
 
   it.each(uses)('$file: names a real icon', ({ attrs }) => {
+    expect(attrs).toMatch(/\bname=/);
+    // A literal name must exist; an expression (name={x}) is checked by the
+    // typed-list test below and by the component at build time.
     const name = attrs.match(/\bname="([\w-]+)"/)?.[1];
     if (name) expect(Object.keys(icons)).toContain(name);
   });

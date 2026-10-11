@@ -13,6 +13,8 @@ on:
       - 'assets/kyaro/**'
       - 'website/**'
       - 'scripts/kyaro_icons.py'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/kyaro-icons.yml'
   push:
     branches: [main]
@@ -20,6 +22,8 @@ on:
       - 'assets/kyaro/**'
       - 'website/**'
       - 'scripts/kyaro_icons.py'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/kyaro-icons.yml'
 
 permissions:

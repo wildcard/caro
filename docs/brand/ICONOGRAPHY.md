@@ -44,7 +44,7 @@ assets/kyaro/<state>/<state>_animation/<frame>.png      Alrezky's Aseprite expor
         │    copies the window 1:1, one SVG <path> per palette color
         ▼
 website/public/kyaro/icons/<name>.svg                   48×48 figure or 24×24 face
-website/src/data/kyaro-icons.json                       name → src, size, label, role
+website/src/data/kyaro-icons.json                       name → src, size, frame
         │
         ▼
 <KyaroIcon name="danger" />                             <img width="48" height="48" alt="">, 56 px tile

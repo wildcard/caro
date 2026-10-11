@@ -123,6 +123,8 @@ def window(name, rows, face_origin):
     opaque = [
         (x, y) for y, row in enumerate(rows) for x, px in enumerate(row) if px[3]
     ]
+    if not opaque:
+        sys.exit(f"error: {name}: frame has no opaque pixels")
     left = min(x for x, _ in opaque)
     right = max(x for x, _ in opaque) + 1
     if face_origin:

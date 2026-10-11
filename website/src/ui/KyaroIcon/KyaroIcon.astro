@@ -39,8 +39,8 @@ const icon = manifest.icons[name];
 if (!icon) {
   throw new Error(`[KyaroIcon] unknown icon "${name}"; see website/src/data/kyaro-icons.json`);
 }
-if (!Number.isInteger(scale) || scale < 1) {
-  throw new Error(`[KyaroIcon] scale must be a whole number, got ${scale}`);
+if (!Number.isInteger(scale) || scale < 1 || scale > 3) {
+  throw new Error(`[KyaroIcon] scale must be 1, 2 or 3, got ${scale}`);
 }
 const px = icon.size * scale;
 const pad = (icon.size / 12) * scale;
