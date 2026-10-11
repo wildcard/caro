@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-10-10
+**Last updated**: 2026-10-11
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -47,6 +47,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-10-08 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher fallback in 1.5.0 resolves previous dry-run FLAKE |
 | 2026-10-09 | PASS | PASS (1.5.0) | PASS | PASS | PASS | dry-run via static matcher (Pattern 43); model downloaded to cache this run |
 | 2026-10-10 | PASS | PASS (1.5.0) | PASS | PASS | PASS | static-matcher intercepts basic patterns; no model download needed. gh auth failed — no issue filing this pass |
+| 2026-10-11 | PASS | PASS (1.5.0) | PASS | PASS | PASS | --dry-run now PASS via static matcher; telemetry consent on fresh sandbox (expected) |
 
 ---
 
@@ -56,16 +57,16 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 
 | # | Surface | Domain | Last tested | Result | Linked issue(s) |
 |---|---------|--------|-------------|--------|-----------------|
-| 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-10-10 | PASS | — |
-| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-10 | PARTIAL | — (static-matcher path: PASS for known patterns in 34ms; model-backed path: FLAKE still — model download blocked in sandbox. Flake for novel prompts not resolved.) |
-| 3 | Telemetry consent persistence across invocations | cli | 2026-10-08 | PASS | — |
+| 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-10-11 | PASS | — |
+| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-11 | PASS | — |
+| 3 | Telemetry consent persistence across invocations | cli | 2026-10-11 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
 | 6 | Safety validation unit tests (cargo test safety) | safety | 2026-10-10 | PASS | — (38 tests PASS in Slot B, up from 19 in May; fix(safety) #1535) |
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-10-08 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-09-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-10 | FLAKE | — (model required; sandbox blocks download; silent hang — see session log 2026-10-10) |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-11 | FLAKE | #1272, #1408 (open) |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | Likely affected by same bug as #1449; test after fix |
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
@@ -80,7 +81,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 22 | CaroML: `caro experiment / adopt / why` | cli | never | — | — |
 | 23 | CaroML: `caro do` Carofile job runner | cli | never | — | — |
 | 24 | `caro skill install` (bundled skill management) | cli | never | — | — |
-| 25 | Website homepage caro.sh (curl + parse) | website | never | — | — |
+| 25 | Website homepage caro.sh (curl + parse) | website | 2026-10-11 | PASS | — |
 | 26 | Website docs pages (curl + parse) | docs | never | — | — |
 | 27 | Install script `scripts/install.sh` | install | never | — | — |
 | 28 | Homebrew tap formula | install | never | — | — |
@@ -143,6 +144,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1530](https://github.com/wildcard/caro/issues/1530) | config set backend no auto-detect option | cli | 2026-10-06 | open |
 | [#1540](https://github.com/wildcard/caro/issues/1540) | ai --once silent hang when no backend ready | ai | 2026-10-08 | closed (duplicate) |
 | [#1541](https://github.com/wildcard/caro/issues/1541) | CLAUDE.md shows 1.4.0 instead of 1.5.0 | docs | 2026-10-08 | closed (duplicate) |
+| [#1603](https://github.com/wildcard/caro/issues/1603) | QA memory files stuck at bootstrap — 25+ update PRs unmerged | docs/ops | 2026-10-11 | open |
 
 ---
 
