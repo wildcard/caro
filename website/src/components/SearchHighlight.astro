@@ -9,11 +9,12 @@
  * - Allows navigating between matches with up/down arrows
  * - Scrolls to the first match automatically
  */
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 ---
 
 <div id="search-highlight-bar" class="search-highlight-bar hidden">
   <div class="highlight-content">
-    <span class="highlight-icon">🔍</span>
+    <TermGlyph g="❯" />
     <span class="highlight-query"></span>
     <span class="highlight-count"></span>
   </div>
@@ -68,10 +69,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-
-  .highlight-icon {
-    font-size: 16px;
   }
 
   .highlight-query {

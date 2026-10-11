@@ -1,6 +1,7 @@
 ---
 import { t, type Locale } from '../i18n/config';
-import Glyph from '../ui/Glyph/Glyph.astro';
+import KyaroIcon, { type KyaroIconName } from '../ui/KyaroIcon/KyaroIcon.astro';
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -8,16 +9,15 @@ interface Props {
 
 const { lang = 'en' } = Astro.props;
 
-// Feature card definitions with translation keys.
-// Emoji are not feature icons (Claude Design icon-system reframe): each card
-// uses a pixel Glyph where one exists, else a sanctioned terminal glyph.
-const featureKeys: { key: string; glyph?: 'shield' | 'brain' | 'lightning'; term?: string; status: string }[] = [
-  { key: 'safetyGuardian', glyph: 'shield', status: 'implemented' },
-  { key: 'crossPlatform', term: '▸', status: 'implemented' },
-  { key: 'platformAware', glyph: 'brain', status: 'implemented' },
-  { key: 'posixSpecialist', term: '$', status: 'implemented' },
-  { key: 'lightningFast', glyph: 'lightning', status: 'in-progress' },
-  { key: 'claudeCompanion', term: '❯', status: 'implemented' },
+// Feature card definitions with translation keys. Each card shows the Kyaro
+// state that means the feature (docs/brand/ICONOGRAPHY.md); emoji are not icons.
+const featureKeys: { key: string; icon: KyaroIconName; status: string }[] = [
+  { key: 'safetyGuardian', icon: 'danger', status: 'implemented' },
+  { key: 'crossPlatform', icon: 'success', status: 'implemented' },
+  { key: 'platformAware', icon: 'thinking', status: 'implemented' },
+  { key: 'posixSpecialist', icon: 'asking', status: 'implemented' },
+  { key: 'lightningFast', icon: 'running', status: 'in-progress' },
+  { key: 'claudeCompanion', icon: 'ready', status: 'implemented' },
 ];
 
 // Map status to translation key
@@ -32,13 +32,13 @@ const statusLabels: Record<string, string> = {
   <div class="container">
     <h2>{t(lang, 'landing.features.title')}</h2>
     <p class="section-subtitle">{t(lang, 'landing.features.subtitle')}</p>
-    <p class="alpha-notice"><span aria-hidden="true">🚧</span> <strong>{t(lang, 'landing.features.alphaLabel')}</strong> — {t(lang, 'landing.features.alphaNotice')}</p>
+    <p class="alpha-notice"><TermGlyph g="▸" /> <strong>{t(lang, 'landing.features.alphaLabel')}</strong> — {t(lang, 'landing.features.alphaNotice')}</p>
     <div class="features">
       {featureKeys.map((feature) => (
         <div class={`feature feature-${feature.status}`}>
           <div class="feature-header">
-            <div class="feature-icon" aria-hidden="true">
-              {feature.glyph ? <Glyph name={feature.glyph} size={40} /> : feature.term}
+            <div class="feature-icon">
+              <KyaroIcon name={feature.icon} />
             </div>
             <span
               class={`status-badge status-${feature.status}`}
@@ -110,17 +110,12 @@ const statusLabels: Record<string, string> = {
     margin-bottom: 20px;
   }
 
-  /* Terminal-glyph / pixel-glyph icon in brand red (decorative). */
+  /* Kyaro icon on its tile: 48 px art + 4 px padding = 56 px, no rescale. */
   .feature-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 48px;
-    font-family: var(--font-mono);
-    font-size: 40px;
-    font-weight: 700;
-    line-height: 1;
-    color: var(--accent);
+    height: 56px;
   }
 
   .status-badge {

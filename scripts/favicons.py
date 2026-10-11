@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-Favicons - one favicon set for every Caro site, derived from the official mark.
+Favicons - one favicon set for every Caro site, cut from the Kyaro pixel art.
 
-The icon is the head of the official pixel mark (website/public/mark-caro-pixel.png).
-The script samples the mark's 15x15 pixel grid and renders it in brand ink on a
-brand paper tile. Nothing is drawn by hand, so the favicon cannot drift from the
-mark (brand rule: no hand-drawn pixel iconography). Each run records the SHA-256
-of the mark and of every file it writes in scripts/favicons.sha256 (sha256sum
-format), so --check catches a changed mark or a hand-edited icon.
+The icon is Kyaro's face: the same head-and-shoulders window that the Kyaro
+icon set calls `face-ready` (scripts/kyaro_icons.py), cut 1:1 from Alrezky
+Caesaria's idle frame in assets/kyaro/. The script copies those pixels onto a
+stage-grey tile. Nothing is drawn by hand, so the favicon cannot drift from
+the art (brand rule: no hand-drawn pixel iconography). Each run records the
+SHA-256 of the frame and of every file it writes in scripts/favicons.sha256
+(sha256sum format), so --check catches a changed frame or a hand-edited icon.
 
 Usage:
     python3 scripts/favicons.py           # regenerate every site's files (needs Pillow)
@@ -17,33 +18,30 @@ Usage:
 import argparse
 import hashlib
 import io
-import math
 import re
 import struct
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from kyaro_icons import FACE, FRAMES, ICONS, read_png  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
-MARK = ROOT / "website/public/mark-caro-pixel.png"
+FRAME, FACE_ORIGIN = ICONS["face-ready"]
+SOURCE = FRAMES / FRAME
 LOCK = ROOT / "scripts/favicons.sha256"
 
 # Brand tokens from website/src/ui/tokens.css.
-INK = "#2b2b2b"  # --caro-grey-900 (--fg-strong)
-PAPER = "#f4f1df"  # --caro-beige-100 (--bg)
+STAGE = "#d1cfc9"  # --caro-grey-200: the tile every Kyaro icon stands on
+OUTLINE = "#000000"  # Kyaro's outline; proves the art made it in
 # The deprecated orange gradient is forbidden by the brand book.
 FORBIDDEN = ("#ff8c42", "#ff6b35")
 
-# The mark's head (signal dots + face) in the source PNG: a 15x15 grid.
-MARK_BOX = (60, 60, 639, 638)  # left, top, right, bottom (px)
-GRID = 15
-
-# Favicon layout on a 16-unit tile. 16, 32 and 48 px are exact multiples, so
-# every cell lands on whole device pixels. The spare unit is split into a
-# half-unit paper keyline on every side: without it, the ink edge merges into
-# dark browser tab strips. At 16 px the keyline snaps to one side.
-TILE = 16
-TILE_RADIUS = 2
-OFFSET = (0.5, 0.5)
+# Favicon layout: a 32-unit tile. At 16 CSS px on a 2x screen (the common tab
+# case) every art pixel lands on one device pixel; at 1x the browser averages
+# the SVG down, so the SVG has no crispEdges.
+TILE = 32
+TILE_RADIUS = 4
 
 # Output name -> sites that get it.
 SMALL_SET = {
@@ -97,105 +95,80 @@ PNG_SIZES = {"apple": 180, "icon-192": 192, "icon-512": 512, "maskable-512": 512
 ICO_SIZES = (16, 32, 48)
 
 
-def read_grid():
-    """Sample the official mark into a GRID x GRID matrix of booleans (True = ink)."""
-    from PIL import Image
-
-    img = Image.open(MARK).convert("L")
-    left, top, right, bottom = MARK_BOX
-    cw, ch = (right - left) / GRID, (bottom - top) / GRID
-    grid = []
-    for r in range(GRID):
-        row = []
-        for c in range(GRID):
-            # Average the centre half of each cell, away from anti-aliased edges.
-            box = (
-                int(left + (c + 0.25) * cw),
-                int(top + (r + 0.25) * ch),
-                int(left + (c + 0.75) * cw),
-                int(top + (r + 0.75) * ch),
-            )
-            pixels = img.crop(box).tobytes()
-            dark = sum(1 for p in pixels if p < 128) / len(pixels)
-            if 0.05 < dark < 0.95:
-                sys.exit(
-                    f"error: cell ({r},{c}) of {MARK.name} is ambiguous; check MARK_BOX"
-                )
-            row.append(dark >= 0.5)
-        grid.append(row)
-    return grid
+def read_face():
+    """The face window as rows of '#rrggbb' or None, cropped to the art."""
+    rows = read_png(SOURCE)
+    x0, y0 = FACE_ORIGIN
+    face = [
+        [
+            None if px[3] == 0 else "#{:02x}{:02x}{:02x}".format(*px[:3])
+            for px in rows[y][x0 : x0 + FACE]
+        ]
+        for y in range(y0, y0 + FACE)
+    ]
+    # Drop empty rows and columns so the face can be centered on the tile.
+    keep_rows = [r for r in face if any(r)]
+    cols = [x for x in range(FACE) if any(r[x] for r in keep_rows)]
+    return [r[cols[0] : cols[-1] + 1] for r in keep_rows]
 
 
 def runs(row):
-    """Yield (start, length) for each horizontal run of ink cells."""
-    c = 0
-    while c < len(row):
-        if row[c]:
-            start = c
-            while c < len(row) and row[c]:
-                c += 1
-            yield start, c - start
-        else:
-            c += 1
+    """Yield (start, length, color) for each horizontal run of one color."""
+    x = 0
+    while x < len(row):
+        color, start = row[x], x
+        while x < len(row) and row[x] == color:
+            x += 1
+        if color:
+            yield start, x - start, color
 
 
-def render_svg(grid):
-    ox, oy = OFFSET
-    path = "".join(
-        f"M{ox + x} {oy + y}h{w}v1h-{w}z"
-        for y, row in enumerate(grid)
-        for x, w in runs(row)
+def origin(face, size, scale):
+    """Top-left of the face so it sits centered on a size x size canvas."""
+    return ((size - len(face[0]) * scale) // 2, (size - len(face) * scale) // 2)
+
+
+def render_svg(face):
+    ox, oy = origin(face, TILE, 1)
+    paths = {}
+    for y, row in enumerate(face):
+        for x, w, color in runs(row):
+            paths.setdefault(color, []).append(f"M{ox + x} {oy + y}h{w}v1h-{w}z")
+    body = "".join(
+        f'  <path fill="{color}" d="{"".join(d)}"/>\n' for color, d in sorted(paths.items())
     )
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {TILE} {TILE}">\n'
         "  <title>Caro</title>\n"
-        "  <!-- Generated by scripts/favicons.py from website/public/mark-caro-pixel.png."
-        " Do not edit by hand. -->\n"
-        f'  <rect width="{TILE}" height="{TILE}" rx="{TILE_RADIUS}" fill="{PAPER}"/>\n'
-        f'  <path fill="{INK}" shape-rendering="crispEdges" d="{path}"/>\n'
-        "</svg>\n"
+        f"  <!-- Generated by scripts/favicons.py from assets/kyaro/{FRAME}."
+        " Do not edit by hand. Kyaro art (c) Kobi Kadosh and Alrezky Caesaria,"
+        " project use only: assets/kyaro/README.md -->\n"
+        f'  <rect width="{TILE}" height="{TILE}" rx="{TILE_RADIUS}" fill="{STAGE}"/>\n'
+        f"{body}</svg>\n"
     )
 
 
-def render_png(grid, size, cell, origin, radius):
-    """Paper tile (anti-aliased corners) with the mark drawn on whole pixels."""
+def render_png(face, size, scale, radius, opaque=False):
+    """Stage tile (anti-aliased corners) with the face drawn on whole pixels."""
     from PIL import Image, ImageDraw
 
-    ss = 4  # supersample the tile so rounded corners are smooth
-    mask = Image.new("L", (size * ss, size * ss), 0)
-    ImageDraw.Draw(mask).rounded_rectangle(
-        (0, 0, size * ss - 1, size * ss - 1), radius=radius * ss, fill=255
-    )
-    img = Image.new("RGBA", (size, size), PAPER)
-    img.putalpha(mask.resize((size, size), Image.Resampling.BOX))
+    img = Image.new("RGBA", (size, size), STAGE)
+    if not opaque:
+        ss = 4  # supersample the tile so rounded corners are smooth
+        mask = Image.new("L", (size * ss, size * ss), 0)
+        ImageDraw.Draw(mask).rounded_rectangle(
+            (0, 0, size * ss - 1, size * ss - 1), radius=radius * ss, fill=255
+        )
+        img.putalpha(mask.resize((size, size), Image.Resampling.BOX))
     draw = ImageDraw.Draw(img)
-    ox, oy = origin
-    for y, row in enumerate(grid):
-        for x, w in runs(row):
+    ox, oy = origin(face, size, scale)
+    for y, row in enumerate(face):
+        for x, w, color in runs(row):
             draw.rectangle(
-                (
-                    ox + x * cell,
-                    oy + y * cell,
-                    ox + (x + w) * cell - 1,
-                    oy + (y + 1) * cell - 1,
-                ),
-                fill=INK,
+                (ox + x * scale, oy + y * scale, ox + (x + w) * scale - 1, oy + (y + 1) * scale - 1),
+                fill=color,
             )
-    return img
-
-
-def render_tile(grid, scale):
-    """The favicon layout at an exact multiple of the 16-unit tile."""
-    # Round half-unit offsets up, as Chromium does when it snaps the SVG.
-    origin = (math.ceil(OFFSET[0] * scale), math.ceil(OFFSET[1] * scale))
-    return render_png(grid, TILE * scale, scale, origin, TILE_RADIUS * scale)
-
-
-def render_padded(grid, size, fill, radius):
-    """App icons: the mark centred at `fill` of the canvas, on whole-pixel cells."""
-    cell = int(size * fill) // GRID
-    pad = (size - cell * GRID) // 2
-    return render_png(grid, size, cell, (pad, pad), radius)
+    return img.convert("RGB") if opaque else img
 
 
 def encode(img, fmt, **kwargs):
@@ -204,26 +177,25 @@ def encode(img, fmt, **kwargs):
     return buf.getvalue()
 
 
-def build(grid):
-    tiles = [render_tile(grid, s // TILE) for s in ICO_SIZES]
+def build(face):
+    from PIL import Image
+
+    tile32 = render_png(face, 32, 1, TILE_RADIUS)
+    ico = [
+        # 16 px cannot hold the 23x20 face 1:1; average the 32 px tile down.
+        tile32.resize((16, 16), Image.Resampling.BOX),
+        tile32,
+        render_png(face, 48, 2, 6),
+    ]
     return {
-        "svg": render_svg(grid).encode(),
-        "ico": encode(
-            tiles[-1],
-            "ICO",
-            sizes=[(s, s) for s in ICO_SIZES],
-            append_images=tiles[:-1],
-        ),
+        "svg": render_svg(face).encode(),
+        "ico": encode(ico[-1], "ICO", sizes=[(s, s) for s in ICO_SIZES], append_images=ico[:-1]),
         # iOS masks the corners itself and wants an opaque square.
-        "apple": encode(
-            render_padded(grid, 180, 0.72, 0).convert("RGB"), "PNG", optimize=True
-        ),
-        "icon-192": encode(render_padded(grid, 192, 0.72, 24), "PNG", optimize=True),
-        "icon-512": encode(render_padded(grid, 512, 0.72, 64), "PNG", optimize=True),
-        # Maskable icons must keep the mark inside the 80% safe-zone circle.
-        "maskable-512": encode(
-            render_padded(grid, 512, 0.54, 0).convert("RGB"), "PNG", optimize=True
-        ),
+        "apple": encode(render_png(face, 180, 6, 0, opaque=True), "PNG", optimize=True),
+        "icon-192": encode(render_png(face, 192, 6, 24), "PNG", optimize=True),
+        "icon-512": encode(render_png(face, 512, 16, 64), "PNG", optimize=True),
+        # Maskable icons must keep the art inside the 80% safe-zone circle.
+        "maskable-512": encode(render_png(face, 512, 12, 0, opaque=True), "PNG", optimize=True),
     }
 
 
@@ -232,8 +204,8 @@ def sha256(data):
 
 
 def generate():
-    assets = build(read_grid())
-    lock = [f"{sha256(MARK.read_bytes())}  {MARK.relative_to(ROOT)}"]
+    assets = build(read_face())
+    lock = [f"{sha256(SOURCE.read_bytes())}  {SOURCE.relative_to(ROOT)}"]
     for site, files in TARGETS.items():
         for name, kind in files.items():
             path = ROOT / site / name
@@ -268,7 +240,7 @@ def check():
     expected = {
         rel: digest for digest, rel in (ln.split(maxsplit=1) for ln in lock_lines)
     }
-    files = {str(MARK.relative_to(ROOT)): None}
+    files = {str(SOURCE.relative_to(ROOT)): None}
     for site, names in TARGETS.items():
         files.update({f"{site}/{name}": kind for name, kind in names.items()})
     canonical = {}  # kind -> (path, bytes) of the first copy, for the checks below
@@ -298,7 +270,7 @@ def check():
         for color in FORBIDDEN:
             if color in svg:
                 errors.append(f"{rel}: uses the forbidden orange {color}")
-        for color in (INK, PAPER):
+        for color in (STAGE, OUTLINE):
             if color not in svg:
                 errors.append(f"{rel}: brand color {color} not found")
 

@@ -12,6 +12,7 @@ import LandingPage from '../../layouts/LandingPage.astro';
 import Navigation from '../../components/Navigation.astro';
 import LPDownload from '../../components/landing/LPDownload.astro';
 import LPFooter from '../../components/landing/LPFooter.astro';
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
 
 const jobs = [
   {
@@ -318,11 +319,11 @@ const blockedPatterns = [
               {scenario.dangerous ? (
                 <>
                   <div class="warning-line">
-                    <span class="warning-icon">⚠️</span>
+                    <span class="warning-icon"><TermGlyph g="■" /></span>
                     <span class="warning-text">{scenario.warning}</span>
                   </div>
                   <div class="suggestion-line">
-                    <span class="suggestion-icon">💡</span>
+                    <span class="suggestion-icon"><TermGlyph g="▸" /></span>
                     <span class="suggestion-text">{scenario.suggestion}</span>
                   </div>
                   <div class="terminal-line">
@@ -334,7 +335,7 @@ const blockedPatterns = [
                 </>
               ) : (
                 <div class="safe-line">
-                  <span class="safe-icon">✓</span>
+                  <span class="safe-icon"><TermGlyph g="✓" /></span>
                   <span class="safe-text">{scenario.safe_message}</span>
                 </div>
               )}
@@ -357,7 +358,7 @@ const blockedPatterns = [
         {incidentExamples.map((incident) => (
           <div class="incident-card">
             <div class="incident-alert">
-              <span class="alert-icon">🚨</span>
+              <span class="alert-icon"><TermGlyph g="▸" /></span>
               <span class="alert-text">{incident.alert}</span>
             </div>
 
@@ -402,7 +403,7 @@ const blockedPatterns = [
             <div class="ai-comparison">
               <div class="ai-side bad">
                 <div class="side-header">
-                  <span class="side-icon">🤖</span>
+                  <span class="side-icon"><TermGlyph g="▸" /></span>
                   <span class="side-label">AI Assistant</span>
                 </div>
                 <div class="side-content">
@@ -415,12 +416,12 @@ const blockedPatterns = [
 
               <div class="ai-side good">
                 <div class="side-header">
-                  <span class="side-icon">🛡️</span>
+                  <span class="side-icon"><TermGlyph g="■" /></span>
                   <span class="side-label">Caro Safety Layer</span>
                 </div>
                 <div class="side-content">
                   <div class="caro-warning">{example.caro_warning}</div>
-                  <div class="caro-suggestion">💡 {example.caro_suggestion}</div>
+                  <div class="caro-suggestion"><TermGlyph g="▸" /> {example.caro_suggestion}</div>
                 </div>
               </div>
             </div>
@@ -795,6 +796,7 @@ const blockedPatterns = [
     border: 1px solid rgba(239, 68, 68, 0.3);
   }
 
+  .warning-icon,
   .warning-text { color: var(--highlight); }
 
   .suggestion-line {
@@ -802,6 +804,7 @@ const blockedPatterns = [
     border: 1px solid rgba(96, 165, 250, 0.2);
   }
 
+  .suggestion-icon,
   .suggestion-text { color: var(--term-fg); }
 
   .safe-line {
@@ -809,6 +812,7 @@ const blockedPatterns = [
     border: 1px solid rgba(34, 197, 94, 0.3);
   }
 
+  .safe-icon { color: var(--term-safe); }
   .safe-text { color: var(--term-fg); }
 
   .scenario-lesson {
@@ -848,7 +852,7 @@ const blockedPatterns = [
     margin-bottom: 24px;
   }
 
-  .alert-icon { font-size: 20px; }
+  .alert-icon { font-size: 17px; color: var(--accent-text); }
 
   .alert-text {
     font-size: 16px;
@@ -1004,7 +1008,7 @@ const blockedPatterns = [
     margin-bottom: 12px;
   }
 
-  .side-icon { font-size: 20px; }
+  .side-icon { font-size: 15px; }
 
   .side-label {
     font-weight: 600;

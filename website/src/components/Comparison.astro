@@ -1,6 +1,5 @@
 ---
 import { t, type Locale } from '../i18n/config';
-import Glyph from '../ui/Glyph/Glyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -24,15 +23,15 @@ interface ComparisonRow {
   values: Record<string, FeatureValue>;
 }
 
-// Category icons: pixel Glyph where one exists, else a sanctioned terminal
-// glyph. Emoji are not icons (Claude Design icon-system reframe).
-type CategoryIcon = { glyph: 'shield' | 'brain' } | { term: string };
+// Category icons are terminal glyphs: a 24 px table heading is too small for
+// a Kyaro sprite (docs/brand/ICONOGRAPHY.md). Emoji are not icons.
+// ▸ privacy, ■ safety, >_ shell, ❯ model.
 
 // Category and feature keys for translation lookup
-const comparisonData: { categoryKey: string; icon: CategoryIcon; rows: ComparisonRow[] }[] = [
+const comparisonData: { categoryKey: string; icon: string; rows: ComparisonRow[] }[] = [
   {
     categoryKey: 'privacyData',
-    icon: { term: '▸' },
+    icon: '▸',
     rows: [
       { featureKey: 'worksOffline', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
       { featureKey: 'privacyFirst', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
@@ -42,7 +41,7 @@ const comparisonData: { categoryKey: string; icon: CategoryIcon; rows: Compariso
   },
   {
     categoryKey: 'safetyControl',
-    icon: { glyph: 'shield' },
+    icon: '■',
     rows: [
       { featureKey: 'ruleBasedSafety', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
       { featureKey: 'explicitConfirmation', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
@@ -52,7 +51,7 @@ const comparisonData: { categoryKey: string; icon: CategoryIcon; rows: Compariso
   },
   {
     categoryKey: 'shellExpertise',
-    icon: { term: '>_' },
+    icon: '>_',
     rows: [
       { featureKey: 'posixFirst', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
       { featureKey: 'crossPlatform', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'macOS/Linux', 'kiro': 'yes', 'opencode': 'yes' } },
@@ -62,7 +61,7 @@ const comparisonData: { categoryKey: string; icon: CategoryIcon; rows: Compariso
   },
   {
     categoryKey: 'modelBackend',
-    icon: { glyph: 'brain' },
+    icon: '❯',
     rows: [
       { featureKey: 'localInference', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
       { featureKey: 'multiBackend', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
@@ -109,17 +108,17 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
         <span class="summary-label">{t(lang, 'landing.comparison.summary.privacy.label')}</span>
       </a>
       <div class="summary-card highlight">
-        <span class="summary-icon" aria-hidden="true"><Glyph name="shield" size={28} /></span>
+        <span class="summary-icon term-glyph" aria-hidden="true">■</span>
         <span class="summary-stat">{t(lang, 'landing.comparison.summary.safety.stat')}</span>
         <span class="summary-label">{t(lang, 'landing.comparison.summary.safety.label')}</span>
       </div>
       <div class="summary-card highlight">
-        <span class="summary-icon term-glyph" aria-hidden="true">■</span>
+        <span class="summary-icon term-glyph" aria-hidden="true">$</span>
         <span class="summary-stat">{t(lang, 'landing.comparison.summary.offline.stat')}</span>
         <span class="summary-label">{t(lang, 'landing.comparison.summary.offline.label')}</span>
       </div>
       <div class="summary-card highlight">
-        <span class="summary-icon" aria-hidden="true"><Glyph name="lightning" size={28} /></span>
+        <span class="summary-icon term-glyph" aria-hidden="true">❯</span>
         <span class="summary-stat">{t(lang, 'landing.comparison.summary.speed.stat')}</span>
         <span class="summary-label">{t(lang, 'landing.comparison.summary.speed.label')}</span>
       </div>
@@ -130,7 +129,7 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
       <div class="comparison-category">
         <h3 class="category-title">
           <span class="category-icon" aria-hidden="true">
-            {'glyph' in category.icon ? <Glyph name={category.icon.glyph} size={24} /> : category.icon.term}
+            {category.icon}
           </span>
           {t(lang, `landing.comparison.categories.${category.categoryKey}.title`)}
         </h3>

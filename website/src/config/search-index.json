@@ -42,7 +42,7 @@
         "them",
         "resistant"
       ],
-      "icon": "🛡️",
+      "icon": "▸",
       "content": {
         "headings": [],
         "paragraphs": [],
@@ -126,7 +126,7 @@
         "resistant",
         "validation"
       ],
-      "icon": "🛡️",
+      "icon": "▸",
       "content": {
         "headings": [],
         "paragraphs": [],
@@ -228,7 +228,7 @@
         "future",
         "open"
       ],
-      "icon": "📝",
+      "icon": "▸",
       "content": {
         "headings": [
           "A New Name, The Same Mission",
@@ -456,7 +456,7 @@
         "scales",
         "best"
       ],
-      "icon": "📝",
+      "icon": "▸",
       "content": {
         "headings": [
           "The Problem with AI Tools Today",
@@ -690,7 +690,7 @@
         "provides",
         "ask"
       ],
-      "icon": "🤖",
+      "icon": "▸",
       "content": {
         "headings": [
           "What is a Claude Skill?",
@@ -928,7 +928,7 @@
         "live",
         "consumer"
       ],
-      "icon": "📝",
+      "icon": "▸",
       "content": {
         "headings": [
           "The premise we believed",
@@ -1135,7 +1135,7 @@
         "everything",
         "hyper"
       ],
-      "icon": "📝",
+      "icon": "▸",
       "content": {
         "headings": [
           "Why We're Building This",
@@ -1347,7 +1347,7 @@
         "vision",
         "means"
       ],
-      "icon": "📝",
+      "icon": "▸",
       "content": {
         "headings": [
           "From the Pack"
@@ -1519,7 +1519,7 @@
         "sensible",
         "choice"
       ],
-      "icon": "📝",
+      "icon": "▸",
       "content": {
         "headings": [
           "Why Rust for System Tools?",
@@ -1743,7 +1743,7 @@
         "command",
         "known"
       ],
-      "icon": "🛡️",
+      "icon": "▸",
       "content": {
         "headings": [
           "Why Security Matters for Caro",
@@ -1983,7 +1983,7 @@
         "principles",
         "commands"
       ],
-      "icon": "📝",
+      "icon": "▸",
       "content": {
         "headings": [
           "The Giants We Stand Upon",
@@ -2193,7 +2193,7 @@
         "socially",
         "selective"
       ],
-      "icon": "📝",
+      "icon": "▸",
       "content": {
         "headings": [
           "Born into the World of Tech",
@@ -2389,7 +2389,7 @@
         "air",
         "gapped"
       ],
-      "icon": "🐙",
+      "icon": "▸",
       "content": {
         "headings": [],
         "paragraphs": [
@@ -2567,7 +2567,7 @@
         "rule",
         "required"
       ],
-      "icon": "⚖️",
+      "icon": "▸",
       "content": {
         "headings": [
           "Compare Caro to Alternatives",
@@ -2755,7 +2755,7 @@
         "well",
         "whether"
       ],
-      "icon": "⚖️",
+      "icon": "▸",
       "content": {
         "headings": [],
         "paragraphs": [
@@ -2932,7 +2932,7 @@
         "multiple",
         "competitor"
       ],
-      "icon": "💡",
+      "icon": "▸",
       "content": {
         "headings": [],
         "paragraphs": [
@@ -3109,7 +3109,7 @@
         "switch",
         "air"
       ],
-      "icon": "🚀",
+      "icon": "▸",
       "content": {
         "headings": [],
         "paragraphs": [
@@ -3286,7 +3286,7 @@
         "caroline",
         "licenses"
       ],
-      "icon": "🙏",
+      "icon": "▸",
       "content": {
         "headings": [
           "CREDITS",
@@ -3510,7 +3510,7 @@
         "caching",
         "management"
       ],
-      "icon": "📚",
+      "icon": "▸",
       "content": {
         "headings": [
           "Model Backends",
@@ -3729,7 +3729,7 @@
         "format",
         "default"
       ],
-      "icon": "📚",
+      "icon": "▸",
       "content": {
         "headings": [
           "CLI Reference",
@@ -3917,7 +3917,7 @@
         "potentially",
         "dangerous"
       ],
-      "icon": "📚",
+      "icon": "▸",
       "content": {
         "headings": [
           "Configuration",
@@ -4103,7 +4103,7 @@
         "workflow",
         "install"
       ],
-      "icon": "📚",
+      "icon": "▸",
       "content": {
         "headings": [
           "Caro Documentation",
@@ -4294,7 +4294,7 @@
         "wizard",
         "preferences"
       ],
-      "icon": "📚",
+      "icon": "▸",
       "content": {
         "headings": [
           "Installation",
@@ -4455,7 +4455,7 @@
         "page",
         "getting"
       ],
-      "icon": "📚",
+      "icon": "▸",
       "content": {
         "headings": [
           "Bring Kavana into Codex",
@@ -4655,7 +4655,7 @@
         "directories",
         "constraints"
       ],
-      "icon": "📚",
+      "icon": "▸",
       "content": {
         "headings": [
           "Quick Start",
@@ -4808,7 +4808,7 @@
         "validates",
         "page"
       ],
-      "icon": "🛡️",
+      "icon": "▸",
       "content": {
         "headings": [
           "Safety Levels",
@@ -5039,7 +5039,7 @@
         "requires",
         "moderate"
       ],
-      "icon": "🛡️",
+      "icon": "▸",
       "content": {
         "headings": [
           "Security",
@@ -5260,7 +5260,7 @@
         "above",
         "page"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [
           "Evals",
@@ -5446,7 +5446,7 @@
         "published",
         "crates"
       ],
-      "icon": "🔍",
+      "icon": "▸",
       "content": {
         "headings": [
           "Explore Caro",
@@ -5598,7 +5598,7 @@
         "paths",
         "never"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [
           "Frequently Asked Questions",
@@ -5772,7 +5772,7 @@
         "use",
         "previous"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [
           "The Friendly Terminal Glossary",
@@ -6008,7 +6008,7 @@
         "bsd",
         "windows"
       ],
-      "icon": "🏠",
+      "icon": "▸",
       "content": {
         "headings": [
           "Try It Yourself"
@@ -6114,7 +6114,7 @@
         "http",
         "planned"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [
           "Use Caro from your agent",
@@ -6301,7 +6301,7 @@
         "highlighting",
         "icons"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [
           "Modern Unix Tools",
@@ -6539,7 +6539,7 @@
         "holiday",
         "theme"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [
           "Occasion themes"
@@ -6690,7 +6690,7 @@
         "building",
         "together"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [],
         "paragraphs": [],
@@ -6782,7 +6782,7 @@
         "cowork",
         "code"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [
           "Where Caro is on the founder arc",
@@ -6973,7 +6973,7 @@
         "language",
         "opt"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [
           "Free forever for individuals. Premium plugins for orgs.",
@@ -7162,7 +7162,7 @@
         "local",
         "built"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [
           "What Caro Does",
@@ -7377,7 +7377,7 @@
         "network",
         "intent"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [
           "Understanding Why People Hire Caro",
@@ -7574,7 +7574,7 @@
         "model",
         "download"
       ],
-      "icon": "🗺️",
+      "icon": "▸",
       "content": {
         "headings": [
           "Caro Product Roadmap 2026",
@@ -7733,7 +7733,7 @@
         "terminal",
         "safety"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [],
         "paragraphs": [],
@@ -7825,7 +7825,7 @@
         "users",
         "documentation"
       ],
-      "icon": "💬",
+      "icon": "▸",
       "content": {
         "headings": [
           "Sponsor Caro",
@@ -8042,7 +8042,7 @@
         "collected",
         "environments"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [
           "Telemetry & Privacy",
@@ -8272,7 +8272,7 @@
         "technology",
         "powers"
       ],
-      "icon": "📄",
+      "icon": "▸",
       "content": {
         "headings": [
           "Try Caro in Your Browser",
@@ -8463,7 +8463,7 @@
         "shell",
         "assistant"
       ],
-      "icon": "🔐",
+      "icon": "▸",
       "content": {
         "headings": [
           "AI Where Nothing Else Can Operate",
@@ -8662,7 +8662,7 @@
         "complex",
         "mtime"
       ],
-      "icon": "💻",
+      "icon": "▸",
       "content": {
         "headings": [
           "Stop Googling. Start Commanding.",
@@ -8862,7 +8862,7 @@
         "machine",
         "everywhere"
       ],
-      "icon": "🔧",
+      "icon": "▸",
       "content": {
         "headings": [
           "Commands That Work Everywhere, First Time",
@@ -9054,7 +9054,7 @@
         "restricted",
         "audit"
       ],
-      "icon": "📋",
+      "icon": "▸",
       "content": {
         "headings": [
           "What Do You Need Caro To Do?",
@@ -9243,7 +9243,7 @@
         "things",
         "examples"
       ],
-      "icon": "🚨",
+      "icon": "▸",
       "content": {
         "headings": [
           "Your 3 AM Incident Companion",
@@ -9434,7 +9434,7 @@
         "rails",
         "protect"
       ],
-      "icon": "👥",
+      "icon": "▸",
       "content": {
         "headings": [
           "Safety Rails For Your Team",
