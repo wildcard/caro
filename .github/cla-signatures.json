@@ -47,6 +47,14 @@
       "created_at": "2026-10-11T15:21:58Z",
       "repoId": 1055853891,
       "pullRequestNo": 1296
+    },
+    {
+      "name": "kasparovabi",
+      "id": 104397842,
+      "comment_id": 5202348029,
+      "created_at": "2026-08-06T08:37:44Z",
+      "repoId": 1055853891,
+      "pullRequestNo": 1390
     }
   ]
 }
