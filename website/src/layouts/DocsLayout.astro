@@ -7,7 +7,8 @@ import OccasionHead from '../components/OccasionHead.astro';
 import OccasionPreviewBar from '../components/OccasionPreviewBar.astro';
 import HumanityEventBanner from '../components/HumanityEventBanner.astro';
 import { KavanaCompanion } from '../ui/KavanaCompanion/KavanaCompanion';
-import Favicons from '../components/Favicons.astro';
+import SEO from '../components/SEO.astro';
+import ShareBar from '../components/ShareBar.astro';
 
 interface Props {
   title: string;
@@ -52,11 +53,9 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <Favicons />
     <meta name="generator" content={Astro.generator} />
-    <title>{title} - Caro Docs</title>
+    <SEO title={`${title} - Caro Docs`} description={description} />
     <script is:inline>
       const theme = (() => {
         if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
@@ -128,6 +127,7 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
         <article>
           <slot />
         </article>
+        <ShareBar title={`${title} - Caro Docs`} agentsOnly />
       </main>
     </div>
     <OccasionPreviewBar />

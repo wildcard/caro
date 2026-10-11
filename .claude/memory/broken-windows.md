@@ -83,22 +83,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** yes. It goes together with the BW-006 decision.
 **Next step:** fix after BW-006 is decided.
 
-### BW-008: `config show` lists keys that `config get/set` reject
-
-**Found:** 2026-09-30 sweep dedup
-**Issue:** #1216 (dups #1286, #1330, #1380, #1457, closed)
-**Status:** fixed (#1497, merged 2026-10-03)
-**Needs human?:** no
-**Next step:** none; get/set accept every `config show` key. Delete after 2026-10-10.
-
-### BW-009: first-run consent advertises invalid `config set telemetry.enabled false`
-
-**Found:** 2026-09-30 sweep dedup
-**Issue:** #1177 (dups #1292, #1332, #1403, closed)
-**Status:** fixed (#1497, merged 2026-10-03)
-**Needs human?:** no
-**Next step:** none; `telemetry.enabled` is accepted and clears first-run. Delete after 2026-10-10.
-
 ### BW-010: CLI test runner falls back to ambiguous `cargo run` (multi-binary)
 
 **Found:** 2026-09-30 sweep dedup
@@ -143,21 +127,15 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep, CI run 36658876598
 **Issue:** #1341
-**Status:** claimed-by sweep/2026-10-10-BW-015 (#1553). Root-caused 2026-10-09 (nightly run 37873894155). Two causes, 9 of 29 e2e tests fail in each job:
-(1) SmolLM 135M and StarCoder 1B: their `src/model_catalog.rs` repos (`HuggingFaceTB/SmolLM-135M-Instruct-GGUF`,
-`TheBloke/starcoderbase-1b-GGUF`) no longer exist on Hugging Face (anonymous API returns 401), so every download fails.
-PR smoke tests stay green only because the model cache restores an old file. The download error text also tells
-users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
-(2) Qwen 0.5B and TinyLlama 1.1B download, then abort in llama.cpp Metal: `GGML_ASSERT ggml-metal.m:870 "unsupported op"`
-(`llama_cpp = "0.3"`, `n_gpu_layers: 99` in `src/backends/embedded/mlx.rs`).
+**Status:** fixed (#1553, merged 2026-10-11). #1341 stays open until the 2026-10-12 nightly Extended Tests run is green.
 **Needs human?:** no (decided 2026-10-10: SmolLM uses the bundle.yml Q8_0 repo, StarCoder is dropped, CI runs on CPU only).
-**Next step:** merge #1553, then confirm the next nightly Extended Tests run is green and close #1341.
+**Next step:** confirm the 2026-10-12 nightly Extended Tests run is green, then close #1341. Delete after 2026-10-18.
 
 ### BW-016: 1.5.0 declared in-repo but never tagged or published
 
 **Found:** 2026-09-30 sweep
 **Issue:** #1419
-**Status:** open
+**Status:** open. Release PR #1515 merged 2026-10-11; no `v1.5.0` tag on origin yet, so nothing is published.
 **Needs human?:** yes (release)
 **Next step:** maintainer decides whether to tag 1.5.0. This is also the root of the BW-002 churn.
 
@@ -253,11 +231,9 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-10, preparing first responses to external PRs (harness-plan session)
 **Issue:** #1555
-**Status:** fixed (#1584)
+**Status:** fixed (#1584, merged 2026-10-11)
 **Needs human?:** yes (a CI gate in `.github/workflows/cla.yml`, and part of the legal process)
-**Next step:** none. On 2026-10-11, #1296, #1390 and #1415 were asked to comment
-`recheck`. Each `recheck` should add an entry to `.github/cla-signatures.json` on the
-`cla-signatures` branch. Delete this entry after 2026-10-18.
+**Next step:** none; #1555 is closed. Delete after 2026-10-18.
 
 ### BW-029: an unquoted prompt that starts with "list" runs the `list` subcommand
 
@@ -268,6 +244,8 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Next step:** the maintainer picks an option in #1550. Until then,
 `e2e_smoke_test_suite` and `e2e_shell_operator_truncation` fail in all 4
 Extended Tests jobs; BW-015 hides them, because most tests fail on the model first.
+
+2 e2e tests (`list files`) fail in every Extended Tests job because of this.
 
 ### BW-030: 8 stray `.worktrees/*` gitlinks on main, no `.gitmodules`
 
@@ -298,9 +276,9 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-06)
 **Issue:** #1440
-**Status:** claimed-by sweep/2026-10-10-BW-032 (#1561). The real path is `ModelLoader` → hf-hub 0.5, whose own client has no timeout (not `HfHubClient`). A progress watchdog fails an attempt after 60 s with no bytes. Each attempt runs on its own runtime, so a stalled attempt's hf-hub chunk tasks are cancelled before the retry. All errors keep the 3-attempt retry, which ends with a clear error.
+**Status:** fixed (#1561, merged 2026-10-11). Each download attempt runs on its own runtime with a 60 s stall watchdog.
 **Needs human?:** no
-**Next step:** merge #1561, then close #1440.
+**Next step:** none; #1440 is closed. Delete after 2026-10-18.
 
 ### BW-033: Gemini CLI row in integrations status is stale (product shut down 2026-06-18)
 
@@ -382,26 +360,6 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Needs human?:** yes (dependency major-version bump)
 **Next step:** maintainer approves the bump; note that hf-hub 0.5 already pulls reqwest 0.12.
 
-### BW-049: PR workflows never cancel superseded runs, so the macOS queue backs up
-
-**Found:** 2026-10-11, waiting on CI for #1546, #1584 and #1515 (harness-plan session)
-**Issue:** #1593
-**Status:** open
-**Needs human?:** yes (CI workflows: `ci.yml`, `cross-platform-ci.yml`, `llm-tests.yml`,
-`evaluation.yml` and `website-claims.yml`)
-**Next step:** add the `concurrency` block from #1593 to each PR-triggered workflow. It groups
-runs by PR number and falls back to `github.run_id`, so runs on `main` are never cancelled.
-
-### BW-050: the Install workflow fails on every `main` push
-
-**Found:** 2026-10-11, checking main's CI before the v1.5.0 tag (harness-plan session)
-**Issue:** #1340
-**Status:** open
-**Needs human?:** yes (a CI workflow, `.github/workflows/installer.yml`)
-**Next step:** finish the investigation in #1340. Since at least 2026-05-17, every `main` run
-fails at `Test setup.sh on bash` with `caro: command not found` (exit 127), after
-`install.sh` reports success.
-
 ### BW-051: unrendered website components and unread locale fields hold 156 emoji
 
 **Found:** 2026-10-11, emoji-icon inventory (`docs/brand/icons/definitions.json`, #1590)
@@ -410,16 +368,6 @@ fails at `Test setup.sh on bash` with `caro: command not found` (exit 127), afte
 **Needs human?:** yes for the distro-preferences UI (planned feature or remove); no for the rest
 **Next step:** remove `OmniMenu.astro`, `Waitlist.astro`,
 `landing/LPUseCases.astro` and the unread locale fields listed in #1591.
-
-### BW-052: the caro-demo-video skill tells agents to merge or push to `main`
-
-**Found:** 2026-10-11, rewriting the demo-drift routine prompt (harness-plan session)
-**Issue:** #1602
-**Status:** open
-**Needs human?:** no (two lines in a skill; the owner already decided that agents never merge)
-**Next step:** in `.claude/skills/caro-demo-video/SKILL.md`, change line 274 ("may push directly
-to main") and line 293 ("commit + merge directly"), so that every trust bucket opens or updates
-one PR and requests review.
 
 ---
 
@@ -435,3 +383,118 @@ Left open on purpose, because they are related but not the same defect: #1400
 #1267 (TTY hang), #1446 vs #1472 (vulnerability vs upgrade plan), #1164 vs
 #1222 (same root cause, fixed together by BW-010), #1183/#1203/#1508 (missing
 waitlist/playbook locale files; #1508 is the CI symptom of both).
+
+### BW-052: `Install` workflow red on every main push: setup.sh step exits 127
+
+**Found:** 2026-10-11, broken-window sweep (main health)
+**Issue:** #1340. The cleanup step deletes `~/.cargo/bin/caro` but not cargo's install record. `setup.sh` runs `cargo install caro`, which prints "already installed" and installs nothing.
+**Status:** claimed-by sweep/2026-10-11-BW-052 (#1605)
+**Needs human?:** no (test-step fix; no gate changes)
+**Next step:** merge the PR; the Install workflow runs on it.
+
+### BW-053: an invalid `config.toml` is silently replaced with defaults
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1566
+**Status:** open
+**Needs human?:** no
+**Next step:** Fail loudly, or back up the bad file before writing defaults.
+
+### BW-054: landing demo video has no captions or text alternative
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1570
+**Status:** open
+**Needs human?:** no
+**Next step:** Add a captions track and a text alternative.
+
+### BW-055: localized homepages use an older layout than the English homepage
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1571
+**Status:** open
+**Needs human?:** no
+**Next step:** Port the English landing layout to the locale pages.
+
+### BW-056: website visual-review P2s left after #1565
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1572
+**Status:** open
+**Needs human?:** yes (item 2 only)
+**Next step:** Fix the other items; ask about item 2.
+
+### BW-057: `block-budget-leaks` hook blocks merging main (main has a byte count in the register)
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1577
+**Status:** open
+**Needs human?:** yes (hook policy)
+**Next step:** Owner picks: allow merge commits, or narrow `SENSITIVE_RE`.
+
+### BW-058: caro.sh 307-redirects to www.caro.sh, but canonical/og/sitemap URLs say caro.sh
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1586
+**Status:** open
+**Needs human?:** yes (Vercel domain setting)
+**Next step:** Owner picks the primary host: make `caro.sh` the primary
+domain in Vercel and 308-redirect `www` to it, or change `site` in
+`website/astro.config.mjs` to the `www` host.
+
+### BW-059: `/blog` index omits two published posts
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1587
+**Status:** open
+**Needs human?:** no
+**Next step:** Add `claude-skill-launch` and `founders-playbook-adaptation`
+to the `posts` array in `website/src/pages/blog/index.astro`.
+
+### BW-060: landing page says caro blocks `chmod -R 777 /var/www`; the validator does not flag it
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1592
+**Status:** open
+**Needs human?:** yes (safety pattern or copy)
+**Next step:** See the options in the issue.
+
+### BW-061: PR workflows never cancel superseded runs, so the macOS queue backs up
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1593
+**Status:** open
+**Needs human?:** yes (workflow concurrency)
+**Next step:** Add `concurrency` groups after review.
+
+### BW-062: website claims suite never runs the validator; 8 of 12 landing scenarios claim warnings caro does not give
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1597
+**Status:** open
+**Needs human?:** yes (safety patterns or copy)
+**Next step:** See the suggested order in the issue.
+
+### BW-063: `caro test --suite` ignores `dangerous_pattern`, so the safety skill's YAML RED/GREEN step tests nothing
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1599
+**Status:** open
+**Needs human?:** no
+**Next step:** Make the runner check `dangerous_pattern`.
+
+### BW-064: caro-demo-video skill tells agents to merge or push to main without review
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1602
+**Status:** open
+**Needs human?:** no
+**Next step:** Change the skill text to the branch + PR flow.
+
+### BW-065: QA rotation memory files stuck at the 2026-05-07 bootstrap; 25+ update PRs unmerged
+
+**Found:** 2026-10-11, broken-window sweep
+**Issue:** #1603
+**Status:** open
+**Needs human?:** yes (owner merges or closes the PRs)
+**Next step:** Owner triages the open update PRs.

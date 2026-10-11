@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Share card, Markdown twin and full SEO head for every website page**
+  (#1588, closes #156). Each caro.sh page gets a generated 1200x630 card at
+  `/og/<page>.png` (every `og:image` pointed at a missing `/og-image.png`
+  before), a Markdown version at `/<page>.md` (also served for
+  `Accept: text/markdown`), and one `SEO.astro` head with canonical,
+  hreflang only for real translations, and a JSON-LD graph. The build also
+  writes `/llms.txt`, `/llms-full.txt` and `/rss.xml`, adds a share bar
+  (social sharing on posts; AI-agent actions on posts and docs), and fails
+  when any page misses its card, twin, canonical or description. Guarded by
+  `website/src/lib/seo/*.test.ts`, `website/src/__tests__/seo-coverage.test.ts`
+  and the new `Build website (caro.sh)` CI job. System doc:
+  `website/docs/SEO_AND_AGENTS.md`.
+
 ## [1.5.0] - 2026-10-11
 
 > **Release-reset note**: An earlier `chore(release): v1.5.0`

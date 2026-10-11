@@ -41,7 +41,11 @@ jobs:
           caro --help
 
       - name: Clean up for next test
+        # Uninstall through cargo first. Removing only the binary leaves
+        # cargo's install record, so the next `cargo install caro` can skip
+        # with "already installed" and leave no binary (#1340).
         run: |
+          cargo uninstall caro || true
           rm -rf "$HOME/.local/bin/caro"
           rm -rf "$HOME/.cargo/bin/caro"
 
@@ -54,7 +58,11 @@ jobs:
           caro --help
 
       - name: Clean up for setup.sh test
+        # Uninstall through cargo first. Removing only the binary leaves
+        # cargo's install record, so the next `cargo install caro` can skip
+        # with "already installed" and leave no binary (#1340).
         run: |
+          cargo uninstall caro || true
           rm -rf "$HOME/.local/bin/caro"
           rm -rf "$HOME/.cargo/bin/caro"
 
@@ -65,7 +73,11 @@ jobs:
           caro --help
 
       - name: Clean up for next test
+        # Uninstall through cargo first. Removing only the binary leaves
+        # cargo's install record, so the next `cargo install caro` can skip
+        # with "already installed" and leave no binary (#1340).
         run: |
+          cargo uninstall caro || true
           rm -rf "$HOME/.local/bin/caro"
           rm -rf "$HOME/.cargo/bin/caro"
 
