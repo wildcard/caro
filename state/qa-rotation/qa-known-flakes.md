@@ -54,6 +54,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 - 2026-10-07: observed again (Slot C `caro ai --once`; hang >45s; code defect — no download timeout (#1440), no static fallback (#1179), no init feedback (#1408), distinct from the sandbox download stall)
 - 2026-10-08: observed again on `caro ai --once "list files"` — hangs silently when no backend is ready (filed as [#1540](https://github.com/wildcard/caro/issues/1540); `--dry-run` no longer flakes in v1.5.0 — static matcher fallback added; `ai --once` has no static-matcher fallback so model-download path is still affected)
 - 2026-10-09: NOT reproduced — model downloaded successfully to `~/.cache/caro/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf` during session; FLAKE-001 not active this run
+- 2026-10-11: not triggered — `--dry-run` passed through the static-matcher fallback (`ls -la`). The 2026-10-11 run (#1604) marked FLAKE-001 resolved for `--dry-run`; prompts that need the LLM were not retested. Confirm on the next pass.
 
 **Promotion threshold**: File regression issue if explicit download failure observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Status**: Promoted to regression (behavior change constitutes a regression even under 3-in-7-days threshold). Filed as #1440.  
@@ -64,15 +65,18 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 ---
 
 ### FLAKE-002: `caro ai --once` silent hang when no model available
-**First observed**: 2026-10-10  
+**First observed**: 2026-10-10 (documented in PR #1560 body)  
 **Duplicate of**: FLAKE-001's `caro ai --once` variant (observed 2026-10-05, 10-07 and 10-08) and #1540 (closed as a duplicate). The 2026-10-10 run could not see those entries. Open causes: #1408 (no init feedback) and #1179 (no static fallback). #1561 fixed #1440 (stalled download) on 2026-10-11.  
-**Symptom**: `caro ai --once '<prompt>'` hangs indefinitely with zero output — no progress indicator, no error message, no timeout. External kill required.  
-**Context**: Remote QA sandbox with no pre-downloaded model and no configured remote backend. `caro ai` calls `backend_arc()` directly (bypassing the `AgentLoop` and its static matcher), so the embedded backend attempts `generate_command` which blocks on model download.  
-**Impact**: `caro ai` is untestable in sandboxes without a pre-downloaded model or remote backend. Distinct from FLAKE-001: FLAKE-001's `--dry-run` path eventually surfaces an error after 3 retries; this path produces no output at all.  
+**Symptom**: `caro ai --once '<prompt>'` produces zero output and silently waits when no model is downloaded. Exit code 124 when killed by a 15-second QA timeout. No error message, no stderr, no progress indicator.  
+**Context**: Remote sandbox with no pre-downloaded model. `caro doctor` shows "No ready backend available" but the `ai` subcommand does not check backend availability before blocking on `generate_command`.  
+**Root cause**: `src/main.rs:1152-1161` — `run_ai_once` calls `backend.generate_command().await` without checking model-download readiness. `src/ai/runner.rs:117` — generation blocks waiting for the embedded backend to download a missing model (blocked by sandbox networking). Note: `embedded_backend.is_available()` always returns `true`, so a pre-flight check on that method would not prevent the hang; the fix requires checking model-file readiness or adding a download timeout.  
+**Stall watchdog caveat** (per Codex review): `src/model_loader.rs:337-338` defines `DOWNLOAD_STALL_TIMEOUT = 60s`. The QA 15-second timeout is shorter than this watchdog, so the observation does not prove an indefinite hang — the process may terminate naturally after its three 60-second attempts and retry backoffs with an error (the #1561 fix). Verify with a ≥200-second timeout in a future pass; if exit 1 with an error message is observed, reclassify as "slow/silent download" and close this flake as resolved.  
+**Impact**: Slot C testing of `ai` surfaces is blocked in sandbox. Use `--dry-run` for prompt-generation coverage; use unit tests for `ai` session logic.  
 **Occurrence log**:
 - 2026-10-10: `caro ai --once 'show me the current date'` — hung silently until 20s external timeout; stdin `/dev/null` made no difference (Slot C surface #10).
-**Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces with a remote backend configured.  
-**Workaround**: Run `caro ai` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama configured as a backend.
+- 2026-10-11: observed (confirmed this run, exit 124 after 15s timeout)
+**Promotion threshold**: Not applicable — known root cause, tracked in open issues #1272 and #1408. File a separate regression issue only if behavior changes (e.g. starts producing an error message, or starts hanging on a different backend).  
+**Workaround**: Test `caro ai --once` only in an environment with a pre-downloaded model or Ollama available.
 ## Resolved flakes
 
 _(none yet)_
