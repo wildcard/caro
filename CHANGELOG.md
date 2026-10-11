@@ -118,6 +118,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Homepage no longer shows invented testimonials.** The "What Engineers
+  Are Saying" section quoted three made-up people under "Real results from
+  developers who made the switch". The homepage no longer renders it (#1569).
+  The component stays, marked `PLACEHOLDER CONTENT`, and
+  `placeholder-content.test.ts` fails if a page imports a marked component.
 - **Website WCAG 2.2 AA pass and accessible occasion themes.** axe finds 0
   violations in 220 runs: the 50 English pages, the new gallery and 4
   locale homepages, each in light and dark at 1440px and 375px. The same
