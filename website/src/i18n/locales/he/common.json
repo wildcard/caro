@@ -46,7 +46,11 @@
         "glossary": "מילון מונחים",
         "terminalTerms": "מונחי טרמינל ו-Unix",
         "github": "GitHub",
-        "sourceCode": "קוד המקור"
+        "sourceCode": "קוד המקור",
+        "useCases": "Use Cases",
+        "byRoleSummary": "By role: SRE, DevOps, security",
+        "docs": "Docs",
+        "installAndReference": "Install, configure, reference"
       },
       "mobile": {
         "allComparisons": "כל ההשוואות",

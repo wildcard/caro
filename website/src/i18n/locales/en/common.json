@@ -47,6 +47,10 @@
         "evalsDesc": "Published accuracy and calibration numbers",
         "glossary": "Glossary",
         "terminalTerms": "Terminal & Unix terms",
+        "useCases": "Use Cases",
+        "byRoleSummary": "By role: SRE, DevOps, security",
+        "docs": "Docs",
+        "installAndReference": "Install, configure, reference",
         "github": "GitHub",
         "sourceCode": "Source code"
       },

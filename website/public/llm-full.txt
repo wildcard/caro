@@ -291,7 +291,7 @@ Compare Caro\
 
 Caro works in your existing terminal. Warp requires switching to a new AI-native terminal emulator.
 
-Compare Amazon Q\
+Compare Kiro CLI\
 
 Caro focuses on single-shot commands. OpenCode prioritizes conversational exploration.
 
@@ -528,6 +528,14 @@ Published accuracy, calibration, latency and cost per backend
 **URL**: https://caro.sh/integrations
 
 Use Caro from Claude Code, Codex, Cursor, Continue, Aider, Tabby, opencode, crush, and more. Caro speaks Claude Code skills, MCP, and the OpenAI Chat Completions API.
+
+---
+
+## Occasion themes
+
+**URL**: https://caro.sh/occasions
+
+Every holiday, national day and humanity event look on caro.sh, with measured WCAG contrast and live previews.
 
 ---
 
@@ -1035,4 +1043,4 @@ Yes! Caro is licensed under AGPL-3.0. You can read, modify, and distribute the s
 
 ---
 
-*Generated on 2026-10-02*
+*Generated on 2026-10-11*
