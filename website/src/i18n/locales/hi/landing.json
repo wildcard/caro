@@ -5,7 +5,16 @@
       "cta": "मुफ्त में शुरू करें",
       "darkMode": {
         "toggle": "डार्क मोड बदलें"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "साथी एजेंट",
@@ -329,7 +338,7 @@
       "bottom": {
         "built": "🦀 Rust के साथ बनाया |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "❤️",
         "inspiration": "Portal की Caroline से प्रेरित",
         "heritagePre": "इनकी स्थापित नींव पर गर्व से बनाया गया",
         "gnu": "GNU",

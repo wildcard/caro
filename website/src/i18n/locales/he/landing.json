@@ -5,7 +5,16 @@
       "cta": "התחל בחינם",
       "darkMode": {
         "toggle": "החלף למצב כהה"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "סוכנת מלווה",
@@ -405,7 +414,7 @@
       "bottom": {
         "built": "נבנה עם 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "❤️",
         "inspiration": "Caro בהשראת Caroline מ-Portal — נאמנות שהפכה לליווי דיגיטלי",
         "heritagePre": "נבנה בגאווה על היסודות שהניחו",
         "gnu": "GNU",

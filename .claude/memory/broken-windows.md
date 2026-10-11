@@ -19,6 +19,15 @@ Rules (see `.claude/rules/good-boy-scout.md` → "Stay in your lane"):
 
 ---
 
+### BW-041: OmniSearch inlines a 1.55 MB search index into every page
+
+**Found:** 2026-10-10, WCAG design pass (`feat/website-wcag-design-pass`)
+**Issue:** #1564
+**Status:** open
+**Needs human?:** no
+**Next step:** serve `search-index.json` statically and fetch it when the
+search overlay first opens (`website/src/components/OmniSearch.astro`).
+
 ### BW-002: CLAUDE.md version/MSRV drift, filed 42× (canonical + 41 duplicates)
 
 **Found:** 2026-09-27, PR #1470 session
@@ -195,9 +204,9 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-03 sweep dedup
 **Issue:** #1162 (dup #1170)
-**Status:** claimed-by sweep/2026-10-09-BW-022 (#1548). The `evaluation` harness (`harness = false`) now accepts libtest's positional filter and skips itself when the filter does not match its name.
+**Status:** fixed (#1548, merged 2026-10-10). The `evaluation` harness (`harness = false`) now accepts libtest's positional filter and skips itself when the filter does not match its name.
 **Needs human?:** no
-**Next step:** merge the PR.
+**Next step:** none. Delete after 2026-10-17.
 
 ### BW-023: global flags before a subcommand swallow the subcommand
 
@@ -223,6 +232,22 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** no
 **Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
 
+### BW-026: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
+
+**Found:** 2026-10-02, PR #1507 session (also red on main push be07b22 and every i18n-touching PR)
+**Issue:** #1508
+**Status:** open
+**Needs human?:** no (run `translate.yml` or copy the English files; or relax the validator for missing namespaces)
+**Next step:** `en/playbook.json` (#1174) and `en/waitlist.json` (#599) were never mirrored into 13 locales. CI runs the validator without `--strict`, so the missing-file errors are the failure; the 207 untranslated warnings are only fatal in strict mode.
+
+### BW-027: static safety floor rates reverse shells, credential exfiltration and `DROP DATABASE` as Safe
+
+**Found:** 2026-10-10, while stratifying the risk-gate gold subset (`docs/ml/risk-gold-subset.md`, "What the static floor got wrong")
+**Issue:** #1559
+**Status:** open
+**Needs human?:** yes (safety patterns are a security-policy decision; not applied from a feature branch)
+**Next step:** `SafetyConfig::moderate()` returns `Safe` for `bash -i >& /dev/tcp/…`, `curl -F "key=@$HOME/.ssh/id_rsa" …`, `env | curl --data-binary @- …`, `sudo setenforce 0`, a uid-0 `useradd`, `mysql -e 'DROP DATABASE …'`, `redis-cli FLUSHALL`, `aws s3 rm --recursive`, `kubectl delete namespace`, `aws ec2 terminate-instances`, and `sudo truncate -s 0 /var/log/*.log`, while `rm -rf ./target` is `Critical`. The 121-row candidate file (`docs/ml/risk-gold-candidates.jsonl`) and its companion static-tier file (`docs/ml/risk-gold-static-tiers.jsonl`, joined on `id`) record each command and its static verdict; decide which gaps become patterns. BW-026 is reserved by #1507 (Validate Translations).
+
 ### BW-031: ai_horde `Client-Agent` header hardcoded to `caro:1.4.0`
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-22)
@@ -235,9 +260,9 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-06)
 **Issue:** #1440
-**Status:** open (#1441, #1531, #1538 mention it)
+**Status:** claimed-by sweep/2026-10-10-BW-032 (#1561). The real path is `ModelLoader` → hf-hub 0.5, whose own client has no timeout (not `HfHubClient`). A progress watchdog fails an attempt after 60 s with no bytes. Each attempt runs on its own runtime, so a stalled attempt's hf-hub chunk tasks are cancelled before the retry. All errors keep the 3-attempt retry, which ends with a clear error.
 **Needs human?:** no
-**Next step:** set a connect and read timeout on the download client, and return a clear error when it fires.
+**Next step:** merge #1561, then close #1440.
 
 ### BW-033: Gemini CLI row in integrations status is stale (product shut down 2026-06-18)
 
@@ -299,9 +324,57 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 **Found:** 2026-10-03 (while fixing "search for TODO in all python files")
 **Issue:** #1516. `search for <X> in python files` returns `find . -name "*.py" -type f` for any X other than TODO.
-**Status:** fixed (#1517: content-search handler in `StaticMatcher::content_search_command`)
+**Status:** fixed (#1517, merged 2026-10-10: content-search handler in `StaticMatcher::content_search_command`)
 **Needs human?:** no
-**Next step:** delete this entry a week after #1517 merges.
+**Next step:** none. Delete after 2026-10-17.
+
+### BW-042: an unquoted prompt that starts with "list" runs the `list` subcommand
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10, from nightly run 38016340315)
+**Issue:** #1550. `caro list files` fails with `unexpected argument 'files'`; 2 e2e tests fail in every Extended Tests job.
+**Status:** open
+**Needs human?:** yes (CLI design: how a prompt and a subcommand name share the first word)
+**Next step:** maintainer picks the parsing rule in #1550; then fix `src/main.rs` routing.
+
+### BW-043: 8 stray `.worktrees/*` gitlinks on main with no `.gitmodules`
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
+**Issue:** #1551. Commit `9599ca7` added 8 local worktree dirs as mode-160000 gitlinks.
+**Status:** open
+**Needs human?:** no
+**Next step:** `git rm --cached` the 8 gitlinks and confirm `.worktrees/` is in `.gitignore`.
+
+### BW-044: CLA check never records a signature, so every external PR stays red
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
+**Issue:** #1555. `custom-pr-sign-comment` in `.github/workflows/cla.yml` holds the whole notice, not the sign phrase. Blocks #1296, #1390, #1415.
+**Status:** open
+**Needs human?:** yes (CI gate / contributor policy)
+**Next step:** maintainer approves the 2-line `cla.yml` change proposed in #1555.
+
+### BW-045: `caro run` runbook path and step path keep shell state differently
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
+**Issue:** #1557. The runbook runs all steps in one `bash`; the step path uses a fresh shell per step.
+**Status:** open
+**Needs human?:** yes (product: which behavior is the contract)
+**Next step:** maintainer picks an option in #1557; recommended option 1 (subshell per step in the runbook).
+
+### BW-046: static safety validator rates reverse shells, exfiltration and DROP DATABASE as Safe
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-10-10)
+**Issue:** #1559
+**Status:** open
+**Needs human?:** yes (safety patterns)
+**Next step:** maintainer approves the pattern set; then add patterns with the `safety-pattern-developer` TDD flow.
+
+### BW-047: upgrade reqwest 0.11 → 0.12 to clear h2 RUSTSEC-2026-0258 (wiremock is already 0.6.4)
+
+**Found:** 2026-10-10 sweep register sync (issue filed 2026-09-24)
+**Issue:** #1472 (related: #1446, the vulnerability report)
+**Status:** open
+**Needs human?:** yes (dependency major-version bump)
+**Next step:** maintainer approves the bump; note that hf-hub 0.5 already pulls reqwest 0.12.
 
 ---
 

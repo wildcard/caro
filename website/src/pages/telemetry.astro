@@ -18,7 +18,7 @@ export const searchMeta = {
 >
   <Navigation />
 
-  <main class="telemetry-page">
+  <main id="main-content" class="telemetry-page">
     <div class="container">
       <header class="page-header">
         <h1>Telemetry & Privacy</h1>
@@ -114,22 +114,22 @@ export const searchMeta = {
         <h2>Your Controls</h2>
         <div class="controls-grid">
           <div class="control-card">
-            <h4>Disable Telemetry</h4>
+            <h3>Disable Telemetry</h3>
             <code>caro config set telemetry.enabled false</code>
             <p>Permanently disable all telemetry collection.</p>
           </div>
           <div class="control-card">
-            <h4>Single Session</h4>
+            <h3>Single Session</h3>
             <code>caro --no-telemetry "your command"</code>
             <p>Disable for just this invocation.</p>
           </div>
           <div class="control-card">
-            <h4>Environment Variable</h4>
+            <h3>Environment Variable</h3>
             <code>export CARO_TELEMETRY_ENABLED=false</code>
             <p>Disable via environment (great for CI/CD).</p>
           </div>
           <div class="control-card">
-            <h4>View What's Collected</h4>
+            <h3>View What's Collected</h3>
             <code>caro telemetry show</code>
             <p>See exactly what data is queued before sending.</p>
           </div>
@@ -144,12 +144,12 @@ export const searchMeta = {
         </p>
         <div class="airgap-options">
           <div class="option">
-            <h4>Option 1: Disable Telemetry</h4>
+            <h3>Option 1: Disable Telemetry</h3>
             <p>Simply disable telemetry and use Caro normally. No data is collected or stored.</p>
             <code>caro config set telemetry.enabled false</code>
           </div>
           <div class="option">
-            <h4>Option 2: Air-Gapped Mode (Coming Soon)</h4>
+            <h3>Option 2: Air-Gapped Mode (Coming Soon)</h3>
             <p>
               Enable air-gapped mode to collect telemetry locally. When you're ready,
               export the data and share it with us through our secure portal.
@@ -169,28 +169,28 @@ export const searchMeta = {
           <div class="commitment">
             <span class="number">1</span>
             <div>
-              <h4>Transparency</h4>
+              <h3>Transparency</h3>
               <p>This page documents exactly what we collect. The code is open source for verification.</p>
             </div>
           </div>
           <div class="commitment">
             <span class="number">2</span>
             <div>
-              <h4>Privacy-First</h4>
+              <h3>Privacy-First</h3>
               <p>We collect metadata, not content. Your commands and data never leave your machine.</p>
             </div>
           </div>
           <div class="commitment">
             <span class="number">3</span>
             <div>
-              <h4>Respect</h4>
+              <h3>Respect</h3>
               <p>If you disable telemetry, we respect that completely. No nagging, no degraded features.</p>
             </div>
           </div>
           <div class="commitment">
             <span class="number">4</span>
             <div>
-              <h4>Privacy by Default</h4>
+              <h3>Privacy by Default</h3>
               <p>Telemetry is opt-in. We ask nicely, but the default is off.</p>
             </div>
           </div>
@@ -324,13 +324,12 @@ export const searchMeta = {
   }
 
   .tldr-card.beta {
-    border-color: #f39c12;
-    background: rgba(243, 156, 18, 0.05);
+    border-color: var(--color-border);
   }
 
   .tldr-card.ga {
-    border-color: #27ae60;
-    background: rgba(39, 174, 96, 0.05);
+    border-color: var(--status-safe);
+    background: rgba(63, 163, 77, 0.05);
   }
 
   .phase-badge {
@@ -343,14 +342,16 @@ export const searchMeta = {
     margin-bottom: 12px;
   }
 
+  /* Badge pairs flip with the color mode: --fg/--bg and
+     --status-safe-text/--bg both clear AA in light and dark. */
   .tldr-card.beta .phase-badge {
-    background: #f39c12;
-    color: white;
+    background: var(--fg);
+    color: var(--bg);
   }
 
   .tldr-card.ga .phase-badge {
-    background: #27ae60;
-    color: white;
+    background: var(--status-safe-text);
+    color: var(--bg);
   }
 
   .tldr-card h3 {
@@ -420,8 +421,8 @@ export const searchMeta = {
   }
 
   .collect-card.no {
-    background: rgba(231, 76, 60, 0.1);
-    border: 1px solid rgba(231, 76, 60, 0.3);
+    background: rgba(239, 51, 51, 0.08);
+    border: 1px solid rgba(239, 51, 51, 0.3);
   }
 
   .collect-card h3 {
@@ -447,6 +448,12 @@ export const searchMeta = {
     color: var(--color-text-secondary);
   }
 
+  .verification a,
+  .faq-section details p a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
   .verification code {
     background: var(--color-bg-tertiary);
     padding: 2px 6px;
@@ -466,7 +473,7 @@ export const searchMeta = {
     border-radius: 12px;
   }
 
-  .control-card h4 {
+  .control-card h3 {
     font-size: 16px;
     margin-bottom: 12px;
     color: var(--color-text);
@@ -479,7 +486,8 @@ export const searchMeta = {
     border-radius: 6px;
     font-size: 13px;
     margin-bottom: 8px;
-    color: #e74c3c;
+    color: var(--accent-text);
+    overflow-wrap: anywhere;
   }
 
   .control-card p {
@@ -501,7 +509,7 @@ export const searchMeta = {
     border-radius: 12px;
   }
 
-  .airgap-options h4 {
+  .airgap-options h3 {
     font-size: 18px;
     margin-bottom: 12px;
     color: var(--color-text);
@@ -515,13 +523,14 @@ export const searchMeta = {
     font-size: 13px;
     margin: 12px 0;
     color: var(--color-text);
+    overflow-wrap: anywhere;
   }
 
   .future-note {
     font-size: 13px;
     color: var(--color-text-secondary);
     padding: 8px 12px;
-    background: rgba(243, 156, 18, 0.1);
+    background: rgba(252, 252, 98, 0.1);
     border-radius: 6px;
   }
 
@@ -546,14 +555,14 @@ export const searchMeta = {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #3498db;
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     border-radius: 50%;
     font-weight: bold;
     flex-shrink: 0;
   }
 
-  .commitment h4 {
+  .commitment h3 {
     font-size: 18px;
     margin-bottom: 4px;
     color: var(--color-text);
@@ -628,14 +637,22 @@ export const searchMeta = {
     border-radius: 8px;
     text-decoration: none;
     font-weight: 600;
-    background: #3498db;
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     transition: transform 0.2s, box-shadow 0.2s;
   }
 
   .cta-button:hover {
+    background: var(--accent-fill-hover);
+    color: var(--on-accent);
+    text-decoration: none;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    box-shadow: 0 4px 12px rgba(239, 51, 51, 0.3);
+  }
+
+  .cta-button:focus-visible {
+    outline: 3px solid var(--fg-strong);
+    outline-offset: 2px;
   }
 
   .cta-button.secondary {
@@ -645,8 +662,9 @@ export const searchMeta = {
   }
 
   .cta-button.secondary:hover {
-    border-color: #3498db;
-    color: #3498db;
+    background: transparent;
+    border-color: var(--accent);
+    color: var(--accent-text);
   }
 
   /* Mobile */
