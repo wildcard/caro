@@ -79,7 +79,7 @@ describe('cardTitle', () => {
     ['CLI Reference - Caro Docs', 'CLI Reference'],
     ['Why Caro? The Story Behind Your Terminal Companion - Caro Blog', 'Why Caro? The Story Behind Your Terminal Companion'],
     ['Caro - Terminal mastery, unlocked', 'Terminal mastery, unlocked'],
-    ['Caro - Tu fiel compañero de shell', 'Tu fiel compañero de shell'],
+    ['Caro - Dein treuer Shell-Begleiter', 'Dein treuer Shell-Begleiter'],
     ['AI Agent Safety | Caro - Hallucination-Resistant Command Validation', 'AI Agent Safety'],
     ['Modern Unix Tools - Next-Gen CLI Tools in Rust & Go | Caro', 'Modern Unix Tools: Next-Gen CLI Tools in Rust & Go'],
     ['Caro vs Warp - Feature Comparison | Terminal AI Tools', 'Caro vs Warp: Feature Comparison'],

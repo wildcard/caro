@@ -20,7 +20,7 @@ const pages = [
   page('/docs/cli', 'CLI Reference - Caro Docs'),
   page('/docs', 'Documentation - Caro Docs'),
   page('/faq', 'FAQ - Caro Shell Assistant'),
-  page('/es', 'Caro - Tu fiel compañero de shell', 'es'),
+  page('/de', 'Caro - Dein treuer Shell-Begleiter', 'de'),
 ];
 
 describe('buildLlmsTxt', () => {
@@ -40,7 +40,7 @@ describe('buildLlmsTxt', () => {
   });
 
   it('puts translations under Optional', () => {
-    expect(txt).toContain('## Optional\n\n- [Tu fiel compañero de shell (es)](https://caro.sh/es.md)');
+    expect(txt).toContain('## Optional\n\n- [Dein treuer Shell-Begleiter (de)](https://caro.sh/de.md)');
   });
 });
 
@@ -49,7 +49,7 @@ describe('buildLlmsFullTxt', () => {
 
   it('holds every primary-locale page, each under its source URL', () => {
     expect(full).toContain('# CLI Reference - Caro Docs\n\nSource: https://caro.sh/docs/cli\n\nBody of /docs/cli.');
-    expect(full).not.toContain('Body of /es.');
+    expect(full).not.toContain('Body of /de.');
     expect(full).not.toContain('title: "');
   });
 });
