@@ -283,4 +283,4 @@ run:
 
 ## DRS Reference
 
-See [PR_MANAGEMENT_DRS.md](../.claude/automation/specs/PR_MANAGEMENT_DRS.md)
+See [PR_MANAGEMENT_DRS.md](../automation/specs/PR_MANAGEMENT_DRS.md)
