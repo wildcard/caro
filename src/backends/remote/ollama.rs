@@ -7,15 +7,18 @@ use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::sync::OnceCell;
 
+use crate::backends::remote::context_length_warning;
 use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError};
 
 /// Regex pattern to extract command from malformed JSON with unescaped quotes
 /// Handles cases like: {"cmd": "find . -type f -name "*.txt""}
 static CMD_EXTRACT_REGEX: Lazy<Regex> =
     Lazy::new(|| Regex::new(r#"\{\s*"cmd"\s*:\s*"(.+)"\s*\}"#).expect("Invalid regex pattern"));
+use crate::decision::decide_with_retry;
 use crate::models::{CommandRequest, GeneratedCommand, RiskJudgeContext, RiskJudgment, RiskLevel};
-use crate::prompts::{build_risk_judge_prompt, parse_risk_judgment};
+use crate::prompts::{build_risk_judge_prompt, parse_risk_judgment, risk_judge_schema};
 
 /// Ollama API request format
 #[derive(Debug, Serialize)]
@@ -24,6 +27,9 @@ struct OllamaRequest {
     prompt: String,
     stream: bool,
     options: OllamaOptions,
+    /// JSON Schema for structured output; set on decision requests only (#1465).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    format: Option<serde_json::Value>,
 }
 
 /// Ollama inference options
@@ -47,12 +53,59 @@ struct OllamaResponse {
     created_at: Option<String>,
 }
 
+/// Response shape for `POST /api/show`, used only to check the context
+/// length actually in effect for the configured model.
+#[derive(Debug, Deserialize)]
+struct OllamaShowResponse {
+    #[serde(default)]
+    parameters: Option<String>,
+    #[serde(default)]
+    model_info: Option<serde_json::Value>,
+}
+
+/// Ollama's own default context length when nothing overrides it via a
+/// Modelfile `PARAMETER num_ctx` line.
+const OLLAMA_DEFAULT_NUM_CTX: u32 = 2048;
+
+/// Parse a `num_ctx <value>` line out of `/api/show`'s `parameters` string,
+/// which lists one explicit Modelfile override per line (e.g.
+/// `"num_ctx 8192\nstop \"</s>\"\n"`). Returns `None` when no such line is
+/// present, or if present but not a valid integer.
+fn parse_num_ctx(parameters: &str) -> Option<u32> {
+    parameters.lines().find_map(|line| {
+        let mut parts = line.split_whitespace();
+        if parts.next()? == "num_ctx" {
+            parts.next()?.parse::<u32>().ok()
+        } else {
+            None
+        }
+    })
+}
+
+/// Extract a model's declared/max context length from `/api/show`'s
+/// `model_info` object. The key is architecture-prefixed (e.g.
+/// `"llama.context_length"`, `"qwen2.context_length"`), so this scans for
+/// any key ending in `.context_length` rather than hardcoding an arch name.
+fn extract_declared_context_length(model_info: &serde_json::Value) -> Option<u32> {
+    let object = model_info.as_object()?;
+    object.iter().find_map(|(key, value)| {
+        if key.ends_with(".context_length") {
+            value.as_u64().and_then(|n| u32::try_from(n).ok())
+        } else {
+            None
+        }
+    })
+}
+
 /// Ollama backend for local Ollama server
 pub struct OllamaBackend {
     base_url: Url,
     model_name: String,
     client: Client,
     embedded_fallback: Option<Arc<dyn CommandGenerator>>,
+    /// Ensures the served-context-length probe (`/api/show`) and its log
+    /// line fire at most once per backend instance, not on every request.
+    checked_context: OnceCell<()>,
 }
 
 impl OllamaBackend {
@@ -70,6 +123,7 @@ impl OllamaBackend {
             model_name,
             client,
             embedded_fallback: None,
+            checked_context: OnceCell::new(),
         })
     }
 
@@ -94,7 +148,7 @@ Rules:
 4. Target shell: {}
 5. NEVER generate destructive commands (rm -rf /, mkfs, dd, etc.)
 6. Keep commands simple and safe
-7. If the request is unclear, generate "echo 'Please clarify your request'"
+7. If the request is unclear, output ONLY: {{"needs_clarification": true, "p": <0.0-1.0>, "question": "<one short question>"}}
 
 Request: {}
 "#,
@@ -104,6 +158,13 @@ Request: {}
 
     /// Parse JSON response from Ollama
     fn parse_command_response(&self, response: &str) -> Result<String, GeneratorError> {
+        // Typed clarification gate (#1462): never return a runnable command
+        // whose only purpose is to ask the user something.
+        if let Some(c) = crate::decision::clarification_from_raw(response) {
+            if c.should_ask() {
+                return Err(GeneratorError::from_clarification(&c));
+            }
+        }
         // Try structured JSON parsing first
         if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(response) {
             if let Some(cmd) = parsed.get("cmd").and_then(|v| v.as_str()) {
@@ -156,8 +217,13 @@ Request: {}
         })
     }
 
-    /// Call Ollama API for inference
-    async fn call_ollama_api(&self, prompt: &str) -> Result<String, GeneratorError> {
+    /// Call Ollama API for inference. `format` carries a JSON Schema the
+    /// server must conform to; command generation passes `None`.
+    async fn call_ollama_api(
+        &self,
+        prompt: &str,
+        format: Option<serde_json::Value>,
+    ) -> Result<String, GeneratorError> {
         let request = OllamaRequest {
             model: self.model_name.clone(),
             prompt: prompt.to_string(),
@@ -168,6 +234,7 @@ Request: {}
                 top_p: 0.3,
                 num_predict: 100,
             },
+            format,
         };
 
         let url = self
@@ -212,14 +279,64 @@ Request: {}
         Ok(ollama_response.response)
     }
 
+    /// Fetch the context length actually in effect for `self.model_name`,
+    /// plus the model's own declared/max context length when Ollama's
+    /// `model_info` exposes it. Returns `(served, declared)`.
+    ///
+    /// Best-effort only: any transport error, non-2xx status, or unexpected
+    /// body shape yields `None` rather than an error — this is a diagnostic
+    /// nicety, not something that should ever block generation.
+    async fn fetch_ollama_context_lengths(&self) -> Option<(u32, Option<u32>)> {
+        let url = self.base_url.join("/api/show").ok()?;
+        let body = serde_json::json!({ "model": self.model_name });
+
+        let response = self.client.post(url).json(&body).send().await.ok()?;
+        if !response.status().is_success() {
+            return None;
+        }
+
+        let show: OllamaShowResponse = response.json().await.ok()?;
+        let served = show
+            .parameters
+            .as_deref()
+            .and_then(parse_num_ctx)
+            .unwrap_or(OLLAMA_DEFAULT_NUM_CTX);
+        let declared = show
+            .model_info
+            .as_ref()
+            .and_then(extract_declared_context_length);
+
+        Some((served, declared))
+    }
+
+    /// Probe the served context length once and log a warning if it looks
+    /// undersized. Never surfaces as a `GeneratorError` — see
+    /// `fetch_ollama_context_lengths`.
+    async fn warn_on_context_length(&self) {
+        if let Some((served, declared)) = self.fetch_ollama_context_lengths().await {
+            if let Some(warning) = context_length_warning(served, declared) {
+                tracing::warn!("Ollama ({}): {}", self.model_name, warning);
+            }
+        } else {
+            tracing::debug!(
+                "Ollama ({}): could not determine served context length via /api/show",
+                self.model_name
+            );
+        }
+    }
+
     /// Attempt inference with fallback to embedded backend
     async fn generate_with_fallback(
         &self,
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
+        self.checked_context
+            .get_or_init(|| self.warn_on_context_length())
+            .await;
+
         // Try Ollama first
         match self
-            .call_ollama_api(&self.create_system_prompt(request))
+            .call_ollama_api(&self.create_system_prompt(request), None)
             .await
         {
             Ok(response) => {
@@ -233,9 +350,14 @@ Request: {}
                             alternatives: vec![],
                             backend_used: format!("Ollama ({})", self.model_name),
                             generation_time_ms: 0, // Will be set by caller
-                            confidence_score: 0.8,
+                            confidence_score: 0.0, // /api/generate exposes no logprobs (#1464)
+                            confidence_source: crate::models::ConfidenceSource::Unknown,
                         });
                     }
+                    // A typed clarification decision is not a parse failure:
+                    // surface the question instead of falling back to a
+                    // command from another backend (#1462).
+                    Err(err @ GeneratorError::NeedsClarification { .. }) => return Err(err),
                     Err(parse_error) => {
                         tracing::warn!("Failed to parse Ollama response: {}", parse_error);
                         // Continue to fallback
@@ -278,12 +400,28 @@ impl CommandGenerator for OllamaBackend {
         Ok(result)
     }
 
+    fn supports_risk_judge(&self) -> bool {
+        true
+    }
+
     async fn classify_risk(&self, command: &str, ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
-        // Reuse the existing prompt→text path; fail safe to `None` on any error
-        // so the caller falls back to the static decision.
+        // Constrained decoding (`format` = verdict schema) plus one corrective
+        // retry (#1465); fail safe to `None` so the caller falls back to the
+        // static decision.
         let prompt = build_risk_judge_prompt(command, ctx);
-        let raw = self.call_ollama_api(&prompt).await.ok()?;
-        parse_risk_judgment(&raw)
+        let schema = risk_judge_schema();
+        let format = schema.to_json();
+        decide_with_retry(
+            &prompt,
+            &schema,
+            |p| {
+                let format = format.clone();
+                async move { self.call_ollama_api(&p, Some(format)).await }
+            },
+            parse_risk_judgment,
+        )
+        .await
+        .value
     }
 
     async fn is_available(&self) -> bool {
@@ -320,12 +458,146 @@ impl CommandGenerator for OllamaBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
 
     #[test]
     fn test_ollama_backend_creation() {
         let url = Url::parse("http://localhost:11434").unwrap();
         let backend = OllamaBackend::new(url, "codellama:7b".to_string());
         assert!(backend.is_ok());
+    }
+
+    #[test]
+    fn test_parse_num_ctx_finds_explicit_override() {
+        assert_eq!(parse_num_ctx("num_ctx 8192\nstop \"</s>\"\n"), Some(8192));
+    }
+
+    #[test]
+    fn test_parse_num_ctx_absent() {
+        assert_eq!(parse_num_ctx("stop \"</s>\"\ntemperature 0.1\n"), None);
+    }
+
+    #[test]
+    fn test_parse_num_ctx_empty_string() {
+        assert_eq!(parse_num_ctx(""), None);
+    }
+
+    #[test]
+    fn test_parse_num_ctx_malformed_value_does_not_panic() {
+        assert_eq!(parse_num_ctx("num_ctx not-a-number\n"), None);
+    }
+
+    #[test]
+    fn test_extract_declared_context_length_ignores_arch_prefix() {
+        let model_info = serde_json::json!({ "llama.context_length": 131_072_u64 });
+        assert_eq!(extract_declared_context_length(&model_info), Some(131_072));
+
+        let model_info = serde_json::json!({ "qwen2.context_length": 32_768_u64 });
+        assert_eq!(extract_declared_context_length(&model_info), Some(32_768));
+    }
+
+    #[test]
+    fn test_extract_declared_context_length_missing_key() {
+        let model_info = serde_json::json!({ "llama.vocab_size": 32_000_u64 });
+        assert_eq!(extract_declared_context_length(&model_info), None);
+    }
+
+    #[tokio::test]
+    async fn test_fetch_ollama_context_lengths_reports_declared_and_served() {
+        let server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/api/show"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "parameters": "num_ctx 2048\n",
+                "model_info": { "llama.context_length": 131_072_u64 }
+            })))
+            .mount(&server)
+            .await;
+
+        let backend =
+            OllamaBackend::new(Url::parse(&server.uri()).unwrap(), "test-model".to_string())
+                .unwrap();
+
+        let result = backend.fetch_ollama_context_lengths().await;
+        assert_eq!(result, Some((2048, Some(131_072))));
+    }
+
+    #[tokio::test]
+    async fn test_fetch_ollama_context_lengths_defaults_when_no_override() {
+        let server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/api/show"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "parameters": "temperature 0.1\n",
+                "model_info": { "llama.context_length": 8192_u64 }
+            })))
+            .mount(&server)
+            .await;
+
+        let backend =
+            OllamaBackend::new(Url::parse(&server.uri()).unwrap(), "test-model".to_string())
+                .unwrap();
+
+        let result = backend.fetch_ollama_context_lengths().await;
+        assert_eq!(result, Some((OLLAMA_DEFAULT_NUM_CTX, Some(8192))));
+    }
+
+    #[tokio::test]
+    async fn test_fetch_ollama_context_lengths_none_on_server_error() {
+        let server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/api/show"))
+            .respond_with(ResponseTemplate::new(500))
+            .mount(&server)
+            .await;
+
+        let backend =
+            OllamaBackend::new(Url::parse(&server.uri()).unwrap(), "test-model".to_string())
+                .unwrap();
+
+        assert_eq!(backend.fetch_ollama_context_lengths().await, None);
+    }
+
+    #[tokio::test]
+    async fn test_context_length_probe_failure_does_not_block_generation() {
+        // /api/show is broken, but /api/generate works fine — generation
+        // must still succeed. This is the guard against the diagnostic
+        // probe ever turning into a user-facing error.
+        let server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/api/show"))
+            .respond_with(ResponseTemplate::new(500))
+            .mount(&server)
+            .await;
+
+        Mock::given(method("POST"))
+            .and(path("/api/generate"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "response": "{\"cmd\": \"ls -la\"}",
+                "done": true
+            })))
+            .mount(&server)
+            .await;
+
+        let backend =
+            OllamaBackend::new(Url::parse(&server.uri()).unwrap(), "test-model".to_string())
+                .unwrap();
+
+        let request = crate::models::CommandRequest {
+            input: "list files".to_string(),
+            shell: crate::models::ShellType::Bash,
+            safety_level: crate::models::SafetyLevel::Moderate,
+            context: None,
+            backend_preference: None,
+        };
+
+        let result = backend.generate_command(&request).await.unwrap();
+        assert_eq!(result.command, "ls -la");
     }
 
     #[test]
@@ -356,5 +628,113 @@ mod tests {
         let response = "This is not a valid JSON response";
         let result = backend.parse_command_response(response);
         assert!(result.is_err());
+    }
+
+    mod constrained_decoding {
+        use super::*;
+        use crate::models::{RiskJudgeContext, SafetyLevel, ShellType};
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, Request, ResponseTemplate};
+
+        fn ctx() -> RiskJudgeContext {
+            RiskJudgeContext {
+                shell: ShellType::Bash,
+                cwd: None,
+                static_risk: RiskLevel::Safe,
+                matched_patterns: vec![],
+            }
+        }
+
+        fn backend(server: &MockServer) -> OllamaBackend {
+            OllamaBackend::new(Url::parse(&server.uri()).unwrap(), "m".to_string()).unwrap()
+        }
+
+        fn body(req: &Request) -> serde_json::Value {
+            serde_json::from_slice(&req.body).unwrap()
+        }
+
+        #[tokio::test]
+        async fn decision_request_sets_format_schema() {
+            let server = MockServer::start().await;
+            Mock::given(method("POST"))
+                .and(path("/api/generate"))
+                .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                    "response": r#"{"risk": "high", "reason": "deletes", "confidence": 0.9}"#,
+                    "done": true
+                })))
+                .expect(1)
+                .mount(&server)
+                .await;
+
+            let judgment = backend(&server).classify_risk("rm -r build", &ctx()).await;
+            assert_eq!(judgment.map(|j| j.risk), Some(RiskLevel::High));
+
+            let reqs = server.received_requests().await.unwrap();
+            let b = body(&reqs[0]);
+            assert_eq!(
+                b["format"]["properties"]["risk"]["enum"],
+                serde_json::json!(["critical", "high", "moderate", "safe"])
+            );
+            assert_eq!(
+                b["format"]["required"],
+                serde_json::json!(["risk", "confidence"])
+            );
+        }
+
+        #[tokio::test]
+        async fn decision_retries_once_with_corrective_prompt() {
+            let server = MockServer::start().await;
+            Mock::given(method("POST"))
+                .and(path("/api/generate"))
+                .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                    "response": "I think it is fine",
+                    "done": true
+                })))
+                .expect(2)
+                .mount(&server)
+                .await;
+
+            let judgment = backend(&server).classify_risk("ls", &ctx()).await;
+            assert!(judgment.is_none(), "two type errors fail safe to None");
+
+            let reqs = server.received_requests().await.unwrap();
+            assert_eq!(reqs.len(), 2);
+            let second = body(&reqs[1])["prompt"].as_str().unwrap().to_string();
+            assert!(second.contains("I think it is fine"));
+            assert!(second.contains("\"enum\""));
+        }
+
+        #[tokio::test]
+        async fn generation_request_has_no_format() {
+            let server = MockServer::start().await;
+            Mock::given(method("POST"))
+                .and(path("/api/generate"))
+                .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                    "response": r#"{"cmd": "ls"}"#,
+                    "done": true
+                })))
+                .mount(&server)
+                .await;
+
+            let request = CommandRequest {
+                input: "list files".to_string(),
+                shell: ShellType::Bash,
+                safety_level: SafetyLevel::Moderate,
+                context: None,
+                backend_preference: None,
+            };
+            let generated = backend(&server).generate_command(&request).await.unwrap();
+            assert_eq!(generated.command, "ls");
+
+            // generate_command also fires a best-effort /api/show probe for
+            // the served-context-length check, so don't assume index 0 is
+            // the /api/generate request — find it by path instead.
+            let reqs = server.received_requests().await.unwrap();
+            let generate_req = reqs
+                .iter()
+                .find(|r| r.url.path() == "/api/generate")
+                .expect("no /api/generate request recorded");
+            assert!(body(generate_req).get("format").is_none());
+        }
     }
 }

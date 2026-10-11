@@ -30,7 +30,7 @@ const comparison = {
   sections: [
     {
       title: 'Scope & Focus',
-      icon: '🎯',
+      icon: '▸',
       content: `
         <p><strong>OpenCode</strong> is a general-purpose AI coding agent. It can edit files, refactor code, explain codebases, and run terminal commands. It's designed to be a comprehensive coding assistant.</p>
         <p><strong>Caro</strong> intentionally does one thing well: helping you remember and safely execute shell commands. It's a specialized sub-agent, not a full coding assistant. This focus allows for deeper expertise in shell workflows and stronger safety guarantees.</p>
@@ -38,7 +38,7 @@ const comparison = {
     },
     {
       title: 'Safety Philosophy',
-      icon: '🛡️',
+      icon: '■',
       content: `
         <p><strong>OpenCode</strong> generates commands without systematic pre-execution validation. While you can review commands before running them, there's no dedicated layer that catches dangerous patterns.</p>
         <p><strong>Caro</strong> validates every command against 52+ predefined safety patterns. Commands like <code>rm -rf /</code>, fork bombs, and system-breaking operations are blocked before they're ever shown to you. Safety isn't optional—it's built into the core.</p>
@@ -46,7 +46,7 @@ const comparison = {
     },
     {
       title: 'Complementary Use',
-      icon: '🤝',
+      icon: '▸',
       content: `
         <p>These tools can work together! Use <strong>OpenCode</strong> for general coding tasks—editing files, explaining code, refactoring. When you need shell command help with safety guarantees, reach for <strong>Caro</strong>.</p>
         <p>Caro is designed to be a focused companion, not a replacement for broader tools. Its lightweight, specialized nature makes it easy to add to any workflow without overlap.</p>
@@ -54,7 +54,7 @@ const comparison = {
     },
     {
       title: 'Local Operation',
-      icon: '📡',
+      icon: '$',
       content: `
         <p><strong>OpenCode</strong> supports local operation with various model backends, though some configurations may require internet for model downloads or API calls.</p>
         <p><strong>Caro</strong> is designed offline-first from the ground up. Once you have local models configured, it never needs internet. Perfect for air-gapped environments, flights, or restrictive networks.</p>

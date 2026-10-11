@@ -129,6 +129,8 @@ async fn show_events(storage_path: PathBuf, limit: usize, session: Option<String
                 duration_ms,
                 success,
                 error_category,
+                confidence,
+                confidence_source,
             } => {
                 let status = if *success {
                     "Success".green()
@@ -145,6 +147,17 @@ async fn show_events(storage_path: PathBuf, limit: usize, session: Option<String
                 println!("  {} {}ms", "Duration:".bright_white(), duration_ms);
                 if let Some(error) = error_category {
                     println!("  {} {}", "Error:".bright_white(), error.red());
+                }
+                if let Some(source) = confidence_source {
+                    match confidence {
+                        Some(c) => println!(
+                            "  {} {:.0}% ({})",
+                            "Confidence:".bright_white(),
+                            c * 100.0,
+                            source
+                        ),
+                        None => println!("  {} n/a ({})", "Confidence:".bright_white(), source),
+                    }
                 }
             }
             crate::telemetry::EventType::SafetyValidation {

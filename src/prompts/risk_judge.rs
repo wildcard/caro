@@ -6,6 +6,7 @@
 //! [`crate::safety::blend_smart_decision`], which never lets it relax a
 //! `Critical` static match.
 
+use crate::decision::{extract_json_object, parse_choice_json, Choice, DecisionSchema};
 use crate::models::{RiskJudgeContext, RiskJudgment, RiskLevel};
 
 /// Build the judge prompt. Asks for a strict JSON verdict and instructs the
@@ -55,53 +56,61 @@ Command:
     )
 }
 
+/// Allowed verdict labels in fail-safe (highest risk first) order. Shared by
+/// the parser and the constrained-decoding schema so they cannot drift.
+const LEVELS: [RiskLevel; 4] = [
+    RiskLevel::Critical,
+    RiskLevel::High,
+    RiskLevel::Moderate,
+    RiskLevel::Safe,
+];
+
+/// JSON Schema for the judge verdict, for backends that can enforce it
+/// (Ollama `format`, vLLM `guided_json`) — see #1465. Labels are the serde
+/// lowercase names [`RiskLevel::from_str`] accepts.
+pub fn risk_judge_schema() -> DecisionSchema {
+    DecisionSchema::for_choice("risk", &LEVELS, |l| format!("{:?}", l).to_lowercase())
+        .with_optional_string("reason")
+}
+
 /// Parse a judge verdict from raw model output. Tolerates surrounding prose by
-/// extracting the first `{...}` object. Returns `None` on any parse failure so
-/// the caller fails safe to the static decision.
+/// extracting the first balanced `{...}` object. Returns `None` on any parse
+/// failure so the caller fails safe to the static decision.
+///
+/// The verdict is a typed [`Choice`] over [`RiskLevel`] (see
+/// [`crate::decision`]): an unknown label, a missing/malformed confidence, a
+/// partial or unnormalised probabilities map, or a response mixing both
+/// answer modes is a type error and yields `None` — never a guess.
 pub fn parse_risk_judgment(raw: &str) -> Option<RiskJudgment> {
+    let choice: Choice<RiskLevel> = parse_choice_json(raw, "risk", &LEVELS)?;
+
     let json = extract_json_object(raw)?;
     let value: serde_json::Value = serde_json::from_str(&json).ok()?;
-
-    let risk = parse_risk_level(value.get("risk")?.as_str()?)?;
+    let (risk, confidence) = match value.get("risk").and_then(|v| v.as_str()) {
+        // Discrete mode: the judge's own label and confidence are the verdict
+        // (parse_choice_json already validated both).
+        Some(label) => (
+            label.parse().ok()?,
+            value.get("confidence")?.as_f64()?.clamp(0.0, 1.0),
+        ),
+        // Probabilities mode: argmax of a complete, normalised distribution.
+        None => {
+            let (risk, p) = choice.argmax()?;
+            (*risk, p)
+        }
+    };
     let reason = value
         .get("reason")
         .and_then(|v| v.as_str())
         .unwrap_or("")
         .trim()
         .to_string();
-    // Default to a low confidence (→ ignored) if the field is missing/garbled.
-    let confidence = value
-        .get("confidence")
-        .and_then(|v| v.as_f64())
-        .unwrap_or(0.0)
-        .clamp(0.0, 1.0);
 
     Some(RiskJudgment {
         risk,
         reason,
         confidence,
     })
-}
-
-fn parse_risk_level(s: &str) -> Option<RiskLevel> {
-    match s.trim().to_lowercase().as_str() {
-        "safe" => Some(RiskLevel::Safe),
-        "moderate" => Some(RiskLevel::Moderate),
-        "high" => Some(RiskLevel::High),
-        "critical" => Some(RiskLevel::Critical),
-        _ => None,
-    }
-}
-
-/// Extract the first balanced `{...}` JSON object from arbitrary text.
-fn extract_json_object(raw: &str) -> Option<String> {
-    let start = raw.find('{')?;
-    let end = raw.rfind('}')?;
-    if end > start {
-        Some(raw[start..=end].to_string())
-    } else {
-        None
-    }
 }
 
 #[cfg(test)]
@@ -144,14 +153,50 @@ mod tests {
     }
 
     #[test]
-    fn missing_confidence_defaults_to_ignored() {
-        let j = parse_risk_judgment(r#"{"risk":"moderate","reason":"x"}"#).unwrap();
-        assert_eq!(j.confidence, 0.0);
+    fn missing_confidence_is_rejected() {
+        // A verdict without a confidence cannot clear the floor either way;
+        // rejecting it keeps the static decision (fail-safe) and never lets
+        // a zero-mass label masquerade as a distribution.
+        assert!(parse_risk_judgment(r#"{"risk":"moderate","reason":"x"}"#).is_none());
+    }
+
+    #[test]
+    fn partial_probabilities_cannot_relax_safety() {
+        // Omitting labels must not renormalise into a confident "safe".
+        assert!(parse_risk_judgment(r#"{"probabilities": {"safe": 0.6}}"#).is_none());
+        assert!(parse_risk_judgment(
+            r#"{"risk":"safe","confidence":0.9,"probabilities":{"safe":1,"moderate":0,"high":0,"critical":0}}"#
+        )
+        .is_none());
+    }
+
+    #[test]
+    fn parses_probabilities_mode_via_argmax() {
+        let j = parse_risk_judgment(
+            r#"{"probabilities": {"safe": 0.1, "moderate": 0.2, "high": 0.7, "critical": 0.0}, "reason": "rm"}"#,
+        )
+        .unwrap();
+        assert_eq!(j.risk, RiskLevel::High);
+        assert!((j.confidence - 0.7).abs() < 1e-9);
+        assert_eq!(j.reason, "rm");
     }
 
     #[test]
     fn garbage_returns_none() {
         assert!(parse_risk_judgment("not json at all").is_none());
         assert!(parse_risk_judgment(r#"{"risk":"bogus"}"#).is_none());
+    }
+
+    #[test]
+    fn schema_labels_are_parser_labels() {
+        let json = risk_judge_schema().to_json();
+        assert_eq!(
+            json["properties"]["risk"]["enum"],
+            serde_json::json!(["critical", "high", "moderate", "safe"])
+        );
+        for label in ["critical", "high", "moderate", "safe"] {
+            let raw = format!(r#"{{"risk": "{label}", "confidence": 0.9, "reason": "r"}}"#);
+            assert!(parse_risk_judgment(&raw).is_some(), "{label}");
+        }
     }
 }

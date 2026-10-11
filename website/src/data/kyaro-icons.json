@@ -1,0 +1,55 @@
+{
+  "_generated": "scripts/kyaro_icons.py - do not edit by hand",
+  "icons": {
+    "ready": {
+      "src": "/kyaro/icons/ready.svg",
+      "size": 48,
+      "frame": "001-idle/idlea_animation/animation_Idle1.png"
+    },
+    "thinking": {
+      "src": "/kyaro/icons/thinking.svg",
+      "size": 48,
+      "frame": "002-blink/blink_animation/animation-Blink2.png"
+    },
+    "paused": {
+      "src": "/kyaro/icons/paused.svg",
+      "size": 48,
+      "frame": "003-sleeping/sleeping_animation/animation-Sleeping6.png"
+    },
+    "asking": {
+      "src": "/kyaro/icons/asking.svg",
+      "size": 48,
+      "frame": "004-prompt bubble/prompt bubble_animation/animation-PromptBubble7.png"
+    },
+    "running": {
+      "src": "/kyaro/icons/running.svg",
+      "size": 48,
+      "frame": "005-walking/walking_animation/animation-Walking1.png"
+    },
+    "success": {
+      "src": "/kyaro/icons/success.svg",
+      "size": 48,
+      "frame": "006-happy bounce/happy bounce_animation/animation-HappyBounce4.png"
+    },
+    "cleanup": {
+      "src": "/kyaro/icons/cleanup.svg",
+      "size": 48,
+      "frame": "007-pooping/pooping-animation/animation-Pooping17.png"
+    },
+    "danger": {
+      "src": "/kyaro/icons/danger.svg",
+      "size": 48,
+      "frame": "008-shocked/shocked_animation/animation-Shocked5.png"
+    },
+    "error": {
+      "src": "/kyaro/icons/error.svg",
+      "size": 48,
+      "frame": "009-upside down/upside down_animation/animation-UpsideDown12.png"
+    },
+    "face-ready": {
+      "src": "/kyaro/icons/face-ready.svg",
+      "size": 24,
+      "frame": "001-idle/idlea_animation/animation_Idle1.png"
+    }
+  }
+}

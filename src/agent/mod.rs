@@ -145,8 +145,20 @@ impl AgentLoop {
         let start = Instant::now();
         let result = self.generate_command_impl(prompt, start).await;
 
-        // Emit telemetry on error
-        if let Err(ref e) = result {
+        // Emit telemetry on error. A clarification request is a typed decision
+        // (ADR-017), not a failed generation: it is reported as a success with
+        // its own category so the failure rate is not biased by questions.
+        let backend_name = self.backend.backend_info().backend_type.to_string();
+        if let Err(GeneratorError::NeedsClarification { .. }) = result {
+            crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
+                backend: backend_name,
+                duration_ms: start.elapsed().as_millis() as u64,
+                success: true,
+                error_category: Some("needs_clarification".to_string()),
+                confidence: None,
+                confidence_source: None,
+            });
+        } else if let Err(ref e) = result {
             let error_category = match e {
                 GeneratorError::Timeout { .. } => "timeout",
                 GeneratorError::ParseError { .. } => "parse_error",
@@ -157,13 +169,16 @@ impl AgentLoop {
                 GeneratorError::Internal { .. } => "internal_error",
                 GeneratorError::Unsafe { .. } => "unsafe_command",
                 GeneratorError::ValidationFailed { .. } => "validation_failed",
+                GeneratorError::NeedsClarification { .. } => unreachable!("handled above"),
             };
 
             crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
-                backend: "embedded".to_string(),
+                backend: backend_name,
                 duration_ms: start.elapsed().as_millis() as u64,
                 success: false,
                 error_category: Some(error_category.to_string()),
+                confidence: None,
+                confidence_source: None,
             });
         }
 
@@ -243,15 +258,7 @@ impl AgentLoop {
                         command.command
                     );
 
-                    // Emit telemetry event for successful static match
-                    crate::telemetry::emit_event(
-                        crate::telemetry::events::EventType::CommandGeneration {
-                            backend: "static".to_string(),
-                            duration_ms: start.elapsed().as_millis() as u64,
-                            success: true,
-                            error_category: None,
-                        },
-                    );
+                    Self::emit_generation_success("static", &command, start);
 
                     return Ok(command);
                 }
@@ -335,7 +342,11 @@ impl AgentLoop {
         }
 
         // Check confidence score - trigger refinement if low
-        let low_confidence = initial.confidence_score < self.confidence_threshold;
+        // Only evidence-backed confidence may drive this gate (#1464): a
+        // backend that cannot measure reports `Unknown` and 0.0, which must
+        // not read as "very unsure".
+        let low_confidence =
+            initial.has_confidence() && initial.confidence_score < self.confidence_threshold;
 
         if low_confidence {
             info!(
@@ -349,9 +360,11 @@ impl AgentLoop {
 
         if !low_confidence && !needs_platform_fix {
             info!(
-                "Refinement not needed (confidence: {:.2}, no platform issues)",
-                initial.confidence_score
+                "Refinement not needed (confidence: {:.2} [{}], no platform issues)",
+                initial.confidence_score, initial.confidence_source
             );
+            let backend = self.backend.backend_info().backend_type.to_string();
+            Self::emit_generation_success(&backend, &initial, start);
             return Ok(initial);
         }
 
@@ -399,15 +412,25 @@ impl AgentLoop {
                 .await;
         }
 
-        // Emit telemetry event for successful LLM generation
+        let backend = self.backend.backend_info().backend_type.to_string();
+        Self::emit_generation_success(&backend, &refined, start);
+
+        Ok(refined)
+    }
+
+    /// Telemetry for a successful LLM generation, with the command's
+    /// confidence provenance (#1464). Metadata only.
+    fn emit_generation_success(backend: &str, command: &GeneratedCommand, start: Instant) {
         crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
-            backend: "embedded".to_string(),
+            backend: backend.to_string(),
             duration_ms: start.elapsed().as_millis() as u64,
             success: true,
             error_category: None,
+            confidence: command
+                .has_confidence()
+                .then_some(command.confidence_score as f32),
+            confidence_source: Some(command.confidence_source.to_string()),
         });
-
-        Ok(refined)
     }
 
     /// Generate initial command with platform context
@@ -944,6 +967,15 @@ mod tests {
             backend_used: "mock".to_string(),
             generation_time_ms: 1,
             confidence_score: confidence,
+            confidence_source: crate::models::ConfidenceSource::Measured,
+        }
+    }
+
+    fn unsourced_command(command: &str) -> GeneratedCommand {
+        GeneratedCommand {
+            confidence_score: 0.0,
+            confidence_source: crate::models::ConfidenceSource::Unknown,
+            ..mock_command(command, 0.0)
         }
     }
 
@@ -1015,6 +1047,59 @@ mod tests {
             advise_returns: returns.map(|s| s.to_string()),
             advise_called: called,
         })
+    }
+
+    /// Mock whose draft carries no confidence evidence at all (#1464).
+    struct UnsourcedBackend;
+
+    #[async_trait]
+    impl CommandGenerator for UnsourcedBackend {
+        async fn generate_command(
+            &self,
+            _request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            Ok(unsourced_command("ls"))
+        }
+        async fn is_available(&self) -> bool {
+            true
+        }
+        fn backend_info(&self) -> BackendInfo {
+            BackendInfo {
+                backend_type: BackendType::Mock,
+                model_name: "unsourced".to_string(),
+                supports_streaming: false,
+                max_tokens: 100,
+                typical_latency_ms: 1,
+                memory_usage_mb: 0,
+                version: "test".to_string(),
+            }
+        }
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn unknown_confidence_does_not_trigger_refinement() {
+        // A 0.0 score with `ConfidenceSource::Unknown` is "no evidence", not
+        // "very unsure": the advisor must stay idle and the draft must pass
+        // through unchanged.
+        let called = Arc::new(AtomicBool::new(false));
+        let advisor = advisor_backend(Some("ls -la"), called.clone());
+        let ctx = ExecutionContext::detect();
+        let profile = CapabilityProfile::ubuntu();
+        let agent = AgentLoop::new(Arc::new(UnsourcedBackend), ctx, profile)
+            .with_static_matcher(false)
+            .with_advisor(advisor);
+
+        let result = agent.generate_command("list files").await.unwrap();
+
+        assert!(
+            !called.load(Ordering::SeqCst),
+            "advisor must not run without evidence"
+        );
+        assert_eq!(result.command, "ls");
+        assert!(!result.has_confidence());
     }
 
     #[tokio::test]

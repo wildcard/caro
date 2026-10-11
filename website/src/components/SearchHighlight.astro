@@ -9,11 +9,12 @@
  * - Allows navigating between matches with up/down arrows
  * - Scrolls to the first match automatically
  */
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 ---
 
 <div id="search-highlight-bar" class="search-highlight-bar hidden">
   <div class="highlight-content">
-    <span class="highlight-icon">🔍</span>
+    <TermGlyph g="❯" />
     <span class="highlight-query"></span>
     <span class="highlight-count"></span>
   </div>
@@ -70,10 +71,6 @@
     gap: 8px;
   }
 
-  .highlight-icon {
-    font-size: 16px;
-  }
-
   .highlight-query {
     font-weight: 500;
     color: var(--color-text, #333);
@@ -127,31 +124,26 @@
   }
 
   /* Highlight styles for matched text */
+  /* Highlighter marks carry their own ink, so text stays AA in both modes
+     (grey-900 on the 55% tint is 5:1 over dark paper, 13:1 over beige). */
   .search-match {
-    background: rgba(255, 200, 0, 0.4);
+    background: color-mix(in srgb, var(--highlight) 55%, transparent);
+    color: var(--caro-grey-900);
     border-radius: 2px;
     scroll-margin-top: 100px;
   }
 
   .search-match.current {
-    background: rgba(255, 140, 66, 0.6);
-    outline: 2px solid #ff8c42;
+    background: var(--highlight);
+    outline: 2px solid var(--accent);
     outline-offset: 1px;
   }
 
   /* Dark mode */
   .dark .search-highlight-bar {
-    background: var(--color-bg, #1a1a1a);
+    background: var(--color-bg, #4f4f4f);
     border-color: var(--color-border, #444);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-  }
-
-  .dark .search-match {
-    background: rgba(255, 200, 0, 0.3);
-  }
-
-  .dark .search-match.current {
-    background: rgba(255, 140, 66, 0.5);
   }
 
   @media (max-width: 600px) {

@@ -269,6 +269,15 @@ Request: {}
 
     /// Parse JSON response from model inference
     fn parse_command_response(&self, response: &str) -> Result<String, GeneratorError> {
+        // Typed clarification gate (#1462): a `QUESTION:` prefix or a
+        // `needs_clarification` JSON field is a decision, not a parse failure
+        // and not a command. Surface it; the retry loop fails fast on it.
+        if let Some(c) = crate::decision::clarification_from_raw(response) {
+            if c.should_ask() {
+                return Err(GeneratorError::from_clarification(&c));
+            }
+        }
+
         // Try structured JSON parsing first
         if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(response) {
             if let Some(cmd) = parsed.get("cmd").and_then(|v| v.as_str()) {
@@ -508,7 +517,8 @@ impl CommandGenerator for EmbeddedModelBackend {
             alternatives: vec![], // Embedded model generates single command
             backend_used: "embedded".to_string(),
             generation_time_ms: generation_time,
-            confidence_score: 0.85, // Default confidence for embedded model
+            confidence_score: 0.0, // Not measured (#1464): llama.cpp sampler exposes no log-probs yet
+            confidence_source: crate::models::ConfidenceSource::Unknown,
         })
     }
 

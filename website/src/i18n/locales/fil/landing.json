@@ -5,7 +5,16 @@
       "cta": "Simulan Nang Libre",
       "darkMode": {
         "toggle": "I-toggle ang dark mode"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "Kasamang Ahente",
@@ -267,32 +276,32 @@
         {
           "question": "Wait, tumatakbo locally si Caro. Paano siya nag-stay updated sa bagong dangerous patterns?",
           "answer": "Naka-bake sa binary ang safety patterns ni Caro—walang kailangang network. Kapag nag-update ka ng Caro (cargo install caro --force), makukuha mo ang latest patterns. Hindi nagbabago ang core dangerous commands (rm -rf /, fork bombs, disk wipers). Tumatanggap din kami ng pattern contributions via GitHub.",
-          "icon": "🔄"
+          "icon": "▸"
         },
         {
           "question": "Pababagalin ba nito ang incident response ko?",
           "answer": "Hindi. Nagdadagdag lang si Caro ng <100ms sa command generation. Instant ang safety check (pattern matching, hindi AI inference). Sa tunay na incident, yung 100ms na yan ay maaaring makaligtas sa'yo mula sa paggawa ng 10x mas masahol. Synchronous ang validation—makikita mo agad ang warning.",
-          "icon": "⚡"
+          "icon": "❯"
         },
         {
           "question": "Paano niya nalalaman ang specific system setup ko (BSD vs GNU, etc.)?",
           "answer": "Dini-detect ni Caro ang OS at shell mo sa runtime. Sa macOS, alam niyang gumagamit ka ng BSD tools. Sa Linux, nag-aadjust siya para sa GNU syntax. Binabasa niya ang $SHELL mo at nag-aadjust accordingly. Walang kailangang configuration—gumagana lang.",
-          "icon": "🖥️"
+          "icon": "▸"
         },
         {
           "question": "Paano kung KAILANGAN ko talagang mag-run ng dangerous command?",
           "answer": "Nagwa-warn si Caro, hindi nag-jail. Kapag nakakita ka ng warning, pwede ka pa ring magpatuloy—sinisigurado lang namin na sinasadya mo. Para sa talagang destructive commands (rm -rf /), kailangan mong mag-confirm. Ito ang seatbelt mo, hindi straitjacket.",
-          "icon": "🔓"
+          "icon": "▸"
         },
         {
           "question": "Isa na namang AI wrapper ba ito na nagpapadala ng commands ko sa cloud?",
           "answer": "Hindi. 100% locally tumatakbo si Caro. Ang commands, file paths, server names, at directory structures mo ay hindi lumalabas ng machine mo. Nangyayari sa hardware mo ang inference. Zero telemetry kami. Check mo ang source code—AGPL-3.0 licensed.",
-          "icon": "🔒"
+          "icon": "▸"
         },
         {
           "question": "Bakit ko dapat pagkatiwalaan ang AI-generated shell commands?",
           "answer": "Hindi mo dapat blindly pagkatiwalaan—yan ang point. Gumagawa si Caro ng commands AT vina-validate niya ang mga ito bago mo sila i-run. Hindi 'trust the AI'—kundi 'trust the pattern-based safety layer na nakakahuli ng maaaring mali ng AI.' Deterministic ang validation, hindi probabilistic.",
-          "icon": "🎯"
+          "icon": "■"
         }
       ]
     },
@@ -326,7 +335,7 @@
         "rank": "RANGGO #{{rank}}!",
         "finalScore": "Umabot ka sa Antas {{level}} na may {{score}} puntos!"
       },
-      "streak": "🔥 Sunod-sunod na panalo:",
+      "streak": "Sunod-sunod na panalo:",
       "messages": {
         "correct": [
           "Great job! 🎉",
@@ -364,7 +373,7 @@
     },
     "announcement": {
       "renameBanner": {
-        "emoji": "🎉",
+        "emoji": "▸",
         "title": "Inaangkop ang Caro!",
         "message": "Pinalitan na namin ang pangalan mula cmdai patungong caro.",
         "linkText": "Basahin ang anunsyo",
@@ -418,7 +427,7 @@
       "bottom": {
         "built": "Gawa gamit ang 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "♥",
         "inspiration": "Inspirado ni Caroline mula sa Portal",
         "heritagePre": "Ipinagmamalaki na itinayo sa mga pundasyon ng",
         "gnu": "GNU",
@@ -490,7 +499,7 @@
         "stats": {
           "level": "ANTAS"
         },
-        "streak": "🔥 Streak:",
+        "streak": "Streak:",
         "title": "Maglaro kasama si Caro",
         "subtitle": "Subukan ang iyong kaalaman sa shell command!",
         "header": "LIGTAS O DELIKADO?",
@@ -569,7 +578,7 @@
         },
         "bottom": {
           "built": "Gawa sa 🦀 Rust |",
-          "heart": "🧡",
+          "heart": "♥",
           "inspiration": "Inspirado ni Caroline mula sa Portal",
           "heritagePre": "Proudly built on the foundations laid by",
           "freebsd": "FreeBSD",

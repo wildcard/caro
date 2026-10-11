@@ -92,10 +92,53 @@ pub struct GeneratedCommand {
     pub generation_time_ms: u64,
 
     /// Confidence score (0.0 to 1.0)
+    ///
+    /// Only meaningful when [`Self::confidence_source`] is not
+    /// [`ConfidenceSource::Unknown`]; see [`Self::has_confidence`].
     pub confidence_score: f64,
+
+    /// Where `confidence_score` came from (ADR-017, #1464). A backend that
+    /// cannot measure reports [`ConfidenceSource::Unknown`] and `0.0`, never a
+    /// constant, so gates and the eval harness can tell evidence from noise.
+    #[serde(default)]
+    pub confidence_source: ConfidenceSource,
+}
+
+/// Provenance of a [`GeneratedCommand::confidence_score`].
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum ConfidenceSource {
+    /// Derived from evidence: keyword coverage, token log-probs, provider
+    /// `logprobs`.
+    Measured,
+    /// The model's own `{"confidence": ...}` self-report. Weaker evidence
+    /// than a measurement, but still a per-request signal.
+    SelfReported,
+    /// The backend cannot measure confidence. `confidence_score` is `0.0`
+    /// and must be ignored by every consumer.
+    #[default]
+    Unknown,
+}
+
+impl std::fmt::Display for ConfidenceSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            ConfidenceSource::Measured => "measured",
+            ConfidenceSource::SelfReported => "self-reported",
+            ConfidenceSource::Unknown => "unknown",
+        })
+    }
 }
 
 impl GeneratedCommand {
+    /// Whether `confidence_score` carries evidence (measured or
+    /// self-reported) and may drive a decision gate.
+    pub fn has_confidence(&self) -> bool {
+        self.confidence_source != ConfidenceSource::Unknown
+    }
+
     /// Validate that the generated command is well-formed
     pub fn validate(&self) -> Result<(), String> {
         if self.command.is_empty() {
@@ -126,12 +169,17 @@ impl std::fmt::Display for GeneratedCommand {
         writeln!(f)?;
         writeln!(f, "{} {}", "Risk Level:".bold(), self.safety_level)?;
         writeln!(f, "{} {}", "Backend:".bold(), self.backend_used)?;
-        writeln!(
-            f,
-            "{} {:.0}%",
-            "Confidence:".bold(),
-            self.confidence_score * 100.0
-        )?;
+        if self.has_confidence() {
+            writeln!(
+                f,
+                "{} {:.0}% ({})",
+                "Confidence:".bold(),
+                self.confidence_score * 100.0,
+                self.confidence_source
+            )?;
+        } else {
+            writeln!(f, "{} n/a", "Confidence:".bold())?;
+        }
 
         if !self.alternatives.is_empty() {
             writeln!(f)?;
@@ -226,6 +274,23 @@ impl std::fmt::Display for SuggestedRouting {
             Self::AsyncLog => write!(f, "async_log"),
             Self::HumanGate => write!(f, "human_gate"),
             Self::Block => write!(f, "block"),
+        }
+    }
+}
+
+/// Parse the lowercase serde names (`safe|moderate|high|critical`). Used by
+/// the typed-decision parser in [`crate::decision`]; anything else is a type
+/// error (`Err`), never a guess.
+impl std::str::FromStr for RiskLevel {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.trim().to_lowercase().as_str() {
+            "safe" => Ok(Self::Safe),
+            "moderate" => Ok(Self::Moderate),
+            "high" => Ok(Self::High),
+            "critical" => Ok(Self::Critical),
+            _ => Err(()),
         }
     }
 }
@@ -373,6 +438,8 @@ pub enum BackendType {
     AiHorde,
     /// Hybrid privacy gateway (local sanitizer + remote enhancer)
     Hybrid,
+    /// xAI Grok via its OpenAI-compatible API
+    Grok,
 }
 
 impl std::str::FromStr for BackendType {
@@ -391,6 +458,7 @@ impl std::str::FromStr for BackendType {
             "mesh" | "mesh-llm" => Ok(Self::Mesh),
             "ai-horde" | "aihorde" | "horde" => Ok(Self::AiHorde),
             "hybrid" => Ok(Self::Hybrid),
+            "grok" | "xai" => Ok(Self::Grok),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -410,6 +478,7 @@ impl std::fmt::Display for BackendType {
             Self::Mesh => write!(f, "mesh"),
             Self::AiHorde => write!(f, "ai-horde"),
             Self::Hybrid => write!(f, "hybrid"),
+            Self::Grok => write!(f, "grok"),
         }
     }
 }
@@ -881,8 +950,12 @@ pub struct BackendsConfig {
     /// AI-Horde API key (default anonymous `"0000000000"`).
     #[serde(default)]
     pub ai_horde_key: Option<String>,
-    /// Which remote enhancer the `hybrid` backend wraps: `"mesh"` (default) or
-    /// `"ai-horde"`.
+    /// xAI Grok API base URL (default `https://api.x.ai/v1`, or
+    /// `$XAI_API_BASE_URL`). The key always comes from `$XAI_API_KEY`.
+    #[serde(default)]
+    pub xai_url: Option<String>,
+    /// Which remote enhancer the `hybrid` backend wraps: `"mesh"` (default),
+    /// `"ai-horde"`, or `"grok"`.
     #[serde(default)]
     pub hybrid_remote: Option<String>,
     /// Allow sending prompts to public/untrusted inference networks. When
@@ -1142,6 +1215,7 @@ impl ConfigSchema {
         known_keys.insert("backends.exo_url".to_string(), "String".to_string());
         known_keys.insert("backends.ai_horde_url".to_string(), "String".to_string());
         known_keys.insert("backends.ai_horde_key".to_string(), "String".to_string());
+        known_keys.insert("backends.xai_url".to_string(), "String".to_string());
         known_keys.insert("backends.hybrid_remote".to_string(), "String".to_string());
         known_keys.insert("backends.allow_public".to_string(), "bool".to_string());
 
@@ -1424,5 +1498,44 @@ impl KnowledgeBackendConfig {
                 Ok(())
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod confidence_source_tests {
+    use super::*;
+
+    #[test]
+    fn unknown_source_has_no_confidence() {
+        let mut cmd = GeneratedCommand {
+            command: "ls".into(),
+            explanation: "list".into(),
+            safety_level: RiskLevel::Safe,
+            estimated_impact: "none".into(),
+            alternatives: vec![],
+            backend_used: "test".into(),
+            generation_time_ms: 0,
+            confidence_score: 0.0,
+            confidence_source: ConfidenceSource::Unknown,
+        };
+        assert!(!cmd.has_confidence());
+        let shown = format!("{}", cmd);
+        assert!(
+            shown.contains("Confidence:") && shown.contains("n/a"),
+            "{shown}"
+        );
+        assert!(!shown.contains("0%"), "{shown}");
+
+        cmd.confidence_score = 0.85;
+        cmd.confidence_source = ConfidenceSource::Measured;
+        assert!(cmd.has_confidence());
+        assert!(format!("{}", cmd).contains("85% (measured)"));
+
+        // JSON written before #1464 has no `confidence_source`: it reads as Unknown.
+        let v: GeneratedCommand = serde_json::from_str(
+            r#"{"command":"ls","explanation":"x","safety_level":"safe","estimated_impact":"","alternatives":[],"backend_used":"b","generation_time_ms":0,"confidence_score":0.9}"#,
+        )
+        .unwrap();
+        assert_eq!(v.confidence_source, ConfidenceSource::Unknown);
     }
 }

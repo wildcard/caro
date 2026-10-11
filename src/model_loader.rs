@@ -1,7 +1,10 @@
 // Model loading and distribution strategy for embedded models
 
 use anyhow::{Context, Result};
+use std::future::Future;
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 use tracing::{debug, info, warn};
 
 use crate::backends::embedded::ModelVariant;
@@ -216,9 +219,6 @@ impl ModelLoader {
         use hf_hub::api::tokio::Api;
         use indicatif::{ProgressBar, ProgressStyle};
 
-        let api = Api::new().context("Failed to initialize Hugging Face API")?;
-        let repo = api.model(self.selected_model.hf_repo.to_string());
-
         info!(
             "Downloading {} from {}...",
             self.selected_model.filename, self.selected_model.hf_repo
@@ -233,11 +233,32 @@ impl ModelLoader {
                 .progress_chars("#>-"),
         );
 
-        // Download the model file
-        let downloaded = repo
-            .get(self.selected_model.filename)
-            .await
-            .context("Failed to download model from Hugging Face Hub")?;
+        // Download the model file. A stalled connection has no HTTP timeout in
+        // hf-hub, so a watchdog fails the attempt when no bytes arrive (#1440).
+        let cached = hf_hub::Cache::default()
+            .model(self.selected_model.hf_repo.to_string())
+            .get(self.selected_model.filename);
+        let downloaded = match cached {
+            Some(path) => path,
+            None => {
+                let watch = StallWatch::new(pb.clone());
+                let (hf_repo, filename) =
+                    (self.selected_model.hf_repo, self.selected_model.filename);
+                let progress = watch.clone();
+                let download = async move {
+                    let api = Api::new().context("Failed to initialize Hugging Face API")?;
+                    api.model(hf_repo.to_string())
+                        .download_with_progress(filename, progress)
+                        .await
+                        .context("Failed to download model from Hugging Face Hub")
+                };
+                let result = run_isolated(download, &watch, DOWNLOAD_STALL_TIMEOUT).await;
+                if !matches!(result, Ok(Ok(_))) {
+                    pb.finish_and_clear();
+                }
+                result??
+            }
+        };
 
         pb.finish_with_message("Download complete");
 
@@ -313,10 +334,159 @@ impl Default for ModelLoader {
     }
 }
 
+/// Fail a download attempt when no bytes arrive for this long.
+const DOWNLOAD_STALL_TIMEOUT: Duration = Duration::from_secs(60);
+
+/// hf-hub progress sink that records when bytes last arrived and drives the bar.
+#[derive(Clone)]
+struct StallWatch {
+    last_progress: Arc<Mutex<Instant>>,
+    bar: indicatif::ProgressBar,
+}
+
+impl StallWatch {
+    fn new(bar: indicatif::ProgressBar) -> Self {
+        Self {
+            last_progress: Arc::new(Mutex::new(Instant::now())),
+            bar,
+        }
+    }
+
+    fn touch(&self) {
+        *self.last_progress.lock().unwrap() = Instant::now();
+    }
+
+    fn idle_for(&self) -> Duration {
+        self.last_progress.lock().unwrap().elapsed()
+    }
+}
+
+impl hf_hub::api::tokio::Progress for StallWatch {
+    async fn init(&mut self, size: usize, _filename: &str) {
+        self.touch();
+        self.bar.set_length(size as u64);
+    }
+
+    async fn update(&mut self, size: usize) {
+        self.touch();
+        self.bar.inc(size as u64);
+    }
+
+    async fn finish(&mut self) {}
+}
+
+/// A download attempt received no data for the given time.
+#[derive(Debug, thiserror::Error)]
+#[error("Model download stalled: no data received for {}s.", .0.as_secs())]
+struct DownloadStalled(Duration);
+
+/// Run one download attempt on its own runtime, with the stall watchdog.
+///
+/// hf-hub starts each chunk with `tokio::spawn`, so dropping a stalled attempt
+/// would leave its chunk tasks running beside the next attempt. Shutting down
+/// the attempt's runtime cancels them too.
+async fn run_isolated<F>(fut: F, watch: &StallWatch, stall: Duration) -> Result<F::Output>
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(2)
+        .enable_all()
+        .build()
+        .context("Failed to start the download runtime")?;
+    let handle = rt.spawn(fut);
+    let result = with_stall_timeout(handle, watch, stall).await;
+    rt.shutdown_background();
+    result?.context("Download task panicked")
+}
+
+/// Run `fut` until it finishes, or fail once `watch` sees no progress for `stall`.
+async fn with_stall_timeout<F: Future>(
+    fut: F,
+    watch: &StallWatch,
+    stall: Duration,
+) -> Result<F::Output> {
+    tokio::pin!(fut);
+    let mut tick = tokio::time::interval(stall.min(Duration::from_secs(1)));
+    loop {
+        tokio::select! {
+            out = &mut fut => return Ok(out),
+            _ = tick.tick() => {
+                if watch.idle_for() >= stall {
+                    return Err(DownloadStalled(stall).into());
+                }
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use tempfile::TempDir;
+
+    #[tokio::test]
+    async fn stalled_download_fails_instead_of_hanging() {
+        // Regression guard for #1440: a download that never sends a byte must
+        // fail after the stall timeout, not block forever.
+        let watch = StallWatch::new(indicatif::ProgressBar::hidden());
+        let never = std::future::pending::<()>();
+        let result = tokio::time::timeout(
+            Duration::from_secs(5),
+            with_stall_timeout(never, &watch, Duration::from_millis(200)),
+        )
+        .await
+        .expect("watchdog must fire before the outer 5s guard");
+        let err = result.unwrap_err();
+        assert!(err.is::<DownloadStalled>(), "{err}");
+        assert!(err.to_string().contains("stalled"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn stalled_attempt_cancels_its_spawned_tasks() {
+        // hf-hub spawns its chunk tasks; a stalled attempt must not leave them
+        // running beside the next attempt (cubic/Codex review on #1561).
+        use std::sync::atomic::{AtomicBool, Ordering};
+        let watch = StallWatch::new(indicatif::ProgressBar::hidden());
+        let ran = Arc::new(AtomicBool::new(false));
+        let flag = ran.clone();
+        let attempt = async move {
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_millis(600)).await;
+                flag.store(true, Ordering::SeqCst);
+            });
+            std::future::pending::<()>().await
+        };
+        let err = run_isolated(attempt, &watch, Duration::from_millis(200))
+            .await
+            .unwrap_err();
+        assert!(err.is::<DownloadStalled>(), "{err}");
+        tokio::time::sleep(Duration::from_millis(800)).await;
+        assert!(
+            !ran.load(Ordering::SeqCst),
+            "a task spawned by the stalled attempt outlived it"
+        );
+    }
+
+    #[tokio::test]
+    async fn download_that_keeps_progressing_is_not_cut_off() {
+        // A slow download that keeps sending bytes runs longer than the stall
+        // timeout and still succeeds.
+        let watch = StallWatch::new(indicatif::ProgressBar::hidden());
+        let feeder = watch.clone();
+        let slow = async move {
+            for _ in 0..8 {
+                tokio::time::sleep(Duration::from_millis(50)).await;
+                feeder.touch();
+            }
+            "done"
+        };
+        let out = with_stall_timeout(slow, &watch, Duration::from_millis(200))
+            .await
+            .unwrap();
+        assert_eq!(out, "done");
+    }
 
     #[test]
     fn test_default_cache_dir() {

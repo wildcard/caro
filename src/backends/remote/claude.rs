@@ -156,7 +156,7 @@ impl ClaudeBackend {
             r#"You are a helpful assistant that converts natural language to safe POSIX shell commands.
 
 CRITICAL: You MUST respond with ONLY valid JSON in this exact format:
-{{"cmd": "your_shell_command_here"}}
+{{"cmd": "your_shell_command_here", "confidence": <0.0-1.0, how sure you are the command is correct>}}
 
 Rules:
 1. Generate ONLY the shell command, no explanation
@@ -165,20 +165,42 @@ Rules:
 4. Target shell: {}
 5. NEVER generate destructive commands (rm -rf /, mkfs, dd, etc.)
 6. Keep commands simple and safe
-7. If the request is unclear, generate "echo 'Please clarify your request'"
+7. If the request is unclear, output ONLY: {{"needs_clarification": true, "p": <0.0-1.0>, "question": "<one short question>"}}
 
 Do not include any text before or after the JSON object."#,
             request.shell
         )
     }
 
-    /// Parse JSON response from Claude
-    fn parse_command_response(&self, response: &str) -> Result<String, GeneratorError> {
+    /// The model's self-reported confidence, if present and sane (#1464).
+    fn self_reported_confidence(parsed: &serde_json::Value) -> Option<f64> {
+        parsed
+            .get("confidence")
+            .and_then(|v| v.as_f64())
+            .filter(|c| c.is_finite() && (0.0..=1.0).contains(c))
+    }
+
+    /// Parse JSON response from Claude into the command and, when the model
+    /// self-reported one, its confidence.
+    fn parse_command_response(
+        &self,
+        response: &str,
+    ) -> Result<(String, Option<f64>), GeneratorError> {
+        // Typed clarification gate (#1462): never return a runnable command
+        // whose only purpose is to ask the user something.
+        if let Some(c) = crate::decision::clarification_from_raw(response) {
+            if c.should_ask() {
+                return Err(GeneratorError::from_clarification(&c));
+            }
+        }
         // Try structured JSON parsing first
         if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(response) {
             if let Some(cmd) = parsed.get("cmd").and_then(|v| v.as_str()) {
                 if !cmd.is_empty() {
-                    return Ok(cmd.trim().to_string());
+                    return Ok((
+                        cmd.trim().to_string(),
+                        Self::self_reported_confidence(&parsed),
+                    ));
                 }
             }
         }
@@ -190,7 +212,10 @@ Do not include any text before or after the JSON object."#,
                 if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(json_part) {
                     if let Some(cmd) = parsed.get("cmd").and_then(|v| v.as_str()) {
                         if !cmd.is_empty() {
-                            return Ok(cmd.trim().to_string());
+                            return Ok((
+                                cmd.trim().to_string(),
+                                Self::self_reported_confidence(&parsed),
+                            ));
                         }
                     }
                 }
@@ -204,7 +229,7 @@ Do not include any text before or after the JSON object."#,
                 if let Some(cmd_part) = line.split(':').nth(1) {
                     let cmd = cmd_part.trim().trim_matches('"').trim_matches('\'');
                     if !cmd.is_empty() && !cmd.contains('{') && !cmd.contains('}') {
-                        return Ok(cmd.to_string());
+                        return Ok((cmd.to_string(), None));
                     }
                 }
             }
@@ -316,7 +341,11 @@ Do not include any text before or after the JSON object."#,
         match self.call_claude_api(request).await {
             Ok(response) => {
                 match self.parse_command_response(&response) {
-                    Ok(command) => {
+                    Ok((command, self_reported)) => {
+                        let (confidence_score, confidence_source) = match self_reported {
+                            Some(c) => (c, crate::models::ConfidenceSource::SelfReported),
+                            None => (0.0, crate::models::ConfidenceSource::Unknown),
+                        };
                         return Ok(GeneratedCommand {
                             command,
                             explanation: format!("Generated using Claude ({})", self.model_name),
@@ -324,10 +353,15 @@ Do not include any text before or after the JSON object."#,
                             estimated_impact: "Remote inference via Anthropic API".to_string(),
                             alternatives: vec![],
                             backend_used: format!("Claude ({})", self.model_name),
-                            generation_time_ms: 0,  // Will be set by caller
-                            confidence_score: 0.95, // Claude typically has high confidence
+                            generation_time_ms: 0, // Will be set by caller
+                            confidence_score,
+                            confidence_source,
                         });
                     }
+                    // A typed clarification decision is not a parse failure:
+                    // surface the question instead of falling back to a
+                    // command from another backend (#1462).
+                    Err(err @ GeneratorError::NeedsClarification { .. }) => return Err(err),
                     Err(parse_error) => {
                         tracing::warn!("Failed to parse Claude response: {}", parse_error);
                         // Continue to fallback
@@ -447,7 +481,7 @@ mod tests {
 
         let response = r#"{"cmd": "grep -r 'pattern' ."}"#;
         let result = backend.parse_command_response(response);
-        assert_eq!(result.unwrap(), "grep -r 'pattern' .");
+        assert_eq!(result.unwrap(), ("grep -r 'pattern' .".to_string(), None));
     }
 
     #[test]
@@ -457,7 +491,36 @@ mod tests {
         let response =
             r#"Here's the command: {"cmd": "sort file.txt"} Let me know if you need help."#;
         let result = backend.parse_command_response(response);
-        assert_eq!(result.unwrap(), "sort file.txt");
+        assert_eq!(result.unwrap(), ("sort file.txt".to_string(), None));
+    }
+
+    #[test]
+    fn self_reported_confidence_is_parsed() {
+        let backend = ClaudeBackend::new("sk-ant-test-key".to_string()).unwrap();
+        let response = r#"{"cmd": "ls -la", "confidence": 0.82}"#;
+        assert_eq!(
+            backend.parse_command_response(response).unwrap(),
+            ("ls -la".to_string(), Some(0.82))
+        );
+        // Embedded JSON keeps the self-report too.
+        let response = r#"Sure: {"cmd": "ls -la", "confidence": 0.5} done"#;
+        assert_eq!(
+            backend.parse_command_response(response).unwrap(),
+            ("ls -la".to_string(), Some(0.5))
+        );
+    }
+
+    #[test]
+    fn out_of_range_confidence_is_dropped() {
+        let backend = ClaudeBackend::new("sk-ant-test-key".to_string()).unwrap();
+        for bad in ["1.5", "-0.1", "\"high\"", "null"] {
+            let response = format!(r#"{{"cmd": "ls", "confidence": {}}}"#, bad);
+            assert_eq!(
+                backend.parse_command_response(&response).unwrap(),
+                ("ls".to_string(), None),
+                "confidence {bad} must be dropped"
+            );
+        }
     }
 
     #[test]

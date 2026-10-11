@@ -302,6 +302,8 @@ mod tests {
                     duration_ms: 100,
                     success: true,
                     error_category: None,
+                    confidence: None,
+                    confidence_source: None,
                 },
             );
             storage.store_event(&event).await.unwrap();
