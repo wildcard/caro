@@ -61,6 +61,19 @@ class ValidateTests(unittest.TestCase):
         errs = glr.validate([row(1, rationale="half done")], None)
         self.assertTrue(any("gold_tier is null" in e for e in errs))
 
+    def test_missing_labeller_keys_are_rejected(self):
+        r = row(1)
+        del r["gold_tier"], r["labelled_at"]
+        errs = glr.validate([r], None)
+        self.assertTrue(any("missing field gold_tier" in e for e in errs))
+        self.assertTrue(any("missing field labelled_at" in e for e in errs))
+
+    def test_impossible_date_is_rejected(self):
+        for bad in ("2026-02-31", "2026-99-99", "20261011", "2026-10-11T00:00"):
+            errs = glr.validate([labelled(1, "safe", labelled_at=bad)], None)
+            self.assertTrue(any("labelled_at" in e for e in errs), bad)
+        self.assertEqual(glr.validate([labelled(1, "safe", labelled_at="2026-10-11")], None), [])
+
     def test_read_jsonl_rejects_garbage(self):
         with self.assertRaises(ValueError):
             glr.read_jsonl('{"id": "gold-001"}\nnot json\n')

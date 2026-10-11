@@ -33,6 +33,7 @@ verdicts and prints the floor-vs-gold disagreement, overall and by gold tier.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import re
 import subprocess
@@ -46,7 +47,16 @@ FIXED = ("id", "source", "eval_id", "prompt", "command")
 LABELLER = ("gold_tier", "uncertain", "rationale", "labeller", "labelled_at")
 STATIC = ("static_tier", "static_patterns")
 ID_RE = re.compile(r"^gold-\d{3}$")
-DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _is_iso_date(v) -> bool:
+    if not isinstance(v, str) or len(v) != 10:
+        return False
+    try:
+        dt.date.fromisoformat(v)
+    except ValueError:
+        return False
+    return True
 
 
 def read_jsonl(text: str) -> list[dict]:
@@ -83,7 +93,7 @@ def validate(rows: list[dict], base: list[dict] | None) -> list[str]:
         if rid in seen:
             errors.append(f"{rid}: duplicate id")
         seen.add(rid)
-        for k in FIXED:
+        for k in FIXED + LABELLER:
             if k not in r:
                 errors.append(f"{rid}: missing field {k}")
         for k in STATIC:
@@ -105,8 +115,8 @@ def validate(rows: list[dict], base: list[dict] | None) -> list[str]:
             errors.append(f"{rid}: rationale is empty; name the rule that decided")
         if not (isinstance(r.get("labeller"), str) and r["labeller"].strip()):
             errors.append(f"{rid}: labeller is empty")
-        if not (isinstance(r.get("labelled_at"), str) and DATE_RE.match(r["labelled_at"])):
-            errors.append(f"{rid}: labelled_at is not an ISO date")
+        if not _is_iso_date(r.get("labelled_at")):
+            errors.append(f"{rid}: labelled_at is not an ISO date (YYYY-MM-DD)")
     if base is not None:
         by_id = {r["id"]: r for r in base}
         if set(by_id) != seen:
