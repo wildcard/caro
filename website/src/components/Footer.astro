@@ -5,7 +5,6 @@
  */
 import { SITE_CONFIG } from '../config/site';
 import { t, type Locale } from '../i18n/config';
-import Glyph from '../ui/Glyph/Glyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -26,7 +25,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
       <!-- Brand Column -->
       <div class="footer-brand">
         <a href="/" class="brand-link">
-          <Glyph name="kyaro-mark" size={20} class="brand-icon" aria-label="Kyaro mark" />
+          <span class="brand-icon" aria-hidden="true">&gt;_</span>
           <span class="brand-name">Caro</span>
         </a>
         <p class="brand-tagline">{t(lang, 'landing.footer.brand.tagline')}</p>
@@ -108,7 +107,6 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     <!-- Kyaro Mascot Section -->
     <div class="kyaro-banner">
       <div class="kyaro-content">
-        <Glyph name="kyaro-mark" size={32} class="kyaro-emoji" aria-label="Kyaro mark" />
         <div class="kyaro-info">
           <p class="kyaro-title">{t(lang, 'landing.footer.kyaro.title')}</p>
           <p class="kyaro-text">
@@ -175,8 +173,12 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     margin-bottom: 12px;
   }
 
+  /* Same terminal-glyph lockup as the navigation brand (>_ Caro). */
   .brand-icon {
-    font-size: 28px;
+    font-family: var(--font-mono);
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--accent);
   }
 
   .brand-name {
@@ -290,13 +292,6 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     align-items: center;
     gap: 16px;
     justify-content: center;
-  }
-
-  /* The mark inherits currentColor; the card is paper, so use dark ink. */
-  .kyaro-emoji {
-    font-size: 32px;
-    line-height: 1;
-    color: var(--fg-strong);
   }
 
   .kyaro-info {
@@ -530,10 +525,6 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     .kyaro-banner {
       margin-top: 20px;
       padding: 14px;
-    }
-
-    .kyaro-emoji {
-      font-size: 28px;
     }
   }
 </style>

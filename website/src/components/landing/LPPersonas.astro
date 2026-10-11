@@ -1,6 +1,5 @@
 ---
 // LPPersonas.astro - Three personas section with interactive CTAs
-import Glyph from '../../ui/Glyph/Glyph.astro';
 ---
 
 <section class="personas" id="personas">
@@ -14,7 +13,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
       <!-- The Accelerator -->
       <div class="persona-card accelerator" data-persona="accelerator">
         <div class="persona-icon">
-          <Glyph name="kyaro-mark" size={32} aria-label="Accelerator" />
+          <span class="term-glyph" aria-hidden="true">❯</span>
         </div>
         <h3 class="persona-title">The Accelerator</h3>
         <p class="persona-role">Individual Developer</p>
@@ -55,7 +54,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
       <!-- The Guardian -->
       <div class="persona-card guardian" data-persona="guardian">
         <div class="persona-icon">
-          <Glyph name="kyaro-mark" size={32} aria-label="Guardian" />
+          <span class="term-glyph" aria-hidden="true">■</span>
         </div>
         <h3 class="persona-title">The Guardian</h3>
         <p class="persona-role">Security & Platform Lead</p>
@@ -100,7 +99,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
       <!-- The Operator -->
       <div class="persona-card operator" data-persona="operator">
         <div class="persona-icon">
-          <Glyph name="kyaro-mark" size={32} aria-label="Operator" />
+          <span class="term-glyph" aria-hidden="true">&gt;_</span>
         </div>
         <h3 class="persona-title">The Operator</h3>
         <p class="persona-role">SRE / DevOps Engineer</p>
@@ -293,6 +292,12 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
     font-size: 28px;
     margin-bottom: 20px;
     color: var(--accent-text);
+  }
+
+  .term-glyph {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1;
   }
 
   .persona-title {

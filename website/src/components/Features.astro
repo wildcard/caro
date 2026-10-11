@@ -1,6 +1,5 @@
 ---
 import { t, type Locale } from '../i18n/config';
-import Glyph from '../ui/Glyph/Glyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -9,14 +8,13 @@ interface Props {
 const { lang = 'en' } = Astro.props;
 
 // Feature card definitions with translation keys.
-// Emoji are not feature icons (Claude Design icon-system reframe): each card
-// uses a pixel Glyph where one exists, else a sanctioned terminal glyph.
-const featureKeys: { key: string; glyph?: 'shield' | 'brain' | 'lightning'; term?: string; status: string }[] = [
-  { key: 'safetyGuardian', glyph: 'shield', status: 'implemented' },
+// Emoji are not feature icons: each card uses a sanctioned terminal glyph.
+const featureKeys: { key: string; term: string; status: string }[] = [
+  { key: 'safetyGuardian', term: '■', status: 'implemented' },
   { key: 'crossPlatform', term: '▸', status: 'implemented' },
-  { key: 'platformAware', glyph: 'brain', status: 'implemented' },
+  { key: 'platformAware', term: '>_', status: 'implemented' },
   { key: 'posixSpecialist', term: '$', status: 'implemented' },
-  { key: 'lightningFast', glyph: 'lightning', status: 'in-progress' },
+  { key: 'lightningFast', term: '▸', status: 'in-progress' },
   { key: 'claudeCompanion', term: '❯', status: 'implemented' },
 ];
 
@@ -38,7 +36,7 @@ const statusLabels: Record<string, string> = {
         <div class={`feature feature-${feature.status}`}>
           <div class="feature-header">
             <div class="feature-icon" aria-hidden="true">
-              {feature.glyph ? <Glyph name={feature.glyph} size={40} /> : feature.term}
+              {feature.term}
             </div>
             <span
               class={`status-badge status-${feature.status}`}
