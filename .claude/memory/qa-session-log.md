@@ -46,7 +46,7 @@ Exercised `caro ai --once 'show me the current date'` with 15-second timeout.
 
 ### Followups
 
-- FLAKE-001 (`--dry-run` model download): **RESOLVED** — `--dry-run` now PASS via static matcher. Remove from active flakes on next pass if confirmed again.
+- FLAKE-001 (`--dry-run` model download): **RESOLVED** — `--dry-run` now PASS via static matcher. Confirm it remains resolved on the next pass.
 - FLAKE-002 (`caro ai --once` silent hang): second observation this session (first in PR #1560 2026-10-10, per that PR's body). Logs in qa-known-flakes.md updated.
 - QA memory staleness: see #1603. Next Slot C should advance to surface #11 if #1603 is addressed and memory is current.
 - 25+ previous QA rotation PRs were closed without merging — this run is the first memory update to land on `main` since bootstrap.

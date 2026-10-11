@@ -11,7 +11,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **First observed**: 2026-10-10 (documented in PR #1560 body)  
 **Symptom**: `caro ai --once '<prompt>'` produces zero output and hangs indefinitely when no model is downloaded. Exit code 124 when killed by `timeout`. No error message, no stderr, no progress indicator.  
 **Context**: Remote sandbox with no pre-downloaded model. `caro doctor` shows "No ready backend available" but the `ai` subcommand does not check backend availability before blocking on `generate_command`.  
-**Root cause**: `src/main.rs:1152-1161` — `run_ai_once` builds the embedded backend without a pre-flight `is_available()` check. `src/ai/runner.rs:117` — `backend.generate_command().await` blocks waiting for model download (which is network-blocked in sandbox).  
+**Root cause**: `src/main.rs:1152-1161` — `run_ai_once` calls `backend.generate_command().await` without checking model-download readiness. `src/ai/runner.rs:117` — generation blocks waiting for the embedded backend to download a missing model (blocked by sandbox networking). Note: `embedded_backend.is_available()` always returns `true`, so a pre-flight check on that method would not prevent the hang; the fix requires checking model-file readiness or adding a download timeout.  
 **Impact**: Slot C testing of `ai` surfaces is blocked in sandbox. Use `--dry-run` for prompt-generation coverage; use unit tests for `ai` session logic.  
 **Occurrence log**:
 - 2026-10-10: observed (per PR #1560)
@@ -29,7 +29,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **First observed**: 2026-05-07  
 **Resolved**: 2026-10-11  
 **Resolution**: `caro --dry-run` now uses the static-matcher fallback when no model is present, returning a deterministic result without attempting a download. Confirmed PASS on 2026-10-11 (`ls -la` returned in ~100ms).  
-**Commit**: Static-matcher fallback improvement (landed between v1.3.0 and v1.5.0; see `#1517` `fix(static-matcher): search python file contents instead of listing files`).
+**Commit**: Not identified; `#1517` changes Python-file search behavior, not the static-matcher fallback.
 
 **Symptom was**: `caro -p "..." --dry-run` fails with `Backend is not available: Failed to download model after 3 attempts` after 3 retries (2s, 4s backoff).  
 **Occurrence log**:
