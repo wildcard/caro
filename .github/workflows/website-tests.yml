@@ -1,0 +1,70 @@
+name: Website Tests
+
+# Runs the website's vitest suite: its regression guards for token and
+# occasion contrast (WCAG AA), homepage section links and placeholder
+# content (#1580).
+#
+# Why a separate workflow with no `paths` filter on pull_request: a check
+# that a path filter skips never reports, so if branch protection requires
+# it, every PR that does not touch the website stays "Pending" forever.
+# This job runs on every PR and skips the tests itself when no website
+# file changed, so it always reports and can be a required check.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/website-tests.yml'
+
+concurrency:
+  group: website-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  website-tests:
+    name: Website tests (vitest)
+    runs-on: ubuntu-latest
+    steps:
+      # On pull_request, HEAD is the PR's merge commit and HEAD^1 is the
+      # base branch tip, so depth 2 is enough to list the PR's changes.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect website changes
+        id: changes
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          website=true
+          if [ "$EVENT" = "pull_request" ]; then
+            # Read the whole list before grep: under the runner's pipefail,
+            # `git diff | grep -q` fails on SIGPIPE when grep exits early on
+            # a large PR, which would skip the tests wrongly.
+            changed=$(git diff --name-only HEAD^1 HEAD)
+            grep -qE '^(website/|package\.json$|package-lock\.json$|\.github/workflows/website-tests\.yml$)' <<<"$changed" ||
+              website=false
+          fi
+          echo "website=$website" >> "$GITHUB_OUTPUT"
+          [ "$website" = true ] || echo "No website changes in this PR; skipping the tests."
+
+      - uses: actions/setup-node@v4
+        if: steps.changes.outputs.website == 'true'
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install (cold, lockfile-exact)
+        if: steps.changes.outputs.website == 'true'
+        run: npm ci --no-audit --no-fund
+
+      - name: Test
+        if: steps.changes.outputs.website == 'true'
+        run: npm run test --workspace=caro-website

@@ -103,5 +103,8 @@ Full i18n guide: `website/I18N_TRANSLATION_GUIDE.md`
 
 - Unit tests for all new Rust modules
 - Integration tests for safety validation
-- Website tests run via `vitest` in `website/`
+- Website tests run via `vitest` in `website/`; CI runs them in
+  `.github/workflows/website-tests.yml` on every PR. Do not add a
+  `pull_request` path filter there: a filtered-out check never reports, so a
+  required check would block every PR that skips it.
 - No false positives in safety patterns (validated by extensive test suite)

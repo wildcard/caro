@@ -11,6 +11,9 @@ name: Static Sites Build
 #
 # This job reproduces the Cloudflare build exactly (cold `npm ci`, Node 22),
 # so a green run here is a real predictor of a green Pages deploy.
+#
+# The website's vitest suite runs in website-tests.yml instead: it needs no
+# pull_request path filter, so it can be a required check.
 
 on:
   pull_request:
@@ -87,24 +90,3 @@ jobs:
 
       - name: Assert output
         run: test -f website/storybook-static/index.html
-
-  website-tests:
-    # The website's vitest suite holds its regression guards: token and
-    # occasion contrast (WCAG AA), homepage section links, placeholder
-    # content. No other job ran it, so a PR could break them and stay
-    # green (#1580).
-    name: Website tests (vitest)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-
-      - name: Install (cold, lockfile-exact)
-        run: npm ci --no-audit --no-fund
-
-      - name: Test
-        run: npm run test --workspace=caro-website
