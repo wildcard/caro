@@ -1048,6 +1048,9 @@ impl ModelProfile {
                 self.backend
             ));
         }
+        if self.model.as_deref().is_some_and(|m| m.trim().is_empty()) {
+            return Err(format!("{}.model must not be empty", at));
+        }
         if self.backend == "embedded" && self.model.is_some() {
             return Err(format!(
                 "{}.model: the embedded backend has a built-in model and ignores this",
@@ -1058,9 +1061,15 @@ impl ModelProfile {
             if self.backend == "embedded" {
                 return Err(format!("{}.url: the embedded backend has no URL", at));
             }
-            if !(url.starts_with("http://") || url.starts_with("https://")) {
+            // Parse it here: the backend arms skip a URL that fails to
+            // parse, which would silently fall back to another backend.
+            let parsed = url::Url::parse(url).ok().filter(|u| {
+                matches!(u.scheme(), "http" | "https")
+                    && u.host_str().is_some_and(|h| !h.is_empty())
+            });
+            if parsed.is_none() {
                 return Err(format!(
-                    "{}.url must start with http:// or https://, got {:?}",
+                    "{}.url must be a valid http:// or https:// URL, got {:?}",
                     at, url
                 ));
             }
@@ -1923,6 +1932,9 @@ mod model_profile_tests {
             ),
             ("backend = \"embedded\"\nmodel = \"big\"", "built-in model"),
             ("backend = \"ollama\"\nurl = \"localhost:11434\"", "http://"),
+            ("backend = \"ollama\"\nurl = \"https://\"", "valid http://"),
+            ("backend = \"ollama\"\nurl = \"http://[\"", "valid http://"),
+            ("backend = \"ollama\"\nmodel = \" \"", "must not be empty"),
             (
                 "backend = \"ollama\"\napi_key_env = \"OLLAMA_KEY\"",
                 "only ai-horde",

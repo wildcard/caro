@@ -416,8 +416,9 @@ backend = "ai-horde"
 api_key_env = "AI_HORDE_KEY"  # the variable's name, never the key itself
 ```
 
-Caro refuses a profile it would partly ignore: an unknown backend, a URL or
-model for `embedded`, or `api_key_env` for a backend that reads no key.
+Caro refuses a profile it would partly ignore: an unknown backend or
+`hybrid`, an empty model, a URL that does not parse, a URL or model for
+`embedded`, or `api_key_env` for a backend that reads no key.
 
 - **`mesh`** — [Mesh-LLM](https://github.com/Mesh-LLM/mesh-llm) pools GPU/RAM
   across machines you own, behind one OpenAI-compatible API. Best when a model

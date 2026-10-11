@@ -696,7 +696,7 @@ impl CliApp {
                 }
 
                 if let Ok(exo_url) = Url::parse(exo_url_str) {
-                    let exo_backend = ExoBackend::new(exo_url, "llama-3.2-3b".to_string())
+                    let exo_backend = ExoBackend::new(exo_url, chosen_model("llama-3.2-3b"))
                         .map_err(|e| CliError::ConfigurationError {
                             message: format!("Failed to create Exo backend: {}", e),
                         })?
@@ -709,11 +709,12 @@ impl CliApp {
                 }
 
                 if let Ok(ollama_url) = Url::parse(ollama_url_str) {
-                    let ollama_backend = OllamaBackend::new(ollama_url, "codellama:7b".to_string())
-                        .map_err(|e| CliError::ConfigurationError {
-                            message: format!("Failed to create Ollama backend: {}", e),
-                        })?
-                        .with_embedded_fallback(embedded_arc.clone());
+                    let ollama_backend =
+                        OllamaBackend::new(ollama_url, chosen_model("codellama:7b"))
+                            .map_err(|e| CliError::ConfigurationError {
+                                message: format!("Failed to create Ollama backend: {}", e),
+                            })?
+                            .with_embedded_fallback(embedded_arc.clone());
 
                     if ollama_backend.is_available().await {
                         tracing::info!("Using Ollama backend (auto-detected)");
@@ -723,7 +724,7 @@ impl CliApp {
 
                 if let Ok(vllm_url) = Url::parse(vllm_url_str) {
                     let vllm_backend =
-                        VllmBackend::new(vllm_url, "codellama/CodeLlama-7b-hf".to_string())
+                        VllmBackend::new(vllm_url, chosen_model("codellama/CodeLlama-7b-hf"))
                             .map_err(|e| CliError::ConfigurationError {
                                 message: format!("Failed to create vLLM backend: {}", e),
                             })?
