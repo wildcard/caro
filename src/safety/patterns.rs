@@ -97,8 +97,9 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             // Recursive chmod that gives "others" write access, on any path
             // (caro#1592). A world-writable mode is an octal mode whose last
-            // digit has the write bit (2, 3, 6, 7), or a symbolic clause such
-            // as `o+w`, `a+rwx` or `o=rwx`. The mode is the first argument
+            // digit has the write bit (2, 3, 6, 7), with or without GNU's `+`
+            // or `=` operator (`+777`), or a symbolic clause such as `o+w`,
+            // `a+rwx` or `o=rwx`. The mode is the first argument
             // that is not an option. `-R` / `--recursive` may come among the
             // options before it, or later in the same command. Spans use
             // `[ \t]` and stop at `;`, `&`, `|` and newlines, so the match
@@ -107,10 +108,10 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
                 r"\bchmod(?:[ \t]+-\S+)*[ \t]+(?:",
                 // a recursive flag among the options, then the mode
                 r"(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)(?:[ \t]+-\S+)*[ \t]+",
-                r"(?:0?[0-7]?[0-7]{2}[2367]|[ugoa+=,rwxXst-]*[oa][ugoa]*[+=][rwxXst]*w[ugoa+=,rwxXst-]*)",
+                r"(?:[+=]?0?[0-7]{0,3}[2367]|[ugoa+=,rwxXst-]*[oa][ugoa]*[+=][rwxXst]*w[ugoa+=,rwxXst-]*)",
                 r"|",
                 // the mode, then a recursive flag later in the command
-                r"(?:0?[0-7]?[0-7]{2}[2367]|[ugoa+=,rwxXst-]*[oa][ugoa]*[+=][rwxXst]*w[ugoa+=,rwxXst-]*)",
+                r"(?:[+=]?0?[0-7]{0,3}[2367]|[ugoa+=,rwxXst-]*[oa][ugoa]*[+=][rwxXst]*w[ugoa+=,rwxXst-]*)",
                 r"[ \t](?:[^;&|\n]*[ \t])?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)",
                 r")(?:\s|$)",
             )
@@ -702,6 +703,9 @@ mod tests {
             "cd /srv && chmod -R 777 app",     // inside a command list
             "chmod -v -R 777 app",             // another option first
             "chmod -R -- 777 app",             // end-of-options marker
+            "chmod -R +777 uploads",           // GNU operator numeric mode
+            "chmod -R =777 uploads",           // GNU operator numeric mode
+            "chmod -R 2 shared",               // short octal: others write
         ];
         for cmd in must_flag {
             assert!(
@@ -725,6 +729,8 @@ mod tests {
             "chmod -R 755 a; ls 777",                   // `777` is in another command
             "chmod -R 755 o+w",                         // `o+w` is a file name, not the mode
             "chmod 777 notes.txt\nchmod -R 755 public", // two commands, two lines
+            "chmod -R 755 backup 777",                  // `777` is a file name
+            "chmod -R -002 public",                     // removes others' write
         ];
         for cmd in must_not_flag {
             assert!(
