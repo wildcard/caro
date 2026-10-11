@@ -3429,16 +3429,21 @@ async fn main() {
     // An unreadable config.toml must never be saved over (#1566): the
     // defaults below would replace every setting the user wrote. The
     // command path reports the load error itself, so only skip the
-    // first-run prompt and save here, and keep telemetry off.
+    // first-run prompt and save here, and keep telemetry off. The same
+    // applies when the config dir itself cannot be opened.
     let mut config_readable = true;
     let mut user_config = match config_manager.as_ref().map(|cm| cm.load()) {
         Some(Ok(config)) => config,
         Some(Err(e)) => {
-            tracing::warn!("Config unreadable, not saving telemetry preferences: {}", e);
+            tracing::debug!("Config unreadable, not saving telemetry preferences: {}", e);
             config_readable = false;
             Default::default()
         }
-        None => Default::default(),
+        // No config dir: nothing can be read or saved, so treat it the same.
+        None => {
+            config_readable = false;
+            Default::default()
+        }
     };
 
     // Session-scoped telemetry override: --no-telemetry disables telemetry

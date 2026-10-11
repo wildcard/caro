@@ -44,9 +44,18 @@ fn invalid_config_is_left_untouched_by_a_run() {
     std::fs::write(&path, invalid).unwrap();
 
     // Non-interactive output takes the silent first-run save branch.
-    let _ = caro(
+    let out = caro(
         dir.path(),
         &["--output", "json", "--dry-run", "show disk usage"],
+    );
+
+    // The run must reach the config load and report it, so an early
+    // startup failure cannot pass this guard by never touching the file.
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(!out.status.success(), "run with a bad config succeeded");
+    assert!(
+        stderr.contains("Failed to load configuration"),
+        "stderr: {stderr}"
     );
 
     let after = std::fs::read_to_string(&path).unwrap();
