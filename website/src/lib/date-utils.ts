@@ -73,8 +73,8 @@ function resolveCalculatedDateRange(
     if (Math.abs(closest - year) <= 1) {
       const fallback = range.dates[closest];
       // Adjust the year in the dates
-      const startDate = new Date(fallback.start);
-      const endDate = new Date(fallback.end);
+      const startDate = new Date(fallback.start + 'T00:00:00');
+      const endDate = new Date(fallback.end + 'T23:59:59');
       startDate.setFullYear(year);
       endDate.setFullYear(year);
       return { start: startDate, end: endDate };
@@ -83,8 +83,10 @@ function resolveCalculatedDateRange(
     return null;
   }
 
+  // A bare 'YYYY-MM-DD' parses as UTC midnight, which is the previous evening
+  // west of Greenwich. Add a time so both bounds are local calendar days.
   return {
-    start: new Date(yearData.start),
+    start: new Date(yearData.start + 'T00:00:00'),
     end: new Date(yearData.end + 'T23:59:59'),
   };
 }

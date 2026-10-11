@@ -15,19 +15,19 @@
   border: 1px solid var(--color-border, #e5e7eb);
   border-radius: 10px;
   cursor: pointer;
-  color: var(--color-text, #2c3e50);
+  color: var(--color-text, var(--bg-inverse));
   transition: all 0.2s;
   padding: 0;
   flex-shrink: 0;
 }
 
 .iconButton:hover:not(:disabled) {
-  border-color: var(--color-primary, #ff8c42);
-  background: rgba(255, 140, 66, 0.08);
+  border-color: var(--color-primary, var(--accent));
+  background: rgba(239, 51, 51, 0.08);
 }
 
 .iconButton:focus-visible {
-  outline: 2px solid var(--color-primary, #ff8c42);
+  outline: 2px solid var(--color-primary, var(--accent));
   outline-offset: 2px;
 }
 
@@ -48,7 +48,7 @@
 }
 
 :global(.dark) .iconButton:hover:not(:disabled) {
-  background: rgba(255, 140, 66, 0.15);
+  background: rgba(239, 51, 51, 0.15);
 }
 
 /* ============================================
@@ -100,7 +100,7 @@
 }
 
 .ghost:hover:not(:disabled) {
-  background: rgba(255, 140, 66, 0.08);
+  background: rgba(239, 51, 51, 0.08);
   border-color: transparent;
 }
 
@@ -109,29 +109,23 @@
 }
 
 :global(.dark) .ghost:hover:not(:disabled) {
-  background: rgba(255, 140, 66, 0.15);
+  background: rgba(239, 51, 51, 0.15);
 }
 
 /* ============================================
    VARIANT: BRAND
-   Orange background
+   Solid CTA fill: white icon at 5:1 in both modes
    ============================================ */
 
 .brand {
-  background: var(--color-primary, #ff8c42);
-  border-color: var(--color-primary-dark, #ff6b35);
-  color: white;
+  background: var(--accent-fill);
+  border-color: var(--accent-fill-hover);
+  color: var(--on-accent);
 }
 
 .brand:hover:not(:disabled) {
-  background: var(--color-primary-dark, #ff6b35);
-  border-color: var(--color-primary-dark, #ff6b35);
-}
-
-:global(.dark) .brand {
-  background: var(--color-primary, #ff8c42);
-  border-color: var(--color-primary-dark, #ff6b35);
-  color: white;
+  background: var(--accent-fill-hover);
+  border-color: var(--accent-fill-hover);
 }
 
 /* ============================================
@@ -139,13 +133,13 @@
    ============================================ */
 
 .active {
-  background: rgba(255, 140, 66, 0.15);
-  border-color: var(--color-primary, #ff8c42);
-  color: var(--color-primary, #ff8c42);
+  background: rgba(239, 51, 51, 0.15);
+  border-color: var(--color-primary, var(--accent));
+  color: var(--accent-text);
 }
 
 :global(.dark) .active {
-  background: rgba(255, 140, 66, 0.2);
+  background: rgba(239, 51, 51, 0.2);
 }
 
 /* ============================================
