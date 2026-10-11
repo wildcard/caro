@@ -13,8 +13,9 @@
   smooths or resizes an icon pixel.
 - An icon renders only at a whole-number multiple of its native size.
 - Kyaro always stands on a stage-grey tile, in both themes.
-- The favicon on every site is Kyaro's face, cut the same way. Every
-  navigation shows the official Caro mark as a vector.
+- The favicon of the six sites that `scripts/favicons.py` covers is
+  Kyaro's face, cut the same way. Every navigation on the caro.sh website
+  (`website/`) shows the official Caro mark as a vector.
 - A slot too small for a sprite gets a terminal glyph (`▸ ■ $ ❯ >_`), never
   an emoji or a third-party icon font.
 
@@ -124,9 +125,9 @@ The same meaning gets the same icon on every page: `danger` is safety,
 
 | Asset | File | Source | Where |
 |---|---|---|---|
-| Mark (vector) | `website/public/brand/caro-mark.svg` | trace of `mark-caro-smooth.png` | every navigation, through `CaroMark.astro` |
+| Mark (vector) | `website/public/brand/caro-mark.svg` | trace of `mark-caro-smooth.png` | every caro.sh navigation, through `CaroMark.astro`. Not `apps/devrel`, a separate Next.js app with its own brand link. |
 | Logo (vector, vertical) | `website/public/brand/caro-logo.svg` | trace of `mark-caro-smooth.png` | available for pages and press |
-| Favicon set | `favicon.svg`, `favicon.ico`, app icons on 6 sites | `scripts/favicons.py`, Kyaro's face | every site's `<head>` |
+| Favicon set | `favicon.svg`, `favicon.ico`, app icons | `scripts/favicons.py`, Kyaro's face | caro.sh, docs, changelog, landing, slides, Storybook. Not `apps/devrel`, which keeps its own Next.js favicon. |
 
 - **The mark is a vector.** Potrace traced it from the official smooth PNG.
   Rendered back at native size, it matches the PNG at IoU 0.997, and every

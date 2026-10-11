@@ -6,10 +6,9 @@ caro supports multiple language models to suit different use cases, from ultra-t
 
 | Model | Size | Best For | CI-Suitable | MLX-Optimized |
 |-------|------|----------|-------------|---------------|
-| **SmolLM 135M** | 82 MB | Ultra-fast testing, extreme resource constraints | ✅ | ❌ |
+| **SmolLM 135M** | 145 MB | Ultra-fast testing, extreme resource constraints | ✅ | ❌ |
 | **Qwen 0.5B** | 352 MB | CI/CD, fast inference | ✅ | ✅ |
 | **TinyLlama 1.1B** | 669 MB | Balanced speed/quality for CI | ✅ | ❌ |
-| **StarCoder 1B** | 700 MB | Code-specialized, shell commands | ✅ | ❌ |
 | **Qwen 1.5B** (default) | 1117 MB | Best balance for local use | ❌ | ✅ |
 | **Phi-2 2.7B** | 1560 MB | Excellent code understanding | ❌ | ❌ |
 | **Mistral 7B Instruct** | 3520 MB | Highest quality, production | ❌ | ❌ |
@@ -23,13 +22,13 @@ caro supports multiple language models to suit different use cases, from ultra-t
 - Good code understanding
 
 ### For GitHub Actions CI
-**Recommended**: Qwen 0.5B (352MB) or SmolLM 135M (82MB)
+**Recommended**: Qwen 0.5B (352MB) or SmolLM 135M (145MB)
 - Fast downloads (~30s vs 2min for default)
 - Lower memory usage
 - Still produces reasonable results
 
 ### For Testing
-**Recommended**: SmolLM 135M (82MB)
+**Recommended**: SmolLM 135M (145MB)
 - Fastest download and inference
 - Minimal memory footprint
 - Sufficient for unit/integration tests
@@ -98,9 +97,9 @@ Or for fastest tests:
 ## Model Details
 
 ### SmolLM 135M
-- **Repository**: HuggingFaceTB/SmolLM-135M-Instruct-GGUF
-- **Quantization**: Q4_K_M
-- **Size**: 82 MB
+- **Repository**: HuggingFaceTB/smollm-135M-instruct-v0.2-Q8_0-GGUF
+- **Quantization**: Q8_0 (the model id stays `smollm-135m-q4` for compatibility)
+- **Size**: 145 MB
 - **Use Case**: Testing, extreme resource constraints
 - **Pros**: Fastest download, minimal memory
 - **Cons**: Lower quality outputs
@@ -120,14 +119,6 @@ Or for fastest tests:
 - **Use Case**: Local development, testing
 - **Pros**: Widely tested, good quality
 - **Cons**: Larger CI download time
-
-### StarCoder 1B
-- **Repository**: TheBloke/starcoderbase-1b-GGUF
-- **Quantization**: Q4_K_M
-- **Size**: 700 MB
-- **Use Case**: Code generation, shell commands
-- **Pros**: Code-specialized, good for command generation
-- **Cons**: Not chat-optimized
 
 ### Qwen2.5-Coder 1.5B (Default)
 - **Repository**: Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF
@@ -191,9 +182,8 @@ env:
 ## Model Selection Guide
 
 ```
-Need fastest CI?          → SmolLM 135M (82MB)
+Need fastest CI?          → SmolLM 135M (145MB)
 Need quality + speed?     → Qwen 0.5B (352MB)
-Need code specialization? → StarCoder 1B (700MB)
 Local development?        → Qwen 1.5B (1.1GB, default)
 Need best quality?        → Mistral 7B (3.5GB)
 ```

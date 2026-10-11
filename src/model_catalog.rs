@@ -11,9 +11,9 @@ use std::fmt;
 /// Model size categories for selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModelSize {
-    /// Tiny models (<100MB) - Best for CI/CD
+    /// Tiny models (<200MB) - Best for CI/CD
     Tiny,
-    /// Small models (100-500MB) - Good balance
+    /// Small models (200-500MB) - Good balance
     Small,
     /// Medium models (500-1500MB) - Better quality
     Medium,
@@ -152,20 +152,6 @@ pub static MISTRAL_7B_Q3: ModelInfo = ModelInfo {
     ci_suitable: false,
 };
 
-/// StarCoder 1B Q4_K_M - Code-specialized (~700MB)
-/// Best for: Code generation and shell commands
-pub static STARCODER_1B_Q4: ModelInfo = ModelInfo {
-    id: "starcoder-1b-q4",
-    name: "StarCoder 1B Q4",
-    hf_repo: "TheBloke/starcoderbase-1b-GGUF",
-    filename: "starcoderbase-1b.Q4_K_M.gguf",
-    size_mb: 700,
-    size_category: ModelSize::Small,
-    description: "Code-specialized model, good for shell commands",
-    mlx_optimized: false,
-    ci_suitable: true,
-};
-
 /// Qwen2.5-Coder 1.5B Q4_K_M - Default model (~1.1GB)
 /// Best for: Balanced performance and size, good code understanding
 pub static QWEN_1_5B_Q4: ModelInfo = ModelInfo {
@@ -194,14 +180,18 @@ pub static QWEN_0_5B_Q4: ModelInfo = ModelInfo {
     ci_suitable: true,
 };
 
-/// SmolLM 135M Q4_K_M - Ultra-tiny for fastest tests (~80MB)
+/// SmolLM 135M Q8_0 - Ultra-tiny for fastest tests (~145MB)
 /// Best for: Unit tests, extreme resource constraints
+///
+/// The id keeps its `-q4` suffix so `CARO_MODEL=smollm-135m-q4` keeps working.
+/// The Q4_K_M repo it used to point at is gone from Hugging Face (#1341), so
+/// this is the Q8_0 build that `bundle.yml` already ships (Apache-2.0).
 pub static SMOLLM_135M_Q4: ModelInfo = ModelInfo {
     id: "smollm-135m-q4",
-    name: "SmolLM 135M Q4",
-    hf_repo: "HuggingFaceTB/SmolLM-135M-Instruct-GGUF",
-    filename: "smollm-135m-instruct-q4_k_m.gguf",
-    size_mb: 82,
+    name: "SmolLM 135M Q8",
+    hf_repo: "HuggingFaceTB/smollm-135M-instruct-v0.2-Q8_0-GGUF",
+    filename: "smollm-135m-instruct-add-basics-q8_0.gguf",
+    size_mb: 145,
     size_category: ModelSize::Tiny,
     description: "Ultra-tiny model for testing only",
     mlx_optimized: false,
@@ -213,7 +203,6 @@ static ALL_MODELS: &[&ModelInfo] = &[
     &SMOLLM_135M_Q4,
     &QWEN_0_5B_Q4,
     &TINYLLAMA_1_1B_Q4,
-    &STARCODER_1B_Q4,
     &QWEN_1_5B_Q4,
     &PHI_2_2_7B_Q4,
     &MISTRAL_7B_Q3,
@@ -233,7 +222,7 @@ mod tests {
     fn test_smallest_model() {
         let model = ModelCatalog::smallest();
         assert_eq!(model.id, "smollm-135m-q4");
-        assert!(model.size_mb < 100);
+        assert!(model.size_mb < 200); // Q8_0 build, 145 MB (#1341)
     }
 
     #[test]
