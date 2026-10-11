@@ -378,7 +378,7 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 
 ---
 
-### BW-041: an invalid config.toml is silently replaced with defaults
+### BW-049: an invalid config.toml is silently replaced with defaults
 
 **Found:** 2026-10-10 (while adding `backends.ai_horde_key_env`)
 **Issue:** #1566. In `src/main.rs` telemetry setup, `cm.load().ok().unwrap_or_default()` turns a load error into defaults with `first_run = true`; the first-run branch then saves them over the user's file.
