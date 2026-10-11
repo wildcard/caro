@@ -129,7 +129,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Issue:** #1341
 **Status:** fixed (#1553, merged 2026-10-11). #1341 stays open until the 2026-10-12 nightly Extended Tests run is green.
 **Needs human?:** no (decided 2026-10-10: SmolLM uses the bundle.yml Q8_0 repo, StarCoder is dropped, CI runs on CPU only).
-**Next step:** merge #1553, then confirm the next nightly Extended Tests run is green and close #1341.
+**Next step:** confirm the 2026-10-12 nightly Extended Tests run is green, then close #1341. Delete after 2026-10-18.
 
 ### BW-016: 1.5.0 declared in-repo but never tagged or published
 
@@ -233,9 +233,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Issue:** #1555
 **Status:** fixed (#1584, merged 2026-10-11)
 **Needs human?:** yes (a CI gate in `.github/workflows/cla.yml`, and part of the legal process)
-**Next step:** rename `custom-pr-sign-comment` to `custom-notsigned-prcomment` and set
-the one-line sign phrase, as #1555 shows. Then ask #1296, #1390 and #1415 to comment
-`recheck`.
+**Next step:** none; #1555 is closed. Delete after 2026-10-18.
 
 ### BW-029: an unquoted prompt that starts with "list" runs the `list` subcommand
 
@@ -280,7 +278,7 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Issue:** #1440
 **Status:** fixed (#1561, merged 2026-10-11). Each download attempt runs on its own runtime with a 60 s stall watchdog.
 **Needs human?:** no
-**Next step:** merge #1561, then close #1440.
+**Next step:** none; #1440 is closed. Delete after 2026-10-18.
 
 ### BW-033: Gemini CLI row in integrations status is stale (product shut down 2026-06-18)
 
