@@ -12,6 +12,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { extractStructuredContent } from '../../scripts/generate-search-index.mjs';
 
 const EMOJI_BUDGET = 1818;
 
@@ -50,6 +51,13 @@ describe('emoji used as icons', () => {
         .map((m) => `${file}: g="${m[1]}"`),
     );
     expect(bad).toEqual([]);
+  });
+
+  it('site search text leaves out <TermGlyph>, even g=">_"', () => {
+    const { headings } = extractStructuredContent(
+      '<h3><TermGlyph g=">_" /> For DevOps</h3><h3><TermGlyph g="■" class="x" /> Safety</h3>',
+    );
+    expect(headings).toEqual(['For DevOps', 'Safety']);
   });
 
   it(`src/ holds at most ${EMOJI_BUDGET} emoji`, () => {

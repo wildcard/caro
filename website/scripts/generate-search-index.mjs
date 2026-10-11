@@ -48,6 +48,9 @@ const SEARCH_ICON = '▸';
 // Extract ALL text content from HTML/Astro content
 function extractAllTextContent(content) {
   let text = content
+    // <TermGlyph> is decorative (aria-hidden). Drop it before the generic tag
+    // strip below, which stops at the `>` inside g=">_".
+    .replace(/<TermGlyph\b(?:[^>"']|"[^"]*"|'[^']*')*>/g, ' ')
     // Remove code blocks first (they contain non-searchable content)
     // Use word boundary and flexible closing tags to handle </code > variants
     .replace(/<code\b[^>]*>[\s\S]*?<\/code\b[^>]*>/gi, ' ')
@@ -273,7 +276,7 @@ function extractImportedDataStrings(content, filePath) {
 }
 
 // Extract text from specific elements for structured content
-function extractStructuredContent(content) {
+export function extractStructuredContent(content) {
   const result = {
     headings: [],
     paragraphs: [],
@@ -661,5 +664,7 @@ function generateSearchIndex() {
   console.log(`   Total content: ${totalChars.toLocaleString()} characters`);
 }
 
-// Run
-generateSearchIndex();
+// Run when called as a script, not when a test imports it.
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+  generateSearchIndex();
+}
