@@ -30,14 +30,16 @@ const { lang } = Astro.params as { lang: Locale };
 >
   <AnnouncementBanner lang={lang} />
   <Navigation lang={lang} />
-  <Hero lang={lang} />
-  <Terminal lang={lang} />
-  <Story lang={lang} />
-  <Video lang={lang} />
-  <Features lang={lang} />
-  <Comparison lang={lang} />
-  <CaroGame lang={lang} />
-  <Blog lang={lang} />
-  <Download lang={lang} />
+  <main id="main-content">
+    <Hero lang={lang} />
+    <Terminal lang={lang} />
+    <Story lang={lang} />
+    <Video lang={lang} />
+    <Features lang={lang} />
+    <Comparison lang={lang} />
+    <CaroGame lang={lang} />
+    <Blog lang={lang} />
+    <Download lang={lang} />
+  </main>
   <Footer lang={lang} />
 </Layout>

@@ -4,9 +4,9 @@ A Rust CLI that converts natural language descriptions into safe POSIX shell com
 
 ## Project Overview
 
-- **Language**: Rust (edition 2021, MSRV 1.83)
+- **Language**: Rust (edition 2021; MSRV is `rust-version` in `Cargo.toml`)
 - **License**: AGPL-3.0
-- **Version**: 1.4.0 (GA)
+- **Version**: `version` in `Cargo.toml` (single source; not repeated here so it cannot drift)
 - **Crate**: [crates.io/crates/caro](https://crates.io/crates/caro)
 
 ## Key Architecture
@@ -47,6 +47,7 @@ cargo build --release          # Release build
 cargo test                     # Run all tests
 cargo test safety              # Run safety tests only
 cargo clippy                   # Lint check
+python3 scripts/check-harness.py  # Lint the .claude/ harness (CI: harness-lint.yml)
 
 # Run locally
 cargo run -- "your query"      # Basic usage
@@ -116,14 +117,14 @@ skill: safety-pattern-developer
 
 ## Testing Standards
 
-- **93.1% pass rate** on comprehensive test suite
+- **94.8% Command Success Rate** on the 58-case beta suite, January 2026 (ROADMAP.md); separate from the per-backend harness numbers in `website/src/data/evals.ts`, published at caro.sh/evals
 - **Zero false positives** in safety validation
 - **TDD methodology** for all safety-critical code
 - Run `cargo test` before any commit
 
 ## Current Focus Areas
 
-Check `.claude/memory/current-tasks.md` for active work items.
+Run `bd ready` for the beads work queue; milestones live in `ROADMAP.md`.
 
 ## Code Style
 
@@ -136,6 +137,7 @@ Check `.claude/memory/current-tasks.md` for active work items.
 ## Important Files to Know
 
 - `.claude/rules/constitution.md` - **Precedence index for all `.claude/rules/` files (read first)**
+- `.claude/rules/legible-output.md` - How to write output the owner reads (ask first, STE-lite, format ladder)
 - `src/safety/patterns.rs` - All dangerous command patterns
 - `src/prompts/command_templates.rs` - LLM prompt templates
 - `.claude/skills/` - Domain expertise (load on-demand)
@@ -194,7 +196,7 @@ Use the Task tool to launch these in parallel:
 
 ---
 
-*Last updated: 2026-01-14*
+*Last updated: 2026-09-26*
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
