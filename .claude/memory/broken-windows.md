@@ -19,7 +19,7 @@ Rules (see `.claude/rules/good-boy-scout.md` → "Stay in your lane"):
 
 ---
 
-### BW-041: OmniSearch inlines a large search index into every page
+### BW-041: OmniSearch inlines its full search index into every page
 
 **Found:** 2026-10-10, WCAG design pass (`feat/website-wcag-design-pass`)
 **Issue:** #1564
@@ -278,6 +278,14 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Next step:** `git rm --cached` the 8 paths listed in #1551 (all added by
 `9599ca7`). `.gitignore` already covers `.worktrees/`.
 
+### BW-048: hybrid sanitizer leaks spaced paths and inline credentials
+
+**Found:** 2026-10-03 (cubic review on #1513)
+**Issue:** #1518. `PATH_RE` stops at whitespace, and there's no rule for `Authorization: Bearer`, `-u user:pass` or URL userinfo in the request input sent to hybrid remotes.
+**Status:** open
+**Needs human?:** yes (privacy policy: what may leave the machine)
+**Next step:** reuse `COMMAND_SECRETS` from `src/guard/log.rs` as reversible sanitizer rules; add tests.
+
 ### BW-031: ai_horde `Client-Agent` header hardcoded to `caro:1.4.0`
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-22)
@@ -342,7 +350,7 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Needs human?:** no
 **Next step:** honor a `CARO_CONFIG_DIR` env var in `src/config/mod.rs` and use it in the config tests.
 
-### BW-039: `ChromaDB Integration Tests` CI job fails partway through the run
+### BW-039: `ChromaDB Integration Tests` CI job fails late in the run
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-07-18)
 **Issue:** #1342

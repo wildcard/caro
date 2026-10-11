@@ -13,7 +13,7 @@ have Caro orchestrate whatever's actually there.
 
 Reuses CaroML's line-keyword syntax with three new keywords (`USE`, `JOB`,
 `RUN`) plus the inherited `TASK` / `WHY` / `REM`. The optional `CAROML 1`
-version header works as in `.caro` files ([ADR-020](../adr/ADR-020-caroml-version-header.md)).
+version header works as in `.caro` files ([ADR-021](../adr/ADR-021-caroml-version-header.md)).
 
 ```text
 TASK Project orchestration
