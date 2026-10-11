@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: July 12, 2026
+**Last Updated**: October 11, 2026
 
 > **Recent Update**: Integrated 104 PRs (#557-660) into roadmap with milestone assignments and tracking issues.
 
@@ -49,16 +49,72 @@ gantt
 
 ## Release Milestones
 
-### 🎉 v1.5.0 - Safety Floor Hardening & CI Repair
-**Released**: July 12, 2026 ✅
+### 🎉 v1.5.0 - Decision Layer & Release Reset
+**Released**: October 11, 2026 ✅
 **Status**: 100% Complete - **RELEASED**
-**Focus**: Catastrophic-floor allowlist safety (5 adversarial review rounds,
-evasion-hardened, all test-pinned), backend-roster single source of truth,
-runtime-loadable custom safety patterns via TOML, MSRV 1.85, dependency
-security repair (RUSTSEC-2026-0204/0185, ethnum/rust-1.97 compile break),
-cache-test de-flaking. Note: the v2.0.0 "Distributed Autonomy" milestone
-stays open pending validation-discipline Gate 1 (user discovery) — see
-docs/decisions/2026-07-12-autonomous-mode-release-scope.md (D1).
+**Focus**: Consolidation of the stalled 2026-07-12 scope (safety-floor
+hardening, custom-pattern TOML, MSRV 1.85, backend-roster single-source)
+with the PRs that landed on `main` after it:
+
+- **Decision layer, calibration and typed primitives** —
+  [#1459](https://github.com/wildcard/caro/pull/1459)
+  (Jev gap analysis, calibration metrics, typed-decision primitives,
+  measured confidence, clarification + intent gates, constrained decoding),
+  [#1489](https://github.com/wildcard/caro/pull/1489) (consensus risk
+  labels, Pareto view, ECE release gate), [ADR-017](docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md)
+- **Declared != enforced** — [#1470](https://github.com/wildcard/caro/pull/1470)
+  (CommandExecutor timeout, PreToolUse guard hooks, loop budgets, eval CI
+  honesty)
+- **Security dependency bump** — [#1488](https://github.com/wildcard/caro/pull/1488)
+  (reqwest 0.12, wiremock 0.6, RUSTSEC-2026-0258/-0285)
+- **i18n + Cloudflare Pages** — [#1352](https://github.com/wildcard/caro/pull/1352),
+  [#1351](https://github.com/wildcard/caro/pull/1351),
+  Vercel adapter astro-drift guard (4d7a855)
+- **Static matcher Pattern 43 current-dir qualifier** —
+  [#1487](https://github.com/wildcard/caro/pull/1487)
+- **CLI parity fixes** — [#1497](https://github.com/wildcard/caro/pull/1497)
+  (`config set/get` key parity), [#1503](https://github.com/wildcard/caro/pull/1503)
+  (`ai --once` with trailing prompt no longer blocks on stdin)
+- **CI pinning** — [#1498](https://github.com/wildcard/caro/pull/1498),
+  [#1505](https://github.com/wildcard/caro/pull/1505) (Lint & Format
+  pinned to Rust 1.98.1)
+- **Agent additions** — [#1244](https://github.com/wildcard/caro/pull/1244)
+  (ponytail pragmatic-skeptic reviewer, additive)
+- **Also shipped** — [#1315](https://github.com/wildcard/caro/pull/1315)
+  (P0: dangerous quoted or escaped `rm` targets no longer pass as Safe),
+  [#1245](https://github.com/wildcard/caro/pull/1245)
+  (opt-in frontier advisor, cost-aware eval),
+  [#1509](https://github.com/wildcard/caro/pull/1509) (STE-lite `--explain`),
+  [#1519](https://github.com/wildcard/caro/pull/1519) and
+  [#1535](https://github.com/wildcard/caro/pull/1535) (safety warning text),
+  [#1532](https://github.com/wildcard/caro/pull/1532) (`dry_run` in JSON
+  output), [#1517](https://github.com/wildcard/caro/pull/1517) (static
+  matcher content search), [#1447](https://github.com/wildcard/caro/pull/1447)
+  (served-context warning), [#1561](https://github.com/wildcard/caro/pull/1561)
+  (a stalled model download fails instead of hanging),
+  [#1553](https://github.com/wildcard/caro/pull/1553) (SmolLM points to a live
+  repo; StarCoder 1B leaves the model catalog),
+  [#1511](https://github.com/wildcard/caro/pull/1511) (consensus-label
+  export, ADR-018), [#1554](https://github.com/wildcard/caro/pull/1554) and
+  [#1558](https://github.com/wildcard/caro/pull/1558) (risk-gate calibration
+  baseline and gold subset), [#1507](https://github.com/wildcard/caro/pull/1507)
+  (caro.sh/evals), [#1565](https://github.com/wildcard/caro/pull/1565),
+  [#1563](https://github.com/wildcard/caro/pull/1563) and
+  [#1573](https://github.com/wildcard/caro/pull/1573) (website accessibility,
+  favicons, footer links), [#1522](https://github.com/wildcard/caro/pull/1522)
+  and [#1548](https://github.com/wildcard/caro/pull/1548) (dev workflow)
+
+**Release-reset note**: an earlier `chore(release): v1.5.0` landed
+2026-07-12 (commit `6f23d37`) and bumped `Cargo.toml`/`README`/
+homebrew/nuget to 1.5.0, but the owner-only tag + crates.io publish
+step never ran — users on crates.io stayed pinned at v1.4.0
+(2026-05-09) for nearly five months. This release consolidates both
+scopes into a single honest 1.5.0 shipping entry. Rationale and
+options considered: the decision record in
+[#1514](https://github.com/wildcard/caro/pull/1514).
+The v2.0.0 "Distributed Autonomy" milestone stays open pending
+validation-discipline Gate 1 (user discovery); see
+[`docs/decisions/2026-07-12-autonomous-mode-release-scope.md`](docs/decisions/2026-07-12-autonomous-mode-release-scope.md) (D1).
 
 ---
 
@@ -372,7 +428,7 @@ above.
 
 | Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
 |-----------|----------|---------------------|----------|----------|---------|
-| **v1.5.0** | Jul 12, 2026 | Safety floor hardening + CI repair | 4 | 100% | ✅ **RELEASED** |
+| **v1.5.0** | Oct 11, 2026 | Decision layer, calibration, security bump + release reset | 15 | 100% | ✅ **RELEASED** |
 | **v1.4.0** | May 9, 2026 | CaroML preview + safety hardening | 12 | 100% | ✅ **RELEASED** |
 | **v1.3.2** | May 9, 2026 | Static matcher coverage gaps | 7 | 100% | ✅ **RELEASED** |
 | **v1.3.1** | May 9, 2026 | P0/P1 safety patch | 4 | 100% | ✅ **RELEASED** |
