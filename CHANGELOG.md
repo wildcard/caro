@@ -320,6 +320,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **Quoted or escaped destructive targets are no longer rated Safe**
+  ([#1315](https://github.com/wildcard/caro/pull/1315)): the command
+  scanner matched a dangerous path only when it appeared unquoted right
+  after the command, so a leading backslash or a grouping quote hid it.
+  `rm -rf \/`, which the shell runs as `rm -rf /`, was rated Safe. For a
+  destructive POSIX statement, caro now also scans the unescaped,
+  unquoted form of the command, so `rm -rf \/`, `rm -rf \/etc` and
+  `rm -rf "/tmp"/*/x` are blocked as Critical. Guarded by
+  `test_quote_escape_evasion_is_caught_base` in
+  `tests/safety_validator_contract.rs`.
 - **reqwest 0.12 / wiremock 0.6 / h2 / rustls upgrade**
   ([#1488](https://github.com/wildcard/caro/pull/1488)): resolves
   RUSTSEC-2026-0258 (h2 pre-0.4.19) and RUSTSEC-2026-0285 (rustls
