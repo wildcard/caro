@@ -92,6 +92,8 @@ with the PRs that landed on `main` after it:
   matcher content search), [#1447](https://github.com/wildcard/caro/pull/1447)
   (served-context warning), [#1561](https://github.com/wildcard/caro/pull/1561)
   (a stalled model download fails instead of hanging),
+  [#1553](https://github.com/wildcard/caro/pull/1553) (SmolLM points to a live
+  repo; StarCoder 1B leaves the model catalog),
   [#1511](https://github.com/wildcard/caro/pull/1511) (consensus-label
   export, ADR-018), [#1554](https://github.com/wildcard/caro/pull/1554) and
   [#1558](https://github.com/wildcard/caro/pull/1558) (risk-gate calibration
