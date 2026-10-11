@@ -123,6 +123,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   developers who made the switch". The homepage no longer renders it (#1569).
   The component stays, marked `PLACEHOLDER CONTENT`, and
   `placeholder-content.test.ts` fails if a page imports a marked component.
+- **Website footer links.** The footer's "How it works" and "Blog" links
+  pointed at homepage sections that do not exist (`/#how-it-works`,
+  `/#blog`), so they opened the top of the homepage. They now open the
+  demo video and `/blog`. On localized pages, Features, How it works and
+  Download now open that language's homepage, as the nav already did.
+  `homepage-anchors.test.ts` checks the homepage-section links in the
+  `.astro` files under `components/` and `layouts/` against the English
+  and localized homepages.
 - **Website WCAG 2.2 AA pass and accessible occasion themes.** axe finds 0
   violations in 220 runs: the 50 English pages, the new gallery and 4
   locale homepages, each in light and dark at 1440px and 375px. The same
@@ -161,6 +169,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   world-writable path (`chmod -R 777 /`) keep the label.
   Six pattern descriptions now start with a verb, not an -ing word
   ("Change file permissions"). Guarded by `tests/safety_text_contract.rs`.
+- **Every Caro site shows the Caro favicon.** caro.sh showed an empty orange
+  ring: its SVG favicon loaded the mascot through `<image href>`, which
+  browsers block in favicons. The docs, changelog, landing, slides and
+  Storybook sites had no favicon, an off-brand "C", or the framework default.
+  `scripts/favicons.py` now derives the icons (SVG, ICO, Apple touch, and
+  PWA icons for caro.sh) from the official pixel mark, in brand ink on brand
+  paper, and writes the files each site uses. Guarded by
+  `scripts/favicons.py --check` in the `Favicons` workflow.
 
 ### Documentation
 
