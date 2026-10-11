@@ -286,6 +286,14 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Needs human?:** yes (privacy policy: what may leave the machine)
 **Next step:** reuse `COMMAND_SECRETS` from `src/guard/log.rs` as reversible sanitizer rules; add tests.
 
+### BW-049: `caro test --suite` ignores `dangerous_pattern`; the safety-pattern-developer YAML step tests nothing
+
+**Found:** 2026-10-10, doing #1054 (segment-aware validation)
+**Issue:** #1599 (related: #1597, website-claims suite never runs the validator)
+**Status:** open
+**Needs human?:** no
+**Next step:** make a Rust contract test the RED/GREEN gate in `.claude/skills/safety-pattern-developer/SKILL.md` (Phases 2 and 4), or add a pattern-validation mode to `caro test`.
+
 ### BW-031: ai_horde `Client-Agent` header hardcoded to `caro:1.4.0`
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-22)

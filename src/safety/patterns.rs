@@ -128,7 +128,8 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
                 r"\bchmod\s+(?:{TOK}\s+)*?{WW_MODE}\s+(?:{TOK}\s+)*?{REC}\s+(?:{TOK}\s+)*?{ROOT_OR_HOME}(?:\s|$)"
             ),
             risk_level: RiskLevel::Critical,
-            description: "Recursive world-writable permission change on root or home".to_string(),
+            description: "World-writable permission change applied recursively to root or home"
+                .to_string(),
             shell_specific: None,
         },
         // CRITICAL: find-based recursive delete from root or home (#1054).
@@ -151,7 +152,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r#"\beval\s+['"]?\$\{?[A-Za-z_]"#.to_string(),
             risk_level: RiskLevel::High,
-            description: "eval of a variable runs code that is not shown".to_string(),
+            description: "eval of a variable runs hidden code".to_string(),
             shell_specific: None,
         },
         DangerPattern {
