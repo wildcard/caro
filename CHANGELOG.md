@@ -37,6 +37,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   full schema. Idea sourced from
   [adolfousier/opencrabs](https://github.com/adolfousier/opencrabs)'s
   `tools.toml` ergonomic; re-implemented from scratch in caro.
+- **Consensus-label export and ADR-018.** `CARO_EVAL_EXPORT_LABELS=<path>.jsonl`
+  makes `cargo test --test evaluation` append `sft_export::decision_label_pairs`
+  (local vs reference risk verdicts, #1466, now with `test_id` and including
+  Safety cases) to disk via the new `EvaluationHarness::run_with_results`, so
+  the gate-classifier experiment proposed in
+  `docs/adr/ADR-018-gate-classifier-calibration-experiment.md` (Phase 4 of the
+  Jev strategy, tracking #1510) has a data source. Result collection is
+  guarded by `evaluation::harness::tests::test_run_with_results_returns_every_result`;
+  the record shape by `evaluation::sft_export::tests::decision_pairs_split_accepted_and_corrected`.
+- **Risk-gate calibration baseline in the evaluation harness** (#1510).
+  When a backend's own risk judge and the reference labeller both run,
+  `BackendResult.risk_gate` carries the Brier score and ECE of the local
+  verdict's confidence scored against agreement with the reference, with
+  95% bootstrap confidence intervals, the row count and its share of the
+  run; the evaluation
+  report prints one line per measured backend under the Pareto view. This
+  is the number ADR-018's gate classifier has to beat; the existing
+  `brier`/`ece` fields stay a command-generation metric.
+- **Risk-gate gold subset: label guide and candidate list** (#1510).
+  `docs/ml/risk-gold-subset.md` fixes the judge-vs-gold disagreement
+  threshold (15 percentage points) before any label is reviewed, defines
+  the four tiers with ordered decision rules, and sets the stratification
+  plan; `docs/ml/risk-gold-candidates.jsonl` holds 121 unlabelled candidate
+  commands (42 from the published eval, 25 canonical commands for the
+  Safety prompts, 54 authored held-out), and
+  `docs/ml/risk-gold-static-tiers.jsonl` keeps the static validator's
+  verdicts in a separate file for later reporting; the guide lists no
+  command with its static tier. No labels are included.
+- **Published evals page at caro.sh/evals.** `website/src/pages/evals.astro`
+  renders `website/src/data/evals.ts`, a committed snapshot of the harness's
+  "Pareto View by Backend" (pass rate, Brier, ECE, confidence coverage and
+  source, p50/p95, cost per pass, risk agreement) with an "up and to the
+  left" chart and per-category rows. `tests/website_claims.rs` EVALS-001
+  checks the snapshot's case count and per-category totals against
+  `tests/evaluation/dataset.yaml` so the page cannot drift from the dataset;
+  EVALS-002 checks each published row is internally consistent (pass rate =
+  passed/total × 100, Brier and ECE in [0, 1]). Reconciled the headline accuracy
+  figure to the 94.8% CSR on the 58-case beta suite that ROADMAP.md records
+  (README and CLAUDE.md quoted the older 93.1% v1.1.0 figure) and corrected
+  the "zero telemetry" use-case copy to "off unless you opt in".
 - **Calibration and tail-latency metrics in the evaluation harness.**
   `EvaluationResult` now records the backend's reported `confidence`, and
   every `BackendResult` carries `brier`, `ece`, `p50_execution_time_ms` and
@@ -152,6 +192,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Website footer links.** The footer's "How it works" and "Blog" links
+  pointed at homepage sections that do not exist (`/#how-it-works`,
+  `/#blog`), so they opened the top of the homepage. They now open the
+  demo video and `/blog`. On localized pages, Features, How it works and
+  Download now open that language's homepage, as the nav already did.
+  `homepage-anchors.test.ts` checks the homepage-section links in the
+  `.astro` files under `components/` and `layouts/` against the English
+  and localized homepages.
+- **Website WCAG 2.2 AA pass and accessible occasion themes.** axe finds 0
+  violations in 220 runs: the 50 English pages, the new gallery and 4
+  locale homepages, each in light and dark at 1440px and 375px. The same
+  50 English pages had 11,109 before; no page scrolls sideways at 375px
+  (10 did). The
+  brand tokens gain an AA-safe muted grey, CTA fill and red text; docs pages
+  load the brand tokens at all. Navigation is keyboard-operable, exposes
+  Blog and a GitHub link on phones, and every layout has a skip link. The
+  31 holiday, national-day and humanity-event looks now come from one
+  registry (`website/src/config/occasions.ts`) with solid, contrast-tested
+  CTA fills, decorative SVG art and a `?occasion=` preview; see `/occasions`.
+  The homepage navigation now offers the in-season holiday picker too.
+  One-day holiday windows follow the visitor's local calendar day (Yom
+  Ha'atzmaut no longer starts on the evening of Yom HaZikaron west of
+  Greenwich), and a saved national-day theme applies only in that country's
+  timezones.
 - **`--explain` output is correct and legible.** The headline no longer reads
   "Use `find` Uses find to …". The option breakdown splits combined flags
   (`-rn`, `-la`) and no longer reports `-i` for `grep --include`. Destructive
@@ -173,6 +237,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   world-writable path (`chmod -R 777 /`) keep the label.
   Six pattern descriptions now start with a verb, not an -ing word
   ("Change file permissions"). Guarded by `tests/safety_text_contract.rs`.
+- **Every Caro site shows the Caro favicon.** caro.sh showed an empty orange
+  ring: its SVG favicon loaded the mascot through `<image href>`, which
+  browsers block in favicons. The docs, changelog, landing, slides and
+  Storybook sites had no favicon, an off-brand "C", or the framework default.
+  `scripts/favicons.py` now derives the icons (SVG, ICO, Apple touch, and
+  PWA icons for caro.sh) from the official pixel mark, in brand ink on brand
+  paper, and writes the files each site uses. Guarded by
+  `scripts/favicons.py --check` in the `Favicons` workflow.
 - **`--output json` says when a run was a dry run**
   ([#1532](https://github.com/wildcard/caro/pull/1532)): with `--dry-run`,
   the JSON now includes `"dry_run": true`, so a consumer can tell

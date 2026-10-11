@@ -5,7 +5,16 @@
       "cta": "Simulan Nang Libre",
       "darkMode": {
         "toggle": "I-toggle ang dark mode"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "Kasamang Ahente",
@@ -418,7 +427,7 @@
       "bottom": {
         "built": "Gawa gamit ang 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "❤️",
         "inspiration": "Inspirado ni Caroline mula sa Portal",
         "heritagePre": "Ipinagmamalaki na itinayo sa mga pundasyon ng",
         "gnu": "GNU",
@@ -569,7 +578,7 @@
         },
         "bottom": {
           "built": "Gawa sa 🦀 Rust |",
-          "heart": "🧡",
+          "heart": "❤️",
           "inspiration": "Inspirado ni Caroline mula sa Portal",
           "heritagePre": "Proudly built on the foundations laid by",
           "freebsd": "FreeBSD",

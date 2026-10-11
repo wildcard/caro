@@ -5,7 +5,16 @@
       "cta": "Mulai Gratis",
       "darkMode": {
         "toggle": "Aktifkan mode gelap"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "Agen Pendamping",
@@ -406,7 +415,7 @@
       "bottom": {
         "built": "Dibangun dengan 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "❤️",
         "inspiration": "Terinspirasi oleh Caroline dari Portal",
         "heritagePre": "Dengan bangga dibangun di atas fondasi yang diletakkan oleh",
         "gnu": "GNU",
@@ -534,7 +543,7 @@
         },
         "bottom": {
           "built": "Dibangun dengan 🦀 Rust |",
-          "heart": "🧡",
+          "heart": "❤️",
           "inspiration": "Terinspirasi oleh Caroline dari Portal",
           "heritagePre": "Dengan bangga dibangun di atas fondasi yang diletakkan oleh",
           "gnu": "GNU",
