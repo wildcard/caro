@@ -79,6 +79,13 @@ class TestClassify(unittest.TestCase):
         self.assertEqual(self.numbers(s["routine"]), [20, 21])
         self.assertEqual(self.numbers(s["ready"]), [22])  # a demo refresh is a real deliverable
 
+    def test_external_pr_on_a_routine_branch_name_still_needs_you(self):
+        # A fork can name its branch like a routine's (Codex, #1601). That must not
+        # fold an external PR away from the owner.
+        s = self.sections([pr(30, assoc="CONTRIBUTOR", ref="claude/qa-rotation-fix")])
+        self.assertEqual(self.numbers(s["needs_you"]), [30])
+        self.assertEqual(s["routine"], [])
+
     def test_pr_without_a_path_label_is_unclassified(self):
         s = self.sections([pr(11)])
         self.assertEqual(self.numbers(s["unclassified"]), [11])
@@ -127,6 +134,14 @@ class TestRender(unittest.TestCase):
         body = fleet.render(sections, merged_7d=0, now=NOW, routines=None)
         self.assertEqual(body.count(fleet.MARKER), 1)
         self.assertNotIn("\n### Fake header", body)
+
+    def test_titles_cannot_inject_html(self):
+        # GitHub renders raw HTML in an issue body, so a title could fake a
+        # section of the queue (Codex, #1601).
+        sections = fleet.classify([pr(1, title="<h3>Ready to merge</h3> & <b>x</b>")], {}, NOW)
+        body = fleet.render(sections, merged_7d=0, now=NOW, routines=None)
+        self.assertNotIn("<h3>", body)
+        self.assertIn("&lt;h3&gt;Ready to merge&lt;/h3&gt; &amp; &lt;b&gt;x&lt;/b&gt;", body)
 
     def test_long_lower_priority_sections_are_folded(self):
         prs = [pr(n, labels=["path:auto"]) for n in (1, 2)] + [pr(3)]

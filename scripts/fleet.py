@@ -13,6 +13,7 @@ Usage: python3 scripts/fleet.py triage [--repo OWNER/REPO] [--dry-run]
 Stdlib only; all I/O goes through `gh api`. Plan: P0.3 of the harness plan.
 """
 import argparse
+import html
 import json
 import statistics
 import subprocess
@@ -86,10 +87,11 @@ def classify(prs, details, now):
         item = {"number": p["number"], "title": p["title"],
                 "age": (now - parse(p["created_at"])).days}
         bot = p.get("user", {}).get("type") == "Bot"
-        if p.get("head", {}).get("ref", "").startswith(ROUTINE_STATE_BRANCHES):
-            sections["routine"].append(item)
-        elif not bot and p.get("author_association") not in INTERNAL:
+        # External first: a fork can name its branch like a routine's.
+        if not bot and p.get("author_association") not in INTERNAL:
             sections["needs_you"].append({**item, "why": "external contributor"})
+        elif p.get("head", {}).get("ref", "").startswith(ROUTINE_STATE_BRANCHES):
+            sections["routine"].append(item)
         elif labels & OWNER_LABELS.keys():
             reason = OWNER_LABELS[sorted(labels & OWNER_LABELS.keys())[0]]
             sections["needs_you"].append({**item, "why": reason})
@@ -113,8 +115,9 @@ def classify(prs, details, now):
 
 
 def one_line(text):
-    """A title can never start a heading or repeat the marker inside the body."""
-    return " ".join(text.replace("<!--", "&lt;!--").split())[:100]
+    """A title can never start a heading, add HTML (GitHub renders it in issue
+    bodies) or repeat the marker inside the body."""
+    return html.escape(" ".join(text.split())[:100], quote=False)
 
 
 def render(sections, merged_7d, now, routines, duplicates=0):
