@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: October 10, 2026
+**Last Updated**: October 11, 2026
 
 > **Recent Update**: Integrated 104 PRs (#557-660) into roadmap with milestone assignments and tracking issues.
 
@@ -50,12 +50,11 @@ gantt
 ## Release Milestones
 
 ### 🎉 v1.5.0 - Decision Layer & Release Reset
-**Released**: October 10, 2026 ✅
+**Released**: October 11, 2026 ✅
 **Status**: 100% Complete - **RELEASED**
 **Focus**: Consolidation of the stalled 2026-07-12 scope (safety-floor
 hardening, custom-pattern TOML, MSRV 1.85, backend-roster single-source)
-with every later PR on `main` that changes the CLI, its docs or its CI
-(website-only changes are not listed):
+with the PRs that landed on `main` after it:
 
 - **Decision layer, calibration and typed primitives** —
   [#1459](https://github.com/wildcard/caro/pull/1459)
@@ -89,7 +88,16 @@ with every later PR on `main` that changes the CLI, its docs or its CI
   [#1532](https://github.com/wildcard/caro/pull/1532) (`dry_run` in JSON
   output), [#1517](https://github.com/wildcard/caro/pull/1517) (static
   matcher content search), [#1447](https://github.com/wildcard/caro/pull/1447)
-  (served-context warning), [#1522](https://github.com/wildcard/caro/pull/1522)
+  (served-context warning), [#1561](https://github.com/wildcard/caro/pull/1561)
+  (a stalled model download fails instead of hanging),
+  [#1511](https://github.com/wildcard/caro/pull/1511) (consensus-label
+  export, ADR-018), [#1554](https://github.com/wildcard/caro/pull/1554) and
+  [#1558](https://github.com/wildcard/caro/pull/1558) (risk-gate calibration
+  baseline and gold subset), [#1507](https://github.com/wildcard/caro/pull/1507)
+  (caro.sh/evals), [#1565](https://github.com/wildcard/caro/pull/1565),
+  [#1563](https://github.com/wildcard/caro/pull/1563) and
+  [#1573](https://github.com/wildcard/caro/pull/1573) (website accessibility,
+  favicons, footer links), [#1522](https://github.com/wildcard/caro/pull/1522)
   and [#1548](https://github.com/wildcard/caro/pull/1548) (dev workflow)
 
 **Release-reset note**: an earlier `chore(release): v1.5.0` landed
@@ -416,7 +424,7 @@ above.
 
 | Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
 |-----------|----------|---------------------|----------|----------|---------|
-| **v1.5.0** | Oct 10, 2026 | Decision layer, calibration, security bump + release reset | 15 | 100% | ✅ **RELEASED** |
+| **v1.5.0** | Oct 11, 2026 | Decision layer, calibration, security bump + release reset | 15 | 100% | ✅ **RELEASED** |
 | **v1.4.0** | May 9, 2026 | CaroML preview + safety hardening | 12 | 100% | ✅ **RELEASED** |
 | **v1.3.2** | May 9, 2026 | Static matcher coverage gaps | 7 | 100% | ✅ **RELEASED** |
 | **v1.3.1** | May 9, 2026 | P0/P1 safety patch | 4 | 100% | ✅ **RELEASED** |

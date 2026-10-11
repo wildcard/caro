@@ -7,18 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.5.0] - 2026-10-10
+## [1.5.0] - 2026-10-11
 
 > **Release-reset note**: An earlier `chore(release): v1.5.0`
 > (commit `6f23d37`, 2026-07-12) bumped `Cargo.toml`/`README.md`/
 > `homebrew-tap/README.md`/`nuget/tools/install.ps1` to 1.5.0 but the
 > owner-only `git tag v1.5.0 && git push` step never ran. More PRs
 > then landed on `main` on top of that bump. This entry consolidates
-> the 2026-07-12 planned content with every PR merged before the tag
-> that changes the CLI, its docs or its CI (website-only changes are
-> not listed) into a single honest 1.5.0 shipping scope. See the
-> decision record in [#1514](https://github.com/wildcard/caro/pull/1514)
-> for the rationale.
+> the 2026-07-12 planned content with those PRs into a single honest
+> 1.5.0 shipping scope. See the decision record in
+> [#1514](https://github.com/wildcard/caro/pull/1514) for the rationale.
 
 ### Added
 
@@ -262,6 +260,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Ollama's default `num_ctx` is 2048, whatever the model card says). It
   logs a warning when that is below 4,096 tokens or, for Ollama, below
   the model's declared window. The check never blocks generation.
+- **A stalled model download fails instead of hanging**
+  ([#1561](https://github.com/wildcard/caro/pull/1561)): when the embedded
+  model download stopped sending bytes, caro hung with no output. A
+  watchdog now fails the attempt after 60 seconds with no bytes, and the
+  existing 3-attempt retry ends with the troubleshooting error. A slow
+  download that keeps sending bytes is not cut off. Closes #1440.
 - **Static matcher: "find and kill the runaway process eating CPU" now emits
   the full website-promised pipeline** (`ps aux | sort -nrk 3,3 | head -1 |
   awk '{print $2}' | xargs kill`) instead of the bare `kill PID` placeholder.
