@@ -28,6 +28,24 @@ Rules (see `.claude/rules/good-boy-scout.md` → "Stay in your lane"):
 **Next step:** serve `search-index.json` statically and fetch it when the
 search overlay first opens (`website/src/components/OmniSearch.astro`).
 
+### BW-048: caro.sh 307-redirects to www, but every canonical says caro.sh
+
+**Found:** 2026-10-11, per-page SEO work (`feat/website-seo-og-agent-markdown`)
+**Issue:** #1586
+**Status:** open
+**Needs human?:** yes (Vercel dashboard domain setting)
+**Next step:** make `caro.sh` the primary domain in Vercel and 308-redirect
+`www` to it, or change `site` in `website/astro.config.mjs` to the `www` host.
+
+### BW-049: /blog index omits two published posts
+
+**Found:** 2026-10-11, per-page SEO work (`feat/website-seo-og-agent-markdown`)
+**Issue:** #1587
+**Status:** open
+**Needs human?:** no
+**Next step:** add `claude-skill-launch` and `founders-playbook-adaptation` to
+the `posts` array in `website/src/pages/blog/index.astro`.
+
 ### BW-002: CLAUDE.md version/MSRV drift, filed 42× (canonical + 41 duplicates)
 
 **Found:** 2026-09-27, PR #1470 session

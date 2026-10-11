@@ -1,5 +1,10 @@
 # Caro.sh SEO & Social Media Optimization Strategy
 
+> **Status (2026-10-11):** the strategy below is implemented. Share cards,
+> Markdown twins, llms.txt, JSON-LD and the SEO head now come from one system:
+> see [`docs/SEO_AND_AGENTS.md`](docs/SEO_AND_AGENTS.md). The plan below is kept
+> as history; where it differs (e.g. `og-image.png`), the system doc wins.
+
 ## Executive Summary
 
 This document outlines a comprehensive strategy for implementing industry-standard best practices for SEO, Open Graph social sharing, and LLM exposure for the Caro.sh website.
