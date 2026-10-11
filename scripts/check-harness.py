@@ -8,7 +8,7 @@ one spec before anything lands, and tests pin the agents' contracts
 hand-written by many parallel sessions, so the same checks run in CI instead.
 Agent tool allowlists are left to the Rust contract test that #1534 adds
 (tests/agent_tools_contract.rs), so this script does not duplicate it.
-Rationale: docs/adr/ADR-018-autoharness-harness-hygiene.md
+Rationale: docs/adr/ADR-019-autoharness-harness-hygiene.md
 
 Levels:
   error   fails the run: a broken registry entry, or drift in a file that is

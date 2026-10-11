@@ -1,4 +1,4 @@
-# ADR-018: Harness Hygiene Lessons from autoharness (Additive Adoption)
+# ADR-019: Harness Hygiene Lessons from autoharness (Additive Adoption)
 
 **Status**: Proposed
 
@@ -244,3 +244,4 @@ survive ephemeral cloud sessions. Pick a durable sink before trusting any
 |------|--------|---------|
 | 2026-09-26 | Caro maintainers | Initial draft, Proposed (as ADR-017) |
 | 2026-10-09 | Caro maintainers | Renumbered to ADR-018 (#1459 took 017). Least-privilege check handed to #1534; #1196's collision, minimum-description and command-description checks ported; budget moved to `scripts/harness-budget.json`; conventions moved to a path-scoped rule |
+| 2026-10-11 | Caro maintainers | Renumbered to ADR-019: #1511 merged first and took 018. Per `.claude/rules/adr-numbering.md`, the later merge renumbers. |

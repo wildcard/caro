@@ -9,7 +9,7 @@ paths:
 Path-scoped: this rule loads when a session touches the harness itself.
 
 The agent harness is code: CI lints it with `scripts/check-harness.py`
-(Harness Lint; rationale in `docs/adr/ADR-018-autoharness-harness-hygiene.md`).
+(Harness Lint; rationale in `docs/adr/ADR-019-autoharness-harness-hygiene.md`).
 Its warning budget lives in `scripts/harness-budget.json` and must equal the
 warning count, so the PR that fixes a warning also lowers the budget; nothing
 raises it.
