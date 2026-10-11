@@ -87,6 +87,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Website footer links.** The footer's "How it works" and "Blog" links
+  pointed at homepage sections that do not exist (`/#how-it-works`,
+  `/#blog`), so they opened the top of the homepage. They now open the
+  demo video and `/blog`. `homepage-anchors.test.ts` checks every
+  `/#section` link against the homepage.
 - **Website WCAG 2.2 AA pass and accessible occasion themes.** axe finds 0
   violations in 220 runs: the 50 English pages, the new gallery and 4
   locale homepages, each in light and dark at 1440px and 375px. The same
