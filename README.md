@@ -401,6 +401,24 @@ hybrid_remote = "mesh"
 allow_public = false
 ```
 
+Named model profiles bundle a backend, a model, an endpoint and the variable
+that holds the key. Pick one with `--model-profile <name>` or
+`CARO_MODEL_PROFILE`. `--backend` and `--model-name` still override it:
+
+```toml
+[models.gpu-box]
+backend = "ollama"            # embedded, ollama, vllm, exo, mesh or ai-horde
+model = "qwen2.5-coder:7b"
+url = "http://gpu-box:11434"
+
+[models.horde]
+backend = "ai-horde"
+api_key_env = "AI_HORDE_KEY"  # the variable's name, never the key itself
+```
+
+Caro refuses a profile it would partly ignore: an unknown backend, a URL or
+model for `embedded`, or `api_key_env` for a backend that reads no key.
+
 - **`mesh`** — [Mesh-LLM](https://github.com/Mesh-LLM/mesh-llm) pools GPU/RAM
   across machines you own, behind one OpenAI-compatible API. Best when a model
   is too big for one box but you want it private.

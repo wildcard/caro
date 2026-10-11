@@ -735,6 +735,14 @@ struct Cli {
     )]
     model_name: Option<String>,
 
+    /// Named model profile from config.toml
+    #[arg(
+        long = "model-profile",
+        help = "Use a [models.<name>] profile from config.toml (env: CARO_MODEL_PROFILE); \
+                --backend and --model-name override its fields"
+    )]
+    model_profile: Option<String>,
+
     /// Frontier advisor backend consulted only on low-confidence drafts
     /// (off by default). Its output is re-validated for safety before use.
     #[arg(
@@ -1108,7 +1116,10 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
 
     // Build a backend via the normal CLI path so the feature respects --backend, env var, config.
     let cli_app = caro::cli::CliApp::with_overrides(
-        caro::cli::CliConfig::default(),
+        caro::cli::CliConfig {
+            model_profile: cli.model_profile.clone(),
+            ..Default::default()
+        },
         cli.backend.clone(),
         cli.model_name.clone(),
         cli.force_llm,
@@ -3748,7 +3759,10 @@ fn print_usage() {
 async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
     // Create CLI application with optional backend and model overrides
     let app = CliApp::with_overrides(
-        caro::cli::CliConfig::default(),
+        caro::cli::CliConfig {
+            model_profile: cli.model_profile.clone(),
+            ..Default::default()
+        },
         cli.backend.clone(),
         cli.model_name.clone(),
         cli.force_llm,

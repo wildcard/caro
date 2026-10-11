@@ -3,6 +3,7 @@
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 pub mod profile;
 
@@ -1008,6 +1009,82 @@ impl BackendsConfig {
     }
 }
 
+/// Backends a `[models.<name>]` profile may select. `hybrid` is left out:
+/// it wraps two backends, so one `url`/`model` pair cannot describe it.
+pub const PROFILE_BACKENDS: &[&str] = &["embedded", "ollama", "vllm", "exo", "mesh", "ai-horde"];
+
+/// A named model profile, parsed from a `[models.<name>]` TOML table.
+///
+/// It bundles which backend, which model and where it lives, and names the
+/// variable that holds the key instead of holding the key (google/ax
+/// `Model` + `secretKey`). `--model-profile <name>` or `CARO_MODEL_PROFILE`
+/// selects one; `--backend` and `--model-name` still override it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ModelProfile {
+    /// One of [`PROFILE_BACKENDS`].
+    pub backend: String,
+    /// Model name passed to the backend (e.g. `qwen2.5-coder:7b`).
+    #[serde(default)]
+    pub model: Option<String>,
+    /// Endpoint URL; replaces that backend's `[backends]` URL.
+    #[serde(default)]
+    pub url: Option<String>,
+    /// Environment variable that holds the API key. Only `ai-horde` takes a
+    /// key today, so any other backend refuses this field.
+    #[serde(default)]
+    pub api_key_env: Option<String>,
+}
+
+impl ModelProfile {
+    /// Refuse a profile that would be silently ignored in part.
+    pub fn validate(&self, name: &str) -> Result<(), String> {
+        let at = format!("models.{}", name);
+        if !PROFILE_BACKENDS.contains(&self.backend.as_str()) {
+            return Err(format!(
+                "{}.backend must be one of {}, got {:?}",
+                at,
+                PROFILE_BACKENDS.join(", "),
+                self.backend
+            ));
+        }
+        if self.backend == "embedded" && self.model.is_some() {
+            return Err(format!(
+                "{}.model: the embedded backend has a built-in model and ignores this",
+                at
+            ));
+        }
+        if let Some(url) = &self.url {
+            if self.backend == "embedded" {
+                return Err(format!("{}.url: the embedded backend has no URL", at));
+            }
+            if !(url.starts_with("http://") || url.starts_with("https://")) {
+                return Err(format!(
+                    "{}.url must start with http:// or https://, got {:?}",
+                    at, url
+                ));
+            }
+        }
+        if let Some(var) = &self.api_key_env {
+            if self.backend != "ai-horde" {
+                return Err(format!(
+                    "{}.api_key_env: backend {:?} reads no API key from config; \
+                     only ai-horde does",
+                    at, self.backend
+                ));
+            }
+            if !is_env_var_name(var) {
+                return Err(format!(
+                    "{}.api_key_env must be an environment variable name \
+                     (letters, digits, '_'; not starting with a digit), got {:?}",
+                    at, var
+                ));
+            }
+        }
+        Ok(())
+    }
+}
+
 /// True when `name` is a portable environment variable name.
 fn is_env_var_name(name: &str) -> bool {
     let mut chars = name.chars();
@@ -1054,6 +1131,9 @@ pub struct UserConfiguration {
     /// TOML section. Defaults to all-unset (factory defaults apply).
     #[serde(default)]
     pub backends: BackendsConfig,
+    /// Named model profiles, parsed from `[models.<name>]` TOML tables.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub models: BTreeMap<String, ModelProfile>,
 }
 
 impl Default for UserConfiguration {
@@ -1072,6 +1152,7 @@ impl Default for UserConfiguration {
             ai: AiConfig::default(),
             safety: crate::safety::SafetySection::default(),
             backends: BackendsConfig::default(),
+            models: BTreeMap::new(),
         }
     }
 }
@@ -1098,6 +1179,54 @@ impl UserConfiguration {
         }
         self.ai.validate()?;
         self.backends.validate()?;
+        for (name, profile) in &self.models {
+            profile.validate(name)?;
+        }
+        Ok(())
+    }
+
+    /// Apply the `[models.<name>]` profile: set the backend, model, URL and
+    /// key variable it names. Explicit `--backend` / `--model-name` are
+    /// applied after this, so they still win.
+    pub fn apply_model_profile(&mut self, name: &str) -> Result<(), String> {
+        let profile = self.models.get(name).cloned().ok_or_else(|| {
+            let defined: Vec<&str> = self.models.keys().map(String::as_str).collect();
+            if defined.is_empty() {
+                format!(
+                    "unknown model profile {:?}: config.toml defines no [models.<name>] tables",
+                    name
+                )
+            } else {
+                format!(
+                    "unknown model profile {:?}; defined: {}",
+                    name,
+                    defined.join(", ")
+                )
+            }
+        })?;
+        profile.validate(name)?;
+
+        self.default_model = Some(profile.backend.clone());
+        if let Some(model) = profile.model {
+            self.model_name = Some(model);
+        }
+        if let Some(url) = profile.url {
+            let slot = match profile.backend.as_str() {
+                "ollama" => &mut self.backends.ollama_url,
+                "vllm" => &mut self.backends.vllm_url,
+                "exo" => &mut self.backends.exo_url,
+                "mesh" => &mut self.backends.mesh_url,
+                "ai-horde" => &mut self.backends.ai_horde_url,
+                other => unreachable!("validate() rejects a URL for {other}"),
+            };
+            *slot = Some(url);
+        }
+        if let Some(var) = profile.api_key_env {
+            // The profile's key source replaces an inline key, so the two
+            // never both apply.
+            self.backends.ai_horde_key = None;
+            self.backends.ai_horde_key_env = Some(var);
+        }
         Ok(())
     }
 }
@@ -1223,6 +1352,7 @@ impl UserConfigurationBuilder {
             ai: self.ai,
             safety: self.safety,
             backends: self.backends,
+            models: BTreeMap::new(),
         };
         config.validate()?;
         Ok(config)
@@ -1693,5 +1823,131 @@ mod backends_config_tests {
         cfg.backends.ai_horde_key = Some("inline-key".into());
         cfg.backends.ai_horde_key_env = Some("HORDE_KEY".into());
         assert!(cfg.validate().is_err());
+    }
+}
+
+#[cfg(test)]
+mod model_profile_tests {
+    use super::*;
+
+    fn config(toml_src: &str) -> UserConfiguration {
+        toml::from_str(toml_src).unwrap()
+    }
+
+    #[test]
+    fn contract_profile_sets_backend_model_url_and_key_env() {
+        let mut cfg = config(
+            r#"
+            [backends]
+            ai_horde_key = "inline-key"
+
+            [models.horde]
+            backend = "ai-horde"
+            model = "koboldcpp/some-model"
+            url = "https://horde.example/api"
+            api_key_env = "HORDE_KEY"
+            "#,
+        );
+        assert!(cfg.validate().is_ok());
+        cfg.apply_model_profile("horde").unwrap();
+        assert_eq!(cfg.default_model.as_deref(), Some("ai-horde"));
+        assert_eq!(cfg.model_name.as_deref(), Some("koboldcpp/some-model"));
+        assert_eq!(
+            cfg.backends.ai_horde_url.as_deref(),
+            Some("https://horde.example/api")
+        );
+        // The profile's key source replaces the inline key.
+        assert_eq!(cfg.backends.ai_horde_key, None);
+        assert_eq!(cfg.backends.ai_horde_key_env.as_deref(), Some("HORDE_KEY"));
+        assert!(cfg.validate().is_ok());
+    }
+
+    #[test]
+    fn profile_url_goes_to_its_own_backend() {
+        for (backend, pick) in [
+            (
+                "ollama",
+                (|b: &BackendsConfig| b.ollama_url.clone()) as fn(&_) -> _,
+            ),
+            ("vllm", |b| b.vllm_url.clone()),
+            ("exo", |b| b.exo_url.clone()),
+            ("mesh", |b| b.mesh_url.clone()),
+        ] {
+            let mut cfg = config(&format!(
+                "[models.p]\nbackend = \"{backend}\"\nurl = \"http://box:1234\"\n"
+            ));
+            cfg.apply_model_profile("p").unwrap();
+            assert_eq!(pick(&cfg.backends).as_deref(), Some("http://box:1234"));
+            assert_eq!(cfg.default_model.as_deref(), Some(backend));
+        }
+    }
+
+    #[test]
+    fn unset_profile_fields_keep_the_config_values() {
+        let mut cfg = config(
+            r#"
+            model_name = "from-config"
+            [backends]
+            ollama_url = "http://kept:11434"
+            [models.p]
+            backend = "ollama"
+            "#,
+        );
+        cfg.apply_model_profile("p").unwrap();
+        assert_eq!(cfg.model_name.as_deref(), Some("from-config"));
+        assert_eq!(
+            cfg.backends.ollama_url.as_deref(),
+            Some("http://kept:11434")
+        );
+    }
+
+    #[test]
+    fn unknown_profile_names_the_defined_ones() {
+        let mut cfg = config("[models.fast]\nbackend = \"embedded\"\n");
+        let err = cfg.apply_model_profile("slow").unwrap_err();
+        assert!(err.contains("\"slow\"") && err.contains("fast"), "{err}");
+
+        let mut empty = UserConfiguration::default();
+        let err = empty.apply_model_profile("slow").unwrap_err();
+        assert!(err.contains("no [models.<name>]"), "{err}");
+    }
+
+    #[test]
+    fn profiles_that_would_be_partly_ignored_are_refused() {
+        for (body, needle) in [
+            ("backend = \"hybrid\"", "backend must be one of"),
+            ("backend = \"claude\"", "backend must be one of"),
+            (
+                "backend = \"embedded\"\nurl = \"http://x\"",
+                "embedded backend has no URL",
+            ),
+            ("backend = \"embedded\"\nmodel = \"big\"", "built-in model"),
+            ("backend = \"ollama\"\nurl = \"localhost:11434\"", "http://"),
+            (
+                "backend = \"ollama\"\napi_key_env = \"OLLAMA_KEY\"",
+                "only ai-horde",
+            ),
+            (
+                "backend = \"ai-horde\"\napi_key_env = \"1BAD\"",
+                "environment variable name",
+            ),
+        ] {
+            let cfg = config(&format!("[models.p]\n{body}\n"));
+            let err = cfg.validate().unwrap_err();
+            assert!(err.contains("models.p") && err.contains(needle), "{err}");
+        }
+    }
+
+    #[test]
+    fn unknown_profile_fields_are_rejected_at_parse() {
+        let parsed: Result<UserConfiguration, _> =
+            toml::from_str("[models.p]\nbackend = \"ollama\"\napi_key = \"secret\"\n");
+        assert!(parsed.is_err(), "a literal api_key must not be accepted");
+    }
+
+    #[test]
+    fn config_without_profiles_serializes_without_a_models_table() {
+        let out = toml::to_string(&UserConfiguration::default()).unwrap();
+        assert!(!out.contains("[models"), "{out}");
     }
 }
