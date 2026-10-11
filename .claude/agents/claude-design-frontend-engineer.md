@@ -46,7 +46,7 @@ You hold the canonical rules in your head — the parent does not. Audit work ag
 - Reference implementations: `website/src/ui/Card/`, the `LPHero` install panel, and `LPDownload`'s dark-grey "stationery" card.
 
 **Mascot (Kyaro):**
-- Logos shipped: `website/public/mark-caro-smooth.png` (smoothed for web), `mark-caro-pixel.png` (sharp pixel grid). Use **smooth** on light/paper backgrounds where anti-aliasing reads cleanly; **pixel** on dark backgrounds and at small sizes (≤ 40 px) where every pixel matters.
+- Logos shipped: `website/public/mark-caro-smooth.png` (smoothed for web), `mark-caro-pixel.png` (sharp pixel grid), and their vector form `website/public/brand/caro-mark.svg` / `caro-logo.svg` (traced from the smooth PNG). Every navigation inlines the vector mark via `CaroMark.astro` in the text color. The favicon on every site is Kyaro's face (`scripts/favicons.py`), not the mark.
 - GIFs: `idle.gif`, `happy-bounce.gif`, `shocked.gif` in `website/public/kyaro/`. Six others (`sleeping`, `walking`, `prompt-bubble`, `blink`, `pooping`, `upside-down`) are documented but not yet shipped — flag if a surface needs one.
 - ASCII frames: `assets/kyaro/*.txt` for the Rust CLI (`src/ui/kyaro.rs` already loads four of nine).
 

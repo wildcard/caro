@@ -13,6 +13,8 @@
   smooths or resizes an icon pixel.
 - An icon renders only at a whole-number multiple of its native size.
 - Kyaro always stands on a stage-grey tile, in both themes.
+- The favicon on every site is Kyaro's face, cut the same way. Every
+  navigation shows the official Caro mark as a vector.
 - A slot too small for a sprite gets a terminal glyph (`▸ ■ $ ❯ >_`), never
   an emoji or a third-party icon font.
 
@@ -60,8 +62,10 @@ with its own small decoder, so CI needs no install step for the check.
 
 ## Rules
 
-1. **Cut, never draw.** Every icon pixel comes from a Kyaro frame. To change
-   an icon, change its frame or its window in `ICONS`, then run the script.
+1. **Kyaro is cut, never drawn.** Every Kyaro icon pixel comes from a Kyaro
+   frame. To change one, change its frame or its window in `ICONS`, then run
+   the script. An icon that is not Kyaro starts from a written definition
+   (see "How to add an icon"), never from an ad-hoc drawing.
 2. **A figure holds the whole sprite.** The script fails if a 48 px figure
    window cuts a sprite pixel. Only a face icon crops, by design.
 3. **Whole-number scales only.** `KyaroIcon` takes `scale` (1, 2 or 3), not a
@@ -116,22 +120,50 @@ that loading, cleanup and error states can use them without new work.
 The same meaning gets the same icon on every page: `danger` is safety,
 `running` is speed, `success` is commands that work, `asking` is the shell.
 
+## Brand mark and favicon
+
+| Asset | File | Source | Where |
+|---|---|---|---|
+| Mark (vector) | `website/public/brand/caro-mark.svg` | trace of `mark-caro-smooth.png` | every navigation, through `CaroMark.astro` |
+| Logo (vector, vertical) | `website/public/brand/caro-logo.svg` | trace of `mark-caro-smooth.png` | available for pages and press |
+| Favicon set | `favicon.svg`, `favicon.ico`, app icons on 6 sites | `scripts/favicons.py`, Kyaro's face | every site's `<head>` |
+
+- **The mark is a vector.** Potrace traced it from the official smooth PNG.
+  Rendered back at native size, it matches the PNG at IoU 0.997, and every
+  differing pixel is within 2 px of an edge. Replace the trace with the
+  original vector when it is exported from the brand source.
+- **The mark takes the text color.** It is ink on paper and reverses out on
+  dark surfaces. Do not put it in an `<img>`: that loses `currentColor`.
+- **The favicon is Kyaro, not the mark.** `scripts/favicons.py` takes the
+  `face-ready` window from `scripts/kyaro_icons.py`, crops it to the face and
+  centers it on a 32-unit `--caro-grey-200` tile. At 16 CSS px on a 2x screen,
+  each art pixel is one device pixel. The 16 px ICO entry is an average of
+  the 32 px tile, because the 23×20 face cannot fit 16 px pixel for pixel.
+
 ## How to add an icon
 
 1. **An existing state fits.** Add a row to `ICONS` in
    `scripts/kyaro_icons.py` with the frame path. Add a face window only if
    the slot is 28 px. Run `python3 scripts/kyaro_icons.py` and commit the SVG
    and the manifest. Use it with `<KyaroIcon name="…" />`.
-2. **No state fits.** Ask for new art. Do not draw it, and do not ask an AI
-   model to draw it. Until the art lands, use a terminal glyph. Send the
-   request to Alrezky Caesaria with:
+2. **No state fits: generate it from a definition.** Owner decision,
+   2026-10-11. Write the icon's definition first (meaning, slot, size, grid,
+   palette, what it must and must not show). Generate candidates with Codex
+   from that definition. Snap each candidate to its pixel grid and the Kyaro
+   palette, then vectorize it the same way as the Kyaro icons. The owner
+   reviews the candidates. Until one passes, the slot keeps its terminal
+   glyph.
+3. **Nothing generated passes: ask the artist.** Send the definition to
+   Alrezky Caesaria with:
    - the state name and the UI meaning (one line each)
    - the slot and its size on the site
    - the frame spec: 64×64, the 7-color Kyaro palette, the 1 px outline,
      feet on row 47, Aseprite plus PNG frames in `assets/kyaro/0NN-<state>/`
    - the number of frames, if it animates
-3. The owner approves new states. The Kyaro art is co-owned and is not under
-   the AGPL (see [`assets/kyaro/README.md`](../../assets/kyaro/README.md)).
+4. The owner approves every new icon. The Kyaro art is co-owned and is not
+   under the AGPL (see [`assets/kyaro/README.md`](../../assets/kyaro/README.md)).
+   A generated icon is not Kyaro art by Alrezky; keep it out of
+   `assets/kyaro/` and record how it was made next to it.
 
 ## Known limits
 
@@ -167,12 +199,9 @@ alert lines into thick white strokes.
 
 ## Open questions for the owner
 
-1. **The official mark and favicon.** `mark-caro-pixel.png` (a pixel face in
-   a terminal window, with three dots above) feeds the favicon on every site.
-   This change keeps it. Default: keep it. If it is the "drone" you meant,
-   say so, and the favicon pipeline can take `face-ready` instead.
-2. **Navigation lockup.** The navigation shows `>_ Caro`. The footer now
-   shows the Kyaro face next to "Caro". Default: keep `>_` in the navigation.
-3. **New states from Alrezky.** A "guarding" pose would fit safety better
+1. **The original vector of the mark.** The navigation uses a trace of the
+   smooth PNG. If the brand source (the Claude Design "Brand · Mark" file)
+   has the original SVG, export it to `website/public/brand/caro-mark.svg`.
+2. **New states from Alrezky.** A "guarding" pose would fit safety better
    than `danger`, and a "home" pose would fit privacy better than `ready`.
-   Default: no request until a slot needs one.
+   Default: try generation from a definition first (step 2 above).

@@ -17,6 +17,7 @@
 
 import { t, type Locale } from '../i18n/config';
 import GitHubMark from './icons/GitHubMark.astro';
+import CaroMark from './icons/CaroMark.astro';
 import OccasionMenu from './OccasionMenu.astro';
 
 interface Props {
@@ -61,7 +62,7 @@ const resourceLinks = [
 <nav class="navigation" id="main-nav" aria-label="Main">
   <div class="nav-container">
     <a href={home} class="nav-brand">
-      <span class="brand-prompt" aria-hidden="true">&gt;_</span>
+      <CaroMark size={28} />
       <span class="brand-text">Caro</span>
     </a>
 
@@ -187,7 +188,7 @@ const resourceLinks = [
   <div class="drawer-backdrop" data-drawer-close></div>
   <div class="drawer-panel">
     <div class="drawer-header">
-      <a href={home} class="drawer-brand"><span class="brand-prompt" aria-hidden="true">&gt;_</span> Caro</a>
+      <a href={home} class="drawer-brand"><CaroMark size={24} /> Caro</a>
       <div class="drawer-header-actions">
         <div id="nav-search-slot-mobile"></div>
         <button class="icon-button" type="button" id="drawer-close" data-drawer-close aria-label="Close menu">
@@ -292,19 +293,13 @@ const resourceLinks = [
   .nav-brand,
   .drawer-brand {
     display: inline-flex;
-    align-items: baseline;
-    gap: 6px;
+    align-items: center;
+    gap: 10px;
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 22px;
     color: var(--fg-strong);
     text-decoration: none;
-  }
-
-  /* Terminal-glyph mark: sanctioned where the mascot does not fit. */
-  .brand-prompt {
-    color: var(--accent);
-    font-size: 0.8em;
   }
 
   .nav-desktop {
