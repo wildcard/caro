@@ -19,6 +19,15 @@ Rules (see `.claude/rules/good-boy-scout.md` → "Stay in your lane"):
 
 ---
 
+### BW-041: OmniSearch inlines a 1.55 MB search index into every page
+
+**Found:** 2026-10-10, WCAG design pass (`feat/website-wcag-design-pass`)
+**Issue:** #1564
+**Status:** open
+**Needs human?:** no
+**Next step:** serve `search-index.json` statically and fetch it when the
+search overlay first opens (`website/src/components/OmniSearch.astro`).
+
 ### BW-002: CLAUDE.md version/MSRV drift, filed 42× (canonical + 41 duplicates)
 
 **Found:** 2026-09-27, PR #1470 session
@@ -302,6 +311,14 @@ users to `export CARO_MODEL=smollm-135m-q4`, which cannot download.
 **Status:** open
 **Needs human?:** yes if the fix is to delete the job (CI gate); no for a root-cause fix.
 **Next step:** read the failing step's log and root-cause it.
+
+### BW-040: static matcher "Find Python files (simple)" swallows content searches
+
+**Found:** 2026-10-03 (while fixing "search for TODO in all python files")
+**Issue:** #1516. `search for <X> in python files` returns `find . -name "*.py" -type f` for any X other than TODO.
+**Status:** fixed (#1517: content-search handler in `StaticMatcher::content_search_command`)
+**Needs human?:** no
+**Next step:** delete this entry a week after #1517 merges.
 
 ---
 
