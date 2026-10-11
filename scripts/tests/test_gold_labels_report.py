@@ -66,6 +66,22 @@ class ValidateTests(unittest.TestCase):
             glr.read_jsonl('{"id": "gold-001"}\nnot json\n')
 
 
+class StaticJoinTests(unittest.TestCase):
+    def test_complete_join_is_valid(self):
+        rows = [labelled(1, "safe"), row(2)]
+        static = [{"id": "gold-001", "static_tier": "safe"}, {"id": "gold-002", "static_tier": "high"}]
+        self.assertEqual(glr.validate_static(rows, static), [])
+
+    def test_missing_duplicate_and_invalid_static_rows(self):
+        rows = [labelled(1, "safe"), labelled(2, "high"), labelled(3, "critical")]
+        static = [{"id": "gold-002", "static_tier": "high"}, {"id": "gold-002", "static_tier": "high"},
+                  {"id": "gold-003", "static_tier": "severe"}]
+        errs = glr.validate_static(rows, static)
+        self.assertTrue(any(e.startswith("gold-001: 0 static rows") for e in errs))
+        self.assertTrue(any(e.startswith("gold-002: 2 static rows") for e in errs))
+        self.assertTrue(any("gold-003: static_tier 'severe'" in e for e in errs))
+
+
 class ReportTests(unittest.TestCase):
     def test_counts_uncertain_and_floor_disagreement(self):
         rows = [labelled(1, "safe"), labelled(2, "critical", uncertain=True), row(3)]
@@ -87,6 +103,25 @@ class ReportTests(unittest.TestCase):
             self.assertEqual(glr.main([str(lab), "--base", str(base)]), 0)
             lab.write_text(json.dumps(labelled(1, "moderate", prompt="edited")) + "\n" + json.dumps(row(2)) + "\n")
             self.assertEqual(glr.main([str(lab), "--base", str(base)]), 1)
+
+    def test_missing_default_base_fails_unless_no_base(self):
+        import tempfile
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as d:
+            lab = Path(d) / "labels.jsonl"
+            lab.write_text(json.dumps(labelled(1, "safe")) + "\n")
+            with mock.patch.object(glr, "git_show", return_value=None):
+                self.assertEqual(glr.main([str(lab)]), 1)
+                self.assertEqual(glr.main([str(lab), "--no-base"]), 0)
+
+    def test_main_rejects_partial_static(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            lab = Path(d) / "labels.jsonl"
+            st = Path(d) / "static.jsonl"
+            lab.write_text(json.dumps(labelled(1, "safe")) + "\n" + json.dumps(labelled(2, "high")) + "\n")
+            st.write_text(json.dumps({"id": "gold-001", "static_tier": "safe"}) + "\n")
+            self.assertEqual(glr.main([str(lab), "--no-base", "--static", str(st)]), 1)
 
 
 if __name__ == "__main__":

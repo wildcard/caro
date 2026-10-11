@@ -13,7 +13,10 @@ Checks (any failure exits 1):
   * one JSON object per line, ids unique, every id `gold-NNN`
   * the non-labeller fields (`id`, `source`, `eval_id`, `prompt`, `command`)
     are unchanged against --base (default: the same path on `origin/main`,
-    read via git); the labels PR must not edit candidates
+    read via git; if that is unavailable the run fails unless --no-base is
+    given); the labels PR must not edit candidates
+  * with --static, every labelled id has exactly one valid static verdict,
+    so the disagreement numbers cover all labelled rows
   * every labelled row has a `gold_tier` in {safe, moderate, high, critical},
     a boolean `uncertain`, a non-empty `rationale`, a `labeller` and an ISO
     `labelled_at`
@@ -120,6 +123,23 @@ def validate(rows: list[dict], base: list[dict] | None) -> list[str]:
     return errors
 
 
+def validate_static(rows: list[dict], static: list[dict]) -> list[str]:
+    """Every labelled id must have exactly one valid static verdict, or the
+    floor-vs-gold percentage would describe only the matched subset."""
+    errors: list[str] = []
+    counts = Counter(str(r.get("id")) for r in static)
+    tiers = {str(r.get("id")): r.get("static_tier") for r in static}
+    for r in rows:
+        if r.get("gold_tier") not in TIERS:
+            continue
+        rid = r["id"]
+        if counts.get(rid, 0) != 1:
+            errors.append(f"{rid}: {counts.get(rid, 0)} static rows (need exactly 1); static file is stale or partial")
+        elif tiers[rid] not in TIERS:
+            errors.append(f"{rid}: static_tier {tiers[rid]!r} is not one of {', '.join(TIERS)}")
+    return errors
+
+
 def report(rows: list[dict], static: list[dict] | None) -> str:
     out: list[str] = []
     labelled = [r for r in rows if r.get("gold_tier") in TIERS]
@@ -192,13 +212,19 @@ def main(argv: list[str] | None = None) -> int:
     if not args.no_base:
         text = Path(args.base).read_text() if args.base else git_show("docs/ml/risk-gold-candidates.jsonl")
         if text is None:
-            print("warning: no base available (not a git checkout?); skipping fixed-field check", file=sys.stderr)
-        else:
-            base = read_jsonl(text)
+            print(
+                "error: cannot read docs/ml/risk-gold-candidates.jsonl from origin/main; "
+                "pass --base <unlabelled file> or --no-base to skip the fixed-field check",
+                file=sys.stderr,
+            )
+            return 1
+        base = read_jsonl(text)
 
     static = read_jsonl(Path(args.static).read_text()) if args.static else None
 
     errors = validate(rows, base)
+    if static is not None:
+        errors += validate_static(rows, static)
     for e in errors:
         print(f"error: {e}", file=sys.stderr)
     print(report(rows, static))
