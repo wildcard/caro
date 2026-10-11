@@ -33,12 +33,25 @@ interface VerdictSection {
   chooseCompetitor: string[];
 }
 
+interface SourceLink {
+  label: string;
+  url: string;
+}
+
+// When the competitor facts were last checked, and against which sources.
+// The field moves fast; a dated, sourced page is easy to re-check.
+interface VerificationInfo {
+  date: string;
+  sources: SourceLink[];
+}
+
 interface ComparisonData {
   competitor: CompetitorInfo;
   tldr: TLDRSection;
   headToHead: HeadToHeadRow[];
   sections: DetailSection[];
   verdict: VerdictSection;
+  verification?: VerificationInfo;
 }
 
 interface Props {
@@ -133,6 +146,20 @@ function renderValue(value: boolean | string) {
             <div class="section-content" set:html={section.content} />
           </div>
         ))}
+        {comparison.verification && (
+          <div class="verification">
+            <p>
+              Facts about {comparison.competitor.name} last checked on
+              <time datetime={comparison.verification.date}>{comparison.verification.date}</time>.
+              Something out of date? <a href="https://github.com/wildcard/caro/issues/new">Tell us</a>.
+            </p>
+            <ul>
+              {comparison.verification.sources.map((source) => (
+                <li><a href={source.url} target="_blank" rel="noopener noreferrer">{source.label}</a></li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </section>
 
@@ -193,6 +220,13 @@ function renderValue(value: boolean | string) {
   .hero-subtitle { font-size: 18px; color: var(--color-text-secondary); }
 
   .tldr { padding: 50px 20px; background: var(--color-bg-secondary); }
+
+  .verification { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--color-border); font-size: 14px; color: var(--color-text-secondary); }
+  .verification p { margin: 0 0 8px; }
+  .verification ul { margin: 0; padding-left: 20px; }
+  .verification li { margin: 4px 0; overflow-wrap: anywhere; }
+  .verification a { color: var(--color-text-secondary); text-decoration: underline; }
+  .verification a:hover { color: var(--accent-text); }
   .tldr h2 { font-size: 24px; margin-bottom: 20px; color: var(--color-text); }
   .tldr-list { list-style: none; padding: 0; margin: 0; }
   .tldr-list li { padding: 12px 0; padding-left: 28px; position: relative; color: var(--color-text); border-bottom: 1px solid var(--color-border); }

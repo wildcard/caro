@@ -1,79 +1,105 @@
 ---
 import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
 
+// Competitor facts checked against Warp's own docs, repo and blog on
+// 2026-10-11. Research notes: docs/research/2026-10-11-competitive-landscape-refresh.md
 const comparison = {
   competitor: {
     name: 'Warp',
     icon: '🚀',
-    tagline: 'AI-native terminal emulator',
+    tagline: 'Agentic development environment (open-source client)',
   },
   tldr: {
     title: 'TL;DR',
     points: [
-      'Warp is a completely new terminal app; Caro works in YOUR existing terminal',
-      'Warp requires cloud for AI features; Caro runs 100% offline with local models',
-      'Warp collects telemetry by default; Caro is privacy-first',
-      'Both have AI command assistance, but Caro adds rule-based safety validation',
-      'Warp has rich UI features; Caro is CLI-focused and lightweight'
+      'Warp open-sourced its terminal client in April 2026 under AGPL-3.0, the same license as Caro. Its agent harness, server and Warp Drive stay closed and hosted.',
+      'Every Warp AI request goes through Warp\'s servers, even with your own API key. Local models need a public HTTPS tunnel. Caro runs local models with no network at all.',
+      'The Warp app replaces your terminal. The Warp Agent CLI (August 2026) runs in any terminal, but needs a Warp account. Caro needs no account.',
+      'Warp asks before agent commands that match an editable regex denylist. Caro checks every command against 52+ curated patterns, rates the risk, and blocks critical commands.',
+      'Warp is a full agentic workspace: agents, Drive, teams and cloud agents. Caro does one job: natural language to a safe shell command.',
     ]
   },
   headToHead: [
-    { feature: 'Works in existing terminal', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Works 100% offline', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Privacy-first design', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Rule-based safety checks', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Cross-platform', caro: true, competitor: 'partial', winner: 'caro' },
-    { feature: 'Modern UI/UX', caro: false, competitor: true, winner: 'competitor' },
-    { feature: 'Blocks editing in outputs', caro: false, competitor: true, winner: 'competitor' },
-    { feature: 'Team collaboration', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'Open source', caro: true, competitor: 'partial', winner: 'caro' },
+    { feature: 'AI works fully offline', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Local models without a tunnel', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'No account needed for AI', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Curated dangerous-command patterns', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Risk level for each command', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Editable command rules', caro: true, competitor: true, winner: 'tie' },
+    { feature: 'Works in your existing terminal', caro: true, competitor: 'partial', winner: 'caro' },
+    { feature: 'macOS, Linux and Windows', caro: true, competitor: true, winner: 'tie' },
+    { feature: 'Full coding agent (edits files, runs tasks)', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'Team collaboration (Drive, session sharing)', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'Modern terminal UI (blocks, tabs)', caro: false, competitor: true, winner: 'competitor' },
   ],
   sections: [
     {
-      title: 'Terminal Philosophy',
+      title: 'What Is Open Source',
+      icon: '📖',
+      content: `
+        <p><strong>Warp</strong> published its client on GitHub on April 28, 2026. Most of the code is AGPL-3.0, and the UI framework crates are MIT. Warp's FAQ says the server, the Warp Drive backend, the Oz orchestration layer and the built-in agent harness are not in the repository. The harness runs on Warp's servers.</p>
+        <p><strong>Caro</strong> is AGPL-3.0 from end to end: the CLI, the safety patterns, the prompts and the local inference path. You can read, audit and change every part that decides which command you see.</p>
+      `
+    },
+    {
+      title: 'Your Terminal',
       icon: '🖥️',
       content: `
-        <p><strong>Warp</strong> is a completely new terminal emulator built from scratch with AI capabilities baked in. It requires you to switch from your current terminal (iTerm2, Terminal.app, Alacritty, etc.) to Warp.</p>
-        <p><strong>Caro</strong> is a companion agent that works with your existing terminal. No app switching, no new UI to learn, no config migration. Just shell command assistance that integrates into your current workflow.</p>
+        <p><strong>The Warp app</strong> is its own terminal emulator, so you move from iTerm2, Ghostty, Terminal.app or Windows Terminal to Warp. <strong>The Warp Agent CLI</strong>, launched in August 2026, runs inside any terminal and over SSH. It needs a Warp login or API key.</p>
+        <p><strong>Caro</strong> is a single CLI with optional shell integration for zsh, bash and fish. It does not replace your terminal, your prompt or your config, and it needs no account.</p>
       `
     },
     {
-      title: 'Privacy & Connectivity',
+      title: 'Privacy and Connectivity',
       icon: '🔒',
       content: `
-        <p><strong>Warp</strong> requires cloud connectivity for its AI features. Your prompts are sent to Warp's servers for processing. Warp also collects telemetry data by default (though it can be disabled).</p>
-        <p><strong>Caro</strong> runs entirely locally. AI inference happens on your machine with local models. No internet required, privacy-first design with minimal anonymous telemetry. Perfect for air-gapped environments or privacy-conscious users.</p>
-      `
-    },
-    {
-      title: 'Features vs Focus',
-      icon: '⚖️',
-      content: `
-        <p><strong>Warp</strong> offers a rich feature set: modern text editing in terminal, command blocks, notebook-style outputs, team workflows, and more. It's a full terminal replacement with many capabilities.</p>
-        <p><strong>Caro</strong> intentionally does one thing well: help you remember shell commands safely. It's lightweight, focused, and doesn't try to reinvent the terminal. If you love your current terminal, Caro enhances it without replacing it.</p>
+        <p><strong>Warp</strong> sends AI requests through its own backend, including requests that use your own API key or a custom endpoint. Custom endpoints must be public: Warp rejects localhost and private network URLs. Without a network, the terminal works but Warp's AI features do not. On the Free plan, telemetry is on by default and must stay on to use AI. On Business and Enterprise it is off by default. Warp has zero-data-retention agreements with its model providers.</p>
+        <p><strong>Caro</strong> runs local models on your machine. Prompts and commands do not leave it, so Caro works on a plane, behind a strict VPN or in an air-gapped network.</p>
       `
     },
     {
       title: 'Safety Approach',
       icon: '🛡️',
       content: `
-        <p><strong>Warp</strong> relies on AI to generate commands without systematic safety validation. Dangerous commands can still be suggested if the model doesn't catch them.</p>
-        <p><strong>Caro</strong> validates every command against 52+ safety patterns before presenting it. Commands like <code>rm -rf /</code>, fork bombs, and system-breaking operations are blocked regardless of what the model suggests.</p>
+        <p><strong>Warp</strong> gives each agent action an autonomy level: Agent decides, Always ask, Always allow or Never. Commands that match a regex denylist need your approval. The default list covers tools like <code>rm</code>, <code>curl</code>, <code>eval</code> and <code>ssh</code>. By default, auto-approve skips your own denylist. Admin denylist rules are never skipped. A match asks; it does not block.</p>
+        <p><strong>Caro</strong> checks every command against 52+ curated patterns, rates it CRITICAL, HIGH, MEDIUM or LOW, and blocks critical commands such as <code>rm -rf /</code> and fork bombs, whatever the model suggests. You can add your own patterns.</p>
+      `
+    },
+    {
+      title: 'Use Both',
+      icon: '🤝',
+      content: `
+        <p>Caro is a plain CLI, so it runs inside Warp like in any other terminal. Use Warp for its agents and workspace. Use Caro when you want a quick, offline, safety-checked command.</p>
       `
     },
   ],
   verdict: {
     chooseCaro: [
-      'You love your current terminal and don\'t want to switch',
-      'You need offline functionality (flights, VPNs, air-gapped)',
-      'You value privacy-first design',
-      'You want rule-based safety guarantees',
-      'You prefer lightweight, focused tools',
+      'You want to keep your terminal and your setup',
+      'You need AI that works offline or air-gapped',
+      'You do not want an account or telemetry to use AI',
+      'You want a curated safety library with risk levels, not only a denylist',
+      'You want the whole stack open, inference included',
     ],
     chooseCompetitor: [
-      'You want a modern, redesigned terminal experience',
-      'Team collaboration features are important to you',
-      'You like notebook-style command outputs',
-      'You\'re okay with cloud-dependent AI features',
+      'You want a full agentic development environment',
+      'You want hosted frontier models and cloud agents',
+      'Team features like Drive and session sharing matter to you',
+      'You like a modern terminal UI with blocks and tabs',
+    ]
+  },
+  verification: {
+    date: '2026-10-11',
+    sources: [
+      { label: 'Warp blog: Warp is now open-source (Apr 28, 2026)', url: 'https://www.warp.dev/blog/warp-is-now-open-source' },
+      { label: 'warpdotdev/warp repository and FAQ', url: 'https://github.com/warpdotdev/warp' },
+      { label: 'Warp docs: custom inference endpoints', url: 'https://docs.warp.dev/agents/inference/custom-inference-endpoint/' },
+      { label: 'Warp docs: using Warp offline', url: 'https://docs.warp.dev/support-and-community/troubleshooting-and-support/using-warp-offline/' },
+      { label: 'Warp docs: privacy', url: 'https://docs.warp.dev/support-and-community/privacy-and-security/privacy/' },
+      { label: 'Warp docs: agent profiles and permissions', url: 'https://docs.warp.dev/agents/capabilities/agent-profiles-permissions/' },
+      { label: 'Warp blog: Introducing the Warp Agent CLI (Aug 4, 2026)', url: 'https://www.warp.dev/blog/introducing-the-warp-agent-cli-coding-agent' },
+      { label: 'Warp docs: installation and setup', url: 'https://docs.warp.dev/getting-started/quickstart/installation-and-setup/' },
     ]
   }
 };
@@ -81,9 +107,9 @@ const comparison = {
 
 <ComparisonPageLayout
   title="Caro vs Warp - Feature Comparison | Terminal AI Tools"
-  description="Compare Caro and Warp. Work in your existing terminal vs switching to a new AI-native terminal emulator."
+  description="Compare Caro and Warp. A fully open, offline, safety-checked shell CLI vs an agentic development environment with an open-source client and cloud AI."
   comparison={comparison}
-  heroSubtitle="Your existing terminal vs a new AI-native terminal"
+  heroSubtitle="Keep your terminal. Keep your data on your machine."
   finalCtaHeading="Keep Your Terminal. Add AI Safely."
-  finalCtaSubtext="Caro works in your existing terminal. No switching required."
+  finalCtaSubtext="Caro runs in the terminal you already use. No account, no cloud required."
 />
