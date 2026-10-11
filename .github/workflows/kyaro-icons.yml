@@ -14,6 +14,8 @@ on:
       - 'assets/kyaro/**'
       - 'website/**'
       - 'scripts/kyaro_icons.py'
+      - 'scripts/pixel_snap.py'
+      - 'scripts/tests/test_pixel_snap.py'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/kyaro-icons.yml'
@@ -23,6 +25,8 @@ on:
       - 'assets/kyaro/**'
       - 'website/**'
       - 'scripts/kyaro_icons.py'
+      - 'scripts/pixel_snap.py'
+      - 'scripts/tests/test_pixel_snap.py'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/kyaro-icons.yml'
@@ -40,6 +44,13 @@ jobs:
       # Standard library only: no install step.
       - name: Check icons
         run: python3 scripts/kyaro_icons.py --check
+
+      # The snap tool turns generated candidates into grid-true icons
+      # (docs/brand/icons/DEFINITIONS.md). It needs Pillow; the check does not.
+      - name: Snap tool round trip
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 -m unittest scripts/tests/test_pixel_snap.py
 
   usage:
     name: Site uses the icon set correctly
