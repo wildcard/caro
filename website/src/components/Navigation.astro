@@ -1,14 +1,23 @@
 ---
 /**
- * Modern Navigation Component
- * Features: Desktop dropdown menu, mobile slide-out drawer, theme toggles
+ * Site navigation for content pages (the homepage uses LPNavigation).
+ *
+ * - Desktop: menu with disclosure dropdowns (click, Enter/Space, Escape;
+ *   hover also opens on pointer devices), GitHub link, search slot,
+ *   occasion menu (only while an opt-in holiday is in season), dark mode.
+ * - ≤ 900px: a dialog drawer with the same links and appearance controls.
  *
  * Variants:
- * - default: Main site navigation with Features, Compare, Resources
- * - use-cases: Use cases section with All Use Cases, By Role dropdown
+ * - default: Features, Compare, Resources, Community, Support
+ * - use-cases: All Use Cases, By Role, Back to Home
+ *
+ * Occasion looks live in config/occasions.ts; which holidays are in season
+ * comes from lib/holiday-engine.ts (dates + locale rules in holidays.ts).
  */
 
 import { t, type Locale } from '../i18n/config';
+import GitHubMark from './icons/GitHubMark.astro';
+import OccasionMenu from './OccasionMenu.astro';
 
 interface Props {
   variant?: 'default' | 'use-cases';
@@ -17,260 +26,172 @@ interface Props {
 }
 
 const { variant = 'default', currentPage, lang = 'en' } = Astro.props;
+const home = lang === 'en' ? '/' : `/${lang}/`;
+// The English homepage and the localized homepages use different section ids.
+const demoAnchor = lang === 'en' ? '#video-demo' : '#how-it-works';
+const repo = 'https://github.com/wildcard/caro';
 
-// Use-cases personas for the dropdown
 const personas = [
-  { slug: 'sre', title: 'SRE & On-Call Engineers', icon: '🚨' },
-  { slug: 'air-gapped', title: 'Air-Gapped & Security', icon: '🔐' },
-  { slug: 'devops', title: 'DevOps & Platform', icon: '🔧' },
-  { slug: 'tech-lead', title: 'Tech Leads & Managers', icon: '👥' },
-  { slug: 'developer', title: 'Developers', icon: '💻' },
+  { slug: 'sre', title: 'SRE & On-Call Engineers' },
+  { slug: 'air-gapped', title: 'Air-Gapped & Security' },
+  { slug: 'devops', title: 'DevOps & Platform' },
+  { slug: 'tech-lead', title: 'Tech Leads & Managers' },
+  { slug: 'developer', title: 'Developers' },
+];
+
+const compareLinks = [
+  { href: '/compare', title: t(lang, 'common.nav.dropdown.overview'), desc: t(lang, 'common.nav.dropdown.seeAllComparisons') },
+  { href: '/compare/warp', title: t(lang, 'common.nav.dropdown.vsWarp'), desc: t(lang, 'common.nav.dropdown.aiNativeTerminal') },
+  { href: '/compare/github-copilot-cli', title: t(lang, 'common.nav.dropdown.vsGitHubCopilot'), desc: t(lang, 'common.nav.dropdown.aiPairProgrammer') },
+  { href: '/compare/kiro-cli', title: t(lang, 'common.nav.dropdown.vsKiro'), desc: t(lang, 'common.nav.dropdown.awsAssistant') },
+];
+
+const resourceLinks = [
+  { href: '/use-cases', title: t(lang, 'common.nav.dropdown.useCases'), desc: t(lang, 'common.nav.dropdown.byRoleSummary') },
+  { href: '/blog', title: t(lang, 'common.nav.dropdown.blog'), desc: t(lang, 'common.nav.dropdown.newsAndTutorials') },
+  { href: '/docs', title: t(lang, 'common.nav.dropdown.docs'), desc: t(lang, 'common.nav.dropdown.installAndReference') },
+  { href: '/explore', title: t(lang, 'common.nav.dropdown.explore'), desc: t(lang, 'common.nav.dropdown.interactiveDemo') },
+  { href: '/faq', title: t(lang, 'common.nav.dropdown.faq'), desc: t(lang, 'common.nav.dropdown.commonQuestions') },
+  { href: '/roadmap', title: t(lang, 'common.nav.dropdown.roadmap'), desc: t(lang, 'common.nav.dropdown.whatsNext') },
+  { href: '/evals', title: t(lang, 'common.nav.dropdown.evals'), desc: t(lang, 'common.nav.dropdown.evalsDesc') },
+  { href: '/glossary', title: t(lang, 'common.nav.dropdown.glossary'), desc: t(lang, 'common.nav.dropdown.terminalTerms') },
 ];
 ---
 
-<nav class="navigation" id="main-nav">
+<nav class="navigation" id="main-nav" aria-label="Main">
   <div class="nav-container">
-    <!-- Logo -->
-    <a href={lang === 'en' ? '/' : `/${lang}/`} class="nav-brand">
-      <span class="brand-icon">🐕</span>
+    <a href={home} class="nav-brand">
+      <span class="brand-prompt" aria-hidden="true">&gt;_</span>
       <span class="brand-text">Caro</span>
     </a>
 
-    <!-- Desktop Navigation -->
     <div class="nav-desktop">
       {variant === 'use-cases' ? (
-        <!-- Use Cases Navigation -->
-        <ul class="nav-menu nav-menu-use-cases">
+        <ul class="nav-menu">
           <li class="nav-item">
-            <a href="/use-cases" class={currentPage === 'index' ? 'active' : ''}>{t(lang, 'common.nav.useCases.allUseCases')}</a>
+            <a href="/use-cases" aria-current={currentPage === 'index' ? 'page' : undefined}>{t(lang, 'common.nav.useCases.allUseCases')}</a>
           </li>
           <li class="nav-item has-dropdown">
-            <button class="dropdown-trigger" aria-expanded="false">
+            <button class="dropdown-trigger" type="button" aria-expanded="false" aria-controls="dd-roles">
               {t(lang, 'common.nav.useCases.byRole')}
-              <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                 <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
-            <div class="dropdown-panel">
-              {personas.map((persona) => (
-                <a href={`/use-cases/${persona.slug}`} class={`dropdown-item ${currentPage === persona.slug ? 'active' : ''}`}>
-                  <span class="item-icon">{persona.icon}</span>
-                  <div class="item-content">
-                    <span class="item-title">{persona.title}</span>
-                  </div>
+            <div class="dropdown-panel" id="dd-roles">
+              {personas.map((p) => (
+                <a href={`/use-cases/${p.slug}`} class="dropdown-item" aria-current={currentPage === p.slug ? 'page' : undefined}>
+                  <span class="item-title">{p.title}</span>
                 </a>
               ))}
             </div>
           </li>
           <li class="nav-item">
-            <a href={lang === 'en' ? '/' : `/${lang}/`}>{t(lang, 'common.nav.useCases.backToHome')}</a>
+            <a href={home}>{t(lang, 'common.nav.useCases.backToHome')}</a>
           </li>
         </ul>
       ) : (
-        <!-- Default Navigation -->
         <ul class="nav-menu">
           <li class="nav-item">
-            <a href={lang === 'en' ? '/#features' : `/${lang}/#features`}>{t(lang, 'common.nav.features')}</a>
+            <a href={`${home}#features`}>{t(lang, 'common.nav.features')}</a>
           </li>
           <li class="nav-item has-dropdown">
-            <button class="dropdown-trigger" aria-expanded="false">
+            <button class="dropdown-trigger" type="button" aria-expanded="false" aria-controls="dd-compare">
               {t(lang, 'common.nav.compare')}
-              <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                 <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
-            <div class="dropdown-panel">
-              <a href="/compare" class="dropdown-item">
-                <span class="item-icon">📊</span>
-                <div class="item-content">
-                  <span class="item-title">{t(lang, 'common.nav.dropdown.overview')}</span>
-                  <span class="item-desc">{t(lang, 'common.nav.dropdown.seeAllComparisons')}</span>
-                </div>
-              </a>
-              <a href="/compare/warp" class="dropdown-item">
-                <span class="item-icon">⚡</span>
-                <div class="item-content">
-                  <span class="item-title">{t(lang, 'common.nav.dropdown.vsWarp')}</span>
-                  <span class="item-desc">{t(lang, 'common.nav.dropdown.aiNativeTerminal')}</span>
-                </div>
-              </a>
-              <a href="/compare/github-copilot-cli" class="dropdown-item">
-                <span class="item-icon">🤖</span>
-                <div class="item-content">
-                  <span class="item-title">{t(lang, 'common.nav.dropdown.vsGitHubCopilot')}</span>
-                  <span class="item-desc">{t(lang, 'common.nav.dropdown.aiPairProgrammer')}</span>
-                </div>
-              </a>
-              <a href="/compare/kiro-cli" class="dropdown-item">
-                <span class="item-icon">👻</span>
-                <div class="item-content">
-                  <span class="item-title">{t(lang, 'common.nav.dropdown.vsKiro')}</span>
-                  <span class="item-desc">{t(lang, 'common.nav.dropdown.awsAssistant')}</span>
-                </div>
-              </a>
+            <div class="dropdown-panel" id="dd-compare">
+              {compareLinks.map((l) => (
+                <a href={l.href} class="dropdown-item">
+                  <span class="item-title">{l.title}</span>
+                  <span class="item-desc">{l.desc}</span>
+                </a>
+              ))}
             </div>
           </li>
           <li class="nav-item has-dropdown">
-            <button class="dropdown-trigger" aria-expanded="false">
+            <button class="dropdown-trigger" type="button" aria-expanded="false" aria-controls="dd-resources">
               {t(lang, 'common.nav.resources')}
-              <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                 <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
-            <div class="dropdown-panel">
-              <a href={lang === 'en' ? '/#blog' : `/${lang}/#blog`} class="dropdown-item">
-                <span class="item-icon">📝</span>
-                <div class="item-content">
-                  <span class="item-title">{t(lang, 'common.nav.dropdown.blog')}</span>
-                  <span class="item-desc">{t(lang, 'common.nav.dropdown.newsAndTutorials')}</span>
-                </div>
-              </a>
-              <a href="/explore" class="dropdown-item">
-                <span class="item-icon">🔍</span>
-                <div class="item-content">
-                  <span class="item-title">{t(lang, 'common.nav.dropdown.explore')}</span>
-                  <span class="item-desc">{t(lang, 'common.nav.dropdown.interactiveDemo')}</span>
-                </div>
-              </a>
-              <a href="/faq" class="dropdown-item">
-                <span class="item-icon">❓</span>
-                <div class="item-content">
-                  <span class="item-title">{t(lang, 'common.nav.dropdown.faq')}</span>
-                  <span class="item-desc">{t(lang, 'common.nav.dropdown.commonQuestions')}</span>
-                </div>
-              </a>
-              <a href="/roadmap" class="dropdown-item">
-                <span class="item-icon">🗺️</span>
-                <div class="item-content">
-                  <span class="item-title">{t(lang, 'common.nav.dropdown.roadmap')}</span>
-                  <span class="item-desc">{t(lang, 'common.nav.dropdown.whatsNext')}</span>
-                </div>
-              </a>
-              <a href="/glossary" class="dropdown-item">
-                <span class="item-icon">📖</span>
-                <div class="item-content">
-                  <span class="item-title">{t(lang, 'common.nav.dropdown.glossary')}</span>
-                  <span class="item-desc">{t(lang, 'common.nav.dropdown.terminalTerms')}</span>
-                </div>
-              </a>
-              <a href="https://github.com/wildcard/caro" class="dropdown-item" target="_blank" rel="noopener noreferrer">
-                <span class="item-icon">🐙</span>
-                <div class="item-content">
-                  <span class="item-title">{t(lang, 'common.nav.dropdown.github')}</span>
-                  <span class="item-desc">{t(lang, 'common.nav.dropdown.sourceCode')}</span>
-                </div>
-              </a>
+            <div class="dropdown-panel" id="dd-resources">
+              {resourceLinks.map((l) => (
+                <a href={l.href} class="dropdown-item">
+                  <span class="item-title">{l.title}</span>
+                  <span class="item-desc">{l.desc}</span>
+                </a>
+              ))}
             </div>
           </li>
           <li class="nav-item">
-            <a href="/#waitlist" class="community-link">
-              <span class="community-icon">🐺</span> Community
-            </a>
+            <a href="/#waitlist">Community</a>
           </li>
           <li class="nav-item">
-            <a href="/support" class="support-link">
-              <span class="support-heart">♥</span> {t(lang, 'common.nav.support')}
-            </a>
+            <a href="/support" class="support-link"><span class="support-heart" aria-hidden="true">♥</span> {t(lang, 'common.nav.support')}</a>
           </li>
         </ul>
       )}
 
-      <!-- Desktop Actions -->
       <div class="nav-actions">
-        <!-- Search Button -->
         <div id="nav-search-slot"></div>
 
-        <div class="theme-toggles">
-          <!-- Holiday Toggle -->
-          <div id="holiday-container-desktop" class="holiday-wrapper hidden">
-            <button id="holiday-toggle-desktop" class="icon-button holiday-btn" aria-label="Holiday theme" title="Holiday Theme">
-              <span class="holiday-icon christmas">🎄</span>
-              <span class="holiday-icon hanukkah">🕎</span>
-              <span class="holiday-icon newyear">🎊</span>
-              <span class="holiday-icon default">✨</span>
-            </button>
-            <div id="holiday-menu-desktop" class="holiday-dropdown hidden">
-              <div class="dropdown-header">Holiday Theme</div>
-              <button class="theme-option" data-theme="christmas">
-                <span>🎄</span> Christmas
-                <span class="check">✓</span>
-              </button>
-              <button class="theme-option" data-theme="hanukkah">
-                <span>🕎</span> Hanukkah
-                <span class="check">✓</span>
-              </button>
-              <button class="theme-option" data-theme="newyear">
-                <span>🎊</span> New Year
-                <span class="check">✓</span>
-              </button>
-              <button class="theme-option" data-theme="none">
-                <span>🚫</span> None
-                <span class="check">✓</span>
-              </button>
-              <div class="dropdown-divider"></div>
-              <label class="snow-toggle">
-                <span>❄️ Snow Effect</span>
-                <input type="checkbox" id="snow-checkbox-desktop" />
-                <span class="toggle-track"><span class="toggle-thumb"></span></span>
-              </label>
-              <div class="dropdown-divider"></div>
-              <label class="snow-toggle">
-                <span>🎆 Disable All Effects</span>
-                <input type="checkbox" id="effects-checkbox-desktop" />
-                <span class="toggle-track"><span class="toggle-thumb"></span></span>
-              </label>
-            </div>
-          </div>
+        <a href={repo} class="icon-button" target="_blank" rel="noopener noreferrer" aria-label="Caro on GitHub (opens in a new tab)" title="GitHub">
+          <GitHubMark size={20} />
+        </a>
 
-          <!-- Dark Mode Toggle -->
-          <button id="theme-toggle-desktop" class="icon-button" aria-label="Toggle dark mode" title="Toggle theme">
-            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="5"/>
-              <line x1="12" y1="1" x2="12" y2="3"/>
-              <line x1="12" y1="21" x2="12" y2="23"/>
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-              <line x1="1" y1="12" x2="3" y2="12"/>
-              <line x1="21" y1="12" x2="23" y2="12"/>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-            </svg>
-            <svg class="icon-moon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-            </svg>
-          </button>
-        </div>
+        <!-- Occasion menu: revealed by script only while an opt-in holiday is in season. -->
+        <OccasionMenu lang={lang} />
 
-        <a href={lang === 'en' ? '/#download' : `/${lang}/#download`} class="nav-cta">
+        <button id="theme-toggle-desktop" class="icon-button" type="button" aria-label={t(lang, 'common.aria.toggleDarkMode')} title={t(lang, 'common.aria.toggleDarkMode')}>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+
+        <a href={`${home}#download`} class="nav-cta">
           {t(lang, 'common.nav.getStarted')}
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </a>
       </div>
     </div>
 
-    <!-- Mobile Menu Button -->
-    <button class="mobile-toggle" id="mobile-toggle" aria-label="Open menu" aria-expanded="false">
-      <span class="hamburger-box">
-        <span class="hamburger-inner"></span>
-      </span>
-    </button>
+    <div class="nav-compact">
+      <a href={repo} class="icon-button" target="_blank" rel="noopener noreferrer" aria-label="Caro on GitHub (opens in a new tab)">
+        <GitHubMark size={20} />
+      </a>
+      <button class="icon-button mobile-toggle" id="mobile-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-drawer">
+        <span class="hamburger" aria-hidden="true"></span>
+      </button>
+    </div>
   </div>
 </nav>
 
-<!-- Mobile Drawer -->
-<div class="mobile-drawer" id="mobile-drawer">
-  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+<div class="mobile-drawer" id="mobile-drawer" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+  <div class="drawer-backdrop" data-drawer-close></div>
   <div class="drawer-panel">
     <div class="drawer-header">
-      <a href={lang === 'en' ? '/' : `/${lang}/`} class="drawer-brand">
-        <span>🐕</span> Caro
-      </a>
+      <a href={home} class="drawer-brand"><span class="brand-prompt" aria-hidden="true">&gt;_</span> Caro</a>
       <div class="drawer-header-actions">
         <div id="nav-search-slot-mobile"></div>
-        <button class="drawer-close" id="drawer-close" aria-label="Close menu">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="icon-button" type="button" id="drawer-close" data-drawer-close aria-label="Close menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <line x1="18" y1="6" x2="6" y2="18"/>
             <line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
@@ -280,192 +201,81 @@ const personas = [
 
     <div class="drawer-content">
       {variant === 'use-cases' ? (
-        <!-- Use Cases Mobile Navigation -->
         <Fragment>
           <div class="drawer-section">
-            <a href="/use-cases" class={`drawer-link ${currentPage === 'index' ? 'active' : ''}`}>
-              <span class="link-icon">📋</span>
-              <span class="link-text">{t(lang, 'common.nav.useCases.allUseCases')}</span>
-            </a>
+            <a href="/use-cases" class="drawer-link" aria-current={currentPage === 'index' ? 'page' : undefined}>{t(lang, 'common.nav.useCases.allUseCases')}</a>
           </div>
-
           <div class="drawer-section">
-            <div class="section-header">{t(lang, 'common.nav.useCases.byRole')}</div>
-            {personas.map((persona) => (
-              <a href={`/use-cases/${persona.slug}`} class={`drawer-link ${currentPage === persona.slug ? 'active' : ''}`}>
-                <span class="link-icon">{persona.icon}</span>
-                <span class="link-text">{persona.title}</span>
-              </a>
+            <p class="section-header">{t(lang, 'common.nav.useCases.byRole')}</p>
+            {personas.map((p) => (
+              <a href={`/use-cases/${p.slug}`} class="drawer-link" aria-current={currentPage === p.slug ? 'page' : undefined}>{p.title}</a>
             ))}
           </div>
-
           <div class="drawer-section">
-            <a href={lang === 'en' ? '/' : `/${lang}/`} class="drawer-link">
-              <span class="link-icon">🏠</span>
-              <span class="link-text">{t(lang, 'common.nav.useCases.backToHome')}</span>
-            </a>
+            <a href={home} class="drawer-link">{t(lang, 'common.nav.useCases.backToHome')}</a>
           </div>
         </Fragment>
       ) : (
-        <!-- Default Mobile Navigation -->
         <Fragment>
           <div class="drawer-section">
-            <a href={lang === 'en' ? '/#features' : `/${lang}/#features`} class="drawer-link">
-              <span class="link-icon">⭐</span>
-              <span class="link-text">{t(lang, 'common.nav.features')}</span>
-            </a>
-            <a href={lang === 'en' ? '/#how-it-works' : `/${lang}/#how-it-works`} class="drawer-link">
-              <span class="link-icon">🎬</span>
-              <span class="link-text">{t(lang, 'common.buttons.watchDemo')}</span>
+            <a href={`${home}#features`} class="drawer-link">{t(lang, 'common.nav.features')}</a>
+            <a href={`${home}${demoAnchor}`} class="drawer-link">{t(lang, 'common.buttons.watchDemo')}</a>
+          </div>
+          <div class="drawer-section">
+            <p class="section-header">{t(lang, 'common.nav.compare')}</p>
+            {compareLinks.map((l) => <a href={l.href} class="drawer-link">{l.title}</a>)}
+          </div>
+          <div class="drawer-section">
+            <p class="section-header">{t(lang, 'common.nav.resources')}</p>
+            {resourceLinks.map((l) => <a href={l.href} class="drawer-link">{l.title}</a>)}
+            <a href={repo} class="drawer-link" target="_blank" rel="noopener noreferrer">
+              <GitHubMark size={18} />
+              <span>{t(lang, 'common.nav.dropdown.github')}</span>
+              <span class="visually-hidden">(opens in a new tab)</span>
             </a>
           </div>
-
           <div class="drawer-section">
-            <div class="section-header">{t(lang, 'common.nav.compare')}</div>
-            <a href="/compare" class="drawer-link">
-              <span class="link-icon">📊</span>
-              <span class="link-text">{t(lang, 'common.nav.mobile.allComparisons')}</span>
-            </a>
-            <a href="/compare/warp" class="drawer-link">
-              <span class="link-icon">⚡</span>
-              <span class="link-text">{t(lang, 'common.nav.dropdown.vsWarp')}</span>
-            </a>
-            <a href="/compare/github-copilot-cli" class="drawer-link">
-              <span class="link-icon">🤖</span>
-              <span class="link-text">{t(lang, 'common.nav.dropdown.vsGitHubCopilot')}</span>
-            </a>
-            <a href="/compare/kiro-cli" class="drawer-link">
-              <span class="link-icon">👻</span>
-              <span class="link-text">{t(lang, 'common.nav.dropdown.vsKiro')}</span>
-            </a>
-          </div>
-
-          <div class="drawer-section">
-            <div class="section-header">{t(lang, 'common.nav.resources')}</div>
-            <a href={lang === 'en' ? '/#blog' : `/${lang}/#blog`} class="drawer-link">
-              <span class="link-icon">📝</span>
-              <span class="link-text">{t(lang, 'common.nav.dropdown.blog')}</span>
-            </a>
-            <a href="/explore" class="drawer-link">
-              <span class="link-icon">🔍</span>
-              <span class="link-text">{t(lang, 'common.nav.dropdown.explore')}</span>
-            </a>
-            <a href="/faq" class="drawer-link">
-              <span class="link-icon">❓</span>
-              <span class="link-text">{t(lang, 'common.nav.dropdown.faq')}</span>
-            </a>
-            <a href="/roadmap" class="drawer-link">
-              <span class="link-icon">🗺️</span>
-              <span class="link-text">{t(lang, 'common.nav.dropdown.roadmap')}</span>
-            </a>
-            <a href="/glossary" class="drawer-link">
-              <span class="link-icon">📖</span>
-              <span class="link-text">{t(lang, 'common.nav.dropdown.glossary')}</span>
-            </a>
-            <a href="https://github.com/wildcard/caro" class="drawer-link" target="_blank" rel="noopener noreferrer">
-              <span class="link-icon">🐙</span>
-              <span class="link-text">{t(lang, 'common.nav.dropdown.github')}</span>
-              <svg class="external-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M9 3L3 9M9 3H5M9 3V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </a>
-          </div>
-
-          <div class="drawer-section">
-            <a href="/#waitlist" class="drawer-link community-link">
-              <span class="link-icon">🐺</span>
-              <span class="link-text">Join the Pack</span>
-            </a>
-            <a href="/support" class="drawer-link support-link">
-              <span class="link-icon">💖</span>
-              <span class="link-text">{t(lang, 'common.nav.mobile.supportCaro')}</span>
-            </a>
+            <a href="/#waitlist" class="drawer-link">Join the Pack</a>
+            <a href="/support" class="drawer-link support-link"><span class="support-heart" aria-hidden="true">♥</span> {t(lang, 'common.nav.mobile.supportCaro')}</a>
           </div>
         </Fragment>
       )}
 
-      <!-- Theme Controls -->
       <div class="drawer-section theme-section">
-        <div class="section-header">{t(lang, 'common.nav.appearance.title')}</div>
-
-        <!-- Dark Mode -->
-        <div class="theme-control">
-          <div class="control-label">
-            <span class="control-icon">🌓</span>
-            <span>{t(lang, 'common.nav.appearance.darkMode')}</span>
-          </div>
-          <button id="theme-toggle-mobile" class="toggle-switch" aria-label={t(lang, 'common.aria.toggleDarkMode')}>
-            <span class="toggle-track">
-              <span class="toggle-thumb"></span>
-            </span>
-          </button>
-        </div>
-
-        <!-- Holiday Theme (shown during season) -->
-        <div id="holiday-controls-mobile" class="holiday-controls hidden">
-          <div class="theme-control">
-            <div class="control-label">
-              <span class="control-icon" id="holiday-icon-mobile">🎄</span>
-              <span>{t(lang, 'common.nav.appearance.holidayTheme')}</span>
-            </div>
-            <select id="holiday-select-mobile" class="theme-select">
-              <option value="christmas">Christmas 🎄</option>
-              <option value="hanukkah">Hanukkah 🕎</option>
-              <option value="newyear">New Year 🎊</option>
-              <option value="none">None</option>
-            </select>
-          </div>
-
-          <div class="theme-control">
-            <div class="control-label">
-              <span class="control-icon">❄️</span>
-              <span>{t(lang, 'common.nav.appearance.snowEffect')}</span>
-            </div>
-            <button id="snow-toggle-mobile" class="toggle-switch" aria-label="Toggle snow effect">
-              <span class="toggle-track">
-                <span class="toggle-thumb"></span>
-              </span>
-            </button>
-          </div>
-
-          <div class="theme-control">
-            <div class="control-label">
-              <span class="control-icon">🎆</span>
-              <span>{t(lang, 'common.nav.appearance.disableEffects')}</span>
-            </div>
-            <button id="effects-toggle-mobile" class="toggle-switch" aria-label="Toggle all effects">
-              <span class="toggle-track">
-                <span class="toggle-thumb"></span>
-              </span>
-            </button>
-          </div>
+        <p class="section-header">{t(lang, 'common.nav.appearance.title')}</p>
+        <label class="panel-switch">
+          <span>{t(lang, 'common.nav.appearance.darkMode')}</span>
+          <input type="checkbox" class="switch-input" id="theme-toggle-mobile" />
+        </label>
+        <div data-occasion-menu-mobile hidden>
+          <label class="panel-row" for="occasion-select-mobile">{t(lang, 'common.nav.appearance.holidayTheme')}</label>
+          <select id="occasion-select-mobile" class="theme-select" data-occasion-select></select>
+          <label class="panel-switch" data-snow-row hidden>
+            <span>{t(lang, 'common.nav.appearance.snowEffect')}</span>
+            <input type="checkbox" class="switch-input" data-snow-toggle />
+          </label>
+          <label class="panel-switch">
+            <span>{t(lang, 'common.nav.appearance.disableEffects')}</span>
+            <input type="checkbox" class="switch-input" data-effects-toggle />
+          </label>
         </div>
       </div>
     </div>
 
-    <!-- Drawer Footer -->
     <div class="drawer-footer">
-      <a href={lang === 'en' ? '/#download' : `/${lang}/#download`} class="drawer-cta">
-        <span>{t(lang, 'common.nav.getStarted')}</span>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
+      <a href={`${home}#download`} class="drawer-cta">{t(lang, 'common.nav.getStarted')}</a>
     </div>
   </div>
 </div>
 
 <style>
-  /* ========================================
-     BASE NAVIGATION STYLES
-     ======================================== */
   .navigation {
     position: sticky;
     top: 0;
     z-index: 100;
     background: var(--color-bg);
     border-bottom: 1px solid var(--color-border);
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
   }
 
   .nav-container {
@@ -476,48 +286,37 @@ const personas = [
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
   }
 
-  /* Brand */
-  .nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
+  .nav-brand,
+  .drawer-brand {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: var(--font-display);
     font-weight: 700;
     font-size: 22px;
-    color: var(--color-text);
-    transition: transform 0.2s;
+    color: var(--fg-strong);
+    text-decoration: none;
   }
 
-  .nav-brand:hover {
-    transform: scale(1.02);
+  /* Terminal-glyph mark: sanctioned where the mascot does not fit. */
+  .brand-prompt {
+    color: var(--accent);
+    font-size: 0.8em;
   }
 
-  .brand-icon {
-    font-size: 24px;
-  }
-
-  .brand-text {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* ========================================
-     DESKTOP NAVIGATION
-     ======================================== */
   .nav-desktop {
     display: flex;
     align-items: center;
-    gap: 32px;
+    gap: 24px;
   }
 
   .nav-menu {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -528,169 +327,176 @@ const personas = [
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 0 14px;
-    height: var(--control-height-md, 40px);
+    padding: 0 12px;
+    height: 40px;
+    font: inherit;
     font-size: 15px;
     font-weight: 500;
     color: var(--color-text);
     text-decoration: none;
     background: none;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.2s;
-    box-sizing: border-box;
+    transition: color 0.2s, background-color 0.2s;
   }
 
   .nav-item > a:hover,
-  .dropdown-trigger:hover {
-    color: #ff8c42;
-    background: rgba(255, 140, 66, 0.08);
+  .dropdown-trigger:hover,
+  .dropdown-trigger[aria-expanded='true'] {
+    color: var(--accent-text);
+    background: var(--color-bg-hover);
+    text-decoration: none;
+  }
+
+  .nav-item > a[aria-current='page'] {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 6px;
   }
 
   .chevron {
     transition: transform 0.2s;
   }
 
-  .has-dropdown:hover .chevron {
+  .dropdown-trigger[aria-expanded='true'] .chevron {
     transform: rotate(180deg);
   }
 
-  /* Community Link */
-  .community-link {
-    color: #6366f1 !important;
-  }
-
-  .community-link:hover {
-    background: rgba(99, 102, 241, 0.08) !important;
-  }
-
-  .community-icon {
-    transition: transform 0.3s ease;
-  }
-
-  .community-link:hover .community-icon {
-    transform: scale(1.1);
-  }
-
-  /* Support Link */
   .support-link {
-    color: #ea4aaa !important;
-  }
-
-  .support-link:hover {
-    background: rgba(234, 74, 170, 0.08) !important;
+    color: var(--accent-text) !important;
   }
 
   .support-heart {
-    animation: heartbeat 1.5s ease-in-out infinite;
+    display: inline-block;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .support-link:hover .support-heart {
+      animation: heartbeat 1.2s ease-in-out infinite;
+    }
   }
 
   @keyframes heartbeat {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    50% { transform: scale(1.15); }
   }
 
-  /* Dropdown Panel */
   .has-dropdown {
     position: relative;
   }
 
   .dropdown-panel {
     position: absolute;
-    top: calc(100% + 8px);
+    top: 100%;
     left: 50%;
-    transform: translateX(-50%) translateY(-10px);
-    min-width: 280px;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-    padding: 8px;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease;
+    transform: translateX(-50%);
+    min-width: 260px;
+    /* Padding (not margin) bridges the gap so hover survives the move. */
+    padding-top: 8px;
+    display: none;
+    z-index: 10;
   }
 
-  .has-dropdown:hover .dropdown-panel {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0);
+  .dropdown-panel::before {
+    content: '';
+    position: absolute;
+    inset: 8px 0 0;
+    background: var(--bg-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: -1;
+  }
+
+  .dropdown-panel > * {
+    margin: 0 8px;
+  }
+
+  .dropdown-panel > :first-child {
+    margin-top: 8px;
+  }
+
+  .dropdown-panel > :last-child {
+    margin-bottom: 8px;
+  }
+
+  /* Open on click/keyboard (aria-expanded) and on hover for pointers. */
+  .dropdown-trigger[aria-expanded='true'] + .dropdown-panel {
+    display: block;
+  }
+
+  @media (hover: hover) {
+    .has-dropdown:hover .dropdown-panel {
+      display: block;
+    }
   }
 
   .dropdown-item {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    border-radius: 8px;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
     text-decoration: none;
     color: var(--color-text);
-    transition: all 0.2s;
   }
 
   .dropdown-item:hover {
-    background: rgba(255, 140, 66, 0.08);
+    background: var(--color-bg-hover);
+    text-decoration: none;
+    color: var(--color-text);
   }
 
-  .item-icon {
-    font-size: 20px;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--color-bg-secondary);
-    border-radius: 8px;
-  }
-
-  .item-content {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+  .dropdown-item[aria-current='page'] .item-title {
+    color: var(--accent-text);
   }
 
   .item-title {
-    font-weight: 500;
+    font-weight: 600;
     font-size: 14px;
   }
 
   .item-desc {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--color-text-secondary);
   }
 
-  /* Nav Actions */
-  .nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .theme-toggles {
+  .nav-actions,
+  .nav-compact {
     display: flex;
     align-items: center;
     gap: 8px;
   }
 
-  .icon-button {
-    width: var(--control-height-md, 40px);
-    height: var(--control-height-md, 40px);
+  .nav-compact {
+    display: none;
+  }
+
+  #nav-search-slot,
+  #nav-search-slot-mobile {
     display: flex;
+    align-items: center;
+  }
+
+  .icon-button {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     cursor: pointer;
     color: var(--color-text);
-    transition: all 0.2s;
-    box-sizing: border-box;
+    text-decoration: none;
+    transition: border-color 0.2s, background-color 0.2s;
   }
 
   .icon-button:hover {
-    border-color: #ff8c42;
-    background: rgba(255, 140, 66, 0.08);
+    border-color: var(--fg);
+    color: var(--color-text);
   }
 
   .icon-button svg {
@@ -698,292 +504,167 @@ const personas = [
     height: 20px;
   }
 
-  /* Theme Toggle Icons */
   #theme-toggle-desktop .icon-sun { display: none; }
   #theme-toggle-desktop .icon-moon { display: block; }
   :global(.dark) #theme-toggle-desktop .icon-sun { display: block; }
   :global(.dark) #theme-toggle-desktop .icon-moon { display: none; }
 
-  /* Holiday Button */
-  .holiday-wrapper {
-    position: relative;
-  }
-
-  .holiday-wrapper.hidden {
+  /* ---------- occasion controls (drawer; the desktop menu is OccasionMenu) ---------- */
+  [data-occasion-menu-mobile][hidden] {
     display: none;
   }
 
-  .holiday-btn .holiday-icon {
-    display: none;
-    font-size: 18px;
-  }
-
-  :global(.christmas) .holiday-btn .christmas { display: block; }
-  :global(.hanukkah) .holiday-btn .hanukkah { display: block; }
-  :global(.newyear) .holiday-btn .newyear { display: block; }
-  :global(:not(.christmas):not(.hanukkah):not(.newyear)) .holiday-btn .default { display: block; }
-
-  :global(.christmas) .holiday-btn {
-    border-color: #c41e3a;
-    background: rgba(196, 30, 58, 0.1);
-  }
-
-  :global(.hanukkah) .holiday-btn {
-    border-color: #0038b8;
-    background: rgba(0, 56, 184, 0.1);
-  }
-
-  :global(.newyear) .holiday-btn {
-    border-color: #ffd700;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(196, 69, 105, 0.1) 50%, rgba(78, 205, 196, 0.1) 100%);
-  }
-
-  /* Holiday Dropdown */
-  .holiday-dropdown {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    width: 220px;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-    padding: 8px;
-    z-index: 1000;
-  }
-
-  .holiday-dropdown.hidden {
-    display: none;
-  }
-
-  .dropdown-header {
-    padding: 8px 12px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--color-text-secondary);
-  }
-
-  .dropdown-divider {
-    height: 1px;
-    background: var(--color-border);
-    margin: 8px 0;
-  }
-
-  .theme-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    padding: 10px 12px;
-    background: none;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    color: var(--color-text);
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .theme-option:hover {
-    background: var(--color-bg-secondary);
-  }
-
-  .theme-option .check {
-    margin-left: auto;
-    color: #22c55e;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
-  .theme-option.active .check {
-    opacity: 1;
-  }
-
-  .snow-toggle {
+  .panel-switch,
+  .panel-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
+    gap: 12px;
+    min-height: 40px;
+    padding: 0 10px;
     font-size: 14px;
+    color: var(--color-text);
     cursor: pointer;
   }
 
-  .snow-toggle input {
+  .panel-switch[hidden] {
     display: none;
   }
 
-  .toggle-track {
+  /* Native checkbox styled as a switch: keeps keyboard and AT semantics. */
+  .switch-input {
+    appearance: none;
     position: relative;
+    flex-shrink: 0;
     width: 44px;
     height: 24px;
-    background: var(--color-border);
+    margin: 0;
     border-radius: 12px;
-    transition: background 0.2s;
+    background: var(--caro-grey-500);
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    transition: background-color 0.2s;
   }
 
-  .toggle-thumb {
+  .switch-input::before {
+    content: '';
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 20px;
-    height: 20px;
-    background: white;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background: var(--caro-white);
     transition: transform 0.2s;
   }
 
-  .snow-toggle input:checked + .toggle-track {
-    background: #22c55e;
+  .switch-input:checked {
+    background: var(--accent-fill);
   }
 
-  .snow-toggle input:checked + .toggle-track .toggle-thumb {
+  .switch-input:checked::before {
     transform: translateX(20px);
   }
 
-  /* CTA Button */
+  /* ---------- CTA ---------- */
   .nav-cta {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 0 20px;
-    height: var(--control-height-md, 40px);
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    height: 40px;
+    padding: 0 18px;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     text-decoration: none;
-    font-weight: 600;
     font-size: 15px;
-    border-radius: 10px;
-    transition: all 0.2s;
-    box-sizing: border-box;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+    transition: background-color 0.2s;
   }
 
   .nav-cta:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+    background: var(--accent-fill-hover);
+    color: var(--on-accent);
+    text-decoration: none;
   }
 
-  .nav-cta svg {
-    transition: transform 0.2s;
+  .navigation :is(a, button):focus-visible,
+  .mobile-drawer :is(a, button, select, input):focus-visible {
+    outline: 3px solid var(--accent-text);
+    outline-offset: 2px;
   }
 
-  .nav-cta:hover svg {
-    transform: translateX(3px);
-  }
-
-  /* ========================================
-     MOBILE TOGGLE BUTTON
-     ======================================== */
-  .mobile-toggle {
-    display: none;
-    width: var(--control-height-md, 40px);
-    height: var(--control-height-md, 40px);
-    padding: 0;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-  }
-
-  .hamburger-box {
-    position: relative;
+  /* ---------- hamburger ---------- */
+  .hamburger,
+  .hamburger::before,
+  .hamburger::after {
     display: block;
-    width: 24px;
-    height: 18px;
-    margin: 0 auto;
+    width: 18px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 1px;
   }
 
-  .hamburger-inner,
-  .hamburger-inner::before,
-  .hamburger-inner::after {
+  .hamburger {
+    position: relative;
+  }
+
+  .hamburger::before,
+  .hamburger::after {
+    content: '';
     position: absolute;
-    width: 24px;
-    height: 3px;
-    background: var(--color-text);
-    border-radius: 2px;
-    transition: all 0.3s ease;
+    left: 0;
   }
 
-  .hamburger-inner {
-    top: 50%;
-    transform: translateY(-50%);
-  }
+  .hamburger::before { top: -6px; }
+  .hamburger::after { top: 6px; }
 
-  .hamburger-inner::before {
-    content: '';
-    top: -8px;
-  }
-
-  .hamburger-inner::after {
-    content: '';
-    top: 8px;
-  }
-
-  .mobile-toggle.active .hamburger-inner {
-    background: transparent;
-  }
-
-  .mobile-toggle.active .hamburger-inner::before {
-    top: 0;
-    transform: rotate(45deg);
-  }
-
-  .mobile-toggle.active .hamburger-inner::after {
-    top: 0;
-    transform: rotate(-45deg);
-  }
-
-  /* ========================================
-     MOBILE DRAWER
-     ======================================== */
+  /* ---------- drawer ---------- */
   .mobile-drawer {
-    display: none;
     position: fixed;
     inset: 0;
     z-index: 1100;
-    pointer-events: none;
   }
 
-  .mobile-drawer.open {
-    pointer-events: auto;
+  .mobile-drawer[hidden] {
+    display: none;
   }
 
   .drawer-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .mobile-drawer.open .drawer-backdrop {
-    opacity: 1;
+    background: rgba(26, 26, 26, 0.55);
   }
 
   .drawer-panel {
     position: absolute;
     top: 0;
     right: 0;
-    width: min(85vw, 380px);
+    width: min(88vw, 380px);
     height: 100%;
     background: var(--color-bg);
     display: flex;
     flex-direction: column;
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-xl);
   }
 
-  .mobile-drawer.open .drawer-panel {
-    transform: translateX(0);
+  @media (prefers-reduced-motion: no-preference) {
+    .drawer-panel {
+      animation: drawer-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+
+  @keyframes drawer-in {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
   }
 
   .drawer-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--color-border);
   }
 
@@ -993,487 +674,228 @@ const personas = [
     gap: 8px;
   }
 
-  #nav-search-slot-mobile {
-    display: flex;
-    align-items: center;
-  }
-
-  .drawer-brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 20px;
-    font-weight: 700;
-    color: #ff8c42;
-    text-decoration: none;
-  }
-
-  .drawer-close {
-    width: var(--control-height-md, 40px);
-    height: var(--control-height-md, 40px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--color-bg-secondary);
-    border: none;
-    border-radius: 10px;
-    color: var(--color-text);
-    cursor: pointer;
-    transition: all 0.2s;
-    box-sizing: border-box;
-  }
-
-  .drawer-close:hover {
-    background: rgba(255, 107, 53, 0.1);
-    color: #ff6b35;
-  }
-
   .drawer-content {
     flex: 1;
     overflow-y: auto;
-    padding: 16px 0;
+    padding: 8px 0;
   }
 
   .drawer-section {
-    padding: 8px 20px;
+    padding: 8px 16px;
   }
 
   .drawer-section + .drawer-section {
     border-top: 1px solid var(--color-border);
-    margin-top: 8px;
-    padding-top: 16px;
   }
 
   .section-header {
-    font-size: 11px;
-    font-weight: 600;
+    margin: 4px 0;
+    padding: 0 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: var(--track-wide);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
     color: var(--color-text-secondary);
-    margin-bottom: 8px;
-    padding: 0 4px;
   }
 
   .drawer-link {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 12px;
-    margin: 2px 0;
-    border-radius: 10px;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 8px;
+    border-radius: var(--radius-md);
     color: var(--color-text);
     text-decoration: none;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
-    transition: all 0.2s;
   }
 
-  .drawer-link:hover {
-    background: rgba(255, 140, 66, 0.08);
-    color: #ff8c42;
+  .drawer-link:hover,
+  .drawer-link[aria-current='page'] {
+    background: var(--color-bg-hover);
+    color: var(--accent-text);
+    text-decoration: none;
   }
 
-  .drawer-link.active {
-    background: rgba(255, 140, 66, 0.12);
-    color: #ff8c42;
-  }
-
-  .link-icon {
-    font-size: 18px;
-    width: 28px;
-    text-align: center;
-  }
-
-  .link-text {
-    flex: 1;
-  }
-
-  .external-icon {
-    color: var(--color-text-secondary);
-    opacity: 0.5;
-  }
-
-  .support-link {
-    color: #ea4aaa !important;
-  }
-
-  .support-link:hover {
-    background: rgba(234, 74, 170, 0.08) !important;
-  }
-
-  /* Theme Section */
   .theme-section {
     background: var(--color-bg-secondary);
     margin: 8px 12px;
-    padding: 16px !important;
-    border-radius: 12px;
-    border: none !important;
-  }
-
-  .theme-control {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 0;
-  }
-
-  .theme-control + .theme-control {
-    border-top: 1px solid var(--color-border);
-  }
-
-  .control-label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .control-icon {
-    font-size: 18px;
-  }
-
-  /* Mobile Toggle Switch - self-contained styles */
-  .toggle-switch {
-    position: relative;
-    width: 52px;
-    height: 28px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    flex-shrink: 0;
-  }
-
-  .toggle-switch > .toggle-track {
-    display: block;
-    position: relative;
-    width: 52px;
-    height: 28px;
-    background: #4a4a4a;
-    border: 2px solid #555;
-    border-radius: 14px;
-    transition: all 0.25s ease;
-  }
-
-  .toggle-switch > .toggle-track > .toggle-thumb {
-    display: block;
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    top: 2px;
-    left: 2px;
-    background: #999;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    transition: all 0.25s ease;
-  }
-
-  /* Active state */
-  .toggle-switch.active > .toggle-track {
-    background: #ff8c42;
-    border-color: #ff6b35;
-  }
-
-  .toggle-switch.active > .toggle-track > .toggle-thumb {
-    transform: translateX(24px);
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.5);
-  }
-
-  /* Light mode */
-  :global(:not(.dark)) .toggle-switch > .toggle-track {
-    background: #ccc;
-    border-color: #bbb;
-  }
-
-  :global(:not(.dark)) .toggle-switch > .toggle-track > .toggle-thumb {
-    background: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border) !important;
   }
 
   .theme-select {
-    padding: 8px 12px;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    font-size: 13px;
+    width: 100%;
+    height: 40px;
+    padding: 0 10px;
+    margin: 0 0 4px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
     color: var(--color-text);
-    cursor: pointer;
+    font: inherit;
+    font-size: 15px;
   }
 
-  .holiday-controls.hidden {
-    display: none;
-  }
-
-  /* Drawer Footer */
   .drawer-footer {
-    padding: 16px 20px;
+    padding: 16px;
     border-top: 1px solid var(--color-border);
   }
 
   .drawer-cta {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    display: block;
+    padding: 14px;
+    text-align: center;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     text-decoration: none;
     font-size: 16px;
     font-weight: 600;
-    border-radius: 12px;
-    transition: all 0.2s;
+    border-radius: var(--radius-md);
   }
 
   .drawer-cta:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+    background: var(--accent-fill-hover);
+    color: var(--on-accent);
+    text-decoration: none;
   }
 
-  /* ========================================
-     RESPONSIVE
-     ======================================== */
+  @media (max-width: 1080px) {
+    .nav-item > a,
+    .dropdown-trigger {
+      padding: 0 8px;
+    }
+  }
+
   @media (max-width: 900px) {
     .nav-desktop {
       display: none;
     }
 
-    .mobile-toggle {
-      display: block;
-    }
-
-    .mobile-drawer {
-      display: block;
+    .nav-compact {
+      display: flex;
     }
   }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  // ============================================
-  // MOBILE DRAWER
-  // ============================================
+  const html = document.documentElement;
+
+  // ------------------------------------------------------------ dropdowns
+  const triggers = document.querySelectorAll<HTMLButtonElement>(
+    '.navigation .dropdown-trigger',
+  );
+
+  function closeAll(except?: HTMLButtonElement) {
+    triggers.forEach((t) => {
+      if (t !== except) t.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  triggers.forEach((trigger) => {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = trigger.getAttribute('aria-expanded') === 'true';
+      closeAll(trigger);
+      trigger.setAttribute('aria-expanded', String(!open));
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!(e.target as Element).closest('.has-dropdown')) closeAll();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const open = Array.from(triggers).find((t) => t.getAttribute('aria-expanded') === 'true');
+    if (open) {
+      closeAll();
+      open.focus();
+    }
+  });
+
+  // Close a dropdown when keyboard focus leaves it.
+  document.querySelectorAll('.navigation .has-dropdown').forEach((wrap) => {
+    wrap.addEventListener('focusout', (e) => {
+      const next = (e as FocusEvent).relatedTarget as Node | null;
+      if (next && !wrap.contains(next)) {
+        wrap.querySelector('[aria-expanded]')?.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+
+  // --------------------------------------------------------------- drawer
+  const drawer = document.getElementById('mobile-drawer');
   const mobileToggle = document.getElementById('mobile-toggle');
-  const mobileDrawer = document.getElementById('mobile-drawer');
-  const drawerBackdrop = document.getElementById('drawer-backdrop');
-  const drawerClose = document.getElementById('drawer-close');
-  const drawerLinks = mobileDrawer?.querySelectorAll('a');
+  let lastFocus: HTMLElement | null = null;
 
   function openDrawer() {
-    mobileToggle?.classList.add('active');
-    mobileDrawer?.classList.add('open');
+    if (!drawer) return;
+    lastFocus = document.activeElement as HTMLElement;
+    drawer.hidden = false;
+    mobileToggle?.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
+    drawer.querySelector<HTMLElement>('#drawer-close')?.focus();
   }
 
   function closeDrawer() {
-    mobileToggle?.classList.remove('active');
-    mobileDrawer?.classList.remove('open');
+    if (!drawer || drawer.hidden) return;
+    drawer.hidden = true;
+    mobileToggle?.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
+    lastFocus?.focus();
   }
 
-  mobileToggle?.addEventListener('click', () => {
-    if (mobileDrawer?.classList.contains('open')) {
-      closeDrawer();
-    } else {
-      openDrawer();
-    }
-  });
+  mobileToggle?.addEventListener('click', openDrawer);
+  drawer?.querySelectorAll('[data-drawer-close]').forEach((el) => el.addEventListener('click', closeDrawer));
+  drawer?.querySelectorAll('a').forEach((a) => a.addEventListener('click', closeDrawer));
 
-  drawerBackdrop?.addEventListener('click', closeDrawer);
-  drawerClose?.addEventListener('click', closeDrawer);
-
-  drawerLinks?.forEach(link => {
-    link.addEventListener('click', closeDrawer);
-  });
-
-  // Close on escape key
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && mobileDrawer?.classList.contains('open')) {
-      closeDrawer();
+    if (!drawer || drawer.hidden) return;
+    if (e.key === 'Escape') closeDrawer();
+    if (e.key === 'Tab') {
+      // Keep focus inside the open dialog.
+      const focusables = Array.from(
+        drawer.querySelectorAll<HTMLElement>('a[href], button, select, input, [tabindex]:not([tabindex="-1"])'),
+      ).filter((el) => el.offsetParent !== null);
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
     }
   });
 
-  // ============================================
-  // DARK MODE TOGGLE
-  // ============================================
+  window.matchMedia('(min-width: 901px)').addEventListener('change', (e) => {
+    if (e.matches) closeDrawer();
+  });
+
+  // ------------------------------------------------------------ dark mode
   const themeToggleDesktop = document.getElementById('theme-toggle-desktop');
-  const themeToggleMobile = document.getElementById('theme-toggle-mobile');
+  const themeToggleMobile = document.getElementById('theme-toggle-mobile') as HTMLInputElement | null;
 
-  function updateDarkModeToggles() {
-    const isDark = document.documentElement.classList.contains('dark');
-    themeToggleMobile?.classList.toggle('active', isDark);
+  function syncDarkToggles() {
+    const isDark = html.classList.contains('dark');
+    if (themeToggleMobile) themeToggleMobile.checked = isDark;
+    themeToggleDesktop?.setAttribute('aria-pressed', String(isDark));
   }
 
-  function toggleDarkMode() {
-    document.documentElement.classList.toggle('dark');
-    const isDark = document.documentElement.classList.contains('dark');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    updateDarkModeToggles();
+  function setDark(isDark: boolean) {
+    html.classList.toggle('dark', isDark);
+    try {
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    } catch {}
+    syncDarkToggles();
   }
 
-  themeToggleDesktop?.addEventListener('click', toggleDarkMode);
-  themeToggleMobile?.addEventListener('click', toggleDarkMode);
+  themeToggleDesktop?.addEventListener('click', () => setDark(!html.classList.contains('dark')));
+  themeToggleMobile?.addEventListener('change', () => setDark(themeToggleMobile.checked));
+  syncDarkToggles();
 
-  updateDarkModeToggles();
-
-  // ============================================
-  // HOLIDAY THEME SYSTEM
-  // ============================================
-  function isHolidaySeason(): boolean {
-    const now = new Date();
-    const month = now.getMonth();
-    const day = now.getDate();
-    return (month === 11) || (month === 0 && day === 1);
-  }
-
-  function applyHolidayTheme(theme: 'christmas' | 'hanukkah' | 'newyear' | 'none') {
-    document.documentElement.classList.remove('christmas', 'hanukkah', 'newyear');
-    if (theme !== 'none') {
-      document.documentElement.classList.add(theme);
-    }
-    localStorage.setItem('holidayTheme', theme);
-    updateHolidayUI(theme);
-  }
-
-  function updateHolidayUI(theme: string) {
-    // Update desktop dropdown
-    document.querySelectorAll('.theme-option').forEach(opt => {
-      opt.classList.toggle('active', (opt as HTMLElement).dataset.theme === theme);
-    });
-
-    // Update mobile select
-    const mobileSelect = document.getElementById('holiday-select-mobile') as HTMLSelectElement;
-    if (mobileSelect) mobileSelect.value = theme;
-
-    // Update mobile icon
-    const mobileIcon = document.getElementById('holiday-icon-mobile');
-    if (mobileIcon) {
-      const icons = { christmas: '🎄', hanukkah: '🕎', newyear: '🎊', none: '✨' };
-      mobileIcon.textContent = icons[theme as keyof typeof icons] || '🎄';
-    }
-  }
-
-  function initHolidayTheme() {
-    const desktopContainer = document.getElementById('holiday-container-desktop');
-    const mobileControls = document.getElementById('holiday-controls-mobile');
-
-    if (!isHolidaySeason()) {
-      desktopContainer?.classList.add('hidden');
-      mobileControls?.classList.add('hidden');
-      return;
-    }
-
-    desktopContainer?.classList.remove('hidden');
-    mobileControls?.classList.remove('hidden');
-
-    let savedTheme = localStorage.getItem('holidayTheme') as 'christmas' | 'hanukkah' | 'newyear' | 'none' | null;
-
-    // Default to 'none' - holiday themes are opt-in only
-    // Users can choose their preferred theme from the menu
-    if (!savedTheme) {
-      savedTheme = 'none';
-    }
-
-    applyHolidayTheme(savedTheme);
-
-    // Desktop holiday toggle
-    const holidayToggle = document.getElementById('holiday-toggle-desktop');
-    const holidayMenu = document.getElementById('holiday-menu-desktop');
-
-    holidayToggle?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      holidayMenu?.classList.toggle('hidden');
-    });
-
-    document.addEventListener('click', () => {
-      holidayMenu?.classList.add('hidden');
-    });
-
-    // Theme options
-    document.querySelectorAll('.theme-option').forEach(opt => {
-      opt.addEventListener('click', () => {
-        const theme = (opt as HTMLElement).dataset.theme as 'christmas' | 'hanukkah' | 'none';
-        applyHolidayTheme(theme);
-        holidayMenu?.classList.add('hidden');
-      });
-    });
-
-    // Mobile select
-    const mobileSelect = document.getElementById('holiday-select-mobile') as HTMLSelectElement;
-    mobileSelect?.addEventListener('change', () => {
-      applyHolidayTheme(mobileSelect.value as 'christmas' | 'hanukkah' | 'newyear' | 'none');
-    });
-
-    // Snow toggles
-    const snowCheckboxDesktop = document.getElementById('snow-checkbox-desktop') as HTMLInputElement;
-    const snowToggleMobile = document.getElementById('snow-toggle-mobile');
-
-    const snowEnabled = localStorage.getItem('snowEnabled');
-    const shouldEnableSnow = snowEnabled === null ? true : snowEnabled === 'true';
-
-    if (snowCheckboxDesktop) snowCheckboxDesktop.checked = shouldEnableSnow;
-    snowToggleMobile?.classList.toggle('active', shouldEnableSnow);
-
-    if (shouldEnableSnow && (window as any).snowEffect) {
-      setTimeout(() => (window as any).snowEffect?.start(), 100);
-    }
-
-    function toggleSnow(enabled: boolean) {
-      localStorage.setItem('snowEnabled', String(enabled));
-      if (snowCheckboxDesktop) snowCheckboxDesktop.checked = enabled;
-      snowToggleMobile?.classList.toggle('active', enabled);
-
-      if ((window as any).snowEffect) {
-        enabled ? (window as any).snowEffect.start() : (window as any).snowEffect.stop();
-      }
-    }
-
-    snowCheckboxDesktop?.addEventListener('change', () => toggleSnow(snowCheckboxDesktop.checked));
-    snowToggleMobile?.addEventListener('click', () => {
-      const newState = !snowToggleMobile.classList.contains('active');
-      toggleSnow(newState);
-    });
-
-    // Disable All Effects toggles
-    const effectsCheckboxDesktop = document.getElementById('effects-checkbox-desktop') as HTMLInputElement;
-    const effectsToggleMobile = document.getElementById('effects-toggle-mobile');
-
-    const effectsDisabled = localStorage.getItem('effectsDisabled') === 'true';
-
-    if (effectsCheckboxDesktop) effectsCheckboxDesktop.checked = effectsDisabled;
-    effectsToggleMobile?.classList.toggle('active', effectsDisabled);
-
-    function toggleAllEffects(disabled: boolean) {
-      localStorage.setItem('effectsDisabled', String(disabled));
-      if (effectsCheckboxDesktop) effectsCheckboxDesktop.checked = disabled;
-      effectsToggleMobile?.classList.toggle('active', disabled);
-
-      // Stop all effects if disabled
-      if (disabled) {
-        if ((window as any).snowEffect) {
-          (window as any).snowEffect.stop();
-        }
-        if ((window as any).newYearEffect) {
-          (window as any).newYearEffect.stop();
-        }
-        // Hide countdown if visible
-        const countdown = document.getElementById('new-year-countdown');
-        if (countdown) {
-          countdown.classList.add('hidden');
-        }
-      }
-    }
-
-    effectsCheckboxDesktop?.addEventListener('change', () => toggleAllEffects(effectsCheckboxDesktop.checked));
-    effectsToggleMobile?.addEventListener('click', () => {
-      const newState = !effectsToggleMobile.classList.contains('active');
-      toggleAllEffects(newState);
-    });
-  }
-
-  initHolidayTheme();
-});
+  // Occasion controls (desktop menu and drawer) are wired by OccasionMenu.
 </script>

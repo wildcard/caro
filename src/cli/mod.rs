@@ -76,7 +76,14 @@ pub struct CliConfig {
 pub struct CliResult {
     pub generated_command: String,
     pub explanation: String,
+    /// True when the command passed safety checks and may run. It does not
+    /// mean the command ran. `exit_code.is_some()` is the only signal that it
+    /// ran (#1217).
     pub executed: bool,
+    /// True when `--dry-run` was set. It only reports the flag: a run without
+    /// `--execute` also leaves the command unrun, with `dry_run: false`.
+    #[serde(default)]
+    pub dry_run: bool,
     pub blocked_reason: Option<String>,
     pub requires_confirmation: bool,
     pub confirmation_prompt: String,
@@ -990,6 +997,7 @@ impl CliApp {
             generated_command: generated.command,
             explanation: generated.explanation,
             executed,
+            dry_run: args.dry_run(),
             blocked_reason,
             requires_confirmation,
             confirmation_prompt,

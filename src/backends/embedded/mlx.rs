@@ -236,7 +236,7 @@ impl InferenceBackend for MlxBackend {
         let model = tokio::task::spawn_blocking(move || {
             // Create model parameters with Metal acceleration
             let params = LlamaParams {
-                n_gpu_layers: 99, // Use all GPU layers (Metal acceleration)
+                n_gpu_layers: crate::backends::embedded::common::gpu_layers(), // Metal; CARO_GPU_LAYERS=0 for CPU only
                 use_mmap: true,   // Use memory mapping for faster loading
                 use_mlock: false, // Don't lock memory
                 ..Default::default()

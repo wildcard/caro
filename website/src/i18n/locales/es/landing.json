@@ -5,7 +5,16 @@
       "cta": "Empezar Gratis",
       "darkMode": {
         "toggle": "Activar modo oscuro"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "Agente Compañero",
@@ -405,7 +414,7 @@
       "bottom": {
         "built": "Construido con 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "❤️",
         "inspiration": "Inspirado en Caroline de Portal—lealtad transformada en compañerismo digital",
         "heritagePre": "Construido con orgullo sobre los cimientos establecidos por",
         "gnu": "GNU",

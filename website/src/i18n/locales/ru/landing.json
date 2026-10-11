@@ -5,7 +5,16 @@
       "cta": "Начать бесплатно",
       "darkMode": {
         "toggle": "Переключить тёмную тему"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "Агент-компаньон",
@@ -405,7 +414,7 @@
       "bottom": {
         "built": "Создано на 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "❤️",
         "inspiration": "Вдохновлено Caroline из Portal — преданность, превращённая в цифровое товарищество",
         "heritagePre": "С гордостью построено на фундаменте, заложенном",
         "gnu": "GNU",
