@@ -36,6 +36,10 @@ concurrency:
   group: static-sites-${{ github.ref }}
   cancel-in-progress: true
 
+# Every job only builds or tests; none writes to the repo.
+permissions:
+  contents: read
+
 jobs:
   docs-site:
     name: Build docs-site (Cloudflare Pages)
