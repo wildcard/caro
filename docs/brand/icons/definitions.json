@@ -2430,8 +2430,8 @@
           "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It stands on the bottom row of the grid, like Kyaro's feet. Subject: A microscope. It must show: the six variants read as one set: same footprint, same light. It must not show: a red cross on white (a protected emblem)."
         }
       ],
-      "status": "owner-call",
-      "question": "Six one-off icons for one row of /use-cases/air-gapped. Default: drop the icons from that row; the cards keep their titles.",
+      "status": "dropped",
+      "decision": "Six one-off icons for one row of /use-cases/air-gapped. Decided: drop the icons from that row; the cards keep their titles.",
       "priority": 3,
       "small_slot_glyph": "▸",
       "count": {
@@ -3547,8 +3547,8 @@
           "prompt": "Pixel art icon on a 48x48 pixel grid, in the same style as the Kyaro sprite sheet (docs/brand/icons/reference/kyaro-style-sheet.png). Hard pixels only: no anti-aliasing, no blur, no gradients, no dithering, no glow, no drop shadow. A 1 px #000000 outline around the silhouette. Flat fills with at most one darker shade each; light comes from the top left. Use only these 12 colors: #000000 #343434 #636363 #a0a0a0 #ffffff #f4f1df #d9a066 #8f563b #d95763 #ef3333 #c02020 #fcfc62. Transparent background. Front or slight three-quarter view; never isometric, never a 3D render, never a line icon. The subject fills about 30 to 36 px of the grid, with at least 4 px clear on the top, left and right. No text, letters or numbers, no brand logos, no emoji style. Output a square 768x768 image: the 48x48 art upscaled 16x with nearest neighbor, so each art pixel is one clean 16x16 block. It floats in the middle of the grid, with 4 px clear at the bottom too. Subject: A server rack with three blinking lights. It must show: the three variants read as one set. It must not show: a floppy disk (not how anyone moves files today)."
         }
       ],
-      "status": "owner-call",
-      "question": "Three one-off icons for one row of /use-cases/air-gapped. Default: drop the icons from that row; the cards keep their titles.",
+      "status": "dropped",
+      "decision": "Three one-off icons for one row of /use-cases/air-gapped. Decided: drop the icons from that row; the cards keep their titles.",
       "priority": 3,
       "small_slot_glyph": "▸",
       "count": {

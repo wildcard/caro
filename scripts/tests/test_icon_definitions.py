@@ -27,8 +27,8 @@ DOC = (ICONS_DIR / "DEFINITIONS.md").read_text()
 
 FAMILY_STATUS = {
     "kyaro-existing": {"exists"},
-    "kyaro-new-pose": {"to-generate", "owner-call"},
-    "object": {"to-generate", "owner-call"},
+    "kyaro-new-pose": {"to-generate"},
+    "object": {"to-generate", "dropped"},
     "terminal-glyph": {"glyph"},
 }
 
@@ -45,7 +45,7 @@ class IconDefinitions(unittest.TestCase):
 
     def test_generated_icons_are_complete(self):
         for d in DATA["definitions"]:
-            if d["status"] not in ("to-generate", "owner-call"):
+            if d["status"] not in ("to-generate", "dropped"):
                 continue
             with self.subTest(icon=d["id"]):
                 self.assertIn(d["grid"], (24, 48))

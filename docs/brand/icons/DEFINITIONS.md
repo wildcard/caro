@@ -55,8 +55,7 @@ The bar is the Kyaro sprite set. Open the style sheet before you start.
 
 Run one icon at a time, from [`definitions.json`](definitions.json).
 Take only definitions with `"status": "to-generate"`, in `priority` order
-(1 first). Skip `exists` and `glyph`. An `owner-call` definition waits
-for the owner's decision; its `variants` each carry their own `prompt`.
+(1 first). Skip `exists`, `glyph` and `dropped`.
 
 1. Read the icon's definition and open
    `docs/brand/icons/reference/kyaro-style-sheet.png`. For a Kyaro pose,
@@ -95,8 +94,9 @@ The inventory of 2026-10-11 found 510 emoji in `website/src`:
 ```
 510 emoji
  ├─ 289 carry a meaning ──▶ 44 definitions below
- │    ├─ 141 slots ──▶ an icon
+ │    ├─ 132 slots ──▶ an icon
  │    ├─   9 slots of 28 px ──▶ the small-slot glyph for now (decision 3)
+ │    ├─   9 slots in two one-off rows ──▶ no icon (decision 2)
  │    └─ 139 smaller or inline slots ──▶ the small-slot glyph
  ├─ 194 show an OS, vendor or tool ──▶ out of scope (decision 4)
  └─ 27 are not icons (dead code, doc comments, prose)
@@ -117,29 +117,29 @@ version exists (decision 3). The `icon` slot counts below include those
 **P** is the priority: 1 = the drawing fills 5 or more slots, 2 = 2 to 4,
 3 = one slot. Generate in priority order.
 
-### Decisions for the owner
+### Decisions
 
-Each has a default. Reply with the number to change one (for example `2: generate`).
+The owner accepted every default on 2026-10-11. To change one later, edit this list and `definitions.json` in the same PR.
 
 1. **Rows that mix Kyaro and objects.** In five places a Kyaro state
    would sit beside object icons or third-party stand-ins, for example
    the `/glossary` section headers (`shell` beside `files` and
    `network-web`). The list is below.
-   Default: **allow.** Both are pixel art on the same grid, palette and
+   Decided: **allow.** Both are pixel art on the same grid, palette and
    stage tile. ICONOGRAPHY Rule 5 still forbids pixel icons and terminal
    glyphs in one row.
 2. **`regulated-sector` and `install-method`.** Nine one-off icons for two
-   rows of `/use-cases/air-gapped`. Default: **drop the icons from those
-   rows;** the cards keep their titles. The variant prompts are ready if
-   you want them.
+   rows of `/use-cases/air-gapped`. Decided: **drop the icons from those
+   rows;** the cards keep their titles. The variant prompts stay in
+   `definitions.json` (status `dropped`) in case this changes.
 3. **24 grid versions.** Nine 28 px slots could take a 24 px drawing:
    the `/roadmap` milestone cards, the safety best-practice lists and the
-   open-source benefits on `/open-source-shell-ai`. Default: **not now;**
+   open-source benefits on `/open-source-shell-ai`. Decided: **not now;**
    they show the glyph.
 4. **Third-party marks.** 194 slots show an OS, vendor or tool (Rust 🦀,
    Windows 🪟, macOS 🍎, Linux 🐧…). 136 of them are in
    `config/distros.ts` and `ui/DistroSelector`. No website page renders
-   those; only Storybook shows the selector. Default: **out of scope
+   those; only Storybook shows the selector. Decided: **out of scope
    here.** The live slots keep their emoji until you choose official
    marks or text, because each vendor's brand rules differ.
 
@@ -216,8 +216,8 @@ Caro itself. The pose ends that overlap.
 | `memory-safe` | 3 | A memory module (a RAM stick) in front of a shield. | 🔒 | 1 / 0 |
 | `open-source` | 3 | An open book; both pages show short indented lines, like source code. | 📖 💻 🦀 ⭐ | 1 / 5 |
 | `verified` | 3 | A round seal with a scalloped edge and a check mark in the middle. | ✅ | 1 / 1 |
-| `regulated-sector` | 3 | **Decision 2.** One drawing per card: SCIFs (government): a building with a triangular roof and four columns; Financial Trading: a line chart that zigzags up to the right, on two axes; Healthcare: a stethoscope; Industrial (OT/SCADA): a factory with a saw-tooth roof and one chimney; Defense Contractors: a shield with a five-point star; Research Labs: a microscope. | 🏛 📈 🏥 🏭 🛡 🔬 | 6 / 0 |
-| `install-method` | 3 | **Decision 2.** One drawing per card: USB Transfer: a USB stick with its cap off; Build from Source: a page of indented code lines with a small hammer across it; Internal Mirror: a server rack with three blinking lights. | 💾 🔧 🏢 | 3 / 0 |
+| `regulated-sector` | 3 | **Dropped (decision 2).** Variants kept for later: SCIFs (government): a building with a triangular roof and four columns; Financial Trading: a line chart that zigzags up to the right, on two axes; Healthcare: a stethoscope; Industrial (OT/SCADA): a factory with a saw-tooth roof and one chimney; Defense Contractors: a shield with a five-point star; Research Labs: a microscope. | 🏛 📈 🏥 🏭 🛡 🔬 | 6 / 0 |
+| `install-method` | 3 | **Dropped (decision 2).** Variants kept for later: USB Transfer: a USB stick with its cap off; Build from Source: a page of indented code lines with a small hammer across it; Internal Mirror: a server rack with three blinking lights. | 💾 🔧 🏢 | 3 / 0 |
 
 Each definition in `definitions.json` also carries `must` and `must_not`
 lists and the full `prompt`. Read them before you generate.
