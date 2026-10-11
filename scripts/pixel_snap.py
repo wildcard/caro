@@ -156,8 +156,9 @@ def main():
     print(f"  palette distance: {report['palette_distance']:.1f} (0 = already on palette; above 40 = recolored)")
     print(f"  unsure cells: {len(report['unsure'])} (no clear majority color; check these by eye)")
     warnings = []
+    # The bottom edge is the ground: grounded art may touch it (DEFINITIONS.md).
     if min(shape["left"], shape["right"], shape["top"]) < 4:
-        warnings.append("art is closer than 4 px to an edge")
+        warnings.append("art is closer than 4 px to the top, left or right edge")
     if report["palette_distance"] > 40:
         warnings.append("input colors are far from the palette; the snap changed them a lot")
     if len(report["unsure"]) > args.grid:

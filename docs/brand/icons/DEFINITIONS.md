@@ -41,7 +41,7 @@ The bar is the Kyaro sprite set. Open the style sheet before you start.
 |---|---|
 | Grid | **48×48** art pixels for card and feature slots (shown on a 56 px tile). **24×24** for small slots (28 px tile). Draw the 24 px version as its own drawing; never shrink the 48. |
 | Scale | Same pixel size as Kyaro: one art pixel = one screen pixel at 1×. A 48 px object sits next to a 48 px Kyaro without "mixels" (mixed pixel sizes). |
-| Footprint | An object fills about 30–36 px of the 48 px grid. Kyaro sitting is 26×32 px. Leave at least 4 px clear on every side. |
+| Footprint | An object fills about 30–36 px of the 48 px grid. Kyaro sitting is 26×32 px. Leave at least 4 px clear on the top, left and right. The bottom edge is the ground: a grounded object touches row 47 (see Baseline); a floating symbol leaves 4 px there too. |
 | Baseline | A grounded object stands on row 47, like Kyaro's feet. A floating symbol is centered. |
 | Outline | 1 px `#000000` on the outer silhouette. Inner lines are `#000000` or `#343434`. |
 | Shading | Flat fills. At most one shade per fill (base + darker). Light comes from the top left. No gradients, no dithering. |
