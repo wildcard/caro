@@ -12,6 +12,7 @@
 - A script cuts each icon 1:1 from one sprite frame. Nobody draws, recolors,
   smooths or resizes an icon pixel.
 - An icon renders only at a whole-number multiple of its native size.
+- Kyaro always stands on a stage-grey tile, in both themes.
 - A slot too small for a sprite gets a terminal glyph (`▸ ■ $ ❯ >_`), never
   an emoji or a third-party icon font.
 
@@ -46,8 +47,8 @@ website/public/kyaro/icons/<name>.svg                   48×48 figure or 24×24 
 website/src/data/kyaro-icons.json                       name → src, size, label, role
         │
         ▼
-<KyaroIcon name="danger" />                             <img width="48" height="48" alt="">
-<KyaroIcon name="face-ready" scale={2} label="Kyaro" /> 48 px, labelled
+<KyaroIcon name="danger" />                             <img width="48" height="48" alt="">, 56 px tile
+<KyaroIcon name="face-ready" scale={2} label="Kyaro" /> 48 px face, 56 px tile, labelled
 
 CI  kyaro-icons.yml
     ├─ python3 scripts/kyaro_icons.py --check   rebuild in memory, compare byte for byte
@@ -65,14 +66,18 @@ with its own small decoder, so CI needs no install step for the check.
    window cuts a sprite pixel. Only a face icon crops, by design.
 3. **Whole-number scales only.** `KyaroIcon` takes `scale` (1, 2 or 3), not a
    free size. A 48 px icon shows at 48, 96 or 144 px. A 24 px face shows at
-   24, 48 or 72 px. A slot that cannot fit 48 px gets a face or a glyph.
+   24, 48 or 72 px. A slot that cannot fit a 56 px tile gets a face or a glyph.
 4. **Never recolor Kyaro.** The script fails on a color outside the 7-color
    palette, and on half-transparent pixels. There is no `currentColor`.
 5. **One family per group.** A row of badges or a grid of cards uses Kyaro
    icons or terminal glyphs, not both.
-6. **Size floor.** A figure needs a 48 px slot. A face needs 24 px. Below
-   24 px, use a terminal glyph.
-7. **No emoji and no icon fonts as icons.** Do not import Lucide or similar.
+6. **Always on the stage tile.** `KyaroIcon` paints `--caro-grey-200` behind
+   the art, with padding of 1/12 of the icon size. A 48 px figure fills a
+   56 px tile and a 24 px face a 28 px tile. The color does not change in
+   dark mode. The padding is `content-box`, so it never shrinks the art.
+7. **Size floor.** A figure needs a 56 px slot. A face needs 28 px. Below
+   that, use a terminal glyph.
+8. **No emoji and no icon fonts as icons.** Do not import Lucide or similar.
 
 ## The icon set (v1)
 
@@ -115,7 +120,7 @@ The same meaning gets the same icon on every page: `danger` is safety,
 
 1. **An existing state fits.** Add a row to `ICONS` in
    `scripts/kyaro_icons.py` with the frame path. Add a face window only if
-   the slot is 24 px. Run `python3 scripts/kyaro_icons.py` and commit the SVG
+   the slot is 28 px. Run `python3 scripts/kyaro_icons.py` and commit the SVG
    and the manifest. Use it with `<KyaroIcon name="…" />`.
 2. **No state fits.** Ask for new art. Do not draw it, and do not ask an AI
    model to draw it. Until the art lands, use a terminal glyph. Send the
@@ -130,10 +135,6 @@ The same meaning gets the same icon on every page: `danger` is safety,
 
 ## Known limits
 
-- **Dark mode.** Kyaro's outline (`#000000`) and coat (`#343434`) are close to
-  the dark background (`#2b2b2b`). The white and tan markings keep the shape
-  readable. The black "zzz" in `paused` and the alert lines in `danger` lose
-  the most contrast. See the decision below.
 - **Fractional device pixel ratios.** At 125 % or 150 % zoom, some art pixels
   render one device pixel wider than others. All pixel art on the web does
   this. Whole-number ratios (1×, 2×, 3×) are exact.
@@ -146,10 +147,23 @@ The same meaning gets the same icon on every page: `danger` is safety,
 ## Dark-mode decision
 
 Recorded after the 2026-10-11 visual audit
-(`.claude/audits/2026-10-11-kyaro-iconography/`). See the PR that adopted
-this document for the screenshots.
+(`.claude/audits/2026-10-11-kyaro-iconography/`, composite 4).
 
-_Pending the audit result._
+**Problem.** Kyaro's outline (`#000000`) and coat (`#343434`) nearly vanish
+on the dark surfaces. Measured contrast of outline / coat: dark card
+`#2b2b2b` 1.48 / 1.14, dark footer `#1a1a1a` 1.21 / 1.40, light-mode footer
+`#4f4f4f` 2.56 / 1.52. The white face stays above 11:1, but the body and
+the alert lines in `danger` are lost.
+
+**Decision.** Put every Kyaro icon on a `--caro-grey-200` (`#d1cfc9`) tile in
+both themes (rule 6). On the tile the outline reaches 13.5:1 and the coat
+8:1. The tile already existed: it was the light-mode persona tile. Using it
+in both themes also lines up the art in left-aligned cards, where the
+sprites sit at different insets inside their 48 px windows.
+
+**Rejected.** A 1 px light halo (four chained `drop-shadow` filters) stays
+crisp, but it adds pixels around Alrezky's art and turns the `danger`
+alert lines into thick white strokes.
 
 ## Open questions for the owner
 

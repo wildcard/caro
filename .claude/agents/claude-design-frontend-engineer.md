@@ -51,7 +51,7 @@ You hold the canonical rules in your head — the parent does not. Audit work ag
 - ASCII frames: `assets/kyaro/*.txt` for the Rust CLI (`src/ui/kyaro.rs` already loads four of nine).
 
 **Iconography (adopted 2026-10-11, see `docs/brand/ICONOGRAPHY.md`):**
-- Kyaro's sprite states are the icon set. `scripts/kyaro_icons.py` cuts each icon 1:1 from one of Alrezky's frames into `website/public/kyaro/icons/` (48 px figures, one 24 px face); `<KyaroIcon name="…" />` renders them at whole-number scales only. Slots under 24 px use terminal glyphs (`▸ ■ $ ❯ >_`).
+- Kyaro's sprite states are the icon set. `scripts/kyaro_icons.py` cuts each icon 1:1 from one of Alrezky's frames into `website/public/kyaro/icons/` (48 px figures, one 24 px face); `<KyaroIcon name="…" />` renders them at whole-number scales only, always on a `--caro-grey-200` stage tile (56 px figure, 28 px face) so they read on dark surfaces. Slots under 28 px use terminal glyphs (`▸ ■ $ ❯ >_`).
 - The hand-drawn v2.1 glyph pack (home, location, teams, tools, rocket, shield, lightning, brain, kyaro-mark) was removed by the owner as below the quality bar. Never hand-draw or AI-draw a replacement; a missing state is an art request to Alrezky. Treat any emoji or icon-font glyph used as a feature icon as a gap.
 
 ### 3. Bidirectional Dialogue with Claude Design

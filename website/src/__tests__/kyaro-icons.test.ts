@@ -39,6 +39,20 @@ describe('Kyaro icon manifest', () => {
   });
 });
 
+describe('<KyaroIcon> component', () => {
+  const component = readFileSync(join(src, 'ui/KyaroIcon/KyaroIcon.astro'), 'utf8');
+
+  // The site resets to border-box. Under it, the tile padding would shrink
+  // the 48 px art to 40 px and blur every icon.
+  it('keeps the art box at native size under the tile padding', () => {
+    expect(component).toMatch(/box-sizing:\s*content-box/);
+  });
+
+  it('puts every icon on the fixed stage-grey tile in both themes', () => {
+    expect(component).toMatch(/background:\s*var\(--caro-grey-200\)/);
+  });
+});
+
 describe('<KyaroIcon> usage', () => {
   const uses = files.flatMap(({ file, text }) =>
     [...text.matchAll(/<KyaroIcon\b([^>]*?)\/>/g)].map((m) => ({ file, attrs: m[1] })),
