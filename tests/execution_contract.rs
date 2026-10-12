@@ -658,6 +658,55 @@ mod signal_forwarding {
     }
 
     #[test]
+    fn inherited_ignored_sighup_stays_ignored() {
+        // Under `nohup` caro starts with SIGHUP ignored. Closing the terminal
+        // must not stop the step, so caro must not catch or forward it.
+        let dir = tempfile::tempdir().unwrap();
+        let work = dir.path();
+        task_with_step(work, "touch started; sleep 1; touch finished");
+
+        let bin = env!("CARGO_BIN_EXE_caro");
+        let mut child = caro("sh", work)
+            .args(["-c", "trap '' HUP; exec \"$0\" \"$@\""])
+            .args([bin, "run", "demo", "--yes", "--timeout", "60"])
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        assert!(
+            wait_for(&work.join("started"), Duration::from_secs(20)),
+            "step never started"
+        );
+
+        // SAFETY: kill(2) takes plain integers and has no memory effects.
+        assert_eq!(
+            unsafe { libc::kill(child.id() as libc::pid_t, libc::SIGHUP) },
+            0
+        );
+        let status = child.wait().unwrap();
+        assert!(status.success(), "caro did not finish: {status:?}");
+        assert!(work.join("finished").exists(), "the step was stopped");
+    }
+
+    #[test]
+    fn timed_out_step_exits_124() {
+        // Scripts tell a timeout from a failure by the GNU `timeout` status.
+        let dir = tempfile::tempdir().unwrap();
+        let work = dir.path();
+        task_with_step(work, "sleep 30");
+        let output = caro(env!("CARGO_BIN_EXE_caro"), work)
+            .args(["run", "demo", "--yes", "--timeout", "1"])
+            .output()
+            .unwrap();
+        assert_eq!(
+            output.status.code(),
+            Some(124),
+            "stderr: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    #[test]
     fn caro_do_forwards_sigint() {
         // No Carofile, so `caro do demo` runs the bare task.
         signal_stops_the_step(&["do", "demo", "--timeout", "60"], libc::SIGINT);

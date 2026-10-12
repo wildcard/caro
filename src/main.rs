@@ -632,9 +632,12 @@ enum Commands {
         #[arg(long)]
         dry_run: bool,
 
-        /// Stop each step after this many seconds. A timed step runs in its
-        /// own process group. Caro forwards Ctrl-C (SIGINT),
-        /// SIGTERM and SIGHUP to that group. Unix only.
+        /// Per-step deadline in seconds (each step, not the whole task). On
+        /// expiry the step gets SIGTERM, then SIGKILL after 2 s, and caro
+        /// exits 124. Unix only.
+        ///
+        /// A timed step runs in its own process group, so caro forwards
+        /// Ctrl-C (SIGINT), SIGTERM and SIGHUP to it and exits 128 + signal.
         #[arg(long, value_name = "SECONDS", value_parser = clap::value_parser!(u64).range(1..))]
         timeout: Option<u64>,
     },
@@ -713,9 +716,12 @@ enum Commands {
         #[arg(long)]
         dry_run: bool,
 
-        /// Stop each step after this many seconds. A timed step runs in its
-        /// own process group. Caro forwards Ctrl-C (SIGINT),
-        /// SIGTERM and SIGHUP to that group. Unix only.
+        /// Per-step deadline in seconds (each step, not the whole task). On
+        /// expiry the step gets SIGTERM, then SIGKILL after 2 s, and caro
+        /// exits 124. Unix only.
+        ///
+        /// A timed step runs in its own process group, so caro forwards
+        /// Ctrl-C (SIGINT), SIGTERM and SIGHUP to it and exits 128 + signal.
         #[arg(long, value_name = "SECONDS", value_parser = clap::value_parser!(u64).range(1..))]
         timeout: Option<u64>,
     },
@@ -1651,6 +1657,11 @@ fn run_caroml_run(
             Some(format!("interrupted by signal {}", sig)),
             String::new(),
         ),
+        Err(runner::RunError::Executor(ExecutorError::Timeout(ms))) => (
+            EXIT_TIMED_OUT,
+            Some(format!("step timed out after {} ms", ms)),
+            String::new(),
+        ),
         Err(other) => (255, Some(format!("{}", other)), String::new()),
     };
     let variant_id = plan
@@ -1672,8 +1683,10 @@ fn run_caroml_run(
         eprintln!("warning: could not write run journal: {}", e);
     }
 
-    if let Err(runner::RunError::Executor(ExecutorError::Interrupted(sig))) = &result {
-        exit_interrupted(*sig);
+    match &result {
+        Err(runner::RunError::Executor(ExecutorError::Interrupted(sig))) => exit_interrupted(*sig),
+        Err(runner::RunError::Executor(ExecutorError::Timeout(ms))) => exit_timed_out(*ms),
+        _ => {}
     }
     let results = result.map_err(|e| e.to_string())?;
     println!(
@@ -1916,6 +1929,10 @@ fn run_caroml_do(name: &str, dry_run: bool, timeout_secs: Option<u64>) -> Result
         | jobs::DoError::StepRun(RunError::Executor(ExecutorError::Interrupted(sig))) => {
             exit_interrupted(sig)
         }
+        jobs::DoError::Executor(ExecutorError::Timeout(ms))
+        | jobs::DoError::StepRun(RunError::Executor(ExecutorError::Timeout(ms))) => {
+            exit_timed_out(ms)
+        }
         other => other.to_string(),
     })?;
 
@@ -1933,6 +1950,15 @@ fn step_timeout_ms(timeout_secs: Option<u64>) -> Result<Option<u64>, String> {
         ),
         secs => Ok(secs.map(|s| s.saturating_mul(1000))),
     }
+}
+
+/// Exit status when a `--timeout` step runs out of time, as GNU `timeout`.
+const EXIT_TIMED_OUT: i32 = 124;
+
+/// Exit like GNU `timeout` when a step ran past its `--timeout` deadline.
+fn exit_timed_out(ms: u64) -> ! {
+    eprintln!("caro: a step timed out after {} ms and was stopped", ms);
+    process::exit(EXIT_TIMED_OUT);
 }
 
 /// Exit the way a shell reports a command stopped by `sig`: status 128 + sig.
