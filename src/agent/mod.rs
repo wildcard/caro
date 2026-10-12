@@ -523,14 +523,13 @@ impl AgentLoop {
             // Only the embedded backend reads `context`, and it brings its own
             // system prompt. Sending a second full system prompt here pushed
             // the prompt past the 2048-token window SmolLM and TinyLlama were
-            // trained on (#1612), so only the platform notes go along.
+            // trained on (#1612), so only the platform rules go along.
             context: Some(format!(
-                "{}{}{}\n\nPLATFORM NOTES ({}):\n{}",
+                "{}{}{}\n\nPLATFORM NOTES:\n{}",
                 context_str,
                 dir_context_str,
                 knowledge_context_str,
-                self.context.os,
-                self.get_os_specific_notes()
+                self.context.get_platform_rules()
             )),
             backend_preference: None,
         };
