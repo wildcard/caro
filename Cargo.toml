@@ -68,7 +68,7 @@ dirs = "6"
 which = "8.0"
 os_info = "3.14"
 sysinfo = "0.33"
-home = "=0.5.9"  # Pin: 0.5.11+ needs edition2024, 0.5.12 needs rustc 1.88 > MSRV 1.85
+home = "=0.5.12"  # Pin: 0.5.11+ needs edition2024, 0.5.12 needs rustc 1.88 > MSRV 1.85
 time-core = "=0.1.7"  # Pin to avoid MSRV incompatibility in 0.1.8+
 
 # Model integration (Hugging Face Hub)
@@ -165,7 +165,7 @@ criterion = { version = "=0.7.0", features = ["html_reports"] }  # Pin: 0.8+ req
 futures = "0.3"
 serde_yaml = "0.9"
 env_logger = "0.11"
-wiremock = "=0.6.4"  # 0.6.5 uses let-chains (rustc 1.88+); keep MSRV 1.85
+wiremock = "=0.6.5"  # 0.6.5 uses let-chains (rustc 1.88+); keep MSRV 1.85
 
 [[bench]]
 name = "cache"
