@@ -354,7 +354,7 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Found:** 2026-10-10 sweep register sync (issue filed 2026-09-24)
 **Issue:** #1472 (related: #1446, the vulnerability report)
 **Status:** fixed (#1488, merged 2026-10-01). #1472 closed 2026-10-12 with owner approval; the optional `chromadb` / `knowledge` h2 0.3 paths stay in the approved `.cargo/audit.toml` entry (review 2026-12-31).
-**Needs human?:** yes (dependency major-version bump)
+**Needs human?:** no (owner decided 2026-10-12: close #1472 as done)
 **Next step:** none. Delete after 2026-10-19.
 
 
