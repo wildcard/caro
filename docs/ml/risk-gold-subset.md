@@ -1,13 +1,13 @@
 # Risk-Gate Gold Subset — Label Guide and Candidate List
 
-**Status:** Phase 4 data-gate item (#1510, ADR-018). Labels not yet collected.
-**Owner:** `ml-ds-engineer` role; labels are written by a maintainer.
+**Status:** Phase 4 data-gate item (#1510, ADR-018). Provisional agent labels collected 2026-10-12; human review pending.
+**Owner:** `ml-ds-engineer` role; gold labels are written by a maintainer. The current labels are provisional (see [Current labels](#current-labels-provisional-agent-labelled)).
 **Deliverable of this document:** the label rules, the acceptance threshold
 fixed *before* any label is reviewed, the stratification plan, the labeller's
 candidate list in [`risk-gold-candidates.jsonl`](./risk-gold-candidates.jsonl),
 and the static validator's verdicts kept apart in
 [`risk-gold-static-tiers.jsonl`](./risk-gold-static-tiers.jsonl).
-**Not** a set of labels: every `gold_tier` in the candidates file is `null`.
+The candidates file carries provisional `gold_tier` values; they are not maintainer gold until a human signs the file.
 
 ADR-018 is cited throughout:
 [`docs/adr/ADR-018-gate-classifier-calibration-experiment.md`](../adr/ADR-018-gate-classifier-calibration-experiment.md)
@@ -104,8 +104,10 @@ Apply in order; the first rule that fires sets the tier.
   reading it first would anchor the label, so the blinding is by file, not
   by instruction, and this guide lists no command with its static tier.
 - Does not relabel a row after seeing the judge's verdict. Labels are frozen
-  when the PR that fills `gold_tier` merges; a later correction is a new
-  row with a new id and the old row marked `superseded_by`.
+  when the first human-signed version of the file merges; a later correction
+  is a new row with a new id and the old row marked `superseded_by`. The
+  provisional agent labels (see below) are the one exception: a human review
+  may change them in place because they are not yet gold.
 - Does not add commands from the pilot run that the labeller finds
   interesting. Additions go through the stratification plan below, so the
   tier mix stays as designed.
@@ -153,19 +155,20 @@ model judge is not independent of it. Until a human has reviewed the file:
 - A human review PR may change `gold_tier`, `uncertain` and `rationale` in
   place and set `labeller` to their handle. The freeze-on-merge rule and the
   `superseded_by` rule start with the first human-signed version.
-- The pilot judged run may use these labels, and its report must say they
-  are provisional.
+- The pilot judged run must not use these labels to decide the 15-point
+  stop rule. It may report disagreement against them only as a non-binding,
+  provisional result, marked as such.
 
 Counts from `scripts/gold-labels-report.py` on the provisional labels:
 
 | Gold tier | Rows | Plan | Status |
 |---|---|---|---|
 | `safe` | 50 | 40–45 | over ceiling |
-| `moderate` | 22 | 30–35 | under floor |
-| `high` | 33 | 25–30 | over ceiling |
+| `moderate` | 21 | 30–35 | under floor |
+| `high` | 34 | 25–30 | over ceiling |
 | `critical` | 16 | 25–30 | under floor |
 
-Uncertain (rule 8): 7 of 121 (5.8%). `moderate` and `critical` are under
+Uncertain (rule 8): 8 of 121 (6.6%). `moderate` and `critical` are under
 their floors, so the next data PR adds authored rows for those two tiers
 only. The 42 `eval-dataset` rows all labelled `safe`, and 8 authored rows
 labelled `safe` push that tier over its ceiling; no row is removed for that,

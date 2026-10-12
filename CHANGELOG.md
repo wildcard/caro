@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
+  carry a `gold_tier`, `uncertain`, `rationale`, `labeller` and `labelled_at`.
+  Labelled by an agent session on the owner's decision, blind to the static
+  tiers, and marked provisional in `docs/ml/risk-gold-subset.md` pending human
+  review. Counts: safe 50, moderate 21, high 34, critical 16, 8 uncertain.
+- **Gold-subset labels report.** `scripts/gold-labels-report.py` validates a
+  labelled `docs/ml/risk-gold-candidates.jsonl` (only the five labeller fields
+  may change, no static fields, tiers in `RiskLevel`) and prints the per-tier
+  counts against the stratification plan and the uncertain rate for the labels
+  PR body; `--static` joins the floor's verdicts once labels are frozen.
+  Guarded by `scripts/tests/test_gold_labels_report.py`. The gold-subset guide
+  now links ADR-018 (merged in #1511) and ADR-018's revision history records
+  the #1554 and #1558 data-gate items.
 - **Share card, Markdown twin and full SEO head for every website page**
   (#1588, closes #156). Each caro.sh page gets a generated 1200x630 card at
   `/og/<page>.png` (every `og:image` pointed at a missing `/og-image.png`
@@ -50,19 +63,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   full schema. Idea sourced from
   [adolfousier/opencrabs](https://github.com/adolfousier/opencrabs)'s
   `tools.toml` ergonomic; re-implemented from scratch in caro.
-- **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
-  carry a `gold_tier`, `uncertain`, `rationale`, `labeller` and `labelled_at`.
-  Labelled by an agent session on the owner's decision, blind to the static
-  tiers, and marked provisional in `docs/ml/risk-gold-subset.md` pending human
-  review. Counts: safe 50, moderate 22, high 33, critical 16, 7 uncertain.
-- **Gold-subset labels report.** `scripts/gold-labels-report.py` validates a
-  labelled `docs/ml/risk-gold-candidates.jsonl` (only the five labeller fields
-  may change, no static fields, tiers in `RiskLevel`) and prints the per-tier
-  counts against the stratification plan and the uncertain rate for the labels
-  PR body; `--static` joins the floor's verdicts once labels are frozen.
-  Guarded by `scripts/tests/test_gold_labels_report.py`. The gold-subset guide
-  now links ADR-018 (merged in #1511) and ADR-018's revision history records
-  the #1554 and #1558 data-gate items.
 - **Consensus-label export and ADR-018.** `CARO_EVAL_EXPORT_LABELS=<path>.jsonl`
   makes `cargo test --test evaluation` append `sft_export::decision_label_pairs`
   (local vs reference risk verdicts, #1466, now with `test_id` and including
