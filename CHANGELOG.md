@@ -50,6 +50,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   full schema. Idea sourced from
   [adolfousier/opencrabs](https://github.com/adolfousier/opencrabs)'s
   `tools.toml` ergonomic; re-implemented from scratch in caro.
+- **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
+  carry a `gold_tier`, `uncertain`, `rationale`, `labeller` and `labelled_at`.
+  Labelled by an agent session on the owner's decision, blind to the static
+  tiers, and marked provisional in `docs/ml/risk-gold-subset.md` pending human
+  review. Counts: safe 50, moderate 22, high 33, critical 16, 7 uncertain.
 - **Gold-subset labels report.** `scripts/gold-labels-report.py` validates a
   labelled `docs/ml/risk-gold-candidates.jsonl` (only the five labeller fields
   may change, no static fields, tiers in `RiskLevel`) and prints the per-tier

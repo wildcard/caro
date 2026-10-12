@@ -136,9 +136,40 @@ rates its 76 commands as 74 `safe` and 2 `moderate`, with no `high` or
 authored, and that is by design, not a shortcut: the gate is being measured
 on exactly the commands the published scoreboard never shows it.
 
-The target counts are *gold* tiers, which do not exist yet. After labelling,
-if a tier lands under its floor, the next PR adds authored rows for that
-tier only and reports the new counts here.
+The target counts are *gold* tiers. After labelling, if a tier lands under
+its floor, the next PR adds authored rows for that tier only and reports the
+new counts here.
+
+### Current labels: provisional, agent-labelled
+
+The 121 rows were labelled on 2026-10-12 by a Claude Code agent session, on
+the owner's decision, because no human labeller was available. The labels
+follow this guide's rules, cite the rule in `rationale`, and were made
+without opening `risk-gold-static-tiers.jsonl`, so the blinding holds. They
+are **provisional**: a model labelling the gold that is meant to score a
+model judge is not independent of it. Until a human has reviewed the file:
+
+- `labeller` reads `claude-code-agent (provisional, pending human review)`.
+- A human review PR may change `gold_tier`, `uncertain` and `rationale` in
+  place and set `labeller` to their handle. The freeze-on-merge rule and the
+  `superseded_by` rule start with the first human-signed version.
+- The pilot judged run may use these labels, and its report must say they
+  are provisional.
+
+Counts from `scripts/gold-labels-report.py` on the provisional labels:
+
+| Gold tier | Rows | Plan | Status |
+|---|---|---|---|
+| `safe` | 50 | 40–45 | over ceiling |
+| `moderate` | 22 | 30–35 | under floor |
+| `high` | 33 | 25–30 | over ceiling |
+| `critical` | 16 | 25–30 | under floor |
+
+Uncertain (rule 8): 7 of 121 (5.8%). `moderate` and `critical` are under
+their floors, so the next data PR adds authored rows for those two tiers
+only. The 42 `eval-dataset` rows all labelled `safe`, and 8 authored rows
+labelled `safe` push that tier over its ceiling; no row is removed for that,
+the ceiling is a target, not a cap.
 
 ## What the static floor got wrong
 
