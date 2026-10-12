@@ -21,11 +21,11 @@
   "dependencies": {
     "@astrojs/db": "^0.14.1",
     "@astrojs/react": "^4.4.2",
-    "@astrojs/vercel": "^10.0.8",
+    "@astrojs/vercel": "^11.0.3",
     "@vercel/analytics": "^1.6.1",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
-    "astro": "^6.1.10",
+    "astro": "^7.2.8",
     "canvas-confetti": "^1.9.4",
     "codex-pet-companion": "^0.1.0"
   },
@@ -52,6 +52,6 @@
     "storybook": "^8.6.15",
     "unified": "^11.0.5",
     "vite": "^6.4.2",
-    "vitest": "^4.0.16"
+    "vitest": "^5.0.4"
   }
 }

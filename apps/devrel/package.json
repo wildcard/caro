@@ -16,7 +16,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "^16.2.6",
+    "next": "^16.4.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "zod": "^4.3.4"
@@ -39,6 +39,6 @@
     "playwright": "^1.57.0",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.0.16"
+    "vitest": "^5.0.4"
   }
 }
