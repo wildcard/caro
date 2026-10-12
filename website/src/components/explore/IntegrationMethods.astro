@@ -76,10 +76,11 @@ find . -name "*.py" -type f -mtime 0
     example: {
       title: "Skill Installation",
       code: `# Install Caro as a Claude skill
-/plugin install wildcard/caro
+/plugin marketplace add wildcard/caro
+/plugin install caro-shell@caro
 
-# Use the skill
-You: /caro-shell-helper "find large log files and compress them"
+# Use the skill (it auto-activates, or invoke it by name)
+You: /caro-shell "find large log files and compress them"
 
 Caro: I'll generate a safe command for that:
 
@@ -93,8 +94,8 @@ Risk Level: Moderate
 Proceed? [y/N]`
     },
     setup: [
-      "Install with: /plugin install wildcard/caro",
-      "Invoke with /caro-shell-helper command",
+      "Install with: /plugin marketplace add wildcard/caro, then /plugin install caro-shell@caro",
+      "Invoke with /caro-shell, or let it auto-activate",
       "Provide natural language description",
       "Review and approve generated commands"
     ]

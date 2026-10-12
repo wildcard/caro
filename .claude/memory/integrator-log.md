@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-10-12 (23:00 PT fire) — Claude Code plugin manifest fix (#1490)
+
+- **Validated:** ✓ VERIFIED. Published `caro 1.4.0` is still the newest on crates.io (`cargo search`); v1.5.0 releases are Drafts only (#1419). Ran `claude plugin validate .claude-plugin/marketplace.json` on `origin/main` @ `a5624c50` → **FAIL, 4 errors** (name with spaces, missing `owner`, missing `plugins[]`, id charset) plus 9 unknown-field warnings. This confirms the INFERRED claims in #1490: the plugin route advertised on the website could not install. Skill choice confirmed by reading both SKILL.md files: `caro-shell` is canonical; the manifest shipped `caro-shell-helper`, which is DEPRECATED.
+- **Shipped:** PR (branch `integrator/20261012`): `.claude-plugin/marketplace.json` rewritten to the `owner` + `plugins[]` shape (marketplace `caro`, plugin `caro-shell`, `source: ./`, `strict: false`, `skills: [./.claude/skills/caro-shell]`). `claude plugin validate` → ✔ passed. End-to-end in an isolated `CLAUDE_CONFIG_DIR`: `plugin marketplace add <path>` + `plugin install caro-shell@caro` → installed and enabled. Website one-liners (Hero, Download, IntegrationMethods, GetStartedPaths, blog post) changed to the two-step flow; BW-018 marked fixed; matrix row added.
+- **Filed:** none. #1490 is the home.
+- **Discovered:** with `source: ./` the plugin cache copies the whole repo (both skill dirs on disk), but only the listed skill is loaded. A thinner install would need a dedicated plugin directory; not worth it tonight. Still open: i18n `landing.json` strings and the deprecated `caro-shell-helper` docs mention the old one-liner. The Astro build was not run (no `node_modules` in the worktree); edits are plain text with no braces or backticks.
+- **Not validated this pass:** `/plugin marketplace add wildcard/caro` against the GitHub remote can only be tested after merge.
+- **Next pass should:** after merge, run `/plugin marketplace add wildcard/caro` + install against GitHub, mark the matrix row ✅, close #1490. Then the topmost code row is #1081 wiring/feature-gate work, or #1623 (Copilot CLI guard harness).
+
+---
+
 ## 2026-07-11 (23:00 PT fire, post-merge pass) — #1298 landed; verify + close-the-loop, no code PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.4.0` (crates.io, 2026-05-09 — still newest). Confirmed **PR #1298 MERGED** (2026-07-12 UTC, commit `2a76cf90`) and **issue #1115 CLOSED**. Re-ran the #1115 repro on the shipped binary: `caro --backend-info` still advertises `static` (available) + `claude` (configurable), yet `caro --backend claude --dry-run -p "list pdf files"` → `Error: Invalid argument: Unknown backend 'claude'` and `--backend static` → identical. So the P0 divergence #1298 fixed on `main` is **still live in the shipped artifact** — this is now purely a release-cadence gap, not a code gap. PASS data point: `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls *.pdf` ✓. New-roster gap: `caro --backend ai-horde` → `Unknown backend` (main exposes it via #1209; published 1.4.0 knows only embedded/ollama/exo/vllm). Inspected `main` source: `CLI_SERVABLE_BACKENDS` (`src/backends/mod.rs:35`) now the single source of truth for `validate_backend_name`/`print_backend_info`/`available_backends`/help; `create_backend` (`src/cli/mod.rs:295`) still has no `claude`/`openrouter` arm (wiring half deferred, per the in-code comment).
