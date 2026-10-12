@@ -371,7 +371,7 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 
 **Found:** 2026-10-12, nightly verification of BW-015 (run 38195655733)
 **Issue:** #1612. The agent loop adds ~2.6 KB of context to the embedded system prompt. Real tokenizers count 1,955 (SmolLM) and 2,033 (TinyLlama) tokens on Linux; the macOS runner's context is larger and overflows 2048.
-**Status:** claimed-by sweep/2026-10-12-BW-1612
+**Status:** claimed-by sweep/2026-10-12-BW-1612 (#1616)
 **Needs human?:** no
 **Next step:** merge the PR; confirm on the next nightly.
 
