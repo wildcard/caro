@@ -4,11 +4,13 @@
 # at the top of Phase 2 (per-PR forward-path classification).
 #
 # Per-path policy:
-#   auto_dispatch : may the dispatcher file a [rebase-pr-N] bead and let
-#                   /caro-coder-loop claim it? false ⇒ path:refuse-list
-#                   (post [agent] decision comment, no bead).
-#   auto_rebase   : may the coder-loop *rebase* (merge main into the branch)
-#                   on this path? false ⇒ even a rebase attempt escalates
+#   auto_dispatch : may the dispatcher list the PR as merge-ready in its
+#                   Hermes digest? false ⇒ path:refuse-list (post [agent]
+#                   decision comment; a specialist or human reviews it).
+#                   The dispatcher files no beads either way: the rebase
+#                   queue was retired (caro-jac.100, option C).
+#   auto_rebase   : may an agent rebase (merge main into the branch) on
+#                   this path when asked? false ⇒ the rebase escalates
 #                   to path:deep for human / delivery-agent handling.
 #   constraint    : optional sub-rule. Recognized values:
 #                     "deps_only"   — bumps/adds/removes refuse; version
