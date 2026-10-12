@@ -1,5 +1,6 @@
 ---
 import { t } from '../i18n/config';
+import TermGlyph, { type Glyph } from '../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   lang: string;
@@ -14,7 +15,7 @@ const bannerId = 'caro-announcement-dec-2025'; // Unique ID for this banner
 
 <div id="announcement-banner" class="announcement-banner" data-banner-id={bannerId} data-expiry={expiryDate} style="display: none;">
   <div class="announcement-content">
-    <span><span aria-hidden="true">{t(lang, 'landing.announcement.renameBanner.emoji')}</span> <strong>{t(lang, 'landing.announcement.renameBanner.title')}</strong> {t(lang, 'landing.announcement.renameBanner.message')} <a href="/blog/announcing-caro">{t(lang, 'landing.announcement.renameBanner.linkText')}</a> <span aria-hidden="true">→</span></span>
+    <span><TermGlyph g={t(lang, 'landing.announcement.renameBanner.emoji') as Glyph} /> <strong>{t(lang, 'landing.announcement.renameBanner.title')}</strong> {t(lang, 'landing.announcement.renameBanner.message')} <a href="/blog/announcing-caro">{t(lang, 'landing.announcement.renameBanner.linkText')}</a> <span aria-hidden="true">→</span></span>
     <button id="dismiss-banner" class="dismiss-button" aria-label={t(lang, 'landing.announcement.renameBanner.dismissLabel')} title={t(lang, 'landing.announcement.renameBanner.dismissTitle')}>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <line x1="4" y1="4" x2="12" y2="12"/>

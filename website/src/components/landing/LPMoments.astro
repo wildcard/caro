@@ -1,5 +1,6 @@
 ---
 // LPMoments.astro - "Moments That Hurt" section
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
 ---
 
 <section class="moments">
@@ -35,7 +36,7 @@
           <div class="moment-example validated">
             <span class="caro-label">Caro:</span>
             <code>find /var/log -name "*.log" -mtime +30 -delete</code>
-            <span class="badge safe">✓ Safe</span>
+            <span class="badge safe"><TermGlyph g="✓" /> Safe</span>
           </div>
         </div>
       </div>
@@ -59,7 +60,7 @@
         </div>
         <div class="moment-after">
           <div class="moment-example blocked">
-            <span class="badge danger">⛔ BLOCKED</span>
+            <span class="badge danger"><TermGlyph g="✗" /> BLOCKED</span>
             <p class="warning-text">This command would make all system files world-writable. Suggested safe alternative:</p>
             <code>chmod 755 ./your-directory</code>
           </div>

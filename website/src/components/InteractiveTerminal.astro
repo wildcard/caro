@@ -1,5 +1,6 @@
 ---
 // InteractiveTerminal.astro - Interactive terminal demo showing Caro's value
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 ---
 
 <section class="demo-section" aria-labelledby="it-heading">
@@ -35,7 +36,7 @@
         </div>
         <div class="terminal-actions">
           <button type="button" id="install-caro-btn" class="install-btn">
-            <span class="install-icon" aria-hidden="true">🐕</span> Install Caro
+            <TermGlyph g="$" /> Install Caro
           </button>
         </div>
       </div>
@@ -45,10 +46,10 @@
 
       <!-- Status bar (visible in Caro mode) -->
       <div id="status-bar" class="status-bar hidden">
-        <span class="status-item">🐕 <span id="status-caro">Caro: Ready</span></span>
-        <span class="status-item">💻 <span id="status-os">macOS</span></span>
-        <span class="status-item">🐚 <span id="status-shell">zsh</span></span>
-        <span class="status-item">📂 <span id="status-dir">~/mystery</span></span>
+        <span class="status-item"><TermGlyph g="▸" /> <span id="status-caro">Caro: Ready</span></span>
+        <span class="status-item"><TermGlyph g="▸" /> <span id="status-os">macOS</span></span>
+        <span class="status-item"><TermGlyph g=">_" /> <span id="status-shell">zsh</span></span>
+        <span class="status-item"><TermGlyph g="▸" /> <span id="status-dir">~/mystery</span></span>
       </div>
     </div>
 
@@ -244,10 +245,6 @@
 
   .install-btn.installed:hover {
     box-shadow: 0 4px 12px rgba(39, 201, 63, 0.4);
-  }
-
-  .install-icon {
-    font-size: 14px;
   }
 
   #terminal-container {

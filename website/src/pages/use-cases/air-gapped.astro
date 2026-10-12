@@ -12,6 +12,7 @@ import LandingPage from '../../layouts/LandingPage.astro';
 import Navigation from '../../components/Navigation.astro';
 import LPDownload from '../../components/landing/LPDownload.astro';
 import LPFooter from '../../components/landing/LPFooter.astro';
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
 
 const jobs = [
   {
@@ -44,42 +45,36 @@ const environments = [
   {
     name: 'SCIFs',
     fullName: 'Sensitive Compartmented Information Facilities',
-    icon: '🏛️',
     description: 'Government classified development environments',
     requirements: ['No external network', 'Auditable binary', 'No telemetry'],
   },
   {
     name: 'Financial Trading',
     fullName: 'Trading Floor Systems',
-    icon: '📈',
     description: 'Systems where millisecond latency matters',
     requirements: ['Air-gapped networks', 'Audit trails', 'No cloud dependencies'],
   },
   {
     name: 'Healthcare',
     fullName: 'HIPAA Compliant Environments',
-    icon: '🏥',
     description: 'Patient data systems with strict compliance',
     requirements: ['No data exfiltration', 'Audit logging', 'Offline operation'],
   },
   {
     name: 'Industrial',
     fullName: 'OT/SCADA Networks',
-    icon: '🏭',
     description: 'Critical infrastructure control systems',
     requirements: ['Complete isolation', 'No network calls', 'Deterministic behavior'],
   },
   {
     name: 'Defense Contractors',
     fullName: 'ITAR/EAR Controlled',
-    icon: '🛡️',
     description: 'Export-controlled development environments',
     requirements: ['US-person only access', 'No foreign servers', 'Full audit'],
   },
   {
     name: 'Research Labs',
     fullName: 'Isolated Research Networks',
-    icon: '🔬',
     description: 'IP-sensitive research environments',
     requirements: ['Data isolation', 'No cloud sync', 'Self-contained'],
   },
@@ -192,7 +187,6 @@ const installMethods = [
       'Copy to air-gapped machine: chmod +x ./caro',
       'Run immediately—no additional setup needed',
     ],
-    icon: '💾',
   },
   {
     name: 'Build from Source',
@@ -203,7 +197,6 @@ const installMethods = [
       'Binary at: target/release/caro',
       'Full audit trail of what you\'re running',
     ],
-    icon: '🔧',
   },
   {
     name: 'Internal Mirror',
@@ -213,7 +206,6 @@ const installMethods = [
       'All engineers install from trusted internal source',
       'Centralized update management',
     ],
-    icon: '🏢',
   },
 ];
 ---
@@ -270,7 +262,6 @@ const installMethods = [
       <div class="environments-grid">
         {environments.map((env) => (
           <div class="env-card">
-            <div class="env-icon">{env.icon}</div>
             <h3>{env.name}</h3>
             <p class="env-fullname">{env.fullName}</p>
             <p class="env-desc">{env.description}</p>
@@ -340,7 +331,7 @@ const installMethods = [
               </div>
 
               <div class="terminal-line offline-indicator">
-                <span class="offline-icon">✈️</span>
+                <span class="offline-icon"><TermGlyph g="$" /></span>
                 <span class="offline-text">Running fully offline - no network required</span>
               </div>
             </div>
@@ -381,11 +372,11 @@ const installMethods = [
         {approvalArguments.map((arg) => (
           <div class="approval-card">
             <div class="objection">
-              <span class="objection-icon">❓</span>
+              <span class="objection-icon"><TermGlyph g="▸" /></span>
               <span class="objection-text">{arg.objection}</span>
             </div>
             <div class="response">
-              <span class="response-icon">✅</span>
+              <span class="response-icon"><TermGlyph g="✓" /></span>
               <span class="response-text">{arg.response}</span>
             </div>
           </div>
@@ -396,19 +387,19 @@ const installMethods = [
         <h3>Security Documentation</h3>
         <div class="docs-grid">
           <a href="https://github.com/wildcard/caro/blob/main/SECURITY.md" class="doc-link">
-            <span class="doc-icon">📄</span>
+            <span class="doc-icon"><TermGlyph g="■" /></span>
             <span>Security Policy</span>
           </a>
           <a href="https://github.com/wildcard/caro/blob/main/LICENSE" class="doc-link">
-            <span class="doc-icon">📜</span>
+            <span class="doc-icon"><TermGlyph g="▸" /></span>
             <span>License (AGPL-3.0)</span>
           </a>
           <a href="https://github.com/wildcard/caro" class="doc-link">
-            <span class="doc-icon">💻</span>
+            <span class="doc-icon"><TermGlyph g="❯" /></span>
             <span>Full Source Code</span>
           </a>
           <a href="https://github.com/wildcard/caro/releases" class="doc-link">
-            <span class="doc-icon">📦</span>
+            <span class="doc-icon"><TermGlyph g="$" /></span>
             <span>Releases + Checksums</span>
           </a>
         </div>
@@ -425,7 +416,6 @@ const installMethods = [
       <div class="install-grid">
         {installMethods.map((method) => (
           <div class="install-card">
-            <div class="install-icon">{method.icon}</div>
             <h3>{method.name}</h3>
             <ol class="install-steps">
               {method.steps.map((step) => (
@@ -625,11 +615,6 @@ const installMethods = [
   .env-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  }
-
-  .env-icon {
-    font-size: 40px;
-    margin-bottom: 12px;
   }
 
   .env-card h3 {
@@ -832,7 +817,7 @@ const installMethods = [
     gap: 10px;
   }
 
-  .offline-icon { font-size: 16px; }
+  .offline-icon { font-size: 14px; color: var(--highlight); }
   .offline-text { color: var(--highlight); font-size: 13px; }
 
   .scenario-benefit {
@@ -919,7 +904,7 @@ const installMethods = [
     border-bottom: 1px solid var(--color-border);
   }
 
-  .objection-icon { font-size: 18px; }
+  .objection-icon { font-size: 16px; color: var(--accent-text); }
   .objection-text {
     font-weight: 600;
     color: var(--color-text);
@@ -930,7 +915,7 @@ const installMethods = [
     background: rgba(34, 197, 94, 0.05);
   }
 
-  .response-icon { font-size: 18px; }
+  .response-icon { font-size: 16px; color: var(--status-safe-text); }
   .response-text {
     color: var(--color-text-secondary);
     font-size: 14px;
@@ -973,7 +958,7 @@ const installMethods = [
     transform: translateY(-2px);
   }
 
-  .doc-icon { font-size: 18px; }
+  .doc-icon { font-size: 15px; }
 
   /* Install */
   .install-section {
@@ -992,11 +977,6 @@ const installMethods = [
     border-radius: 12px;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
-  }
-
-  .install-icon {
-    font-size: 36px;
-    margin-bottom: 12px;
   }
 
   .install-card h3 {

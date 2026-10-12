@@ -15,6 +15,7 @@ import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
 import RatzillaDemo from '../components/RatzillaDemo.astro';
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 
 ---
 
@@ -49,27 +50,27 @@ import RatzillaDemo from '../components/RatzillaDemo.astro';
           <h3>Try these prompts:</h3>
           <div class="hint-grid">
             <button type="button" class="hint-chip" data-prompt="find large files over 100MB">
-              <span class="hint-icon">📁</span>
+              <span class="hint-icon"><TermGlyph g="❯" /></span>
               find large files
             </button>
             <button type="button" class="hint-chip" data-prompt="list all PDF files">
-              <span class="hint-icon">📄</span>
+              <span class="hint-icon"><TermGlyph g="❯" /></span>
               list PDFs
             </button>
             <button type="button" class="hint-chip" data-prompt="show disk usage">
-              <span class="hint-icon">💾</span>
+              <span class="hint-icon"><TermGlyph g="❯" /></span>
               disk usage
             </button>
             <button type="button" class="hint-chip" data-prompt="compress log files">
-              <span class="hint-icon">📦</span>
+              <span class="hint-icon"><TermGlyph g="❯" /></span>
               compress logs
             </button>
             <button type="button" class="hint-chip dangerous" data-prompt="delete all temp files">
-              <span class="hint-icon">⚠️</span>
+              <span class="hint-icon"><TermGlyph g="■" /></span>
               delete temps
             </button>
             <button type="button" class="hint-chip dangerous" data-prompt="force remove directory">
-              <span class="hint-icon">🚫</span>
+              <span class="hint-icon"><TermGlyph g="✗" /></span>
               rm -rf (blocked!)
             </button>
           </div>

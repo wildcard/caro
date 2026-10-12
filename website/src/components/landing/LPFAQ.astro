@@ -1,6 +1,7 @@
 ---
 import { t, type Locale } from '../../i18n/config';
 import { translations } from '../../i18n/index';
+import TermGlyph, { type Glyph } from '../../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -21,7 +22,7 @@ const concerns = translations[lang].landing.faq.concerns;
       {concerns.map((item) => (
         <details class="faq-item">
           <summary class="faq-question">
-            <span class="faq-icon">{item.icon}</span>
+            <span class="faq-icon"><TermGlyph g={item.icon as Glyph} /></span>
             <span class="faq-text">{item.question}</span>
             <span class="faq-toggle">+</span>
           </summary>
@@ -103,8 +104,11 @@ const concerns = translations[lang].landing.faq.concerns;
     display: none;
   }
 
+  /* 24 px column keeps the answer indent (62 px) aligned with the question. */
   .faq-icon {
-    font-size: 24px;
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
     flex-shrink: 0;
   }
 
