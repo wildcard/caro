@@ -167,6 +167,11 @@ jobs:
           draft: false
           prerelease: ${{ contains(needs.prepare-release.outputs.version, 'alpha') || contains(needs.prepare-release.outputs.version, 'beta') || contains(needs.prepare-release.outputs.version, 'rc') }}
           body_path: /tmp/release-notes.md
+          # Ship the Kyaro artwork notice alongside the release binaries, as
+          # the notice's official-release permission requires. Read from the
+          # tagged checkout above.
+          files: assets/kyaro/README.md
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
