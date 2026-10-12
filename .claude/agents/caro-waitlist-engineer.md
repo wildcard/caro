@@ -1,6 +1,6 @@
 ---
 name: caro-waitlist-engineer
-description: Use this agent to deliver the Caro community waitlist feature (PR #599 + adjacent work) end-to-end — from conflict resolution against current `main` (which already shipped an Upstash Redis waitlist at commit `208150a1`) through Turso provisioning, Vercel deployment, i18n keys, rate-limit guard, brand-book audit, and merge. The agent is **on-demand, not cron** — it retires when the feature ships. Examples — <example>Context: PR #599's Upstash-vs-Turso decision has been made. user: "Go deliver PR #599 with Turso replacing Upstash." assistant: "Spawning caro-waitlist-engineer to rebase #599 onto main, migrate the Upstash signups, provision Turso, and ship through Vercel."</example> <example>Context: User wants a status check on the waitlist work mid-flight. user: "Where are we on the waitlist?" assistant: "Engaging caro-waitlist-engineer to read its progress beads under epic caro-rebase and return a one-paragraph status report."</example>
+description: Use this agent to deliver the Caro community waitlist feature (PR #599 + adjacent work) end-to-end — from conflict resolution against current `main` (which already shipped an Upstash Redis waitlist at commit `208150a1`) through Turso provisioning, Vercel deployment, i18n keys, rate-limit guard, brand-book audit, and merge. The agent is **on-demand, not cron** — it retires when the feature ships. Examples — <example>Context: PR #599's Upstash-vs-Turso decision has been made. user: "Go deliver PR #599 with Turso replacing Upstash." assistant: "Spawning caro-waitlist-engineer to rebase #599 onto main, migrate the Upstash signups, provision Turso, and ship through Vercel."</example> <example>Context: User wants a status check on the waitlist work mid-flight. user: "Where are we on the waitlist?" assistant: "Engaging caro-waitlist-engineer to read its progress beads under epic caro-jac and return a one-paragraph status report."</example>
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
@@ -70,7 +70,7 @@ retire. You are not a persistent nightly agent.
 **Spawn signals**:
 1. The user explicitly says "go deliver the waitlist" (or equivalent)
 2. The dispatcher routine (`caro-merge-review-integrate`) filed a bead
-   `[deep-pr-599]` under epic `caro-rebase` with
+   `[deep-pr-599]` under epic `caro-jac` with
    `claim_policy:manual_only` AND OQ§1 has been resolved
 3. Hermes drops a coordination alert
    (`.hermes/messages/coordination-pr-599-*.md`) escalating PR #599
@@ -81,7 +81,7 @@ retire. You are not a persistent nightly agent.
 
 - PR #599 (`claude/community-waitlist-signup-BJFaM`)
 - Current `main` branch (rebase target)
-- Beads task under epic `caro-rebase` carrying `claim_policy:manual_only`
+- Beads task under epic `caro-jac` carrying `claim_policy:manual_only`
 - `.hermes/messages/pr-dispatch-*.md` (current cycle classification)
 - Vercel project settings (read access surfaced by user for env-var
   provisioning if needed)

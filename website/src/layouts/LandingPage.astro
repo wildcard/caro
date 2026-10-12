@@ -3,7 +3,7 @@
 // These pages target specific pain points and personas
 
 import '../ui/tokens.css';
-import Favicons from '../components/Favicons.astro';
+import SEO from '../components/SEO.astro';
 import OmniSearch from '../components/OmniSearch.astro';
 import OccasionHead from '../components/OccasionHead.astro';
 import OccasionPreviewBar from '../components/OccasionPreviewBar.astro';
@@ -26,27 +26,12 @@ const { title, description, slug, persona, painPoint } = Astro.props;
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content={description} />
-  <meta name="robots" content="index, follow" />
-
-  <!-- Open Graph -->
-  <meta property="og:title" content={title} />
-  <meta property="og:description" content={description} />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content={`https://caro.sh/${slug}`} />
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content={title} />
-  <meta name="twitter:description" content={description} />
+  <SEO title={title} description={description} />
 
   <!-- Landing page metadata for internal tracking -->
   <meta name="lp:slug" content={slug} />
   {persona && <meta name="lp:persona" content={persona} />}
   {painPoint && <meta name="lp:pain-point" content={painPoint} />}
-
-  <Favicons />
-  <title>{title}</title>
 
   <style is:global>
     /* Alias the tokens.css semantic layer — never re-hardcode the palette. */

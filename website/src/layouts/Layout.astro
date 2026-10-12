@@ -13,7 +13,7 @@ import HumanityEventBanner from '../components/HumanityEventBanner.astro';
 import SEO from '../components/SEO.astro';
 import { KavanaCompanion } from '../ui/KavanaCompanion/KavanaCompanion';
 import OccasionPreviewBar from '../components/OccasionPreviewBar.astro';
-import { isRtl, getAllLocales, t, type Locale } from '../i18n/config';
+import { isRtl, t, type Locale } from '../i18n/config';
 import OccasionHead from '../components/OccasionHead.astro';
 
 interface Props {
@@ -25,6 +25,7 @@ interface Props {
   type?: 'website' | 'article';
   publishedTime?: string;
   modifiedTime?: string;
+  readingTime?: string;
   author?: string;
   tags?: string[];
   noindex?: boolean;
@@ -40,6 +41,7 @@ const {
   type = 'website',
   publishedTime,
   modifiedTime,
+  readingTime,
   author,
   tags,
   noindex,
@@ -57,11 +59,13 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
     <SEO
       title={title}
       description={description}
+      lang={lang}
       image={image}
       imageAlt={imageAlt}
       type={type}
       publishedTime={publishedTime}
       modifiedTime={modifiedTime}
+      readingTime={readingTime}
       author={author}
       tags={tags}
       noindex={noindex}
@@ -69,15 +73,6 @@ const dir = isRtl(lang) ? 'rtl' : 'ltr';
     />
     <!-- ASCII Morph Library (Multi-instance support) -->
     <script src="/ascii-morph-multi.js" is:inline></script>
-
-    <!-- Hreflang tags for all supported locales -->
-    {getAllLocales().map(locale => (
-      <link
-        rel="alternate"
-        hreflang={locale.code}
-        href={`https://caro.sh/${locale.code === 'en' ? '' : locale.code + '/'}`}
-      />
-    ))}
 
     <!-- Noto fonts for RTL languages -->
     {lang === 'he' && (

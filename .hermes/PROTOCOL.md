@@ -112,38 +112,43 @@ Daily PR digests include:
 
 ### 5. Dispatcher → Hermes (per-cycle digest input)
 
-**Producer**: `caro-merge-review-integrate` (cron `0 */4 * * *`)
+**Producer**: `caro-merge-review-integrate` (local scheduled task, daily)
 **Directory**: `.hermes/messages/`
 **Naming convention**: `pr-dispatch-<YYYY-MM-DD-HHMM>.md`
 
-After each cycle, the dispatcher routine drops a file enumerating its
-per-PR forward-path classifications and any newly-filed beads. Hermes
-consumes these to compose its daily digest and to fire **coordination
-alerts** when it detects parallel work on the same PR (e.g. a manual
-Crush branch + a dispatcher-filed `[rebase-pr-N]` bead).
+After each cycle, the dispatcher drops a file that sorts every open
+user-authored PR by what it waits on. Hermes uses it to compose the daily
+digest and to tell the owner which PRs to review, merge or close.
+
+The dispatcher files **no beads**. The `loop:rebase` bead queue was
+retired (caro-jac.100, option C): no agent ever claimed a rebase bead, and
+PRs left the queue only when a human merged or closed them. The digest
+puts that review work in front of the owner instead.
 
 ```markdown
-# Dispatcher cycle — 2026-05-13 18:55 UTC (caro-merge-review-integrate)
+# Dispatcher cycle — 2026-10-11 02:15 UTC (caro-merge-review-integrate)
 
-## Forward-path classifications (this cycle)
+## Merge-ready (mergeable, CI green, not refuse-list)
+| PR | path | age (d) | title |
+|---|---|---|---|
+| #1471 | path:auto | 12 | fix(deps): bump h2 and rustls |
 
-| PR | path | owner | bead filed | notes |
-|---|---|---|---|---|
-| #651 | path:auto | /caro-coder-loop | caro-rebase.1 | both files net-new |
-| #599 | path:deep | caro-waitlist-engineer | caro-rebase.9 (claim_policy:manual_only) | OQ§1 blocking |
-| #605 | path:scoped | /caro-coder-loop via rust-cli-expert | caro-rebase.5 | refuse-list flag (Cargo.toml deps + src/main.rs) — additions scoped, override |
+## Needs rebase (CONFLICTING)
+| PR | path | age (d) | conflict driver |
+|---|---|---|---|
+| #1061 | path:scoped | 140 | src/main.rs moved since branch point |
 
-## Newly filed beads
-- caro-rebase.1 — gh-651-rebase, loop:rebase
-- ...
+## Needs a decision (path:deep, path:decision, path:refuse-list)
+| PR | path | owner | blocker |
+|---|---|---|---|
+| #599 | path:deep | caro-waitlist-engineer (caro-jac.9) | OQ§1 open |
 
 ## Coordination alerts (to Hermes)
-- (none) | (alert if existing rebase bead + parallel branch detected)
+- (none) | (alert when two branches change the same PR)
 ```
 
 The dispatcher writes; **Hermes does not file beads** (write boundary
-preserved — rule §1 below). The dispatcher's beads are visible via
-`bd list --json | jq '.[] | select(.labels[]? == "loop:rebase")'`.
+preserved — rule §1 below).
 
 ## Message Flow
 

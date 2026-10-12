@@ -1,5 +1,6 @@
 ---
 import Layout from './Layout.astro';
+import TermGlyph, { type Glyph } from '../ui/TermGlyph/TermGlyph.astro';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
 
@@ -129,7 +130,7 @@ function renderValue(value: boolean | string) {
       <div class="container">
         {comparison.sections.map((section) => (
           <div class="detail-section">
-            <h3><span class="section-icon">{section.icon}</span> {section.title}</h3>
+            <h3><span class="section-icon"><TermGlyph g={section.icon as Glyph} /></span> {section.title}</h3>
             <div class="section-content" set:html={section.content} />
           </div>
         ))}
@@ -227,7 +228,7 @@ function renderValue(value: boolean | string) {
   .detail-section { margin-bottom: 40px; padding: 30px; background: var(--color-bg); border-radius: 12px; border: 1px solid var(--color-border); }
   .detail-section:last-child { margin-bottom: 0; }
   .detail-section h3 { font-size: 20px; margin-bottom: 16px; color: var(--color-text); display: flex; align-items: center; gap: 10px; }
-  .section-icon { font-size: 24px; }
+  .section-icon { font-size: 20px; }
   .section-content { color: var(--color-text-secondary); line-height: 1.7; }
   .section-content :global(p) { margin-bottom: 16px; }
   .section-content :global(p:last-child) { margin-bottom: 0; }

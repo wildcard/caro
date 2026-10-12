@@ -2,13 +2,14 @@
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 
 // Search metadata - used by OmniMenu
 export const searchMeta = {
   title: 'Glossary',
   description: 'Terminal & Unix terminology explained',
   keywords: ['glossary', 'unix', 'posix', 'shell', 'terminal', 'commands', 'cli', 'bash', 'zsh', 'linux', 'macos', 'cheatsheet', 'reference', 'beginner', 'learn'],
-  icon: '📖',
+  icon: '▸',
 };
 ---
 
@@ -383,7 +384,7 @@ export const searchMeta = {
         </div>
 
         <div class="pro-tip">
-          <span class="tip-icon">💡</span>
+          <span class="tip-icon"><TermGlyph g="▸" /></span>
           <div class="tip-content">
             <strong>Pro Tip:</strong> Use <code>~</code> for home directory, <code>.</code> for current,
             <code>..</code> for parent, and <code>-</code> for previous directory.
@@ -1224,7 +1225,7 @@ export const searchMeta = {
   }
 
   .tip-icon {
-    font-size: 24px;
+    font-size: 16px;
     flex-shrink: 0;
   }
 

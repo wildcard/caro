@@ -41,40 +41,16 @@ function getCategoryFromPath(filePath) {
   return 'main';
 }
 
-// Get icon based on category and path
-function getIconFromPath(urlPath, category) {
-  const iconMap = {
-    blog: '📝',
-    compare: '⚖️',
-    'use-cases': '📋',
-    explore: '🔍',
-    docs: '📚',
-    main: '📄',
-  };
-
-  // Special icons for specific pages
-  if (urlPath.includes('sre')) return '🚨';
-  if (urlPath.includes('air-gapped')) return '🔐';
-  if (urlPath.includes('devops')) return '🔧';
-  if (urlPath.includes('tech-lead')) return '👥';
-  if (urlPath.includes('developer')) return '💻';
-  if (urlPath.includes('safety') || urlPath.includes('security')) return '🛡️';
-  if (urlPath.includes('roadmap')) return '🗺️';
-  if (urlPath.includes('support')) return '💬';
-  if (urlPath.includes('credits')) return '🙏';
-  if (urlPath.includes('github') || urlPath.includes('copilot')) return '🐙';
-  if (urlPath.includes('warp')) return '🚀';
-  if (urlPath.includes('amazon')) return '📦';
-  if (urlPath.includes('opencode')) return '💡';
-  if (urlPath.includes('claude')) return '🤖';
-  if (urlPath === '/' || urlPath === '') return '🏠';
-
-  return iconMap[category] || '📄';
-}
+// Every search row shows the same terminal glyph (docs/brand/ICONOGRAPHY.md):
+// the page title carries the meaning.
+const SEARCH_ICON = '▸';
 
 // Extract ALL text content from HTML/Astro content
 function extractAllTextContent(content) {
   let text = content
+    // <TermGlyph> is decorative (aria-hidden). Drop it before the generic tag
+    // strip below, which stops at the `>` inside g=">_".
+    .replace(/<TermGlyph\b(?:[^>"']|"[^"]*"|'[^']*')*>/g, ' ')
     // Remove code blocks first (they contain non-searchable content)
     // Use word boundary and flexible closing tags to handle </code > variants
     .replace(/<code\b[^>]*>[\s\S]*?<\/code\b[^>]*>/gi, ' ')
@@ -300,7 +276,7 @@ function extractImportedDataStrings(content, filePath) {
 }
 
 // Extract text from specific elements for structured content
-function extractStructuredContent(content) {
+export function extractStructuredContent(content) {
   const result = {
     headings: [],
     paragraphs: [],
@@ -539,7 +515,7 @@ function scanPage(filePath, pagesDir) {
     description,
     category,
     keywords,
-    icon: getIconFromPath(urlPath, category),
+    icon: SEARCH_ICON,
     // Structured content for display
     content: {
       headings: structured.headings,
@@ -688,5 +664,7 @@ function generateSearchIndex() {
   console.log(`   Total content: ${totalChars.toLocaleString()} characters`);
 }
 
-// Run
-generateSearchIndex();
+// Run when called as a script, not when a test imports it.
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+  generateSearchIndex();
+}
