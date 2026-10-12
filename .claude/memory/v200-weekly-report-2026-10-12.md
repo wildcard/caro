@@ -18,7 +18,7 @@
 
 None — all ROADMAP items already have tracking issues. v2.0.0 items tracked via GitHub milestone #3, not the `milestone:v2.0.0` label (which doesn't exist). No untracked items found.
 
-### Notable open items (confirmed open as of today)
+### Notable open items (from ROADMAP.md; not reconciled live against milestone #3 this run)
 
 | # | Title | Labels |
 |---|-------|--------|
@@ -53,7 +53,8 @@ None — all ROADMAP items already have tracking issues. v2.0.0 items tracked vi
 
 ### PRs with CI failures
 
-No open PRs with `milestone:v2.0.0` label. Previously flagged PRs:
+The `milestone:v2.0.0` label does not exist; PRs are checked via milestone #3.
+No open PRs confirmed assigned to milestone #3. Previously flagged PRs:
 - PR #1173 — previous weekly planning PR (May 25, 2026). Status unconfirmed; check if merged.
 - PR #1246 — CI fix PR. Status unconfirmed; check if merged.
 
@@ -80,11 +81,14 @@ No open PRs with `milestone:v2.0.0` label. Previously flagged PRs:
 
 2. **Begin user discovery for Self-Healing (#155, #1151)** — Highest concrete PMF potential.
    Run `caro.discovery` skill; target 20 first-hand interviews with power-CLI users. Store
-   transcripts in `docs/discovery/transcripts/self-healing/`. Required before any code.
+   transcripts in `docs/discovery/transcripts/` using filename convention
+   `YYYY-MM-DD-<anon-handle>-self-healing.md`. Required before any code.
 
 3. **Begin user discovery for Local Context Indexing (#504)** — ChromaDB Phases 1–3 are
-   already complete. 20 interviews would unlock Phase 4 (the actual feature work). Store
-   transcripts in `docs/discovery/transcripts/local-context-indexing/`.
+   already complete. Store transcripts in `docs/discovery/transcripts/` using filename convention
+   `YYYY-MM-DD-<anon-handle>-local-context-indexing.md`. Phase 4 proceeds only after all five
+   validation-discipline gates clear (20 transcripts with ≥3 distinct pain patterns, no-surveys,
+   demoware-trap section, devil's-advocate review, Sean Ellis defended cohort).
 
 ## Status
 
