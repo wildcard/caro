@@ -403,7 +403,9 @@ allow_public = false
 
 Named model profiles bundle a backend, a model, an endpoint and the variable
 that holds the key. Pick one with `--model-profile <name>` or
-`CARO_MODEL_PROFILE`. `--backend` and `--model-name` still override it:
+`CARO_MODEL_PROFILE`. A profile only fills in the config, so everything
+that overrides the config also overrides the profile: `--backend` and
+`--model-name`, and the `CARO_BACKEND` and `CARO_MODEL` variables:
 
 ```toml
 [models.gpu-box]

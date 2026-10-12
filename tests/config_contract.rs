@@ -663,6 +663,27 @@ mod model_profiles {
         assert!(err.contains("CARO_TEST_PROFILE_KEY_UNSET"), "{err}");
     }
 
+    #[cfg(feature = "remote-backends")]
+    #[test]
+    fn backend_env_overrides_the_profile() {
+        // The profile fills in the config, so CARO_BACKEND (like --backend)
+        // wins. The AI-Horde backend, and its unset key, is never built.
+        let dir = with_config(CONFIG);
+        let out = caro(
+            dir.path(),
+            &[
+                "--model-profile",
+                "horde",
+                "--output",
+                "json",
+                "show disk usage",
+            ],
+            &[("CARO_BACKEND", "ollama")],
+        );
+        let all = format!("{}{}", String::from_utf8_lossy(&out.stdout), stderr(&out));
+        assert!(!all.contains("CARO_TEST_PROFILE_KEY_UNSET"), "{all}");
+    }
+
     #[test]
     fn bad_profile_is_refused_at_load() {
         let dir = with_config(concat!(
