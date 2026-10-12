@@ -1,3 +1,6 @@
+# Documentation of the #1054 cases, not a runnable suite: `caro test --suite`
+# ignores `dangerous_pattern` and `expected_behavior` (#1599, BW-063). The
+# regression guard is tests/safety_segment_evasion_contract.rs.
 metadata:
   version: "1.0.0"
   description: "Segment- and wrapper-aware validation (#1054): six measured evasions plus variants"

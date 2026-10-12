@@ -11,15 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Segment- and wrapper-aware safety validation (#1054).** The validator
   now scans each statement of a command line, each statement without its
-  `sudo`/`env`/`timeout`/`nice`/`nohup`/`xargs` prefix, and each `sh -c` /
-  `eval` payload (up to 3 levels deep), so `bash -c 'rm -rf /'` and
+  `sudo`/`env`/`timeout`/`nice`/`nohup`/`xargs`/`busybox` prefix, and each
+  `sh -c` / `env -S` / `eval` payload (up to 3 levels deep, with no cap on
+  the number of statements), so `bash -c 'rm -rf /'` and
   `git status; chmod -R 777 ~` no longer pass. New patterns: recursive
   world-writable `chmod` and `find -delete`/`-exec rm` on root or home
   (Critical, also in the catastrophic floor), base64-decoded payload piped
   into a shell (Critical), `eval` of a variable or of downloaded/decoded
   content (High), other `eval "$(…)"` (Moderate), and interpreter one-liners
   deleting root, home or a system directory (High). `python` patterns now
-  match `python3`. `echo`/`printf` arguments are never unwrapped. Guarded by
+  match `python3`. `echo`/`printf` arguments are never unwrapped, also
+  inside a payload (`bash -c 'echo rm -rf /'` stays allowed). Guarded by
   `tests/safety_segment_evasion_contract.rs` and
   `enforce_catches_segment_and_wrapper_evasions` in `tests/e2e_guard.rs`.
 - **Share card, Markdown twin and full SEO head for every website page**

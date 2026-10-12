@@ -485,9 +485,9 @@ impl SafetyValidator {
         // TOK/REC/WW_MODE/ROOT_OR_HOME/FIND_ROOT_OR_HOME_DELETE), with the
         // statement-head anchor so a quoted mention stays out of the floor.
         // `floor_fragments_match_builtins` keeps the two copies in sync.
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)chmod\s+(?:[^\s;&|]+\s+)*?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)\s+(?:[^\s;&|]+\s+)*?(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)\s+(?:[^\s;&|]+\s+)*?['"]?(?:/+|~/?|\$\{?HOME\}?/?)\*?['"]?(?:\s|$)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)chmod\s+(?:[^\s;&|]+\s+)*?(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)\s+(?:[^\s;&|]+\s+)*?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)\s+(?:[^\s;&|]+\s+)*?['"]?(?:/+|~/?|\$\{?HOME\}?/?)\*?['"]?(?:\s|$)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)find\s+(?:-[HLP]\s+)*['"]?(?:/+|~/?|\$\{?HOME\}?/?)['"]?(?:\s+(?:[^\s;&|]|\\;)+)*?\s+(?:-delete\b|-exec(?:dir)?\s+(?:sudo\s+)?rm\b)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)chmod(?:[ \t]|\\\n)+(?:-[^\s;&|]*(?:[ \t]|\\\n)+)*?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)(?:[ \t]|\\\n)+(?:-[^\s;&|]*(?:[ \t]|\\\n)+)*?(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)(?:[ \t]|\\\n)+(?:[^\s;&|]+(?:[ \t]|\\\n)+)*?(?:['"]?/+\*?['"]?|~/?\*?|"?\$\{?HOME\}?/?\*?"?)(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)chmod(?:[ \t]|\\\n)+(?:-[^\s;&|]*(?:[ \t]|\\\n)+)*?(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)(?:[ \t]|\\\n)+(?:[^\s;&|]+(?:[ \t]|\\\n)+)*?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)(?:[ \t]|\\\n)+(?:[^\s;&|]+(?:[ \t]|\\\n)+)*?(?:['"]?/+\*?['"]?|~/?\*?|"?\$\{?HOME\}?/?\*?"?)(?:\s|$)"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)find(?:[ \t]|\\\n)+(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:[ \t]|\\\n)+(?:[^\s;&|]|\;)+)*?(?:[ \t]|\\\n)+(?:-delete\b|-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#,
         // ── Explicit root-protection bypass — always catastrophic ────────────
         r"--no-preserve-root",
         // ── Whole-disk / device destruction ──────────────────────────────────
@@ -660,13 +660,14 @@ impl SafetyValidator {
         false
     }
 
-    /// Whether the catastrophic floor fires for `command`, scanning the same
-    /// targets `validate_command` does (the raw command plus its
-    /// shell-unescaped form for destructive statements).
+    /// Whether the catastrophic floor fires for `command`. It scans the same
+    /// targets as `validate_command` ([`Self::scan_targets`]): the raw
+    /// command, its statements and wrapper payloads, and their unescaped
+    /// forms.
     pub(crate) fn floor_applies(command: &str, shell: ShellType) -> bool {
-        Self::targets_catastrophic_location(command)
-            || Self::destructive_unescaped(command, shell)
-                .is_some_and(|u| Self::targets_catastrophic_location(&u))
+        Self::scan_targets(command, shell)
+            .iter()
+            .any(|t| Self::targets_catastrophic_location(t))
     }
 
     /// Validate a single command for safety
@@ -1450,16 +1451,16 @@ mod allowlist_catastrophic_tests {
     /// one copy cannot silently drift from the other.
     #[test]
     fn floor_fragments_match_builtins() {
-        use super::patterns::{FIND_ROOT_OR_HOME_DELETE, REC, ROOT_OR_HOME, TOK, WW_MODE};
+        use super::patterns::{FIND_ROOT_OR_HOME_DELETE, OPT, REC, ROOT_OR_HOME, TOK, WS, WW_MODE};
         let head = r"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)";
         let expected = [
             format!(
-                r"{head}chmod\s+(?:{TOK}\s+)*?{REC}\s+(?:{TOK}\s+)*?{WW_MODE}\s+(?:{TOK}\s+)*?{ROOT_OR_HOME}(?:\s|$)"
+                r"{head}chmod{WS}(?:{OPT}{WS})*?{REC}{WS}(?:{OPT}{WS})*?{WW_MODE}{WS}(?:{TOK}{WS})*?{ROOT_OR_HOME}(?:\s|$)"
             ),
             format!(
-                r"{head}chmod\s+(?:{TOK}\s+)*?{WW_MODE}\s+(?:{TOK}\s+)*?{REC}\s+(?:{TOK}\s+)*?{ROOT_OR_HOME}(?:\s|$)"
+                r"{head}chmod{WS}(?:{OPT}{WS})*?{WW_MODE}{WS}(?:{TOK}{WS})*?{REC}{WS}(?:{TOK}{WS})*?{ROOT_OR_HOME}(?:\s|$)"
             ),
-            format!(r"{head}find\s+{FIND_ROOT_OR_HOME_DELETE}"),
+            format!(r"{head}find{WS}{FIND_ROOT_OR_HOME_DELETE}"),
         ];
         for e in &expected {
             assert!(
@@ -1478,6 +1479,8 @@ mod allowlist_catastrophic_tests {
             "find / -delete",
             "sudo find ~ -type f -delete",
             "find / -name x -exec rm -rf {} \\;",
+            "chmod -R 777 \"$HOME\"",
+            "chmod -R \\\n777 ~",
         ] {
             assert!(
                 SafetyValidator::targets_catastrophic_location(cmd),
@@ -1487,14 +1490,38 @@ mod allowlist_catastrophic_tests {
         for cmd in [
             "git log --grep='chmod -R 777 ~'",
             "find / -name x; rm -rf build",
+            // `-exec rm` that does not consume the find result (`{}`).
+            "find / -maxdepth 0 -exec rm /tmp/cache \\;",
             "find /tmp/app -delete",
             "chmod -R 755 ~",
+            "chmod -R /tmp 777 /",
+            "chmod -R 777 '$HOME'",
+            "find '~' -delete",
+            "chmod -R\n777 ~",
         ] {
             assert!(
                 !SafetyValidator::targets_catastrophic_location(cmd),
                 "floor must not treat {cmd:?} as catastrophic"
             );
         }
+    }
+
+    /// `floor_applied` in the guard log must see the same views as
+    /// `validate_command`, or a denied wrapper reports `false`.
+    #[test]
+    fn floor_applies_sees_wrapper_payloads() {
+        assert!(SafetyValidator::floor_applies(
+            "bash -c 'rm -rf /'",
+            ShellType::Bash
+        ));
+        assert!(SafetyValidator::floor_applies(
+            "git status; chmod -R 777 ~",
+            ShellType::Bash
+        ));
+        assert!(!SafetyValidator::floor_applies(
+            "bash -c 'ls -la'",
+            ShellType::Bash
+        ));
     }
 
     #[test]

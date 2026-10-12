@@ -10,20 +10,28 @@ use super::DangerPattern;
 
 /// Regex fragments shared by the #1054 patterns and the catastrophic floor.
 ///
+/// Blanks between arguments of one statement: spaces, tabs and `\`-newline
+/// continuations. A bare newline ends the statement, so it is not a blank.
+pub(crate) const WS: &str = r"(?:[ \t]|\\\n)+";
 /// One argument token of the same statement (stops at a bare separator).
 pub(crate) const TOK: &str = r"[^\s;&|]+";
+/// One option token (`-v`, `--silent`).
+pub(crate) const OPT: &str = r"-[^\s;&|]*";
 /// A recursive flag for chmod/chown.
 pub(crate) const REC: &str = r"(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)";
 /// A world-writable mode: octal with a write bit in the last digit, or a
 /// symbolic mode that grants `w` to `o` or `a`.
 pub(crate) const WW_MODE: &str =
     r"(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)";
-/// Root or home as a whole argument, optionally quoted or with `/*`.
-pub(crate) const ROOT_OR_HOME: &str = r#"['"]?(?:/+|~/?|\$\{?HOME\}?/?)\*?['"]?"#;
+/// Root or home as a whole argument, optionally with `/*`. Root may be
+/// quoted. `~` expands only unquoted and `$HOME` only unquoted or in double
+/// quotes; `'$HOME'` and `"~"` are literal names.
+pub(crate) const ROOT_OR_HOME: &str = r#"(?:['"]?/+\*?['"]?|~/?\*?|"?\$\{?HOME\}?/?\*?"?)"#;
 /// The rest of a `find` call after the command word: optional `-H/-L/-P`,
-/// a root/home start path, then `-delete` or `-exec rm` in the same
-/// statement (`\;` is allowed inside it).
-pub(crate) const FIND_ROOT_OR_HOME_DELETE: &str = r#"(?:-[HLP]\s+)*['"]?(?:/+|~/?|\$\{?HOME\}?/?)['"]?(?:\s+(?:[^\s;&|]|\\;)+)*?\s+(?:-delete\b|-exec(?:dir)?\s+(?:sudo\s+)?rm\b)"#;
+/// a root/home start path, then `-delete` or an `-exec rm` that removes the
+/// found path (`{}`), in the same statement (`\;` is allowed inside it).
+/// The blanks are [`WS`], spelled out because a `const` cannot `format!`.
+pub(crate) const FIND_ROOT_OR_HOME_DELETE: &str = r#"(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:[ \t]|\\\n)+(?:[^\s;&|]|\;)+)*?(?:[ \t]|\\\n)+(?:-delete\b|-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#;
 
 /// Built-in dangerous patterns loaded once at startup
 pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
@@ -117,7 +125,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         // 6, 7), or a symbolic mode grants `w` to `o` or `a`.
         DangerPattern {
             pattern: format!(
-                r"\bchmod\s+(?:{TOK}\s+)*?{REC}\s+(?:{TOK}\s+)*?{WW_MODE}\s+(?:{TOK}\s+)*?{ROOT_OR_HOME}(?:\s|$)"
+                r"\bchmod{WS}(?:{OPT}{WS})*?{REC}{WS}(?:{OPT}{WS})*?{WW_MODE}{WS}(?:{TOK}{WS})*?{ROOT_OR_HOME}(?:\s|$)"
             ),
             risk_level: RiskLevel::Critical,
             description: "Recursive world-writable permission change on root or home".to_string(),
@@ -125,7 +133,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         },
         DangerPattern {
             pattern: format!(
-                r"\bchmod\s+(?:{TOK}\s+)*?{WW_MODE}\s+(?:{TOK}\s+)*?{REC}\s+(?:{TOK}\s+)*?{ROOT_OR_HOME}(?:\s|$)"
+                r"\bchmod{WS}(?:{OPT}{WS})*?{WW_MODE}{WS}(?:{TOK}{WS})*?{REC}{WS}(?:{TOK}{WS})*?{ROOT_OR_HOME}(?:\s|$)"
             ),
             risk_level: RiskLevel::Critical,
             description: "World-writable permission change applied recursively to root or home"
@@ -134,14 +142,14 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         },
         // CRITICAL: find-based recursive delete from root or home (#1054).
         DangerPattern {
-            pattern: format!(r"\bfind\s+{FIND_ROOT_OR_HOME_DELETE}"),
+            pattern: format!(r"\bfind{WS}{FIND_ROOT_OR_HOME_DELETE}"),
             risk_level: RiskLevel::Critical,
             description: "Recursive delete with find from root or home".to_string(),
             shell_specific: None,
         },
         // CRITICAL: decoded payload piped into a shell (#1054).
         DangerPattern {
-            pattern: r"\bbase64\b[^|;&\n]*\s(?:-d|-D|--decode)\b[^|;&\n]*\|\s*(?:sudo\s+(?:-\S+\s+)*)?(?:ba|z|da|k|mk)?sh\b"
+            pattern: r"\bbase64\b[^|;&\n]*\s(?:-d|-D|--decode)\b[^|;&\n]*\|\s*(?:(?:sudo|doas|env|command|exec|nohup)\s+(?:-[ugCD]\s+\S+\s+|-\S+\s+|[A-Za-z_]\w*=\S*\s+)*)*(?:\S*/)?(?:ba|z|da|k|mk|fi)?sh\b"
                 .to_string(),
             risk_level: RiskLevel::Critical,
             description: "Decoded base64 payload piped into a shell".to_string(),

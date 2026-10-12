@@ -49,10 +49,31 @@ async fn shell_c_wrapped_destruction_is_critical() {
             "timeout 5 sh -c 'rm -rf /*'",
             "nohup dash -c 'rm -rf /' &",
             "bash -lc 'rm -rf /'",
+            "bash -o pipefail -c 'rm -rf /'",
+            "env -S 'bash -c \"rm -rf /\"'",
+            "busybox sh -c 'rm -rf /'",
+            // Prefix wrappers whose options take a separate operand.
+            "env -u FOO bash -c 'rm -rf /'",
+            "timeout -s TERM 5 sh -c 'rm -rf /'",
+            "timeout -k 5 10 bash -c 'rm -rf /'",
+            "xargs -I {} bash -c 'rm -rf /'",
+            "sudo -u root env -C /tmp bash -c 'rm -rf /'",
         ],
         RiskLevel::Critical,
     )
     .await;
+}
+
+// The statement scan must not stop early: many harmless statements before a
+// wrapper must not hide it.
+#[tokio::test]
+async fn wrapper_after_many_statements_is_critical() {
+    // 70 distinct statements (dedup does not collapse them), under the
+    // 1000-character strict length limit.
+    let prefix: String = (0..70).map(|i| format!("true {i}; ")).collect();
+    let cmd = format!("{prefix}bash -c 'rm -rf /'");
+    assert!(cmd.len() < 1000);
+    assert_at_least(&[cmd.as_str()], RiskLevel::Critical).await;
 }
 
 // ── Evasion 2: eval of a variable or command substitution ──
@@ -86,6 +107,10 @@ async fn base64_decode_into_shell_is_critical() {
             "cat x | base64 -D | sudo sh",
             "base64 -d f | zsh",
             "echo cm0gLXJmIC8= | base64 --decode | bash -s",
+            "printf 'ZWNobyBoaQo=' | base64 -d | env bash",
+            "base64 -d f | fish",
+            "base64 -d f | /bin/sh",
+            "base64 -d f | sudo -u root bash",
         ],
         RiskLevel::Critical,
     )
@@ -168,6 +193,9 @@ async fn benign_wrappers_and_mentions_stay_below_high() {
         "printf '%s' 'find / -delete'",
         "grep -r eval src/",
         "git log --grep='chmod -R 777 ~'",
+        // A wrapper payload that only prints is not code.
+        "bash -c 'echo rm -rf /'",
+        "sh -c \"printf '%s' rm -rf /\"",
         "eval \"$(ssh-agent -s)\"",
         "eval \"$(brew shellenv)\"",
         "eval \"$(direnv hook bash)\"",

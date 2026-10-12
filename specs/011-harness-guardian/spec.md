@@ -314,10 +314,11 @@ The Grok backend is a provider addition to the existing core loop, like
 
 Tracked in #1512. The safety-core evasions are tracked on #1054.
 
-1. **Segment-aware validation**, following Grok Build: tree-sitter or
-   shell-words splitting on `&& || ; |`, wrapper stripping, deny on any
-   segment. This is safety-core work: TDD via `safety-pattern-developer`, and
-   it needs a human safety owner.
+1. **A real shell parser for segment validation.** #1054 delivered
+   per-statement scanning, prefix-wrapper stripping and `sh -c` / `eval`
+   unwrapping (`src/safety/segments.rs`), which is a scanner aid, not a
+   parser. Still open: an AST (ADR-007's yash-syntax route), per-segment
+   allowlist matching, and find-aware parsing of `-exec … \;` clauses.
 2. A read-only fast-path allowlist for guard.
 3. An optional `--judge <backend>` that adds an LLM judge to guard, with strict
    JSON output and escalation to `ask` on timeout or error. It reuses
