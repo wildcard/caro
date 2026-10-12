@@ -132,64 +132,69 @@ fn skip_options(args: &[String], takes_value: &[&str]) -> usize {
 /// `nice`, `nohup`, `exec`, `command`, `builtin`, `xargs` (with flags), and
 /// leading `VAR=value` assignments. Returns the remaining argv.
 fn strip_prefixes(mut argv: &[String]) -> &[String] {
-    loop {
-        let Some(first) = argv.first() else {
-            return argv;
-        };
-        let word = base_name(first);
-        let rest = &argv[1..];
-        argv = match word {
-            _ if is_assignment(first) => rest,
-            "sudo" | "doas" => {
-                let i = skip_options(
-                    rest,
-                    &["-u", "-g", "-C", "-D", "-h", "-p", "-r", "-t", "-U"],
-                );
-                &rest[i..]
-            }
-            "env" => {
-                // `-S` carries a whole command line; `env_split_payload` scans it.
-                let mut i = skip_options(
-                    rest,
-                    &["-u", "--unset", "-C", "--chdir", "-S", "--split-string"],
-                );
-                while i < rest.len() && is_assignment(&rest[i]) {
-                    i += 1;
-                }
-                &rest[i..]
-            }
-            "timeout" => {
-                // timeout [options] DURATION cmd…
-                let i = skip_options(rest, &["-s", "--signal", "-k", "--kill-after"]);
-                &rest[(i + 1).min(rest.len())..]
-            }
-            "nice" => &rest[skip_options(rest, &["-n", "--adjustment"])..],
-            "nohup" | "exec" | "command" | "builtin" | "time" | "busybox" => rest,
-            "xargs" => {
-                let i = skip_options(
-                    rest,
-                    &[
-                        "-I",
-                        "-n",
-                        "-P",
-                        "-L",
-                        "-s",
-                        "-d",
-                        "-E",
-                        "-a",
-                        "--max-args",
-                        "--max-procs",
-                        "--max-lines",
-                        "--max-chars",
-                        "--delimiter",
-                        "--arg-file",
-                    ],
-                );
-                &rest[i..]
-            }
-            _ => return argv,
-        };
+    while let Some(rest) = strip_one(argv) {
+        argv = rest;
     }
+    argv
+}
+
+/// Remove one prefix wrapper (with its options) from the front of `argv`.
+/// `None` when `argv` does not start with one.
+fn strip_one(argv: &[String]) -> Option<&[String]> {
+    let first = argv.first()?;
+    let word = base_name(first);
+    let rest = &argv[1..];
+    Some(match word {
+        _ if is_assignment(first) => rest,
+        "sudo" | "doas" => {
+            let i = skip_options(
+                rest,
+                &["-u", "-g", "-C", "-D", "-h", "-p", "-r", "-t", "-U"],
+            );
+            &rest[i..]
+        }
+        "env" => {
+            // `-S` carries a whole command line; `env_split_payload` scans it.
+            let mut i = skip_options(
+                rest,
+                &["-u", "--unset", "-C", "--chdir", "-S", "--split-string"],
+            );
+            while i < rest.len() && is_assignment(&rest[i]) {
+                i += 1;
+            }
+            &rest[i..]
+        }
+        "timeout" => {
+            // timeout [options] DURATION cmd…
+            let i = skip_options(rest, &["-s", "--signal", "-k", "--kill-after"]);
+            &rest[(i + 1).min(rest.len())..]
+        }
+        "nice" => &rest[skip_options(rest, &["-n", "--adjustment"])..],
+        "nohup" | "exec" | "command" | "builtin" | "time" | "busybox" => rest,
+        "xargs" => {
+            let i = skip_options(
+                rest,
+                &[
+                    "-I",
+                    "-n",
+                    "-P",
+                    "-L",
+                    "-s",
+                    "-d",
+                    "-E",
+                    "-a",
+                    "--max-args",
+                    "--max-procs",
+                    "--max-lines",
+                    "--max-chars",
+                    "--delimiter",
+                    "--arg-file",
+                ],
+            );
+            &rest[i..]
+        }
+        _ => return None,
+    })
 }
 
 fn is_assignment(tok: &str) -> bool {
@@ -254,10 +259,13 @@ fn shell_c_payload(args: &[String]) -> Option<String> {
 }
 
 /// The command line in `env -S STRING` / `env --split-string=STRING`, with
-/// any arguments after it. `None` when `argv` has no such `env`.
-fn env_split_payload(argv: &[String]) -> Option<String> {
-    let at = argv.iter().position(|a| base_name(a) == "env")?;
-    let mut iter = argv[at + 1..].iter();
+/// any arguments after it. `env` counts only where it is the command, after
+/// zero or more prefix wrappers (`sudo env -S …`, not `true env -S …`).
+fn env_split_payload(mut argv: &[String]) -> Option<String> {
+    while base_name(argv.first()?) != "env" {
+        argv = strip_one(argv)?;
+    }
+    let mut iter = argv[1..].iter();
     while let Some(arg) = iter.next() {
         let value = match arg.as_str() {
             "-S" | "--split-string" => iter.next()?.clone(),
@@ -462,6 +470,9 @@ mod tests {
                 scan_views(cmd)
             );
         }
+        // `env` is a wrapper only where it is the command.
+        assert!(!scan_views("true env -S 'bash -c \"rm -rf /\"'").contains(&"rm -rf /".to_string()));
+        assert!(scan_views("sudo env -S 'bash -c \"rm -rf /\"'").contains(&"rm -rf /".to_string()));
         // An option value is not the script.
         assert!(!scan_views("bash -c -o pipefail 'ls'").contains(&"pipefail".to_string()));
     }

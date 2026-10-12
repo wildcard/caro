@@ -487,7 +487,7 @@ impl SafetyValidator {
         // `floor_fragments_match_builtins` keeps the two copies in sync.
         r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)chmod(?:[ \t]|\\\n)+(?:-[^\s;&|]*(?:[ \t]|\\\n)+)*?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)(?:[ \t]|\\\n)+(?:-[^\s;&|]*(?:[ \t]|\\\n)+)*?(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)(?:[ \t]|\\\n)+(?:[^\s;&|]+(?:[ \t]|\\\n)+)*?(?:['"]?/+\*?['"]?|~/?\*?|"?\$\{?HOME\}?/?\*?"?)(?:\s|$)"#,
         r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)chmod(?:[ \t]|\\\n)+(?:-[^\s;&|]*(?:[ \t]|\\\n)+)*?(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)(?:[ \t]|\\\n)+(?:[^\s;&|]+(?:[ \t]|\\\n)+)*?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)(?:[ \t]|\\\n)+(?:[^\s;&|]+(?:[ \t]|\\\n)+)*?(?:['"]?/+\*?['"]?|~/?\*?|"?\$\{?HOME\}?/?\*?"?)(?:\s|$)"#,
-        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)find(?:[ \t]|\\\n)+(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:[ \t]|\\\n)+(?:[^\s;&|]|\;)+)*?(?:[ \t]|\\\n)+(?:-delete\b|-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#,
+        r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)find(?:[ \t]|\\\n)+(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:[ \t]|\\\n)+(?:[^\s;&|]|\\;)+)*?(?:[ \t]|\\\n)+(?:-delete\b|-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#,
         // ── Explicit root-protection bypass — always catastrophic ────────────
         r"--no-preserve-root",
         // ── Whole-disk / device destruction ──────────────────────────────────
@@ -1498,6 +1498,8 @@ mod allowlist_catastrophic_tests {
             "chmod -R 777 '$HOME'",
             "find '~' -delete",
             "chmod -R\n777 ~",
+            // A bare `;` ends the find statement; only `\;` stays inside it.
+            "find / ; echo -delete",
         ] {
             assert!(
                 !SafetyValidator::targets_catastrophic_location(cmd),
