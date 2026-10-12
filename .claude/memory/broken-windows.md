@@ -379,9 +379,9 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 
 **Found:** 2026-10-12 sweep register sync
 **Issue:** #1609 (related: #1610)
-**Status:** open
-**Needs human?:** no, after each deploy target is checked to install from the repo root
-**Next step:** per workspace: confirm the deploy install path, delete the nested lockfile, ignore it, drop its codespell skip.
+**Status:** fixed (#1620). Duplicate of BW-067; delete both together.
+**Needs human?:** no
+**Next step:** merge #1620.
 
 ### BW-070: five nested lockfiles still pin sharp 0.34.5 (three advisories)
 
@@ -389,7 +389,7 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Issue:** #1610 (overlaps BW-069 for the four workspace lockfiles)
 **Status:** open
 **Needs human?:** yes (dependency bump in `changelog/`, lockfile deletion)
-**Next step:** owner approves the sharp 0.35.5 bump in `changelog/`; BW-069 removes the other four.
+**Next step:** owner approves the sharp 0.35.5 bump in `changelog/`. #1608 and #1620 delete the other four lockfiles.
 
 ---
 
@@ -535,8 +535,8 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 
 **Found:** 2026-10-12, while fixing BW-066
 **Issue:** #1609
-**Status:** open
+**Status:** fixed (#1620)
 **Needs human?:** no
-**Next step:** For `docs-site/`, `landing/`, `presentation/` and
-`apps/devrel/`: confirm each deploy target installs from the repo root, then
-delete the nested `package-lock.json` as #1608 did for `website/`.
+**Next step:** merge #1620. It deletes the nested `package-lock.json` in
+`docs-site/`, `landing/`, `presentation/` and `apps/devrel/`; the PR body
+has the per-project evidence that each Vercel build reads the root lockfile.
