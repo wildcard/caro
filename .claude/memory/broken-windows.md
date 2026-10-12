@@ -379,9 +379,13 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 
 **Found:** 2026-10-12 sweep register sync
 **Issue:** #1609 (related: #1610)
-**Status:** fixed (#1620). Duplicate of BW-067; delete both together.
+**Status:** fixed (#1620)
 **Needs human?:** no
-**Next step:** merge #1620.
+**Next step:** merge #1620. It deletes the nested `package-lock.json` in
+`docs-site/`, `landing/`, `presentation/` and `apps/devrel/`; the PR body
+has the per-project evidence that each Vercel build reads the root lockfile.
+Then confirm the first `caro-docs`, `caro-slides` and `cmdai-saas` production
+builds after the merge are READY (`cmdai` is already red, #1562).
 
 ### BW-070: five nested lockfiles still pin sharp 0.34.5 (three advisories)
 
@@ -389,7 +393,8 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Issue:** #1610 (overlaps BW-069 for the four workspace lockfiles)
 **Status:** open
 **Needs human?:** yes (sharp bump in `changelog/`; the owner asked for the lockfile deletions in #1609)
-**Next step:** owner approves the sharp 0.35.5 bump in `changelog/`. #1608 and #1620 delete the other four lockfiles.
+**Next step:** owner approves the sharp 0.35.5 bump in `changelog/`. #1608 (BW-071) and
+#1620 (BW-069) delete the other four lockfiles.
 
 ---
 
@@ -522,23 +527,12 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Needs human?:** yes (owner merges or closes the PRs)
 **Next step:** Owner triages the open update PRs.
 
-### BW-066: `website/package-lock.json` was dead and stale
+### BW-071: `website/package-lock.json` was dead and stale
 
 **Found:** 2026-10-12, owner task (`claude/zealous-meitner-y29aw1`)
 **Issue:** none (owner asked for the fix directly)
 **Status:** fixed (#1608)
 **Needs human?:** no
 **Next step:** merge #1608. npm reads only the root lockfile for workspaces;
-`website/README.md` → "Workspace and lockfile" documents it.
-
-### BW-067: stale nested lockfiles in the other npm workspaces
-
-**Found:** 2026-10-12, while fixing BW-066
-**Issue:** #1609
-**Status:** fixed (#1620)
-**Needs human?:** no
-**Next step:** merge #1620. It deletes the nested `package-lock.json` in
-`docs-site/`, `landing/`, `presentation/` and `apps/devrel/`; the PR body
-has the per-project evidence that each Vercel build reads the root lockfile.
-Then confirm the first `caro-docs`, `caro-slides` and `cmdai-saas` production
-builds after the merge are READY (`cmdai` is already red, #1562).
+`website/README.md` → "Workspace and lockfile" documents it. The other
+workspaces are BW-069.

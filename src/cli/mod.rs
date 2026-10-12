@@ -677,9 +677,7 @@ impl CliApp {
                         // A hosted API without a key is a configuration error,
                         // not something to paper over with a silent fallback.
                         let backend = OpenAiCompatBackend::new(cfg)
-                            .map_err(|e| CliError::ConfigurationError {
-                                message: e.to_string(),
-                            })?
+                            .map_err(Self::backend_config_error)?
                             .with_embedded_fallback(embedded_arc.clone());
                         tracing::info!(
                             "Using {} backend (user preference)",
@@ -855,6 +853,19 @@ impl CliApp {
                 backend, backend
             ),
         }
+    }
+
+    /// Wrap a backend constructor error as a CLI configuration error.
+    ///
+    /// `GeneratorError::ConfigError` already renders as "Configuration error:
+    /// …", so its bare message is used to avoid printing the prefix twice.
+    #[cfg_attr(not(feature = "remote-backends"), allow(dead_code))]
+    fn backend_config_error(e: GeneratorError) -> CliError {
+        let message = match e {
+            GeneratorError::ConfigError { message } => message,
+            other => other.to_string(),
+        };
+        CliError::ConfigurationError { message }
     }
 
     /// Get list of available backend names
@@ -1360,6 +1371,26 @@ mod tests {
                 unwired
             );
         }
+    }
+
+    #[test]
+    fn test_backend_config_error_has_single_prefix() {
+        // `GeneratorError::ConfigError` and `CliError::ConfigurationError`
+        // both render a "Configuration error:" prefix; wrapping one in the
+        // other must not print it twice (`--backend openrouter` without a key).
+        let err = CliApp::backend_config_error(GeneratorError::ConfigError {
+            message: "OpenRouter API key is required (set OPENROUTER_API_KEY)".into(),
+        });
+        assert_eq!(
+            err.to_string(),
+            "Configuration error: OpenRouter API key is required (set OPENROUTER_API_KEY)"
+        );
+
+        // Other variants keep their own label.
+        let err = CliApp::backend_config_error(GeneratorError::Internal {
+            message: "boom".into(),
+        });
+        assert_eq!(err.to_string(), "Configuration error: Internal error: boom");
     }
 
     #[test]
