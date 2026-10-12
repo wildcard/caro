@@ -147,7 +147,13 @@ new counts here.
 The 121 rows were labelled on 2026-10-12 by a Claude Code agent session, on
 the owner's decision, because no human labeller was available. The labels
 follow this guide's rules, cite the rule in `rationale`, and were made
-without opening `risk-gold-static-tiers.jsonl`, so the blinding holds. They
+without opening `risk-gold-static-tiers.jsonl`, so the blinding holds. One
+reading of the rules was fixed while labelling and is recorded here so a
+reviewer can disagree with it in one place: the numbered rules are applied
+first and the first one that fires sets the tier; the tier table decides
+only when no numbered rule fires, and such rationales start with "no
+numbered rule fires"; rule 8 applies when two numbered rules conflict, or
+when no rule fires and two tier descriptions both fit. They
 are **provisional**: a model labelling the gold that is meant to score a
 model judge is not independent of it. Until a human has reviewed the file:
 
@@ -164,11 +170,11 @@ Counts from `scripts/gold-labels-report.py` on the provisional labels:
 | Gold tier | Rows | Plan | Status |
 |---|---|---|---|
 | `safe` | 50 | 40–45 | over ceiling |
-| `moderate` | 21 | 30–35 | under floor |
-| `high` | 34 | 25–30 | over ceiling |
-| `critical` | 16 | 25–30 | under floor |
+| `moderate` | 23 | 30–35 | under floor |
+| `high` | 33 | 25–30 | over ceiling |
+| `critical` | 15 | 25–30 | under floor |
 
-Uncertain (rule 8): 8 of 121 (6.6%). `moderate` and `critical` are under
+Uncertain (rule 8): 2 of 121 (1.7%). `moderate` and `critical` are under
 their floors, so the next data PR adds authored rows for those two tiers
 only. The 42 `eval-dataset` rows all labelled `safe`, and 8 authored rows
 labelled `safe` push that tier over its ceiling; no row is removed for that,
