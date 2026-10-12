@@ -498,3 +498,22 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Status:** open
 **Needs human?:** yes (owner merges or closes the PRs)
 **Next step:** Owner triages the open update PRs.
+
+### BW-066: `website/package-lock.json` was dead and stale
+
+**Found:** 2026-10-12, owner task (`claude/zealous-meitner-y29aw1`)
+**Issue:** none (owner asked for the fix directly)
+**Status:** fixed (#1608)
+**Needs human?:** no
+**Next step:** merge #1608. npm reads only the root lockfile for workspaces;
+`website/README.md` → "Workspace and lockfile" documents it.
+
+### BW-067: dead nested lockfiles in the other npm workspaces
+
+**Found:** 2026-10-12, while fixing BW-066
+**Issue:** #1609
+**Status:** open
+**Needs human?:** no
+**Next step:** For `docs-site/`, `landing/`, `presentation/` and
+`apps/devrel/`: confirm each deploy target installs from the repo root, then
+delete the nested `package-lock.json` as #1608 did for `website/`.
