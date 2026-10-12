@@ -24,7 +24,7 @@ A modern, security-focused landing page for CMDAI Enterprise built with Astro an
 
 ### Prerequisites
 
-- Node.js 22.12 or later (astro 6.4.8 requires it) and npm
+- Node.js 22.12 or later (astro 6 requires it) and npm
 
 ### Installation
 
