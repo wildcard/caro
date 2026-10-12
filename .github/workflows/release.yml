@@ -109,7 +109,11 @@ jobs:
       - name: Check if release exists
         id: check_release
         run: |
-          if gh release view ${{ needs.prepare-release.outputs.tag }} &>/dev/null; then
+          # Only a published release counts. `gh release view` also matches the
+          # draft release-drafter keeps for the upcoming tag, which would skip
+          # creation and leave the release unpublished (#1625). The tags
+          # endpoint never returns drafts.
+          if gh api "repos/${{ github.repository }}/releases/tags/${{ needs.prepare-release.outputs.tag }}" &>/dev/null; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "Release ${{ needs.prepare-release.outputs.tag }} already exists"
           else
