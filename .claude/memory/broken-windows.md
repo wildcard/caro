@@ -388,7 +388,7 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Found:** 2026-10-12 sweep register sync
 **Issue:** #1610 (overlaps BW-069 for the four workspace lockfiles)
 **Status:** open
-**Needs human?:** yes (dependency bump in `changelog/`, lockfile deletion)
+**Needs human?:** yes (sharp bump in `changelog/`; the owner asked for the lockfile deletions in #1609)
 **Next step:** owner approves the sharp 0.35.5 bump in `changelog/`. #1608 and #1620 delete the other four lockfiles.
 
 ---
@@ -540,3 +540,5 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Next step:** merge #1620. It deletes the nested `package-lock.json` in
 `docs-site/`, `landing/`, `presentation/` and `apps/devrel/`; the PR body
 has the per-project evidence that each Vercel build reads the root lockfile.
+Then confirm the first `caro-docs`, `caro-slides` and `cmdai-saas` production
+builds after the merge are READY (`cmdai` is already red, #1562).

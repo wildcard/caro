@@ -81,7 +81,7 @@ website/
 
 ### Prerequisites
 
-- Node.js 22.12 or later: astro requires `>=22.12.0` (CI uses 22, Vercel uses 24)
+- Node.js 22.12 or later: astro requires `>=22.12.0` (site-build CI uses 22, Vercel uses 24)
 - npm. Do not run `pnpm install` or `yarn install` here: they write a second
   lockfile.
 

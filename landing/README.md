@@ -15,7 +15,7 @@ A modern, security-focused landing page for CMDAI Enterprise built with Astro an
 
 ## Tech Stack
 
-- **Framework**: Astro 4.0
+- **Framework**: Astro 6
 - **Styling**: Tailwind CSS 3.4
 - **Fonts**: Inter (UI) + JetBrains Mono (code)
 - **Build**: Static site generation
