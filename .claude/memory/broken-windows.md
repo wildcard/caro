@@ -521,3 +521,13 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Status:** open
 **Needs human?:** yes (owner merges or closes the PRs)
 **Next step:** Owner triages the open update PRs.
+
+### BW-066: five nested `package-lock.json` files still pin sharp 0.34.5
+
+**Found:** 2026-10-12, sharp 0.35.5 advisory bump (`claude/busy-hypatia-jwh326`)
+**Issue:** #1610
+**Status:** open
+**Needs human?:** yes (dependency minor bump; deleting lockfiles)
+**Next step:** confirm no deploy installs from `website/`, `docs-site/`,
+`landing/` or `apps/devrel/` lockfiles, then delete them; bump sharp in
+`changelog/` and regenerate its lockfile.
