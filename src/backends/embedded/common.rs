@@ -39,6 +39,13 @@ impl std::fmt::Display for ModelVariant {
     }
 }
 
+/// Context window (tokens) for each llama.cpp inference session.
+///
+/// The agent loop sends the embedded system prompt plus its own context and
+/// prompt, about 2,000 tokens for SmolLM and TinyLlama. A 2048-token window
+/// left no room, and llama.cpp failed with "advancing context failed" (#1612).
+pub const EMBEDDED_N_CTX: u32 = 4096;
+
 /// Default number of parse retries before giving up
 fn default_max_parse_retries() -> u32 {
     2

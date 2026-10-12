@@ -100,7 +100,7 @@ impl InferenceBackend for MlxBackend {
 
         // Create session parameters
         let session_params = SessionParams {
-            n_ctx: 2048,  // Context window
+            n_ctx: super::common::EMBEDDED_N_CTX,
             n_batch: 512, // Batch size for prompt processing
             n_threads: 8, // Use multiple threads
             ..Default::default()
