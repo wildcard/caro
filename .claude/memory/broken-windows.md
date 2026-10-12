@@ -508,7 +508,7 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Next step:** merge #1608. npm reads only the root lockfile for workspaces;
 `website/README.md` → "Workspace and lockfile" documents it.
 
-### BW-067: dead nested lockfiles in the other npm workspaces
+### BW-067: stale nested lockfiles in the other npm workspaces
 
 **Found:** 2026-10-12, while fixing BW-066
 **Issue:** #1609
