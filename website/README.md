@@ -82,7 +82,8 @@ website/
 ### Prerequisites
 
 - Node.js 22.12 or later: astro requires `>=22.12.0` (CI uses 22, Vercel uses 24)
-- npm. Do not use pnpm or yarn here: they write a second lockfile.
+- npm. Do not run `pnpm install` or `yarn install` here: they write a second
+  lockfile.
 
 ### Installation
 
@@ -100,10 +101,6 @@ Start the development server:
 
 ```bash
 npm run dev
-# or
-pnpm dev
-# or
-yarn dev
 ```
 
 Visit `http://localhost:4321` to see your site.
@@ -114,10 +111,6 @@ Create a production build:
 
 ```bash
 npm run build
-# or
-pnpm build
-# or
-yarn build
 ```
 
 The static site will be built to `dist/`.
@@ -128,10 +121,6 @@ Preview the production build locally:
 
 ```bash
 npm run preview
-# or
-pnpm preview
-# or
-yarn preview
 ```
 
 ## Customization
