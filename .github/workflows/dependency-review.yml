@@ -2,12 +2,13 @@ name: Dependency Review
 
 on:
   pull_request:
-    # JS manifests and lockfiles at any depth: scripts/ and changelog/ keep
-    # their own lockfiles, and the npm workspaces (website/, docs-site/, ...)
-    # have package.json files. A root-only filter skipped review for them.
+    # Manifests and lockfiles at any depth: scripts/, changelog/ and
+    # tests/evaluation/ keep their own lockfiles, and the npm workspaces
+    # (website/, docs-site/, ...) have package.json files. A root-only
+    # filter skipped review for all of them.
     paths:
-      - 'Cargo.toml'
-      - 'Cargo.lock'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
       - '**/package.json'
       - '**/package-lock.json'
       - '**/yarn.lock'
