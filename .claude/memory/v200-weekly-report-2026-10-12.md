@@ -7,7 +7,10 @@
   - Completion: **~61.7%** (29/47, unchanged from July 6 run — no new v2.0.0 items closed)
 - **Core gantt feature completion: 0%** (0/5 implemented — all in research phase)
 - **Release date**: June 30, 2026 → **104 DAYS OVERDUE** as of today
-- **Context**: v1.5.0 shipped October 11, 2026 (yesterday). This was a consolidation of post-July work; it did not include any v2.0.0 core features.
+- **Context**: v1.5.0 release PR merged October 11, 2026; tag and crates.io publish still pending
+  (credential scope blocks `git push origin v1.5.0` and `gh workflow run tag-release.yml` — see
+  `.claude/memory/v150-release-handoff.md`). The release commit is on `main` but not yet visible
+  to users on crates.io.
 
 ## This week
 
@@ -69,10 +72,11 @@ No open PRs with `milestone:v2.0.0` label. Previously flagged PRs:
 
 **Top 3 actions to unblock v2.0.0:**
 
-1. **Milestone scope decision** — Choose Option A (reset to Q4 2026 / Q1 2027 with discovery
-   gate) OR Option B (ship v2.0.0 on the 29 completed items; move 5 discovery-gated features
-   to v2.1.0). This is an owner decision, not an agent decision. Without it, the milestone
-   target date is meaningless and all core features remain permanently blocked.
+1. **Reset the v2.0.0 target date** — Per `docs/decisions/2026-07-12-autonomous-mode-release-scope.md`
+   (Decision D1, accepted), v2.0.0 stays scoped to validated distributed-autonomy features. Shipping
+   the 29 completed items as v2.0.0 was explicitly rejected (Option A in D1). The accepted decision
+   was to keep v2.0.0 for validated features and reset its target date. Owner action needed:
+   set a new date in GitHub milestone #3 (Q4 2026 or Q1 2027) and begin discovery.
 
 2. **Begin user discovery for Self-Healing (#155, #1151)** — Highest concrete PMF potential.
    Run `caro.discovery` skill; target 20 first-hand interviews with power-CLI users. Store
@@ -86,10 +90,12 @@ No open PRs with `milestone:v2.0.0` label. Previously flagged PRs:
 
 **BLOCKED / AT RISK** — Release date passed 104 days ago (June 30 → October 12, 2026).
 All 5 core gantt features are at 0% implementation. Validation-discipline Gate 1 has not been
-cleared for any hypothesis. The milestone scope has not been formally reset despite the July 6
-recommendation. No discovery work has started.
+cleared for any hypothesis. No discovery work has started.
 
-v1.5.0 shipped yesterday (October 11), which demonstrates the project is healthy overall —
-but v2.0.0's core features remain entirely gated on user discovery, not engineering capacity.
+Per Decision D1 (2026-07-12), v2.0.0 stays scoped to validated distributed-autonomy features.
+The next step is: reset the milestone target date and begin user discovery.
 
-**Owner decision required**: Scope reset or discovery kickoff.
+v1.5.0 release PR merged October 11, 2026; the project is healthy overall —
+v2.0.0's core features are gated on user discovery, not engineering capacity.
+
+**Owner action required**: Reset milestone target date in GitHub; begin discovery kickoff.
