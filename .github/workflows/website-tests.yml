@@ -34,7 +34,7 @@ jobs:
     steps:
       # On pull_request, HEAD is the PR's merge commit and HEAD^1 is the
       # base branch tip, so depth 2 is enough to list the PR's changes.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
 
@@ -57,7 +57,7 @@ jobs:
           echo "website=$website" >> "$GITHUB_OUTPUT"
           [ "$website" = true ] || echo "No website changes in this PR; skipping the tests."
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.changes.outputs.website == 'true'
         with:
           node-version: '22'
