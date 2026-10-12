@@ -22,6 +22,11 @@ include = [
     "LICENSE",
     "README.crates.io.md",
     "CHANGELOG.md",
+    "assets/kyaro/001-idle/idle_ASCII/Idle_1.txt",
+    "assets/kyaro/008-shocked/shocked_ASCII/Shocked1.txt",
+    "assets/kyaro/006-happy bounce/happy bounce_ASCII/HappyBounce1.txt",
+    "assets/kyaro/003-sleeping/sleeping_ASCII/Sleeping01.txt",
+    "data/cve_rules/CVE-*.yaml",
 ]
 
 # Binary targets
