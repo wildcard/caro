@@ -373,6 +373,8 @@ trigger Vercel builds only for the website project, while other workspaces
 **The website has one lockfile: the root `package-lock.json`.** There is no
 `website/package-lock.json`, and `website/.gitignore` stops one from being
 committed.
+The other workspaces (`docs-site/`, `landing/`, `presentation/` and
+`apps/devrel/`) follow the same rule.
 
 npm finds the workspace root by itself. In `website/`, `npm prefix` prints the
 repo root, so `npm install` and `npm ci` read and write the root lockfile. A
