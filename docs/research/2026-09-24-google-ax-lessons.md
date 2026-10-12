@@ -184,7 +184,7 @@ trail and the governance spike together, without new infrastructure.
 | P1 | ADR: CaroML version header (next free number) | `docs/adr/`, `src/caroml/parser.rs` |
 | P1 | Runner contract doc + contract test | `docs/caroml/`, `tests/` |
 | P2 | Network-off by default in ADR-010 sandbox, `NEED net:` opt-in | ADR-010, `src/caroml/` |
-| P2 | Named model profiles with `api_key_env` (🟡 step 1: `backends.ai_horde_key_env`, the only key Caro reads from config today; profiles next) | `src/config/`, `src/backends/remote/` |
+| P2 | ✅ Named model profiles with `api_key_env`: step 1 `backends.ai_horde_key_env`; step 2 `[models.<name>]` + `--model-profile` / `CARO_MODEL_PROFILE` | `src/config/`, `src/backends/remote/` |
 | P2 | Per-task capability grants for `--approval auto` / `allow_public` | `src/main.rs`, `src/caroml/` |
 | P3 | MCP server spike | new feature flag |
 | P3 | Structured trajectory export | `src/agent/`, `src/governance/` |

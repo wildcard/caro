@@ -69,6 +69,10 @@ pub struct CliConfig {
     /// overridden per-invocation by `--approval` / `CARO_APPROVAL`).
     #[serde(default)]
     pub approval_mode: ApprovalMode,
+    /// `[models.<name>]` profile to apply (`--model-profile`). `None` also
+    /// checks `CARO_MODEL_PROFILE`.
+    #[serde(default)]
+    pub model_profile: Option<String>,
 }
 
 /// Result of CLI command execution
@@ -225,6 +229,21 @@ impl CliApp {
         // per-invocation `--approval` flag / `CARO_APPROVAL` env override it
         // later in `run_with_args`.
         config.approval_mode = user_config.approval_mode;
+
+        // A model profile sets backend, model, URL and key variable as one
+        // unit. It is applied before the per-field overrides below, so
+        // `--backend` and `--model-name` still win over it.
+        let model_profile = config
+            .model_profile
+            .clone()
+            .or_else(|| std::env::var("CARO_MODEL_PROFILE").ok())
+            .filter(|name| !name.is_empty());
+        if let Some(name) = model_profile {
+            user_config
+                .apply_model_profile(&name)
+                .map_err(|message| CliError::ConfigurationError { message })?;
+            tracing::debug!("Model profile: {}", name);
+        }
 
         // Backend selection priority: CLI flag > env var > config file
         let env_backend = std::env::var("CARO_BACKEND").ok();
@@ -453,6 +472,16 @@ impl CliApp {
                     .map_err(|message| CliError::ConfigurationError { message })
             };
 
+            // The model the user named (`--model-name`, `CARO_MODEL`, config or
+            // a model profile), else the backend's built-in default.
+            #[cfg(feature = "remote-backends")]
+            let chosen_model = |default: &str| -> String {
+                user_config
+                    .model_name
+                    .clone()
+                    .unwrap_or_else(|| default.to_string())
+            };
+
             // Check for user-specified model preference. `validate_backend_name`
             // accepts any case, so normalize before dispatching on the name.
             let model_preference_lower = user_config
@@ -506,6 +535,7 @@ impl CliApp {
                             .map_err(|e| CliError::ConfigurationError {
                                 message: format!("Failed to create AI-Horde backend: {}", e),
                             })?
+                            .with_models(user_config.model_name.clone().into_iter().collect())
                             .with_embedded_fallback(embedded_arc.clone());
                         // AI-Horde is a public volunteer cluster: never silently
                         // probe-and-skip. Honor the explicit request and rely on
@@ -605,7 +635,7 @@ impl CliApp {
 
                         if let Ok(ollama_url) = Url::parse(ollama_url_str) {
                             let ollama_backend =
-                                OllamaBackend::new(ollama_url, "codellama:7b".to_string())
+                                OllamaBackend::new(ollama_url, chosen_model("codellama:7b"))
                                     .map_err(|e| CliError::ConfigurationError {
                                         message: format!("Failed to create Ollama backend: {}", e),
                                     })?
@@ -627,11 +657,12 @@ impl CliApp {
                         use reqwest::Url;
 
                         if let Ok(exo_url) = Url::parse(exo_url_str) {
-                            let exo_backend = ExoBackend::new(exo_url, "llama-3.2-3b".to_string())
-                                .map_err(|e| CliError::ConfigurationError {
-                                    message: format!("Failed to create Exo backend: {}", e),
-                                })?
-                                .with_embedded_fallback(embedded_arc.clone());
+                            let exo_backend =
+                                ExoBackend::new(exo_url, chosen_model("llama-3.2-3b"))
+                                    .map_err(|e| CliError::ConfigurationError {
+                                        message: format!("Failed to create Exo backend: {}", e),
+                                    })?
+                                    .with_embedded_fallback(embedded_arc.clone());
 
                             if exo_backend.is_available().await {
                                 tracing::info!("Using Exo backend (user preference)");
@@ -649,12 +680,14 @@ impl CliApp {
                         use reqwest::Url;
 
                         if let Ok(vllm_url) = Url::parse(vllm_url_str) {
-                            let vllm_backend =
-                                VllmBackend::new(vllm_url, "codellama/CodeLlama-7b-hf".to_string())
-                                    .map_err(|e| CliError::ConfigurationError {
-                                        message: format!("Failed to create vLLM backend: {}", e),
-                                    })?
-                                    .with_embedded_fallback(embedded_arc.clone());
+                            let vllm_backend = VllmBackend::new(
+                                vllm_url,
+                                chosen_model("codellama/CodeLlama-7b-hf"),
+                            )
+                            .map_err(|e| CliError::ConfigurationError {
+                                message: format!("Failed to create vLLM backend: {}", e),
+                            })?
+                            .with_embedded_fallback(embedded_arc.clone());
 
                             if vllm_backend.is_available().await {
                                 tracing::info!("Using vLLM backend (user preference)");
@@ -754,7 +787,7 @@ impl CliApp {
                 }
 
                 if let Ok(exo_url) = Url::parse(exo_url_str) {
-                    let exo_backend = ExoBackend::new(exo_url, "llama-3.2-3b".to_string())
+                    let exo_backend = ExoBackend::new(exo_url, chosen_model("llama-3.2-3b"))
                         .map_err(|e| CliError::ConfigurationError {
                             message: format!("Failed to create Exo backend: {}", e),
                         })?
@@ -767,11 +800,12 @@ impl CliApp {
                 }
 
                 if let Ok(ollama_url) = Url::parse(ollama_url_str) {
-                    let ollama_backend = OllamaBackend::new(ollama_url, "codellama:7b".to_string())
-                        .map_err(|e| CliError::ConfigurationError {
-                            message: format!("Failed to create Ollama backend: {}", e),
-                        })?
-                        .with_embedded_fallback(embedded_arc.clone());
+                    let ollama_backend =
+                        OllamaBackend::new(ollama_url, chosen_model("codellama:7b"))
+                            .map_err(|e| CliError::ConfigurationError {
+                                message: format!("Failed to create Ollama backend: {}", e),
+                            })?
+                            .with_embedded_fallback(embedded_arc.clone());
 
                     if ollama_backend.is_available().await {
                         tracing::info!("Using Ollama backend (auto-detected)");
@@ -781,7 +815,7 @@ impl CliApp {
 
                 if let Ok(vllm_url) = Url::parse(vllm_url_str) {
                     let vllm_backend =
-                        VllmBackend::new(vllm_url, "codellama/CodeLlama-7b-hf".to_string())
+                        VllmBackend::new(vllm_url, chosen_model("codellama/CodeLlama-7b-hf"))
                             .map_err(|e| CliError::ConfigurationError {
                                 message: format!("Failed to create vLLM backend: {}", e),
                             })?
@@ -1176,6 +1210,7 @@ impl Default for CliConfig {
             output_format: OutputFormat::Plain,
             auto_confirm: false,
             approval_mode: ApprovalMode::default(),
+            model_profile: None,
         }
     }
 }

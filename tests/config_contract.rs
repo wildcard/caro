@@ -495,3 +495,203 @@ fn test_config_operation_performance() {
     // Suppress unused variable warning
     let _ = config_manager;
 }
+
+/// Regression guard for #1566: an invalid `config.toml` must never be
+/// replaced with defaults. The first-run telemetry save used to load the
+/// config with `.ok().unwrap_or_default()` and then write the defaults back,
+/// so one typo silently erased every setting the user had.
+///
+/// It lives here because CI runs this test binary by name. Unix-only: on
+/// Windows the config dir ignores env vars, so the run could not be isolated.
+#[cfg(unix)]
+mod invalid_config_is_not_overwritten {
+    use std::path::Path;
+    use std::process::{Command, Output};
+    use tempfile::TempDir;
+
+    fn caro(xdg: &Path, args: &[&str]) -> Output {
+        Command::new(env!("CARGO_BIN_EXE_caro"))
+            .args(args)
+            .env("XDG_CONFIG_HOME", xdg)
+            .env("HOME", xdg)
+            .env("CARO_TELEMETRY_ENABLED", "false")
+            .output()
+            .expect("failed to run caro")
+    }
+
+    /// Path from the `Config saved to: <path>` line `config set` prints.
+    fn config_path(xdg: &Path) -> String {
+        let out = caro(xdg, &["config", "set", "log_level", "debug"]);
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        let line = stdout
+            .lines()
+            .find_map(|l| l.split_once("Config saved to: "))
+            .unwrap_or_else(|| panic!("no saved path in: {stdout}"))
+            .1;
+        line.split('\u{1b}').next().unwrap().trim().to_string()
+    }
+
+    #[test]
+    fn invalid_config_is_left_untouched_by_a_run() {
+        let dir = TempDir::new().unwrap();
+        let path = config_path(dir.path());
+
+        // A real user file with one bad value: still first_run, so the run
+        // reaches the telemetry save path.
+        let invalid = "log_level = \"loud\"\nmodel_name = \"keep-me\"\n";
+        std::fs::write(&path, invalid).unwrap();
+
+        // Non-interactive output takes the silent first-run save branch.
+        let out = caro(
+            dir.path(),
+            &["--output", "json", "--dry-run", "show disk usage"],
+        );
+
+        // The run must reach the config load and report it, so an early
+        // startup failure cannot pass this guard by never touching the file.
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        assert!(!out.status.success(), "run with a bad config succeeded");
+        assert!(
+            stderr.contains("Failed to load configuration"),
+            "stderr: {stderr}"
+        );
+
+        let after = std::fs::read_to_string(&path).unwrap();
+        assert_eq!(after, invalid, "config.toml was rewritten");
+    }
+}
+
+/// Contract for `[models.<name>]` profiles (google/ax "models as named
+/// resources"): `--model-profile` / `CARO_MODEL_PROFILE` select a profile,
+/// an unknown name is refused, and the profile's `api_key_env` reaches the
+/// backend that reads it. Unix-only for the same reason as the module above.
+#[cfg(unix)]
+mod model_profiles {
+    use std::path::Path;
+    use std::process::{Command, Output};
+    use tempfile::TempDir;
+
+    fn caro(xdg: &Path, args: &[&str], env: &[(&str, &str)]) -> Output {
+        let mut cmd = Command::new(env!("CARGO_BIN_EXE_caro"));
+        cmd.args(args)
+            .env("XDG_CONFIG_HOME", xdg)
+            .env("HOME", xdg)
+            .env("CARO_TELEMETRY_ENABLED", "false")
+            .env_remove("CARO_MODEL_PROFILE")
+            .env_remove("CARO_BACKEND")
+            .env_remove("CARO_MODEL")
+            // The profile tests rely on this key variable being unset.
+            .env_remove("CARO_TEST_PROFILE_KEY_UNSET");
+        for (k, v) in env {
+            cmd.env(k, v);
+        }
+        cmd.output().expect("failed to run caro")
+    }
+
+    /// Write `body` as the config.toml `config set` reports, and return the dir.
+    fn with_config(body: &str) -> TempDir {
+        let dir = TempDir::new().unwrap();
+        let out = caro(dir.path(), &["config", "set", "log_level", "info"], &[]);
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        let path = stdout
+            .lines()
+            .find_map(|l| l.split_once("Config saved to: "))
+            .unwrap_or_else(|| panic!("no saved path in: {stdout}"))
+            .1
+            .split('\u{1b}')
+            .next()
+            .unwrap()
+            .trim()
+            .to_string();
+        std::fs::write(path, body).unwrap();
+        dir
+    }
+
+    const CONFIG: &str = r#"
+    [telemetry]
+    enabled = false
+    first_run = false
+
+    [models.horde]
+    backend = "ai-horde"
+    api_key_env = "CARO_TEST_PROFILE_KEY_UNSET"
+    "#;
+
+    fn stderr(out: &Output) -> String {
+        String::from_utf8_lossy(&out.stderr).into_owned()
+    }
+
+    #[test]
+    fn unknown_profile_is_refused_and_names_the_defined_ones() {
+        let dir = with_config(CONFIG);
+        let out = caro(
+            dir.path(),
+            &["--model-profile", "nope", "show disk usage"],
+            &[],
+        );
+        assert!(!out.status.success());
+        let err = stderr(&out);
+        assert!(err.contains("\"nope\"") && err.contains("horde"), "{err}");
+    }
+
+    #[test]
+    fn env_var_selects_the_profile_too() {
+        let dir = with_config(CONFIG);
+        let out = caro(
+            dir.path(),
+            &["show disk usage"],
+            &[("CARO_MODEL_PROFILE", "nope")],
+        );
+        assert!(!out.status.success());
+        assert!(stderr(&out).contains("\"nope\""), "{}", stderr(&out));
+    }
+
+    #[cfg(feature = "remote-backends")]
+    #[test]
+    fn profile_key_env_reaches_the_backend() {
+        // The named variable is unset, so building the AI-Horde backend must
+        // fail and name it. That proves the profile chose the backend and
+        // its key source; no request leaves the machine.
+        let dir = with_config(CONFIG);
+        let out = caro(
+            dir.path(),
+            &["--model-profile", "horde", "show disk usage"],
+            &[],
+        );
+        assert!(!out.status.success());
+        let err = stderr(&out);
+        assert!(err.contains("CARO_TEST_PROFILE_KEY_UNSET"), "{err}");
+    }
+
+    #[cfg(feature = "remote-backends")]
+    #[test]
+    fn backend_env_overrides_the_profile() {
+        // The profile fills in the config, so CARO_BACKEND (like --backend)
+        // wins. The AI-Horde backend, and its unset key, is never built.
+        let dir = with_config(CONFIG);
+        let out = caro(
+            dir.path(),
+            &[
+                "--model-profile",
+                "horde",
+                "--output",
+                "json",
+                "show disk usage",
+            ],
+            &[("CARO_BACKEND", "ollama")],
+        );
+        let all = format!("{}{}", String::from_utf8_lossy(&out.stdout), stderr(&out));
+        assert!(!all.contains("CARO_TEST_PROFILE_KEY_UNSET"), "{all}");
+    }
+
+    #[test]
+    fn bad_profile_is_refused_at_load() {
+        let dir = with_config(concat!(
+            "[telemetry]\nfirst_run = false\n\n",
+            "[models.p]\nbackend = \"ollama\"\napi_key_env = \"OLLAMA_KEY\"\n",
+        ));
+        let out = caro(dir.path(), &["show disk usage"], &[]);
+        assert!(!out.status.success());
+        assert!(stderr(&out).contains("only ai-horde"), "{}", stderr(&out));
+    }
+}

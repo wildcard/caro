@@ -194,6 +194,7 @@ impl SetupWizard {
             ai: crate::models::AiConfig::default(),
             safety: crate::safety::SafetySection::default(),
             backends: crate::models::BackendsConfig::default(),
+            models: Default::default(),
         };
 
         self.print_summary(&configuration, theme);
