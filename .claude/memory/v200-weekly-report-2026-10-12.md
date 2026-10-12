@@ -7,7 +7,7 @@
   - Completion: **~61.7%** (29/47, unchanged from July 6 run — no new v2.0.0 items closed)
 - **Core gantt feature completion: 0%** (0/5 implemented — all in research phase)
 - **Release date**: June 30, 2026 → **104 DAYS OVERDUE** as of today
-- **Context**: v1.5.0 release PR merged October 11, 2026; tag and crates.io publish still pending
+- **Context**: v1.5.0 release PR merged October 11, 2026 (per ROADMAP.md "Released: October 11, 2026 ✅"); tag and crates.io publish still pending
   (credential scope blocks `git push origin v1.5.0` and `gh workflow run tag-release.yml` — see
   `.claude/memory/v150-release-handoff.md`). The release commit is on `main` but not yet visible
   to users on crates.io.
