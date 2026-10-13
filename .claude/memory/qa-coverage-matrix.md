@@ -28,8 +28,8 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
-| 6 | Safety validation unit tests (cargo test safety) | safety | 2026-10-13 | PASS | — |
-| 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-10-13 | PASS | — |
+| 6 | Safety validation unit tests (cargo test safety) | safety | 2026-05-07 | PASS | — |
+| 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-05-07 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-05-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
 | 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-13 | FLAKE | [#1408](https://github.com/wildcard/caro/issues/1408) |
