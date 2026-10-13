@@ -111,12 +111,18 @@ pub struct OllamaBackend {
 impl OllamaBackend {
     /// Create a new Ollama backend
     pub fn new(base_url: Url, model_name: String) -> Result<Self, GeneratorError> {
-        let client = Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .map_err(|e| GeneratorError::ConfigError {
-                message: format!("Failed to create HTTP client: {}", e),
-            })?;
+        let mut builder = Client::builder().timeout(Duration::from_secs(30));
+        // A loopback endpoint is connected to directly: no proxy and no
+        // redirect may send the request to a host other than the configured
+        // one (#1647). What listens on that loopback port is not verified.
+        if crate::safety::is_loopback_endpoint(base_url.as_str()) {
+            builder = builder
+                .no_proxy()
+                .redirect(reqwest::redirect::Policy::none());
+        }
+        let client = builder.build().map_err(|e| GeneratorError::ConfigError {
+            message: format!("Failed to create HTTP client: {}", e),
+        })?;
 
         Ok(Self {
             base_url,
@@ -404,6 +410,11 @@ impl CommandGenerator for OllamaBackend {
         true
     }
 
+    /// Only a judge at a parsed loopback endpoint may relax (#1647).
+    fn risk_judge_is_loopback(&self) -> bool {
+        crate::safety::is_loopback_endpoint(self.base_url.as_str())
+    }
+
     async fn classify_risk(&self, command: &str, ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
         // Constrained decoding (`format` = verdict schema) plus one corrective
         // retry (#1465); fail safe to `None` so the caller falls back to the
@@ -466,6 +477,22 @@ mod tests {
         let url = Url::parse("http://localhost:11434").unwrap();
         let backend = OllamaBackend::new(url, "codellama:7b".to_string());
         assert!(backend.is_ok());
+    }
+
+    /// #1647: only a parsed loopback endpoint may relax in `--approval smart`.
+    #[test]
+    fn ollama_judge_is_loopback_only_on_a_loopback_endpoint() {
+        let at = |u: &str| {
+            OllamaBackend::new(Url::parse(u).unwrap(), "m".to_string())
+                .unwrap()
+                .risk_judge_is_loopback()
+        };
+        assert!(at("http://localhost:11434"));
+        assert!(at("http://127.0.0.1:11434"));
+        assert!(at("http://[::1]:11434"));
+        assert!(!at("http://gpu-box.lan:11434"));
+        assert!(!at("http://localhost.evil.example:11434"));
+        assert!(!at("http://localhost@evil.example:11434"));
     }
 
     #[test]

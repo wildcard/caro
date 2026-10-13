@@ -34,9 +34,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-use crate::models::{
-    BackendType, RiskJudgment, RiskLevel, SafetyLevel, ShellType, SuggestedRouting,
-};
+use crate::models::{RiskJudgment, RiskLevel, SafetyLevel, ShellType, SuggestedRouting};
 
 pub use cve_patterns::{get_cve_compiled_patterns_for_shell, CVE_COMPILED};
 pub use patterns::{
@@ -265,30 +263,39 @@ pub struct SmartDecision {
     pub note: Option<String>,
 }
 
-/// Whether a `--approval smart` judge on this backend may *relax* a static
-/// decision. A hosted API (Grok, OpenRouter, Claude) may only escalate: a
-/// remote model must not downgrade a command the static rules flagged,
-/// usually one it generated itself. This matches `caro guard --judge`
-/// (#1644). Local judges (Ollama, vLLM) keep the two-way blend.
-pub fn judge_may_relax(backend: BackendType) -> bool {
-    !matches!(
-        backend,
-        BackendType::Grok | BackendType::OpenRouter | BackendType::Claude
-    )
+/// Whether `endpoint` is an `http(s)` URL whose host is loopback: the name
+/// `localhost`, `127.0.0.0/8` or `::1` (#1647). The URL is parsed, never
+/// prefix-matched, so `localhost.evil.example` or `localhost@evil.example` is
+/// remote. Anything unparsable or of another scheme is not loopback.
+pub fn is_loopback_endpoint(endpoint: &str) -> bool {
+    let Ok(url) = url::Url::parse(endpoint) else {
+        return false;
+    };
+    if !matches!(url.scheme(), "http" | "https") {
+        return false;
+    }
+    match url.host() {
+        Some(url::Host::Domain(domain)) => domain == "localhost",
+        Some(url::Host::Ipv4(ip)) => ip.is_loopback(),
+        Some(url::Host::Ipv6(ip)) => ip.is_loopback(),
+        None => false,
+    }
 }
 
-/// [`blend_smart_decision`] for the judge of `backend`. For a backend that
-/// may not relax ([`judge_may_relax`]), a verdict below the static risk is
-/// dropped, so the static decision stands; an equal or higher verdict blends
-/// as usual (escalation still works).
+/// [`blend_smart_decision`] for a judge that may or may not relax. When
+/// `may_relax` is false (a hosted judge, or an Ollama/vLLM judge whose
+/// endpoint is not loopback: see
+/// [`CommandGenerator::risk_judge_is_loopback`](crate::backends::CommandGenerator::risk_judge_is_loopback)),
+/// a verdict below the static risk is dropped, so the static decision
+/// stands. An equal or higher verdict blends as usual: escalation still works.
 pub fn blend_smart_decision_for(
-    backend: BackendType,
+    may_relax: bool,
     static_risk: RiskLevel,
     judge: Option<&RiskJudgment>,
     safety: SafetyLevel,
     auto_confirm: bool,
 ) -> SmartDecision {
-    let judge = judge.filter(|j| judge_may_relax(backend) || j.risk >= static_risk);
+    let judge = judge.filter(|j| may_relax || j.risk >= static_risk);
     blend_smart_decision(static_risk, judge, safety, auto_confirm)
 }
 
@@ -1265,72 +1272,125 @@ mod smart_blend_tests {
         assert!(d.note.is_some());
     }
 
-    // ── Hosted judges (Grok, OpenRouter) may only escalate (#1644) ─────────
+    // ── Only a loopback judge may relax; others only escalate (#1644, #1647) ──
 
-    const HOSTED: [BackendType; 2] = [BackendType::Grok, BackendType::OpenRouter];
-    const LOCAL: [BackendType; 2] = [BackendType::Ollama, BackendType::VLlm];
+    /// `may_relax` as the CLI computes it: false for hosted judges and for a
+    /// non-loopback Ollama/vLLM endpoint, true for a loopback one.
+    const ESCALATE_ONLY: bool = false;
+    const LOOPBACK: bool = true;
+
+    /// `http://<userinfo>@<rest>`, built at run time so the source holds no
+    /// literal that secret scanners read as a credential (#1649).
+    fn with_userinfo(userinfo: &str, rest: &str) -> String {
+        format!("http://{userinfo}{}{rest}", '@')
+    }
 
     #[test]
-    fn hosted_judges_may_not_relax_but_local_judges_may() {
-        for b in HOSTED {
-            assert!(!judge_may_relax(b), "{b:?}");
-        }
-        for b in LOCAL {
-            assert!(judge_may_relax(b), "{b:?}");
+    fn loopback_endpoints_are_recognized_by_parsing() {
+        for url in [
+            "http://localhost:11434",
+            "http://localhost",
+            "https://LOCALHOST:8000/v1",
+            "http://127.0.0.1:11434",
+            "http://127.1.2.3:8000",
+            "http://[::1]:11434",
+            &with_userinfo("user:pw", "127.0.0.1:11434"),
+            "http://evil.example@localhost:11434",
+            // WHATWG parsing normalizes these to a loopback host, and reqwest
+            // connects to the same parsed host.
+            "http://2130706433:11434",
+            "http://0x7f.1:11434",
+            "http://localhost\\@evil.example/",
+        ] {
+            assert!(is_loopback_endpoint(url), "{url} is loopback");
         }
     }
 
     #[test]
-    fn hosted_low_risk_verdict_keeps_high_confirmation() {
-        for b in HOSTED {
-            for low in [RiskLevel::Safe, RiskLevel::Moderate] {
-                let j = judgment(low, 0.95);
-                let d = blend_smart_decision_for(
-                    b,
-                    RiskLevel::High,
-                    Some(&j),
-                    SafetyLevel::Moderate,
-                    false,
-                );
-                assert!(d.requires_confirmation, "{b:?} {low:?} relaxed High");
-                assert!(!d.blocked);
-                assert!(d.note.is_none(), "{b:?}: no relax note");
-                // At Strict, High stays blocked.
-                let s = blend_smart_decision_for(
-                    b,
-                    RiskLevel::High,
-                    Some(&j),
-                    SafetyLevel::Strict,
-                    false,
-                );
-                assert!(s.blocked, "{b:?} {low:?} unblocked High at Strict");
-            }
+    fn non_loopback_or_unparsable_endpoints_are_not_local() {
+        for url in [
+            // Remote hosts.
+            "http://gpu-box.lan:11434",
+            "https://ollama.example.com",
+            "http://10.0.0.5:8000",
+            "http://192.168.1.20:11434",
+            "http://[2001:db8::1]:8000",
+            "http://0.0.0.0:11434",
+            // IPv4-mapped loopback is not treated as loopback (safe direction).
+            "http://[::ffff:127.0.0.1]:11434",
+            // Credentials and at-signs: the host after `@` is what connects.
+            "http://localhost@evil.example:11434",
+            &with_userinfo("127.0.0.1:11434", "evil.example"),
+            &with_userinfo("localhost:pw", "evil.example"),
+            // Look-alike hosts.
+            "http://localhost.evil.example",
+            "http://127.0.0.1.nip.io:11434",
+            "http://localhost.:11434",
+            "http://my-localhost:11434",
+            "http://localhostevil.example",
+            // Wrong scheme, no host, or not a URL at all.
+            "file:///tmp/ollama.sock",
+            "ftp://localhost/",
+            "localhost:11434",
+            "127.0.0.1:11434",
+            "",
+            "http://",
+            "not a url",
+            "http://[::1",
+        ] {
+            assert!(
+                !is_loopback_endpoint(url),
+                "{url:?} must not count as loopback"
+            );
         }
     }
 
     #[test]
-    fn hosted_judge_still_escalates() {
-        for b in HOSTED {
-            let j = judgment(RiskLevel::High, 0.9);
+    fn escalate_only_judge_keeps_high_confirmation() {
+        for low in [RiskLevel::Safe, RiskLevel::Moderate] {
+            let j = judgment(low, 0.95);
             let d = blend_smart_decision_for(
-                b,
-                RiskLevel::Safe,
+                ESCALATE_ONLY,
+                RiskLevel::High,
                 Some(&j),
                 SafetyLevel::Moderate,
                 false,
             );
-            assert!(d.requires_confirmation, "{b:?}");
-            assert!(!d.blocked, "a judge never hard-blocks");
-            assert!(d.note.is_some());
+            assert!(d.requires_confirmation, "{low:?} relaxed High");
+            assert!(!d.blocked);
+            assert!(d.note.is_none(), "no relax note");
+            let s = blend_smart_decision_for(
+                ESCALATE_ONLY,
+                RiskLevel::High,
+                Some(&j),
+                SafetyLevel::Strict,
+                false,
+            );
+            assert!(s.blocked, "{low:?} unblocked High at Strict");
         }
     }
 
     #[test]
-    fn hosted_judge_never_relaxes_critical() {
-        for b in HOSTED {
-            let j = judgment(RiskLevel::Safe, 1.0);
+    fn escalate_only_judge_still_escalates() {
+        let j = judgment(RiskLevel::High, 0.9);
+        let d = blend_smart_decision_for(
+            ESCALATE_ONLY,
+            RiskLevel::Safe,
+            Some(&j),
+            SafetyLevel::Moderate,
+            false,
+        );
+        assert!(d.requires_confirmation);
+        assert!(!d.blocked, "a judge never hard-blocks");
+        assert!(d.note.is_some());
+    }
+
+    #[test]
+    fn no_judge_relaxes_critical() {
+        let j = judgment(RiskLevel::Safe, 1.0);
+        for may_relax in [ESCALATE_ONLY, LOOPBACK] {
             let d = blend_smart_decision_for(
-                b,
+                may_relax,
                 RiskLevel::Critical,
                 Some(&j),
                 SafetyLevel::Moderate,
@@ -1347,44 +1407,41 @@ mod smart_blend_tests {
     /// Timeout, a missing key and an unparsable reply all reach the blend as
     /// no verdict (`classify_risk` returns `None`); so does a low-confidence one.
     #[test]
-    fn hosted_judge_without_a_usable_verdict_keeps_static() {
+    fn judge_without_a_usable_verdict_keeps_static() {
         let weak = judgment(RiskLevel::Safe, SMART_JUDGE_MIN_CONFIDENCE - 0.01);
-        for b in HOSTED {
+        for may_relax in [ESCALATE_ONLY, LOOPBACK] {
             for static_risk in [RiskLevel::Safe, RiskLevel::Moderate, RiskLevel::High] {
                 let baseline =
                     blend_smart_decision(static_risk, None, SafetyLevel::Moderate, false);
                 for verdict in [None, Some(&weak)] {
                     let d = blend_smart_decision_for(
-                        b,
+                        may_relax,
                         static_risk,
                         verdict,
                         SafetyLevel::Moderate,
                         false,
                     );
-                    assert_eq!(d, baseline, "{b:?} {static_risk:?} {verdict:?}");
+                    assert_eq!(d, baseline, "{may_relax} {static_risk:?} {verdict:?}");
                 }
             }
         }
     }
 
     #[test]
-    fn local_judges_keep_relaxing_as_before() {
+    fn loopback_judge_keeps_relaxing_as_before() {
         let j = judgment(RiskLevel::Safe, 0.9);
-        for b in LOCAL {
-            let d = blend_smart_decision_for(
-                b,
-                RiskLevel::High,
-                Some(&j),
-                SafetyLevel::Moderate,
-                false,
-            );
-            assert_eq!(
-                d,
-                blend_smart_decision(RiskLevel::High, Some(&j), SafetyLevel::Moderate, false),
-                "{b:?}"
-            );
-            assert!(!d.requires_confirmation);
-        }
+        let d = blend_smart_decision_for(
+            LOOPBACK,
+            RiskLevel::High,
+            Some(&j),
+            SafetyLevel::Moderate,
+            false,
+        );
+        assert_eq!(
+            d,
+            blend_smart_decision(RiskLevel::High, Some(&j), SafetyLevel::Moderate, false)
+        );
+        assert!(!d.requires_confirmation);
     }
 
     #[test]

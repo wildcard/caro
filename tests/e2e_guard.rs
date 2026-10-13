@@ -9,18 +9,19 @@ use tempfile::TempDir;
 /// A `caro guard` invocation isolated from the developer's own config and
 /// data dirs.
 fn guard(home: &TempDir, args: &[&str], stdin: &str) -> std::process::Output {
-    Command::cargo_bin("caro")
-        .unwrap()
-        .arg("guard")
+    guard_cmd(home, args).write_stdin(stdin).output().unwrap()
+}
+
+fn guard_cmd(home: &TempDir, args: &[&str]) -> Command {
+    let mut cmd = Command::cargo_bin("caro").unwrap();
+    cmd.arg("guard")
         .args(args)
         .env("HOME", home.path())
         .env("XDG_CONFIG_HOME", home.path().join("config"))
         .env("XDG_DATA_HOME", home.path().join("data"))
         .env_remove("CARO_GUARD_MODE")
-        .env_remove("CARO_GUARD_JUDGE")
-        .write_stdin(stdin)
-        .output()
-        .unwrap()
+        .env_remove("CARO_GUARD_JUDGE");
+    cmd
 }
 
 fn claude_payload(cmd: &str) -> String {
@@ -323,6 +324,154 @@ async fn ollama_judge_escalates_a_static_pass_to_ask() {
         .as_str()
         .unwrap()
         .contains("deletes the cache"));
+}
+
+/// #1647: a loopback judge is called directly even when a proxy is set, so
+/// the endpoint Caro checks is the endpoint it talks to. Not on Windows, for
+/// the same config-dir reason as the test above.
+#[cfg(all(feature = "remote-backends", not(windows)))]
+async fn assert_judge_bypasses_proxy(judge: &str, url_key: &str, route: &str, body: Value) {
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path(route))
+        .respond_with(ResponseTemplate::new(200).set_body_json(body))
+        .mount(&server)
+        .await;
+
+    let home = TempDir::new().unwrap();
+    let toml = format!("[backends]\n{url_key} = \"{}\"\n", server.uri());
+    for dir in [
+        home.path().join("config").join("caro"),
+        home.path().join("Library/Application Support/caro"),
+    ] {
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("config.toml"), &toml).unwrap();
+    }
+    let log = home.path().join("d.jsonl");
+    // Port 1 refuses connections: a proxied judge call fails.
+    let dead_proxy = "http://127.0.0.1:1";
+    let out = guard_cmd(
+        &home,
+        &[
+            "--harness",
+            "generic",
+            "--mode",
+            "enforce",
+            "--judge",
+            judge,
+            "--log",
+            log.to_str().unwrap(),
+        ],
+    )
+    .env("HTTP_PROXY", dead_proxy)
+    .env("http_proxy", dead_proxy)
+    .env("ALL_PROXY", dead_proxy)
+    .env("all_proxy", dead_proxy)
+    .env_remove("NO_PROXY")
+    .env_remove("no_proxy")
+    .write_stdin(r#"{"command":"ls -la"}"#)
+    .output()
+    .unwrap();
+    let rec = last_record(&log);
+    assert_eq!(rec["source"], "static+judge", "{judge}: {:?} {rec}", out);
+    assert_eq!(out.status.code(), Some(3), "{judge}: {:?}", out);
+}
+
+#[cfg(all(feature = "remote-backends", not(windows)))]
+const HIGH_VERDICT: &str = r#"{"risk": "high", "reason": "r", "confidence": 0.9}"#;
+
+#[cfg(all(feature = "remote-backends", not(windows)))]
+#[tokio::test(flavor = "multi_thread")]
+async fn loopback_ollama_judge_bypasses_an_http_proxy() {
+    let body = serde_json::json!({ "response": HIGH_VERDICT, "done": true });
+    assert_judge_bypasses_proxy("ollama", "ollama_url", "/api/generate", body).await;
+}
+
+#[cfg(all(feature = "remote-backends", not(windows)))]
+#[tokio::test(flavor = "multi_thread")]
+async fn loopback_vllm_judge_bypasses_an_http_proxy() {
+    let body = serde_json::json!({
+        "choices": [{ "message": { "role": "assistant", "content": HIGH_VERDICT } }]
+    });
+    assert_judge_bypasses_proxy("vllm", "vllm_url", "/v1/chat/completions", body).await;
+}
+
+/// #1647: a loopback judge never follows a redirect, so a local listener
+/// cannot hand the command to another host. The second server stands in for
+/// a remote host; it must get no request.
+#[cfg(all(feature = "remote-backends", not(windows)))]
+async fn assert_judge_ignores_redirect(judge: &str, url_key: &str, route: &str, body: Value) {
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    let elsewhere = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path(route))
+        .respond_with(ResponseTemplate::new(200).set_body_json(body))
+        .expect(0)
+        .mount(&elsewhere)
+        .await;
+    let local = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path(route))
+        .respond_with(
+            ResponseTemplate::new(307)
+                .insert_header("location", format!("{}{route}", elsewhere.uri()).as_str()),
+        )
+        .mount(&local)
+        .await;
+
+    let home = TempDir::new().unwrap();
+    let toml = format!("[backends]\n{url_key} = \"{}\"\n", local.uri());
+    for dir in [
+        home.path().join("config").join("caro"),
+        home.path().join("Library/Application Support/caro"),
+    ] {
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("config.toml"), &toml).unwrap();
+    }
+    let log = home.path().join("d.jsonl");
+    let out = guard(
+        &home,
+        &[
+            "--harness",
+            "generic",
+            "--mode",
+            "enforce",
+            "--judge",
+            judge,
+            "--log",
+            log.to_str().unwrap(),
+        ],
+        r#"{"command":"ls -la"}"#,
+    );
+    let rec = last_record(&log);
+    assert_eq!(
+        rec["source"], "static+judge_error",
+        "{judge}: {:?} {rec}",
+        out
+    );
+    assert_eq!(out.status.code(), Some(0), "{judge}: {:?}", out);
+    // `expect(0)` on `elsewhere` is verified when it drops.
+}
+
+#[cfg(all(feature = "remote-backends", not(windows)))]
+#[tokio::test(flavor = "multi_thread")]
+async fn loopback_ollama_judge_ignores_a_redirect() {
+    let body = serde_json::json!({ "response": HIGH_VERDICT, "done": true });
+    assert_judge_ignores_redirect("ollama", "ollama_url", "/api/generate", body).await;
+}
+
+#[cfg(all(feature = "remote-backends", not(windows)))]
+#[tokio::test(flavor = "multi_thread")]
+async fn loopback_vllm_judge_ignores_a_redirect() {
+    let body = serde_json::json!({
+        "choices": [{ "message": { "role": "assistant", "content": HIGH_VERDICT } }]
+    });
+    assert_judge_ignores_redirect("vllm", "vllm_url", "/v1/chat/completions", body).await;
 }
 
 /// The six evasions measured in spec 011 ("Known gaps") reached the shell

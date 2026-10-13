@@ -3,8 +3,8 @@
 //! Modeled on goose's `permission_judge`: the LLM is asked to make a single,
 //! bounded classification and to **fail safe** ("if unsure, rate it higher").
 //! The judge is advisory — its verdict is blended under a hard floor by
-//! [`crate::safety::blend_smart_decision`], which never lets it relax a
-//! `Critical` static match.
+//! [`crate::safety::blend_smart_decision_for`], which never lets it relax a
+//! `Critical` static match, and lets only a loopback judge relax at all.
 
 use crate::decision::{extract_json_object, parse_choice_json, Choice, DecisionSchema};
 use crate::models::{RiskJudgeContext, RiskJudgment, RiskLevel};

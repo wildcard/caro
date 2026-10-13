@@ -20,10 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   hosted judges do not get the working directory. `caro guard report` adds a
   "by source" line. `classify_risk` now also works for the `grok` and
   `openrouter` backends. In `--approval smart` these hosted judges may only
-  escalate: they cannot relax a command the static rules flagged (local
-  `ollama`/`vllm` judges keep the two-way blend). Guarded by the `judge_*` tests in `src/guard/mod.rs`
+  escalate: they cannot relax a command the static rules flagged. Guarded by the `judge_*` tests in `src/guard/mod.rs`
   and `ollama_judge_escalates_a_static_pass_to_ask` in `tests/e2e_guard.rs`,
-  and the `hosted_*` tests in `safety::smart_blend_tests`.
+  and `safety::smart_blend_tests`.
 - **Segment- and wrapper-aware safety validation (#1054).** The validator
   now scans each statement of a command line, each statement without its
   `sudo`/`env`/`timeout`/`nice`/`nohup`/`xargs`/`busybox` prefix, and each
@@ -45,6 +44,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Labelled by an agent session on the owner's decision, blind to the static
   tiers, and marked provisional in `docs/ml/risk-gold-subset.md` pending human
   review. Counts: safe 50, moderate 22, high 34, critical 15, 2 uncertain.
+
+### Security
+
+- **`--approval smart`: only a loopback judge may relax (#1647).** An
+  `ollama` or `vllm` judge could lower the static risk and confirmation
+  floor wherever its endpoint pointed. Now only an endpoint whose URL parses
+  to `localhost`, `127.0.0.0/8` or `::1` may relax. Any other, unparsable or
+  non-`http(s)` endpoint may only escalate. If your judge runs on another
+  host, smart mode no longer relaxes flagged commands for you. Ollama and
+  vLLM clients for a loopback endpoint now ignore every proxy setting
+  (environment and system) and follow no redirects, for generation as well
+  as judging. A loopback URL is configuration evidence, not proof that the
+  judge runs on this device: trust covers whatever listens there (an
+  `ssh -L` forward, for example), and the name `localhost` resolves through
+  the system resolver. A remote Ollama or vLLM judge still receives the raw
+  command and the working directory. Guarded by
+  `safety::smart_blend_tests`, `cli::tests::smart_decision_*`, the
+  `*_judge_is_*loopback*` backend tests and the
+  `loopback_*_judge_bypasses_an_http_proxy` and
+  `loopback_*_judge_ignores_a_redirect` tests in `tests/e2e_guard.rs`.
 
 ## [1.5.0] - 2026-10-13
 

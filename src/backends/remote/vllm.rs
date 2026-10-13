@@ -140,12 +140,18 @@ pub struct VllmBackend {
 impl VllmBackend {
     /// Create a new vLLM backend
     pub fn new(base_url: Url, model_name: String) -> Result<Self, GeneratorError> {
-        let client = Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .map_err(|e| GeneratorError::ConfigError {
-                message: format!("Failed to create HTTP client: {}", e),
-            })?;
+        let mut builder = Client::builder().timeout(Duration::from_secs(30));
+        // A loopback endpoint is connected to directly: no proxy and no
+        // redirect may send the request to a host other than the configured
+        // one (#1647). What listens on that loopback port is not verified.
+        if crate::safety::is_loopback_endpoint(base_url.as_str()) {
+            builder = builder
+                .no_proxy()
+                .redirect(reqwest::redirect::Policy::none());
+        }
+        let client = builder.build().map_err(|e| GeneratorError::ConfigError {
+            message: format!("Failed to create HTTP client: {}", e),
+        })?;
 
         Ok(Self {
             base_url,
@@ -469,6 +475,11 @@ impl CommandGenerator for VllmBackend {
         true
     }
 
+    /// Only a judge at a parsed loopback endpoint may relax (#1647).
+    fn risk_judge_is_loopback(&self) -> bool {
+        crate::safety::is_loopback_endpoint(self.base_url.as_str())
+    }
+
     async fn classify_risk(&self, command: &str, ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
         // Guided decoding (`guided_json` = verdict schema) plus one corrective
         // retry (#1465); fail safe to `None` so the caller falls back to the
@@ -535,6 +546,23 @@ mod tests {
         let url = Url::parse("https://api.example.com").unwrap();
         let backend = VllmBackend::new(url, "codellama/CodeLlama-7b-hf".to_string());
         assert!(backend.is_ok());
+    }
+
+    /// #1647: only a parsed loopback endpoint may relax in `--approval smart`.
+    #[test]
+    fn vllm_judge_is_loopback_only_on_a_loopback_endpoint() {
+        let at = |u: &str| {
+            VllmBackend::new(Url::parse(u).unwrap(), "m".to_string())
+                .unwrap()
+                .risk_judge_is_loopback()
+        };
+        assert!(at("http://localhost:8000"));
+        assert!(at("http://127.0.0.1:8000"));
+        assert!(at("http://[::1]:8000"));
+        assert!(!at("https://api.example.com"));
+        assert!(!at("http://127.0.0.1.nip.io:8000"));
+        // Built at run time so secret scanners see no credential literal.
+        assert!(!at(&format!("http://user:pw{}10.0.0.5:8000", '@')));
     }
 
     #[tokio::test]

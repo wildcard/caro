@@ -73,10 +73,11 @@ pub trait CommandGenerator: Send + Sync {
     ///
     /// The default is a no-op (`None`): backends that cannot reliably judge
     /// risk opt out, and the caller falls back to the static decision
-    /// (fail-safe). Implementing this lets a backend relax benign flagged
-    /// commands or escalate static-`Safe` commands it finds dangerous —
-    /// always bounded by the hard floor in
-    /// [`blend_smart_decision`](crate::safety::blend_smart_decision).
+    /// (fail-safe). Implementing this lets a backend escalate static-`Safe`
+    /// commands it finds dangerous, and, only when
+    /// [`risk_judge_is_loopback`](Self::risk_judge_is_loopback) is true,
+    /// relax benign flagged commands — always bounded by the hard floor in
+    /// [`blend_smart_decision_for`](crate::safety::blend_smart_decision_for).
     async fn classify_risk(&self, _command: &str, _ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
         None
     }
@@ -85,6 +86,20 @@ pub trait CommandGenerator: Send + Sync {
     /// implemented. Lets callers (the eval harness, #1465) tell "cannot
     /// judge" from "judged and failed", which both come back as `None`.
     fn supports_risk_judge(&self) -> bool {
+        false
+    }
+
+    /// Whether this backend's risk judge is configured at a loopback endpoint:
+    /// its URL parses to a loopback host. This is configuration evidence, not
+    /// proof the judge runs on this device (a loopback listener can forward
+    /// elsewhere, and `localhost` resolves through the system resolver).
+    /// Only such a judge may *relax* a static
+    /// decision in `--approval smart`; every other judge may only escalate
+    /// (#1647). The default is `false`, so an unknown or hosted judge never
+    /// lowers the static risk and confirmation floor. Hosted backends keep
+    /// `false` whatever their URL, so this means "may relax", not only
+    /// "the URL is loopback".
+    fn risk_judge_is_loopback(&self) -> bool {
         false
     }
 
