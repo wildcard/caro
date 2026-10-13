@@ -123,12 +123,17 @@ impl Ws {
         fs::write(
             &gh,
             "#!/bin/sh\n\
+             n=$(( $(cat \"$FAKE_DIR/count\" 2>/dev/null || echo 0) + 1 )); echo $n > \"$FAKE_DIR/count\"\n\
              echo \"gh $*\" >> \"$FAKE_LOG\"\n\
              case \"$1\" in\n\
                api) cat \"$FAKE_ASSETS\" ;;\n\
                release)\n\
                  [ \"$2\" = upload ] || { echo \"unexpected gh call: $*\" >&2; exit 99; }\n\
                  shift 3\n\
+                 if [ \"$(cat \"$FAKE_DIR/die_mid_pair_on_call\" 2>/dev/null)\" = \"$n\" ]; then\n\
+                   basename \"$1\" >> \"$FAKE_ASSETS\"; echo \"stub: upload died after the first file\" >&2; exit 1; fi\n\
+                 if [ \"$(cat \"$FAKE_DIR/fail_on_call\" 2>/dev/null)\" = \"$n\" ]; then\n\
+                   echo \"stub: upload failed before any file\" >&2; exit 1; fi\n\
                  for f in \"$@\"; do basename \"$f\" >> \"$FAKE_ASSETS\"; done ;;\n\
                *) echo \"unexpected gh call: $*\" >&2; exit 99 ;;\n\
              esac\n",
@@ -153,6 +158,24 @@ impl Ws {
 
     fn set_release_assets(&self, names: &[String]) {
         fs::write(self.p().join("assets.txt"), names.join("\n") + "\n").unwrap();
+    }
+
+    /// Make the n-th `gh` call (1-based) fail before it stores any file.
+    fn fail_gh_on_call(&self, n: u32) {
+        fs::write(self.p().join("fail_on_call"), n.to_string()).unwrap();
+    }
+
+    /// Make the n-th `gh release upload` die after storing only its first file.
+    fn gh_dies_mid_pair_on_call(&self, n: u32) {
+        fs::write(self.p().join("die_mid_pair_on_call"), n.to_string()).unwrap();
+    }
+
+    fn upload_calls(&self) -> Vec<String> {
+        self.gh_log()
+            .lines()
+            .filter(|l| l.starts_with("gh release upload"))
+            .map(str::to_string)
+            .collect()
     }
 
     fn gh_log(&self) -> String {
@@ -217,6 +240,7 @@ impl Ws {
             .env("GITHUB_OUTPUT", self.p().join("github_output"))
             .env("FAKE_LOG", self.p().join("gh.log"))
             .env("FAKE_ASSETS", self.p().join("assets.txt"))
+            .env("FAKE_DIR", self.p())
             .envs(env)
             .stdin(Stdio::null())
             .output()
@@ -1012,4 +1036,153 @@ fn upload_block_never_overwrites_creates_or_deletes_and_after_block_confirms_pai
         "{}",
         text(&cut)
     );
+}
+
+// ---------------------------------------------------------------------------
+// Publish path under failure (stub gh; no network, no token, no upload)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn upload_stops_at_the_first_failure_and_a_repeat_run_refuses_the_leftovers() {
+    let ws = Ws::new();
+    full_dist(&ws);
+    let e = publish_exprs();
+
+    // The second `gh` call fails before storing anything: platform 1 is on the
+    // release, platforms 2 to 5 are not, and the step exits non-zero.
+    ws.fail_gh_on_call(2);
+    let up = ws.run("publish", "upload", &e);
+    assert!(!up.status.success(), "a failed upload must fail the step");
+    assert_eq!(
+        ws.upload_calls().len(),
+        2,
+        "no upload after the failure:\n{}",
+        ws.gh_log()
+    );
+    assert_eq!(
+        ws.release_assets().len(),
+        2,
+        "only the first pair was stored"
+    );
+
+    // Repeat run: the release already holds -remote assets, so `before` stops it
+    // before any upload; `after` also refuses the incomplete set.
+    let calls_before = ws.upload_calls().len();
+    let again = ws.run("publish", "before", &e);
+    assert!(!again.status.success());
+    assert!(
+        text(&again).contains("not all 'absent'"),
+        "{}",
+        text(&again)
+    );
+    assert_eq!(
+        ws.upload_calls().len(),
+        calls_before,
+        "a repeat must not upload"
+    );
+    let after = ws.run("publish", "after", &e);
+    assert!(!after.status.success());
+    assert!(
+        text(&after).contains("not all 'complete'"),
+        "{}",
+        text(&after)
+    );
+}
+
+#[test]
+fn upload_dying_inside_a_pair_leaves_a_partial_pair_that_a_repeat_run_refuses() {
+    let ws = Ws::new();
+    full_dist(&ws);
+    let e = publish_exprs();
+
+    // Call 3 stores the binary of platform 3 but not its checksum, then fails.
+    ws.gh_dies_mid_pair_on_call(3);
+    let up = ws.run("publish", "upload", &e);
+    assert!(!up.status.success());
+    assert_eq!(ws.upload_calls().len(), 3);
+    let held = ws.release_assets();
+    assert_eq!(
+        held.len(),
+        5,
+        "2 complete pairs and 1 lone binary: {held:?}"
+    );
+    assert!(held.contains(&remote_name("macos-intel")));
+    assert!(!held.contains(&format!("{}.sha256", remote_name("macos-intel"))));
+
+    // The leftover is reported as a partial pair, and nothing is uploaded again.
+    let again = ws.run("publish", "before", &e);
+    assert!(!again.status.success());
+    assert!(
+        text(&again).contains("partial binary/checksum pair"),
+        "{}",
+        text(&again)
+    );
+    assert_eq!(ws.upload_calls().len(), 3, "a repeat must not upload");
+}
+
+#[test]
+fn upload_touches_only_remote_names_and_leaves_stable_assets_alone() {
+    let ws = Ws::new();
+    full_dist(&ws);
+    let e = publish_exprs();
+    let stable = [
+        "caro-1.5.0-linux-amd64",
+        "caro-1.5.0-linux-amd64.sha256",
+        "caro-1.5.0-macos-silicon",
+        "caro-1.5.0-macos-silicon.sha256",
+        "README.md",
+    ];
+    ws.set_release_assets(&stable.map(String::from));
+
+    // Stable assets on the release are not -remote assets: `before` passes.
+    let before = ws.run("publish", "before", &e);
+    assert!(before.status.success(), "{}", text(&before));
+    let up = ws.run("publish", "upload", &e);
+    assert!(up.status.success(), "{}", text(&up));
+
+    let calls = ws.upload_calls();
+    assert_eq!(calls.len(), 5);
+    for c in &calls {
+        for file in c.split_whitespace().skip(4) {
+            assert!(file.contains("-remote"), "uploaded a non-remote file: {c}");
+        }
+        assert!(!c.contains("--clobber"), "{c}");
+    }
+    let held = ws.release_assets();
+    for name in stable {
+        assert_eq!(
+            held.iter().filter(|n| n.as_str() == name).count(),
+            1,
+            "stable asset {name} must stay exactly once: {held:?}"
+        );
+    }
+    assert!(
+        ws.gh_log()
+            .lines()
+            .all(|l| l.starts_with("gh api") || l.starts_with("gh release upload")),
+        "only `api` and `release upload` are ever called:\n{}",
+        ws.gh_log()
+    );
+}
+
+#[test]
+fn a_bad_dist_stops_before_any_gh_call_and_the_build_chain_never_calls_gh() {
+    let ws = Ws::new();
+    full_dist(&ws);
+    let e = publish_exprs();
+
+    // publish=false path: the build job's blocks (pin aside) never call gh.
+    assert_eq!(ws.gh_log(), "", "building and preparing must not call gh");
+
+    // A checksum mismatch and a missing platform stop at verify_all, with no
+    // gh call at all.
+    fs::write(
+        ws.p().join("dist").join(remote_name("linux-amd64")),
+        "#!/bin/sh\necho tampered\n",
+    )
+    .unwrap();
+    let bad = ws.run("publish", "verify_all", &e);
+    assert!(!bad.status.success());
+    assert!(text(&bad).contains("checksum mismatch"), "{}", text(&bad));
+    assert_eq!(ws.gh_log(), "", "a bad dist must stop before any gh call");
 }
