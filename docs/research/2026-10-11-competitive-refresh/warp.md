@@ -102,7 +102,7 @@ Method: every claim was checked against warp.dev, docs.warp.dev, the warpdotdev 
   - CLI: `auto_approve_bypasses_command_denylist = false`.
 - **Admin rules:** Denylist rules set in the Admin Panel are never bypassed.
 - **Other controls:** an MCP allowlist and denylist, and directory allowlist/denylist in Oz CLI profiles.
-- **What Warp does not have:** no curated destructive-pattern library, no risk levels, and no hard block. A match means "ask", not "deny".
+- **What Warp's docs do not describe** (scoped 2026-10-13): a curated destructive-pattern library beyond the short default denylist, or per-command risk levels (ledger: unknown). The documented behavior is no hard block: a match means "ask", not "deny".
 - **Fair framing for Caro:** "Warp gates agent-run commands with a user-editable regex denylist that asks for approval. Caro checks every generated command against 52+ curated patterns with risk levels, and blocks critical ones."
 
 ### 6. Running outside the Warp terminal
@@ -146,7 +146,7 @@ Factories has separate pricing, from pay-as-you-go (20% above API rates) up to E
    - No Warp AI feature works offline or on a local model without a public tunnel.
    - Free-plan AI needs telemetry on.
    - AI is tied to a Warp account.
-   - Warp's safety is approval-gating with a coarse, user-editable regex denylist. The user denylist is bypassed by auto-approve by default. Warp has no curated pattern library, no risk levels and no blocking.
+   - Warp's safety is approval-gating with a coarse, user-editable regex denylist. The user denylist is bypassed by auto-approve by default. Warp's docs describe no curated pattern library beyond that default list and no per-command risk levels (unknown, not proven absent), and a match asks rather than blocks.
 3. **Retire the "you must switch terminals" argument,** or limit it to the Warp app. The `warp` Agent CLI runs in any terminal. A fairer contrast: Warp's CLI is a full coding agent that needs an account and the cloud; Caro is a single-purpose NL-to-command tool that runs offline.
 4. **Warp still has NL-to-command in the terminal.** "AI Command Search" opens with `#`, and a Aug 27, 2026 setting stops `#` from opening it. This is the feature closest to Caro.
 5. **Fix the Windows error** in both comparison tables.

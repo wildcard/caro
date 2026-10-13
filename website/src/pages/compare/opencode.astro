@@ -46,7 +46,7 @@ const comparison = {
       title: 'Safety Approach',
       icon: '■',
       content: `
-        <p><strong>OpenCode</strong> allows most operations by default, including shell commands. Its documented exceptions: doom-loop and outside-directory actions ask, and reading <code>.env</code> files is denied (<code>.env.example</code> is allowed). You can set <code>bash</code> to <code>ask</code> and write wildcard rules such as <code>"rm *": "deny"</code> in <code>opencode.json</code>. The built-in Plan agent asks before edits and shell commands. A plugin can check or block any command before it runs. OpenCode does not ship a curated list of dangerous commands.</p>
+        <p><strong>OpenCode</strong> allows most operations by default, including shell commands. Its documented exceptions: doom-loop and outside-directory actions ask, and reading <code>.env</code> files is denied (<code>.env.example</code> is allowed). You can set <code>bash</code> to <code>ask</code> and write wildcard rules such as <code>"rm *": "deny"</code> in <code>opencode.json</code>. The built-in Plan agent asks before edits and shell commands. A plugin can check or block any command before it runs. OpenCode's documented default permissions include no curated list of dangerous commands.</p>
         <p><strong>Caro</strong> checks every command it generates against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands, such as <code>rm -rf /</code> and fork bombs, with no configuration, and asks before High ones. You can add your own patterns and allowlist entries.</p>
       `
     },

@@ -178,7 +178,7 @@ Criteria, in order: overlap with Caro's two jobs ("I forgot the command" and "is
 
 ### 5. Codex CLI: `/compare/codex-cli`
 - **Why:** It has the largest audience on any registry (98.5M npm downloads per month; 117,822 Homebrew installs in 30 days). It pairs an OS sandbox with **deterministic**, user-written command rules (Starlark allow / prompt / forbidden), so the safety comparison is concrete.
-- **Differentiation:** Codex ships no curated dangerous-command set, so you write the rules yourself. Caro ships 52+ patterns ready to use, in a single-purpose NL→command UX for your own shell.
+- **Differentiation:** Codex's docs describe no curated dangerous-command set, so you write the rules yourself (scoped 2026-10-13: absence in the docs, not checked in code). Caro ships 52+ patterns ready to use, in a single-purpose NL→command UX for your own shell; whether they catch more is unmeasured.
 - **Where Codex wins:** Its OS-level sandbox contains dangerous commands that no pattern list predicts. It is also open source (Apache-2.0) with local models through `--oss`, so Caro cannot claim an open or local advantage here.
 
 ### 6. AIChat: `/compare/aichat`
