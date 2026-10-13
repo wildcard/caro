@@ -16,8 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.sha256` file. The check runs the binary, except linux-arm64, which is
   cross-built and gets a static check only. The binary is built to be able to
   select Ollama, vLLM, Exo, Mesh-LLM, AI-Horde, the hybrid gateway, Claude,
-  OpenRouter and Grok; the checks confirm none is reported `not compiled`, not
-  that a provider is reachable. The default binary, the crates.io package and
+  OpenRouter and Grok; the checks confirm none is reported `not compiled` (on
+  linux-arm64, that the binary carries the remote code path), not that a
+  provider is reachable. The default binary, the crates.io package and
   `[features] default` are unchanged: they still report those backends as
   `not compiled` and fail with a remedy. The `-remote` steps run after the
   default upload with `continue-on-error`, so a failure there cannot stop the

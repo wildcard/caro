@@ -314,10 +314,13 @@ jobs:
       #   linux-arm64 binary, which cannot run on the runner. That one gets a
       #   static check on two strings that differ between the builds. It
       #   proves the feature took effect, not that the binary runs. It relies
-      #   on the release profile (LTO) dropping the "not compiled" message from
-      #   the remote build, and on both messages staying as they are. If either
-      #   changes, that platform quietly gets no `-remote` asset; the final
-      #   step below reports it. Update the strings here when they change.
+      #   on the "not compiled" message living only in code that the remote
+      #   build leaves out (the `cfg(not(feature = "remote-backends"))` caller
+      #   of `remote_backend_unavailable_error` in src/cli/mod.rs), and on both
+      #   messages staying as they are. A local x86_64 release build confirmed
+      #   this; the cross-built arm64 binary has not been checked. If either
+      #   message changes, that platform quietly gets no `-remote` asset; the
+      #   final step below reports it. Update the strings here when they change.
       # - None of these steps has run yet: this workflow only runs after a tag
       #   is published, so the first real run is the first evidence.
       # - The x86_64-apple-darwin binary is run on an arm64 `macos-latest`
@@ -389,7 +392,11 @@ jobs:
             fi
             exit 0
           fi
-          OUT=$("./${REMOTE_ASSET}" --backend-info < /dev/null 2>&1)
+          OUT=$("./${REMOTE_ASSET}" --backend-info < /dev/null 2>&1) || {
+            echo "$OUT"
+            echo "::error::--backend-info exited non-zero"
+            exit 1
+          }
           echo "$OUT"
           if ! grep -Eq '^[[:space:]]*ollama[[:space:]]' <<<"$OUT"; then
             echo "::error::--backend-info printed no ollama row"
