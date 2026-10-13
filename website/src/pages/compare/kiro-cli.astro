@@ -1,9 +1,9 @@
 ---
 import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
 
-// Competitor facts checked against kiro.dev docs, pricing, license and
-// changelog on 2026-10-11. Research notes:
-// docs/research/2026-10-11-competitive-landscape-refresh.md
+// The Kiro CLI claims changed in this refresh were checked against kiro.dev
+// docs, pricing, license and changelog on 2026-10-11; sources are in the
+// verification block below.
 const comparison = {
   competitor: {
     name: 'Kiro CLI',
@@ -13,10 +13,10 @@ const comparison = {
     title: 'TL;DR',
     points: [
       'Kiro CLI (formerly Amazon Q Developer CLI) is closed source. The old Amazon Q CLI repo is open source but gets only critical security fixes.',
-      'Kiro runs every model on Amazon Bedrock and needs a sign-in. It has no local models and no bring-your-own endpoint. Caro runs local models and needs no account.',
-      'Kiro asks before most shell commands and lets you write deny/ask/allow rules. It does not ship a built-in list of dangerous commands. Caro checks every command against 52+ curated patterns with risk levels.',
+      'Kiro runs its models on Amazon Bedrock and needs a sign-in. Its docs list no local-model or bring-your-own-endpoint option. With its default embedded backend, Caro runs a local model and needs no account.',
+      'Kiro asks before most shell commands and lets you write deny/ask/allow rules. Its docs describe no built-in list of dangerous commands. Caro checks every command against 52+ curated patterns with risk levels.',
       'Kiro is a full coding agent with MCP, custom agents and hooks. Caro does one job: natural language to a safe shell command.',
-      'Caro is free and open source. Kiro has a free tier with 50 credits and paid plans from $20 per month.'
+      'Caro is free and open source. Kiro paid plans start at $20 per month.'
     ]
   },
   headToHead: [
@@ -26,7 +26,7 @@ const comparison = {
     { feature: 'No account required', caro: true, competitor: false, winner: 'caro' },
     { feature: 'Built-in dangerous-command patterns', caro: true, competitor: false, winner: 'caro' },
     { feature: 'Risk level for each command', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Your own deny/ask/allow rules', caro: true, competitor: true, winner: 'tie' },
+    { feature: 'Custom command rules (patterns, allow/deny lists)', caro: true, competitor: true, winner: 'tie' },
     { feature: 'Uses your existing terminal', caro: true, competitor: true, winner: 'tie' },
     { feature: 'MCP tool integration', caro: false, competitor: true, winner: 'competitor' },
     { feature: 'Custom agents', caro: false, competitor: true, winner: 'competitor' },
@@ -38,7 +38,7 @@ const comparison = {
       icon: '$',
       content: `
         <p><strong>Kiro CLI</strong> sends every request to models hosted on Amazon Bedrock: Claude, GPT and open-weight models. It needs a sign-in with GitHub, Google, AWS Builder ID or IAM Identity Center. It does not need an AWS account. It has no local-model or custom-endpoint option today.</p>
-        <p><strong>Caro</strong> runs a local model on your machine. After a one-time model download it needs no internet, no account and no API key, on any cloud or on bare metal.</p>
+        <p><strong>Caro</strong>, with its default embedded backend, runs a local model on your machine. After a one-time model download it needs no internet, no account and no API key, on any cloud or on bare metal.</p>
       `
     },
     {
@@ -46,15 +46,15 @@ const comparison = {
       icon: '▸',
       content: `
         <p><strong>Kiro CLI</strong> collects usage data and metrics by default for free-tier and individual users, and can use content to improve the service. You can opt out. Enterprise users signed in through IAM Identity Center are opted out automatically.</p>
-        <p><strong>Caro</strong> processes prompts and commands locally. They do not leave your machine.</p>
+        <p><strong>Caro</strong>, with its default embedded backend, processes prompts and commands locally. They do not leave your machine. Optional remote backends send prompts to the server you choose.</p>
       `
     },
     {
       title: 'Safety Approach',
       icon: '■',
       content: `
-        <p><strong>Kiro CLI</strong> runs read-only commands like <code>git status</code> and <code>pwd</code> on its own and asks before everything else. It splits compound commands on <code>;</code>, <code>&amp;&amp;</code>, <code>||</code> and <code>|</code> and checks each part. You can write deny/ask/allow rules in <code>permissions.yaml</code>, and admins can enforce them. <code>--trust-all-tools</code> turns the prompts off for a session. It does not ship a curated list of dangerous commands.</p>
-        <p><strong>Caro</strong> checks every command against 52+ curated patterns, rates it CRITICAL, HIGH, MEDIUM or LOW, and blocks critical commands such as <code>rm -rf /</code> and fork bombs, with no configuration.</p>
+        <p><strong>Kiro CLI</strong> runs read-only commands like <code>git status</code> and <code>pwd</code> on its own and asks before everything else. It splits compound commands on <code>;</code>, <code>&amp;&amp;</code>, <code>||</code> and <code>|</code> and checks each part. You can write deny/ask/allow rules in <code>permissions.yaml</code>, and admins can enforce them. <code>--trust-all-tools</code> turns the prompts off for a session. Its docs describe no curated list of dangerous commands.</p>
+        <p><strong>Caro</strong> checks every command against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands, such as <code>rm -rf /</code> and fork bombs, with no configuration, and asks before High ones. You can add your own patterns and allowlist entries.</p>
       `
     },
     {

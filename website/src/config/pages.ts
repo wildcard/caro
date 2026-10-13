@@ -237,7 +237,7 @@ export const PAGES_INDEX: PageEntry[] = [
     title: 'vs Warp',
     description: 'Caro vs Warp',
     category: 'compare',
-    keywords: ['warp', 'terminal', 'compare'],
+    keywords: ['warp', 'warp ai', 'terminal', 'compare'],
     icon: '▸',
   }),
   getEntry('/compare/kiro-cli', {

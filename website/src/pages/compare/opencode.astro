@@ -1,10 +1,11 @@
 ---
 import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
 
-// Competitor facts checked against opencode.ai docs and the
-// anomalyco/opencode repo on 2026-10-11. This page covers opencode.ai, not
-// the archived opencode-ai/opencode project (now Charm's Crush).
-// Research notes: docs/research/2026-10-11-competitive-landscape-refresh.md
+// The OpenCode claims changed in this refresh were checked against
+// opencode.ai docs and the anomalyco/opencode repo on 2026-10-11 (permissions
+// page re-checked 2026-10-13); sources are in the verification block below.
+// This page covers opencode.ai, not the archived opencode-ai/opencode project
+// (now Charm's Crush).
 const comparison = {
   competitor: {
     name: 'OpenCode',
@@ -15,18 +16,18 @@ const comparison = {
     points: [
       'Both are open source: OpenCode is MIT, Caro is AGPL-3.0. Both can run local models.',
       'OpenCode is a general-purpose coding agent with 75+ model providers. Caro is a shell specialist.',
-      'By default OpenCode allows all operations without asking. You can turn on prompts and write wildcard rules. Caro checks every command against 52+ curated patterns with risk levels, with no configuration.',
-      'OpenCode runs offline once you configure a local provider and turn off its model, update and LSP downloads. Caro is offline by default after a one-time model download.',
+      'By default OpenCode allows most operations, shell commands included, without asking. Exceptions: doom-loop and outside-directory actions ask, and .env reads are denied. You can turn on prompts and write wildcard rules. Caro checks every command against 52+ curated patterns with risk levels, with no configuration.',
+      'OpenCode runs offline once you configure a local provider and turn off its model, update and LSP downloads. With its default embedded backend, Caro is offline after a one-time model download.',
       'They work well together: OpenCode for coding, Caro for quick, safety-checked shell commands.'
     ]
   },
   headToHead: [
     { feature: 'Open source', caro: true, competitor: true, winner: 'tie' },
     { feature: 'Offline by default', caro: true, competitor: 'partial', winner: 'caro' },
-    { feature: 'Asks before running commands, by default', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Asks before running shell commands, by default', caro: true, competitor: false, winner: 'caro' },
     { feature: 'Built-in dangerous-command patterns', caro: true, competitor: false, winner: 'caro' },
     { feature: 'Risk level for each command', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Your own allow/ask/deny rules', caro: true, competitor: true, winner: 'tie' },
+    { feature: 'Custom command rules (patterns, allow/deny lists)', caro: true, competitor: true, winner: 'tie' },
     { feature: 'Shell command specialist', caro: true, competitor: false, winner: 'caro' },
     { feature: 'Multi-provider model support', caro: true, competitor: true, winner: 'tie' },
     { feature: 'General code editing and refactoring', caro: false, competitor: true, winner: 'competitor' },
@@ -45,8 +46,8 @@ const comparison = {
       title: 'Safety Approach',
       icon: '■',
       content: `
-        <p><strong>OpenCode</strong> allows all operations by default. You can set <code>bash</code> to <code>ask</code> and write wildcard rules such as <code>"rm *": "deny"</code> in <code>opencode.json</code>. The built-in Plan agent asks before edits and shell commands. A plugin can check or block any command before it runs. OpenCode does not ship a curated list of dangerous commands.</p>
-        <p><strong>Caro</strong> checks every command against 52+ curated patterns, rates it CRITICAL, HIGH, MEDIUM or LOW, and blocks critical commands such as <code>rm -rf /</code> and fork bombs, with no configuration.</p>
+        <p><strong>OpenCode</strong> allows most operations by default, including shell commands. Its documented exceptions: doom-loop and outside-directory actions ask, and reading <code>.env</code> files is denied (<code>.env.example</code> is allowed). You can set <code>bash</code> to <code>ask</code> and write wildcard rules such as <code>"rm *": "deny"</code> in <code>opencode.json</code>. The built-in Plan agent asks before edits and shell commands. A plugin can check or block any command before it runs. OpenCode does not ship a curated list of dangerous commands.</p>
+        <p><strong>Caro</strong> checks every command against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands, such as <code>rm -rf /</code> and fork bombs, with no configuration, and asks before High ones. You can add your own patterns and allowlist entries.</p>
       `
     },
     {
@@ -54,7 +55,7 @@ const comparison = {
       icon: '$',
       content: `
         <p><strong>OpenCode</strong> works with Ollama, LM Studio and llama.cpp. By default it still goes online to fetch model metadata, check for updates and download language servers. Each of these has an off switch.</p>
-        <p><strong>Caro</strong> is offline-first. After a one-time model download it never needs the internet, which suits air-gapped networks, flights and restricted VPNs.</p>
+        <p><strong>Caro</strong> is offline-first with its default embedded backend. After a one-time model download it never needs the internet, which suits air-gapped networks, flights and restricted VPNs.</p>
       `
     },
     {

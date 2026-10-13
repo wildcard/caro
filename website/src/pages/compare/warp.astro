@@ -1,8 +1,11 @@
 ---
 import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
 
-// Competitor facts checked against Warp's own docs, repo and blog on
-// 2026-10-11. Research notes: docs/research/2026-10-11-competitive-landscape-refresh.md
+// The Warp claims changed in this refresh were checked against Warp's docs,
+// repo and blog on 2026-10-11; sources are in the verification block below.
+// Do not state where Warp routes AI traffic: Warp's own sources conflict
+// (custom-endpoint docs vs pricing FAQ). See
+// docs/research/2026-10-11-competitive-landscape-refresh.md section 3.
 const comparison = {
   competitor: {
     name: 'Warp',
@@ -12,10 +15,10 @@ const comparison = {
   tldr: {
     title: 'TL;DR',
     points: [
-      'Warp open-sourced its terminal client in April 2026 under AGPL-3.0, the same license as Caro. Its agent harness, server and Warp Drive stay closed and hosted.',
-      'Every Warp AI request goes through Warp\'s servers, even with your own API key. Local models need a public HTTPS tunnel. Caro runs local models with no network at all.',
+      'Warp open-sourced its terminal client in April 2026 under AGPL-3.0, the same license as Caro. Warp\'s FAQ says its server, Warp Drive backend, orchestration layer and agent harness are not in the repository.',
+      'Warp\'s AI features need a network connection and a Warp account. Warp\'s docs say custom model endpoints must be publicly reachable, so a local model needs a public tunnel. With its default embedded backend and a cached model, Caro needs no network and no account.',
       'The Warp app replaces your terminal. The Warp Agent CLI (August 2026) runs in any terminal, but needs a Warp account. Caro needs no account.',
-      'Warp asks before agent commands that match an editable regex denylist. Caro checks every command against 52+ curated patterns, rates the risk, and blocks critical commands.',
+      'Warp asks before agent commands that match an editable regex denylist. Caro checks every command against 52+ curated patterns, rates the risk, and at the default safety level blocks Critical commands.',
       'Warp is a full agentic workspace: agents, Drive, teams and cloud agents. Caro does one job: natural language to a safe shell command.',
     ]
   },
@@ -24,10 +27,10 @@ const comparison = {
     { feature: 'AI works fully offline', caro: true, competitor: false, winner: 'caro' },
     { feature: 'Local models without a tunnel', caro: true, competitor: false, winner: 'caro' },
     { feature: 'No account needed for AI', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Curated dangerous-command patterns', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Risk level for each command', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Editable command rules', caro: true, competitor: true, winner: 'tie' },
-    { feature: 'Works in your existing terminal', caro: true, competitor: 'partial', winner: 'caro' },
+    { feature: 'Curated dangerous-command patterns', caro: true, competitor: 'partial', winner: 'caro' },
+    { feature: 'Risk level for each command', caro: true, competitor: 'unknown', winner: 'caro' },
+    { feature: 'Custom command rules (patterns, allow/deny lists)', caro: true, competitor: true, winner: 'tie' },
+    { feature: 'AI usable from your existing terminal', caro: true, competitor: true, winner: 'tie' },
     { feature: 'macOS, Linux and Windows', caro: true, competitor: true, winner: 'tie' },
     { feature: 'Full coding agent (edits files, runs tasks)', caro: false, competitor: true, winner: 'competitor' },
     { feature: 'Team collaboration (Drive, session sharing)', caro: false, competitor: true, winner: 'competitor' },
@@ -38,7 +41,7 @@ const comparison = {
       title: 'What Is Open Source',
       icon: '❯',
       content: `
-        <p><strong>Warp</strong> published its client on GitHub on April 28, 2026. Most of the code is AGPL-3.0, and the UI framework crates are MIT. Warp's FAQ says the server, the Warp Drive backend, the Oz orchestration layer and the built-in agent harness are not in the repository. The harness runs on Warp's servers.</p>
+        <p><strong>Warp</strong> published its client on GitHub on April 28, 2026. Most of the code is AGPL-3.0, and the UI framework crates are MIT. Warp's FAQ says the server, the Warp Drive backend, the Oz orchestration layer and the built-in agent harness are not in the repository.</p>
         <p><strong>Caro</strong> is AGPL-3.0 from end to end: the CLI, the safety patterns, the prompts and the inference code. Its default model, Qwen2.5-Coder 1.5B, is open-weight under Apache-2.0. You can read, audit and change every part that decides which command you see.</p>
       `
     },
@@ -54,16 +57,16 @@ const comparison = {
       title: 'Privacy and Connectivity',
       icon: '▸',
       content: `
-        <p><strong>Warp</strong> sends AI requests through its own backend, including requests that use your own API key or a custom endpoint. Custom endpoints must be public: Warp rejects localhost and private network URLs. Without a network, the terminal works but Warp's AI features do not. On the Free plan, telemetry is on by default and must stay on to use AI. On Business and Enterprise it is off by default. Warp has zero-data-retention agreements with its model providers.</p>
-        <p><strong>Caro</strong> runs local models on your machine. After a one-time model download, prompts and commands do not leave it, so Caro works on a plane, behind a strict VPN or in an air-gapped network.</p>
+        <p><strong>Warp</strong> needs a network connection for its AI features; without one, the terminal works but the AI does not. AI features need a Warp account. Warp's docs say custom model endpoints must be publicly reachable: localhost and private network URLs are rejected. On the Free plan, telemetry is on by default and must stay on to use AI. On Business and Enterprise it is off by default. Warp has zero-data-retention agreements with its model providers.</p>
+        <p><strong>Caro</strong>, with its default embedded backend, runs the model on your machine. After a one-time model download, prompts and commands do not leave it, so Caro works on a plane, behind a strict VPN or in an air-gapped network. Optional remote backends (Ollama, vLLM and others) send prompts to the server you choose.</p>
       `
     },
     {
       title: 'Safety Approach',
       icon: '■',
       content: `
-        <p><strong>Warp</strong> gives each agent action an autonomy level: Agent decides, Always ask, Always allow or Never. Commands that match a regex denylist need your approval. The default list covers tools like <code>rm</code>, <code>curl</code>, <code>eval</code> and <code>ssh</code>. By default, auto-approve skips your own denylist. Admin denylist rules are never skipped. A match asks; it does not block.</p>
-        <p><strong>Caro</strong> checks every command against 52+ curated patterns, rates it CRITICAL, HIGH, MEDIUM or LOW, and blocks critical commands such as <code>rm -rf /</code> and fork bombs, whatever the model suggests. You can add your own patterns.</p>
+        <p><strong>Warp</strong> gives each agent action an autonomy level: Agent decides, Always ask, Always allow or Never. In normal autonomy modes, commands that match a regex denylist need your approval. The default list covers tools like <code>rm</code>, <code>curl</code>, <code>eval</code> and <code>ssh</code>. By default, auto-approve skips your own denylist. Admin denylist rules are never skipped. A match asks; it does not block.</p>
+        <p><strong>Caro</strong> checks every command against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands, such as <code>rm -rf /</code> and fork bombs, whatever the model suggests, and asks before High ones. You can add your own patterns and allowlist entries in the <code>[safety]</code> config.</p>
       `
     },
     {
@@ -80,7 +83,7 @@ const comparison = {
       'You need AI that works offline or air-gapped',
       'You do not want an account or telemetry to use AI',
       'You want a curated safety library with risk levels, not only a denylist',
-      'You want the whole stack open, inference included',
+      'You want the whole stack open, inference code and default model included',
     ],
     chooseCompetitor: [
       'You want a full agentic development environment',
@@ -100,6 +103,7 @@ const comparison = {
       { label: 'Warp docs: agent profiles and permissions', url: 'https://docs.warp.dev/agents/capabilities/agent-profiles-permissions/' },
       { label: 'Warp blog: Introducing the Warp Agent CLI (Aug 4, 2026)', url: 'https://www.warp.dev/blog/introducing-the-warp-agent-cli-coding-agent' },
       { label: 'Warp docs: installation and setup', url: 'https://docs.warp.dev/getting-started/quickstart/installation-and-setup/' },
+      { label: 'Warp changelog 2026 (AI features tied to a Warp account, Jul 3)', url: 'https://docs.warp.dev/changelog/2026/' },
     ]
   }
 };

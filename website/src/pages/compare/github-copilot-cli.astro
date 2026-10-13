@@ -1,9 +1,9 @@
 ---
 import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
 
-// Competitor facts checked against GitHub's docs, changelog and the
-// github/copilot-cli repo on 2026-10-11. Research notes:
-// docs/research/2026-10-11-competitive-landscape-refresh.md
+// The Copilot CLI claims changed in this refresh were checked against
+// GitHub's docs, changelog and the github/copilot-cli repo on 2026-10-11;
+// sources are in the verification block below.
 const comparison = {
   competitor: {
     name: 'GitHub Copilot CLI',
@@ -14,10 +14,10 @@ const comparison = {
   tldr: {
     title: 'TL;DR',
     points: [
-      'Copilot CLI uses GitHub-hosted models by default. Since April 2026 it can also run offline with your own or local models, if you configure it.',
-      'Caro fetches its local model once, automatically, and then runs offline by default. No account, no API key, no provider setup.',
-      'Caro checks every command against 52+ built-in dangerous-command patterns with risk levels. Copilot CLI asks before risky commands and lets you write allow/deny rules, but ships no built-in pattern library.',
-      'Copilot CLI has an OS-level sandbox (GA in October 2026, off until you turn it on). Caro checks commands before they run and does not sandbox them.',
+      'Copilot CLI uses GitHub-hosted models by default. Since April 2026 it supports your own model provider (BYOK), including local models. With a local model and COPILOT_OFFLINE=true, it can run without contacting GitHub.',
+      'With its default embedded backend, Caro downloads its model once and then runs offline. No account, no API key, no provider setup.',
+      'Caro checks every command against 52+ built-in dangerous-command patterns with risk levels. Copilot CLI asks before risky commands and lets you write allow/deny rules; its docs describe no built-in pattern library or risk levels.',
+      'Copilot CLI has an OS-level sandbox (GA in October 2026). Caro checks commands before they run and does not sandbox them.',
       'Copilot CLI is proprietary. Caro is open source (AGPL-3.0).'
     ]
   },
@@ -26,9 +26,9 @@ const comparison = {
     { feature: 'Works offline', caro: true, competitor: 'partial', winner: 'caro' },
     { feature: 'Local model set up for you', caro: true, competitor: false, winner: 'caro' },
     { feature: 'No account needed', caro: true, competitor: 'partial', winner: 'caro' },
-    { feature: 'Built-in dangerous-command patterns', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Risk level for each command', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Your own allow/deny rules', caro: true, competitor: true, winner: 'tie' },
+    { feature: 'Built-in dangerous-command patterns', caro: true, competitor: 'unknown', winner: 'caro' },
+    { feature: 'Risk level for each command', caro: true, competitor: 'unknown', winner: 'caro' },
+    { feature: 'Custom command rules (patterns, allow/deny lists)', caro: true, competitor: true, winner: 'tie' },
     { feature: 'Uses your existing terminal', caro: true, competitor: true, winner: 'tie' },
     { feature: 'OS-level sandbox', caro: false, competitor: true, winner: 'competitor' },
     { feature: 'Full coding agent (edits files, runs tasks)', caro: false, competitor: true, winner: 'competitor' },
@@ -39,16 +39,16 @@ const comparison = {
       title: 'Privacy and Offline Use',
       icon: '▸',
       content: `
-        <p><strong>GitHub Copilot CLI</strong> sends prompts to GitHub-hosted models by default, and usage telemetry is on by default. Since April 2026 you can bring your own key or point it at a local model (Ollama, vLLM, Foundry Local). With <code>COPILOT_OFFLINE=true</code> and a local model, it makes no calls to GitHub and needs no GitHub login.</p>
-        <p><strong>Caro</strong> is offline by default. It downloads its local model once, on first use, and needs no network after that. Prompts and commands stay on your machine.</p>
+        <p><strong>GitHub Copilot CLI</strong> sends prompts to GitHub-hosted models by default, and usage telemetry is on by default. Since April 2026 you can bring your own model provider, including a local model (Ollama, vLLM, Foundry Local); with your own provider, GitHub login is not required. Offline use needs both a local model and <code>COPILOT_OFFLINE=true</code>: a hosted BYOK endpoint still needs the network.</p>
+        <p><strong>Caro</strong> is offline by default with its default embedded backend. It downloads its model once, on first use, and needs no network after that. Prompts and commands stay on your machine. Optional remote backends send prompts to the server you choose.</p>
       `
     },
     {
       title: 'Safety Approach',
       icon: '■',
       content: `
-        <p><strong>GitHub Copilot CLI</strong> runs read-only shell commands on its own and asks before others. You can write deterministic rules such as <code>--deny-tool 'shell(rm)'</code>, and deny rules win even under <code>--allow-all</code>. Hooks can call an external validator, and an OS sandbox can limit files, network and credentials. It does not ship a curated list of dangerous commands.</p>
-        <p><strong>Caro</strong> checks every command against 52+ curated patterns, rates it CRITICAL, HIGH, MEDIUM or LOW, and blocks critical commands such as <code>rm -rf /</code>, with no configuration. A sandbox and a pattern check stop different things, so they work well together.</p>
+        <p><strong>GitHub Copilot CLI</strong> runs read-only shell commands on its own and asks before others. You can write deterministic rules such as <code>--deny-tool 'shell(rm)'</code>, and deny rules win even under <code>--allow-all</code>. Hooks can call an external validator, and an OS sandbox can limit files, network and credentials. Its docs describe no curated list of dangerous commands.</p>
+        <p><strong>Caro</strong> checks every command against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands such as <code>rm -rf /</code>, with no configuration, and asks before High ones. You can add your own patterns and allowlist entries. A sandbox and a pattern check stop different things, so they work well together.</p>
       `
     },
     {

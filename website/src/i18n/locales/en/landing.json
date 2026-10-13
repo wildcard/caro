@@ -219,13 +219,15 @@
         "fullSupport": "Full support",
         "partial": "Partial/configurable",
         "notSupported": "Not supported",
-        "planned": "Planned"
+        "planned": "Planned",
+        "notDocumented": "Not documented by the vendor"
       },
       "values": {
         "yes": "Yes",
         "no": "No",
         "partial": "Partial",
-        "planned": "Planned"
+        "planned": "Planned",
+        "unknown": "Not documented"
       }
     },
     "scenarios": {},

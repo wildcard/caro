@@ -1,19 +1,20 @@
+// Rendered by src/components/gtm/GTMComparison.astro (open-source-shell-ai page).
 // Copilot and shell-gpt columns last checked on 2026-10-11 against GitHub's
-// docs and the TheR1D/shell_gpt README. See
-// docs/research/2026-10-11-competitive-landscape-refresh.md
+// docs and the TheR1D/shell_gpt README; the ChatGPT column is older and not
+// re-verified. See docs/research/2026-10-11-competitive-landscape-refresh.md
 export const comparisons = [
   {
     feature: "Privacy",
-    caro: "100% local processing",
+    caro: "Local processing with the default embedded backend",
     chatgpt: "Sends all prompts to cloud",
     copilot: "GitHub-hosted models by default; local models opt-in",
     shellgpt: "OpenAI by default; Ollama via LiteLLM"
   },
   {
     feature: "Safety Validation",
-    caro: "52+ dangerous patterns blocked",
+    caro: "52+ patterns checked; Critical blocked by default",
     chatgpt: "No validation",
-    copilot: "Your own allow/deny rules; no built-in list",
+    copilot: "Your own allow/deny rules; no built-in list documented",
     shellgpt: "Execute/abort prompt only"
   },
   {
@@ -32,9 +33,9 @@ export const comparisons = [
   },
   {
     feature: "Works Offline",
-    caro: "Yes, fully local",
+    caro: "Yes, with the default embedded backend",
     chatgpt: "No",
-    copilot: "Opt-in (local model + offline mode)",
+    copilot: "Opt-in (local model + COPILOT_OFFLINE=true)",
     shellgpt: "Partial (local models not optimized)"
   },
   {
