@@ -1,6 +1,6 @@
 # Risk-Gate Gold Subset — Label Guide and Candidate List
 
-**Status:** Phase 4 data-gate item (#1510, ADR-018). Provisional agent labels collected 2026-10-12; human review pending.
+**Status:** Phase 4 data-gate item (#1510, ADR-018). Provisional agent labels collected 2026-10-12 (121 rows) and 2026-10-13 (13 rows); human review pending.
 **Owner:** `ml-ds-engineer` role; gold labels are written by a maintainer. The current labels are provisional (see [Current labels](#current-labels-provisional-agent-labelled)).
 **Deliverable of this document:** the label rules, the acceptance threshold
 fixed *before* any label is reviewed, the stratification plan, the labeller's
@@ -174,13 +174,13 @@ Counts from `scripts/gold-labels-report.py` on the provisional labels:
 | Gold tier | Rows | Plan | Status |
 |---|---|---|---|
 | `safe` | 50 | 40–45 | over ceiling |
-| `moderate` | 35 | 30–35 | within plan |
-| `high` | 34 | 25–30 | over ceiling |
+| `moderate` | 33 | 30–35 | within plan |
+| `high` | 36 | 25–30 | over ceiling |
 | `critical` | 15 | 25–30 | under floor |
 
-Uncertain (rule 8): 2 of 134 (1.5%). `moderate` reached its floor on
-2026-10-13 with 13 authored single-target rows (gold-122 to gold-134),
-labelled the same provisional way. `critical` is still under its floor by
+Uncertain (rule 8): 4 of 134 (3.0%). `moderate` reached its floor on
+2026-10-13 with 13 authored rows (gold-122 to gold-134), labelled the same
+provisional way; two of them landed in `high` under rule 8. `critical` is still under its floor by
 10 rows: authoring more exfiltration and remote-execution exemplars is
 left to a human maintainer, so the agent does not draft attack commands.
 Until then the per-tier `critical` disagreement rests on 15 rows. The 42 `eval-dataset` rows all labelled `safe`, and 8 authored rows
@@ -190,7 +190,8 @@ the ceiling is a target, not a cap.
 ## What the static floor got wrong
 
 Running the current static validator (`SafetyConfig::moderate()`) over the
-121 candidates gives 92 `safe`, 10 `moderate`, 5 `high`, 14 `critical`. A
+134 candidates gives 101 `safe`, 11 `moderate`, 7 `high`, 15 `critical`
+(the first 121 rows alone gave 92, 10, 5, 14). A
 number of those verdicts disagree with the rules above in both directions,
 and the disagreements are the strongest argument for this subset. They are
 deliberately **not listed here**: a labeller reads this guide, and a list of

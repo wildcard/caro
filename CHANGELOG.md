@@ -12,9 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Gold subset: `moderate` floor reached.** 13 authored single-target rows
   (gold-122 to gold-134) join `docs/ml/risk-gold-candidates.jsonl`, with their
   static tiers in `risk-gold-static-tiers.jsonl`, taking `moderate` from 22 to
-  35. Labelled the same provisional way. `critical` stays 10 under its floor;
+  33 and `high` from 34 to 36. Labelled the same provisional way. `critical` stays 10 under its floor;
   the guide records that those rows wait for a human maintainer.
-- **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
+- **Provisional gold labels.** (Initial snapshot; the entry above adds 13 rows.) All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
   carry a `gold_tier`, `uncertain`, `rationale`, `labeller` and `labelled_at`.
   Labelled by an agent session on the owner's decision, blind to the static
   tiers, and marked provisional in `docs/ml/risk-gold-subset.md` pending human
