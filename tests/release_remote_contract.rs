@@ -130,7 +130,15 @@ impl Ws {
         // Tripwire: the dangerous CVE-2024-3094 fixture command must only ever
         // be validator input, never run. Any call to `xz` is recorded.
         let xz = dir.path().join("bin/xz");
-        fs::write(&xz, "#!/bin/sh\necho \"xz $*\" >> \"$FAKE_DIR/xz.log\"\n").unwrap();
+        // The log path is baked in: `env -i` (used by the smoke step) drops FAKE_DIR.
+        fs::write(
+            &xz,
+            format!(
+                "#!/bin/sh\necho \"xz $*\" >> \"{}\"\n",
+                dir.path().join("xz.log").display()
+            ),
+        )
+        .unwrap();
         make_executable(&xz);
         let gh = dir.path().join("bin/gh");
         fs::write(
@@ -687,17 +695,34 @@ fn smoke_block_rejects_a_default_build_and_unusable_output() {
 fn smoke_block_static_check_for_the_cross_built_arm64_binary() {
     let (target, platform, bin) = ("aarch64-unknown-linux-gnu", "linux-arm64", "caro");
     let e = build_exprs(target, platform, bin);
+    let urls: String = rule_sources()
+        .iter()
+        .map(|u| format!("# compiled rule source: {u}\n"))
+        .collect();
     let cases = [
-        ("default marker present", "which is not compiled into this build\nANTHROPIC_API_KEY environment variable not set\n"),
-        ("remote marker absent", "nothing relevant\n"),
+        (
+            "default marker present",
+            "which is not compiled into this build\nANTHROPIC_API_KEY environment variable not set\n",
+            "carries the default build's 'not compiled' message",
+        ),
+        (
+            "remote marker absent",
+            "nothing relevant\n",
+            "lacks the remote-backends missing-key message",
+        ),
     ];
-    for (label, body) in cases {
+    for (label, body, expect) in cases {
         let ws = Ws::new();
-        place_binary(&ws, target, bin, &format!("#!/bin/sh\n# {body}"));
+        place_binary(&ws, target, bin, &format!("#!/bin/sh\n# {body}{urls}"));
         let p = ws.run("build", "prepare", &refs(&e));
         assert!(p.status.success(), "{label} prepare: {}", text(&p));
         let out = ws.run("build", "smoke", &refs(&e));
         assert!(!out.status.success(), "{label} must fail:\n{}", text(&out));
+        assert!(
+            text(&out).contains(expect),
+            "{label}: want '{expect}' in:\n{}",
+            text(&out)
+        );
     }
 }
 
@@ -1552,4 +1577,30 @@ fn build_job_pins_then_preflights_then_builds_and_runs_the_cve_contract_on_linux
     // Every leg gets the artifact-level check through the smoke step.
     let smoke = get(step(build, "smoke"), "run").as_str().unwrap();
     assert!(smoke.contains("release-remote.sh smoke"), "{smoke}");
+}
+
+#[test]
+fn a_quoted_source_url_in_a_rule_file_does_not_block_a_healthy_build() {
+    // YAML allows `source: "https://..."`; the compiled string has no quotes.
+    let ws = Ws::new();
+    let rule = ws.p().join("data/cve_rules/CVE-2021-3156.yaml");
+    let body = fs::read_to_string(&rule).unwrap();
+    let quoted: String = body
+        .lines()
+        .map(|l| match l.strip_prefix("source:") {
+            Some(u) => format!("source: \"{}\"", u.trim()),
+            None => l.to_string(),
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(
+        quoted.contains("source: \"https://"),
+        "fixture not rewritten"
+    );
+    fs::write(&rule, quoted + "\n").unwrap();
+
+    let pre = ws.run("build", "preflight", &[]);
+    assert!(pre.status.success(), "{}", text(&pre));
+    let out = smoke_with(&ws, NATIVE, &fixture(true, Cve::Ok, true));
+    assert!(out.status.success(), "{}", text(&out));
 }

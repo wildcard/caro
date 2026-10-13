@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   smoke test runs the binary and requires all nine remote backends to be
   listed and none to be `not compiled`. It also sends the CVE-2024-3094 trigger
   to the binary's own validator (`caro guard`, which only validates and never
-  runs the command) and requires a Critical denial that cites the rule, a
+  runs the command) and requires a deny verdict (exit 2) that cites the rule, a
   benign command that passes, and every compiled rule's source URL to be in the
   binary. The linux-amd64 leg also runs `safety_text_contract` with
   `--features remote-backends`. linux-arm64 is cross-built and cannot

@@ -97,7 +97,8 @@ cve_sources() {
   for f in "$dir"/CVE-*.yaml; do
     [ -f "$f" ] || continue
     if grep -q 'TODO_NIMBLE_AUTHORED' "$f"; then continue; fi
-    sed -n 's/^source:[[:space:]]*\([^[:space:]#]*\).*$/\1/p' "$f" | head -n 1
+    # YAML allows a quoted scalar; the compiled string has no quotes.
+    sed -n 's/^source:[[:space:]]*\([^[:space:]#]*\).*$/\1/p' "$f" | head -n 1 | tr -d "\"'"
   done
 }
 
@@ -147,13 +148,13 @@ cve_guard() {
         "$asset" guard --harness generic --mode enforce --no-log 2>&1
   }
   out=$(guard_run '{"command":"xz --lzma1=preset=9 file.txt"}') || rc=$?
-  { [ "$rc" = 2 ] && grep -q '"verdict":"deny"' <<<"$out"; } ||
+  { [ "$rc" = 2 ] && grep -Eq '"verdict"[[:space:]]*:[[:space:]]*"deny"' <<<"$out"; } ||
     die "CVE-2024-3094 trigger was not blocked by 'caro guard' (exit $rc): $out"
   grep -qi 'cve-2024-3094' <<<"$out" ||
     die "guard verdict does not cite cve-2024-3094 (update this check if the rule moved): $out"
   rc=0
   out=$(guard_run '{"command":"ls -la"}') || rc=$?
-  { [ "$rc" = 0 ] && grep -q '"verdict":"none"' <<<"$out"; } ||
+  { [ "$rc" = 0 ] && grep -Eq '"verdict"[[:space:]]*:[[:space:]]*"none"' <<<"$out"; } ||
     die "benign control was denied or errored (exit $rc): $out"
 }
 
