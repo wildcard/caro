@@ -36,11 +36,15 @@ fn caro(home: &Path, args: &[&str]) -> Output {
         .args(args)
         .env("HOME", home)
         .env("XDG_CONFIG_HOME", home)
-        .env("CARO_TELEMETRY_ENABLED", "false")
+        .env("XDG_DATA_HOME", home)
+        .env("XDG_CACHE_HOME", home)
         .env_remove("ANTHROPIC_API_KEY")
         .env_remove("OPENROUTER_API_KEY")
         .env_remove("XAI_API_KEY")
         .env_remove("CARO_BACKEND")
+        .env_remove("CARO_DEFAULT_MODEL")
+        .env_remove("CARO_MODEL")
+        .env_remove("CARO_APPROVAL")
         .stdin(Stdio::null())
         .output()
         .expect("failed to run caro")
@@ -65,9 +69,18 @@ fn backend_info(home: &Path) -> String {
 }
 
 fn hosted_backend_run(home: &Path, name: &str) -> Output {
+    // `--no-telemetry` keeps the first-run consent prompt out of the way, so the
+    // `-p` prompt path reaches backend selection.
     caro(
         home,
-        &["--backend", name, "--dry-run", "-p", "list pdf files"],
+        &[
+            "--no-telemetry",
+            "--backend",
+            name,
+            "--dry-run",
+            "-p",
+            "list pdf files",
+        ],
     )
 }
 
