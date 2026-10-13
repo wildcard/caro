@@ -21,12 +21,14 @@ use crate::knowledge::{default_knowledge_path, KnowledgeIndex};
 
 /// Agent loop for iterative command refinement.
 ///
-/// The LLM budget is fixed: at most two backend calls per request. The first
-/// call drafts the command. A second call runs only to repair a draft that
-/// fails validation, or to refine a low-confidence or platform-mismatched
-/// draft (the advisor, when configured, may take that second turn instead).
-/// The second call is skipped once half of `timeout` has passed. Guarded by
-/// `tests::llm_passes_are_bounded_*`.
+/// The LLM budget is fixed: at most two calls to the primary backend per
+/// request. The first call drafts the command. A second call runs only to
+/// repair a draft that fails validation, or to refine a low-confidence or
+/// platform-mismatched draft. It is skipped once half of `timeout` has
+/// passed. A configured advisor adds at most one call, on a low-confidence
+/// draft only. If it declines or its output fails validation, the local
+/// refinement still runs (fail-safe), so the worst case is three calls.
+/// Guarded by `tests::llm_passes_are_bounded_*`.
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
     static_matcher: Option<StaticMatcher>,
@@ -1105,18 +1107,29 @@ mod tests {
     }
 
     async fn backend_calls(command: &'static str, confidence: f64) -> usize {
+        backend_calls_with(command, confidence, None).await
+    }
+
+    async fn backend_calls_with(
+        command: &'static str,
+        confidence: f64,
+        advisor: Option<Arc<MockBackend>>,
+    ) -> usize {
         let calls = Arc::new(std::sync::atomic::AtomicUsize::new(0));
         let backend = CountingBackend {
             command,
             confidence,
             calls: calls.clone(),
         };
-        let agent = AgentLoop::new(
+        let mut agent = AgentLoop::new(
             Arc::new(backend),
             ExecutionContext::detect(),
             CapabilityProfile::ubuntu(),
         )
         .with_static_matcher(false);
+        if let Some(a) = advisor {
+            agent = agent.with_advisor(a);
+        }
         let _ = agent.generate_command("list files").await;
         calls.load(Ordering::SeqCst)
     }
@@ -1131,6 +1144,16 @@ mod tests {
     #[tokio::test]
     async fn llm_passes_are_bounded_on_repair() {
         assert_eq!(backend_calls("rm -rf /", 0.99).await, 2);
+    }
+
+    /// An advisor that declines costs one advisor call; the primary backend
+    /// still stops at two (draft + local refinement), so three in total.
+    #[tokio::test]
+    async fn llm_passes_are_bounded_when_the_advisor_declines() {
+        let called = Arc::new(AtomicBool::new(false));
+        let advisor = advisor_backend(None, called.clone());
+        assert_eq!(backend_calls_with("ls", 0.1, Some(advisor)).await, 2);
+        assert!(called.load(Ordering::SeqCst), "advisor was consulted once");
     }
 
     /// A confident, valid draft costs one call.
