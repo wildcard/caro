@@ -488,7 +488,7 @@ impl SafetyValidator {
         // `floor_fragments_match_builtins` keeps the two copies in sync.
         r#"^[\s({]*chmod(?:[ \t]|\\\n)+(?:-[^\s;&|]*(?:[ \t]|\\\n)+)*?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)(?:[ \t]|\\\n)+(?:-[^\s;&|]*(?:[ \t]|\\\n)+)*?(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)(?:[ \t]|\\\n)+(?:[^\s;&|]+(?:[ \t]|\\\n)+)*?(?:['"]?/+\*?['"]?|~/?\*?|"?\$\{?HOME\}?/?\*?"?)(?:\s|$)"#,
         r#"^[\s({]*chmod(?:[ \t]|\\\n)+(?:-[^\s;&|]*(?:[ \t]|\\\n)+)*?(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)(?:[ \t]|\\\n)+(?:[^\s;&|]+(?:[ \t]|\\\n)+)*?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)(?:[ \t]|\\\n)+(?:[^\s;&|]+(?:[ \t]|\\\n)+)*?(?:['"]?/+\*?['"]?|~/?\*?|"?\$\{?HOME\}?/?\*?"?)(?:\s|$)"#,
-        r#"^[\s({]*find(?:[ \t]|\\\n)+(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:[ \t]|\\\n)+(?:-xdev|-mount|-depth|-follow|-noleaf|-ignore_readdir_race|-mindepth(?:[ \t]|\\\n)+\d+|-type(?:[ \t]|\\\n)+[a-zA-Z]|-i?name(?:[ \t]|\\\n)+['"]?\*['"]?))*(?:[ \t]|\\\n)+(?:-delete\b|-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#,
+        r#"^[\s({]*find(?:[ \t]|\\\n)+(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:(?:[ \t]|\\\n)+(?:-xdev|-mount|-depth|-follow|-noleaf|-ignore_readdir_race|-mindepth(?:[ \t]|\\\n)+\d+|-i?name(?:[ \t]|\\\n)+['"]?\*['"]?|-type(?:[ \t]|\\\n)+f))*(?:[ \t]|\\\n)+-delete\b|(?:(?:[ \t]|\\\n)+(?:-xdev|-mount|-depth|-follow|-noleaf|-ignore_readdir_race|-mindepth(?:[ \t]|\\\n)+\d+|-i?name(?:[ \t]|\\\n)+['"]?\*['"]?|-type(?:[ \t]|\\\n)+[fd]))*(?:[ \t]|\\\n)+-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#,
         // ── Explicit root-protection bypass — always catastrophic ────────────
         r"--no-preserve-root",
         // ── Whole-disk / device destruction ──────────────────────────────────
@@ -1495,6 +1495,8 @@ mod allowlist_catastrophic_tests {
             "find ~ -mindepth 1 -delete",
             "find / -xdev -type f -delete",
             "find / -name '*' -exec rm -rf {} +",
+            // `rm -rf` on every directory removes everything under it.
+            "find / -type d -exec rm -rf {} +",
             "chmod -R 777 \"$HOME\"",
             "chmod -R \\\n777 ~",
             "(find / -delete)",
@@ -1528,6 +1530,10 @@ mod allowlist_catastrophic_tests {
             "find ~ -name '*.orig' -exec rm {} \\;",
             "find / -xdev -type f -name '*.tmp' -mtime +7 -delete",
             "find / -name x -exec rm -rf {} \\;",
+            // `-delete` removes a directory only when it is empty, and a
+            // symlink without its target: not catastrophic (cubic finding on #1614).
+            "find ~ -type d -delete",
+            "find / -type l -delete",
             // Text that only mentions a command is not a statement.
             "git commit -m \"Block sudo chmod -R 777 / and sudo find / -delete\"",
             "git commit -m \"$(cat <<'EOF'\nfeat: x\n\nchmod -R 777 ~ is now Critical\nEOF\n)\"",

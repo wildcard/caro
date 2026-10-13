@@ -34,9 +34,12 @@ pub(crate) const ROOT_OR_HOME: &str = r#"(?:['"]?/+\*?['"]?|~/?\*?|"?\$\{?HOME\}
 pub(crate) const FIND_ROOT_OR_HOME_DELETE: &str = r#"(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:[ \t]|\\\n)+(?:[^\s;&|]|\\;)+)*?(?:[ \t]|\\\n)+(?:-delete\b|-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#;
 /// The same, but only for a find with no filter: between the start path and
 /// the action only non-narrowing options may appear (`-xdev`, `-mindepth N`,
-/// `-type X`, `-name '*'`, ...). This one is catastrophic and in the floor; a
-/// filtered find on root or home deletes only what matches and is High.
-pub(crate) const FIND_ROOT_OR_HOME_DELETE_ALL: &str = r#"(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:[ \t]|\\\n)+(?:-xdev|-mount|-depth|-follow|-noleaf|-ignore_readdir_race|-mindepth(?:[ \t]|\\\n)+\d+|-type(?:[ \t]|\\\n)+[a-zA-Z]|-i?name(?:[ \t]|\\\n)+['"]?\*['"]?))*(?:[ \t]|\\\n)+(?:-delete\b|-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#;
+/// `-name '*'`, ...). `-type f` keeps `-delete` catastrophic; `-type d` does
+/// not, because `-delete` removes only empty directories. With `-exec rm`,
+/// `-type d` stays catastrophic (`rm -rf` on every directory). This one is in
+/// the floor; a filtered find on root or home deletes only what matches and is
+/// High.
+pub(crate) const FIND_ROOT_OR_HOME_DELETE_ALL: &str = r#"(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:(?:[ \t]|\\\n)+(?:-xdev|-mount|-depth|-follow|-noleaf|-ignore_readdir_race|-mindepth(?:[ \t]|\\\n)+\d+|-i?name(?:[ \t]|\\\n)+['"]?\*['"]?|-type(?:[ \t]|\\\n)+f))*(?:[ \t]|\\\n)+-delete\b|(?:(?:[ \t]|\\\n)+(?:-xdev|-mount|-depth|-follow|-noleaf|-ignore_readdir_race|-mindepth(?:[ \t]|\\\n)+\d+|-i?name(?:[ \t]|\\\n)+['"]?\*['"]?|-type(?:[ \t]|\\\n)+[fd]))*(?:[ \t]|\\\n)+-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#;
 
 /// Built-in dangerous patterns loaded once at startup
 pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {

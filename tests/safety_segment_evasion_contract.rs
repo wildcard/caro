@@ -177,6 +177,9 @@ async fn filtered_find_on_root_or_home_is_high_and_allowlistable() {
         "find ~ -name .DS_Store -delete",
         "find / -xdev -type f -name '*.tmp' -mtime +7 -delete",
         "find \"$HOME\" -type d -name node_modules -prune -exec rm -rf {} +",
+        // `-delete` removes only empty directories, and symlinks, not targets.
+        "find ~ -type d -delete",
+        "find / -type l -delete",
     ] {
         assert_eq!(risk(cmd).await, RiskLevel::High, "{cmd:?}");
         let mut config = SafetyConfig::strict();
