@@ -313,8 +313,13 @@ jobs:
       # - The smoke test runs the binary, except for the cross-built
       #   linux-arm64 binary, which cannot run on the runner. That one gets a
       #   static check on two strings that differ between the builds. It
-      #   proves the feature took effect, not that the binary runs. If those
-      #   error messages change, update the strings here.
+      #   proves the feature took effect, not that the binary runs. It relies
+      #   on the release profile (LTO) dropping the "not compiled" message from
+      #   the remote build, and on both messages staying as they are. If either
+      #   changes, that platform quietly gets no `-remote` asset; the final
+      #   step below reports it. Update the strings here when they change.
+      # - None of these steps has run yet: this workflow only runs after a tag
+      #   is published, so the first real run is the first evidence.
       # - The x86_64-apple-darwin binary is run on an arm64 `macos-latest`
       #   runner and needs Rosetta 2. If it cannot run, that platform simply
       #   gets no `-remote` asset.
@@ -386,16 +391,17 @@ jobs:
           fi
           OUT=$("./${REMOTE_ASSET}" --backend-info < /dev/null 2>&1)
           echo "$OUT"
-          if ! echo "$OUT" | grep -Eq '^[[:space:]]*ollama[[:space:]]'; then
+          if ! grep -Eq '^[[:space:]]*ollama[[:space:]]' <<<"$OUT"; then
             echo "::error::--backend-info printed no ollama row"
             exit 1
           fi
-          if echo "$OUT" | grep -q "not compiled"; then
+          if grep -q "not compiled" <<<"$OUT"; then
             echo "::error::remote-backends asset reports a backend as 'not compiled'"
             exit 1
           fi
 
       - name: Upload remote-backends assets
+        id: upload_remote
         if: steps.smoke_remote.outcome == 'success'
         continue-on-error: true
         timeout-minutes: 10
@@ -407,3 +413,21 @@ jobs:
             ${{ steps.prepare_remote_asset.outputs.remote_asset }}.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Failures above are non-blocking by design, so make a missing `-remote`
+      # asset visible: a warning annotation and a line in the job summary.
+      - name: Report missing remote-backends asset
+        if: always() && steps.build_remote.outcome != 'skipped' && steps.upload_remote.outcome != 'success'
+        continue-on-error: true
+        timeout-minutes: 2
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+          BUILD: ${{ steps.build_remote.outcome }}
+          PREPARE: ${{ steps.prepare_remote_asset.outcome }}
+          SMOKE: ${{ steps.smoke_remote.outcome }}
+          UPLOAD: ${{ steps.upload_remote.outcome }}
+        run: |
+          MSG="no -remote asset for ${TARGET}: build=${BUILD} prepare=${PREPARE} smoke=${SMOKE} upload=${UPLOAD}"
+          echo "::warning::${MSG}"
+          echo "- ${MSG}" >> "$GITHUB_STEP_SUMMARY"

@@ -152,9 +152,10 @@ jobs:
 
     # #1081: the default build must report remote backends as not compiled and
     # fail loudly; the remote-backends build (the opt-in `-remote` release
-    # asset) must reach them. Unix-only test, so Linux runs it in both shapes.
+    # asset) must reach them. Unix-only test, so Linux and macOS run it in both
+    # shapes.
     - name: Run backend feature contract (default and remote-backends builds)
-      if: runner.os == 'Linux' && !cancelled()
+      if: runner.os != 'Windows' && !cancelled()
       run: |
         cargo test --test backend_features_contract --verbose
         cargo test --test backend_features_contract --features remote-backends --verbose
