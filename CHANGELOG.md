@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   interrupted upload can leave a binary without its `.sha256`. A cancelled run,
   a job timeout or a runner failure during the extra build still ends the
   Release run without success, which holds back the Homebrew and package
-  workflows. These release steps have not run yet.
+  workflows.
   `tests/backend_features_contract.rs` runs in the Linux and macOS unit-tests
   CI jobs under both feature sets.
 - **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
