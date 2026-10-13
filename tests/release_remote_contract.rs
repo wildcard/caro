@@ -160,7 +160,7 @@ impl Ws {
         fs::write(self.p().join("assets.txt"), names.join("\n") + "\n").unwrap();
     }
 
-    /// Make the n-th `gh` call (1-based) fail before it stores any file.
+    /// Make the n-th `gh` call (1-based; it must be an upload) fail before it stores any file.
     fn fail_gh_on_call(&self, n: u32) {
         fs::write(self.p().join("fail_on_call"), n.to_string()).unwrap();
     }
@@ -1166,16 +1166,17 @@ fn upload_touches_only_remote_names_and_leaves_stable_assets_alone() {
 }
 
 #[test]
-fn a_bad_dist_stops_before_any_gh_call_and_the_build_chain_never_calls_gh() {
+fn prepare_makes_no_gh_call_and_a_checksum_mismatch_stops_at_verify_all_before_any_gh_call() {
     let ws = Ws::new();
     full_dist(&ws);
     let e = publish_exprs();
 
-    // publish=false path: the build job's blocks (pin aside) never call gh.
+    // The prepare step (all five platforms) makes no gh call. The publish=false
+    // gate itself is pinned by the `if` check in the isolation test.
     assert_eq!(ws.gh_log(), "", "building and preparing must not call gh");
 
-    // A checksum mismatch and a missing platform stop at verify_all, with no
-    // gh call at all.
+    // A checksum mismatch stops at verify_all, with no gh call at all. (Step
+    // order and gating are pinned by the publish-order test.)
     fs::write(
         ws.p().join("dist").join(remote_name("linux-amd64")),
         "#!/bin/sh\necho tampered\n",
@@ -1185,4 +1186,81 @@ fn a_bad_dist_stops_before_any_gh_call_and_the_build_chain_never_calls_gh() {
     assert!(!bad.status.success());
     assert!(text(&bad).contains("checksum mismatch"), "{}", text(&bad));
     assert_eq!(ws.gh_log(), "", "a bad dist must stop before any gh call");
+}
+
+#[test]
+fn publish_steps_run_in_order_and_nothing_can_skip_a_failed_check() {
+    let wf = workflow();
+    let publish = job(&wf, "publish");
+    let ids: Vec<String> = steps(publish)
+        .iter()
+        .filter_map(|s| s.get("id").and_then(Value::as_str).map(str::to_string))
+        .collect();
+    assert_eq!(
+        ids,
+        ["pin", "verify_all", "before", "upload", "after"],
+        "publish steps must verify, check the release, upload, then confirm"
+    );
+    for st in steps(publish) {
+        assert!(
+            st.get("continue-on-error").is_none(),
+            "no publish step may continue on error: {st:?}"
+        );
+        assert!(
+            st.get("if").is_none(),
+            "no publish step may carry an `if` (a failed step must stop the job): {st:?}"
+        );
+    }
+    // And the build job never reaches the release: no step there calls the
+    // script's gh-backed subcommands.
+    for st in steps(job(&wf, "build")) {
+        if let Some(run) = st.get("run").and_then(Value::as_str) {
+            for sub in ["release-assets", "release-state", " upload "] {
+                assert!(
+                    !run.contains(&format!("release-remote.sh{sub}"))
+                        && !run.contains(&format!("release-remote.sh {}", sub.trim())),
+                    "build job must not call `{sub}`: {run}"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn pin_rejects_a_version_with_build_metadata() {
+    let ws = Ws::new();
+    let commit = make_repo(ws.p(), "1.6.0+meta", "v1.6.0+meta");
+    let out = ws.run(
+        "build",
+        "pin",
+        &pin_exprs("tag", "v1.6.0+meta", &commit, "v1.6.0+meta"),
+    );
+    assert!(!out.status.success(), "build metadata must be refused");
+    assert!(text(&out).contains("not a version"), "{}", text(&out));
+}
+
+#[test]
+fn the_repair_hint_names_every_leftover_asset_not_just_the_stray_one() {
+    let ws = Ws::new();
+    let e = publish_exprs();
+    // Two complete pairs and one lone binary, as left by an upload that died.
+    let mut names = names_for(&["linux-amd64", "linux-arm64"], true);
+    names.push(remote_name("macos-intel"));
+    ws.set_release_assets(&names);
+    let out = ws.run("publish", "before", &e);
+    assert!(!out.status.success());
+    let t = text(&out);
+    assert!(t.contains("partial binary/checksum pair"), "{t}");
+    assert!(t.contains("remove every caro-1.5.0-*-remote* asset"), "{t}");
+
+    // Complete leftovers (no lone file) get the same instruction.
+    ws.set_release_assets(&names_for(&["linux-amd64"], true));
+    let out = ws.run("publish", "before", &e);
+    assert!(!out.status.success());
+    assert!(text(&out).contains("not all 'absent'"), "{}", text(&out));
+    assert!(
+        text(&out).contains("remove every caro-1.5.0-*-remote* asset"),
+        "{}",
+        text(&out)
+    );
 }

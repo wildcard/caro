@@ -13,7 +13,9 @@ set -euo pipefail
 
 PLATFORMS="linux-amd64 linux-arm64 macos-intel macos-silicon windows-amd64"
 BACKENDS="ollama exo vllm mesh ai-horde hybrid grok claude openrouter"
-VERSION_RE='^[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$'
+# No build metadata (`+`): GitHub may rewrite it in asset names, which would defeat the
+# name checks in release-state.
+VERSION_RE='^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'
 
 die() {
   echo "::error::$*" >&2
@@ -260,8 +262,9 @@ cmd_release_state() {
     echo "$p $state"
     [ "$state" = "$expect" ] || bad=1
   done
-  [ "$partial" = 0 ] || die "partial binary/checksum pair on the release; remove the stray asset by hand"
-  [ "$bad" = 0 ] || die "release assets are not all '$expect'"
+  local repair="remove every caro-$version-*-remote* asset from the release by hand, then re-run"
+  [ "$partial" = 0 ] || die "partial binary/checksum pair on the release; $repair"
+  [ "$bad" = 0 ] || die "release assets are not all '$expect'; if -remote assets are left over from an interrupted publish, $repair"
 }
 
 # upload <dir> <tag> <version>
