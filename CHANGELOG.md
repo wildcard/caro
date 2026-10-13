@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Opt-in `-remote` release binaries** (#1081). Each release adds a second
+  binary per platform, built with `--features remote-backends` and named
+  `caro-<version>-<platform>-remote` (`.exe` last on Windows), each with a
+  `.sha256` file. It reaches Ollama, vLLM, Exo, Mesh-LLM, AI-Horde, the
+  hybrid gateway, Claude, OpenRouter and Grok. The default binary, the
+  crates.io package and `[features] default` are unchanged: they still report
+  those backends as `not compiled` and fail with a remedy. The `-remote` build
+  runs with `continue-on-error`, so a failure there cannot block the default
+  release. `tests/backend_features_contract.rs` pins both shapes.
+
 - **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
   carry a `gold_tier`, `uncertain`, `rationale`, `labeller` and `labelled_at`.
   Labelled by an agent session on the owner's decision, blind to the static

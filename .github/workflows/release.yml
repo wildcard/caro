@@ -281,6 +281,65 @@ jobs:
         id: prepare_asset
         shell: bash
 
+      # Opt-in richer build (#1081): the same source built with
+      # `--features remote-backends`, published as a separate `-remote` asset.
+      # The default asset above and the crates.io package keep the minimal
+      # feature set; nothing here changes `[features] default`. The extra
+      # build must not block the default release, so these steps use
+      # continue-on-error. The prepare and upload steps run only when the
+      # remote build succeeded, so a failed build can never publish the
+      # default binary under the `-remote` name.
+      - name: Build remote-backends release binary
+        id: build_remote
+        continue-on-error: true
+        run: |
+          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+            cross build --release --features remote-backends --target ${{ matrix.target }}
+          else
+            cargo build --release --features remote-backends --target ${{ matrix.target }}
+          fi
+        shell: bash
+        env:
+          CARO_RELEASE: 1
+
+      - name: Prepare remote-backends artifact
+        id: prepare_remote_asset
+        if: steps.build_remote.outcome == 'success'
+        shell: bash
+        run: |
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+          BASE_NAME=$(echo "${{ matrix.asset_name }}" | sed 's/^caro-//')
+          # caro-1.5.0-linux-amd64        -> caro-1.5.0-linux-amd64-remote
+          # caro-1.5.0-windows-amd64.exe  -> caro-1.5.0-windows-amd64-remote.exe
+          case "${BASE_NAME}" in
+            *.exe) REMOTE_NAME="caro-${VERSION}-${BASE_NAME%.exe}-remote.exe" ;;
+            *)     REMOTE_NAME="caro-${VERSION}-${BASE_NAME}-remote" ;;
+          esac
+
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp target/${{ matrix.target }}/release/caro.exe "${REMOTE_NAME}"
+            HASH=$(certUtil -hashfile "${REMOTE_NAME}" SHA256 | grep -v ":" | tr -d '[:space:]')
+            echo "$HASH  ${REMOTE_NAME}" > "${REMOTE_NAME}.sha256"
+          else
+            cp target/${{ matrix.target }}/release/caro "${REMOTE_NAME}"
+            chmod +x "${REMOTE_NAME}"
+            shasum -a 256 "${REMOTE_NAME}" > "${REMOTE_NAME}.sha256"
+          fi
+          echo "remote_asset=${REMOTE_NAME}" >> $GITHUB_OUTPUT
+
+      # Fail loud if the `-remote` asset still reports a backend as not
+      # compiled. The cross-built arm64 binary cannot run on this runner.
+      - name: Smoke-test remote-backends artifact
+        if: steps.build_remote.outcome == 'success' && matrix.target != 'aarch64-unknown-linux-gnu'
+        shell: bash
+        run: |
+          OUT=$("./${{ steps.prepare_remote_asset.outputs.remote_asset }}" --backend-info < /dev/null 2>&1)
+          echo "$OUT"
+          if echo "$OUT" | grep -q "not compiled"; then
+            echo "::error::remote-backends asset reports a backend as 'not compiled'"
+            exit 1
+          fi
+
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v3
         with:
@@ -288,5 +347,7 @@ jobs:
           files: |
             ${{ steps.prepare_asset.outputs.versioned_asset }}
             ${{ steps.prepare_asset.outputs.versioned_asset }}.sha256
+            ${{ steps.prepare_remote_asset.outputs.remote_asset }}
+            ${{ steps.prepare_remote_asset.outputs.remote_asset }}.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

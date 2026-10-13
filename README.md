@@ -379,6 +379,15 @@ caro config reset
 
 #### Remote & distributed backends (`[backends]`)
 
+The default binary (`cargo install caro`, the install script, Homebrew) is built
+without remote backends. `caro --backend-info` shows them as `not compiled`, and
+`--backend ollama` (or any remote name) exits with an error that names the fix.
+To enable them, build from source:
+
+```bash
+cargo install caro --features remote-backends --locked
+```
+
 Remote endpoint URLs and keys are configurable, so you can point Caro at a
 non-default port or a self-hosted service without recompiling:
 
