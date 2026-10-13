@@ -24,32 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   inside a payload (`bash -c 'echo rm -rf /'` stays allowed). Guarded by
   `tests/safety_segment_evasion_contract.rs` and
   `enforce_catches_segment_and_wrapper_evasions` in `tests/e2e_guard.rs`.
-- **Share card, Markdown twin and full SEO head for every website page**
-  (#1588, closes #156). Each caro.sh page gets a generated 1200x630 card at
-  `/og/<page>.png` (every `og:image` pointed at a missing `/og-image.png`
-  before), a Markdown version at `/<page>.md` (also served for
-  `Accept: text/markdown`), and one `SEO.astro` head with canonical,
-  hreflang only for real translations, and a JSON-LD graph. The build also
-  writes `/llms.txt`, `/llms-full.txt` and `/rss.xml`, adds a share bar
-  (social sharing on posts; AI-agent actions on posts and docs), and fails
-  when any page misses its card, twin, canonical or description. Guarded by
-  `website/src/lib/seo/*.test.ts`, `website/src/__tests__/seo-coverage.test.ts`
-  and the new `Build website (caro.sh)` CI job. System doc:
-  `website/docs/SEO_AND_AGENTS.md`.
 
-### Fixed
-
-- **Recursive world-writable `chmod` is High risk on any path (#1592).** The
-  validator flagged `chmod -R 777` only when the path started with `/`, and
-  never flagged symbolic modes. A new pattern flags a recursive `chmod` whose
-  mode gives others write access (`777`, `666`, `a+rwx`, `o+w`, `o=rwx`) on
-  any path, with `-R` before or after the mode. `chmod -R 755` and `o-w` stay
-  below High. The landing page's DevOps scenario now says "High Risk", not
-  "Blocked": High asks for confirmation in the default mode and is blocked
-  only in strict mode. Guarded by
-  `safety::patterns::tests::test_chmod_recursive_world_writable_is_high`.
-
-## [1.5.0] - 2026-10-11
+## [1.5.0] - 2026-10-13
 
 > **Release-reset note**: An earlier `chore(release): v1.5.0`
 > (commit `6f23d37`, 2026-07-12) bumped `Cargo.toml`/`README.md`/
@@ -221,6 +197,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   passed task. A mean score (the fraction of criteria met) sits next to
   the all-pass rate. `sft_export` writes passing trajectories as JSONL
   training data; safety cases are excluded.
+- **Share card, Markdown twin and full SEO head for every website page**
+  ([#1588](https://github.com/wildcard/caro/pull/1588), closes
+  [#156](https://github.com/wildcard/caro/issues/156)). Each caro.sh page
+  gets a generated 1200x630 card at `/og/<page>.png` (every `og:image`
+  pointed at a missing `/og-image.png` before), a Markdown version at
+  `/<page>.md` (also served for `Accept: text/markdown`), and one
+  `SEO.astro` head with canonical, hreflang only for real translations,
+  and a JSON-LD graph. The build also writes `/llms.txt`,
+  `/llms-full.txt` and `/rss.xml`, adds a share bar (social sharing on
+  posts; AI-agent actions on posts and docs), and fails when any page
+  misses its card, twin, canonical or description. Guarded by
+  `website/src/lib/seo/*.test.ts`, `website/src/__tests__/seo-coverage.test.ts`
+  and the new `Build website (caro.sh)` CI job. System doc:
+  `website/docs/SEO_AND_AGENTS.md`.
+- **Website: Kyaro icon set** ([#1582](https://github.com/wildcard/caro/pull/1582),
+  [#1590](https://github.com/wildcard/caro/pull/1590),
+  [#1596](https://github.com/wildcard/caro/pull/1596)): Kyaro icons, a
+  Kyaro favicon and the vector Caro mark replace the v2.1 glyph pack, and
+  terminal glyphs replace emoji in small icon slots. #1590 adds the icon
+  definitions for Codex generation and the pixel snap tool.
 
 ### Changed
 
@@ -396,6 +392,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CLI: `ai --once <prompt>` no longer blocks on stdin**
   ([#1503](https://github.com/wildcard/caro/pull/1503)): a trailing-prompt
   invocation reads the prompt from argv instead of waiting for stdin.
+- **Recursive world-writable `chmod` is High risk on any path**
+  ([#1600](https://github.com/wildcard/caro/pull/1600), closes
+  [#1592](https://github.com/wildcard/caro/issues/1592)). The validator
+  flagged `chmod -R 777` only when the path started with `/`, and never
+  flagged symbolic modes. A new pattern flags a recursive `chmod` whose
+  mode gives others write access (`777`, `666`, `a+rwx`, `o+w`, `o=rwx`)
+  on any path, with `-R` before or after the mode. `chmod -R 755` and
+  `o-w` stay below High. The landing page's DevOps scenario now says
+  "High Risk", not "Blocked": High asks for confirmation in the default
+  mode and is blocked only in strict mode. Guarded by
+  `safety::patterns::tests::test_chmod_recursive_world_writable_is_high`.
+- **Embedded backend: a 4096-token context window**
+  ([#1616](https://github.com/wildcard/caro/pull/1616), closes
+  [#1612](https://github.com/wildcard/caro/issues/1612)): the agent's full
+  prompt overflowed llama.cpp's fixed 2048-token context on SmolLM 135M
+  and TinyLlama 1.1B, and generation failed with "Failed to advance
+  context". Guarded by `agent_sized_prompt_fits_the_context_window`.
+- **Agent: one system prompt per embedded request**
+  ([#1618](https://github.com/wildcard/caro/pull/1618)): the first request
+  also carried the agent's own system prompt in its context, so the model
+  saw two sets of rules and the execution context twice. It now carries
+  the execution, directory and knowledge context and the platform notes
+  only. Guarded by
+  `agent::tests::initial_request_context_has_no_second_system_prompt`.
+- **CLI: one `Configuration error:` prefix for hosted backends**
+  ([#1622](https://github.com/wildcard/caro/pull/1622)): `--backend grok`,
+  `xai` or `openrouter` without an API key printed the prefix twice.
+  Guarded by `test_backend_config_error_has_single_prefix`.
+- **Package: builds from the crate compile the CVE rules**
+  ([#1632](https://github.com/wildcard/caro/pull/1632)): the crate's
+  `include` list missed the four Kyaro ASCII frames that `src/ui/kyaro.rs`
+  embeds, so `cargo package` failed. It also missed
+  `data/cve_rules/CVE-*.yaml`, so a build from the crate compiled 0 CVE
+  rules instead of 2; the 1.4.0 crate has the same gap. The crate now
+  ships both, with the Kyaro artwork notice (`assets/kyaro/README.md`),
+  and the GitHub Release uploads the notice too. Docker, npm and NuGet
+  packages are not published for 1.5.0.
 
 ### Security
 
@@ -434,6 +467,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   suppressed with documented rationale and revert criteria — the fix
   requires a semver-major bump across the lancedb/opendal/object_store
   chain, and the affected paths parse object-store API XML only.
+- `quinn-proto` 0.11.16 → 0.11.19 in `Cargo.lock`
+  ([#1619](https://github.com/wildcard/caro/pull/1619)) clears five
+  advisories (RUSTSEC-2026-0338 to -0341 and RUSTSEC-2026-0343) from
+  `cargo audit`. No caro build compiles quinn, so no binary or crate build
+  was affected.
+- Website build: an npm override sets `sharp` to 0.35.5 for the libvips,
+  libheif and librsvg advisories
+  ([#1611](https://github.com/wildcard/caro/pull/1611)).
 
 ### Documentation
 
@@ -486,6 +527,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The broken add-contributor job is removed from `pr-merged.yml`
   ([#1527](https://github.com/wildcard/caro/pull/1527)); its action no
   longer exists.
+- **Release workflow** ([#1631](https://github.com/wildcard/caro/pull/1631),
+  fixes [#1625](https://github.com/wildcard/caro/issues/1625)): only a
+  published release counts as existing, so release-drafter's v1.5.0 draft
+  no longer stops `release.yml` from creating the release.
+- **One npm lockfile** ([#1608](https://github.com/wildcard/caro/pull/1608),
+  [#1620](https://github.com/wildcard/caro/pull/1620)): the npm workspaces
+  use the root `package-lock.json`, and the nested lockfiles are deleted.
+- **CI** ([#1605](https://github.com/wildcard/caro/pull/1605),
+  [#1606](https://github.com/wildcard/caro/pull/1606)): the installer tests
+  uninstall through cargo between runs, and the website tests run on every
+  PR so that the check can be required.
 
 ## [1.4.0] - 2026-05-09
 
