@@ -270,7 +270,7 @@ fn remote_name(platform: &str) -> String {
 
 /// Place a fixture binary where the build step would leave it.
 fn place_binary(ws: &Ws, target: &str, bin: &str, body: &str) {
-    ws.write_fixture(&format!("source/target/{target}/release/{bin}"), body);
+    ws.write_fixture(&format!("target/{target}/release/{bin}"), body);
 }
 
 fn arm64_remote_fixture() -> &'static str {
@@ -357,12 +357,10 @@ fn workflow_is_manual_only_and_publication_is_off_by_default() {
         cond.contains("inputs.publish == true"),
         "publish gate: {cond}"
     );
-    let needs: Vec<String> = get(publish_job, "needs")
-        .as_sequence()
-        .unwrap()
-        .iter()
-        .map(scalar)
-        .collect();
+    let needs: Vec<String> = match get(publish_job, "needs") {
+        Value::Sequence(l) => l.iter().map(scalar).collect(),
+        other => vec![scalar(other)],
+    };
     assert!(
         needs.contains(&"build".to_string()),
         "publish must need build"
@@ -643,70 +641,180 @@ fn verify_block_detects_partial_pairs_checksum_mismatch_and_stray_names() {
 // Tag and commit identity
 // ---------------------------------------------------------------------------
 
-#[test]
-fn resolve_block_pins_the_tag_to_one_commit_and_rejects_a_version_mismatch() {
-    let ws = Ws::new();
-    let commit = make_repo(ws.p(), "1.5.0", TAG);
-    let ok = ws.run("resolve", "resolve", &[("TAG", TAG)]);
-    assert!(ok.status.success(), "{}", text(&ok));
-    let out = ws.github_output();
-    for line in [
-        format!("tag={TAG}"),
-        format!("version={VERSION}"),
-        format!("commit={commit}"),
-    ] {
-        assert!(out.lines().any(|l| l == line), "{line} not in:\n{out}");
-    }
-
-    let missing = ws.run("resolve", "resolve", &[("TAG", "v1.5.9")]);
-    assert!(!missing.status.success());
-    assert!(text(&missing).contains("does not exist"));
-
-    git(ws.p(), &["tag", "v1.5.1"]); // Cargo.toml still says 1.5.0
-    let wrong = ws.run("resolve", "resolve", &[("TAG", "v1.5.1")]);
-    assert!(!wrong.status.success());
-    assert!(text(&wrong).contains("Cargo.toml"), "{}", text(&wrong));
-
-    let bad = ws.run("resolve", "resolve", &[("TAG", "1.5.0")]);
-    assert!(!bad.status.success());
+fn pin_exprs<'a>(
+    ref_type: &'a str,
+    ref_name: &'a str,
+    sha: &'a str,
+    input_tag: &'a str,
+) -> Vec<(&'a str, &'a str)> {
+    vec![
+        ("REF_TYPE", ref_type),
+        ("REF_NAME", ref_name),
+        ("SHA", sha),
+        ("INPUT_TAG", input_tag),
+    ]
 }
 
 #[test]
-fn check_source_and_recheck_blocks_catch_a_wrong_checkout_and_a_moved_tag() {
-    let ws = Ws::new();
-    let commit = make_repo(&ws.p().join("source"), "1.5.0", TAG);
-    let exprs = [("COMMIT", commit.as_str()), ("VERSION", VERSION)];
-    let ok = ws.run("build", "check_source", &exprs);
-    assert!(ok.status.success(), "{}", text(&ok));
+fn pin_block_accepts_exactly_the_tagged_commit_in_both_jobs() {
+    for job_name in ["build", "publish"] {
+        let ws = Ws::new();
+        let commit = make_repo(ws.p(), "1.5.0", TAG);
+        let out = ws.run(job_name, "pin", &pin_exprs("tag", TAG, &commit, TAG));
+        assert!(out.status.success(), "{job_name}: {}", text(&out));
+        let got = ws.github_output();
+        for line in [
+            format!("tag={TAG}"),
+            format!("version={VERSION}"),
+            format!("commit={commit}"),
+        ] {
+            assert!(got.lines().any(|l| l == line), "{line} not in:\n{got}");
+        }
+    }
+}
 
-    let wrong_commit = ws.run(
-        "build",
-        "check_source",
-        &[("COMMIT", COMMIT), ("VERSION", VERSION)],
-    );
-    assert!(!wrong_commit.status.success());
-    let wrong_version = ws.run(
-        "build",
-        "check_source",
-        &[("COMMIT", commit.as_str()), ("VERSION", "1.5.1")],
-    );
-    assert!(!wrong_version.status.success());
+#[test]
+fn pin_block_rejects_a_mismatched_ref_input_commit_version_or_moved_tag() {
+    for job_name in ["build", "publish"] {
+        let ws = Ws::new();
+        let commit = make_repo(ws.p(), "1.5.0", TAG);
+        git(ws.p(), &["tag", "v1.5.1"]); // same commit, Cargo.toml still says 1.5.0
 
-    // publish job: the tag must still point at the built commit.
-    let ws2 = Ws::new();
-    let first = make_repo(ws2.p(), "1.5.0", TAG);
-    let exprs = [("TAG", TAG), ("COMMIT", first.as_str())];
-    assert!(ws2.run("publish", "recheck", &exprs).status.success());
-    fs::write(
-        ws2.p().join("Cargo.toml"),
-        "[package]\nname = \"caro\"\nversion = \"1.5.0\"\n# moved\n",
-    )
-    .unwrap();
-    git(ws2.p(), &["commit", "-q", "-am", "moved"]);
-    git(ws2.p(), &["tag", "-f", TAG]);
-    let moved = ws2.run("publish", "recheck", &exprs);
-    assert!(!moved.status.success());
-    assert!(text(&moved).contains("moved"), "{}", text(&moved));
+        type Exprs<'a> = Vec<(&'a str, &'a str)>;
+        let cases: Vec<(&str, Exprs, &str)> = vec![
+            (
+                "started from a branch",
+                pin_exprs("branch", "main", &commit, "main"),
+                "start this workflow from the release tag",
+            ),
+            (
+                "tag input names another tag",
+                pin_exprs("tag", TAG, &commit, "v1.5.1"),
+                "does not match the tag this run was started from",
+            ),
+            (
+                "ref name is not a v-tag",
+                pin_exprs("tag", "1.5.0", &commit, "1.5.0"),
+                "must start with 'v'",
+            ),
+            (
+                "dispatched commit is not a full SHA",
+                pin_exprs("tag", TAG, "abc123", TAG),
+                "not a full SHA",
+            ),
+            (
+                "checkout is not the dispatched commit",
+                pin_exprs("tag", TAG, COMMIT, TAG),
+                "is not the dispatched commit",
+            ),
+            (
+                "tag does not exist",
+                pin_exprs("tag", "v1.5.9", &commit, "v1.5.9"),
+                "does not exist",
+            ),
+            (
+                "tag version differs from Cargo.toml",
+                pin_exprs("tag", "v1.5.1", &commit, "v1.5.1"),
+                "Cargo.toml",
+            ),
+        ];
+        for (label, exprs, expect) in cases {
+            let out = ws.run(job_name, "pin", &exprs);
+            assert!(!out.status.success(), "{job_name}/{label} must fail");
+            assert!(
+                text(&out).contains(expect),
+                "{job_name}/{label}: want '{expect}' in:\n{}",
+                text(&out)
+            );
+            assert!(
+                ws.github_output().is_empty(),
+                "{job_name}/{label}: a failed pin must output nothing"
+            );
+        }
+
+        // The tag moved after the run started: HEAD is still the dispatched
+        // commit, but the tag now points elsewhere.
+        git(ws.p(), &["checkout", "-q", "-b", "other"]);
+        fs::write(
+            ws.p().join("Cargo.toml"),
+            "[package]\nname = \"caro\"\nversion = \"1.5.0\"\n# moved\n",
+        )
+        .unwrap();
+        git(ws.p(), &["commit", "-q", "-am", "moved"]);
+        git(ws.p(), &["tag", "-f", TAG]);
+        git(ws.p(), &["checkout", "-q", "--detach", &commit]);
+        let moved = ws.run(job_name, "pin", &pin_exprs("tag", TAG, &commit, TAG));
+        assert!(!moved.status.success(), "{job_name}: moved tag must fail");
+        assert!(text(&moved).contains("moved"), "{}", text(&moved));
+    }
+}
+
+#[test]
+fn workflow_checks_out_one_commit_and_never_an_input_ref() {
+    let wf = workflow();
+    let jobs: Vec<String> = get(&wf, "jobs")
+        .as_mapping()
+        .unwrap()
+        .keys()
+        .map(scalar)
+        .collect();
+    assert_eq!(
+        jobs,
+        ["build", "publish"],
+        "no resolve job, no second checkout"
+    );
+    for (jname, j) in get(&wf, "jobs").as_mapping().unwrap() {
+        let jname = scalar(jname);
+        let st = steps(j);
+        // The first step is the only checkout; the second pins the source
+        // before any toolchain, build or download step.
+        assert!(
+            st[0]
+                .get("uses")
+                .and_then(Value::as_str)
+                .unwrap()
+                .starts_with("actions/checkout@"),
+            "{jname}: step 1 must be the checkout"
+        );
+        assert_eq!(
+            st[1].get("id").and_then(Value::as_str),
+            Some("pin"),
+            "{jname}: step 2 must pin the source"
+        );
+        let checkouts = st
+            .iter()
+            .filter(|s| {
+                s.get("uses")
+                    .and_then(Value::as_str)
+                    .is_some_and(|u| u.starts_with("actions/checkout@"))
+            })
+            .count();
+        assert_eq!(checkouts, 1, "{jname}: exactly one checkout");
+        let with = get(&st[0], "with").as_mapping().unwrap();
+        let keys: Vec<String> = with.keys().map(scalar).collect();
+        assert_eq!(
+            keys,
+            ["persist-credentials"],
+            "{jname}: checkout takes no ref/path/repository"
+        );
+        assert_eq!(
+            with.get("persist-credentials").and_then(Value::as_bool),
+            Some(false)
+        );
+    }
+    // Inputs are used in two places only: the tag confirmation passed to `pin`
+    // through env, and the publish gate.
+    let raw = fs::read_to_string(root().join(WORKFLOW)).unwrap();
+    for line in raw.lines().filter(|l| !l.trim_start().starts_with('#')) {
+        if line.contains("inputs.") {
+            assert!(
+                line.contains("INPUT_TAG: ${{ inputs.tag }}")
+                    || line.contains("inputs.publish == true"),
+                "unexpected use of an input: {line}"
+            );
+        }
+    }
+    assert!(!raw.contains("needs.resolve"));
 }
 
 // ---------------------------------------------------------------------------

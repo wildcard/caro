@@ -57,40 +57,34 @@ cargo_version_at() { # repo commit
     awk '/^\[package\]/{p=1;next} /^\[/{p=0} p && /^version[[:space:]]*=/{gsub(/^[^"]*"|".*$/,""); print; exit}'
 }
 
-# resolve <tag> <repo>: tag -> commit, and the commit's Cargo.toml version must
-# equal the tag. Prints tag=, version= and commit= lines.
-cmd_resolve() {
-  local tag=$1 repo=$2 version commit cargo
-  [[ "$tag" == v* ]] || die "tag must start with 'v': '$tag'"
-  version=${tag#v}
+# pin <ref_type> <ref_name> <sha> <input_tag> <repo>
+# Runs before any build, in the single checkout of the dispatched commit. The
+# workflow must have been started from the release tag itself, the operator's
+# `tag` input must repeat that tag, and the checked-out commit must be the
+# dispatched commit, the commit the tag points to now, and a source tree whose
+# Cargo.toml version equals the tag. Nothing is fetched or checked out from an
+# input. Prints tag=, version= and commit= lines.
+cmd_pin() {
+  local ref_type=$1 ref_name=$2 sha=$3 input_tag=$4 repo=$5 version head tagged cargo
+  [ "$ref_type" = "tag" ] ||
+    die "start this workflow from the release tag, not from a $ref_type ('$ref_name')"
+  [[ "$ref_name" == v* ]] || die "tag must start with 'v': '$ref_name'"
+  [ "$input_tag" = "$ref_name" ] ||
+    die "tag input '$input_tag' does not match the tag this run was started from ('$ref_name')"
+  version=${ref_name#v}
   check_version "$version"
-  commit=$(git -C "$repo" rev-parse --verify "refs/tags/${tag}^{commit}" 2>/dev/null) ||
-    die "tag '$tag' does not exist in $repo"
-  cargo=$(cargo_version_at "$repo" "$commit")
+  [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || die "dispatched commit is not a full SHA: '$sha'"
+  head=$(git -C "$repo" rev-parse --verify HEAD 2>/dev/null) || die "no checked-out commit in $repo"
+  [ "$head" = "$sha" ] || die "checked-out commit $head is not the dispatched commit $sha"
+  tagged=$(git -C "$repo" rev-parse --verify "refs/tags/${ref_name}^{commit}" 2>/dev/null) ||
+    die "tag '$ref_name' does not exist in $repo"
+  [ "$tagged" = "$sha" ] || die "tag $ref_name moved: it points at $tagged, this run is $sha"
+  cargo=$(cargo_version_at "$repo" "$head")
   [ "$cargo" = "$version" ] ||
-    die "tag $tag is version $version but Cargo.toml at $commit says '$cargo'"
-  echo "tag=$tag"
+    die "tag $ref_name is version $version but Cargo.toml at $head says '$cargo'"
+  echo "tag=$ref_name"
   echo "version=$version"
-  echo "commit=$commit"
-}
-
-# recheck <tag> <commit> <repo>: the tag must still point at <commit>.
-cmd_recheck() {
-  local tag=$1 commit=$2 repo=$3 now
-  now=$(cmd_resolve "$tag" "$repo" | sed -n 's/^commit=//p')
-  [ "$now" = "$commit" ] || die "tag $tag moved: was $commit, now $now"
-  echo "tag $tag still points at $commit"
-}
-
-# check-source <commit> <version> <dir>: the checked-out source is exactly the
-# resolved commit and version.
-cmd_check_source() {
-  local commit=$1 version=$2 dir=$3 head cargo
-  head=$(git -C "$dir" rev-parse HEAD)
-  [ "$head" = "$commit" ] || die "source is at $head, expected $commit"
-  cargo=$(cargo_version_at "$dir" "$head")
-  [ "$cargo" = "$version" ] || die "source Cargo.toml says '$cargo', expected $version"
-  echo "source is $commit ($version)"
+  echo "commit=$head"
 }
 
 # name <version> <platform>
@@ -281,7 +275,7 @@ cmd_upload() {
 }
 
 usage() {
-  echo "usage: $0 <resolve|recheck|check-source|name|prepare|smoke|verify|identity|release-assets|release-state|upload> ..." >&2
+  echo "usage: $0 <pin|name|prepare|smoke|verify|identity|release-assets|release-state|upload> ..." >&2
   exit 2
 }
 
@@ -289,9 +283,7 @@ usage() {
 sub=$1
 shift
 case "$sub" in
-  resolve) [ $# -eq 2 ] || usage; cmd_resolve "$@" ;;
-  recheck) [ $# -eq 3 ] || usage; cmd_recheck "$@" ;;
-  check-source) [ $# -eq 3 ] || usage; cmd_check_source "$@" ;;
+  pin) [ $# -eq 5 ] || usage; cmd_pin "$@" ;;
   name) [ $# -eq 2 ] || usage; cmd_name "$@" ;;
   prepare) [ $# -eq 6 ] || usage; cmd_prepare "$@" ;;
   smoke) [ $# -eq 2 ] || usage; cmd_smoke "$@" ;;
