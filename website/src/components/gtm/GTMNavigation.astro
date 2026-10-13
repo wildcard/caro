@@ -1,11 +1,12 @@
 ---
 // GTM Navigation - Minimal, conversion-focused
+import CaroMark from '../icons/CaroMark.astro';
 ---
 
 <nav class="nav">
   <div class="nav-container">
     <a href="/" class="logo">
-      <span class="logo-icon">🐕</span>
+      <CaroMark size={28} />
       <span class="logo-text">caro</span>
     </a>
 
@@ -58,10 +59,6 @@
     font-weight: 700;
     font-size: 24px;
     color: var(--color-text);
-  }
-
-  .logo-icon {
-    font-size: 28px;
   }
 
   .nav-links {

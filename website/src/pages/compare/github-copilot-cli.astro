@@ -37,7 +37,7 @@ const comparison = {
   sections: [
     {
       title: 'Privacy and Offline Use',
-      icon: '🔒',
+      icon: '▸',
       content: `
         <p><strong>GitHub Copilot CLI</strong> sends prompts to GitHub-hosted models by default, and usage telemetry is on by default. Since April 2026 you can bring your own key or point it at a local model (Ollama, vLLM, Foundry Local). With <code>COPILOT_OFFLINE=true</code> and a local model, it makes no calls to GitHub and needs no GitHub login.</p>
         <p><strong>Caro</strong> is offline by default. It downloads its local model once, on first use, and needs no network after that. Prompts and commands stay on your machine.</p>
@@ -45,7 +45,7 @@ const comparison = {
     },
     {
       title: 'Safety Approach',
-      icon: '🛡️',
+      icon: '■',
       content: `
         <p><strong>GitHub Copilot CLI</strong> runs read-only shell commands on its own and asks before others. You can write deterministic rules such as <code>--deny-tool 'shell(rm)'</code>, and deny rules win even under <code>--allow-all</code>. Hooks can call an external validator, and an OS sandbox can limit files, network and credentials. It does not ship a curated list of dangerous commands.</p>
         <p><strong>Caro</strong> checks every command against 52+ curated patterns, rates it CRITICAL, HIGH, MEDIUM or LOW, and blocks critical commands such as <code>rm -rf /</code>, with no configuration. A sandbox and a pattern check stop different things, so they work well together.</p>
@@ -53,7 +53,7 @@ const comparison = {
     },
     {
       title: 'Cost and Access',
-      icon: '💰',
+      icon: '▸',
       content: `
         <p><strong>GitHub Copilot CLI</strong> is included in every Copilot plan, Copilot Free included. Paid plans run from $10 to $100 per month for individuals and $19 to $39 per seat for organizations. Since June 2026, usage is billed in AI Credits. In bring-your-own-key mode you pay your model provider.</p>
         <p><strong>Caro</strong> is free and open source. You run it on your own hardware. No account, no subscription, no usage limit.</p>
@@ -61,7 +61,7 @@ const comparison = {
     },
     {
       title: 'Scope and Model Quality',
-      icon: '🧠',
+      icon: '❯',
       content: `
         <p><strong>GitHub Copilot CLI</strong> is a full coding agent. It edits files, runs multi-step tasks, uses MCP servers and custom agents, and can switch between Anthropic, OpenAI and Google models. For complex or novel work, hosted frontier models are stronger than small local ones.</p>
         <p><strong>Caro</strong> does one job: turn a request into one safe shell command. Small local models handle common shell work well, and Caro adds platform detection and GNU/BSD awareness on top.</p>

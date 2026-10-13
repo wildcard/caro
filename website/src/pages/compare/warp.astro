@@ -36,7 +36,7 @@ const comparison = {
   sections: [
     {
       title: 'What Is Open Source',
-      icon: '📖',
+      icon: '❯',
       content: `
         <p><strong>Warp</strong> published its client on GitHub on April 28, 2026. Most of the code is AGPL-3.0, and the UI framework crates are MIT. Warp's FAQ says the server, the Warp Drive backend, the Oz orchestration layer and the built-in agent harness are not in the repository. The harness runs on Warp's servers.</p>
         <p><strong>Caro</strong> is AGPL-3.0 from end to end: the CLI, the safety patterns, the prompts and the inference code. Its default model, Qwen2.5-Coder 1.5B, is open-weight under Apache-2.0. You can read, audit and change every part that decides which command you see.</p>
@@ -44,7 +44,7 @@ const comparison = {
     },
     {
       title: 'Your Terminal',
-      icon: '🖥️',
+      icon: '>_',
       content: `
         <p><strong>The Warp app</strong> is its own terminal emulator, so you move from iTerm2, Ghostty, Terminal.app or Windows Terminal to Warp. <strong>The Warp Agent CLI</strong>, launched in August 2026, runs inside any terminal and over SSH. It needs a Warp login or API key.</p>
         <p><strong>Caro</strong> is a single CLI with optional shell integration for zsh, bash and fish. It does not replace your terminal, your prompt or your config, and it needs no account.</p>
@@ -52,7 +52,7 @@ const comparison = {
     },
     {
       title: 'Privacy and Connectivity',
-      icon: '🔒',
+      icon: '▸',
       content: `
         <p><strong>Warp</strong> sends AI requests through its own backend, including requests that use your own API key or a custom endpoint. Custom endpoints must be public: Warp rejects localhost and private network URLs. Without a network, the terminal works but Warp's AI features do not. On the Free plan, telemetry is on by default and must stay on to use AI. On Business and Enterprise it is off by default. Warp has zero-data-retention agreements with its model providers.</p>
         <p><strong>Caro</strong> runs local models on your machine. After a one-time model download, prompts and commands do not leave it, so Caro works on a plane, behind a strict VPN or in an air-gapped network.</p>
@@ -60,7 +60,7 @@ const comparison = {
     },
     {
       title: 'Safety Approach',
-      icon: '🛡️',
+      icon: '■',
       content: `
         <p><strong>Warp</strong> gives each agent action an autonomy level: Agent decides, Always ask, Always allow or Never. Commands that match a regex denylist need your approval. The default list covers tools like <code>rm</code>, <code>curl</code>, <code>eval</code> and <code>ssh</code>. By default, auto-approve skips your own denylist. Admin denylist rules are never skipped. A match asks; it does not block.</p>
         <p><strong>Caro</strong> checks every command against 52+ curated patterns, rates it CRITICAL, HIGH, MEDIUM or LOW, and blocks critical commands such as <code>rm -rf /</code> and fork bombs, whatever the model suggests. You can add your own patterns.</p>
@@ -68,7 +68,7 @@ const comparison = {
     },
     {
       title: 'Use Both',
-      icon: '🤝',
+      icon: '▸',
       content: `
         <p>Caro is a plain CLI, so it runs inside Warp like in any other terminal. Use Warp for its agents and workspace. Use Caro when you want a quick, offline, safety-checked command.</p>
       `

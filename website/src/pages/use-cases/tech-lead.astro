@@ -10,6 +10,7 @@ import LandingPage from '../../layouts/LandingPage.astro';
 import Navigation from '../../components/Navigation.astro';
 import LPDownload from '../../components/landing/LPDownload.astro';
 import LPFooter from '../../components/landing/LPFooter.astro';
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
 
 const aiIncidents = [
   {
@@ -350,22 +351,22 @@ format = "json"  # For SIEM integration`}</pre>
         <h3>How It Works</h3>
         <div class="flow-diagram">
           <div class="flow-step">
-            <span class="flow-icon">🤖</span>
+            <span class="flow-icon"><TermGlyph g="▸" /></span>
             <span class="flow-label">AI Agent</span>
           </div>
           <span class="flow-arrow">→</span>
           <div class="flow-step">
-            <span class="flow-icon">📡</span>
+            <span class="flow-icon"><TermGlyph g="▸" /></span>
             <span class="flow-label">MCP Request</span>
           </div>
           <span class="flow-arrow">→</span>
           <div class="flow-step highlight">
-            <span class="flow-icon">🛡️</span>
+            <span class="flow-icon"><TermGlyph g="■" /></span>
             <span class="flow-label">Caro Validation</span>
           </div>
           <span class="flow-arrow">→</span>
           <div class="flow-step">
-            <span class="flow-icon">💻</span>
+            <span class="flow-icon"><TermGlyph g=">_" /></span>
             <span class="flow-label">Shell Execution</span>
           </div>
         </div>
@@ -909,7 +910,7 @@ format = "json"  # For SIEM integration`}</pre>
     border-color: var(--accent);
   }
 
-  .flow-icon { font-size: 24px; margin-bottom: 8px; }
+  .flow-icon { font-size: 20px; margin-bottom: 8px; }
   .flow-label { font-size: 13px; color: var(--color-text-secondary); }
   .flow-arrow { font-size: 20px; color: var(--color-text-secondary); }
 

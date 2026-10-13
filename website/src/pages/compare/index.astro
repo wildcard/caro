@@ -2,6 +2,8 @@
 import Layout from '../../layouts/Layout.astro';
 import Navigation from '../../components/Navigation.astro';
 import Footer from '../../components/Footer.astro';
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
+import type { Glyph } from '../../ui/TermGlyph/TermGlyph.astro';
 import { vsPages, lastVerified } from '../../data/compare-pages';
 
 const lang = 'en';
@@ -12,7 +14,7 @@ const comparisonMatrix = {
   categories: [
     {
       name: 'Privacy & Data Control',
-      icon: '🔒',
+      icon: '▸',
       description: 'How your terminal activity is handled',
       features: [
         { name: 'Works 100% offline', caro: true, copilot: 'partial', warp: false, kiro: false, opencode: 'partial' },
@@ -24,7 +26,7 @@ const comparisonMatrix = {
     },
     {
       name: 'Safety & Guardrails',
-      icon: '🛡️',
+      icon: '■',
       description: 'What happens before a command runs',
       features: [
         { name: 'Built-in dangerous-command patterns', caro: true, copilot: false, warp: 'partial', kiro: false, opencode: false },
@@ -36,7 +38,7 @@ const comparisonMatrix = {
     },
     {
       name: 'Shell Expertise',
-      icon: '🖥️',
+      icon: '>_',
       description: 'Specialized for terminal workflows',
       features: [
         { name: 'POSIX-first command generation', caro: true, copilot: 'partial', warp: 'partial', kiro: 'partial', opencode: 'partial' },
@@ -48,7 +50,7 @@ const comparisonMatrix = {
     },
     {
       name: 'Architecture & Extensibility',
-      icon: '🧠',
+      icon: '❯',
       description: 'Technical foundation and flexibility',
       features: [
         { name: 'Local model inference', caro: true, copilot: 'partial', warp: false, kiro: false, opencode: 'partial' },
@@ -88,10 +90,10 @@ function renderValue(value: boolean | string) {
 
         <!-- Trust Badges -->
         <div class="trust-badges">
-          <a href="/telemetry" class="badge badge-link"><span class="badge-icon">🔒</span> Privacy-First*</a>
-          <span class="badge"><span class="badge-icon">🛡️</span> 52+ Safety Patterns</span>
-          <span class="badge"><span class="badge-icon">📡</span> 100% Offline</span>
-          <span class="badge"><span class="badge-icon">🦀</span> Open Source</span>
+          <a href="/telemetry" class="badge badge-link"><span class="badge-icon"><TermGlyph g="▸" /></span> Privacy-First*</a>
+          <span class="badge"><span class="badge-icon"><TermGlyph g="■" /></span> 52+ Safety Patterns</span>
+          <span class="badge"><span class="badge-icon"><TermGlyph g="$" /></span> 100% Offline</span>
+          <span class="badge"><span class="badge-icon"><TermGlyph g="❯" /></span> Open Source</span>
         </div>
       </div>
     </section>
@@ -133,7 +135,7 @@ function renderValue(value: boolean | string) {
         {comparisonMatrix.categories.map((category) => (
           <div class="matrix-category">
             <h3 class="category-header">
-              <span class="category-icon">{category.icon}</span>
+              <span class="category-icon"><TermGlyph g={category.icon as Glyph} /></span>
               {category.name}
               <span class="category-desc">{category.description}</span>
             </h3>
@@ -204,22 +206,22 @@ function renderValue(value: boolean | string) {
 
         <div class="reasons">
           <div class="reason">
-            <h3>🏢 For Security-Conscious Orgs</h3>
+            <h3><TermGlyph g="▸" /> For Security-Conscious Orgs</h3>
             <p>Air-gapped environments, compliance requirements, or simply not wanting shell commands to leave your network? Caro runs 100% locally with <a href="/telemetry" class="inline-link">privacy-first design</a>.</p>
           </div>
 
           <div class="reason">
-            <h3>🛡️ For SREs Who Can't Afford Mistakes</h3>
+            <h3><TermGlyph g="■" /> For SREs Who Can't Afford Mistakes</h3>
             <p>Rule-based safety checks catch dangerous commands before they execute. 52+ patterns block rm -rf /, fork bombs, and other destructive operations.</p>
           </div>
 
           <div class="reason">
-            <h3>🔧 For DevOps Who Live in the Terminal</h3>
+            <h3><TermGlyph g=">_" /> For DevOps Who Live in the Terminal</h3>
             <p>Works in YOUR terminal. No new apps, no context switching. Just shell commands that work across macOS, Linux, and BSD with POSIX compliance.</p>
           </div>
 
           <div class="reason">
-            <h3>🌐 For Developers Who Work Offline</h3>
+            <h3><TermGlyph g="$" /> For Developers Who Work Offline</h3>
             <p>Airplanes, VPNs, restricted networks. When you can't phone home, Caro still works with local model inference.</p>
           </div>
         </div>

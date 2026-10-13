@@ -7,8 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-13
+
+> **Release-reset note**: An earlier `chore(release): v1.5.0`
+> (commit `6f23d37`, 2026-07-12) bumped `Cargo.toml`/`README.md`/
+> `homebrew-tap/README.md`/`nuget/tools/install.ps1` to 1.5.0 but the
+> owner-only `git tag v1.5.0 && git push` step never ran. More PRs
+> then landed on `main` on top of that bump. This entry consolidates
+> the 2026-07-12 planned content with those PRs into a single honest
+> 1.5.0 shipping scope. See the decision record in
+> [#1514](https://github.com/wildcard/caro/pull/1514) for the rationale.
+
 ### Added
 
+- **Runtime-loadable custom safety patterns** via TOML config. Users can now
+  add organization-specific dangerous-command patterns (e.g. `kubectl delete
+  -n prod`, `terraform destroy`, `aws s3 rb s3://prod-…`) without
+  recompiling. Two delivery surfaces, both additive on top of the built-in
+  pattern database:
+  - Inline `[[safety.custom_patterns]]` in `config.toml`.
+  - Sibling `~/.config/caro/patterns.toml` (preferred for team-shared rule sets).
+  Hardened: `risk_level` capped at `High` (Critical reserved for built-ins),
+  pattern source ≤ 512 chars (ReDoS bound), description required, malformed
+  regex fails loudly, and user allowlists cannot bypass Critical built-ins
+  (`rm -rf /` is blocked regardless of allowlist contents). See
+  [examples/patterns.example.toml](examples/patterns.example.toml) for the
+  full schema. Idea sourced from
+  [adolfousier/opencrabs](https://github.com/adolfousier/opencrabs)'s
+  `tools.toml` ergonomic; re-implemented from scratch in caro.
+- **Gold-subset labels report.** `scripts/gold-labels-report.py` validates a
+  labelled `docs/ml/risk-gold-candidates.jsonl` (only the five labeller fields
+  may change, no static fields, tiers in `RiskLevel`) and prints the per-tier
+  counts against the stratification plan and the uncertain rate for the labels
+  PR body; `--static` joins the floor's verdicts once labels are frozen.
+  Guarded by `scripts/tests/test_gold_labels_report.py`. The gold-subset guide
+  now links ADR-018 (merged in #1511) and ADR-018's revision history records
+  the #1554 and #1558 data-gate items.
 - **Consensus-label export and ADR-018.** `CARO_EVAL_EXPORT_LABELS=<path>.jsonl`
   makes `cargo test --test evaluation` append `sft_export::decision_label_pairs`
   (local vs reference risk verdicts, #1466, now with `test_id` and including
@@ -49,6 +83,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   figure to the 94.8% CSR on the 58-case beta suite that ROADMAP.md records
   (README and CLAUDE.md quoted the older 93.1% v1.1.0 figure) and corrected
   the "zero telemetry" use-case copy to "off unless you opt in".
+- **`caro guard` (experimental): a PreToolUse guardian for agent harnesses.**
+  Claude Code, Grok Build and Codex send each shell command their agent is
+  about to run to `caro guard`, and OpenCode does the same through
+  `integrations/opencode/caro-guard.ts`. In shadow mode (the default) the
+  guard only logs what it would have decided, and `caro guard report`
+  summarizes the log. With `--mode enforce` it denies Critical commands and
+  asks about High ones. It never emits `allow`. See spec 011 and ADR-020.
+- **xAI Grok backend.** `--backend grok`, `--advisor grok`, and
+  `hybrid_remote = "grok"` (`XAI_API_KEY`, `remote-backends` feature), built
+  on a new shared OpenAI-compatible client. `openrouter` and `claude` are
+  now selectable with `--backend` as well.
 - **Calibration and tail-latency metrics in the evaluation harness.**
   `EvaluationResult` now records the backend's reported `confidence`, and
   every `BackendResult` carries `brier`, `ece`, `p50_execution_time_ms` and
@@ -61,7 +106,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   framing. The `--approval smart` risk judge now parses its verdict through
   `Choice<RiskLevel>` (behaviour unchanged; also accepts a
   `{"probabilities": {...}}` answer). `RiskLevel` implements `FromStr`.
-
 - **Measured confidence for LLM backends** ([#1464](https://github.com/wildcard/caro/issues/1464)):
   `GeneratedCommand.confidence_source` (`measured`, `self-reported`,
   `unknown`) replaces the per-backend constants. vLLM and OpenRouter request
@@ -107,7 +151,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `GeneratorError::NeedsClarification`. The CLI now prints the question
   instead of offering an `echo` command; remote prompts ask for the JSON
   form. Regression guard: `tests/clarification_gate_contract.rs`.
-
 - **Typed intent categorisation** ([#1463](https://github.com/wildcard/caro/issues/1463)):
   `caro::prompts::IntentCategory` (closed set mirroring the template
   categories, `FromStr`) and `TemplateLibrary::classify_intent`, a
@@ -115,9 +158,95 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `find_template` now ranks by word coverage (plural-insensitive, earlier
   template wins ties) instead of a raw substring match. Not yet wired into
   the model prompt; that waits on eval evidence.
+- **Ponytail pragmatic-skeptic reviewer agent** ([#1244](https://github.com/wildcard/caro/pull/1244)):
+  additive read-only reviewer that interrogates a change for over-engineering
+  (surplus code, abstractions, dependencies, ceremony). Deliberate complement
+  to `devils-advocate` (which fights under-validation). Never trims safety,
+  security, accessibility, data-loss handling, or their tests. Invocable via
+  the `ponytail-review` skill.
+- **Opt-in frontier advisor for low-confidence drafts**
+  ([#1245](https://github.com/wildcard/caro/pull/1245)):
+  `--advisor claude` sends low-confidence drafts to a hosted model, and
+  caro warns when it starts that those prompts leave the machine. The
+  advised command goes through the same safety validator. If the advisor is
+  unavailable, opts out, or returns an unsafe command, caro keeps the
+  local command. Off by default, and it needs a build with the
+  `remote-backends` feature, which the default build does not include.
+- **Cost, mean score and SFT export in the evaluation harness**
+  ([#1245](https://github.com/wildcard/caro/pull/1245)): each result
+  carries estimated tokens and cost (local and self-hosted backends cost
+  nothing), and each backend reports its total cost and its cost per
+  passed task. A mean score (the fraction of criteria met) sits next to
+  the all-pass rate. `sft_export` writes passing trajectories as JSONL
+  training data; safety cases are excluded.
+- **Share card, Markdown twin and full SEO head for every website page**
+  ([#1588](https://github.com/wildcard/caro/pull/1588), closes
+  [#156](https://github.com/wildcard/caro/issues/156)). Each caro.sh page
+  gets a generated 1200x630 card at `/og/<page>.png` (every `og:image`
+  pointed at a missing `/og-image.png` before), a Markdown version at
+  `/<page>.md` (also served for `Accept: text/markdown`), and one
+  `SEO.astro` head with canonical, hreflang only for real translations,
+  and a JSON-LD graph. The build also writes `/llms.txt`,
+  `/llms-full.txt` and `/rss.xml`, adds a share bar (social sharing on
+  posts; AI-agent actions on posts and docs), and fails when any page
+  misses its card, twin, canonical or description. Guarded by
+  `website/src/lib/seo/*.test.ts`, `website/src/__tests__/seo-coverage.test.ts`
+  and the new `Build website (caro.sh)` CI job. System doc:
+  `website/docs/SEO_AND_AGENTS.md`.
+- **Website: Kyaro icon set** ([#1582](https://github.com/wildcard/caro/pull/1582),
+  [#1590](https://github.com/wildcard/caro/pull/1590),
+  [#1596](https://github.com/wildcard/caro/pull/1596)): Kyaro icons, a
+  Kyaro favicon and the vector Caro mark replace the v2.1 glyph pack, and
+  terminal glyphs replace emoji in small icon slots. #1590 adds the icon
+  definitions for Codex generation and the pixel snap tool.
+
+### Changed
+
+- **MSRV bumped from 1.83 → 1.85** to fix CI breakage caused by transitive
+  dependencies (`lance-geo` → `i_tree`, etc.) requiring `edition2024`,
+  which Cargo only stabilized in 1.85. With MSRV 1.83, `cargo build
+  --locked` failed during dep-graph parsing even when the offending crates
+  were excluded by feature flag (e.g. the embedded-cpu MSRV CI build):
+  `--locked` parses every entry in `Cargo.lock`, including
+  feature-gated ones. Rust 1.85 was stabilized 2025-02-20, ~14 months
+  before this bump.
+- **Declared limits are now enforced** ([#1470](https://github.com/wildcard/caro/pull/1470)):
+  applies google/ax's "declared != enforced" lesson to Caro and its harness.
+  CommandExecutor timeout kills the whole process group with a null stdin;
+  PreToolUse guard hooks read stdin JSON and block with exit 2; the
+  budget-leak scanner regex is corrected and read-only agents get tool
+  allowlists; `loop.sh` grows an iteration cap, per-iteration timeout, and
+  Ctrl+C forwarding; eval CI no longer masks failures or fakes backends.
+  Research in `docs/research/2026-09-24-google-ax-lessons.md`.
+- **i18n locale JSON files are now all loaded** ([#1352](https://github.com/wildcard/caro/pull/1352)):
+  the loader previously missed secondary JSON files, so overrides lived in
+  the primary `landing.json` or silently fell back to English. Fix plus a
+  full Hebrew-translation pass across the public site.
+- **Docs site + Storybook prepared for Cloudflare Pages**
+  ([#1351](https://github.com/wildcard/caro/pull/1351)): build pipeline
+  no longer depends on Vercel-specific routing for the docs/storybook
+  outputs.
+
+### Removed
+
+- **StarCoder 1B is no longer in the model catalog** ([#1341](https://github.com/wildcard/caro/issues/1341)).
+  Its Hugging Face repo (`TheBloke/starcoderbase-1b-GGUF`) no longer exists, so
+  the model could not download. `CARO_MODEL=starcoder-1b-q4` now fails with
+  "Model not found", and the public `caro::model_catalog::STARCODER_1B_Q4`
+  constant is removed.
 
 ### Fixed
 
+- **`/ai-agent-safety` no longer shows invented testimonials.** The "What
+  Enterprise Teams Are Saying" section quoted three unnamed people ("Platform
+  Engineering Lead, Series B SaaS Company", …). An AI agent wrote the quotes
+  with the page; no customer gave them. The page no longer renders the
+  section, and `AITestimonials.astro` is marked `PLACEHOLDER CONTENT`.
+- **Homepage no longer shows invented testimonials.** The "What Engineers
+  Are Saying" section quoted three made-up people under "Real results from
+  developers who made the switch". The homepage no longer renders it (#1569).
+  The component stays, marked `PLACEHOLDER CONTENT`, and
+  `placeholder-content.test.ts` fails if a page imports a marked component.
 - **Website footer links.** The footer's "How it works" and "Blog" links
   pointed at homepage sections that do not exist (`/#how-it-works`,
   `/#blog`), so they opened the top of the homepage. They now open the
@@ -142,7 +271,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Ha'atzmaut no longer starts on the evening of Yom HaZikaron west of
   Greenwich), and a saved national-day theme applies only in that country's
   timezones.
-
 - **`--explain` output is correct and legible.** The headline no longer reads
   "Use `find` Uses find to …". The option breakdown splits combined flags
   (`-rn`, `-la`) and no longer reports `-i` for `grep --include`. Destructive
@@ -172,51 +300,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   PWA icons for caro.sh) from the official pixel mark, in brand ink on brand
   paper, and writes the files each site uses. Guarded by
   `scripts/favicons.py --check` in the `Favicons` workflow.
-
-### Documentation
-
-- `docs/research/jev-system-one-gap-analysis.md` — what caro can learn from
-  Jev / System One models and what not to copy.
-- `docs/research/jev-of-execution-safety-strategy.md` — phased strategy for
-  caro as the calibrated, deterministic-floored decision layer for execution
-  safety (epic #1460 phases 1–5, docs/skills/rules impact).
-- [ADR-017](docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md) — Typed Decisions and Calibrated Confidence for Pipeline Gates
-  (Accepted).
-- `docs/PERFORMANCE.md` — new "Decision Latency & Calibration" section.
-
-## [1.5.0] - 2026-07-12
-
-### Added
-
-- **Runtime-loadable custom safety patterns** via TOML config. Users can now
-  add organization-specific dangerous-command patterns (e.g. `kubectl delete
-  -n prod`, `terraform destroy`, `aws s3 rb s3://prod-…`) without
-  recompiling. Two delivery surfaces, both additive on top of the built-in
-  pattern database:
-  - Inline `[[safety.custom_patterns]]` in `config.toml`.
-  - Sibling `~/.config/caro/patterns.toml` (preferred for team-shared rule sets).
-  Hardened: `risk_level` capped at `High` (Critical reserved for built-ins),
-  pattern source ≤ 512 chars (ReDoS bound), description required, malformed
-  regex fails loudly, and user allowlists cannot bypass Critical built-ins
-  (`rm -rf /` is blocked regardless of allowlist contents). See
-  [examples/patterns.example.toml](examples/patterns.example.toml) for the
-  full schema. Idea sourced from
-  [adolfousier/opencrabs](https://github.com/adolfousier/opencrabs)'s
-  `tools.toml` ergonomic; re-implemented from scratch in caro.
-
-### Changed
-
-- **MSRV bumped from 1.83 → 1.85** to fix CI breakage caused by transitive
-  dependencies (`lance-geo` → `i_tree`, etc.) requiring `edition2024`,
-  which Cargo only stabilized in 1.85. With MSRV 1.83, `cargo build
-  --locked` failed during dep-graph parsing even when the offending crates
-  were excluded by feature flag (e.g. the embedded-cpu MSRV CI build):
-  `--locked` parses every entry in `Cargo.lock`, including
-  feature-gated ones. Rust 1.85 was stabilized 2025-02-20, ~14 months
-  before this bump.
-
-### Fixed
-
+- **SmolLM catalog entry points to a live repo** ([#1341](https://github.com/wildcard/caro/issues/1341)).
+  The old Q4_K_M repo is gone, so `CARO_MODEL=smollm-135m-q4` could not
+  download. The entry now uses the 145 MB Q8_0 build. The
+  model id is unchanged. `CARO_GPU_LAYERS=0` runs the Apple Silicon backend on
+  the CPU only (the default stays all layers on Metal).
+- **`--output json` says when a run was a dry run**
+  ([#1532](https://github.com/wildcard/caro/pull/1532)): with `--dry-run`,
+  the JSON now includes `"dry_run": true`, so a consumer can tell
+  "generated" from "ran". `executed` keeps its meaning, "passed safety
+  checks". Guarded by `tests/dry_run_output_contract.rs`.
+- **Static matcher: "search for X in python files" searches inside the
+  files** ([#1517](https://github.com/wildcard/caro/pull/1517)): it
+  returned `find . -name "*.py" -type f` for any search term. It now
+  returns a content search, such as `grep -rn 'TODO' --include='*.py' .`.
+  Guarded by `test_search_for_term_in_python_files_greps_contents` in
+  `tests/beta_regression.rs`.
+- **Ollama and vLLM warn when the served context window is too small**
+  ([#1447](https://github.com/wildcard/caro/pull/1447)): caro checks the
+  context length that the server actually serves, once per process
+  (Ollama's default `num_ctx` is 2048, whatever the model card says). It
+  logs a warning when that is below 4,096 tokens or, for Ollama, below
+  the model's declared window. The check never blocks generation.
+- **A stalled model download fails instead of hanging**
+  ([#1561](https://github.com/wildcard/caro/pull/1561)): when the embedded
+  model download stopped sending bytes, caro hung with no output. A
+  watchdog now fails the attempt after 60 seconds with no bytes, and the
+  existing 3-attempt retry ends with the troubleshooting error. A slow
+  download that keeps sending bytes is not cut off. Closes #1440.
 - **Static matcher: "find and kill the runaway process eating CPU" now emits
   the full website-promised pipeline** (`ps aux | sort -nrk 3,3 | head -1 |
   awk '{print $2}' | xargs kill`) instead of the bare `kill PID` placeholder.
@@ -228,7 +339,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `kill the runaway process hogging CPU`. Closes the v1.4.0 release-
   acceptance P0 carry-forward.
   ([#947](https://github.com/wildcard/caro/issues/947))
-
 - **Safety: allowlist regression fixed + catastrophic floor hardened**
   ([#1246](https://github.com/wildcard/caro/pull/1246)). PR #1110's
   "Critical is never allowlistable" guard over-matched, so a deliberate
@@ -253,21 +363,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in default builds with a `--features remote-backends` hint.
 - **Flaky `test_cache_roundtrip` de-flaked** via the `CARO_CAPABILITY_CACHE`
   env override and serialized cache tests ([#1246](https://github.com/wildcard/caro/pull/1246)).
+- **Static matcher: Pattern 43 accepts current-directory qualifier**
+  ([#1487](https://github.com/wildcard/caro/pull/1487)): queries like
+  "list files in the current directory" now match the pattern that would
+  otherwise bind only to the bare "list files" phrasing.
+- **CLI: `config set/get` accepts every `config show` key**
+  ([#1497](https://github.com/wildcard/caro/pull/1497)): closes the
+  surface-parity gap where `config show` exposed keys that `config set`
+  then refused.
+- **CLI: `ai --once <prompt>` no longer blocks on stdin**
+  ([#1503](https://github.com/wildcard/caro/pull/1503)): a trailing-prompt
+  invocation reads the prompt from argv instead of waiting for stdin.
+- **Recursive world-writable `chmod` is High risk on any path**
+  ([#1600](https://github.com/wildcard/caro/pull/1600), closes
+  [#1592](https://github.com/wildcard/caro/issues/1592)). The validator
+  flagged `chmod -R 777` only when the path started with `/`, and never
+  flagged symbolic modes. A new pattern flags a recursive `chmod` whose
+  mode gives others write access (`777`, `666`, `a+rwx`, `o+w`, `o=rwx`)
+  on any path, with `-R` before or after the mode. `chmod -R 755` and
+  `o-w` stay below High. The landing page's DevOps scenario now says
+  "High Risk", not "Blocked": High asks for confirmation in the default
+  mode and is blocked only in strict mode. Guarded by
+  `safety::patterns::tests::test_chmod_recursive_world_writable_is_high`.
+- **Embedded backend: a 4096-token context window**
+  ([#1616](https://github.com/wildcard/caro/pull/1616), closes
+  [#1612](https://github.com/wildcard/caro/issues/1612)): the agent's full
+  prompt overflowed llama.cpp's fixed 2048-token context on SmolLM 135M
+  and TinyLlama 1.1B, and generation failed with "Failed to advance
+  context". Guarded by `agent_sized_prompt_fits_the_context_window`.
+- **Agent: one system prompt per embedded request**
+  ([#1618](https://github.com/wildcard/caro/pull/1618)): the first request
+  also carried the agent's own system prompt in its context, so the model
+  saw two sets of rules and the execution context twice. It now carries
+  the execution, directory and knowledge context and the platform notes
+  only. Guarded by
+  `agent::tests::initial_request_context_has_no_second_system_prompt`.
+- **CLI: one `Configuration error:` prefix for hosted backends**
+  ([#1622](https://github.com/wildcard/caro/pull/1622)): `--backend grok`,
+  `xai` or `openrouter` without an API key printed the prefix twice.
+  Guarded by `test_backend_config_error_has_single_prefix`.
+- **Package: builds from the crate compile the CVE rules**
+  ([#1632](https://github.com/wildcard/caro/pull/1632)): the crate's
+  `include` list missed the four Kyaro ASCII frames that `src/ui/kyaro.rs`
+  embeds, so `cargo package` failed. It also missed
+  `data/cve_rules/CVE-*.yaml`, so a build from the crate compiled 0 CVE
+  rules instead of 2; the 1.4.0 crate has the same gap. The crate now
+  ships both, with the Kyaro artwork notice (`assets/kyaro/README.md`),
+  and the GitHub Release uploads the notice too. Docker, npm and NuGet
+  packages are not published for 1.5.0.
 
 ### Security
 
+- **Quoted or escaped destructive targets are no longer rated Safe**
+  ([#1315](https://github.com/wildcard/caro/pull/1315)): the command
+  scanner matched a dangerous path only when it appeared unquoted right
+  after the command, so a leading backslash or a grouping quote hid it.
+  `rm -rf \/`, which the shell runs as `rm -rf /`, was rated Safe. For a
+  destructive POSIX statement, caro now also scans the unescaped,
+  unquoted form of the command, so `rm -rf \/`, `rm -rf \/etc` and
+  `rm -rf "/tmp"/*/x` are blocked as Critical. Guarded by
+  `test_quote_escape_evasion_is_caught_base` in
+  `tests/safety_validator_contract.rs`.
+- **reqwest 0.12 / wiremock 0.6 / h2 / rustls upgrade**
+  ([#1488](https://github.com/wildcard/caro/pull/1488)): resolves
+  RUSTSEC-2026-0258 (h2 pre-0.4.19) and RUSTSEC-2026-0285 (rustls
+  pre-0.23.45). `reqwest 0.11 → 0.12`, `wiremock 0.5 → =0.6.4`
+  (0.6.5 needs rustc 1.88 which exceeds MSRV 1.85), `h2 0.4.13 → 0.4.19`,
+  `rustls 0.23.36 → 0.23.45`. The legacy `h2 0.3` path is removed from
+  default and remote-backend builds; a scoped `.cargo/audit.toml` ignore
+  remains for the optional `chromadb`/`knowledge` features (review by
+  2026-12-31). This supersedes the terminal `reqwest 0.11 → rustls 0.21
+  → rustls-webpki 0.101.7` suppression carried in the 2026-07-12 scope.
 - Bump `rustls-webpki` modern path (`0.103.10` → `0.103.13`) to resolve
-  RUSTSEC-2026-0098, RUSTSEC-2026-0099, and RUSTSEC-2026-0104
-  (CRL parsing panics and name-constraint flaws). The legacy
-  `reqwest 0.11` → `rustls 0.21` → `rustls-webpki 0.101.7` path is
-  terminal (no upstream patch available); suppressed in `audit.toml` and
-  `.cargo/audit.toml` with documented rationale pending the reqwest 0.12
-  migration. `cargo audit` exits 0 with no unacknowledged vulnerabilities.
-  Reverts `continue-on-error: true` guard on the CI Security Audit job
-  (originally added in [#1072](https://github.com/wildcard/caro/pull/1072);
-  revert criteria from that PR are now met).
+  RUSTSEC-2026-0098, RUSTSEC-2026-0099, and RUSTSEC-2026-0104 (CRL parsing
+  panics and name-constraint flaws). `cargo audit` exits 0 with no
+  unacknowledged vulnerabilities. Reverts the `continue-on-error: true`
+  guard on the CI Security Audit job (originally added in
+  [#1072](https://github.com/wildcard/caro/pull/1072); revert criteria
+  from that PR are now met).
   ([#1026](https://github.com/wildcard/caro/pull/1026))
-
 - Dependency drift repair (2026-07-12, [#1246](https://github.com/wildcard/caro/pull/1246)):
   `crossbeam-epoch` 0.9.18 → 0.9.20 (RUSTSEC-2026-0204), `quinn-proto`
   0.11.14 → 0.11.16 (RUSTSEC-2026-0185, 7.5 high), `ethnum` 1.5.2 → 1.5.3
@@ -275,6 +449,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   suppressed with documented rationale and revert criteria — the fix
   requires a semver-major bump across the lancedb/opendal/object_store
   chain, and the affected paths parse object-store API XML only.
+- `quinn-proto` 0.11.16 → 0.11.19 in `Cargo.lock`
+  ([#1619](https://github.com/wildcard/caro/pull/1619)) clears five
+  advisories (RUSTSEC-2026-0338 to -0341 and RUSTSEC-2026-0343) from
+  `cargo audit`. No caro build compiles quinn, so no binary or crate build
+  was affected.
+- Website build: an npm override sets `sharp` to 0.35.5 for the libvips,
+  libheif and librsvg advisories
+  ([#1611](https://github.com/wildcard/caro/pull/1611)).
+
+### Documentation
+
+- `docs/research/jev-system-one-gap-analysis.md` — what caro can learn from
+  Jev / System One models and what not to copy.
+- `docs/research/jev-of-execution-safety-strategy.md` — phased strategy for
+  caro as the calibrated, deterministic-floored decision layer for execution
+  safety (epic #1460 phases 1–5, docs/skills/rules impact).
+- [ADR-017](docs/adr/ADR-017-typed-decisions-and-calibrated-confidence.md) — Typed Decisions and Calibrated Confidence for Pipeline Gates
+  (Accepted).
+- `docs/PERFORMANCE.md` — new "Decision Latency & Calibration" section.
+- `docs/research/2026-09-24-google-ax-lessons.md` — the "declared !=
+  enforced" lesson underpinning #1470.
+- Release-reset decision record, filed in
+  [#1514](https://github.com/wildcard/caro/pull/1514) — rationale for
+  consolidating this release scope from the stalled 2026-07-12 scope.
+- `docs/research/siesta-autonomous-pipeline-takeaways.md`
+  ([#1447](https://github.com/wildcard/caro/pull/1447)) — patterns from the
+  siesta autonomous pipeline, mapped to where they apply in caro.
+- `docs/research/dspy-prompt-optimization.md`
+  ([#1448](https://github.com/wildcard/caro/pull/1448)) — DSPy
+  prompt-optimization learnings and an adoption roadmap.
 
 ### Internal
 
@@ -282,6 +486,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New Tier-2 rule `.claude/rules/feature-evidence.md`: every feature PR
   carries evidence (green CI link), a runnable demo, and a named
   regression-guard test; weekly demo reports land in `docs/demos/`.
+- **Lint & Format CI pinned to Rust 1.98.1**
+  ([#1498](https://github.com/wildcard/caro/pull/1498),
+  [#1505](https://github.com/wildcard/caro/pull/1505)): clippy's rolling
+  "latest-stable" tag was breaking under new lints that landed between
+  commits.
+- **Vercel adapter astro-drift guard** (`4d7a855`): a test on the website
+  build catches Astro-major churn before it reaches production.
+- **Plain `cargo run` works** ([#1522](https://github.com/wildcard/caro/pull/1522)):
+  `default-run = "caro"`, so `cargo run -- "query"` no longer asks which
+  binary to run. Guarded by `tests/cargo_default_run.rs`.
+- **`cargo test safety` works with the evaluation harness**
+  ([#1548](https://github.com/wildcard/caro/pull/1548)): the `evaluation`
+  harness accepts libtest's name filter and skips itself when the filter
+  does not match. Guarded by `tests/evaluation_filter_contract.rs`.
+- **Tag Release workflow** ([#1306](https://github.com/wildcard/caro/pull/1306)):
+  `tag-release.yml` creates the release tag from a `workflow_dispatch`, for
+  environments that cannot push tags. It fails closed unless the tag
+  matches the `Cargo.toml` version and the commit is on `main`.
+  `publish.yml` can now be dispatched too, because a tag that
+  `GITHUB_TOKEN` pushes does not trigger it.
+- The broken add-contributor job is removed from `pr-merged.yml`
+  ([#1527](https://github.com/wildcard/caro/pull/1527)); its action no
+  longer exists.
+- **Release workflow** ([#1631](https://github.com/wildcard/caro/pull/1631),
+  fixes [#1625](https://github.com/wildcard/caro/issues/1625)): only a
+  published release counts as existing, so release-drafter's v1.5.0 draft
+  no longer stops `release.yml` from creating the release.
+- **One npm lockfile** ([#1608](https://github.com/wildcard/caro/pull/1608),
+  [#1620](https://github.com/wildcard/caro/pull/1620)): the npm workspaces
+  use the root `package-lock.json`, and the nested lockfiles are deleted.
+- **CI** ([#1605](https://github.com/wildcard/caro/pull/1605),
+  [#1606](https://github.com/wildcard/caro/pull/1606)): the installer tests
+  uninstall through cargo between runs, and the website tests run on every
+  PR so that the check can be required.
 
 ## [1.4.0] - 2026-05-09
 

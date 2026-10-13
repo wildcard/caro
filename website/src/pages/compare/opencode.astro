@@ -35,7 +35,7 @@ const comparison = {
   sections: [
     {
       title: 'Scope and Focus',
-      icon: '🎯',
+      icon: '▸',
       content: `
         <p><strong>OpenCode</strong> is a general-purpose AI coding agent. It edits files, refactors code, explains codebases, runs terminal commands, uses MCP servers and supports 75+ model providers. It has a terminal UI, a desktop app and IDE extensions.</p>
         <p><strong>Caro</strong> does one job: help you write and safely run shell commands. That focus allows deeper shell knowledge, such as platform detection and GNU/BSD awareness, and stronger safety defaults.</p>
@@ -43,7 +43,7 @@ const comparison = {
     },
     {
       title: 'Safety Approach',
-      icon: '🛡️',
+      icon: '■',
       content: `
         <p><strong>OpenCode</strong> allows all operations by default. You can set <code>bash</code> to <code>ask</code> and write wildcard rules such as <code>"rm *": "deny"</code> in <code>opencode.json</code>. The built-in Plan agent asks before edits and shell commands. A plugin can check or block any command before it runs. OpenCode does not ship a curated list of dangerous commands.</p>
         <p><strong>Caro</strong> checks every command against 52+ curated patterns, rates it CRITICAL, HIGH, MEDIUM or LOW, and blocks critical commands such as <code>rm -rf /</code> and fork bombs, with no configuration.</p>
@@ -51,7 +51,7 @@ const comparison = {
     },
     {
       title: 'Local Operation',
-      icon: '📡',
+      icon: '$',
       content: `
         <p><strong>OpenCode</strong> works with Ollama, LM Studio and llama.cpp. By default it still goes online to fetch model metadata, check for updates and download language servers. Each of these has an off switch.</p>
         <p><strong>Caro</strong> is offline-first. After a one-time model download it never needs the internet, which suits air-gapped networks, flights and restricted VPNs.</p>
@@ -59,7 +59,7 @@ const comparison = {
     },
     {
       title: 'Use Both',
-      icon: '🤝',
+      icon: '▸',
       content: `
         <p>Use <strong>OpenCode</strong> for coding work: editing files, explaining code and refactoring. Reach for <strong>Caro</strong> when you want one shell command, checked for safety, in seconds.</p>
       `

@@ -35,7 +35,7 @@ const comparison = {
   sections: [
     {
       title: 'Cloud Dependency',
-      icon: '☁️',
+      icon: '$',
       content: `
         <p><strong>Kiro CLI</strong> sends every request to models hosted on Amazon Bedrock: Claude, GPT and open-weight models. It needs a sign-in with GitHub, Google, AWS Builder ID or IAM Identity Center. It does not need an AWS account. It has no local-model or custom-endpoint option today.</p>
         <p><strong>Caro</strong> runs a local model on your machine. After a one-time model download it needs no internet, no account and no API key, on any cloud or on bare metal.</p>
@@ -43,7 +43,7 @@ const comparison = {
     },
     {
       title: 'Privacy and Data',
-      icon: '🔒',
+      icon: '▸',
       content: `
         <p><strong>Kiro CLI</strong> collects usage data and metrics by default for free-tier and individual users, and can use content to improve the service. You can opt out. Enterprise users signed in through IAM Identity Center are opted out automatically.</p>
         <p><strong>Caro</strong> processes prompts and commands locally. They do not leave your machine.</p>
@@ -51,7 +51,7 @@ const comparison = {
     },
     {
       title: 'Safety Approach',
-      icon: '🛡️',
+      icon: '■',
       content: `
         <p><strong>Kiro CLI</strong> runs read-only commands like <code>git status</code> and <code>pwd</code> on its own and asks before everything else. It splits compound commands on <code>;</code>, <code>&amp;&amp;</code>, <code>||</code> and <code>|</code> and checks each part. You can write deny/ask/allow rules in <code>permissions.yaml</code>, and admins can enforce them. <code>--trust-all-tools</code> turns the prompts off for a session. It does not ship a curated list of dangerous commands.</p>
         <p><strong>Caro</strong> checks every command against 52+ curated patterns, rates it CRITICAL, HIGH, MEDIUM or LOW, and blocks critical commands such as <code>rm -rf /</code> and fork bombs, with no configuration.</p>
@@ -59,7 +59,7 @@ const comparison = {
     },
     {
       title: 'Features and Scope',
-      icon: '🎯',
+      icon: '▸',
       content: `
         <p><strong>Kiro CLI</strong> is a full coding agent: interactive chat, custom agents, MCP servers, hooks, headless mode for CI and the Agent Client Protocol. It shares a subscription with the Kiro IDE.</p>
         <p><strong>Caro</strong> specializes in shell commands, with POSIX-first output, platform detection and GNU/BSD awareness. It works the same on AWS, GCP, Azure or bare metal.</p>

@@ -1,18 +1,48 @@
 ---
 /**
- * SEO Component - Centralized meta tag management for Caro.sh
- * Handles Open Graph, Twitter Cards, canonical URLs, and structured data
+ * SEO — the one <head> metadata block for every layout.
+ *
+ * Each page gets, from its path and title alone:
+ * - a canonical URL, robots, Open Graph and X/Twitter tags;
+ * - its own 1200 × 630 share card at /og/<page>.png;
+ * - a link to its Markdown twin at /<page>.md, for agents;
+ * - hreflang alternates, only on pages that have real translations;
+ * - one JSON-LD graph: Organization, WebSite, WebPage, BreadcrumbList, plus
+ *   SoftwareApplication on the home page and BlogPosting on articles.
+ *
+ * The card and the twin are written after the build by
+ * src/integrations/agent-seo.ts, from the same helpers (src/lib/seo/routes.ts),
+ * which then fails the build if any page's files are missing.
  */
 import Favicons from './Favicons.astro';
+import { SITE_CONFIG } from '../config/site';
+import type { Locale } from '../i18n/config';
+import {
+  breadcrumbs,
+  cardTitle,
+  hreflangAlternates,
+  markdownPath,
+  NOINDEX_PATHS,
+  normalizePath,
+  OG_LOCALES,
+  ogImagePath,
+  SITE_NAME,
+  unlocalizedPath,
+  X_HANDLE,
+} from '../lib/seo/routes';
 
 interface Props {
   title: string;
   description: string;
+  lang?: Locale;
+  /** Overrides the generated share card. */
   image?: string;
   imageAlt?: string;
   type?: 'website' | 'article';
   publishedTime?: string;
   modifiedTime?: string;
+  /** e.g. `6 min read`; shown in link previews and on the share card. */
+  readingTime?: string;
   author?: string;
   tags?: string[];
   noindex?: boolean;
@@ -22,153 +52,202 @@ interface Props {
 const {
   title,
   description,
-  image = '/og-image.png',
-  imageAlt = 'Caro - Your Loyal Shell Companion',
+  lang = 'en',
+  image,
+  imageAlt,
   type = 'website',
   publishedTime,
   modifiedTime,
+  readingTime,
   author = 'Caro Team',
   tags = [],
   noindex = false,
   canonical,
 } = Astro.props;
 
-const siteUrl = 'https://caro.sh';
-const siteName = 'Caro';
-const twitterHandle = '@CaroDaShellShib';
+const site = Astro.site ?? new URL('https://caro.sh');
+const origin = site.origin;
+const path = normalizePath(Astro.url.pathname);
+const canonicalUrl = canonical ?? new URL(path, site).href;
+const robotsOff = noindex || NOINDEX_PATHS.includes(unlocalizedPath(path));
 
-// Build canonical URL with normalized pathname (remove trailing slashes except for root)
-const normalizedPathname =
-  Astro.url.pathname === '/' ? '/' : Astro.url.pathname.replace(/\/+$/, '');
-const canonicalUrl = canonical || new URL(normalizedPathname, siteUrl).href;
+const absolute = (href: string) => new URL(href, site).href;
+const imageUrl = absolute(image ?? ogImagePath(path));
+/** The generated card is a 1200 × 630 PNG; an override's type and size are unknown. */
+const isCard = image === undefined;
+const imageText = imageAlt ?? `${cardTitle(title)}: the Caro share card`;
+const markdownUrl = absolute(markdownPath(path));
 
-// Build full image URL
-const imageUrl = (image.startsWith('http') || image.startsWith('//')) ? image : new URL(image, siteUrl).href;
+const alternates = hreflangAlternates(path);
+const ogLocale = OG_LOCALES[lang];
+const ogLocaleAlternates = alternates.length
+  ? Object.entries(OG_LOCALES)
+      .filter(([code]) => code !== lang)
+      .map(([, value]) => value)
+  : [];
 
-// Structured data for the page
-const websiteSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: siteName,
-  url: siteUrl,
-  description: 'Your loyal shell companion - AI-powered terminal assistant',
-};
+const isHome = unlocalizedPath(path) === '/';
+const crumbs = breadcrumbs(path, title);
+const organizationId = `${origin}/#organization`;
+const websiteId = `${origin}/#website`;
+const webpageId = `${canonicalUrl}#webpage`;
 
-const softwareSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
-  name: 'Caro',
-  alternateName: 'Caro.sh',
-  description: 'A companion agent that helps you with POSIX shell commands using AI',
-  url: siteUrl,
-  applicationCategory: 'DeveloperApplication',
-  operatingSystem: 'macOS, Linux',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-  },
-  featureList: [
-    'Natural language to shell command conversion',
-    'Claude MCP integration',
-    'POSIX compliant command generation',
-    'Safety validation for dangerous commands',
-  ],
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '5.0',
-    ratingCount: 1,
-  },
-};
-
-const articleSchema = type === 'article' && publishedTime ? {
-  '@context': 'https://schema.org',
-  '@type': 'BlogPosting',
-  headline: title,
-  description: description,
-  image: imageUrl,
-  datePublished: publishedTime,
-  dateModified: modifiedTime || publishedTime,
-  author: {
+const graph = [
+  {
     '@type': 'Organization',
-    name: author,
+    '@id': organizationId,
+    name: SITE_NAME,
+    url: `${origin}/`,
+    logo: { '@type': 'ImageObject', url: `${origin}/icon-512.png`, width: 512, height: 512 },
+    sameAs: [SITE_CONFIG.github.url, SITE_CONFIG.social.x, SITE_CONFIG.social.bluesky],
   },
-  publisher: {
-    '@type': 'Organization',
-    name: siteName,
-    logo: {
-      '@type': 'ImageObject',
-      url: `${siteUrl}/caro-pixel.png`,
-    },
+  {
+    '@type': 'WebSite',
+    '@id': websiteId,
+    url: `${origin}/`,
+    name: SITE_NAME,
+    description: SITE_CONFIG.tagline,
+    publisher: { '@id': organizationId },
+    inLanguage: 'en',
   },
-  mainEntityOfPage: {
+  {
     '@type': 'WebPage',
-    '@id': canonicalUrl,
+    '@id': webpageId,
+    url: canonicalUrl,
+    name: title,
+    description,
+    isPartOf: { '@id': websiteId },
+    inLanguage: lang,
+    primaryImageOfPage: {
+      '@type': 'ImageObject',
+      url: imageUrl,
+      ...(isCard ? { width: 1200, height: 630 } : {}),
+    },
+    ...(crumbs.length ? { breadcrumb: { '@id': `${canonicalUrl}#breadcrumb` } } : {}),
   },
-} : null;
+  crumbs.length && {
+    '@type': 'BreadcrumbList',
+    '@id': `${canonicalUrl}#breadcrumb`,
+    itemListElement: crumbs.map((crumb, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: crumb.name,
+      item: absolute(crumb.path),
+    })),
+  },
+  isHome && {
+    '@type': 'SoftwareApplication',
+    '@id': `${origin}/#software`,
+    name: SITE_NAME,
+    alternateName: 'caro.sh',
+    description:
+      'Converts natural language into safe POSIX shell commands with a local LLM, and checks every command against dangerous-command patterns before it runs.',
+    url: `${origin}/`,
+    image: imageUrl,
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'macOS, Linux, Windows',
+    softwareVersion: SITE_CONFIG.version,
+    license: 'https://www.gnu.org/licenses/agpl-3.0.html',
+    downloadUrl: 'https://crates.io/crates/caro',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    publisher: { '@id': organizationId },
+    featureList: [
+      'Natural language to shell command conversion',
+      'Local LLM inference (MLX on Apple Silicon, CPU elsewhere)',
+      'Safety validation for dangerous commands',
+      'POSIX-compliant, platform-aware command generation',
+    ],
+  },
+  type === 'article' &&
+    publishedTime && {
+      '@type': 'BlogPosting',
+      '@id': `${canonicalUrl}#article`,
+      headline: cardTitle(title),
+      description,
+      image: [imageUrl],
+      datePublished: publishedTime,
+      dateModified: modifiedTime ?? publishedTime,
+      author: { '@type': 'Organization', name: author, url: `${origin}/` },
+      publisher: { '@id': organizationId },
+      mainEntityOfPage: { '@id': webpageId },
+      inLanguage: lang,
+      ...(tags.length ? { keywords: tags.join(', ') } : {}),
+    },
+].filter(Boolean);
+
+const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
 ---
 
 <!-- Primary Meta Tags -->
 <title>{title}</title>
-<meta name="title" content={title} />
 <meta name="description" content={description} />
 <meta name="author" content={author} />
 <link rel="canonical" href={canonicalUrl} />
+<meta
+  name="robots"
+  content={robotsOff
+    ? 'noindex, nofollow'
+    : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'}
+/>
 
-<!-- Robots -->
-{noindex ? (
-  <meta name="robots" content="noindex, nofollow" />
-) : (
-  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-)}
+<!-- Translations: only pages with real translated versions -->
+{alternates.map(({ hreflang, path: href }) => (
+  <link rel="alternate" hreflang={hreflang} href={absolute(href)} />
+))}
 
-<!-- Open Graph / Facebook / LinkedIn / Discord -->
+<!-- For agents: this page as Markdown, and the site index -->
+<link rel="alternate" type="text/markdown" href={markdownUrl} title={`${title} (Markdown)`} />
+<link rel="alternate" type="application/rss+xml" href={`${origin}/rss.xml`} title="Caro Blog" />
+<link rel="sitemap" type="application/xml" href={`${origin}/sitemap-index.xml`} />
+
+<!-- Open Graph / Facebook / LinkedIn / Discord / Slack -->
 <meta property="og:type" content={type} />
 <meta property="og:url" content={canonicalUrl} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:image" content={imageUrl} />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content={imageAlt} />
-<meta property="og:site_name" content={siteName} />
-<meta property="og:locale" content="en_US" />
+{isCard && (
+  <>
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+  </>
+)}
+<meta property="og:image:alt" content={imageText} />
+<meta property="og:site_name" content={SITE_NAME} />
+<meta property="og:locale" content={ogLocale} />
+{ogLocaleAlternates.map((value) => <meta property="og:locale:alternate" content={value} />)}
 
-<!-- Article-specific Open Graph tags -->
 {type === 'article' && publishedTime && (
   <>
     <meta property="article:published_time" content={publishedTime} />
-    {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    <meta property="article:modified_time" content={modifiedTime ?? publishedTime} />
     <meta property="article:author" content={author} />
     <meta property="article:section" content="Technology" />
-    {tags.map(tag => <meta property="article:tag" content={tag} />)}
+    {tags.map((tag) => <meta property="article:tag" content={tag} />)}
   </>
 )}
 
-<!-- Twitter / X -->
+<!-- X / Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:site" content={twitterHandle} />
-<meta name="twitter:creator" content={twitterHandle} />
-<meta name="twitter:url" content={canonicalUrl} />
+<meta name="twitter:site" content={X_HANDLE} />
+<meta name="twitter:creator" content={X_HANDLE} />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={imageUrl} />
-<meta name="twitter:image:alt" content={imageAlt} />
+<meta name="twitter:image:alt" content={imageText} />
+{readingTime && (
+  <>
+    <meta name="twitter:label1" content="Reading time" />
+    <meta name="twitter:data1" content={readingTime} />
+  </>
+)}
 
-<!-- Theme & Mobile -->
-<meta name="theme-color" content="#1a1a2e" />
-<meta name="color-scheme" content="dark light" />
+<!-- Theme: the page background, from src/ui/tokens.css (--bg) -->
+<meta name="theme-color" content="#f4f1df" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#2b2b2b" media="(prefers-color-scheme: dark)" />
+<meta name="color-scheme" content="light dark" />
 
-<!-- Favicon Package -->
 <Favicons />
 
-<!-- Structured Data -->
-{type === 'website' && (
-  <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
-)}
-{type === 'website' && (
-  <script type="application/ld+json" set:html={JSON.stringify(softwareSchema)} />
-)}
-{articleSchema && (
-  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
-)}
+<script type="application/ld+json" set:html={jsonLd} />

@@ -68,8 +68,12 @@ jobs:
           # Allowlist for bots and specific users (case-sensitive for commit authors)
           allowlist: bot*,dependabot*,github-actions*,claude,Claude,wildcard,copilot,Copilot
 
+          # The exact comment a contributor posts to sign. It must match the
+          # phrase that the `if:` conditions above test for.
+          custom-pr-sign-comment: 'I have read the CLA Document and I hereby sign the CLA'
+
           # Message to post on PR when CLA is not signed
-          custom-pr-sign-comment: |
+          custom-notsigned-prcomment: |
             Thank you for your contribution to **caro**! 🎉
 
             Before we can merge your pull request, we need you to sign our **Contributor License Agreement (CLA)**.

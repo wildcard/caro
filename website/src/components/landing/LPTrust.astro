@@ -1,5 +1,6 @@
 ---
 import { type Locale } from '../../i18n/config';
+import TermGlyph, { type Glyph } from '../../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -35,11 +36,12 @@ const testimonials = [
   }
 ];
 
-const trustSignals = [
-  { icon: "⭐", label: "Open Source", detail: "AGPL-3.0 licensed" },
-  { icon: "🔒", label: "Privacy-First", detail: "See our policy", link: "/telemetry" },
-  { icon: "🦀", label: "Built with Rust", detail: "Memory-safe, fast" },
-  { icon: "📦", label: "Single Binary", detail: "No dependencies" },
+// Terminal glyphs (docs/brand/ICONOGRAPHY.md); the Rust card keeps Rust's own mark.
+const trustSignals: { glyph?: Glyph; mark?: string; label: string; detail: string; link?: string }[] = [
+  { glyph: "❯", label: "Open Source", detail: "AGPL-3.0 licensed" },
+  { glyph: "▸", label: "Privacy-First", detail: "See our policy", link: "/telemetry" },
+  { mark: "🦀", label: "Built with Rust", detail: "Memory-safe, fast" },
+  { glyph: "$", label: "Single Binary", detail: "No dependencies" },
 ];
 ---
 
@@ -67,7 +69,7 @@ const trustSignals = [
       {trustSignals.map((signal) => (
         signal.link ? (
           <a href={signal.link} class="trust-signal trust-signal-link">
-            <span class="signal-icon">{signal.icon}</span>
+            <span class="signal-icon">{signal.glyph ? <TermGlyph g={signal.glyph} /> : signal.mark}</span>
             <div class="signal-content">
               <div class="signal-label">{signal.label}</div>
               <div class="signal-detail">{signal.detail}</div>
@@ -75,7 +77,7 @@ const trustSignals = [
           </a>
         ) : (
           <div class="trust-signal">
-            <span class="signal-icon">{signal.icon}</span>
+            <span class="signal-icon">{signal.glyph ? <TermGlyph g={signal.glyph} /> : signal.mark}</span>
             <div class="signal-content">
               <div class="signal-label">{signal.label}</div>
               <div class="signal-detail">{signal.detail}</div>
@@ -195,7 +197,8 @@ const trustSignals = [
   }
 
   .signal-icon {
-    font-size: 24px;
+    font-size: 16px;
+    color: var(--color-text-secondary);
   }
 
   .signal-label {
