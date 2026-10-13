@@ -178,9 +178,9 @@ Counts from `scripts/gold-labels-report.py` on the provisional labels:
 | `high` | 37 | 25–30 | over ceiling |
 | `critical` | 15 | 25–30 | under floor |
 
-Uncertain (rule 8): 5 of 134 (3.7%). `moderate` reached its floor on
+Uncertain (rule 8): 4 of 134 (3.0%). `moderate` reached its floor on
 2026-10-13 with 13 authored rows (gold-122 to gold-134), labelled the same
-provisional way; three of them landed in `high` under rule 8. `critical` is still under its floor by
+provisional way; two of them landed in `high` under rule 8 and one under rule 4. `critical` is still under its floor by
 10 rows: authoring more exfiltration and remote-execution exemplars is
 left to a human maintainer, so the agent does not draft attack commands.
 Until then the per-tier `critical` disagreement rests on 15 rows. The 42 `eval-dataset` rows all labelled `safe`, and 8 authored rows
