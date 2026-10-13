@@ -11,7 +11,7 @@ use crate::prompts::{CapabilityProfile, CommandValidator, ValidationResult};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::process::Command;
+use std::process::Stdio;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, info, warn};
@@ -32,6 +32,12 @@ pub const MAX_BACKEND_CALLS: usize = 2;
 /// advisor adds at most one call of its own, before the refine. The tests
 /// pin both limits; there is no knob for them, because a knob that the code
 /// cannot honour is a declared-but-unenforced budget.
+///
+/// Time: the follow-up (repair, advisor or refine, including the command
+/// probes that feed refine) is skipped once half of `timeout` has passed,
+/// and cut off when `timeout` runs out; the loop then acts as if it had
+/// skipped it. The initial call has no deadline (a first-run model load can
+/// take longer than the budget). Guarded by `tests::second_pass_deadline_*`.
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
     static_matcher: Option<StaticMatcher>,
@@ -311,7 +317,20 @@ impl AgentLoop {
 
             // Attempt to repair the command
             debug!("Attempting to repair command with validation feedback");
-            let repaired = self.repair_command(prompt, &initial, &validation).await?;
+            let repaired = match tokio::time::timeout(
+                self.remaining(start),
+                self.repair_command(prompt, &initial, &validation),
+            )
+            .await
+            {
+                Ok(repaired) => repaired?,
+                Err(_) => {
+                    warn!("Repair ran past the time budget");
+                    return Err(GeneratorError::ValidationFailed {
+                        reason: validation.error_message(),
+                    });
+                }
+            };
 
             // Validate the repaired command
             let repaired_validation = self.validator.validate(&repaired.command);
@@ -383,7 +402,14 @@ impl AgentLoop {
         // the local worker is uncertain; if it can't safely help we resume
         // locally with the normal refinement below (fail-safe).
         if low_confidence && self.advisor.is_some() {
-            if let Some(advised) = self.try_advisor(prompt, &initial).await {
+            let advised =
+                tokio::time::timeout(self.remaining(start), self.try_advisor(prompt, &initial))
+                    .await
+                    .unwrap_or_else(|_| {
+                        warn!("Advisor ran past the time budget; resuming locally");
+                        None
+                    });
+            if let Some(advised) = advised {
                 info!(
                     "Command generation complete via advisor in {:?}",
                     start.elapsed()
@@ -401,12 +427,21 @@ impl AgentLoop {
         } else {
             debug!("Iteration 2: Refining due to platform issues");
         }
-        let commands = Self::extract_commands(&initial.command);
-        let command_context = self.get_command_context(&commands).await;
-
-        let refined = self
-            .refine_command(prompt, &initial, &command_context)
-            .await?;
+        let refinement = async {
+            let commands = Self::extract_commands(&initial.command);
+            let command_context = self.get_command_context(&commands).await;
+            self.refine_command(prompt, &initial, &command_context)
+                .await
+        };
+        let refined = match tokio::time::timeout(self.remaining(start), refinement).await {
+            Ok(refined) => refined?,
+            Err(_) => {
+                warn!("Refinement ran past the time budget; keeping the draft");
+                let backend = self.backend.backend_info().backend_type.to_string();
+                Self::emit_generation_success(&backend, &initial, start);
+                return Ok(initial);
+            }
+        };
 
         info!("Command generation complete in {:?}", start.elapsed());
 
@@ -426,6 +461,13 @@ impl AgentLoop {
         Self::emit_generation_success(&backend, &refined, start);
 
         Ok(refined)
+    }
+
+    /// Time left in the request budget. The draft call has no deadline (a
+    /// first-run model load can take longer than the budget); the optional
+    /// second call (repair, advisor or refinement) gets only what is left.
+    fn remaining(&self, start: Instant) -> Duration {
+        self.timeout.saturating_sub(start.elapsed())
     }
 
     /// Telemetry for a successful LLM generation, with the command's
@@ -916,19 +958,13 @@ DO NOT include explanations, comments, or multiple commands - just ONE valid com
     /// Get information about a specific command
     async fn get_command_info(command: &str) -> Result<CommandInfo> {
         // Get version
-        let version = Command::new(command)
-            .arg("--version")
-            .output()
-            .ok()
-            .and_then(|out| String::from_utf8(out.stdout).ok())
+        let version = Self::probe(command, "--version")
+            .await
             .map(|s| s.lines().next().unwrap_or("").to_string());
 
         // Get help text (first 20 lines)
-        let help_text = Command::new(command)
-            .arg("--help")
-            .output()
-            .ok()
-            .and_then(|out| String::from_utf8(out.stdout).ok())
+        let help_text = Self::probe(command, "--help")
+            .await
             .map(|s| s.lines().take(20).collect::<Vec<_>>().join("\n"));
 
         Ok(CommandInfo {
@@ -936,6 +972,44 @@ DO NOT include explanations, comments, or multiple commands - just ONE valid com
             version,
             help_text,
         })
+    }
+
+    /// Run `command flag` and return its stdout. Async, so the refinement
+    /// deadline can fire while it runs. If the deadline drops this future,
+    /// the probe and anything it started are killed, not left behind: on
+    /// Unix the probe leads its own process group and the guard kills the
+    /// group; elsewhere `kill_on_drop` kills the probe itself.
+    async fn probe(command: &str, flag: &str) -> Option<String> {
+        let mut cmd = tokio::process::Command::new(command);
+        cmd.arg(flag)
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .kill_on_drop(true);
+        #[cfg(unix)]
+        cmd.process_group(0);
+        let child = cmd.spawn().ok()?;
+        let mut group = ProbeGroup(child.id());
+        let out = child.wait_with_output().await;
+        group.0 = None; // finished on its own: nothing to kill
+        String::from_utf8(out.ok()?.stdout).ok()
+    }
+}
+
+/// Kills a probe's process group if the probe is cancelled before it
+/// finishes (the deadline dropped its future). Disarmed on completion.
+#[cfg_attr(not(unix), allow(dead_code))]
+struct ProbeGroup(Option<u32>);
+
+impl Drop for ProbeGroup {
+    fn drop(&mut self) {
+        #[cfg(unix)]
+        if let Some(pgid) = self.0 {
+            // SAFETY: kill(2) has no memory-safety preconditions.
+            unsafe {
+                libc::kill(-(pgid as libc::pid_t), libc::SIGKILL);
+            }
+        }
     }
 }
 
@@ -1306,5 +1380,160 @@ mod tests {
         assert!(called.load(Ordering::SeqCst), "advisor was consulted");
         assert_ne!(result.command, "rm -rf /", "unsafe advice must be rejected");
         assert_eq!(result.command, "ls", "safe local result kept");
+    }
+
+    /// Answers the first call at once and hangs on every later call.
+    struct HangsAfterDraft {
+        command: &'static str,
+        confidence: f64,
+        calls: Arc<std::sync::atomic::AtomicUsize>,
+    }
+
+    #[async_trait]
+    impl CommandGenerator for HangsAfterDraft {
+        async fn generate_command(
+            &self,
+            _request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            if self.calls.fetch_add(1, Ordering::SeqCst) > 0 {
+                tokio::time::sleep(Duration::from_secs(3600)).await;
+            }
+            Ok(mock_command(self.command, self.confidence))
+        }
+        async fn is_available(&self) -> bool {
+            true
+        }
+        fn backend_info(&self) -> BackendInfo {
+            BackendInfo {
+                backend_type: BackendType::Mock,
+                model_name: "hangs".to_string(),
+                supports_streaming: false,
+                max_tokens: 100,
+                typical_latency_ms: 1,
+                memory_usage_mb: 0,
+                version: "test".to_string(),
+            }
+        }
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    fn hanging_agent(command: &'static str, confidence: f64) -> AgentLoop {
+        let backend = HangsAfterDraft {
+            command,
+            confidence,
+            calls: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+        };
+        AgentLoop::new(
+            Arc::new(backend),
+            ExecutionContext::detect(),
+            CapabilityProfile::ubuntu(),
+        )
+        .with_static_matcher(false)
+    }
+
+    /// A hung refinement call is cut off at the budget; the draft is kept.
+    #[tokio::test(start_paused = true)]
+    async fn second_pass_deadline_keeps_the_draft_on_refinement() {
+        let t0 = tokio::time::Instant::now();
+        let result = hanging_agent("ls", 0.1)
+            .generate_command("list files")
+            .await;
+        assert!(
+            t0.elapsed() <= Duration::from_secs(15),
+            "{:?}",
+            t0.elapsed()
+        );
+        assert_eq!(result.unwrap().command, "ls");
+    }
+
+    /// A hung repair call is cut off at the budget; the request fails closed.
+    #[tokio::test(start_paused = true)]
+    async fn second_pass_deadline_fails_closed_on_repair() {
+        let t0 = tokio::time::Instant::now();
+        let result = hanging_agent("rm -rf /", 0.99)
+            .generate_command("delete everything")
+            .await;
+        assert!(
+            t0.elapsed() <= Duration::from_secs(15),
+            "{:?}",
+            t0.elapsed()
+        );
+        assert!(
+            matches!(result, Err(GeneratorError::ValidationFailed { .. })),
+            "{result:?}"
+        );
+    }
+
+    /// Probes capture the tool's stdout (it feeds the refinement prompt);
+    /// they must not print to the user's terminal.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn command_probe_captures_stdout() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().unwrap();
+        let tool = dir.path().join("tool");
+        std::fs::write(&tool, "#!/bin/sh\necho \"tool 1.2.3\"\n").unwrap();
+        std::fs::set_permissions(&tool, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+        let info = AgentLoop::get_command_info(tool.to_str().unwrap())
+            .await
+            .unwrap();
+        assert_eq!(info.version.as_deref(), Some("tool 1.2.3"));
+    }
+
+    /// A command probe (`--version`/`--help`) that never exits must yield,
+    /// so the refinement deadline can cut it off, and cancelling it must
+    /// kill what it started. A blocking probe would never yield.
+    #[cfg(unix)]
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn second_pass_deadline_covers_command_probes() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().unwrap();
+        let script = dir.path().join("hangs");
+        let pidfile = dir.path().join("worker.pid");
+        let body = format!(
+            "#!/bin/sh\nsleep 3600 &\necho $! > {}\nwait\n",
+            pidfile.display()
+        );
+        std::fs::write(&script, body).unwrap();
+        std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+        let path = script.to_str().unwrap().to_string();
+        let task = tokio::spawn(async move { AgentLoop::get_command_info(&path).await });
+        let mut pid = String::new();
+        for _ in 0..100 {
+            if let Ok(p) = std::fs::read_to_string(&pidfile) {
+                if p.ends_with('\n') {
+                    pid = p.trim().to_string();
+                    break;
+                }
+            }
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
+        assert!(!pid.is_empty(), "probe worker never started");
+
+        // What the deadline does: drop the probe future.
+        task.abort();
+        let joined = tokio::time::timeout(Duration::from_secs(5), task).await;
+        assert!(joined.is_ok(), "probe did not yield to cancellation");
+
+        // The probe's own child must not outlive the cancelled probe.
+        let alive = || {
+            let out = std::process::Command::new("ps")
+                .args(["-o", "stat=", "-p", &pid])
+                .output()
+                .unwrap();
+            let stat = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            !stat.is_empty() && !stat.starts_with('Z')
+        };
+        for _ in 0..50 {
+            if !alive() {
+                return;
+            }
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+        panic!("probe worker {pid} survived the deadline");
     }
 }

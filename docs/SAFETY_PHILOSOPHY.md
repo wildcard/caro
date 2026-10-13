@@ -43,10 +43,13 @@ a leak. We hold the same line on caro's hot paths:
 - **Embedded backend**: model load → inference → unload, with errors
   returning `GeneratorError` rather than propagating panics through the loop
 - **Agent loop**: at most 2 primary-backend calls (`MAX_BACKEND_CALLS`, test-pinned).
-  A 15‑second budget is checked before each follow-up call and skips it when
-  spent. It is a soft check: one slow backend call can still run past it
-- **No `unsafe`**: zero `unsafe { }` blocks in the crate; FFI/concurrency
-  ride on `tokio`, `Arc`, `Mutex`, `RwLock` and the `regex` crate
+  A 15‑second budget skips the follow-up call once half of it is spent and
+  cuts the follow-up off when it runs out (`agent::tests::second_pass_deadline_*`).
+  The initial call has no deadline
+- **Minimal `unsafe`**: the only `unsafe { }` blocks are `libc::kill` calls
+  that signal a child's process group (command timeouts, agent probes);
+  FFI/concurrency otherwise ride on `tokio`, `Arc`, `Mutex`, `RwLock` and the
+  `regex` crate
 
 When you add a new backend or cache layer, the contract is: if you grab a
 lock, you give it back; if you open a model, you close it; if you start a
