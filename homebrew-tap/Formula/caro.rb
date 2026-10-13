@@ -5,20 +5,20 @@
 class Caro < Formula
   desc "AI-powered shell command assistant that converts natural language to safe POSIX commands"
   homepage "https://github.com/wildcard/caro"
-  version "1.1.0"
+  version "1.5.0"
   license "AGPL-3.0"
 
   on_macos do
     if Hardware::CPU.arm?
       url "https://github.com/wildcard/caro/releases/download/v#{version}/caro-#{version}-macos-silicon"
-      sha256 "d1d00aeb8bda084d70043ae55f9cef7cb38fa84bd89f14df6ebd43ef86841d9c"
+      sha256 "2f57e5de9ff8d8dbe7e79084d857a0bad4386682f694ce07351289fff52cf727"
 
       def install
         bin.install "caro-#{version}-macos-silicon" => "caro"
       end
     else
       url "https://github.com/wildcard/caro/releases/download/v#{version}/caro-#{version}-macos-intel"
-      sha256 "6a44ae52a42f831f35538f93a32cf242be9bae7ae80db91a882d8b69169b8c17"
+      sha256 "1cb744e0ab5cdfdd080882aa7cb202731e6e75756c4e37533ec6a98deb25a097"
 
       def install
         bin.install "caro-#{version}-macos-intel" => "caro"
@@ -29,14 +29,14 @@ class Caro < Formula
   on_linux do
     if Hardware::CPU.arm?
       url "https://github.com/wildcard/caro/releases/download/v#{version}/caro-#{version}-linux-arm64"
-      sha256 "0bcb0e000c080ed92899fbc35a0463304ed363cfe584c5164cf2c67e3c849f07"
+      sha256 "46b0d7429efb5fbcbc283b0e0dab28076c17b05acb65571609887c0c54d401e7"
 
       def install
         bin.install "caro-#{version}-linux-arm64" => "caro"
       end
     else
       url "https://github.com/wildcard/caro/releases/download/v#{version}/caro-#{version}-linux-amd64"
-      sha256 "79992d59227d99e31a72a15cf722692cee52ec7de84c2ee27ca4df7dd30f1d1e"
+      sha256 "46b0d7429efb5fbcbc283b0e0dab28076c17b05acb65571609887c0c54d401e7"
 
       def install
         bin.install "caro-#{version}-linux-amd64" => "caro"
