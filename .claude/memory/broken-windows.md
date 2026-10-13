@@ -544,5 +544,7 @@ workspaces are BW-069.
 **Status:** open
 **Needs human?:** yes (release workflow change; #1635 needs the correct x86_64
 hash before it merges)
-**Next step:** start each sed range in `update-homebrew.yml` at the platform's
-`url` line (#1636 has the replay), and fix line 39 of the formula in #1635.
+**Next step:** a range such as `/linux-arm64/,/sha256/` also starts at the
+`bin.install` line and ends at the next platform's `sha256` line. Start each
+range at the `url` line only (`/url .*-linux-arm64"/,/sha256/`; #1636 has the
+replay), and fix line 39 of the formula in #1635.
