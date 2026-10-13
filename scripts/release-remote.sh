@@ -70,7 +70,7 @@ cmd_pin() {
     die "start this workflow from the release tag, not from a $ref_type ('$ref_name')"
   [[ "$ref_name" == v* ]] || die "tag must start with 'v': '$ref_name'"
   [ "$input_tag" = "$ref_name" ] ||
-    die "tag input '$input_tag' does not match the tag this run was started from ('$ref_name')"
+    die "the tag input does not match the tag this run was started from ('$ref_name')"
   version=${ref_name#v}
   check_version "$version"
   [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || die "dispatched commit is not a full SHA: '$sha'"

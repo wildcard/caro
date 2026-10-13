@@ -314,7 +314,7 @@ fn make_repo(dir: &Path, version: &str, tag: &str) -> String {
     .unwrap();
     git(dir, &["add", "."]);
     git(dir, &["commit", "-q", "-m", "release"]);
-    git(dir, &["tag", tag]);
+    git(dir, &["tag", "-a", "-m", "release", tag]); // real release tags are annotated
     git(dir, &["rev-parse", "HEAD"])
 }
 
@@ -660,6 +660,9 @@ fn pin_block_accepts_exactly_the_tagged_commit_in_both_jobs() {
     for job_name in ["build", "publish"] {
         let ws = Ws::new();
         let commit = make_repo(ws.p(), "1.5.0", TAG);
+        // The tag object differs from the commit it peels to; pin must use the commit.
+        assert_eq!(git(ws.p(), &["cat-file", "-t", TAG]), "tag");
+        assert_ne!(git(ws.p(), &["rev-parse", TAG]), commit);
         let out = ws.run(job_name, "pin", &pin_exprs("tag", TAG, &commit, TAG));
         assert!(out.status.success(), "{job_name}: {}", text(&out));
         let got = ws.github_output();
@@ -678,7 +681,7 @@ fn pin_block_rejects_a_mismatched_ref_input_commit_version_or_moved_tag() {
     for job_name in ["build", "publish"] {
         let ws = Ws::new();
         let commit = make_repo(ws.p(), "1.5.0", TAG);
-        git(ws.p(), &["tag", "v1.5.1"]); // same commit, Cargo.toml still says 1.5.0
+        git(ws.p(), &["tag", "-a", "-m", "x", "v1.5.1"]); // same commit, Cargo.toml still says 1.5.0
 
         type Exprs<'a> = Vec<(&'a str, &'a str)>;
         let cases: Vec<(&str, Exprs, &str)> = vec![
@@ -741,7 +744,7 @@ fn pin_block_rejects_a_mismatched_ref_input_commit_version_or_moved_tag() {
         )
         .unwrap();
         git(ws.p(), &["commit", "-q", "-am", "moved"]);
-        git(ws.p(), &["tag", "-f", TAG]);
+        git(ws.p(), &["tag", "-f", "-a", "-m", "moved", TAG]);
         git(ws.p(), &["checkout", "-q", "--detach", &commit]);
         let moved = ws.run(job_name, "pin", &pin_exprs("tag", TAG, &commit, TAG));
         assert!(!moved.status.success(), "{job_name}: moved tag must fail");
@@ -803,15 +806,47 @@ fn workflow_checks_out_one_commit_and_never_an_input_ref() {
         );
     }
     // Inputs are used in two places only: the tag confirmation passed to `pin`
-    // through env, and the publish gate.
+    // through env, and the publish gate. Any other mention of `inputs` fails,
+    // whatever the syntax (`inputs['tag']`, `toJSON(inputs)`, ...).
     let raw = fs::read_to_string(root().join(WORKFLOW)).unwrap();
+    let word = regex::Regex::new(r"\binputs\b").unwrap();
     for line in raw.lines().filter(|l| !l.trim_start().starts_with('#')) {
-        if line.contains("inputs.") {
+        if word.is_match(line) && line.trim() != "inputs:" {
             assert!(
                 line.contains("INPUT_TAG: ${{ inputs.tag }}")
                     || line.contains("inputs.publish == true"),
                 "unexpected use of an input: {line}"
             );
+        }
+    }
+    // The pin step gets its facts from the dispatch context, in both jobs, and
+    // no run block moves the checkout.
+    let moves =
+        regex::Regex::new(r"\bgit\s+(checkout|fetch|switch|worktree|clone|pull)\b").unwrap();
+    for (jname, j) in get(&wf, "jobs").as_mapping().unwrap() {
+        let jname = scalar(jname);
+        let pin = get(step(j, "pin"), "env").as_mapping().unwrap();
+        let got: Vec<(String, String)> = pin.iter().map(|(k, v)| (scalar(k), scalar(v))).collect();
+        let want = [
+            ("REF_TYPE", "${{ github.ref_type }}"),
+            ("REF_NAME", "${{ github.ref_name }}"),
+            ("SHA", "${{ github.sha }}"),
+            ("INPUT_TAG", "${{ inputs.tag }}"),
+        ];
+        assert_eq!(got.len(), want.len(), "{jname}: pin env");
+        for (k, v) in want {
+            assert!(
+                got.iter().any(|(gk, gv)| gk == k && gv == v),
+                "{jname}: pin env {k} must be {v}"
+            );
+        }
+        for st in steps(j) {
+            if let Some(run) = st.get("run").and_then(Value::as_str) {
+                assert!(
+                    !moves.is_match(run),
+                    "{jname}: a run block moves the checkout: {run}"
+                );
+            }
         }
     }
     assert!(!raw.contains("needs.resolve"));
@@ -882,6 +917,13 @@ fn publish_blocks_verify_identity_and_check_the_release_before_uploading() {
         "{}",
         text(&missing)
     );
+
+    // A platform with neither file is missing, not partial: still refused.
+    let gone = remote_name("macos-intel");
+    fs::remove_file(ws.p().join("dist").join(format!("{gone}.sha256"))).unwrap();
+    let absent = ws.run("publish", "verify_all", &e);
+    assert!(!absent.status.success());
+    assert!(text(&absent).contains("missing asset"), "{}", text(&absent));
 }
 
 #[test]
@@ -946,6 +988,18 @@ fn upload_block_never_overwrites_creates_or_deletes_and_after_block_confirms_pai
     assert_eq!(ws.release_assets().len(), 10);
     let after = ws.run("publish", "after", &e);
     assert!(after.status.success(), "{}", text(&after));
+
+    // A platform that never reached the release is not 'complete'.
+    let mut four = ws.release_assets();
+    four.retain(|n| !n.starts_with(&remote_name("linux-arm64")));
+    ws.set_release_assets(&four);
+    let short = ws.run("publish", "after", &e);
+    assert!(!short.status.success());
+    assert!(
+        text(&short).contains("not all 'complete'"),
+        "{}",
+        text(&short)
+    );
 
     // An interrupted upload (binary without its checksum) is reported as partial.
     let mut names = ws.release_assets();

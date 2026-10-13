@@ -25,12 +25,14 @@ name: Release Remote (optional)
 #   has `contents: write`, and it is skipped unless `publish` is true.
 #
 # Source identity: each job checks out exactly one commit, the dispatched one
-# (no `ref:` anywhere, nothing taken from an input). The first step of every job
-# runs `release-remote.sh pin`, before any build, which requires the run to have
-# been started from a tag, the `tag` input to repeat that tag, the checked-out
-# commit to be the dispatched commit and the commit the tag points to, and
-# Cargo.toml to say the tag's version. The manifest records tag, commit and
-# checksum for the publish job to check again.
+# (no `ref:` anywhere, nothing taken from an input). The step right after the
+# checkout runs `release-remote.sh pin`, before any build, which requires the
+# run to have been started from a tag, the `tag` input to repeat that tag, the
+# checked-out commit to be the dispatched commit and the commit the tag points
+# to, and Cargo.toml to say the tag's version. The manifest records tag, commit
+# and checksum for the publish job to check again. The pin trusts the tag's
+# current target and assumes release tags are immutable: if a tag was moved after
+# its stable release, the `-remote` assets would come from different source.
 #
 # Publishing (`publish: true`) needs an existing published release for the tag.
 # It never creates, edits or deletes a release, never overwrites an asset, and
@@ -38,10 +40,11 @@ name: Release Remote (optional)
 #
 # After an interrupted publish, `-remote` assets can stay on the release. Remove
 # them by hand before running again: the run stops while any are present.
-# The workflow uses no cache and no third-party action (a cache saved from a
-# build of tag source would be shared with the default branch), so each run is
-# a cold release build; its time against the 90-minute limit is unmeasured. The
-# macOS jobs share the account's runners with the stable release.
+# The workflow uses no cache and no third-party action: release builds stay cold
+# and reproducible, and the workflow stays out of the cache-poisoning class that
+# CodeQL checks for. So each run is a cold release build; its time against the
+# 90-minute limit is unmeasured. The macOS jobs share the account's runners with
+# the stable release.
 #
 # All logic is in scripts/release-remote.sh. tests/release_remote_contract.rs
 # runs these step blocks against fixtures on Linux and macOS CI. What no CI
@@ -115,8 +118,8 @@ jobs:
         run: scripts/release-remote.sh pin "$REF_TYPE" "$REF_NAME" "$SHA" "$INPUT_TAG" . >> "$GITHUB_OUTPUT"
 
       # No cache and no third-party action on purpose: this job builds and runs
-      # code from a tag, and a cache entry saved from it would be shared with the
-      # default branch. rustup is preinstalled on the GitHub-hosted runners.
+      # code from a tag, so keep it cold and first-party only. rustup is
+      # preinstalled on the GitHub-hosted runners.
       - name: Install Rust toolchain
         shell: bash
         env:

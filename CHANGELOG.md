@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   package workflow are unchanged and do not wait for it. The default binary, the
   crates.io package and `[features] default` are unchanged: they still report
   those backends as `not compiled` and fail with a remedy.
+  The pin trusts the tag's current target and assumes release tags are
+  immutable.
   **Only tags that contain this workflow can use it.** v1.5.0 and older do not,
   so their `-remote` binaries are not available this way; for those, install
   from source with `cargo install caro --features remote-backends --locked`.
