@@ -111,12 +111,16 @@ pub struct OllamaBackend {
 impl OllamaBackend {
     /// Create a new Ollama backend
     pub fn new(base_url: Url, model_name: String) -> Result<Self, GeneratorError> {
-        let client = Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .map_err(|e| GeneratorError::ConfigError {
-                message: format!("Failed to create HTTP client: {}", e),
-            })?;
+        let mut builder = Client::builder().timeout(Duration::from_secs(30));
+        // A loopback endpoint is always reached directly, never through a
+        // proxy, so the host `risk_judge_is_loopback` checks is the host the
+        // request reaches (#1647).
+        if crate::safety::is_loopback_endpoint(base_url.as_str()) {
+            builder = builder.no_proxy();
+        }
+        let client = builder.build().map_err(|e| GeneratorError::ConfigError {
+            message: format!("Failed to create HTTP client: {}", e),
+        })?;
 
         Ok(Self {
             base_url,

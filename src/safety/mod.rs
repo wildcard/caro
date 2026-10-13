@@ -1257,6 +1257,11 @@ mod smart_blend_tests {
             "http://[::1]:11434",
             "http://user:pass@127.0.0.1:11434",
             "http://evil.example@localhost:11434",
+            // WHATWG parsing normalizes these to a loopback host, and reqwest
+            // connects to the same parsed host.
+            "http://2130706433:11434",
+            "http://0x7f.1:11434",
+            "http://localhost\\@evil.example/",
         ] {
             assert!(is_loopback_endpoint(url), "{url} is loopback");
         }
@@ -1272,6 +1277,8 @@ mod smart_blend_tests {
             "http://192.168.1.20:11434",
             "http://[2001:db8::1]:8000",
             "http://0.0.0.0:11434",
+            // IPv4-mapped loopback is not treated as loopback (safe direction).
+            "http://[::ffff:127.0.0.1]:11434",
             // Credentials and at-signs: the host after `@` is what connects.
             "http://localhost@evil.example:11434",
             "http://127.0.0.1:11434@evil.example",

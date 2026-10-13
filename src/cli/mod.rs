@@ -990,15 +990,14 @@ impl CliApp {
                     static_risk: validation.risk_level,
                     matched_patterns: validation.matched_patterns.clone(),
                 };
-                let judgment = self.backend.classify_risk(&generated.command, &ctx).await;
-                // Only a loopback judge may relax; others only escalate (#1647).
-                let decision = crate::safety::blend_smart_decision_for(
-                    self.backend.risk_judge_is_loopback(),
-                    validation.risk_level,
-                    judgment.as_ref(),
+                let decision = smart_decision(
+                    self.backend.as_ref(),
+                    &generated.command,
+                    &ctx,
                     safety_level,
                     auto_confirm,
-                );
+                )
+                .await;
                 let blocked = decision.blocked.then(block_message);
                 (decision.requires_confirmation, blocked, decision.note)
             }
@@ -1217,6 +1216,26 @@ pub enum CliError {
     Internal { message: String },
 }
 
+/// The `--approval smart` decision: ask `judge` for a verdict and blend it
+/// with the static risk in `ctx`. Only a judge whose endpoint is loopback may
+/// relax; any other judge may only escalate (#1647).
+async fn smart_decision(
+    judge: &dyn CommandGenerator,
+    command: &str,
+    ctx: &RiskJudgeContext,
+    safety_level: SafetyLevel,
+    auto_confirm: bool,
+) -> crate::safety::SmartDecision {
+    let judgment = judge.classify_risk(command, ctx).await;
+    crate::safety::blend_smart_decision_for(
+        judge.risk_judge_is_loopback(),
+        ctx.static_risk,
+        judgment.as_ref(),
+        safety_level,
+        auto_confirm,
+    )
+}
+
 /// Mock command generator for testing
 ///
 /// SECURITY: This mock is restricted to debug builds via #[cfg(any(test, debug_assertions))].
@@ -1304,6 +1323,103 @@ impl CommandGenerator for MockCommandGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A judge with a fixed verdict and a fixed loopback answer (#1647).
+    struct FixedJudge {
+        verdict: RiskLevel,
+        loopback: bool,
+    }
+
+    #[async_trait]
+    impl CommandGenerator for FixedJudge {
+        async fn generate_command(
+            &self,
+            _request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            Err(GeneratorError::GenerationFailed {
+                details: "fixed judge does not generate".into(),
+            })
+        }
+
+        fn supports_risk_judge(&self) -> bool {
+            true
+        }
+
+        fn risk_judge_is_loopback(&self) -> bool {
+            self.loopback
+        }
+
+        async fn classify_risk(
+            &self,
+            _command: &str,
+            _ctx: &RiskJudgeContext,
+        ) -> Option<crate::models::RiskJudgment> {
+            Some(crate::models::RiskJudgment {
+                risk: self.verdict,
+                reason: String::new(),
+                confidence: 0.95,
+            })
+        }
+
+        async fn is_available(&self) -> bool {
+            true
+        }
+
+        fn backend_info(&self) -> BackendInfo {
+            MockCommandGenerator::new().backend_info()
+        }
+
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    fn high_ctx() -> RiskJudgeContext {
+        RiskJudgeContext {
+            shell: ShellType::Bash,
+            cwd: None,
+            static_risk: RiskLevel::High,
+            matched_patterns: Vec::new(),
+        }
+    }
+
+    /// #1647: the CLI smart path asks the judge itself whether it may relax.
+    #[tokio::test]
+    async fn smart_decision_relaxes_only_for_a_loopback_judge() {
+        let ask = |loopback| async move {
+            let judge = FixedJudge {
+                verdict: RiskLevel::Safe,
+                loopback,
+            };
+            smart_decision(
+                &judge,
+                "rm -rf ./build",
+                &high_ctx(),
+                SafetyLevel::Moderate,
+                false,
+            )
+            .await
+            .requires_confirmation
+        };
+        assert!(ask(false).await, "a non-loopback judge must not relax High");
+        assert!(
+            !ask(true).await,
+            "a loopback judge keeps relaxing as before"
+        );
+    }
+
+    /// #1647: a non-loopback judge still escalates.
+    #[tokio::test]
+    async fn smart_decision_lets_a_non_loopback_judge_escalate() {
+        let judge = FixedJudge {
+            verdict: RiskLevel::Critical,
+            loopback: false,
+        };
+        let mut ctx = high_ctx();
+        ctx.static_risk = RiskLevel::Safe;
+        let d = smart_decision(&judge, "ls", &ctx, SafetyLevel::Moderate, false).await;
+        assert!(d.requires_confirmation || d.blocked, "{d:?}");
+    }
 
     #[test]
     fn test_validate_backend_name_valid() {

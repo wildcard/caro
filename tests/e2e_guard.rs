@@ -9,18 +9,19 @@ use tempfile::TempDir;
 /// A `caro guard` invocation isolated from the developer's own config and
 /// data dirs.
 fn guard(home: &TempDir, args: &[&str], stdin: &str) -> std::process::Output {
-    Command::cargo_bin("caro")
-        .unwrap()
-        .arg("guard")
+    guard_cmd(home, args).write_stdin(stdin).output().unwrap()
+}
+
+fn guard_cmd(home: &TempDir, args: &[&str]) -> Command {
+    let mut cmd = Command::cargo_bin("caro").unwrap();
+    cmd.arg("guard")
         .args(args)
         .env("HOME", home.path())
         .env("XDG_CONFIG_HOME", home.path().join("config"))
         .env("XDG_DATA_HOME", home.path().join("data"))
         .env_remove("CARO_GUARD_MODE")
-        .env_remove("CARO_GUARD_JUDGE")
-        .write_stdin(stdin)
-        .output()
-        .unwrap()
+        .env_remove("CARO_GUARD_JUDGE");
+    cmd
 }
 
 fn claude_payload(cmd: &str) -> String {
@@ -323,4 +324,62 @@ async fn ollama_judge_escalates_a_static_pass_to_ask() {
         .as_str()
         .unwrap()
         .contains("deletes the cache"));
+}
+
+/// #1647: a loopback judge is called directly even when a proxy is set, so
+/// the endpoint Caro checks is the endpoint it talks to. Not on Windows, for
+/// the same config-dir reason as the test above.
+#[cfg(all(feature = "remote-backends", not(windows)))]
+#[tokio::test(flavor = "multi_thread")]
+async fn loopback_judge_bypasses_an_http_proxy() {
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/api/generate"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "response": r#"{"risk": "high", "reason": "r", "confidence": 0.9}"#,
+            "done": true
+        })))
+        .mount(&server)
+        .await;
+
+    let home = TempDir::new().unwrap();
+    let toml = format!("[backends]\nollama_url = \"{}\"\n", server.uri());
+    for dir in [
+        home.path().join("config").join("caro"),
+        home.path().join("Library/Application Support/caro"),
+    ] {
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("config.toml"), &toml).unwrap();
+    }
+    let log = home.path().join("d.jsonl");
+    // Port 1 refuses connections: a proxied judge call fails.
+    let dead_proxy = "http://127.0.0.1:1";
+    let out = guard_cmd(
+        &home,
+        &[
+            "--harness",
+            "generic",
+            "--mode",
+            "enforce",
+            "--judge",
+            "ollama",
+            "--log",
+            log.to_str().unwrap(),
+        ],
+    )
+    .env("HTTP_PROXY", dead_proxy)
+    .env("http_proxy", dead_proxy)
+    .env("ALL_PROXY", dead_proxy)
+    .env("all_proxy", dead_proxy)
+    .env_remove("NO_PROXY")
+    .env_remove("no_proxy")
+    .write_stdin(r#"{"command":"ls -la"}"#)
+    .output()
+    .unwrap();
+    let rec = last_record(&log);
+    assert_eq!(rec["source"], "static+judge", "{:?} {rec}", out);
+    assert_eq!(out.status.code(), Some(3), "{:?}", out);
 }
