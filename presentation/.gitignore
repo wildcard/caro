@@ -1,6 +1,12 @@
 node_modules/
+# npm workspaces: the root package-lock.json is the only lockfile (see README.md)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
 dist/
 .slidev/
 *.pdf
 *.png
+# Favicon from scripts/favicons.py (the rule above is for slide exports)
+!public/apple-touch-icon.png
 .DS_Store

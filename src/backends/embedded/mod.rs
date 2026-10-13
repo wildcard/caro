@@ -14,7 +14,7 @@ mod common;
 mod embedded_backend;
 
 // Re-export common types
-pub use common::{EmbeddedConfig, InferenceBackend, ModelVariant};
+pub use common::{EmbeddedConfig, InferenceBackend, ModelVariant, EMBEDDED_N_CTX};
 
 // Re-export main backend
 pub use embedded_backend::EmbeddedModelBackend;

@@ -15,7 +15,7 @@ A modern, security-focused landing page for CMDAI Enterprise built with Astro an
 
 ## Tech Stack
 
-- **Framework**: Astro 4.0
+- **Framework**: Astro 6
 - **Styling**: Tailwind CSS 3.4
 - **Fonts**: Inter (UI) + JetBrains Mono (code)
 - **Build**: Static site generation
@@ -24,7 +24,7 @@ A modern, security-focused landing page for CMDAI Enterprise built with Astro an
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 22.12 or later (astro 6 requires it) and npm
 
 ### Installation
 
@@ -32,6 +32,10 @@ A modern, security-focused landing page for CMDAI Enterprise built with Astro an
 cd landing
 npm install
 ```
+
+This directory is an npm workspace. `npm install` here reads and writes the
+root `package-lock.json`, so do not commit a lockfile in this directory. See
+[Workspace and lockfile](../website/README.md#workspace-and-lockfile).
 
 ### Development
 

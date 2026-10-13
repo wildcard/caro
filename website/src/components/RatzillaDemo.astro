@@ -96,7 +96,7 @@ const { height = "500px", showFallback = true } = Astro.props;
   .ratzilla-demo {
     width: 100%;
     height: 100%;
-    background: #0a0a0f;
+    background: var(--bg-inverse);
     position: relative;
   }
 
@@ -121,7 +121,7 @@ const { height = "500px", showFallback = true } = Astro.props;
     align-items: center;
     gap: 8px;
     padding: 12px 16px;
-    background: #1a1a25;
+    background: var(--bg-inverse);
     border-bottom: 1px solid #333;
   }
 
@@ -139,15 +139,17 @@ const { height = "500px", showFallback = true } = Astro.props;
     margin-left: 12px;
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 13px;
-    color: #888;
+    color: var(--caro-grey-300);
   }
 
+  /* Console surface: grey-700 in both modes. Red cannot reach AA here, so
+     accents use --highlight and secondary text uses grey-300 (4.85:1). */
   .terminal-body {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #0f0f15;
+    background: var(--term-bg);
   }
 
   .loading-content {
@@ -157,8 +159,8 @@ const { height = "500px", showFallback = true } = Astro.props;
   .loading-spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid #333;
-    border-top-color: #ff8c42;
+    border: 3px solid var(--caro-grey-800);
+    border-top-color: var(--highlight); /* console surface: red is 2:1 here */
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto 20px;
@@ -171,14 +173,14 @@ const { height = "500px", showFallback = true } = Astro.props;
   .loading-text {
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 16px;
-    color: #ff8c42;
+    color: var(--highlight);
     margin-bottom: 8px;
   }
 
   .loading-subtext {
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 13px;
-    color: #666;
+    color: var(--caro-grey-300);
   }
 
   /* Error State */
@@ -188,7 +190,7 @@ const { height = "500px", showFallback = true } = Astro.props;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #0f0f15;
+    background: var(--term-bg);
   }
 
   .error-content {
@@ -199,8 +201,8 @@ const { height = "500px", showFallback = true } = Astro.props;
   .error-icon {
     width: 60px;
     height: 60px;
-    background: #e74c3c;
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     font-size: 36px;
     font-weight: bold;
     border-radius: 50%;
@@ -213,30 +215,29 @@ const { height = "500px", showFallback = true } = Astro.props;
   .error-content h3 {
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 18px;
-    color: #e74c3c;
+    color: var(--highlight);
     margin-bottom: 12px;
   }
 
   .error-content p {
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 14px;
-    color: #888;
+    color: var(--caro-grey-300);
     margin-bottom: 8px;
   }
 
   .error-hint {
-    color: #666 !important;
     font-size: 12px !important;
   }
 
   /* Fallback Demo */
   .fallback-demo {
     padding: 20px;
-    background: #0a0a0f;
+    background: var(--bg-inverse);
   }
 
   .fallback-terminal {
-    background: #1e1e1e;
+    background: var(--bg-inverse);
     border-radius: 8px;
     overflow: hidden;
     font-family: 'Monaco', 'Menlo', monospace;
@@ -253,7 +254,7 @@ const { height = "500px", showFallback = true } = Astro.props;
   }
 
   .prompt {
-    color: #4ec9b0;
+    color: var(--term-prompt);
   }
 
   .command {
@@ -265,12 +266,13 @@ const { height = "500px", showFallback = true } = Astro.props;
   }
 
   .caro-label {
-    color: #ff8c42;
+    color: var(--highlight);
     margin-right: 10px;
   }
 
   .generated-cmd {
-    color: #ce9178;
+    color: var(--highlight);
+    overflow-wrap: anywhere;
   }
 
   .safety-badge {
@@ -283,12 +285,12 @@ const { height = "500px", showFallback = true } = Astro.props;
   }
 
   .safety-badge.safe {
-    background: #2ecc71;
-    color: white;
+    border: 1px solid var(--status-safe);
+    color: var(--term-fg);
   }
 
   .safety-msg {
-    color: #2ecc71;
+    color: var(--term-fg);
   }
 
   .action {
@@ -297,7 +299,7 @@ const { height = "500px", showFallback = true } = Astro.props;
   }
 
   .action-keys {
-    color: #2ecc71;
+    color: var(--highlight);
     font-weight: bold;
     margin-left: 8px;
   }
@@ -305,7 +307,7 @@ const { height = "500px", showFallback = true } = Astro.props;
   .fallback-note {
     text-align: center;
     font-size: 13px;
-    color: #666;
+    color: var(--caro-grey-300);
     margin-top: 16px;
     font-family: 'Monaco', 'Menlo', monospace;
   }
@@ -339,6 +341,15 @@ const { height = "500px", showFallback = true } = Astro.props;
     return hasWasm && hasWebGL2;
   }
 
+  // The container has a fixed height for the WASM canvas; release it so the
+  // static fallback below the error message is not clipped.
+  function showFallback(fallbackEl: HTMLElement | null) {
+    if (!fallbackEl) return;
+    fallbackEl.style.display = 'block';
+    const container = fallbackEl.closest<HTMLElement>('.ratzilla-container');
+    if (container) container.style.height = 'auto';
+  }
+
   async function initRatzilla() {
     const demoContainer = document.getElementById('ratzilla-demo');
     const loadingEl = document.getElementById('ratzilla-loading');
@@ -351,7 +362,7 @@ const { height = "500px", showFallback = true } = Astro.props;
       // Show error and fallback
       if (loadingEl) loadingEl.style.display = 'none';
       if (errorEl) errorEl.style.display = 'flex';
-      if (fallbackEl) fallbackEl.style.display = 'block';
+      showFallback(fallbackEl);
       return;
     }
 
@@ -375,7 +386,7 @@ const { height = "500px", showFallback = true } = Astro.props;
       // Show error state
       if (loadingEl) loadingEl.style.display = 'none';
       if (errorEl) errorEl.style.display = 'flex';
-      if (fallbackEl) fallbackEl.style.display = 'block';
+      showFallback(fallbackEl);
     }
   }
 

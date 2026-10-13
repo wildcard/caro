@@ -1,24 +1,25 @@
 ---
 // InteractiveTerminal.astro - Interactive terminal demo showing Caro's value
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 ---
 
-<section id="demo" class="demo-section">
+<section class="demo-section" aria-labelledby="it-heading">
   <div class="container">
-    <h2>Experience the Difference</h2>
+    <h2 id="it-heading">Experience the Difference</h2>
     <p class="section-subtitle">
       Try the terminal below. Type commands, explore the filesystem, then install Caro to see the magic.
     </p>
 
     <!-- OS Selector -->
     <div class="os-selector">
-      <button class="os-btn active" data-os="macos">
-        <span class="os-icon">🍎</span> macOS
+      <button type="button" class="os-btn active" data-os="macos" aria-pressed="true">
+        <span class="os-icon" aria-hidden="true">🍎</span> macOS
       </button>
-      <button class="os-btn" data-os="linux">
-        <span class="os-icon">🐧</span> Linux
+      <button type="button" class="os-btn" data-os="linux" aria-pressed="false">
+        <span class="os-icon" aria-hidden="true">🐧</span> Linux
       </button>
-      <button class="os-btn" data-os="windows">
-        <span class="os-icon">🪟</span> Windows
+      <button type="button" class="os-btn" data-os="windows" aria-pressed="false">
+        <span class="os-icon" aria-hidden="true">🪟</span> Windows
       </button>
     </div>
 
@@ -34,8 +35,8 @@
           <span id="terminal-title-text">~/mystery</span>
         </div>
         <div class="terminal-actions">
-          <button id="install-caro-btn" class="install-btn">
-            <span class="install-icon">🐕</span> Install Caro
+          <button type="button" id="install-caro-btn" class="install-btn">
+            <TermGlyph g="$" /> Install Caro
           </button>
         </div>
       </div>
@@ -45,10 +46,10 @@
 
       <!-- Status bar (visible in Caro mode) -->
       <div id="status-bar" class="status-bar hidden">
-        <span class="status-item">🐕 <span id="status-caro">Caro: Ready</span></span>
-        <span class="status-item">💻 <span id="status-os">macOS</span></span>
-        <span class="status-item">🐚 <span id="status-shell">zsh</span></span>
-        <span class="status-item">📂 <span id="status-dir">~/mystery</span></span>
+        <span class="status-item"><TermGlyph g="▸" /> <span id="status-caro">Caro: Ready</span></span>
+        <span class="status-item"><TermGlyph g="▸" /> <span id="status-os">macOS</span></span>
+        <span class="status-item"><TermGlyph g=">_" /> <span id="status-shell">zsh</span></span>
+        <span class="status-item"><TermGlyph g="▸" /> <span id="status-dir">~/mystery</span></span>
       </div>
     </div>
 
@@ -88,7 +89,7 @@
 
 <style>
   .demo-section {
-    background: linear-gradient(180deg, var(--color-bg) 0%, #0a0a12 100%);
+    background: var(--bg);
     padding: 80px 20px;
   }
 
@@ -115,10 +116,12 @@
     margin-bottom: 20px;
   }
 
+  /* Console-grey buttons: --caro-grey-300 is the AA secondary ink there
+     (4.85:1); #888 was 2.3:1. */
   .os-btn {
-    background: #1e1e2e;
-    border: 2px solid #333;
-    color: #888;
+    background: var(--term-bg);
+    border: 2px solid var(--caro-grey-800);
+    color: var(--caro-grey-300);
     padding: 8px 16px;
     border-radius: 8px;
     cursor: pointer;
@@ -131,14 +134,27 @@
   }
 
   .os-btn:hover {
-    border-color: #555;
-    color: #aaa;
+    border-color: var(--caro-grey-500);
+    color: var(--term-fg);
+  }
+
+  /* Focus rings: the OS buttons sit on the page surface (red ring, like
+     links); the install button and chips sit on console grey (yellow). */
+  .os-btn:focus-visible {
+    outline: 2px solid var(--accent-text);
+    outline-offset: 2px;
+  }
+
+  .install-btn:focus-visible,
+  .prompt-chip:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
   }
 
   .os-btn.active {
-    border-color: #ff8c42;
+    border-color: var(--accent);
     color: #fff;
-    background: #252535;
+    background: var(--caro-grey-800);
   }
 
   .os-icon {
@@ -153,13 +169,14 @@
     box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
   }
 
+  /* Solid console chrome (no gradients on brand surfaces). */
   .terminal-chrome {
-    background: linear-gradient(180deg, #3a3a4a 0%, #2a2a3a 100%);
+    background: var(--caro-grey-800);
     padding: 12px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #1a1a2a;
+    border-bottom: 1px solid var(--bg-inverse);
   }
 
   .terminal-buttons {
@@ -189,7 +206,7 @@
   .terminal-title {
     font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
     font-size: 13px;
-    color: #888;
+    color: var(--caro-grey-300);
   }
 
   .terminal-actions {
@@ -198,9 +215,9 @@
   }
 
   .install-btn {
-    background: linear-gradient(180deg, #ff8c42 0%, #e67635 100%);
+    background: var(--accent-fill);
     border: none;
-    color: #fff;
+    color: var(--on-accent);
     padding: 6px 14px;
     border-radius: 6px;
     cursor: pointer;
@@ -211,16 +228,18 @@
     align-items: center;
     gap: 6px;
     transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 2px 8px rgba(239, 51, 51, 0.3);
   }
 
   .install-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+    box-shadow: 0 4px 12px rgba(239, 51, 51, 0.4);
   }
 
+  /* Solid success fill: white on #15803d is 5.0:1 (the old green gradient
+     was 2.2:1 at its light end). Same fill as the waitlist success state. */
   .install-btn.installed {
-    background: linear-gradient(180deg, #27c93f 0%, #1fa335 100%);
+    background: #15803d;
     box-shadow: 0 2px 8px rgba(39, 201, 63, 0.3);
   }
 
@@ -228,25 +247,21 @@
     box-shadow: 0 4px 12px rgba(39, 201, 63, 0.4);
   }
 
-  .install-icon {
-    font-size: 14px;
-  }
-
   #terminal-container {
     height: 400px;
-    background: #0d0d14;
+    background: var(--term-bg);
     padding: 0;
   }
 
   .status-bar {
-    background: #1a1a2a;
+    background: var(--bg-inverse);
     padding: 8px 16px;
     display: flex;
     gap: 20px;
     font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
     font-size: 12px;
-    color: #888;
-    border-top: 1px solid #252535;
+    color: var(--caro-grey-300);
+    border-top: 1px solid var(--caro-grey-800);
   }
 
   .status-bar.hidden {
@@ -263,9 +278,9 @@
     max-width: 900px;
     margin: 20px auto 0;
     padding: 20px;
-    background: #1a1a2a;
+    background: var(--bg-inverse);
     border-radius: 12px;
-    border: 1px solid #252535;
+    border: 1px solid var(--caro-grey-800);
   }
 
   .sample-prompts.hidden {
@@ -273,7 +288,7 @@
   }
 
   .prompts-label {
-    color: #888;
+    color: var(--caro-grey-300);
     font-size: 14px;
     margin-bottom: 12px;
     text-align: center;
@@ -287,9 +302,9 @@
   }
 
   .prompt-chip {
-    background: #252535;
-    border: 1px solid #333;
-    color: #aaa;
+    background: var(--caro-grey-800);
+    border: 1px solid var(--caro-grey-500);
+    color: var(--caro-grey-300);
     padding: 8px 16px;
     border-radius: 20px;
     cursor: pointer;
@@ -299,23 +314,25 @@
   }
 
   .prompt-chip:hover {
-    border-color: #ff8c42;
-    color: #fff;
-    background: #2a2a3f;
+    border-color: var(--accent);
+    color: var(--term-fg);
+    background: var(--caro-grey-900);
   }
 
+  /* Sits on the page surface (--bg): --fg-muted flips with the theme;
+     #666 was 2.5:1 on the dark page. */
   .instructions {
     text-align: center;
     margin-top: 20px;
-    color: #666;
+    color: var(--fg-muted);
     font-size: 14px;
   }
 
   .instructions code {
-    background: #1a1a2a;
+    background: var(--bg-inverse);
     padding: 2px 8px;
     border-radius: 4px;
-    color: #ff8c42;
+    color: var(--highlight);
     font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
   }
 
@@ -918,7 +935,7 @@ module.exports = { formatDate, sleep, retry };
 
     help: (_args, term) => {
       if (caroEnabled) {
-        term.writeln('\x1b[38;5;208m🐕 Caro Help\x1b[0m');
+        term.writeln('\x1b[93m🐕 Caro Help\x1b[0m');
         term.writeln('');
         term.writeln('You can ask me things in plain English, like:');
         term.writeln('  \x1b[36m"Find large files"\x1b[0m');
@@ -1005,7 +1022,7 @@ module.exports = { formatDate, sleep, retry };
         term.writeln('zsh: command not found: :recents');
         return;
       }
-      term.writeln('\x1b[38;5;208m📜 Recent Commands\x1b[0m');
+      term.writeln('\x1b[93m📜 Recent Commands\x1b[0m');
       term.writeln('');
       const recent = commandHistory.slice(-5);
       if (recent.length === 0) {
@@ -1139,7 +1156,7 @@ module.exports = { formatDate, sleep, retry };
 
   function showCaroSuggestion(mapping: NLMapping, term: Terminal) {
     term.writeln('');
-    term.writeln('\x1b[38;5;208m🐕 Caro suggests:\x1b[0m');
+    term.writeln('\x1b[93m🐕 Caro suggests:\x1b[0m');
     term.writeln('');
 
     // Safety indicator
@@ -1162,7 +1179,7 @@ module.exports = { formatDate, sleep, retry };
 
   function explainCommand(cmd: string, term: Terminal) {
     term.writeln('');
-    term.writeln('\x1b[38;5;208m🐕 Command Explanation:\x1b[0m');
+    term.writeln('\x1b[93m🐕 Command Explanation:\x1b[0m');
     term.writeln('');
 
     const parts = cmd.split(' ');
@@ -1223,10 +1240,10 @@ module.exports = { formatDate, sleep, retry };
     term.write('\r\x1b[K'); // Clear line
     term.writeln('\x1b[32m✓ Caro installed successfully!\x1b[0m');
     term.writeln('');
-    term.writeln('\x1b[38;5;208m╭────────────────────────────────────────────╮\x1b[0m');
-    term.writeln('\x1b[38;5;208m│\x1b[0m  \x1b[1mHi, I\'m Caro!\x1b[0m 🐕                          \x1b[38;5;208m│\x1b[0m');
-    term.writeln('\x1b[38;5;208m│\x1b[0m  Your friendly terminal companion          \x1b[38;5;208m│\x1b[0m');
-    term.writeln('\x1b[38;5;208m╰────────────────────────────────────────────╯\x1b[0m');
+    term.writeln('\x1b[93m╭────────────────────────────────────────────╮\x1b[0m');
+    term.writeln('\x1b[93m│\x1b[0m  \x1b[1mHi, I\'m Caro!\x1b[0m 🐕                          \x1b[93m│\x1b[0m');
+    term.writeln('\x1b[93m│\x1b[0m  Your friendly terminal companion          \x1b[93m│\x1b[0m');
+    term.writeln('\x1b[93m╰────────────────────────────────────────────╯\x1b[0m');
     term.writeln('');
     term.writeln('Want a quick 30-second tour? \x1b[33m[Y/n]\x1b[0m');
     term.writeln('');
@@ -1242,7 +1259,7 @@ module.exports = { formatDate, sleep, retry };
 
     if (installBtn) {
       installBtn.classList.add('installed');
-      installBtn.innerHTML = '<span class="install-icon">✓</span> Caro Active';
+      installBtn.innerHTML = '<span class="install-icon" aria-hidden="true">✓</span> Caro Active';
     }
     if (statusBar) statusBar.classList.remove('hidden');
     if (samplePrompts) samplePrompts.classList.remove('hidden');
@@ -1259,19 +1276,19 @@ module.exports = { formatDate, sleep, retry };
 
   const tourSteps = [
     {
-      message: '\x1b[38;5;208m📖 Tour Step 1/4: Natural Language\x1b[0m\n\nJust type what you want in plain English!\nTry: \x1b[36m"Find large files"\x1b[0m\n\n(Type the example or press Enter to skip)',
+      message: '\x1b[93m📖 Tour Step 1/4: Natural Language\x1b[0m\n\nJust type what you want in plain English!\nTry: \x1b[36m"Find large files"\x1b[0m\n\n(Type the example or press Enter to skip)',
       example: 'find large files'
     },
     {
-      message: '\x1b[38;5;208m📖 Tour Step 2/4: Safe Commands\x1b[0m\n\nCaro checks every command for safety.\nI\'ll warn you about dangerous operations!\n\n(Press Enter to continue)',
+      message: '\x1b[93m📖 Tour Step 2/4: Safe Commands\x1b[0m\n\nCaro checks every command for safety.\nI\'ll warn you about dangerous operations!\n\n(Press Enter to continue)',
       example: null
     },
     {
-      message: '\x1b[38;5;208m📖 Tour Step 3/4: Context Awareness\x1b[0m\n\nI know you\'re on ' + currentOS + ' using ' + currentShell + '.\nMy suggestions are tailored for your system.\n\n(Press Enter to continue)',
+      message: '\x1b[93m📖 Tour Step 3/4: Context Awareness\x1b[0m\n\nI know you\'re on ' + currentOS + ' using ' + currentShell + '.\nMy suggestions are tailored for your system.\n\n(Press Enter to continue)',
       example: null
     },
     {
-      message: '\x1b[38;5;208m📖 Tour Step 4/4: Always Learning\x1b[0m\n\nType \x1b[33m:recents\x1b[0m to see your history.\nI remember what works for you!\n\n\x1b[32m✓ Tour complete!\x1b[0m You\'re ready to explore.',
+      message: '\x1b[93m📖 Tour Step 4/4: Always Learning\x1b[0m\n\nType \x1b[33m:recents\x1b[0m to see your history.\nI remember what works for you!\n\n\x1b[32m✓ Tour complete!\x1b[0m You\'re ready to explore.',
       example: null
     }
   ];
@@ -1328,24 +1345,31 @@ module.exports = { formatDate, sleep, retry };
       cursorBlink: true,
       fontSize: 14,
       fontFamily: '"SF Mono", "Monaco", "Menlo", "Courier New", monospace',
+      // xterm renders to <canvas>; CSS custom properties do NOT resolve here,
+      // so these must stay literal. Values mirror the terminal tokens in
+      // tokens.css (--term-bg / --term-fg / --accent).
       theme: {
-        background: '#0d0d14',
-        foreground: '#e0e0e0',
-        cursor: '#ff8c42',
-        cursorAccent: '#0d0d14',
-        selectionBackground: '#ff8c4244',
-        black: '#0d0d14',
-        red: '#ff5555',
+        background: '#4f4f4f',
+        foreground: '#f4f1df',
+        cursor: '#fcfc62', // --term-prompt; red cursor was 2.0:1
+        cursorAccent: '#4f4f4f',
+        selectionBackground: '#ef333344',
+        black: '#4f4f4f',
+        // ANSI colours the demo writes (31/32/33/34/36/90/93) all clear
+        // 4.5:1 on #4f4f4f. Red cannot at full saturation, so it is a
+        // light red (4.8:1); 93 (bright yellow) is --highlight and replaces
+        // the old 256-colour orange (38;5;208) for Caro's own lines.
+        red: '#ffb3b3',
         green: '#50fa7b',
         yellow: '#f1fa8c',
-        blue: '#6272a4',
+        blue: '#b4d0ff',
         magenta: '#ff79c6',
         cyan: '#8be9fd',
         white: '#f8f8f2',
-        brightBlack: '#6272a4',
+        brightBlack: '#c9c7c1',
         brightRed: '#ff6e6e',
         brightGreen: '#69ff94',
-        brightYellow: '#ffffa5',
+        brightYellow: '#fcfc62',
         brightBlue: '#d6acff',
         brightMagenta: '#ff92df',
         brightCyan: '#a4ffff',
@@ -1448,8 +1472,12 @@ module.exports = { formatDate, sleep, retry };
     const osButtons = document.querySelectorAll('.os-btn');
     osButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        osButtons.forEach(b => b.classList.remove('active'));
+        osButtons.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
         btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
         const os = btn.getAttribute('data-os') || 'macos';
         updateOSDisplay(os);
       });
@@ -1493,7 +1521,7 @@ module.exports = { formatDate, sleep, retry };
     if (newline) term.writeln('');
     const pathPart = currentPath.replace('~/', '').replace('~', '~');
     if (caroEnabled) {
-      term.write(`\x1b[38;5;208m🐕\x1b[0m \x1b[36m${pathPart}\x1b[0m \x1b[33m❯\x1b[0m `);
+      term.write(`\x1b[93m🐕\x1b[0m \x1b[36m${pathPart}\x1b[0m \x1b[33m❯\x1b[0m `);
     } else {
       term.write(`\x1b[32m${pathPart}\x1b[0m $ `);
     }
@@ -1571,7 +1599,7 @@ module.exports = { formatDate, sleep, retry };
     // Check if it looks like natural language (Caro mode)
     if (caroEnabled && !input.startsWith(':') && !isShellCommand(input)) {
       if (!processNaturalLanguage(input, term)) {
-        term.writeln('\x1b[38;5;208m🐕 Caro:\x1b[0m I\'m not sure what you mean. Try one of these:');
+        term.writeln('\x1b[93m🐕 Caro:\x1b[0m I\'m not sure what you mean. Try one of these:');
         term.writeln('   - \x1b[36m"Find large files"\x1b[0m');
         term.writeln('   - \x1b[36m"Show recent errors"\x1b[0m');
         term.writeln('   - Or use a shell command like \x1b[36mls\x1b[0m, \x1b[36mcat\x1b[0m, \x1b[36mgrep\x1b[0m');
@@ -1612,7 +1640,7 @@ module.exports = { formatDate, sleep, retry };
       // Unknown command
       if (caroEnabled) {
         term.writeln(`\x1b[90mCommand not found: ${cmd}\x1b[0m`);
-        term.writeln(`\x1b[38;5;208m🐕 Caro:\x1b[0m Try asking me in plain English!`);
+        term.writeln(`\x1b[93m🐕 Caro:\x1b[0m Try asking me in plain English!`);
       } else {
         term.writeln(`zsh: command not found: ${cmd}`);
         term.writeln(`\x1b[90mHint: Install Caro for natural language support\x1b[0m`);

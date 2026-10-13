@@ -1,0 +1,85 @@
+name: Kyaro Icons
+
+# Guards the Caro icon set (docs/brand/ICONOGRAPHY.md). Every icon is a 1:1
+# cut of a Kyaro sprite frame by Alrezky Caesaria, made by
+# scripts/kyaro_icons.py. `--check` rebuilds each icon from its frame and
+# fails on a hand-edited icon, a recolor, a changed frame or a stale file.
+# The vitest guard checks how the site uses the icons (real names, whole-number
+# scales), that the removed hand-drawn glyph pack does not come back, that
+# every navigation shows the official vector mark, and that the emoji count
+# under website/src never grows.
+
+on:
+  pull_request:
+    paths:
+      - 'assets/kyaro/**'
+      - 'website/**'
+      - 'scripts/kyaro_icons.py'
+      - 'scripts/pixel_snap.py'
+      - 'scripts/tests/test_pixel_snap.py'
+      - 'scripts/tests/test_icon_definitions.py'
+      - 'docs/brand/icons/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/kyaro-icons.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'assets/kyaro/**'
+      - 'website/**'
+      - 'scripts/kyaro_icons.py'
+      - 'scripts/pixel_snap.py'
+      - 'scripts/tests/test_pixel_snap.py'
+      - 'scripts/tests/test_icon_definitions.py'
+      - 'docs/brand/icons/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/kyaro-icons.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  icons:
+    name: Icons match their Kyaro frames
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Standard library only: no install step.
+      - name: Check icons
+        run: python3 scripts/kyaro_icons.py --check
+
+      # definitions.json is the input Codex reads (docs/brand/icons/DEFINITIONS.md).
+      - name: Icon definitions are complete
+        run: python3 -m unittest scripts/tests/test_icon_definitions.py
+
+      # The snap tool turns generated candidates into grid-true icons.
+      # It needs Pillow; the checks above do not.
+      # The runner's system Python refuses pip installs (PEP 668).
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Snap tool round trip
+        run: |
+          python -m pip install --quiet pillow
+          python -m unittest scripts/tests/test_pixel_snap.py
+
+  usage:
+    name: Site uses the icon set correctly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install (cold, lockfile-exact)
+        run: npm ci --no-audit --no-fund
+
+      - name: Usage guard
+        working-directory: website
+        run: npx vitest run src/__tests__/kyaro-icons.test.ts src/__tests__/brand-mark.test.ts src/__tests__/emoji-icons.test.ts

@@ -510,8 +510,6 @@ impl AgentLoop {
     }
 
     async fn generate_initial(&self, prompt: &str) -> Result<GeneratedCommand, GeneratorError> {
-        let system_prompt = self.build_initial_prompt();
-
         // Serialize context to string
         let context_str = serde_json::to_string(&self.context).unwrap_or_else(|_| "{}".to_string());
 
@@ -532,9 +530,16 @@ impl AgentLoop {
             input: prompt.to_string(),
             shell: ShellType::Bash,
             safety_level: SafetyLevel::Moderate,
+            // Only the embedded backend reads `context`, and it brings its own
+            // system prompt. Sending a second full system prompt here pushed
+            // the prompt past the 2048-token window SmolLM and TinyLlama were
+            // trained on (#1612), so only the platform rules go along.
             context: Some(format!(
-                "{}{}{}\n\nSYSTEM_PROMPT:\n{}",
-                context_str, dir_context_str, knowledge_context_str, system_prompt
+                "{}{}{}\n\nPLATFORM NOTES:\n{}",
+                context_str,
+                dir_context_str,
+                knowledge_context_str,
+                self.context.get_platform_rules()
             )),
             backend_preference: None,
         };
@@ -635,35 +640,6 @@ impl AgentLoop {
         };
 
         self.backend.generate_command(&request).await
-    }
-
-    /// Build initial system prompt with platform context
-    fn build_initial_prompt(&self) -> String {
-        format!(
-            r#"You are a shell command generator for {OS}.
-
-**PLATFORM: {OS} - BSD COMMANDS**
-{platform_notes}
-
-CRITICAL RULES:
-1. Output ONLY valid JSON: {{"cmd": "command here"}}
-2. NEVER use GNU flags (--sort, --max-depth, etc.) on macOS
-3. Use BSD-compatible syntax (see platform notes above)
-4. Use relative paths (. or ~/) unless absolute path requested
-5. Escape quotes properly: use single quotes inside JSON string
-
-{context}
-
-RESPONSE FORMAT:
-{{
-  "cmd": "your command here"
-}}
-
-Generate a safe, platform-appropriate command."#,
-            OS = self.context.os,
-            platform_notes = self.get_os_specific_notes(),
-            context = self.context.get_prompt_context()
-        )
     }
 
     /// Build refinement prompt with command context
@@ -1038,6 +1014,64 @@ mod tests {
         async fn shutdown(&self) -> Result<(), GeneratorError> {
             Ok(())
         }
+    }
+
+    /// Records the request it receives, then fails so the loop stops.
+    struct RequestRecorder(Arc<std::sync::Mutex<Option<CommandRequest>>>);
+
+    #[async_trait]
+    impl CommandGenerator for RequestRecorder {
+        async fn generate_command(
+            &self,
+            request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            *self.0.lock().unwrap() = Some(request.clone());
+            Err(GeneratorError::Internal {
+                message: "recorded".to_string(),
+            })
+        }
+
+        async fn is_available(&self) -> bool {
+            true
+        }
+
+        fn backend_info(&self) -> BackendInfo {
+            BackendInfo {
+                backend_type: BackendType::Mock,
+                model_name: "recorder".to_string(),
+                supports_streaming: false,
+                max_tokens: 100,
+                typical_latency_ms: 1,
+                memory_usage_mb: 0,
+                version: "test".to_string(),
+            }
+        }
+
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    /// Regression guard for #1612: the initial request carries the platform
+    /// notes, not a second full system prompt. The embedded backend adds its
+    /// own system prompt, and two of them overflowed a 2048-token window.
+    #[tokio::test]
+    async fn initial_request_context_has_no_second_system_prompt() {
+        let slot = Arc::new(std::sync::Mutex::new(None));
+        let agent = AgentLoop::new(
+            Arc::new(RequestRecorder(slot.clone())),
+            ExecutionContext::detect(),
+            CapabilityProfile::ubuntu(),
+        )
+        .with_static_matcher(false);
+
+        let _ = agent.generate_command("show date").await;
+
+        let request = slot.lock().unwrap().clone().expect("backend was called");
+        let context = request.context.expect("initial request has context");
+        assert!(!context.contains("SYSTEM_PROMPT"), "{context}");
+        assert!(!context.contains("CRITICAL RULES"), "{context}");
+        assert!(context.contains("PLATFORM NOTES"), "{context}");
     }
 
     fn agent_loop(primary: MockBackend, advisor: Option<Arc<MockBackend>>) -> AgentLoop {

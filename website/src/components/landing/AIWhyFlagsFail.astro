@@ -3,6 +3,7 @@
  * Why Flags Fail - Contrasting flag-based vs pattern-based approaches
  * Shows real examples of how safety flags failed in Claude and Gemini
  */
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
 
 const flagFailures = [
   {
@@ -54,7 +55,7 @@ const flagFailures = [
       <div class="comparison-grid">
         <div class="approach flag-approach">
           <div class="approach-header bad">
-            <span class="approach-icon">❌</span>
+            <span class="approach-icon"><TermGlyph g="✗" /></span>
             <span class="approach-title">Flag-Based (Others)</span>
           </div>
           <ul class="approach-list">
@@ -67,7 +68,7 @@ const flagFailures = [
         </div>
         <div class="approach pattern-approach">
           <div class="approach-header good">
-            <span class="approach-icon">✓</span>
+            <span class="approach-icon"><TermGlyph g="✓" /></span>
             <span class="approach-title">Pattern-Based (Caro)</span>
           </div>
           <ul class="approach-list">
@@ -132,8 +133,8 @@ const flagFailures = [
   }
 
   .failure-card {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, var(--color-bg-secondary) 100%);
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    background: var(--color-bg-secondary);
+    border: 1px solid rgba(239, 51, 51, 0.3);
     border-radius: 12px;
     padding: 28px;
   }
@@ -147,8 +148,9 @@ const flagFailures = [
   }
 
   .tool-badge {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
+    background: var(--color-bg);
+    border: 1px solid var(--accent);
+    color: var(--accent-text);
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
@@ -186,7 +188,7 @@ const flagFailures = [
   }
 
   .what-happened p {
-    color: #ef4444;
+    color: var(--accent-text);
     font-size: 15px;
     line-height: 1.6;
     margin: 0;
@@ -244,13 +246,13 @@ const flagFailures = [
   }
 
   .approach-header.bad .approach-icon {
-    color: #ef4444;
-    font-size: 20px;
+    color: var(--accent-text);
+    font-size: 18px;
   }
 
   .approach-header.good .approach-icon {
-    color: #22c55e;
-    font-size: 20px;
+    color: var(--status-safe-text);
+    font-size: 18px;
   }
 
   .approach-title {
@@ -277,22 +279,22 @@ const flagFailures = [
     content: "✗";
     position: absolute;
     left: 0;
-    color: #ef4444;
+    color: var(--accent);
   }
 
   .pattern-approach .approach-list li::before {
     content: "✓";
     position: absolute;
     left: 0;
-    color: #22c55e;
+    color: var(--status-safe-text); /* --status-safe is 2.9:1 on the light panel */
   }
 
   .key-insight {
     display: flex;
     gap: 20px;
     align-items: flex-start;
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.04) 100%);
-    border: 1px solid rgba(255, 140, 66, 0.2);
+    background: rgba(239, 51, 51, 0.08);
+    border: 1px solid rgba(239, 51, 51, 0.2);
     border-radius: 12px;
     padding: 28px;
   }
