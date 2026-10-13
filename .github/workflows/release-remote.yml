@@ -117,6 +117,14 @@ jobs:
           INPUT_TAG: ${{ inputs.tag }}
         run: scripts/release-remote.sh pin "$REF_TYPE" "$REF_NAME" "$SHA" "$INPUT_TAG" . >> "$GITHUB_OUTPUT"
 
+      # Before any build (#1652): CVE rules exist to be compiled in, and the build
+      # directory does not exist yet (a reused one could hold a build script from
+      # another checkout and silently compile an empty ruleset).
+      - name: Preflight (CVE rules present, build directory fresh)
+        id: preflight
+        shell: bash
+        run: scripts/release-remote.sh preflight data/cve_rules "${CARGO_TARGET_DIR:-target}"
+
       # No cache and no third-party action on purpose: this job builds and runs
       # code from a tag, so keep it cold and first-party only. rustup is
       # preinstalled on the GitHub-hosted runners.
@@ -144,6 +152,15 @@ jobs:
             cargo build --release --features remote-backends --target "$TARGET"
           fi
 
+      # The existing safety contract, run against this checkout with the feature
+      # set being shipped: it fails when the CVE ruleset compiled to zero rules.
+      # Native Linux leg only (it runs a test binary). Every leg also gets the
+      # artifact-level CVE check in the smoke step.
+      - name: CVE ruleset contract (safety_text_contract with remote-backends)
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        shell: bash
+        run: cargo test --test safety_text_contract --features remote-backends
+
       - name: Prepare asset, checksum and manifest
         id: prepare
         shell: bash
@@ -157,7 +174,8 @@ jobs:
         run: scripts/release-remote.sh prepare "$VERSION" "$PLATFORM" "target/${TARGET}/release/${BIN}" dist "$TAG" "$COMMIT"
 
       # Runs before anything can be uploaded. The cross-built linux-arm64 binary
-      # cannot run here and gets a static string check instead.
+      # cannot run here and gets a static string check instead (marker strings and
+      # the compiled CVE rules' source URLs; it does not run the validator).
       - name: Smoke-test the asset
         id: smoke
         shell: bash

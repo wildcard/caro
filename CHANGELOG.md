@@ -33,11 +33,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **Only tags that contain this workflow can use it.** v1.5.0 and older do not,
   so their `-remote` binaries are not available this way; for those, install
   from source with `cargo install caro --features remote-backends --locked`.
-  The smoke test runs the binary and requires all nine remote backends to be
-  listed and none to be `not compiled`. linux-arm64 is cross-built and cannot
+  Before each build it checks that `data/cve_rules` holds compilable rules and
+  that the build directory does not exist yet, so a build script cached from
+  another checkout cannot silently compile an empty CVE ruleset (#1652). The
+  smoke test runs the binary and requires all nine remote backends to be
+  listed and none to be `not compiled`. It also sends the CVE-2024-3094 trigger
+  to the binary's own validator (`caro guard`, which only validates and never
+  runs the command) and requires a Critical denial that cites the rule, a
+  benign command that passes, and every compiled rule's source URL to be in the
+  binary. The linux-amd64 leg also runs `safety_text_contract` with
+  `--features remote-backends`. linux-arm64 is cross-built and cannot
   run on the runner, so it gets a static check that shows only that the
   `remote-backends` feature is on (one marker string present, the default
-  build's message absent). Neither check shows that a provider is reachable.
+  build's message absent) and that the compiled rules' source URLs are in the
+  file; the validator is not run on that target. Neither check shows that a provider is reachable.
   `tests/release_remote_contract.rs` runs the workflow's step blocks against
   fixtures and a stub `gh`, offline, on Linux and macOS CI;
   `tests/backend_features_contract.rs` checks both feature sets in debug

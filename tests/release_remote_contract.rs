@@ -119,6 +119,19 @@ impl Ws {
         fs::create_dir_all(dir.path().join("scripts")).unwrap();
         fs::copy(root().join(SCRIPT), dir.path().join(SCRIPT)).unwrap(); // keeps the exec bit
         fs::create_dir_all(dir.path().join("bin")).unwrap();
+        // The real CVE rule files: the script derives what a build must contain
+        // from them.
+        let rules = dir.path().join("data/cve_rules");
+        fs::create_dir_all(&rules).unwrap();
+        for entry in fs::read_dir(root().join("data/cve_rules")).unwrap() {
+            let entry = entry.unwrap();
+            fs::copy(entry.path(), rules.join(entry.file_name())).unwrap();
+        }
+        // Tripwire: the dangerous CVE-2024-3094 fixture command must only ever
+        // be validator input, never run. Any call to `xz` is recorded.
+        let xz = dir.path().join("bin/xz");
+        fs::write(&xz, "#!/bin/sh\necho \"xz $*\" >> \"$FAKE_DIR/xz.log\"\n").unwrap();
+        make_executable(&xz);
         let gh = dir.path().join("bin/gh");
         fs::write(
             &gh,
@@ -255,8 +268,81 @@ fn make_executable(path: &Path) {
     fs::set_permissions(path, perm).unwrap();
 }
 
-fn backend_info_fixture(compiled: bool) -> String {
-    let mut s = String::from("#!/bin/sh\necho 'Available inference backends'\n");
+/// What the fixture's `guard` subcommand does with the CVE-2024-3094 trigger.
+#[derive(Clone, Copy, PartialEq)]
+enum Cve {
+    /// Critical, deny, cites the CVE: a build with the ruleset compiled in.
+    Ok,
+    /// Safe, no opinion: a build whose ruleset compiled to zero rules.
+    ZeroRules,
+    /// Denies, but without citing the CVE rule.
+    NoCveText,
+    /// Denies everything, even a benign command.
+    AlwaysDeny,
+}
+
+/// Source URLs of the compiled (non-draft) `CVE-*.yaml` rules in the repo.
+fn rule_sources() -> Vec<String> {
+    let mut v: Vec<String> = fs::read_dir(root().join("data/cve_rules"))
+        .unwrap()
+        .filter_map(Result::ok)
+        .filter(|e| {
+            let n = e.file_name().to_string_lossy().to_string();
+            n.starts_with("CVE-") && n.ends_with(".yaml")
+        })
+        .filter_map(|e| {
+            let body = fs::read_to_string(e.path()).unwrap();
+            if body.contains("TODO_NIMBLE_AUTHORED") {
+                return None;
+            }
+            body.lines()
+                .find_map(|l| l.strip_prefix("source:"))
+                .map(|u| u.split_whitespace().next().unwrap_or("").to_string())
+        })
+        .collect();
+    v.sort();
+    v
+}
+
+fn fixture(compiled: bool, cve: Cve, with_rule_urls: bool) -> String {
+    let mut s = String::from("#!/bin/sh\n");
+    if with_rule_urls {
+        for u in rule_sources() {
+            s.push_str(&format!("# compiled rule source: {u}\n"));
+        }
+    }
+    let cites = match cve {
+        Cve::NoCveText => "some-other-pattern",
+        _ => "cve-2024-3094: xz-utils backdoor trigger",
+    };
+    let (trigger, trigger_rc) = match cve {
+        Cve::ZeroRules => (
+            r#"{"matched_patterns":[],"risk":"safe","verdict":"none"}"#.to_string(),
+            0,
+        ),
+        _ => (
+            format!(r#"{{"matched_patterns":["{cites}"],"risk":"critical","verdict":"deny"}}"#),
+            2,
+        ),
+    };
+    let (benign, benign_rc) = if cve == Cve::AlwaysDeny {
+        (trigger.clone(), 2)
+    } else {
+        (
+            r#"{"matched_patterns":[],"risk":"safe","verdict":"none"}"#.to_string(),
+            0,
+        )
+    };
+    s.push_str(&format!(
+        "if [ \"$1\" = guard ]; then\n\
+         \x20 payload=$(cat)\n\
+         \x20 case \"$payload\" in\n\
+         \x20   *'xz --lzma1'*) echo '{trigger}'; exit {trigger_rc} ;;\n\
+         \x20   *) echo '{benign}'; exit {benign_rc} ;;\n\
+         \x20 esac\n\
+         fi\n"
+    ));
+    s.push_str("echo 'Available inference backends'\n");
     s.push_str("echo '  embedded      available         local'\n");
     for b in BACKENDS {
         let status = if compiled {
@@ -267,6 +353,10 @@ fn backend_info_fixture(compiled: bool) -> String {
         s.push_str(&format!("echo '  {b}  {status}  notes'\n"));
     }
     s
+}
+
+fn backend_info_fixture(compiled: bool) -> String {
+    fixture(compiled, Cve::Ok, true)
 }
 
 fn build_exprs(target: &str, platform: &str, bin: &str) -> Vec<(String, String)> {
@@ -297,13 +387,23 @@ fn place_binary(ws: &Ws, target: &str, bin: &str, body: &str) {
     ws.write_fixture(&format!("target/{target}/release/{bin}"), body);
 }
 
-fn arm64_remote_fixture() -> &'static str {
-    "#!/bin/sh\n# ANTHROPIC_API_KEY environment variable not set\n"
+fn arm64_remote_fixture() -> String {
+    arm64_fixture(true)
+}
+
+fn arm64_fixture(with_rule_urls: bool) -> String {
+    let mut s = String::from("#!/bin/sh\n# ANTHROPIC_API_KEY environment variable not set\n");
+    if with_rule_urls {
+        for u in rule_sources() {
+            s.push_str(&format!("# compiled rule source: {u}\n"));
+        }
+    }
+    s
 }
 
 fn prepare_ok(ws: &Ws, target: &str, platform: &str, bin: &str) {
     let body = if target == "aarch64-unknown-linux-gnu" {
-        arm64_remote_fixture().to_string()
+        arm64_remote_fixture()
     } else {
         backend_info_fixture(true)
     };
@@ -1263,4 +1363,193 @@ fn the_repair_hint_names_every_leftover_asset_not_just_the_stray_one() {
         "{}",
         text(&out)
     );
+}
+
+// ---------------------------------------------------------------------------
+// CVE ruleset contract in the optional release path (#1652 robustness)
+// ---------------------------------------------------------------------------
+
+const NATIVE: (&str, &str, &str) = ("x86_64-unknown-linux-gnu", "linux-amd64", "caro");
+const ARM64: (&str, &str, &str) = ("aarch64-unknown-linux-gnu", "linux-arm64", "caro");
+
+fn smoke_with(ws: &Ws, t: (&str, &str, &str), body: &str) -> Output {
+    place_binary(ws, t.0, t.2, body);
+    let e = build_exprs(t.0, t.1, t.2);
+    let p = ws.run("build", "prepare", &refs(&e));
+    assert!(p.status.success(), "prepare: {}", text(&p));
+    ws.run("build", "smoke", &refs(&e))
+}
+
+#[test]
+fn smoke_block_rejects_a_build_whose_cve_ruleset_is_missing_or_empty() {
+    let cases: Vec<(&str, String, &str)> = vec![
+        (
+            "ruleset compiled to zero rules (trigger rated safe)",
+            fixture(true, Cve::ZeroRules, true),
+            "was not blocked",
+        ),
+        (
+            "trigger denied without citing the CVE rule",
+            fixture(true, Cve::NoCveText, true),
+            "does not cite cve-2024-3094",
+        ),
+        (
+            "guard denies a benign command too (the check would prove nothing)",
+            fixture(true, Cve::AlwaysDeny, true),
+            "benign control was denied",
+        ),
+        (
+            "rule sources absent from the binary",
+            fixture(true, Cve::Ok, false),
+            "not found in the binary",
+        ),
+    ];
+    for (label, body, expect) in cases {
+        let ws = Ws::new();
+        let out = smoke_with(&ws, NATIVE, &body);
+        assert!(
+            !out.status.success(),
+            "{label}: smoke must fail:\n{}",
+            text(&out)
+        );
+        assert!(
+            text(&out).contains(expect),
+            "{label}: want '{expect}' in:\n{}",
+            text(&out)
+        );
+    }
+    // Cross-built arm64 cannot run on the runner: only the static check applies.
+    let ws = Ws::new();
+    let out = smoke_with(&ws, ARM64, &arm64_fixture(false));
+    assert!(
+        !out.status.success(),
+        "arm64 without rule sources must fail"
+    );
+    assert!(
+        text(&out).contains("not found in the binary"),
+        "{}",
+        text(&out)
+    );
+}
+
+#[test]
+fn smoke_block_accepts_a_build_with_the_cve_ruleset_and_never_runs_the_trigger() {
+    let ws = Ws::new();
+    let out = smoke_with(&ws, NATIVE, &fixture(true, Cve::Ok, true));
+    assert!(out.status.success(), "{}", text(&out));
+    let t = text(&out);
+    assert!(t.contains("CVE ruleset ok"), "{t}");
+    // The CVE-2024-3094 trigger string is validator input only. The tripwire
+    // `xz` on PATH was never called.
+    let log = fs::read_to_string(ws.p().join("xz.log")).unwrap_or_default();
+    assert_eq!(log, "", "the trigger command must never be executed");
+
+    let ws = Ws::new();
+    let out = smoke_with(&ws, ARM64, &arm64_fixture(true));
+    assert!(out.status.success(), "{}", text(&out));
+    assert!(
+        text(&out).contains("not run: cross-built"),
+        "the arm64 limitation must be printed: {}",
+        text(&out)
+    );
+}
+
+#[test]
+fn preflight_block_requires_cve_rules_and_a_fresh_build_directory() {
+    let ws = Ws::new();
+    let ok = ws.run("build", "preflight", &[]);
+    assert!(ok.status.success(), "{}", text(&ok));
+    assert!(text(&ok).contains("compiled CVE rule"), "{}", text(&ok));
+
+    // A build directory that already exists could hold a stale build script.
+    let ws = Ws::new();
+    fs::create_dir_all(ws.p().join("target")).unwrap();
+    let stale = ws.run("build", "preflight", &[]);
+    assert!(!stale.status.success());
+    assert!(text(&stale).contains("not fresh"), "{}", text(&stale));
+
+    // Rules directory missing (vendored tarball, moved checkout).
+    let ws = Ws::new();
+    fs::remove_dir_all(ws.p().join("data/cve_rules")).unwrap();
+    let missing = ws.run("build", "preflight", &[]);
+    assert!(!missing.status.success());
+    assert!(
+        text(&missing).contains("no CVE rules"),
+        "{}",
+        text(&missing)
+    );
+
+    // Rules directory present but nothing compilable: template and draft only.
+    let ws = Ws::new();
+    let dir = ws.p().join("data/cve_rules");
+    for entry in fs::read_dir(&dir).unwrap() {
+        let path = entry.unwrap().path();
+        if path.file_name().unwrap().to_string_lossy() != "EXAMPLE-TEMPLATE.yaml" {
+            fs::remove_file(path).unwrap();
+        }
+    }
+    fs::write(
+        dir.join("CVE-9999-0001.yaml"),
+        "id: CVE-9999-0001\nsource: https://example.test/x\npattern: \"TODO_NIMBLE_AUTHORED\"\n",
+    )
+    .unwrap();
+    let drafts = ws.run("build", "preflight", &[]);
+    assert!(!drafts.status.success());
+    assert!(text(&drafts).contains("no CVE rules"), "{}", text(&drafts));
+}
+
+#[test]
+fn build_job_pins_then_preflights_then_builds_and_runs_the_cve_contract_on_linux() {
+    let wf = workflow();
+    let build = job(&wf, "build");
+    let st = steps(build);
+    let idx = |pred: &dyn Fn(&Value) -> bool, what: &str| {
+        st.iter()
+            .position(pred)
+            .unwrap_or_else(|| panic!("no step: {what}"))
+    };
+    let run_has = |needle: &'static str| {
+        move |s: &Value| {
+            s.get("run")
+                .and_then(Value::as_str)
+                .is_some_and(|r| r.contains(needle))
+        }
+    };
+    let pin = idx(
+        &|s| s.get("id").and_then(Value::as_str) == Some("pin"),
+        "pin",
+    );
+    let pre = idx(
+        &|s| s.get("id").and_then(Value::as_str) == Some("preflight"),
+        "preflight",
+    );
+    let tool = idx(&run_has("rustup toolchain install"), "toolchain");
+    let cargo = idx(&run_has("cargo build"), "build");
+    let contract = idx(&run_has("safety_text_contract"), "cve contract");
+    let prepare = idx(
+        &|s| s.get("id").and_then(Value::as_str) == Some("prepare"),
+        "prepare",
+    );
+    assert!(
+        pin < pre && pre < tool && tool < cargo,
+        "pin, preflight, toolchain, build"
+    );
+    assert!(
+        cargo < contract && contract < prepare,
+        "contract runs after the build, before prepare"
+    );
+
+    let c = &st[contract];
+    let run = get(c, "run").as_str().unwrap();
+    assert!(run.contains("--features remote-backends"), "{run}");
+    assert!(run.contains("--test safety_text_contract"), "{run}");
+    let cond = get(c, "if").as_str().unwrap();
+    assert!(
+        cond.contains("x86_64-unknown-linux-gnu"),
+        "the source-level contract runs on the native Linux leg only: {cond}"
+    );
+    assert!(c.get("continue-on-error").is_none());
+    // Every leg gets the artifact-level check through the smoke step.
+    let smoke = get(step(build, "smoke"), "run").as_str().unwrap();
+    assert!(smoke.contains("release-remote.sh smoke"), "{smoke}");
 }

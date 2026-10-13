@@ -89,6 +89,74 @@ cmd_pin() {
   echo "commit=$head"
 }
 
+# cve_sources <rules_dir>: the source URL of every CVE rule the build compiles
+# in: data/cve_rules/CVE-*.yaml, minus the draft sentinel (the compiler skips
+# those, and also EXAMPLE-TEMPLATE.yaml, which does not start with CVE-).
+cve_sources() {
+  local dir=$1 f
+  for f in "$dir"/CVE-*.yaml; do
+    [ -f "$f" ] || continue
+    if grep -q 'TODO_NIMBLE_AUTHORED' "$f"; then continue; fi
+    sed -n 's/^source:[[:space:]]*\([^[:space:]#]*\).*$/\1/p' "$f" | head -n 1
+  done
+}
+
+# preflight <rules_dir> <target_dir>
+# Runs before any build (#1652). build.rs reads data/cve_rules through a
+# compile-time path and writes an empty ruleset, without a warning, when that
+# directory is missing; a reused build directory can also hold a build script
+# compiled in another checkout. So: there must be rules to compile, and the
+# build directory must not exist yet.
+cmd_preflight() {
+  local rules=$1 target=$2 n
+  [ -d "$rules" ] || die "no CVE rules: $rules does not exist, so the build would compile an empty ruleset"
+  n=$(cve_sources "$rules" | grep -c . || true)
+  [ "$n" -ge 1 ] || die "no CVE rules to compile in $rules (only drafts or the template?)"
+  [ ! -e "$target" ] ||
+    die "build directory '$target' is not fresh; a cached build script could point at another checkout"
+  echo "preflight ok: $n compiled CVE rule(s) in $rules; build directory '$target' is fresh"
+}
+
+# cve_static <asset>: every compiled rule's source URL must be in the binary.
+# The URLs occur in the compiled ruleset only, so a build that compiled fewer
+# rules than data/cve_rules holds fails. This is the only CVE check the
+# cross-built linux-arm64 binary gets: it shows the ruleset is in the file, not
+# that the validator behaves on the target.
+cve_static() {
+  local asset=$1 rules=${CARO_CVE_RULES_DIR:-data/cve_rules} srcs u
+  srcs=$(cve_sources "$rules")
+  [ -n "$srcs" ] || die "no CVE rules to check the binary against in $rules"
+  while IFS= read -r u; do
+    [ -n "$u" ] || continue
+    grep -aqF -- "$u" "$asset" ||
+      die "CVE ruleset: source $u not found in the binary; it compiled fewer rules than $rules holds (stale build script or missing rules directory?)"
+  done <<<"$srcs"
+}
+
+# cve_guard <asset>: run the compiled binary's validator, never the command.
+# `caro guard` reads a hook payload on stdin and prints a verdict; the string
+# below is data for the validator and is never executed. A benign control keeps
+# a guard that denies everything from passing.
+cve_guard() {
+  local asset=$1 home out rc=0
+  home=$(mktemp -d "${TMPDIR:-/tmp}/caro-smoke.XXXXXX")
+  guard_run() {
+    printf '%s' "$1" |
+      env -i PATH="$PATH" HOME="$home" XDG_CONFIG_HOME="$home" XDG_DATA_HOME="$home" \
+        XDG_CACHE_HOME="$home" HF_HUB_OFFLINE=1 \
+        "$asset" guard --harness generic --mode enforce --no-log 2>&1
+  }
+  out=$(guard_run '{"command":"xz --lzma1=preset=9 file.txt"}') || rc=$?
+  { [ "$rc" = 2 ] && grep -q '"verdict":"deny"' <<<"$out"; } ||
+    die "CVE-2024-3094 trigger was not blocked by 'caro guard' (exit $rc): $out"
+  grep -qi 'cve-2024-3094' <<<"$out" ||
+    die "guard verdict does not cite cve-2024-3094 (update this check if the rule moved): $out"
+  rc=0
+  out=$(guard_run '{"command":"ls -la"}') || rc=$?
+  { [ "$rc" = 0 ] && grep -q '"verdict":"none"' <<<"$out"; } ||
+    die "benign control was denied or errored (exit $rc): $out"
+}
+
 # name <version> <platform>
 cmd_name() {
   remote_name "$1" "$2"
@@ -133,7 +201,8 @@ cmd_smoke() {
     if grep -aq 'which is not compiled into this build' "$asset"; then
       die "arm64 binary carries the default build's 'not compiled' message"
     fi
-    echo "static check passed (not run: cross-built)"
+    cve_static "$asset"
+    echo "static check passed (not run: cross-built; CVE ruleset checked in the file only)"
     return 0
   fi
   case "$asset" in */*) ;; *) asset=./$asset ;; esac
@@ -149,6 +218,9 @@ cmd_smoke() {
   if grep -q "not compiled" <<<"$out"; then
     die "remote-backends asset reports a backend as 'not compiled'"
   fi
+  cve_guard "$asset"
+  cve_static "$asset"
+  echo "CVE ruleset ok: trigger denied and cited, benign control allowed, rule sources present"
   echo "smoke passed"
 }
 
@@ -278,7 +350,7 @@ cmd_upload() {
 }
 
 usage() {
-  echo "usage: $0 <pin|name|prepare|smoke|verify|identity|release-assets|release-state|upload> ..." >&2
+  echo "usage: $0 <pin|preflight|name|prepare|smoke|verify|identity|release-assets|release-state|upload> ..." >&2
   exit 2
 }
 
@@ -287,6 +359,7 @@ sub=$1
 shift
 case "$sub" in
   pin) [ $# -eq 5 ] || usage; cmd_pin "$@" ;;
+  preflight) [ $# -eq 2 ] || usage; cmd_preflight "$@" ;;
   name) [ $# -eq 2 ] || usage; cmd_name "$@" ;;
   prepare) [ $# -eq 6 ] || usage; cmd_prepare "$@" ;;
   smoke) [ $# -eq 2 ] || usage; cmd_smoke "$@" ;;
