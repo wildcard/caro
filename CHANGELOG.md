@@ -12,8 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`caro guard --judge` (experimental, spec 011 follow-up 3).** An opt-in
   LLM judge (`ollama`, `vllm`, `grok` or `openrouter`, or
   `$CARO_GUARD_JUDGE`) reviews the shell commands the static rules let
-  through. It can only escalate them to `ask`, and only at confidence 0.7 or
-  higher. It never denies, never relaxes a static verdict, and is not called
+  through. It can only escalate them to `ask`, and only when it rates a
+  command High or Critical with confidence 0.7 or higher. It never denies, never relaxes a static verdict, and is not called
   for flagged commands. A timeout (`--judge-timeout-ms`, default 2000) or an
   error keeps the static verdict, and the decision log records it as
   `source: static+judge_error`. The judge sees the redacted command, and

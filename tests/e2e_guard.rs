@@ -269,7 +269,10 @@ fn judge_from_env_needs_remote_backends() {
 }
 
 /// A local Ollama judge escalates a command the static rules let through.
-#[cfg(feature = "remote-backends")]
+///
+/// Not on Windows: `dirs::config_dir()` there is the Known Folder for roaming
+/// AppData, which the test cannot point at a temporary config.
+#[cfg(all(feature = "remote-backends", not(windows)))]
 #[tokio::test(flavor = "multi_thread")]
 async fn ollama_judge_escalates_a_static_pass_to_ask() {
     use wiremock::matchers::{method, path};

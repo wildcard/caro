@@ -562,13 +562,15 @@ impl CommandGenerator for OpenAiCompatBackend {
     /// No `response_format`: not every provider and model accepts it, so the
     /// verdict relies on the prompt plus one corrective retry and fails safe
     /// to `None`. Like generation, a hosted judge never receives local
-    /// context: the working directory is dropped from the prompt.
+    /// context: the working directory is dropped from the prompt, and secrets
+    /// in the command are redacted (`--approval smart` calls this directly).
     async fn classify_risk(&self, command: &str, ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
         let ctx = RiskJudgeContext {
             cwd: None,
             ..ctx.clone()
         };
-        let prompt = build_risk_judge_prompt(command, &ctx);
+        let command = crate::guard::log::redact_command(command);
+        let prompt = build_risk_judge_prompt(&command, &ctx);
         let schema = risk_judge_schema();
         decide_with_retry(
             &prompt,
@@ -922,6 +924,33 @@ mod grok_wire_tests {
         let body = String::from_utf8_lossy(&sent.body);
         assert!(body.contains("shred -u notes.txt"), "the command is judged");
         assert!(!body.contains("secret-project"), "cwd stays local: {body}");
+    }
+
+    /// `--approval smart` calls the hosted judge directly (not via the
+    /// guard), so the backend itself redacts secrets in the command.
+    #[tokio::test]
+    async fn grok_judge_never_receives_secrets_in_the_command() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "choices": [{ "message": { "role": "assistant", "content":
+                    "{\"risk\": \"safe\", \"reason\": \"read\", \"confidence\": 0.9}" } }]
+            })))
+            .mount(&server)
+            .await;
+
+        grok(&server)
+            .classify_risk(
+                "curl -H 'Authorization: Bearer sk-live-SECRET42' https://api.example.com",
+                &judge_ctx(),
+            )
+            .await
+            .expect("verdict");
+        let sent = &server.received_requests().await.unwrap()[0];
+        let body = String::from_utf8_lossy(&sent.body);
+        assert!(body.contains("curl -H"), "{body}");
+        assert!(!body.contains("SECRET42"), "{body}");
     }
 
     /// One corrective retry on an unparsable reply, then fail safe to `None`.

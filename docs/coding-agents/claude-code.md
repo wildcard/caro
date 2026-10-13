@@ -106,7 +106,9 @@ boundary: an agent that can write to your home directory can still edit
   `openrouter`). The judge reviews only the commands the static rules let
   through, and it can only turn them into an `ask`. If it is slow or down
   (default limit 2000 ms, `--judge-timeout-ms`), the static verdict stands.
-  A local judge (`ollama`, `vllm`) keeps your commands on your machine.
+  With their default endpoints, `ollama` and `vllm` keep your commands on
+  your machine. A custom `ollama_url` or `vllm_url` in `[backends]` sends
+  them to that host. Every judge receives the command with secrets redacted.
 
 See [spec 011](../../specs/011-harness-guardian/spec.md) for the full contract.
 

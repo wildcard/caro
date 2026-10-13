@@ -267,7 +267,12 @@ fn summarize_lines(lines: impl Iterator<Item = String>, limit: usize) -> Report 
             .by_harness
             .entry(format!("{:?}", rec.harness).to_lowercase())
             .or_default() += 1;
-        *report.by_source.entry(rec.source.clone()).or_default() += 1;
+        // Known labels only: the report is printed to a terminal.
+        let source = match rec.source.as_str() {
+            s @ ("static" | "static+judge" | "static+judge_error") => s,
+            _ => "other",
+        };
+        *report.by_source.entry(source.to_string()).or_default() += 1;
         for p in &rec.matched_patterns {
             *patterns.entry(p.clone()).or_default() += 1;
         }
@@ -390,6 +395,11 @@ mod tests {
         assert_eq!(judged.by_source.get("static+judge"), Some(&1));
         assert!(format_report(path, &judged)
             .contains("by source:  static 1 · static+judge 1 · static+judge_error 1"));
+
+        // A hand-edited log cannot drive the reviewer's terminal.
+        let forged = summarize(&line("\\u001b[31mstatic+judge"), 5);
+        assert_eq!(forged.by_source.get("other"), Some(&1));
+        assert!(!format_report(path, &forged).contains('\u{1b}'));
     }
 
     #[tokio::test]
