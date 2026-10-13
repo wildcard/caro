@@ -24,10 +24,10 @@ name: Release Remote (optional)
 #
 # After an interrupted publish, `-remote` assets can stay on the release. Remove
 # them by hand before running again: the run stops while any are present.
-# The workflow uses no cache (a cache saved from a build of tag source would be
-# shared with the default branch), so each run is a cold release build; its time
-# against the 90-minute limit is unmeasured. The macOS jobs share the account's
-# runners with the stable release.
+# The workflow uses no cache and no third-party action (a cache saved from a
+# build of tag source would be shared with the default branch), so each run is
+# a cold release build; its time against the 90-minute limit is unmeasured. The
+# macOS jobs share the account's runners with the stable release.
 #
 # All logic is in scripts/release-remote.sh. tests/release_remote_contract.rs
 # runs these step blocks against fixtures on Linux and macOS CI. What no CI
@@ -126,14 +126,16 @@ jobs:
           VERSION: ${{ needs.resolve.outputs.version }}
         run: scripts/release-remote.sh check-source "$COMMIT" "$VERSION" source
 
-      # No cache on purpose: this job builds and runs code from a tag, and a
-      # cache entry saved from it would be shared with the default branch (the
-      # setup-rust composite action caches, so it is not used here).
+      # No cache and no third-party action on purpose: this job builds and runs
+      # code from a tag, and a cache entry saved from it would be shared with the
+      # default branch. rustup is preinstalled on the GitHub-hosted runners.
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: stable
-          targets: ${{ matrix.target }}
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          rustup toolchain install stable --profile minimal --target "$TARGET"
+          rustup default stable
 
       - name: Install cross (for cross-compilation)
         if: matrix.target == 'aarch64-unknown-linux-gnu'

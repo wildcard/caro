@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   binary, runs the real `gh` upload, runs the Windows path, runs the
   cross-built arm64 check on a real binary, or runs the x86_64 macOS binary
   (it needs Rosetta 2 on the arm64 runner). The first manual run is the
-  evidence for those. The workflow uses no cache, and its build time against the
+  evidence for those. The workflow uses no cache or third-party action, and its build time against the
   90-minute limit is unmeasured. After an interrupted publish, remove the
   `-remote` assets from the release by hand before running it again.
 - **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`

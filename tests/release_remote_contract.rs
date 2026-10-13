@@ -377,7 +377,11 @@ fn workflow_is_manual_only_and_publication_is_off_by_default() {
         for st in steps(j) {
             let uses = st.get("uses").and_then(Value::as_str).unwrap_or("");
             assert!(
-                !uses.contains("cache") && !uses.contains("setup-rust"),
+                uses.is_empty() || uses.starts_with("actions/"),
+                "only first-party actions may run in this workflow: {uses}"
+            );
+            assert!(
+                !uses.contains("cache"),
                 "no cache may be saved from a job that builds tag source: {uses}"
             );
         }
