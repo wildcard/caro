@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-10-11
+**Last updated**: 2026-10-13
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -48,6 +48,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-10-09 | PASS | PASS (1.5.0) | PASS | PASS | PASS | dry-run via static matcher (Pattern 43); model downloaded to cache this run |
 | 2026-10-10 | PASS | PASS (1.5.0) | PASS | PASS | PASS | static-matcher intercepts basic patterns; no model download needed. gh auth failed — no issue filing this pass |
 | 2026-10-11 | PASS | PASS (1.5.0) | PASS | PASS | PASS | --dry-run now PASS via static matcher; telemetry consent on fresh sandbox (expected) |
+| 2026-10-13 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher handled dry-run without model; telemetry prompt appeared (fresh container) |
 
 ---
 
@@ -66,7 +67,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-10-08 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-09-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-11 | FLAKE | #1272, #1408 (open) |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-13 | FLAKE | #1272, #1408 (open) |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | Likely affected by same bug as #1449; test after fix |
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
@@ -88,9 +89,10 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 29 | `caro --safety strict/moderate/permissive` modes | safety | never | — | — |
 | 30 | `caro --verbose` timing output | cli | 2026-10-10 | PASS | — (--dry-run --verbose confirmed Backend: static-matcher, Confidence: 1.00 in Slot A) |
 | 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | 2026-09-07 | PASS | — |
-| 32 | `caro doctor` advisory content accuracy | cli | 2026-09-24 | PASS | — |
+| 32 | `caro doctor` advisory content accuracy | cli | 2026-10-13 | PASS | — |
 | 33 | `caro ai` decision gates (clarification, Jev gap, constrained decoding) (#1459) | ai | never | — | — |
 | 34 | Executor timeout / guard hooks / loop budget enforcement (#1470) | cli | never | — | — |
+| 35 | `caro export` platform runbook writer (new in v1.5.0) | cli | never | — | — |
 
 ---
 
