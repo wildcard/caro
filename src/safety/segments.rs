@@ -282,7 +282,7 @@ fn env_split_payload(mut argv: &[String]) -> Option<String> {
         return Some(if rest.is_empty() {
             value
         } else {
-            format!("{value} {}", shell_words::join(rest))
+            format!("{value} {}", join_view(&rest))
         });
     }
     None
@@ -300,6 +300,28 @@ fn payload_after_prefix(argv: &[String]) -> Option<String> {
             w == "eval" || SHELLS.contains(&w)
         })
         .find_map(|(i, _)| wrapper_payload(&argv[i..]))
+}
+
+/// Join tokens back into a command line for a view. Only a token that would
+/// lose its word boundaries (blanks, separators, quotes) is quoted. `~`,
+/// `$HOME`, `*` and `{}` stay bare, so the scanners still read `~` as home:
+/// `shell_words::join` would write `'~'`, which is a literal name.
+fn join_view<S: AsRef<str>>(tokens: &[S]) -> String {
+    tokens
+        .iter()
+        .map(|t| {
+            let t = t.as_ref();
+            let needs_quotes = t.is_empty()
+                || t.chars()
+                    .any(|c| c.is_whitespace() || ";&|<>()'\"`\\".contains(c));
+            if needs_quotes {
+                shell_words::quote(t).into_owned()
+            } else {
+                t.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 /// Extra strings for the scanners: statements, prefix-stripped statements
@@ -352,7 +374,7 @@ fn collect(command: &str, depth: usize, views: &mut Views) {
         }
         if inner.len() != argv.len() {
             // Re-quote so the stripped view keeps its argument boundaries.
-            views.push(shell_words::join(inner));
+            views.push(join_view(inner));
         }
         if depth < MAX_DEPTH {
             let payload = wrapper_payload(inner).or_else(|| {
@@ -405,6 +427,22 @@ mod tests {
     #[test]
     fn strips_prefixes_into_a_view() {
         assert!(scan_views("sudo find / -delete").contains(&"find / -delete".to_string()));
+    }
+
+    #[test]
+    fn stripped_view_keeps_home_bare() {
+        let views = scan_views("sudo find ~ -type f -delete");
+        assert!(
+            views.contains(&"find ~ -type f -delete".to_string()),
+            "{views:?}"
+        );
+        let views = scan_views("sudo chmod -R 777 $HOME");
+        assert!(
+            views.contains(&"chmod -R 777 $HOME".to_string()),
+            "{views:?}"
+        );
+        let views = scan_views("sudo rm -rf 'my dir'");
+        assert!(views.contains(&"rm -rf 'my dir'".to_string()), "{views:?}");
     }
 
     #[test]

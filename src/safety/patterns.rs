@@ -32,6 +32,11 @@ pub(crate) const ROOT_OR_HOME: &str = r#"(?:['"]?/+\*?['"]?|~/?\*?|"?\$\{?HOME\}
 /// found path (`{}`), in the same statement (`\;` is allowed inside it).
 /// The blanks are [`WS`], spelled out because a `const` cannot `format!`.
 pub(crate) const FIND_ROOT_OR_HOME_DELETE: &str = r#"(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:[ \t]|\\\n)+(?:[^\s;&|]|\\;)+)*?(?:[ \t]|\\\n)+(?:-delete\b|-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#;
+/// The same, but only for a find with no filter: between the start path and
+/// the action only non-narrowing options may appear (`-xdev`, `-mindepth N`,
+/// `-type X`, `-name '*'`, ...). This one is catastrophic and in the floor; a
+/// filtered find on root or home deletes only what matches and is High.
+pub(crate) const FIND_ROOT_OR_HOME_DELETE_ALL: &str = r#"(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:[ \t]|\\\n)+(?:-xdev|-mount|-depth|-follow|-noleaf|-ignore_readdir_race|-mindepth(?:[ \t]|\\\n)+\d+|-type(?:[ \t]|\\\n)+[a-zA-Z]|-i?name(?:[ \t]|\\\n)+['"]?\*['"]?))*(?:[ \t]|\\\n)+(?:-delete\b|-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#;
 
 /// Built-in dangerous patterns loaded once at startup
 pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
@@ -142,9 +147,17 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         },
         // CRITICAL: find-based recursive delete from root or home (#1054).
         DangerPattern {
-            pattern: format!(r"\bfind{WS}{FIND_ROOT_OR_HOME_DELETE}"),
+            pattern: format!(r"\bfind{WS}{FIND_ROOT_OR_HOME_DELETE_ALL}"),
             risk_level: RiskLevel::Critical,
             description: "Recursive delete with find from root or home".to_string(),
+            shell_specific: None,
+        },
+        // HIGH: the same with a filter (`-name`, `-mtime`, ...). It deletes only
+        // what matches, so it asks, and a team may allowlist its own cleanup.
+        DangerPattern {
+            pattern: format!(r"\bfind{WS}{FIND_ROOT_OR_HOME_DELETE}"),
+            risk_level: RiskLevel::High,
+            description: "Filtered recursive delete with find from root or home".to_string(),
             shell_specific: None,
         },
         // CRITICAL: decoded payload piped into a shell (#1054).
@@ -180,7 +193,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         },
         // HIGH: interpreter one-liner deleting root, home or a system dir (#1054).
         DangerPattern {
-            pattern: r#"\b(?:python[0-9.]*|perl|ruby)\s+(?:-\S+\s+)*?-[a-zA-Z]*[ce]\b[^\n]*?\b(?:rmtree|rm_rf|rm_r|remove_tree)\s*\(\s*['"](?:/|~/?|/(?:home|etc|usr|var|bin|sbin|lib|lib64|boot|opt|root|srv|Users|System|Library))/?['"]"#
+            pattern: r#"\b(?:python[0-9.]*|perl|ruby)\s+(?:-\S+\s+)*?-[a-zA-Z]*[ce]\b[^\n]*?\b(?:rmtree|rm_rf|rm_r|remove_tree)\s*\(\s*['"](?:/|/(?:home|etc|usr|var|bin|sbin|lib|lib64|boot|opt|root|srv|Users|System|Library))/?['"]"#
                 .to_string(),
             risk_level: RiskLevel::High,
             description: "Interpreter one-liner deleting root, home or a system directory"

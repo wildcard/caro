@@ -168,6 +168,25 @@ async fn find_delete_from_root_or_home_is_critical() {
     .await;
 }
 
+// ── A filtered find on root or home is High, not catastrophic ──
+// It deletes only what matches, so it asks, and a team may allowlist its own
+// cleanup. An unfiltered find on root or home stays Critical and on the floor.
+#[tokio::test]
+async fn filtered_find_on_root_or_home_is_high_and_allowlistable() {
+    for cmd in [
+        "find ~ -name .DS_Store -delete",
+        "find / -xdev -type f -name '*.tmp' -mtime +7 -delete",
+        "find \"$HOME\" -type d -name node_modules -prune -exec rm -rf {} +",
+    ] {
+        assert_eq!(risk(cmd).await, RiskLevel::High, "{cmd:?}");
+        let mut config = SafetyConfig::strict();
+        config.allowlist_patterns = vec![format!("^{}$", regex::escape(cmd))];
+        let v = SafetyValidator::new(config).unwrap();
+        let r = v.validate_command(cmd, ShellType::Bash).await.unwrap();
+        assert!(r.allowed, "{cmd:?} must be allowlistable: {r:?}");
+    }
+}
+
 // ── False positives: these must stay below High ──
 #[tokio::test]
 async fn benign_wrappers_and_mentions_stay_below_high() {
@@ -201,6 +220,9 @@ async fn benign_wrappers_and_mentions_stay_below_high() {
         "eval \"$(direnv hook bash)\"",
         "find / -name '*.conf' -print",
         "sudo find / -name sshd_config",
+        "git commit -m \"Block sudo chmod -R 777 / and sudo find / -delete\"",
+        "git commit -m \"$(cat <<'EOF'\nfeat: x\n\nchmod -R 777 ~ is now Critical\nEOF\n)\"",
+        "python -c 'import shutil; shutil.rmtree(\"~\")'",
     ] {
         let got = risk(cmd).await;
         if got >= RiskLevel::High {
