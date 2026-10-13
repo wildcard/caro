@@ -19,19 +19,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the existing release for that tag. It never overwrites an asset, never
   creates or deletes a release, and stops if the tag moved since the build, a
   checksum does not match, a binary and its `.sha256` do not come as a pair, or
-  any `-remote` asset is already on the release. The stable Release workflow,
-  the Homebrew workflow and the package workflow are unchanged and do not wait
-  for it. The default binary, the crates.io package and `[features] default`
-  are unchanged: they still report those backends as `not compiled` and fail
-  with a remedy. The smoke test runs the binary, except linux-arm64, which is
-  cross-built and gets a static string check. Both confirm the build compiles
-  Ollama, vLLM, Exo, Mesh-LLM, AI-Horde, the hybrid gateway, Claude,
-  OpenRouter and Grok in, not that a provider is reachable.
+  any `-remote` asset for this version is already on the release. The stable
+  Release workflow, the Homebrew workflow and the package workflow are
+  unchanged and do not wait for it. The default binary, the crates.io package
+  and `[features] default` are unchanged: they still report those backends as
+  `not compiled` and fail with a remedy.
+  The smoke test runs the binary and requires all nine remote backends to be
+  listed and none to be `not compiled`. linux-arm64 is cross-built and cannot
+  run on the runner, so it gets a static check that shows only that the
+  `remote-backends` feature is on (one marker string present, the default
+  build's message absent). Neither check shows that a provider is reachable.
   `tests/release_remote_contract.rs` runs the workflow's step blocks against
-  fixtures and a stub `gh`, offline, on Linux and macOS CI. No PR check builds
-  the `-remote` binaries on macOS, Windows or linux-arm64, or runs the Windows
-  path. `tests/backend_features_contract.rs` checks both feature sets on Linux
-  and macOS.
+  fixtures and a stub `gh`, offline, on Linux and macOS CI;
+  `tests/backend_features_contract.rs` checks both feature sets in debug
+  builds on Linux and macOS. No PR check builds a release-profile `-remote`
+  binary, runs the real `gh` upload, runs the Windows path, runs the
+  cross-built arm64 check on a real binary, or runs the x86_64 macOS binary
+  (it needs Rosetta 2 on the arm64 runner). The first manual run is the
+  evidence for those. The build has no cargo cache, and its time against the
+  90-minute limit is unmeasured. After an interrupted publish, remove the
+  `-remote` assets from the release by hand before running it again.
 - **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
   carry a `gold_tier`, `uncertain`, `rationale`, `labeller` and `labelled_at`.
   Labelled by an agent session on the owner's decision, blind to the static

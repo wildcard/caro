@@ -13,8 +13,8 @@
 //! and macOS CI. They do not run on Windows, so the Windows `certUtil`/`.exe`
 //! path and CRLF handling stay unrun here. They also do not prove that a real
 //! `--features remote-backends` build passes the smoke step on any platform:
-//! `tests/backend_features_contract.rs` covers the Linux host build, and the
-//! first real `workflow_dispatch` run is the evidence for the rest.
+//! `tests/backend_features_contract.rs` covers the debug builds on Linux and
+//! macOS, and the first real `workflow_dispatch` run is the evidence for the rest.
 #![cfg(unix)]
 
 use serde_yaml::Value;
