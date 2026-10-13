@@ -783,7 +783,7 @@ impl StaticMatcher {
                 // Only filler words may sit between the verb and `files`, so a
                 // file type or size ("pdf", "python", "large") falls through (#1645),
                 // and so does a path ("/var/log/files").
-                regex_pattern: Some(Regex::new(r"(?i)^(list(ing)?|show)(\s+(all|the|my|me))*\s+files?(\s+((in\s+)?here|in\s+(the\s+)?(current|this)\s+(directory|dir|folder)))?\s*$").unwrap()),
+                regex_pattern: Some(Regex::new(r"(?i)^(list(ing)?|show)(\s+(all|every|out|of|the|my|me))*\s+files?(\s+((in\s+)?here|in\s+(the\s+)?(current|this)\s+(directory|dir|folder)))?\s*$").unwrap()),
                 gnu_command: "ls -la".to_string(),
                 bsd_command: Some("ls -la".to_string()),
                 description: "List files (simple)".to_string(),
@@ -2456,7 +2456,13 @@ mod tests {
         );
 
         // Plain listings still match Pattern 43
-        for query in ["list files", "list all files", "show all files"] {
+        for query in [
+            "list files",
+            "list all files",
+            "show all files",
+            "list every file",
+            "show all of the files",
+        ] {
             let request = CommandRequest::new(query, ShellType::Bash);
             let cmd = matcher
                 .generate_command(&request)
