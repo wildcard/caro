@@ -526,7 +526,7 @@ workspaces are BW-069.
 
 **Found:** 2026-10-13, broken-window sweep (register sync)
 **Issue:** #1626
-**Status:** claimed-by sweep/2026-10-13-BW-1626
+**Status:** claimed-by sweep/2026-10-13-BW-1626 (#1656)
 **Needs human?:** no
 **Next step:** merge the PR.
 
