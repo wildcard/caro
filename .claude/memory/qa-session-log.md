@@ -36,7 +36,7 @@ Surface chosen: `caro ai --once` scripted conversational mode (oldest 'never' ro
 - `caro ai --help` → PASS: flag list correct; `--once` documented as "the only mode supported today"
 - `caro ai --once "show disk usage"` (5s timeout) → **HANG**: zero output on stdout AND stderr; process killed at timeout with no exit message
 - `caro --backend ai-horde ai --once "show disk usage"` → **FAIL**: `remote-backends` feature not compiled in this build (expected; embedded-cpu build only)
-- Root cause traced to the generation phase: `EmbeddedModelBackend::generate_command()` awaits the embedded model download before inference; no progress is shown during this wait; download progress uses `info!()`/`warn!()` log macros (invisible without `RUST_LOG=info`)
+- Root cause traced to the generation phase: `EmbeddedModelBackend::generate_command()` awaits the embedded model download before inference; no output appeared during this captured wait; `ModelLoader` reports transfer progress through an `indicatif::ProgressBar` and uses `info!()`/`warn!()` for download start and retry messages
 - **Existing open issue**: [#1408](https://github.com/wildcard/caro/issues/1408) (P1) — "caro ai --once provides zero user feedback during model initialization"; open fix PR [#1415](https://github.com/wildcard/caro/pull/1415) ("fix: show ai once backend initialization status") not yet merged as of 2026-10-13
 - No new issue filed (duplicate of #1408)
 
