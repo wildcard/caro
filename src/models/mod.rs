@@ -359,7 +359,8 @@ pub enum ApprovalMode {
     Auto,
     /// Blend the static decision with a bounded LLM "risk judge": relax benign
     /// flagged commands, escalate static-`Safe` commands the judge finds risky.
-    /// A `Critical` static match is never relaxed.
+    /// A `Critical` static match is never relaxed, and a hosted judge (Grok,
+    /// OpenRouter) may only escalate (`safety::judge_may_relax`).
     Smart,
 }
 

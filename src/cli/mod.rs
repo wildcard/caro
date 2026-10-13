@@ -991,7 +991,9 @@ impl CliApp {
                     matched_patterns: validation.matched_patterns.clone(),
                 };
                 let judgment = self.backend.classify_risk(&generated.command, &ctx).await;
-                let decision = crate::safety::blend_smart_decision(
+                // Hosted judges may only escalate (see `judge_may_relax`).
+                let decision = crate::safety::blend_smart_decision_for(
+                    self.backend.backend_info().backend_type,
                     validation.risk_level,
                     judgment.as_ref(),
                     safety_level,

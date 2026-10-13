@@ -953,6 +953,80 @@ mod grok_wire_tests {
         assert!(!body.contains("SECRET42"), "{body}");
     }
 
+    fn openrouter(server: &MockServer) -> OpenAiCompatBackend {
+        OpenAiCompatBackend::new(OpenAiCompatConfig {
+            api_key: "or-test-key".to_string(),
+            endpoint: format!("{}/api/v1", server.uri()),
+            ..OpenAiCompatConfig::for_provider(Provider::OpenRouter)
+        })
+        .unwrap()
+    }
+
+    /// The same judge contract holds for OpenRouter: parsed verdict, secrets
+    /// redacted and no working directory in the request.
+    #[tokio::test]
+    async fn openrouter_classifies_risk_with_redaction_and_no_cwd() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/api/v1/chat/completions"))
+            .and(header("authorization", "Bearer or-test-key"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "choices": [{ "message": { "role": "assistant", "content":
+                    "{\"risk\": \"critical\", \"reason\": \"wipe\", \"confidence\": 0.8}" } }]
+            })))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let backend = openrouter(&server);
+        assert!(backend.supports_risk_judge());
+        assert_eq!(backend.backend_info().backend_type, BackendType::OpenRouter);
+        let j = backend
+            .classify_risk("mysql -uroot -pSECRET42 -e 'drop database x'", &judge_ctx())
+            .await
+            .expect("verdict");
+        assert_eq!(j.risk, RiskLevel::Critical);
+        let sent = &server.received_requests().await.unwrap()[0];
+        let body = String::from_utf8_lossy(&sent.body);
+        assert!(body.contains("drop database"), "{body}");
+        assert!(!body.contains("SECRET42"), "{body}");
+        assert!(!body.contains("secret-project"), "{body}");
+    }
+
+    /// A server error or an unreachable endpoint (the same error branch a
+    /// timeout takes in `call_api`) yields no verdict, for both providers.
+    #[tokio::test]
+    async fn hosted_judges_fail_safe_on_transport_errors() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("upstream down"))
+            .mount(&server)
+            .await;
+        assert!(grok(&server)
+            .classify_risk("ls", &judge_ctx())
+            .await
+            .is_none());
+        assert!(openrouter(&server)
+            .classify_risk("ls", &judge_ctx())
+            .await
+            .is_none());
+
+        // Connection refused: nothing listens on port 1. (A dropped mock
+        // server's port can be reused by a test running in parallel.)
+        for provider in [Provider::Grok, Provider::OpenRouter] {
+            let backend = OpenAiCompatBackend::new(OpenAiCompatConfig {
+                api_key: "test-key".to_string(),
+                endpoint: "http://127.0.0.1:1/v1".to_string(),
+                ..OpenAiCompatConfig::for_provider(provider)
+            })
+            .unwrap();
+            assert!(
+                backend.classify_risk("ls", &judge_ctx()).await.is_none(),
+                "{provider:?}"
+            );
+        }
+    }
+
     /// One corrective retry on an unparsable reply, then fail safe to `None`.
     #[tokio::test]
     async fn grok_judge_fails_safe_on_garbage() {
