@@ -9,7 +9,7 @@ PLATFORMS = ("macos-silicon", "macos-intel", "linux-amd64", "linux-arm64")
 
 
 def render_formula(source, version, checksums):
-    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?", version):
+    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?(?:\+[A-Za-z0-9.-]+)?", version):
         raise ValueError("Invalid release version")
     if set(checksums) != set(PLATFORMS):
         raise ValueError("All four platform checksums are required")

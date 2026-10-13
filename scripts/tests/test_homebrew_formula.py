@@ -36,10 +36,17 @@ class HomebrewFormulaTests(unittest.TestCase):
         self.assertEqual(platform_hashes(formula.render_formula(source, "1.5.0", HASHES)), HASHES)
 
     def test_rejects_missing_and_duplicate_platforms(self):
+        block = re.search(r'(?m)^\s*url "[^"\n]*-linux-amd64"\n\s*sha256 "[^"\n]+"',
+                          self.source)[0]
         for source in (self.source.replace("-linux-amd64\"", "-unknown\""),
-                       self.source + self.source):
-            with self.assertRaises(ValueError):
+                       self.source + "\n" + block + "\n"):
+            with self.assertRaisesRegex(ValueError, "URL/checksum for linux-amd64"):
                 formula.render_formula(source, "1.5.0", HASHES)
+
+    def test_semver_build_metadata(self):
+        result = formula.render_formula(self.source, "1.5.0-rc.1+build.7", HASHES)
+        self.assertIn('version "1.5.0-rc.1+build.7"', result)
+        self.assertEqual(platform_hashes(result), HASHES)
 
     def test_invalid_input_leaves_file_unchanged(self):
         with tempfile.TemporaryDirectory(dir=ROOT) as directory:
