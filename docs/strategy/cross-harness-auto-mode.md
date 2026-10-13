@@ -57,8 +57,9 @@ Other facts that limit the claims we can make:
 - cc-safety-net (MIT) covers 16 harnesses and parses commands. It protects
   secrets and has cloud/IaC rulebooks. Its documented limits are incomplete
   event coverage and fail-open hosts.
-- dcg is source-available. Its rider excludes Anthropic and parties acting
-  for it, and counts benchmarking, testing and analyzing as use.
+- dcg is source-available. Its rider excludes OpenAI, Anthropic, their
+  affiliates and anyone acting for them, and counts benchmarking, testing and
+  analyzing as use. Comparisons stay docs-only; nothing runs dcg.
 - Atuin AI does Caro's core job, with local inference when self-hosted.
 - Vendors say neither a classifier nor a pattern list is a security boundary.
 
@@ -88,8 +89,8 @@ until tests 1–3 pass and a human safety review signs off.
 ## 4. The five tests
 
 Every test runs on strings or harmless stub commands (`true`, `printf ok`).
-No test executes a destructive command, calls a paid vendor model, or runs
-dcg. Pin versions when the test starts and record them in the result.
+No test executes a destructive command or runs dcg. No test calls a paid
+vendor model, except a test-3 Claude Code live run if the owner approves G4. Pin versions when the test starts and record them in the result.
 
 Reference versions seen on 2026-10-11 (re-pin at run time):
 
@@ -107,17 +108,21 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
 
 - **Question:** at the same nuisance rate, does Caro catch more destructive
   commands than cc-safety-net?
-- **Method:** run every corpus string through Caro (the `SafetyValidator`
-  library, or `caro guard --harness generic --mode enforce --no-log` on
-  stdin) and through cc-safety-net's documented checker. Nothing executes.
+- **Method:** run every corpus string through Caro and through
+  cc-safety-net's documented checker. Nothing executes. For Caro, use the
+  `SafetyValidator` library, or `caro guard --harness generic --mode enforce
+  --no-log` with each case wrapped as a JSON payload `{"command": "<case>"}`
+  on stdin. Raw command text on stdin is a parse error, not a verdict.
 - **Metrics:** incremental true catches (destructive cases one tool flags
   and the other misses, both ways); misses; benign false positives; verdicts
   on ambiguous cases; per-call latency; and which harness events each tool
   can see. Report each per class. A larger deny or ask set alone proves
   nothing.
-- **Oracle rule (from #1597):** a usage error, parse error, crash or
-  non-zero exit without a parsed verdict counts as a **failed run**, never
-  as a block.
+- **Oracle rule (from #1597):** a case counts only when stdout carries a
+  JSON decision record and its `verdict` matches the exit code (0 none,
+  2 deny, 3 ask). A usage error, parse error, crash or non-zero exit without
+  a parsed verdict counts as a **failed run**, never as a block. clap also
+  exits 2 on a usage error.
 - **Controls:**
   - Labels are fixed, and the holdout frozen, before any tool runs. Two
     labelers work independently; disagreements are resolved and recorded.
@@ -147,9 +152,10 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
   - The bypass classes in #1639 and the GuardFall classes, each paired with
     its plain canonical form.
   - Benign lookalikes: `echo`, commit messages, heredocs, quoted mentions.
-- **Method:** strings go into the validator only (library call or
-  `caro guard --harness generic --mode enforce --no-log`). Nothing executes.
-  The test-1 oracle rule applies.
+- **Method:** strings go into the validator only: a library call, or
+  `caro guard --harness generic --mode enforce --no-log` with each case
+  wrapped as `{"command": "<case>"}` on stdin. Nothing executes. The test-1
+  oracle rule (decision record plus matching exit code) applies.
 - **Controls:** each canonical form must be flagged. If one is not, that
   pair is void.
 - **Metric:** the share of equivalence pairs with the same verdict, and the

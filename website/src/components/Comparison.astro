@@ -57,7 +57,7 @@ const comparisonData: { categoryKey: string; icon: string; rows: ComparisonRow[]
       // blocksDangerous 'no': each vendor documents its default as asking
       // (Copilot, Kiro, Warp) or allowing (OpenCode bash), not blocking.
       { featureKey: 'blocksDangerous', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
-      { featureKey: 'riskLevel', values: { 'caro': 'yes', 'copilot-cli': 'unknown', 'warp': 'unknown', 'kiro': 'unknown', 'opencode': 'no' } },
+      { featureKey: 'riskLevel', values: { 'caro': 'yes', 'copilot-cli': 'unknown', 'warp': 'unknown', 'kiro': 'unknown', 'opencode': 'unknown' } },
     ]
   },
   {
@@ -66,9 +66,9 @@ const comparisonData: { categoryKey: string; icon: string; rows: ComparisonRow[]
     rows: [
       { featureKey: 'posixFirst', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
       // The label says macOS/Linux/BSD. Neither Caro nor Warp ships a BSD build
-      // (Caro release.yml: Linux, macOS, Windows). Other tools' BSD support is
-      // carried over unverified.
-      { featureKey: 'crossPlatform', values: { 'caro': 'partial', 'copilot-cli': 'yes', 'warp': 'partial', 'kiro': 'yes', 'opencode': 'yes' } },
+      // (Caro release.yml: Linux, macOS, Windows). BSD support for Copilot CLI,
+      // Kiro CLI and OpenCode has no primary source, so those cells are unknown.
+      { featureKey: 'crossPlatform', values: { 'caro': 'partial', 'copilot-cli': 'unknown', 'warp': 'partial', 'kiro': 'unknown', 'opencode': 'unknown' } },
       { featureKey: 'existingTerminal', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'yes', 'kiro': 'yes', 'opencode': 'yes' } },
       { featureKey: 'platformAware', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'unknown', 'kiro': 'partial', 'opencode': 'partial' } },
     ]

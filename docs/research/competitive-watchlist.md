@@ -74,7 +74,7 @@ vendor's own docs say something else.
 
 | Product | License | Harnesses | Last checked | Notes |
 |---|---|---|---|---|
-| dcg (Destructive Command Guard) | Source-available: MIT text + rider excluding OpenAI, Anthropic and parties acting for them; "use" includes benchmarking, testing, analyzing | 17+ | 2026-10-13 (license) | Rust, 50+ rule packs, ~6.1k stars. Docs-only comparison; no execution or reuse |
+| dcg (Destructive Command Guard) | Source-available: MIT text + rider excluding OpenAI, Anthropic, their affiliates and parties acting for them; "use" includes benchmarking, testing, analyzing | 17+ | 2026-10-13 (license) | Rust, 50+ rule packs, ~6.1k stars. Docs-only comparison; no execution or reuse |
 | cc-safety-net | MIT | 16 | 2026-10-13 | Parsed commands, secret protection, cloud/IaC rulebooks; known limitations: incomplete event coverage, fail-open hosts |
 | Sage (Gen Digital) + AARTS draft | Apache-2.0 code, DRL 1.1 rules | 5 | 2026-10-11 | 300+ YAML rules; proposes an engine/host standard |
 | HOL Guard | Apache-2.0 | 16 | 2026-10-11 | Covers MCP, packages, secrets |

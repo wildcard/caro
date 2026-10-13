@@ -32,6 +32,7 @@ Status values:
 | Copilot CLI | OS sandbox GA | https://github.blog/changelog/2026-10-07-local-sandboxing-for-gitHub-copilot-now-generally-available | 2026-10-07 | 2026-10-13 | primary |
 | Copilot CLI | Sandbox on or off by default | the GA changelog does not say | — | 2026-10-13 | unknown |
 | Copilot CLI | Built-in pattern library; risk levels | none found | — | 2026-10-11 | unknown |
+| Copilot CLI | `assisted` permission mode uses a model judge | official reference confirms only the mode name; the documented LLM judge is VS Code Copilot Chat's separate Assisted permissions mode | — | 2026-10-13 | unknown |
 | Copilot CLI | Install script installs a single `copilot` binary from a release tarball | https://raw.githubusercontent.com/github/copilot-cli/main/install.sh | undated | 2026-10-13 | primary |
 | Copilot CLI | Default asks before possibly dangerous commands (does not block) | https://docs.github.com/en/copilot/responsible-use/copilot-cli | undated | 2026-10-11 | primary |
 | Copilot CLI | Deny rules (`--deny-tool`), hooks | https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/allowing-tools | undated | 2026-10-11 | primary |
@@ -45,7 +46,9 @@ Status values:
 | Kiro CLI | Free tier covers the CLI | not confirmed | — | 2026-10-11 | unknown (not published) |
 | OpenCode | MIT | https://github.com/anomalyco/opencode | 2026-10-11 | 2026-10-11 | primary |
 | OpenCode | Most permissions allow; `doom_loop`, `external_directory` ask; `.env` reads deny (`.env.example` allowed) | https://opencode.ai/docs/permissions/ | 2026-10-13 | 2026-10-13 (owner packet) | primary |
+| OpenCode | Risk level per command | none found | — | 2026-10-13 | unknown |
 | OpenCode | Offline after local provider + disabling model/update/LSP downloads | https://opencode.ai/docs/providers/ ; https://opencode.ai/docs/config/ | undated | 2026-10-11 | primary |
+| Copilot CLI, Kiro CLI, OpenCode | BSD support (landing "macOS/Linux/BSD" row) | none found | — | 2026-10-13 | unknown |
 | shell-gpt | MIT; OpenAI by default, Ollama via LiteLLM | https://github.com/TheR1D/shell_gpt | 2026-05-06 (1.5.1) | 2026-10-11 | primary |
 
 **Caro's own claims** (from code, at `origin/main` `c3169411`):

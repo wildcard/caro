@@ -93,7 +93,7 @@ Confidence labels in the raw notes:
 | **Holds, unmeasured** | A curated pattern library with risk levels; at the default safety level it blocks Critical commands, with no configuration | No competitor on our pages documents one. dcg and cc-safety-net ship rule sets outside our pages, and Claude Code has built-in critical-path protections. Whether Caro detects **more at the same nuisance rate** is unmeasured (test 1 in the strategy note). |
 | **Holds, scoped** | Local by default: the default embedded backend with a cached model, and no account | The model downloads once on first use. Optional remote backends send prompts to the server the user picks. |
 | **Holds, scoped** | The whole stack is open: code AGPL-3.0, default model (Qwen2.5-Coder 1.5B) Apache-2.0 | Warp opens only its client. Copilot CLI and Kiro CLI are proprietary. Other catalog models carry their own licenses. |
-| **Holds** | A shell specialist: one command, platform-aware, GNU/BSD-aware | Every competitor on our pages is a full coding agent. Atuin AI is the exception off our pages. |
+| **Holds, scoped** | A shell specialist: one command, with platform detection and GNU/BSD capability profiles (`src/prompts/capability_profile.rs`, `tests/beta_regression.rs`) | Every competitor on our pages is a full coding agent. Atuin AI is the exception off our pages. How well Caro's output follows the GNU/BSD profiles was not re-measured here, and competitors' GNU/BSD awareness is unverified (§6). |
 | **Not found elsewhere** | A weekly CVE-derived rule pipeline | Not seen in this sweep. That is not proof that no one has one. |
 
 The safe wording for safety claims is now: **"Caro ships a curated set of
@@ -176,12 +176,16 @@ added to `ComparisonPageLayout`.
 
 ## 6. Not verified, or carried over without re-checking
 
-- The landing matrix row "Cross-platform (macOS/Linux/BSD)" still says
-  "yes" for Copilot CLI, Kiro CLI and OpenCode. Nobody checked BSD support
-  for them.
+- BSD support for Copilot CLI, Kiro CLI and OpenCode was not checked. The
+  landing matrix row "Cross-platform (macOS/Linux/BSD)" shows those cells as
+  "Not documented" (corrected 2026-10-13). OpenCode's risk-level cell is
+  "Not documented" for the same reason.
 - The "POSIX-first", "GNU vs BSD awareness" and "shell-specific
   optimizations" cells are judgment calls carried over from 2025.
-- Whether Copilot's "assisted" permission mode is an LLM judge (secondary source only).
+- Whether Copilot CLI's `assisted` permission mode uses an LLM judge. The
+  official reference confirms only the mode name. VS Code Copilot Chat's
+  separate Assisted permissions mode is documented as an LLM judge; do not
+  carry that over to the CLI.
 - Whether a Claude Code `PreToolUse` "allow" skips the auto-mode classifier.
 - dcg's license (read 2026-10-13): MIT text plus a rider. The rider grants
   no rights to OpenAI, Anthropic, their affiliates or anyone acting for
