@@ -96,8 +96,20 @@ pub struct DecisionRecord {
     pub verdict: Verdict,
     /// What reached the harness (`none` in shadow mode).
     pub emitted: Verdict,
-    /// Decision provenance; `static` until an LLM judge exists.
+    /// Decision provenance: `static`, `static+judge` or `static+judge_error`.
     pub source: String,
+    /// The `--judge` LLM's rating, when it answered.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub judge_risk: Option<RiskLevel>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub judge_confidence: Option<f64>,
+    /// The judge's own explanation, redacted. Logged only: it is model text,
+    /// so it never reaches the harness.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub judge_reason: Option<String>,
+    /// Why a configured judge gave no verdict.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub judge_error: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
     pub latency_us: u64,
@@ -124,6 +136,11 @@ impl DecisionRecord {
             Outcome::Error(e) => (None, Vec::new(), false, Verdict::Ask, Some(e.clone())),
             Outcome::NotShell => (None, Vec::new(), false, Verdict::None, None),
         };
+        let decided = match outcome {
+            Outcome::Decided(d) => Some(d),
+            _ => None,
+        };
+        let judge = decided.and_then(|d| d.judge.as_ref());
         Self {
             ts: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
             harness,
@@ -138,7 +155,16 @@ impl DecisionRecord {
             floor_applied: floor,
             verdict,
             emitted,
-            source: "static".into(),
+            source: decided
+                .map_or(super::Source::Static, |d| d.source)
+                .as_str()
+                .into(),
+            judge_risk: judge.map(|j| j.risk),
+            judge_confidence: judge.map(|j| j.confidence),
+            judge_reason: judge
+                .map(|j| redact_command(&j.reason))
+                .filter(|r| !r.is_empty()),
+            judge_error: decided.and_then(|d| d.judge_error.clone()),
             error,
             latency_us,
             caro_version: env!("CARGO_PKG_VERSION").into(),
@@ -185,6 +211,8 @@ pub struct Report {
     pub unparsable: usize,
     pub by_verdict: BTreeMap<String, usize>,
     pub by_harness: BTreeMap<String, usize>,
+    /// Decision provenance (`static`, `static+judge`, `static+judge_error`).
+    pub by_source: BTreeMap<String, usize>,
     pub top_patterns: Vec<(String, usize)>,
     pub p50_latency_us: Option<u64>,
     pub p95_latency_us: Option<u64>,
@@ -239,6 +267,7 @@ fn summarize_lines(lines: impl Iterator<Item = String>, limit: usize) -> Report 
             .by_harness
             .entry(format!("{:?}", rec.harness).to_lowercase())
             .or_default() += 1;
+        *report.by_source.entry(rec.source.clone()).or_default() += 1;
         for p in &rec.matched_patterns {
             *patterns.entry(p.clone()).or_default() += 1;
         }
@@ -295,6 +324,10 @@ pub fn format_report(path: &Path, r: &Report) -> String {
     };
     let _ = writeln!(s, "  by verdict: {}", join(&r.by_verdict));
     let _ = writeln!(s, "  by harness: {}", join(&r.by_harness));
+    // Only worth a line once a `--judge` has run.
+    if r.by_source.keys().any(|k| k != "static") {
+        let _ = writeln!(s, "  by source:  {}", join(&r.by_source));
+    }
     if let (Some(p50), Some(p95)) = (r.p50_latency_us, r.p95_latency_us) {
         let _ = writeln!(s, "  latency:    p50 {p50}µs · p95 {p95}µs");
     }
@@ -332,6 +365,32 @@ mod tests {
     use super::*;
     use crate::guard::{run, GuardMode, Harness};
     use crate::safety::{SafetyConfig, SafetyValidator};
+
+    #[test]
+    fn report_counts_judge_sources_only_when_a_judge_ran() {
+        let line = |source: &str| {
+            format!(
+                r#"{{"ts":"t","harness":"claude","mode":"shadow","verdict":"none","emitted":"none","source":"{source}","latency_us":1,"caro_version":"x"}}"#
+            )
+        };
+        let path = Path::new("d.jsonl");
+        let static_only = summarize(&[line("static"), line("static")].join("\n"), 5);
+        assert_eq!(static_only.by_source.get("static"), Some(&2));
+        assert!(!format_report(path, &static_only).contains("by source"));
+
+        let judged = summarize(
+            &[
+                line("static"),
+                line("static+judge"),
+                line("static+judge_error"),
+            ]
+            .join("\n"),
+            5,
+        );
+        assert_eq!(judged.by_source.get("static+judge"), Some(&1));
+        assert!(format_report(path, &judged)
+            .contains("by source:  static 1 · static+judge 1 · static+judge_error 1"));
+    }
 
     #[tokio::test]
     async fn append_then_summarize_round_trip() {

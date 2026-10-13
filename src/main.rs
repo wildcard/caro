@@ -556,6 +556,20 @@ enum Commands {
         /// Do not write the decision log.
         #[arg(long)]
         no_log: bool,
+
+        /// [experimental] Ask an LLM about commands the static rules let
+        /// through: ollama, vllm, grok or openrouter. It can only raise a
+        /// verdict to ask, never deny or relax. Default: $CARO_GUARD_JUDGE.
+        #[arg(long, value_name = "BACKEND")]
+        judge: Option<String>,
+
+        /// Model for --judge (default: the backend's own default).
+        #[arg(long, value_name = "MODEL")]
+        judge_model: Option<String>,
+
+        /// Upper bound on one judge call; on timeout the static verdict stands.
+        #[arg(long, value_name = "MS", default_value_t = 2000)]
+        judge_timeout_ms: u64,
     },
 
     /// Validate a CaroML (`.caro`) task file: parse, lint, report errors with line numbers.
@@ -3240,7 +3254,24 @@ async fn main() {
             mode,
             log,
             no_log,
-        }) => process::exit(handle_guard(action, harness, mode, log, no_log).await),
+            judge,
+            judge_model,
+            judge_timeout_ms,
+        }) => process::exit(
+            handle_guard(
+                action,
+                harness,
+                mode,
+                log,
+                no_log,
+                GuardJudgeArgs {
+                    name: judge,
+                    model: judge_model,
+                    timeout_ms: judge_timeout_ms,
+                },
+            )
+            .await,
+        ),
         Some(Commands::Check { ref file }) => match caro::caroml::check_file(file) {
             Ok(task) => {
                 println!(
@@ -4315,6 +4346,13 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
 // Unit Tests
 // =============================================================================
 
+/// `caro guard --judge*` flags.
+struct GuardJudgeArgs {
+    name: Option<String>,
+    model: Option<String>,
+    timeout_ms: u64,
+}
+
 /// `caro guard` (spec 011 / ADR-020). Returns the process exit code.
 async fn handle_guard(
     action: Option<GuardAction>,
@@ -4322,6 +4360,7 @@ async fn handle_guard(
     mode: Option<caro::guard::GuardMode>,
     log: Option<std::path::PathBuf>,
     no_log: bool,
+    judge_args: GuardJudgeArgs,
 ) -> i32 {
     use caro::guard::{self, GuardMode};
     use std::io::Read;
@@ -4388,6 +4427,27 @@ async fn handle_guard(
             .map_err(|_| "safety rules: a configured pattern failed to build".to_string())
     })();
 
+    // Opt-in LLM judge (spec 011 follow-up 3). Endpoints come from the same
+    // `[backends]` config as `caro --backend`; an unreadable config already
+    // makes every shell call `ask` above, so defaults are fine here.
+    let judge = judge_args
+        .name
+        .or_else(|| std::env::var("CARO_GUARD_JUDGE").ok())
+        .filter(|n| !n.trim().is_empty())
+        .map(|name| {
+            let backends = caro::config::ConfigManager::new()
+                .ok()
+                .and_then(|cm| cm.load().ok())
+                .map(|uc| uc.backends)
+                .unwrap_or_default();
+            guard::build_judge(
+                &name,
+                judge_args.model.as_deref(),
+                &backends,
+                std::time::Duration::from_millis(judge_args.timeout_ms),
+            )
+        });
+
     // Cap the read: an unbounded payload could stall the hook past the
     // harness timeout, which fails open.
     let mut raw = String::new();
@@ -4405,7 +4465,8 @@ async fn handle_guard(
         }
         Ok(_) => {
             let validator = validator.as_ref().map_err(String::as_str);
-            let (_, rendered, record) = guard::run(validator, harness, mode, &raw, started).await;
+            let (_, rendered, record) =
+                guard::run_judged(validator, judge.as_ref(), harness, mode, &raw, started).await;
             (rendered, record)
         }
         Err(e) => (

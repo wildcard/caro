@@ -101,6 +101,12 @@ boundary: an agent that can write to your home directory can still edit
   about High-risk ones, even when `Bash(*)` is pre-approved.
 - Caro never answers `allow`. In Claude Code, `allow` would skip your own
   permission prompt.
+- **Optional LLM judge** (experimental, needs a build with the
+  `remote-backends` feature): add `--judge ollama` (or `vllm`, `grok`,
+  `openrouter`). The judge reviews only the commands the static rules let
+  through, and it can only turn them into an `ask`. If it is slow or down
+  (default limit 2000 ms, `--judge-timeout-ms`), the static verdict stands.
+  A local judge (`ollama`, `vllm`) keeps your commands on your machine.
 
 See [spec 011](../../specs/011-harness-guardian/spec.md) for the full contract.
 

@@ -14,13 +14,15 @@
 
 pub mod log;
 
-use std::time::Instant;
+use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::models::{RiskLevel, ShellType};
-use crate::safety::SafetyValidator;
+use crate::backends::CommandGenerator;
+use crate::models::{RiskJudgeContext, RiskJudgment, RiskLevel, ShellType};
+use crate::safety::{SafetyValidator, SMART_JUDGE_MIN_CONFIDENCE};
 
 /// Which harness sent the payload; selects input keys and output shape.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, clap::ValueEnum)]
@@ -194,6 +196,33 @@ pub struct GuardDecision {
     pub verdict: Verdict,
     /// Caro-authored reason (pattern descriptions + risk), never the command.
     pub reason: String,
+    /// Who decided: the static rules alone, or with the `--judge` LLM.
+    pub source: Source,
+    /// The judge's verdict, when one was asked and answered.
+    pub judge: Option<RiskJudgment>,
+    /// Why a configured judge gave no verdict (timeout, no backend, …).
+    pub judge_error: Option<String>,
+}
+
+/// Decision provenance, logged as the record's `source`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Source {
+    /// Static rules only (no judge configured, or the static rules flagged it).
+    Static,
+    /// Static rules, then a judge verdict.
+    StaticJudge,
+    /// Static rules; the configured judge gave no verdict.
+    StaticJudgeError,
+}
+
+impl Source {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Static => "static",
+            Self::StaticJudge => "static+judge",
+            Self::StaticJudgeError => "static+judge_error",
+        }
+    }
 }
 
 /// Pattern label recorded when a command is too long for the validator to scan.
@@ -265,7 +294,184 @@ pub async fn evaluate(
         matched_patterns: result.matched_patterns,
         verdict,
         reason,
+        source: Source::Static,
+        judge: None,
+        judge_error: None,
     })
+}
+
+/// Default bound on one judge call. Harness hooks fail open on timeout, so
+/// the judge must answer well inside the harness's own hook timeout.
+pub const DEFAULT_JUDGE_TIMEOUT: Duration = Duration::from_millis(2000);
+
+/// The opt-in `--judge` LLM (spec 011 follow-up 3).
+///
+/// The judge may only **escalate**: a static "no opinion" becomes `ask` when
+/// the judge rates the command High or Critical with confidence at least
+/// [`SMART_JUDGE_MIN_CONFIDENCE`]. It never denies (only static rules deny)
+/// and is never asked about a command the static rules already flagged, so
+/// it can neither relax a verdict nor add latency to one.
+pub enum Judge {
+    Ready {
+        backend: Arc<dyn CommandGenerator>,
+        timeout: Duration,
+    },
+    /// A judge was requested but could not be built (unknown name, missing
+    /// key, feature not compiled in). Logged on every decision it would have
+    /// judged, so a misconfiguration shows up in `caro guard report`.
+    Unavailable(String),
+}
+
+impl Judge {
+    pub fn ready(backend: Arc<dyn CommandGenerator>, timeout: Duration) -> Self {
+        Self::Ready { backend, timeout }
+    }
+
+    pub fn unavailable(reason: impl Into<String>) -> Self {
+        Self::Unavailable(reason.into())
+    }
+}
+
+/// Judges `--judge` accepts. All need the `remote-backends` feature.
+pub const JUDGE_NAMES: &[&str] = &["ollama", "vllm", "grok", "openrouter"];
+
+/// Build the `--judge` backend by name. Never touches the network; any
+/// failure (unknown name, missing key, feature not built) becomes
+/// [`Judge::Unavailable`] so the hook still answers from the static rules.
+///
+/// `model` overrides the backend's default model. Endpoints come from the
+/// `[backends]` config section, as for `caro --backend`.
+pub fn build_judge(
+    name: &str,
+    model: Option<&str>,
+    backends: &crate::models::BackendsConfig,
+    timeout: Duration,
+) -> Judge {
+    let name = name.trim().to_ascii_lowercase();
+    let name = if name == "xai" {
+        "grok".to_string()
+    } else {
+        name
+    };
+    if !JUDGE_NAMES.contains(&name.as_str()) {
+        return Judge::unavailable(format!(
+            "unknown judge '{name}' (expected one of: {})",
+            JUDGE_NAMES.join(", ")
+        ));
+    }
+    match build_judge_backend(&name, model, backends) {
+        Ok(backend) => Judge::ready(backend, timeout),
+        Err(e) => Judge::unavailable(e),
+    }
+}
+
+#[cfg(not(feature = "remote-backends"))]
+fn build_judge_backend(
+    name: &str,
+    _model: Option<&str>,
+    _backends: &crate::models::BackendsConfig,
+) -> Result<Arc<dyn CommandGenerator>, String> {
+    Err(format!(
+        "judge '{name}' needs a caro build with the remote-backends feature"
+    ))
+}
+
+#[cfg(feature = "remote-backends")]
+fn build_judge_backend(
+    name: &str,
+    model: Option<&str>,
+    backends: &crate::models::BackendsConfig,
+) -> Result<Arc<dyn CommandGenerator>, String> {
+    use crate::backends::remote::{
+        OllamaBackend, OpenAiCompatBackend, OpenAiCompatConfig, Provider, VllmBackend,
+    };
+    use reqwest::Url;
+
+    let url = |configured: &Option<String>, default: &str| {
+        let raw = configured.as_deref().unwrap_or(default);
+        Url::parse(raw).map_err(|e| format!("judge '{name}': invalid endpoint URL: {e}"))
+    };
+    let built: Result<Arc<dyn CommandGenerator>, crate::backends::GeneratorError> = match name {
+        // Same defaults as `caro --backend ollama|vllm`.
+        "ollama" => OllamaBackend::new(
+            url(&backends.ollama_url, "http://localhost:11434")?,
+            model.unwrap_or("codellama:7b").to_string(),
+        )
+        .map(|b| Arc::new(b) as Arc<dyn CommandGenerator>),
+        "vllm" => VllmBackend::new(
+            url(&backends.vllm_url, "http://localhost:8000")?,
+            model.unwrap_or("codellama/CodeLlama-7b-hf").to_string(),
+        )
+        .map(|b| Arc::new(b) as Arc<dyn CommandGenerator>),
+        "grok" | "openrouter" => {
+            let (provider, endpoint) = if name == "grok" {
+                (Provider::Grok, backends.xai_url.as_deref())
+            } else {
+                (Provider::OpenRouter, None)
+            };
+            OpenAiCompatBackend::new(OpenAiCompatConfig::from_env(provider, endpoint, model))
+                .map(|b| Arc::new(b) as Arc<dyn CommandGenerator>)
+        }
+        other => return Err(format!("unknown judge '{other}'")),
+    };
+    built.map_err(|e| format!("judge '{name}': {e}"))
+}
+
+/// Ask the judge about a command the static rules let through.
+///
+/// On timeout, a missing verdict, or an unavailable judge the static verdict
+/// stands and `source` records `static+judge_error`. A broken judge must not
+/// turn every call into `ask` (unlike Grok Build's classifier, which
+/// escalates on timeout): hooks run on every tool call.
+pub async fn apply_judge(
+    mut d: GuardDecision,
+    command: &str,
+    cwd: Option<&str>,
+    judge: &Judge,
+) -> GuardDecision {
+    if d.verdict != Verdict::None {
+        return d;
+    }
+    let (backend, timeout) = match judge {
+        Judge::Unavailable(e) => {
+            d.source = Source::StaticJudgeError;
+            d.judge_error = Some(format!("judge unavailable: {e}"));
+            return d;
+        }
+        Judge::Ready { backend, timeout } => (backend, *timeout),
+    };
+    let ctx = RiskJudgeContext {
+        shell: ShellType::Bash,
+        cwd: cwd.map(str::to_owned),
+        static_risk: d.risk,
+        matched_patterns: d.matched_patterns.clone(),
+    };
+    // The judge may be a hosted API: it never sees secrets in the command.
+    let shown = log::redact_command(command);
+    match tokio::time::timeout(timeout, backend.classify_risk(&shown, &ctx)).await {
+        Err(_) => {
+            d.source = Source::StaticJudgeError;
+            d.judge_error = Some(format!("judge timed out after {} ms", timeout.as_millis()));
+        }
+        Ok(None) => {
+            d.source = Source::StaticJudgeError;
+            d.judge_error = Some("judge returned no usable verdict".into());
+        }
+        Ok(Some(j)) => {
+            d.source = Source::StaticJudge;
+            if j.risk >= RiskLevel::High && j.confidence >= SMART_JUDGE_MIN_CONFIDENCE {
+                d.verdict = Verdict::Ask;
+                // Caro-authored only: the judge's own `reason` is model text
+                // that can quote the command, so it is logged, not returned.
+                d.reason = format!(
+                    "caro guard: judge rated {} risk; asking for approval",
+                    risk_str(j.risk)
+                );
+            }
+            d.judge = Some(j);
+        }
+    }
+    d
 }
 
 /// What happened for one payload, before rendering.
@@ -392,6 +598,18 @@ pub async fn run(
     raw: &str,
     started: Instant,
 ) -> (Outcome, Rendered, Option<log::DecisionRecord>) {
+    run_judged(validator, None, harness, mode, raw, started).await
+}
+
+/// [`run`] with an optional `--judge` (see [`apply_judge`]).
+pub async fn run_judged(
+    validator: Result<&SafetyValidator, &str>,
+    judge: Option<&Judge>,
+    harness: Harness,
+    mode: GuardMode,
+    raw: &str,
+    started: Instant,
+) -> (Outcome, Rendered, Option<log::DecisionRecord>) {
     let event = HookEvent::parse(harness, raw);
 
     let (outcome, event) = match event {
@@ -409,7 +627,13 @@ pub async fn run(
             Some(cmd) => match validator {
                 Err(e) => (Outcome::Error(e.to_string()), ev),
                 Ok(v) => match evaluate(v, cmd).await {
-                    Ok(d) => (Outcome::Decided(d), ev),
+                    Ok(d) => {
+                        let d = match judge {
+                            Some(j) => apply_judge(d, cmd, ev.cwd.as_deref(), j).await,
+                            None => d,
+                        };
+                        (Outcome::Decided(d), ev)
+                    }
                     Err(e) => (Outcome::Error(format!("validator error: {e}")), ev),
                 },
             },
@@ -739,6 +963,281 @@ mod tests {
         .await
         .1;
         assert_eq!(err.exit_code, 3);
+    }
+
+    // ── `--judge`: an opt-in LLM judge that may only escalate ──────────────
+
+    use crate::backends::{BackendInfo, CommandGenerator, GeneratorError};
+    use crate::models::{
+        BackendType, CommandRequest, GeneratedCommand, RiskJudgeContext, RiskJudgment,
+    };
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::{Arc, Mutex};
+    use std::time::Duration;
+
+    /// A judge with a fixed answer (Grok Build's `FixedClassifier` seam).
+    struct StubJudge {
+        verdict: Option<RiskJudgment>,
+        delay: Duration,
+        calls: AtomicUsize,
+        seen: Mutex<Vec<(String, Option<String>)>>,
+    }
+
+    impl StubJudge {
+        fn new(verdict: Option<RiskJudgment>) -> Arc<Self> {
+            Arc::new(Self {
+                verdict,
+                delay: Duration::ZERO,
+                calls: AtomicUsize::new(0),
+                seen: Mutex::new(Vec::new()),
+            })
+        }
+
+        fn rating(risk: RiskLevel, confidence: f64) -> Arc<Self> {
+            Self::new(Some(RiskJudgment {
+                risk,
+                reason: "JUDGE-FREE-TEXT".into(),
+                confidence,
+            }))
+        }
+
+        fn slow(delay: Duration) -> Arc<Self> {
+            Arc::new(Self {
+                verdict: Some(RiskJudgment {
+                    risk: RiskLevel::Critical,
+                    reason: String::new(),
+                    confidence: 1.0,
+                }),
+                delay,
+                calls: AtomicUsize::new(0),
+                seen: Mutex::new(Vec::new()),
+            })
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl CommandGenerator for StubJudge {
+        async fn generate_command(
+            &self,
+            _request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            Err(GeneratorError::GenerationFailed {
+                details: "stub judge does not generate".into(),
+            })
+        }
+
+        fn supports_risk_judge(&self) -> bool {
+            true
+        }
+
+        async fn classify_risk(
+            &self,
+            command: &str,
+            ctx: &RiskJudgeContext,
+        ) -> Option<RiskJudgment> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            self.seen
+                .lock()
+                .unwrap()
+                .push((command.to_string(), ctx.cwd.clone()));
+            tokio::time::sleep(self.delay).await;
+            self.verdict.clone()
+        }
+
+        async fn is_available(&self) -> bool {
+            true
+        }
+
+        fn backend_info(&self) -> BackendInfo {
+            BackendInfo {
+                backend_type: BackendType::Mock,
+                model_name: "stub-judge".into(),
+                supports_streaming: false,
+                max_tokens: 0,
+                typical_latency_ms: 0,
+                memory_usage_mb: 0,
+                version: "test".into(),
+            }
+        }
+
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    fn judge(stub: &Arc<StubJudge>) -> Judge {
+        Judge::ready(stub.clone(), Duration::from_millis(500))
+    }
+
+    async fn judged(cmd: &str, j: &Judge) -> GuardDecision {
+        let d = evaluate(&validator(), cmd).await.unwrap();
+        apply_judge(d, cmd, Some("/repo"), j).await
+    }
+
+    #[tokio::test]
+    async fn judge_escalates_a_static_pass_to_ask() {
+        let stub = StubJudge::rating(RiskLevel::High, 0.9);
+        let d = judged("ls -la", &judge(&stub)).await;
+        assert_eq!(d.risk, RiskLevel::Safe, "the static risk is kept");
+        assert_eq!(d.verdict, Verdict::Ask);
+        assert_eq!(d.source, Source::StaticJudge);
+        assert_eq!(d.judge.as_ref().unwrap().risk, RiskLevel::High);
+        assert!(d.reason.starts_with("caro guard: judge rated high risk"));
+        // The judge's free text is model output: logged, never fed back.
+        assert!(!d.reason.contains("JUDGE-FREE-TEXT"));
+    }
+
+    #[tokio::test]
+    async fn judge_critical_asks_but_never_denies() {
+        let stub = StubJudge::rating(RiskLevel::Critical, 1.0);
+        let d = judged("ls -la", &judge(&stub)).await;
+        assert_eq!(d.verdict, Verdict::Ask, "only static rules deny");
+        assert!(!d.floor_applied);
+    }
+
+    #[tokio::test]
+    async fn low_confidence_or_low_risk_judgments_change_nothing() {
+        for stub in [
+            StubJudge::rating(RiskLevel::High, SMART_JUDGE_MIN_CONFIDENCE - 0.01),
+            StubJudge::rating(RiskLevel::Moderate, 1.0),
+            StubJudge::rating(RiskLevel::Safe, 1.0),
+        ] {
+            let d = judged("ls -la", &judge(&stub)).await;
+            assert_eq!(d.verdict, Verdict::None);
+            assert_eq!(d.source, Source::StaticJudge, "the judge was consulted");
+            assert!(d.judge.is_some());
+            assert!(d.reason.is_empty());
+        }
+    }
+
+    #[tokio::test]
+    async fn judge_never_relaxes_and_is_not_asked_about_flagged_commands() {
+        let stub = StubJudge::rating(RiskLevel::Safe, 1.0);
+        let deny = judged("rm -rf /", &judge(&stub)).await;
+        assert_eq!(deny.verdict, Verdict::Deny);
+        let ask = judged("chmod -R 777 /etc", &judge(&stub)).await;
+        assert_eq!(ask.verdict, Verdict::Ask);
+        for d in [&deny, &ask] {
+            assert_eq!(d.source, Source::Static);
+            assert!(d.judge.is_none());
+        }
+        assert_eq!(stub.calls.load(Ordering::SeqCst), 0, "no judge latency");
+    }
+
+    #[tokio::test]
+    async fn judge_timeout_keeps_the_static_verdict() {
+        let stub = StubJudge::slow(Duration::from_secs(5));
+        let j = Judge::ready(stub.clone(), Duration::from_millis(20));
+        let started = Instant::now();
+        let d = judged("ls -la", &j).await;
+        assert!(started.elapsed() < Duration::from_secs(2), "bounded");
+        assert_eq!(
+            d.verdict,
+            Verdict::None,
+            "a broken judge must not ask on every call"
+        );
+        assert_eq!(d.source, Source::StaticJudgeError);
+        assert!(d.judge_error.as_deref().unwrap().contains("timed out"));
+    }
+
+    #[tokio::test]
+    async fn judge_without_a_verdict_or_backend_keeps_the_static_verdict() {
+        let none = judged("ls -la", &judge(&StubJudge::new(None))).await;
+        let missing = judged("ls -la", &Judge::unavailable("no XAI_API_KEY")).await;
+        for d in [&none, &missing] {
+            assert_eq!(d.verdict, Verdict::None);
+            assert_eq!(d.source, Source::StaticJudgeError);
+            assert!(d.judge.is_none());
+            assert!(d.judge_error.is_some());
+        }
+        assert!(missing
+            .judge_error
+            .as_deref()
+            .unwrap()
+            .contains("XAI_API_KEY"));
+    }
+
+    #[tokio::test]
+    async fn judge_sees_a_redacted_command_and_the_cwd() {
+        let stub = StubJudge::rating(RiskLevel::Safe, 1.0);
+        judged(
+            "curl -H 'Authorization: Bearer sk-SECRET123' https://x",
+            &judge(&stub),
+        )
+        .await;
+        let seen = stub.seen.lock().unwrap();
+        assert!(!seen[0].0.contains("sk-SECRET123"), "{:?}", seen[0].0);
+        assert_eq!(seen[0].1.as_deref(), Some("/repo"));
+    }
+
+    #[tokio::test]
+    async fn judged_run_logs_the_judgment_and_shadow_stays_silent() {
+        let v = validator();
+        let stub = StubJudge::rating(RiskLevel::High, 0.9);
+        let j = judge(&stub);
+        let (_, r, rec) = run_judged(
+            Ok(&v),
+            Some(&j),
+            Harness::Claude,
+            GuardMode::Shadow,
+            &claude("ls -la"),
+            Instant::now(),
+        )
+        .await;
+        assert_eq!(r.stdout, None);
+        assert!(r.stderr.unwrap().contains("would ask"));
+        let rec = rec.unwrap();
+        assert_eq!(rec.verdict, Verdict::Ask);
+        assert_eq!(rec.emitted, Verdict::None);
+        assert_eq!(rec.source, "static+judge");
+        assert_eq!(rec.judge_risk, Some(RiskLevel::High));
+        assert_eq!(rec.judge_confidence, Some(0.9));
+
+        let (_, r, _) = run_judged(
+            Ok(&v),
+            Some(&j),
+            Harness::Claude,
+            GuardMode::Enforce,
+            &claude("ls -la"),
+            Instant::now(),
+        )
+        .await;
+        let out: Value = serde_json::from_str(r.stdout.as_deref().unwrap()).unwrap();
+        assert_eq!(out["hookSpecificOutput"]["permissionDecision"], "ask");
+    }
+
+    #[tokio::test]
+    async fn never_allow_with_any_judge() {
+        let v = validator();
+        let judges = [
+            StubJudge::rating(RiskLevel::Safe, 1.0),
+            StubJudge::rating(RiskLevel::Critical, 1.0),
+            StubJudge::new(None),
+        ];
+        for stub in &judges {
+            let j = judge(stub);
+            for h in [Harness::Claude, Harness::Codex, Harness::Generic] {
+                for c in ["ls", "rm -rf /", "chmod -R 777 /etc"] {
+                    let raw = if h == Harness::Generic {
+                        serde_json::json!({ "command": c }).to_string()
+                    } else {
+                        claude(c)
+                    };
+                    let (_, r, _) = run_judged(
+                        Ok(&v),
+                        Some(&j),
+                        h,
+                        GuardMode::Enforce,
+                        &raw,
+                        Instant::now(),
+                    )
+                    .await;
+                    let out = r.stdout.unwrap_or_default();
+                    assert!(!out.contains("\"allow\""), "{h:?} {c}: {out}");
+                    assert!(!out.contains("additionalContext"));
+                }
+            }
+        }
     }
 
     /// ADR-020 invariant: no rendering path ever emits `allow` or

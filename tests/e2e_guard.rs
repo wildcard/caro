@@ -17,6 +17,7 @@ fn guard(home: &TempDir, args: &[&str], stdin: &str) -> std::process::Output {
         .env("XDG_CONFIG_HOME", home.path().join("config"))
         .env("XDG_DATA_HOME", home.path().join("data"))
         .env_remove("CARO_GUARD_MODE")
+        .env_remove("CARO_GUARD_JUDGE")
         .write_stdin(stdin)
         .output()
         .unwrap()
@@ -201,4 +202,122 @@ fn broken_config_asks_without_leaking_config_text() {
     let logged = std::fs::read_to_string(&log).unwrap();
     assert!(!logged.contains(&marker), "{logged}");
     assert!(!String::from_utf8_lossy(&out.stderr).contains(&marker));
+}
+
+// ── `--judge` (spec 011 follow-up 3) ─────────────────────────────────────
+
+fn last_record(log: &std::path::Path) -> Value {
+    let text = std::fs::read_to_string(log).unwrap();
+    serde_json::from_str(text.lines().last().unwrap()).unwrap()
+}
+
+#[test]
+fn unknown_judge_keeps_the_static_verdict_and_logs_why() {
+    let home = TempDir::new().unwrap();
+    let log = home.path().join("d.jsonl");
+    let args = [
+        "--harness",
+        "generic",
+        "--mode",
+        "enforce",
+        "--judge",
+        "nonsense",
+        "--log",
+        log.to_str().unwrap(),
+    ];
+
+    let pass = guard(&home, &args, r#"{"command":"ls -la"}"#);
+    assert_eq!(pass.status.code(), Some(0), "a broken judge never asks");
+    let rec = last_record(&log);
+    assert_eq!(rec["source"], "static+judge_error");
+    assert!(rec["judge_error"]
+        .as_str()
+        .unwrap()
+        .contains("unknown judge"));
+
+    let deny = guard(&home, &args, r#"{"command":"rm -rf /"}"#);
+    assert_eq!(deny.status.code(), Some(2), "static rules still deny");
+    assert_eq!(last_record(&log)["source"], "static");
+}
+
+/// `$CARO_GUARD_JUDGE` selects the judge; a build without the remote
+/// backends says so in the log instead of failing the hook.
+#[cfg(not(feature = "remote-backends"))]
+#[test]
+fn judge_from_env_needs_remote_backends() {
+    let home = TempDir::new().unwrap();
+    let log = home.path().join("d.jsonl");
+    let out = Command::cargo_bin("caro")
+        .unwrap()
+        .args(["guard", "--harness", "generic", "--mode", "enforce"])
+        .args(["--log", log.to_str().unwrap()])
+        .env("HOME", home.path())
+        .env("XDG_CONFIG_HOME", home.path().join("config"))
+        .env("XDG_DATA_HOME", home.path().join("data"))
+        .env_remove("CARO_GUARD_MODE")
+        .env("CARO_GUARD_JUDGE", "ollama")
+        .write_stdin(r#"{"command":"ls"}"#)
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(0));
+    let rec = last_record(&log);
+    assert_eq!(rec["source"], "static+judge_error");
+    assert!(rec["judge_error"]
+        .as_str()
+        .unwrap()
+        .contains("remote-backends"));
+}
+
+/// A local Ollama judge escalates a command the static rules let through.
+#[cfg(feature = "remote-backends")]
+#[tokio::test(flavor = "multi_thread")]
+async fn ollama_judge_escalates_a_static_pass_to_ask() {
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/api/generate"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "response": r#"{"risk": "high", "reason": "deletes the cache", "confidence": 0.9}"#,
+            "done": true
+        })))
+        .mount(&server)
+        .await;
+
+    let home = TempDir::new().unwrap();
+    let toml = format!("[backends]\nollama_url = \"{}\"\n", server.uri());
+    // dirs::config_dir(): XDG on Linux, ~/Library/Application Support on macOS.
+    for dir in [
+        home.path().join("config").join("caro"),
+        home.path().join("Library/Application Support/caro"),
+    ] {
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("config.toml"), &toml).unwrap();
+    }
+    let log = home.path().join("d.jsonl");
+    let out = guard(
+        &home,
+        &[
+            "--harness",
+            "generic",
+            "--mode",
+            "enforce",
+            "--judge",
+            "ollama",
+            "--log",
+            log.to_str().unwrap(),
+        ],
+        r#"{"command":"ls -la"}"#,
+    );
+    assert_eq!(out.status.code(), Some(3), "{:?}", out);
+    let rec = last_record(&log);
+    assert_eq!(rec["source"], "static+judge");
+    assert_eq!(rec["judge_risk"], "high");
+    assert_eq!(rec["verdict"], "ask");
+    let body = stdout_json(&out);
+    assert!(!body["reason"]
+        .as_str()
+        .unwrap()
+        .contains("deletes the cache"));
 }

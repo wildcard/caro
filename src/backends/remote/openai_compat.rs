@@ -16,7 +16,13 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError};
-use crate::models::{CommandRequest, GeneratedCommand, RiskLevel};
+use crate::decision::decide_with_retry;
+use crate::models::{CommandRequest, GeneratedCommand, RiskJudgeContext, RiskJudgment, RiskLevel};
+use crate::prompts::risk_judge::{build_risk_judge_prompt, parse_risk_judgment, risk_judge_schema};
+
+/// System message for risk-judge calls; the task itself is in the user turn.
+const JUDGE_SYSTEM_PROMPT: &str =
+    "You are a careful shell-safety reviewer. Reply with only a single JSON object.";
 
 const DEFAULT_MAX_TOKENS: u32 = 512;
 const DEFAULT_TEMPERATURE: f32 = 0.1;
@@ -547,6 +553,37 @@ impl CommandGenerator for OpenAiCompatBackend {
         self.generate_command(request).await.ok()
     }
 
+    fn supports_risk_judge(&self) -> bool {
+        true
+    }
+
+    /// Risk verdict for `--approval smart` and `caro guard --judge`.
+    ///
+    /// No `response_format`: not every provider and model accepts it, so the
+    /// verdict relies on the prompt plus one corrective retry and fails safe
+    /// to `None`. Like generation, a hosted judge never receives local
+    /// context: the working directory is dropped from the prompt.
+    async fn classify_risk(&self, command: &str, ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
+        let ctx = RiskJudgeContext {
+            cwd: None,
+            ..ctx.clone()
+        };
+        let prompt = build_risk_judge_prompt(command, &ctx);
+        let schema = risk_judge_schema();
+        decide_with_retry(
+            &prompt,
+            &schema,
+            |p| async move {
+                self.call_api(JUDGE_SYSTEM_PROMPT, &p)
+                    .await
+                    .map(|(text, _)| text)
+            },
+            parse_risk_judgment,
+        )
+        .await
+        .value
+    }
+
     /// A key is configured. Hosted APIs have no `/health` endpoint and a
     /// network probe on every invocation would add a round trip; a bad key
     /// surfaces as `BackendUnavailable` on the first request instead.
@@ -845,5 +882,63 @@ mod grok_wire_tests {
         );
         assert_eq!(c.endpoint, "https://proxy.example/v1");
         assert_eq!(c.model, "grok-4.6");
+    }
+
+    fn judge_ctx() -> crate::models::RiskJudgeContext {
+        crate::models::RiskJudgeContext {
+            shell: ShellType::Bash,
+            cwd: Some("/home/alice/secret-project".to_string()),
+            static_risk: RiskLevel::Safe,
+            matched_patterns: Vec::new(),
+        }
+    }
+
+    /// `caro guard --judge grok`: the verdict is parsed from the chat reply,
+    /// and a hosted judge never receives the local working directory.
+    #[tokio::test]
+    async fn grok_classifies_risk_without_local_context() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .and(header("authorization", "Bearer xai-test-key"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "choices": [{ "message": { "role": "assistant", "content":
+                    "{\"risk\": \"high\", \"reason\": \"wipes data\", \"confidence\": 0.9}" } }]
+            })))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let backend = grok(&server);
+        assert!(backend.supports_risk_judge());
+        let j = backend
+            .classify_risk("shred -u notes.txt", &judge_ctx())
+            .await
+            .expect("verdict");
+        assert_eq!(j.risk, RiskLevel::High);
+        assert!((j.confidence - 0.9).abs() < 1e-9);
+
+        let sent = &server.received_requests().await.unwrap()[0];
+        let body = String::from_utf8_lossy(&sent.body);
+        assert!(body.contains("shred -u notes.txt"), "the command is judged");
+        assert!(!body.contains("secret-project"), "cwd stays local: {body}");
+    }
+
+    /// One corrective retry on an unparsable reply, then fail safe to `None`.
+    #[tokio::test]
+    async fn grok_judge_fails_safe_on_garbage() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "choices": [{ "message": { "role": "assistant", "content": "looks fine to me" } }]
+            })))
+            .expect(2)
+            .mount(&server)
+            .await;
+        assert!(grok(&server)
+            .classify_risk("ls", &judge_ctx())
+            .await
+            .is_none());
     }
 }

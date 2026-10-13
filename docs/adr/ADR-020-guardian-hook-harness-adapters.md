@@ -67,6 +67,16 @@ What Caro lacks is a way to apply that core to *other agents'* commands.
    escalate to `ask` on timeout or parse failure, and it stays advisory above
    the floor (ADR-017).
 
+   *Amended 2026-10-13, when the judge shipped as `caro guard --judge`
+   (spec 011 follow-up 3).* The judge may only escalate a static "no opinion"
+   to `ask`. It never denies and is never asked about a command the static
+   rules already flagged. On timeout, a parse failure or a missing backend,
+   the **static verdict stands** and the record's `source` is
+   `static+judge_error`. The judge runs on every unflagged tool call, so
+   escalating on failure would turn a down or slow judge into an `ask` on
+   every call. On failure the guard is no weaker than static-only, which is
+   the baseline this ADR accepts.
+
 5. **Fail toward the human.** In enforce mode, any internal error on a shell
    tool emits `ask` rather than silence or `deny`. In shadow mode errors exit 0.
 
