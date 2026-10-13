@@ -36,7 +36,7 @@ Surface chosen: `caro ai --once` scripted conversational mode (oldest 'never' ro
 - `caro ai --help` → PASS: flag list correct; `--once` documented as "the only mode supported today"
 - `caro ai --once "show disk usage"` (5s timeout) → **HANG**: zero output on stdout AND stderr; process killed at timeout with no exit message
 - `caro --backend ai-horde ai --once "show disk usage"` → **FAIL**: `remote-backends` feature not compiled in this build (expected; embedded-cpu build only)
-- Root cause traced to `run_ai_once()` → `CliApp::with_overrides().await` in `src/main.rs:1152–1160` blocking indefinitely on embedded model download with no progress output; model download progress uses `info!()`/`warn!()` log macros (invisible without `RUST_LOG=info`)
+- Root cause traced to the generation phase: `EmbeddedModelBackend::generate_command()` awaits the embedded model download before inference; no progress is shown during this wait; download progress uses `info!()`/`warn!()` log macros (invisible without `RUST_LOG=info`)
 - **Existing open issue**: [#1408](https://github.com/wildcard/caro/issues/1408) (P1) — "caro ai --once provides zero user feedback during model initialization"; open fix PR [#1415](https://github.com/wildcard/caro/pull/1415) ("fix: show ai once backend initialization status") not yet merged as of 2026-10-13
 - No new issue filed (duplicate of #1408)
 
@@ -46,7 +46,7 @@ Surface chosen: `caro ai --once` scripted conversational mode (oldest 'never' ro
 
 ### Followups
 
-- FLAKE-001 (model download blocked in sandbox) continues to affect all `ai` and `embedded` backend tests. Observed again this pass on `caro ai --once`; count: 2 observations over 159 days, still below the 3-in-7-days regression threshold.
+- FLAKE-001 (model download network block) remains at 1 confirmed occurrence (2026-05-07). The 2026-10-13 `caro ai --once` hang is tracked as #1408 (no user feedback during init), not as a FLAKE-001 recurrence — distinct root cause.
 - PR #1415 has been open since 2026-08-15 (≈59 days). If it doesn't merge before the next QA pass, consider adding a comment to nudge.
 - Add `caro export` (new in v1.5.0) to coverage matrix as surface #33 for future Slot C rotation.
 - Add homebrew tap formula (surface #28) to the next priority slot — never tested, install path risk.

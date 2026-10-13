@@ -14,7 +14,8 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **Impact**: Slot A `--dry-run` smoke check cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:
 - 2026-05-07: observed once (bootstrap run, `caro -p ... --dry-run`)
-- 2026-10-13: observed again (`caro ai --once "show disk usage"` — hangs silently, 0 bytes stdout+stderr at 5s and 20s timeout)
+
+**Note**: The 2026-10-13 `caro ai --once` hang (0 bytes stdout+stderr) was initially logged here but is a distinct issue — tracked as [#1408](https://github.com/wildcard/caro/issues/1408) (no user feedback during backend initialization), not a network-layer download failure.
 
 **Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Workaround**: Run `caro -p "..." --dry-run` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama installed as fallback backend.
