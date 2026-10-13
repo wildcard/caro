@@ -231,13 +231,15 @@
         "fullSupport": "완전 지원",
         "partial": "부분/설정 가능",
         "notSupported": "미지원",
-        "planned": "계획됨"
+        "planned": "계획됨",
+        "notDocumented": "공급업체가 문서화하지 않음"
       },
       "values": {
         "yes": "예",
         "no": "아니오",
         "partial": "부분",
-        "planned": "계획됨"
+        "planned": "계획됨",
+        "unknown": "문서화되지 않음"
       }
     },
     "scenarios": {},

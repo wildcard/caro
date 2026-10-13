@@ -231,13 +231,15 @@
         "fullSupport": "Dukungan penuh",
         "partial": "Parsial/bisa dikonfigurasi",
         "notSupported": "Tidak didukung",
-        "planned": "Direncanakan"
+        "planned": "Direncanakan",
+        "notDocumented": "Tidak didokumentasikan oleh vendor"
       },
       "values": {
         "yes": "Ya",
         "no": "Tidak",
         "partial": "Parsial",
-        "planned": "Direncanakan"
+        "planned": "Direncanakan",
+        "unknown": "Tidak didokumentasikan"
       }
     },
     "scenarios": {},

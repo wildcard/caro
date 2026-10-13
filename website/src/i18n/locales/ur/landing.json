@@ -231,13 +231,15 @@
         "fullSupport": "مکمل سپورٹ",
         "partial": "جزوی/قابل ترتیب",
         "notSupported": "سپورٹ نہیں",
-        "planned": "منصوبہ بند"
+        "planned": "منصوبہ بند",
+        "notDocumented": "وینڈر کی دستاویزات میں درج نہیں"
       },
       "values": {
         "yes": "ہاں",
         "no": "نہیں",
         "partial": "جزوی",
-        "planned": "منصوبہ بند"
+        "planned": "منصوبہ بند",
+        "unknown": "غیر دستاویزی"
       }
     },
     "scenarios": {},

@@ -231,13 +231,15 @@
         "fullSupport": "पूर्ण समर्थन",
         "partial": "आंशिक",
         "notSupported": "समर्थित नहीं",
-        "planned": "योजनाबद्ध"
+        "planned": "योजनाबद्ध",
+        "notDocumented": "विक्रेता द्वारा प्रलेखित नहीं"
       },
       "values": {
         "yes": "हाँ",
         "no": "नहीं",
         "partial": "आंशिक",
-        "planned": "योजनाबद्ध"
+        "planned": "योजनाबद्ध",
+        "unknown": "प्रलेखित नहीं"
       }
     },
     "scenarios": {},

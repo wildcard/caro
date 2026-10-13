@@ -244,13 +244,15 @@
         "fullSupport": "Buong suporta",
         "partial": "Bahagya",
         "notSupported": "Hindi supported",
-        "planned": "Planado"
+        "planned": "Planado",
+        "notDocumented": "Hindi dokumentado ng vendor"
       },
       "values": {
         "yes": "Oo",
         "no": "Hindi",
         "partial": "Bahagya",
-        "planned": "Planado"
+        "planned": "Planado",
+        "unknown": "Hindi dokumentado"
       }
     },
     "scenarios": {},

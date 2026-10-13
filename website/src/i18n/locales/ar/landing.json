@@ -231,13 +231,15 @@
         "fullSupport": "دعم كامل",
         "partial": "جزئي/قابل للتكوين",
         "notSupported": "غير مدعوم",
-        "planned": "مخطط"
+        "planned": "مخطط",
+        "notDocumented": "غير موثق لدى المورّد"
       },
       "values": {
         "yes": "نعم",
         "no": "لا",
         "partial": "جزئي",
-        "planned": "مخطط"
+        "planned": "مخطط",
+        "unknown": "غير موثق"
       }
     },
     "scenarios": {},

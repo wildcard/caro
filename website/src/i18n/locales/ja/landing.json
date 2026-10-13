@@ -231,13 +231,15 @@
         "fullSupport": "完全サポート",
         "partial": "部分的/設定可能",
         "notSupported": "未サポート",
-        "planned": "予定"
+        "planned": "予定",
+        "notDocumented": "ベンダーのドキュメントに記載なし"
       },
       "values": {
         "yes": "はい",
         "no": "いいえ",
         "partial": "部分的",
-        "planned": "予定"
+        "planned": "予定",
+        "unknown": "未記載"
       }
     },
     "scenarios": {},
