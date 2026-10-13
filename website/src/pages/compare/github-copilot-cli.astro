@@ -39,7 +39,7 @@ const comparison = {
       title: 'Privacy and Offline Use',
       icon: '▸',
       content: `
-        <p><strong>GitHub Copilot CLI</strong> sends prompts to GitHub-hosted models by default, and usage telemetry is on by default. Since April 2026 you can bring your own model provider, including a local model (Ollama, vLLM, Foundry Local); with your own provider, GitHub login is not required. Offline use needs both a local model and <code>COPILOT_OFFLINE=true</code>: a hosted BYOK endpoint still needs the network.</p>
+        <p><strong>GitHub Copilot CLI</strong> sends prompts to GitHub-hosted models by default, and usage telemetry is on by default. Since April 2026 you can bring your own model provider, including a local model (Ollama, vLLM, Foundry Local); with your own provider, GitHub login is not required. Offline use needs both a local model and <code>COPILOT_OFFLINE=true</code>: a hosted BYOK endpoint still needs the network. Since October 2026 it can find local models you already run; that installs no runtime or model and does not turn on offline mode.</p>
         <p><strong>Caro</strong> is offline by default with its default embedded backend. It downloads its model once, on first use, and needs no network after that. Prompts and commands stay on your machine. Optional remote backends send prompts to the server you choose.</p>
       `
     },
@@ -88,6 +88,8 @@ const comparison = {
     sources: [
       { label: 'GitHub changelog: Copilot CLI is generally available (Feb 25, 2026)', url: 'https://github.blog/changelog/2026-02-25-github-copilot-cli-is-now-generally-available/' },
       { label: 'GitHub changelog: Copilot CLI supports BYOK and local models (Apr 7, 2026)', url: 'https://github.blog/changelog/2026-04-07-copilot-cli-now-supports-byok-and-local-models/' },
+      { label: 'GitHub docs: use BYOK models in Copilot CLI', url: 'https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-byok-models' },
+      { label: 'GitHub changelog: discover local models in Copilot CLI (Oct 7, 2026)', url: 'https://github.blog/changelog/2026-10-07-discover-local-models-in-github-copilot-cli/' },
       { label: 'GitHub docs: allowing and denying tools', url: 'https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/allowing-tools' },
       { label: 'GitHub docs: responsible use of Copilot CLI', url: 'https://docs.github.com/en/copilot/responsible-use/copilot-cli' },
       { label: 'github/copilot-cli license', url: 'https://github.com/github/copilot-cli/blob/main/LICENSE.md' },

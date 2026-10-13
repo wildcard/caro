@@ -3,9 +3,10 @@ import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
 
 // The Warp claims changed in this refresh were checked against Warp's docs,
 // repo and blog on 2026-10-11; sources are in the verification block below.
-// Do not state where Warp routes AI traffic: Warp's own sources conflict
-// (custom-endpoint docs vs pricing FAQ). See
-// docs/research/2026-10-11-competitive-landscape-refresh.md section 3.
+// Routing: state only the documented personal custom-endpoint flow and
+// disclose that Warp's pricing page describes BYOK differently. Never write
+// "every Warp AI request". See
+// docs/research/2026-10-11-competitive-landscape-refresh.md section 1.
 const comparison = {
   competitor: {
     name: 'Warp',
@@ -16,7 +17,7 @@ const comparison = {
     title: 'TL;DR',
     points: [
       'Warp open-sourced its terminal client in April 2026 under AGPL-3.0, the same license as Caro. Warp\'s FAQ says its server, Warp Drive backend, orchestration layer and agent harness are not in the repository.',
-      'Warp\'s AI features need a network connection and a Warp account. Warp\'s docs say custom model endpoints must be publicly reachable, so a local model needs a public tunnel. With its default embedded backend and a cached model, Caro needs no network and no account.',
+      'The Warp app works without an account, but Warp ties its AI features to a Warp account, and they need a network connection. The Agent CLI signs in separately. Warp\'s docs say custom model endpoints must be publicly reachable, so a local model needs a public tunnel. With its default embedded backend and a cached model, Caro needs no network and no account.',
       'The Warp app replaces your terminal. The Warp Agent CLI (August 2026) runs in any terminal, but needs a Warp account. Caro needs no account.',
       'Warp asks before agent commands that match an editable regex denylist. Caro checks every command against 52+ curated patterns, rates the risk, and at the default safety level blocks Critical commands.',
       'Warp is a full agentic workspace: agents, Drive, teams and cloud agents. Caro does one job: natural language to a safe shell command.',
@@ -57,7 +58,7 @@ const comparison = {
       title: 'Privacy and Connectivity',
       icon: '▸',
       content: `
-        <p><strong>Warp</strong> needs a network connection for its AI features; without one, the terminal works but the AI does not. AI features need a Warp account. Warp's docs say custom model endpoints must be publicly reachable: localhost and private network URLs are rejected. On the Free plan, telemetry is on by default and must stay on to use AI. On Business and Enterprise it is off by default. Warp has zero-data-retention agreements with its model providers.</p>
+        <p><strong>Warp</strong> needs a network connection for its AI features; without one, the terminal works but the AI does not. The app works without an account, but Warp ties AI features to a Warp account. For a personal custom model endpoint, Warp's docs (updated October 2026) say the prompt, context, endpoint URL and key pass through Warp, and that localhost and private network URLs are rejected. Warp's pricing page describes bring-your-own-key differently, and Enterprise BYOLLM has its own terms, so check the current terms for your plan. On the Free plan, telemetry is on by default and must stay on to use AI. On Business and Enterprise it is off by default. Warp has zero-data-retention agreements with its model providers.</p>
         <p><strong>Caro</strong>, with its default embedded backend, runs the model on your machine. After a one-time model download, prompts and commands do not leave it, so Caro works on a plane, behind a strict VPN or in an air-gapped network. Optional remote backends (Ollama, vLLM and others) send prompts to the server you choose.</p>
       `
     },
@@ -65,7 +66,7 @@ const comparison = {
       title: 'Safety Approach',
       icon: '■',
       content: `
-        <p><strong>Warp</strong> gives each agent action an autonomy level: Agent decides, Always ask, Always allow or Never. In normal autonomy modes, commands that match a regex denylist need your approval. The default list covers tools like <code>rm</code>, <code>curl</code>, <code>eval</code> and <code>ssh</code>. By default, auto-approve skips your own denylist. Admin denylist rules are never skipped. A match asks; it does not block.</p>
+        <p><strong>Warp</strong> gives each agent action an autonomy level: Agent decides, Always ask, Always allow or Never. In normal autonomy modes, commands that match a regex denylist need your approval. The default list covers tools like <code>rm</code>, <code>curl</code>, <code>eval</code> and <code>ssh</code>. In "Run until completion" mode, your own denylist is bypassed by default; admin denylist rules are not. A match asks; it does not block.</p>
         <p><strong>Caro</strong> checks every command against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands, such as <code>rm -rf /</code> and fork bombs, whatever the model suggests, and asks before High ones. You can add your own patterns and allowlist entries in the <code>[safety]</code> config.</p>
       `
     },
@@ -98,6 +99,8 @@ const comparison = {
       { label: 'Warp blog: Warp is now open-source (Apr 28, 2026)', url: 'https://www.warp.dev/blog/warp-is-now-open-source' },
       { label: 'warpdotdev/warp repository and FAQ', url: 'https://github.com/warpdotdev/warp' },
       { label: 'Warp docs: custom inference endpoints', url: 'https://docs.warp.dev/agents/inference/custom-inference-endpoint/' },
+      { label: 'Warp docs: bring your own API key', url: 'https://docs.warp.dev/agents/inference/bring-your-own-api-key/' },
+      { label: 'Warp pricing (BYOK wording differs from the docs)', url: 'https://www.warp.dev/pricing' },
       { label: 'Warp docs: using Warp offline', url: 'https://docs.warp.dev/support-and-community/troubleshooting-and-support/using-warp-offline/' },
       { label: 'Warp docs: privacy', url: 'https://docs.warp.dev/support-and-community/privacy-and-security/privacy/' },
       { label: 'Warp docs: agent profiles and permissions', url: 'https://docs.warp.dev/agents/capabilities/agent-profiles-permissions/' },

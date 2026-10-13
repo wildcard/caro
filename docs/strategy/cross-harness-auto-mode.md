@@ -5,7 +5,7 @@ owner's sourced corrections.
 **Status**: Positioning hypothesis and test plan. Not a feature spec. It
 clears none of the gates in
 [`validation-discipline.md`](../../.claude/rules/validation-discipline.md).
-Nothing in this note is scheduled, and no decision below is approved.
+Nothing in this note is scheduled. Section 7 lists the owner's directions and the gates still open.
 **Evidence**: [`2026-10-11-competitive-landscape-refresh.md`](../research/2026-10-11-competitive-landscape-refresh.md)
 and its [raw notes](../research/2026-10-11-competitive-refresh/README.md)
 **Builds on**: `caro guard` (#1513, merged 2026-10-11 as `9516868`;
@@ -16,19 +16,29 @@ and its [raw notes](../research/2026-10-11-competitive-refresh/README.md)
 
 ## 1. Recommendation
 
-1. **Position Caro as an integrated, local-by-default shell specialist with
+1. **Position Caro as an integrated, local-by-default shell experience with
    bundled deterministic checks.** Do not position it as a cross-harness
-   auto-mode engine yet.
-2. **Scope "fully open, fully local"** to the stable default embedded backend
-   with a cached model. The code is AGPL-3.0. The default model (Qwen2.5-Coder
-   1.5B) is Apache-2.0. Optional remote backends send prompts off the machine.
-3. **Keep `caro guard` shadow-only** until the spec 011 pilot passes. Any
-   new guard behavior ships opt-in and labeled experimental.
+   auto-mode engine yet. Avoid "only Caro", universal protection, or any
+   promise that all commands or harness events are covered.
+2. **Scope every claim to what ships by default.**
+   - Openness: the code is AGPL-3.0. The default embedded model
+     (Qwen2.5-Coder 1.5B) is Apache-2.0.
+   - Offline: only after the first model download, with a cached model and
+     the default embedded backend. Optional remote backends send prompts off
+     the machine.
+   - Safety: at the default `moderate` safety level, Critical is blocked and
+     High asks.
+3. **Keep stable defaults lean.** Experimental backends, guard enforcement,
+   harness adapters, any judge and any rule export stay opt-in. `caro guard`
+   stays shadow-only until the spec 011 pilot passes. Shadow mode is
+   instrumentation, not proof of safety or product-market fit.
 4. **Fix verification before stronger safety claims.**
    - #1597: the website claims suite never calls the validator.
    - #1537: 26 of 49 test targets run in no workflow (census at `4a84d09`).
-5. **Coexist with cc-safety-net and dcg for now.** Claim differentiation only
-   after test 1 shows better detection at a matched nuisance rate.
+5. **Interoperate provisionally with cc-safety-net** (and dcg, docs only).
+   Measure **incremental true catches at matched friction**, not a larger
+   deny or ask set. Existing sandbox or guard use can complement Caro; it
+   does not by itself falsify demand.
 6. **Defer rule-pack licensing.** There are no outside contributors yet.
 
 ## 2. What the vendors ship (corrected)
@@ -93,18 +103,24 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
 | cc-safety-net | pin the release tag at run time (not recorded) |
 | Grok Build | pin at run time (not recorded) |
 
-### Test 1: matched-friction delta
+### Test 1 (a): frozen, independently labeled detection delta at matched nuisance
 
 - **Question:** at the same nuisance rate, does Caro catch more destructive
   commands than cc-safety-net?
 - **Method:** run every corpus string through Caro (the `SafetyValidator`
   library, or `caro guard --harness generic --mode enforce --no-log` on
   stdin) and through cc-safety-net's documented checker. Nothing executes.
-- **Metrics:** misses (false negatives) on destructive cases **and** false
-  positives on benign cases. Report both, per class. A larger deny set alone
-  proves nothing.
+- **Metrics:** incremental true catches (destructive cases one tool flags
+  and the other misses, both ways); misses; benign false positives; verdicts
+  on ambiguous cases; per-call latency; and which harness events each tool
+  can see. Report each per class. A larger deny or ask set alone proves
+  nothing.
+- **Oracle rule (from #1597):** a usage error, parse error, crash or
+  non-zero exit without a parsed verdict counts as a **failed run**, never
+  as a block.
 - **Controls:**
-  - Labels are fixed before any tool runs.
+  - Labels are fixed, and the holdout frozen, before any tool runs. Two
+    labelers work independently; disagreements are resolved and recorded.
   - A no-op baseline is scored alongside.
   - Caro is scored at both `moderate` and `strict` safety levels.
   - The corpus includes a 25% holdout that nobody tunes against.
@@ -123,7 +139,7 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
 - **DoD:** the corpus, labels, versions and a per-class table are committed
   under `tests/`, and the result is recorded in this note.
 
-### Test 2: semantic-equivalence attacks and benign lookalikes
+### Test 2 (b): semantic-equivalence variants and benign lookalikes, validator only
 
 - **Question:** does a command that means the same thing get the same
   verdict, and does a harmless lookalike stay quiet?
@@ -131,6 +147,9 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
   - The bypass classes in #1639 and the GuardFall classes, each paired with
     its plain canonical form.
   - Benign lookalikes: `echo`, commit messages, heredocs, quoted mentions.
+- **Method:** strings go into the validator only (library call or
+  `caro guard --harness generic --mode enforce --no-log`). Nothing executes.
+  The test-1 oracle rule applies.
 - **Controls:** each canonical form must be flagged. If one is not, that
   pair is void.
 - **Metric:** the share of equivalence pairs with the same verdict, and the
@@ -145,7 +164,7 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
 - **DoD:** the pair list and results are committed, and each miss links to
   an issue.
 
-### Test 3: hook authority and coverage, version-pinned, with a non-executing stub
+### Test 3 (c): hook authority and event coverage, version-pinned, with a non-executing stub
 
 - **Question:** what does each harness really do with a hook decision?
 - **Method:** install a stub hook that logs its payload and returns a fixed
@@ -175,7 +194,7 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
 - **DoD:** a version-pinned matrix (harness × probe) is committed to
   `docs/coding-agents/`, and ADR-020's adapter table is updated.
 
-### Test 4: clean-cache local setup, offline egress and resource cost
+### Test 4 (d): clean vs cached setup, offline egress, latency and RSS on named hardware
 
 - **Question:** does the scoped "fully local" claim hold on a clean machine?
 - **Method:**
@@ -185,6 +204,8 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
      embedded backend.
   4. Count outbound connection attempts.
   5. Record RSS, p50/p95 latency and disk use.
+- **Hardware:** name it in the result: one Apple-silicon Mac and one
+  x86_64 Linux machine, with CPU model, RAM and OS version.
 - **Control:** the same run with the network on.
 - **Threshold:** zero outbound attempts after the cached download. Any
   attempt falsifies the claim, and the website copy changes.
@@ -195,7 +216,7 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
 - **DoD:** a script, raw numbers per OS, and the result recorded in the
   research note.
 
-### Test 5: shadow user value and retention
+### Test 5 (e): opted-in shadow value and retention
 
 - **Use the existing spec 011 pilot. Do not invent new metrics.**
   - 10 opted-in users, 2 weeks.
@@ -206,29 +227,53 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
   - p95 latency of 500 ms or more.
 - **Quality controls:**
   - User labels need `caro guard report --label` (#1512).
+  - Each week, sample a fixed number of **unflagged** commands per user for
+    labeling, so the pilot estimates misses as well as nuisance.
   - Logs stay local; users share redacted logs by hand.
   - Report how many users kept the hook installed at day 14, as a
     descriptive number only.
 - **Interviews (proposal):** 8 exploratory interviews with
-  bring-your-own-model users. They are not a kill criterion. They count
-  toward Gate 1's 20 transcripts.
+  bring-your-own-model users. They are not a kill criterion: a user who
+  already runs a sandbox or another guard may still want Caro alongside it.
+  They count toward Gate 1's 20 transcripts. Outreach needs separate
+  authorization.
 - **#1510 data gates** govern any judge or classifier work that follows.
 - **Owner:** `@wildcard`. Transcripts go to `docs/discovery/transcripts/` via
   the `caro.discovery` skill. A human runs the interviews.
 - **DoD:** the pilot evaluation is posted on #1512, and transcripts are
   saved under the anonymization rules.
 
-## 5. Prioritized work packet
+## 5. Dispatch entries (prepared, not filed or sent)
 
-| P | Item | Evidence | Benefit | Falsifier | Maintenance cost | Disposition | Stakeholders | DoD |
+These route work to existing issues and owners. Nothing here creates an
+issue, comment or routine. The human owner for every area is `@wildcard`
+(`.github/STAKEHOLDERS.yml`). Disposition: **build** (do the work),
+**interoperate** (use or align with another tool), **watch** (track, no
+work now) or **stop**.
+
+| P | Unit | Owner (STAKEHOLDERS.yml) | Depends on | Expected benefit | Falsifier | Maintenance cost | Disposition | DoD |
 |---|---|---|---|---|---|---|---|---|
-| P0 | #1583: factual repair and merge conflicts | 26 review threads; 5 conflicting pages | Public claims match sources | A reviewer finds an unsourced claim | Re-check per refresh | Local fix ready on `review/pr1583-fixes`; push needs owner go | `@wildcard`; technical-writer, dx-product-manager | Threads answered; CI green; no conflicts |
-| P0 | #1597: claims suite calls the real validator | `--validate-only` does not exist; 8 of 12 landing scenarios disagree | Safety claims become testable | Suite stays green while copy is false | One test file | Existing issue; needs copy or pattern decisions | `@wildcard` (safety); qa-testing-expert | Suite fails on a false claim |
-| P0 | #1537: test-target census | 26 of 49 targets run in no workflow (`4a84d09`) | Regression guards run | A new target is silently skipped | CI time | Existing issue; CI-gate decision | `@wildcard` (`.github/workflows/**`) | Every target runs, or is listed with a reason |
-| P1 | #1054, #1614, #1639, #1302: safety core | Measured bypasses; #1614 open | Fewer bypasses | Test 2 | Parser upkeep | One human safety review track | `@wildcard`; safety-pattern-auditor, safety-pattern-developer | Each class fixed or recorded as accepted |
-| P1 | #1623: Copilot CLI live contract | Output shape unverified; silent fail-open risk | Guard works in Copilot | Test 3 | One adapter | Existing issue | `@wildcard`; caro-integrator | Live result documented |
-| P1 | #1512 / spec 011: guard delta and pilot | Kill criteria exist | Evidence before positioning | Tests 1 and 5 | Log and labels | Existing tracking issue | `@wildcard` | Pilot evaluated |
-| P2 | Discovery before any engine work | Gate 1 has 0 transcripts | Real demand signal | Interviews find no pain | Human time | Proposal; respects #1510 gates | `@wildcard`; `caro.discovery` | Transcripts saved; ledger updated |
+| P0 | #1583 factual and conflict repair | `@wildcard`; technical-writer, dx-product-manager, docs-release-manager (`website/**`, `docs/**`) | Owner review of the local patch | Public claims match dated primary sources | A reviewer finds an unsourced or overbroad claim | One refresh per month | build | 26 threads dispositioned; no conflicts with `main`; build and spell checks pass; rendered pages checked |
+| P0 | #1597 real-validator oracle for website claims | `@wildcard` (safety and copy); qa-testing-expert | Copy-or-pattern decisions in #1597 | Safety claims become testable | The suite stays green while a landing claim is false | One test file | build | The suite calls `SafetyValidator`; usage or parse errors fail the test instead of counting as blocks |
+| P0 | #1537 CI census | `@wildcard` (`.github/workflows/**`) | CI-gate decision in #1537 | Regression guards actually run | A target in `tests/` is skipped again | CI minutes | build | Latest census (26 of 49 omitted at `4a84d09`) is closed: each target runs or is listed with a reason |
+| P0 | #1603 with #1536: QA reads and records routine state | `@wildcard`; QA loops in `.claude/automation/config/schedule.yaml` | #1536 (strict schedule contract) | QA runs stop re-scanning months of history | A QA run still starts from the May 2026 bootstrap | None new; uses `automation/routine-status` | build | QA reads and writes its state with `bin/routine-status state get/put`; no new storage |
+| P1 | #1054, #1614 (open), #1639, #1302: safety core | `@wildcard` as human safety owner; safety-pattern-auditor, safety-pattern-developer (`src/safety/**`) | Human safety review; TDD | Fewer measured bypasses | Test 2 (b) | Parser upkeep | build, one review track | Each bypass class fixed with a RED test first, or recorded as accepted risk |
+| P1 | #1623 live Copilot CLI hook contract | `@wildcard`; caro-integrator (per #1623). `src/guard/**` has no STAKEHOLDERS area. | A live Copilot CLI with a local model (no paid calls) | The guard is not silently ignored (fail-open) | Test 3 (c) shows the nested output is ignored | One adapter | build | Input and output shape documented; silent fail-open closed or documented |
+| P1 | #1512 / spec 011 guard delta and pilot | `@wildcard` | #1597, #1623, #1512 `report --label` | Evidence before any positioning | Tests 1 (a) and 5 (e) | Log, labels | interoperate (cc-safety-net), then decide | Matched-friction delta and pilot results posted on #1512 |
+| P2 | Discovery before any new engine | `@wildcard`; `caro.discovery` skill (`docs/**`) | Separate authorization for outreach; #1510 gates for any judge | Real demand signal | Interviews show no unmet need | Human time | watch | Transcripts saved under the anonymization rules; ledger updated |
+| — | dcg | `@wildcard` | A separately eligible human license decision | — | — | — | watch (docs only) | No execution, testing, benchmarking or import by this agent |
+
+**Run rules for any routine that picks up these entries**
+(`.claude/automation/CONTRACT.md`):
+
+- Run preflight first. If it fails, record `Blocked`.
+- Record exactly one status per run, with evidence (issue, PR or run link)
+  and an honest `--max-age-hours`.
+- Never record `Succeeded` on a failure path. A platform session that ends
+  cleanly is not task success.
+- Search for the fingerprint `fp:<routine>/<slug>` in open and closed issues
+  before filing.
+- Keep working state on `automation/routine-status`.
 
 ## 6. The case against (kept for honesty)
 
@@ -242,20 +287,34 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
 6. Users chose auto modes to avoid prompts; extra asks may get the guard
    uninstalled.
 
-## 7. Decisions for the owner (choices, none approved)
+## 7. Owner decisions (as given on 2026-10-13, and the gates left)
 
-| # | Decision | Options | Default |
-|---|---|---|---|
-| D1 | Lead message | (a) scoped "fully open, fully local"; (b) "keep your terminal"; (c) hold | (a), with (b) as the supporting line |
-| D2 | Positioning | (a) local-by-default shell specialist with bundled checks; (b) cross-harness engine now | (a) |
-| D3 | `caro guard` mode | (a) shadow-only until the spec 011 pilot passes; (b) recommend enforce now | (a); new features opt-in and experimental |
-| D4 | cc-safety-net and dcg | (a) coexist until test 1; (b) compete; (c) interoperate now | (a) |
-| D5 | Rule-pack license | (a) defer; (b) decide now | (a) |
-| D6 | dcg | (a) docs-only comparison; (b) seek a human license-eligibility decision to test it | (a) |
-| D7 | Refresh cadence | (a) route through Hermes, the integrator, coder-loop and QA as in the watchlist; (b) a new routine | (a); wiring it into agent instructions is a separate change |
-| D8 | Paid vendor calls for test 3 (Claude Code) | (a) docs only; (b) approve a capped live run | (a) |
-| D9 | Test corpus and interviews | (a) adopt the 400-case corpus and 8 interviews as proposals; (b) other | (a), not as graduation thresholds |
-| D10 | Push the local fixes to PR #1583 | (a) after review of the local patch; (b) hold | (a) |
+The owner's steering on 2026-10-13 set these directions for the proposal:
+
+1. Integrated, local-by-default shell experience with bundled deterministic
+   checks; claims scoped to the code, the default embedded model, cached-model
+   offline use and the default safety level.
+2. Interoperate provisionally; measure incremental true catches at matched
+   friction.
+3. Defer separate rule-pack licensing; no license change; no dcg execution or
+   import by this agent.
+4. Verification, safety and guard contracts come before another engine;
+   shadow mode is instrumentation.
+5. Monthly primary-source checks and quarterly discovery through existing
+   Hermes, integrator, coder-loop and QA workflows, as a proposal only.
+
+**Gates that still need a separate human approval** (none is granted by this
+note):
+
+| # | Gate | Default if nobody decides |
+|---|---|---|
+| G1 | Push the local fixes to PR #1583 | Hold |
+| G2 | Install dependencies to build and render locally (network, ~900 MB) | Hold; CI renders on push |
+| G3 | Wire the refresh into Hermes, integrator or QA instructions | Hold |
+| G4 | Paid vendor calls for test 3 (Claude Code live run) | Docs only |
+| G5 | Participant outreach for interviews or the pilot | Hold |
+| G6 | Any dcg execution (needs an eligible human and a license decision) | No |
+| G7 | Adopt the 400-case corpus as test-1 design (proposal, not a graduation threshold) | Adopt as a proposal |
 
 ## Open items
 

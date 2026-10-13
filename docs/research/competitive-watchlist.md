@@ -22,11 +22,11 @@ Wiring any step into an agent's instructions is an owner decision
 
 | Step | Existing owner | What it does here |
 |---|---|---|
-| Spot changes | Hermes weekly competitive intelligence (`.hermes/AGENT.md` §2) | Reads the changelogs of each product with a `/compare` page. A changed fact becomes an issue labeled `area:website`. |
+| Monthly primary-source check | Hermes competitive intelligence (`.hermes/AGENT.md` §2), in one of its weekly runs each month | Re-reads the primary sources for every published claim on the `/compare` pages. A changed fact becomes one deduplicated issue labeled `area:website` (fingerprint rule in `.claude/automation/CONTRACT.md` §6). |
 | Harness hook evidence | caro-integrator nightly (`.claude/memory/integrator-playbook.md`) | Records hook behavior per harness and version (e.g. #1623 for Copilot CLI). |
 | Fix the copy | `caro-coder-loop`, routed by `.github/STAKEHOLDERS.yml` (`website/**`: technical-writer, dx-product-manager; human: `@wildcard`) | Updates the page, the `verification` block and `lastVerified` in `website/src/data/compare-pages.ts`. |
 | Check the result | QA loops (`qa_automation_loop`, `frustrated_qa_loop` in `.claude/automation/config/schedule.yaml`) | Re-reads the rendered claims. State goes through `bin/routine-status` on `automation/routine-status` (#1603; coordinate with #1536). |
-| Discovery sweep | Hermes, quarterly in its weekly slot | Uses the five topics in [`2026-10-11-competitive-refresh/`](./2026-10-11-competitive-refresh/README.md) as the template. |
+| Quarterly discovery sweep | Hermes, in one of its weekly runs each quarter | Uses the five topics in [`2026-10-11-competitive-refresh/`](./2026-10-11-competitive-refresh/README.md) as the template. |
 
 Rules for every refresh:
 
