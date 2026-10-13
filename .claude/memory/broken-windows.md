@@ -506,10 +506,10 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 ### BW-063: `caro test --suite` ignores `dangerous_pattern`, so the safety skill's YAML RED/GREEN step tests nothing
 
 **Found:** 2026-10-11, broken-window sweep
-**Issue:** #1599
+**Issue:** #1599 (related: #1597, website-claims suite never runs the validator)
 **Status:** open
 **Needs human?:** no
-**Next step:** Make the runner check `dangerous_pattern`.
+**Next step:** Make the runner check `dangerous_pattern`, or make a Rust contract test the RED/GREEN gate in `.claude/skills/safety-pattern-developer/SKILL.md` (Phases 2 and 4). Seen again in #1054: `.claude/beta-testing/pattern-segment-evasions-test.yaml` is documentation only.
 
 ### BW-064: caro-demo-video skill tells agents to merge or push to main without review
 

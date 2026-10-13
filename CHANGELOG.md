@@ -49,6 +49,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   build time against the 90-minute limit is unmeasured. After an interrupted
   publish, remove the `-remote` assets from the release by hand before running
   it again.
+- **Segment- and wrapper-aware safety validation (#1054).** The validator
+  now scans each statement of a command line, each statement without its
+  `sudo`/`env`/`timeout`/`nice`/`nohup`/`xargs`/`busybox` prefix, and each
+  `sh -c` / `env -S` / `eval` payload (up to 3 levels deep, with no cap on
+  the number of statements), so `bash -c 'rm -rf /'` and
+  `git status; chmod -R 777 ~` no longer pass. New patterns: recursive
+  world-writable `chmod` and unfiltered `find -delete`/`-exec rm` on root or
+  home (Critical, also in the catastrophic floor; a filtered `find` is High),
+  base64-decoded payload piped into a shell (Critical), `eval` of a variable
+  or of downloaded/decoded
+  content (High), other `eval "$(…)"` (Moderate), and interpreter one-liners
+  deleting root, home or a system directory (High). `python` patterns now
+  match `python3`. `echo`/`printf` arguments are never unwrapped, also
+  inside a payload (`bash -c 'echo rm -rf /'` stays allowed). Guarded by
+  `tests/safety_segment_evasion_contract.rs` and
+  `enforce_catches_segment_and_wrapper_evasions` in `tests/e2e_guard.rs`.
 - **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
   carry a `gold_tier`, `uncertain`, `rationale`, `labeller` and `labelled_at`.
   Labelled by an agent session on the owner's decision, blind to the static
@@ -83,6 +99,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   full schema. Idea sourced from
   [adolfousier/opencrabs](https://github.com/adolfousier/opencrabs)'s
   `tools.toml` ergonomic; re-implemented from scratch in caro.
+- **Gold-subset labels report.** `scripts/gold-labels-report.py` validates a
+  labelled `docs/ml/risk-gold-candidates.jsonl` (only the five labeller fields
+  may change, no static fields, tiers in `RiskLevel`) and prints the per-tier
+  counts against the stratification plan and the uncertain rate for the labels
+  PR body; `--static` joins the floor's verdicts once labels are frozen.
+  Guarded by `scripts/tests/test_gold_labels_report.py`. The gold-subset guide
+  now links ADR-018 (merged in #1511) and ADR-018's revision history records
+  the #1554 and #1558 data-gate items.
 - **Consensus-label export and ADR-018.** `CARO_EVAL_EXPORT_LABELS=<path>.jsonl`
   makes `cargo test --test evaluation` append `sft_export::decision_label_pairs`
   (local vs reference risk verdicts, #1466, now with `test_id` and including
