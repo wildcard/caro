@@ -2,8 +2,9 @@
 import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
 
 // The Copilot CLI claims changed in this refresh were checked against
-// GitHub's docs, changelog and the github/copilot-cli repo on 2026-10-11;
-// sources are in the verification block below.
+// GitHub's docs, changelog and the github/copilot-cli repo on 2026-10-11.
+// Local-model discovery, the sandbox GA and the install script were checked
+// on 2026-10-13. Sources are in the verification block below.
 const comparison = {
   competitor: {
     name: 'GitHub Copilot CLI',
@@ -16,7 +17,7 @@ const comparison = {
     points: [
       'Copilot CLI uses GitHub-hosted models by default. Since April 2026 it supports your own model provider (BYOK), including local models. With a local model and COPILOT_OFFLINE=true, it can run without contacting GitHub.',
       'With its default embedded backend, Caro downloads its model once and then runs offline. No account, no API key, no provider setup.',
-      'Caro checks every command against 52+ built-in dangerous-command patterns with risk levels. Copilot CLI asks before risky commands and lets you write allow/deny rules; its docs describe no built-in pattern library or risk levels.',
+      'Caro checks every command it generates against 52+ built-in dangerous-command patterns with risk levels. Copilot CLI asks before risky commands and lets you write allow/deny rules; its docs describe no built-in pattern library or risk levels.',
       'Copilot CLI has an OS-level sandbox (GA in October 2026). Caro checks commands before they run and does not sandbox them.',
       'Copilot CLI is proprietary. Caro is open source (AGPL-3.0).'
     ]
@@ -48,7 +49,7 @@ const comparison = {
       icon: '■',
       content: `
         <p><strong>GitHub Copilot CLI</strong> runs read-only shell commands on its own and asks before others. You can write deterministic rules such as <code>--deny-tool 'shell(rm)'</code>, and deny rules win even under <code>--allow-all</code>. Hooks can call an external validator, and an OS sandbox can limit files, network and credentials. Its docs describe no curated list of dangerous commands.</p>
-        <p><strong>Caro</strong> checks every command against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands such as <code>rm -rf /</code>, with no configuration, and asks before High ones. You can add your own patterns and allowlist entries. A sandbox and a pattern check stop different things, so they work well together.</p>
+        <p><strong>Caro</strong> checks every command it generates against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands such as <code>rm -rf /</code>, with no configuration, and asks before High ones. You can add your own patterns and allowlist entries. A sandbox and a pattern check stop different things, so they work well together.</p>
       `
     },
     {
@@ -84,7 +85,7 @@ const comparison = {
     ]
   },
   verification: {
-    date: '2026-10-11',
+    date: '2026-10-13',
     sources: [
       { label: 'GitHub changelog: Copilot CLI is generally available (Feb 25, 2026)', url: 'https://github.blog/changelog/2026-02-25-github-copilot-cli-is-now-generally-available/' },
       { label: 'GitHub changelog: Copilot CLI supports BYOK and local models (Apr 7, 2026)', url: 'https://github.blog/changelog/2026-04-07-copilot-cli-now-supports-byok-and-local-models/' },

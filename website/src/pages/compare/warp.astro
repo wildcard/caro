@@ -2,7 +2,8 @@
 import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
 
 // The Warp claims changed in this refresh were checked against Warp's docs,
-// repo and blog on 2026-10-11; sources are in the verification block below.
+// repo and blog on 2026-10-11. Routing and pricing were re-checked on
+// 2026-10-13. Sources are in the verification block below.
 // Routing: state only the documented personal custom-endpoint flow and
 // disclose that Warp's pricing page describes BYOK differently. Never claim
 // that all Warp AI traffic passes through Warp. (No double quotes in these
@@ -20,7 +21,7 @@ const comparison = {
       'Warp open-sourced its terminal client in April 2026 under AGPL-3.0, the same license as Caro. Warp\'s FAQ says its server, Warp Drive backend, orchestration layer and agent harness are not in the repository.',
       'The Warp app works without an account, but Warp ties its AI features to a Warp account, and they need a network connection. The Agent CLI signs in separately. Warp\'s docs say custom model endpoints must be publicly reachable, so a local model needs a public tunnel. With its default embedded backend and a cached model, Caro needs no network and no account.',
       'The Warp app replaces your terminal. The Warp Agent CLI (August 2026) runs in any terminal, but needs a Warp account. Caro needs no account.',
-      'Warp asks before agent commands that match an editable regex denylist. Caro checks every command against 52+ curated patterns, rates the risk, and at the default safety level blocks Critical commands.',
+      'Warp asks before agent commands that match an editable regex denylist. Caro checks every command it generates against 52+ curated patterns, rates the risk, and at the default safety level blocks Critical commands.',
       'Warp is a full agentic workspace: agents, Drive, teams and cloud agents. Caro does one job: natural language to a safe shell command.',
     ]
   },
@@ -68,7 +69,7 @@ const comparison = {
       icon: '■',
       content: `
         <p><strong>Warp</strong> gives each agent action an autonomy level: Agent decides, Always ask, Always allow or Never. In normal autonomy modes, commands that match a regex denylist need your approval. The default list covers tools like <code>rm</code>, <code>curl</code>, <code>eval</code> and <code>ssh</code>. In "Run until completion" mode, your own denylist is bypassed by default; admin denylist rules are not. A match asks; it does not block.</p>
-        <p><strong>Caro</strong> checks every command against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands, such as <code>rm -rf /</code> and fork bombs, whatever the model suggests, and asks before High ones. You can add your own patterns and allowlist entries in the <code>[safety]</code> config.</p>
+        <p><strong>Caro</strong> checks every command it generates against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands, such as <code>rm -rf /</code> and fork bombs, whatever the model suggests, and asks before High ones. You can add your own patterns and allowlist entries in the <code>[safety]</code> config.</p>
       `
     },
     {
@@ -95,7 +96,7 @@ const comparison = {
     ]
   },
   verification: {
-    date: '2026-10-11',
+    date: '2026-10-13',
     sources: [
       { label: 'Warp blog: Warp is now open-source (Apr 28, 2026)', url: 'https://www.warp.dev/blog/warp-is-now-open-source' },
       { label: 'warpdotdev/warp repository and FAQ', url: 'https://github.com/warpdotdev/warp' },

@@ -14,7 +14,7 @@ const comparison = {
     points: [
       'Kiro CLI (formerly Amazon Q Developer CLI) is closed source. The old Amazon Q CLI repo is open source but gets only critical security fixes.',
       'Kiro runs its models on Amazon Bedrock and needs a sign-in. Its docs list no local-model or bring-your-own-endpoint option. With its default embedded backend, Caro runs a local model and needs no account.',
-      'Kiro asks before most shell commands and lets you write deny/ask/allow rules. Its docs describe no built-in list of dangerous commands. Caro checks every command against 52+ curated patterns with risk levels.',
+      'Kiro asks before most shell commands and lets you write deny/ask/allow rules. Its docs describe no built-in list of dangerous commands. Caro checks every command it generates against 52+ curated patterns with risk levels.',
       'Kiro is a full coding agent with MCP, custom agents and hooks. Caro does one job: natural language to a safe shell command.',
       'Caro is free and open source. Kiro paid plans start at $20 per month.'
     ]
@@ -54,7 +54,7 @@ const comparison = {
       icon: '■',
       content: `
         <p><strong>Kiro CLI</strong> runs read-only commands like <code>git status</code> and <code>pwd</code> on its own and asks before everything else. It splits compound commands on <code>;</code>, <code>&amp;&amp;</code>, <code>||</code> and <code>|</code> and checks each part. You can write deny/ask/allow rules in <code>permissions.yaml</code>, and admins can enforce them. <code>--trust-all-tools</code> turns the prompts off for a session. Its docs describe no curated list of dangerous commands.</p>
-        <p><strong>Caro</strong> checks every command against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands, such as <code>rm -rf /</code> and fork bombs, with no configuration, and asks before High ones. You can add your own patterns and allowlist entries.</p>
+        <p><strong>Caro</strong> checks every command it generates against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands, such as <code>rm -rf /</code> and fork bombs, with no configuration, and asks before High ones. You can add your own patterns and allowlist entries.</p>
       `
     },
     {

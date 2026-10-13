@@ -16,7 +16,7 @@ const comparison = {
     points: [
       'Both are open source: OpenCode is MIT, Caro is AGPL-3.0. Both can run local models.',
       'OpenCode is a general-purpose coding agent with 75+ model providers. Caro is a shell specialist.',
-      'By default OpenCode allows most operations, shell commands included, without asking. Exceptions: doom-loop and outside-directory actions ask, and .env reads are denied. You can turn on prompts and write wildcard rules. Caro checks every command against 52+ curated patterns with risk levels, with no configuration.',
+      'By default OpenCode allows most operations, shell commands included, without asking. Exceptions: doom-loop and outside-directory actions ask, and .env reads are denied. You can turn on prompts and write wildcard rules. Caro checks every command it generates against 52+ curated patterns with risk levels, with no configuration.',
       'OpenCode runs offline once you configure a local provider and turn off its model, update and LSP downloads. With its default embedded backend, Caro is offline after a one-time model download.',
       'They work well together: OpenCode for coding, Caro for quick, safety-checked shell commands.'
     ]
@@ -47,7 +47,7 @@ const comparison = {
       icon: '■',
       content: `
         <p><strong>OpenCode</strong> allows most operations by default, including shell commands. Its documented exceptions: doom-loop and outside-directory actions ask, and reading <code>.env</code> files is denied (<code>.env.example</code> is allowed). You can set <code>bash</code> to <code>ask</code> and write wildcard rules such as <code>"rm *": "deny"</code> in <code>opencode.json</code>. The built-in Plan agent asks before edits and shell commands. A plugin can check or block any command before it runs. OpenCode does not ship a curated list of dangerous commands.</p>
-        <p><strong>Caro</strong> checks every command against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands, such as <code>rm -rf /</code> and fork bombs, with no configuration, and asks before High ones. You can add your own patterns and allowlist entries.</p>
+        <p><strong>Caro</strong> checks every command it generates against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands, such as <code>rm -rf /</code> and fork bombs, with no configuration, and asks before High ones. You can add your own patterns and allowlist entries.</p>
       `
     },
     {
@@ -82,7 +82,7 @@ const comparison = {
     ]
   },
   verification: {
-    date: '2026-10-11',
+    date: '2026-10-13',
     sources: [
       { label: 'anomalyco/opencode repository (MIT)', url: 'https://github.com/anomalyco/opencode' },
       { label: 'OpenCode docs: permissions (re-checked Oct 13, 2026)', url: 'https://opencode.ai/docs/permissions/' },

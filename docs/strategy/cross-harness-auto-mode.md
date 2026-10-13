@@ -180,7 +180,7 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
 - **Model calls:** use local-model modes where they exist (Codex `--oss`,
   OpenCode with a local provider, Copilot BYOK with `COPILOT_OFFLINE=true`).
   Claude Code needs Anthropic models; a live run there needs an owner
-  decision on paid calls (D8). Without one, record its documented behavior
+  decision on paid calls (G4). Without one, record its documented behavior
   only.
 - **Claude Code specifics:**
   - Does a hook "allow" skip the classifier?
@@ -305,13 +305,13 @@ The owner's steering on 2026-10-13 set these directions for the proposal:
 5. Monthly primary-source checks and quarterly discovery through existing
    Hermes, integrator, coder-loop and QA workflows, as a proposal only.
 
-**Gates that still need a separate human approval** (none is granted by this
-note):
+**Gates that need a separate human approval** (this note grants none; G1 and
+G2 were granted on 2026-10-13):
 
 | # | Gate | Default if nobody decides |
 |---|---|---|
-| G1 | Push the local fixes to PR #1583 | Hold |
-| G2 | Install dependencies to build and render locally (network, ~900 MB) | Hold; CI renders on push |
+| G1 | Push the local fixes to PR #1583 | Done 2026-10-13 |
+| G2 | Install dependencies to build and render locally (network, ~900 MB) | Done 2026-10-13 (isolated, scripts disabled) |
 | G3 | Wire the refresh into Hermes, integrator or QA instructions | Hold |
 | G4 | Paid vendor calls for test 3 (Claude Code live run) | Docs only |
 | G5 | Participant outreach for interviews or the pilot | Hold |

@@ -97,8 +97,9 @@ Confidence labels in the raw notes:
 | **Not found elsewhere** | A weekly CVE-derived rule pipeline | Not seen in this sweep. That is not proof that no one has one. |
 
 The safe wording for safety claims is now: **"Caro ships a curated set of
-52+ patterns with risk levels. They run before every command, offline, with
-no configuration."** Do not say "only Caro validates deterministically", and
+52+ patterns with risk levels. They check every command Caro generates,
+offline, with no configuration."** `caro guard` can check other agents'
+commands, but by default it only logs (shadow mode). Do not say "only Caro validates deterministically", and
 do not claim better detection until a matched-nuisance-rate measurement
 exists. Note #1597: the website claims suite never calls the validator, so
 its green CI result is not evidence for any safety claim.
@@ -145,7 +146,7 @@ The full table covers 20 harnesses: [`auto-modes.md`](./2026-10-11-competitive-r
 
 **The gap:**
 
-- Users who bring their own model get no Claude, Codex or Cursor judge. (goose Smart Approve uses the user's own provider, and Cline lets the model mark its own commands.)
+- Users who bring their own model get no Claude Code or Cursor judge. Codex Auto-review is not tied to OpenAI models by design, but a custom-provider bug needs workarounds (openai/codex#31255). (goose Smart Approve uses the user's own provider, and Cline lets the model mark its own commands.)
 - A policy written for one harness does not carry over to another.
 - Vendor judges are not deterministic, and the vendor can change them server-side.
 - They send parts of the transcript to the vendor.

@@ -33,7 +33,7 @@ export const comparisons = [
   },
   {
     feature: "Works Offline",
-    caro: "Yes, with the default embedded backend",
+    caro: "Yes, after a one-time model download (default embedded backend)",
     chatgpt: "No",
     copilot: "Opt-in (local model + COPILOT_OFFLINE=true)",
     shellgpt: "Partial (local models not optimized)"
