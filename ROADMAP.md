@@ -1,6 +1,6 @@
 # Caro Development Roadmap
 
-**Last Updated**: October 11, 2026
+**Last Updated**: October 13, 2026
 
 > **Recent Update**: Integrated 104 PRs (#557-660) into roadmap with milestone assignments and tracking issues.
 
@@ -50,7 +50,7 @@ gantt
 ## Release Milestones
 
 ### 🎉 v1.5.0 - Decision Layer & Release Reset
-**Released**: October 11, 2026 ✅
+**Released**: October 13, 2026 ✅
 **Status**: 100% Complete - **RELEASED**
 **Focus**: Consolidation of the stalled 2026-07-12 scope (safety-floor
 hardening, custom-pattern TOML, MSRV 1.85, backend-roster single-source)
@@ -102,7 +102,16 @@ with the PRs that landed on `main` after it:
   [#1563](https://github.com/wildcard/caro/pull/1563) and
   [#1573](https://github.com/wildcard/caro/pull/1573) (website accessibility,
   favicons, footer links), [#1522](https://github.com/wildcard/caro/pull/1522)
-  and [#1548](https://github.com/wildcard/caro/pull/1548) (dev workflow)
+  and [#1548](https://github.com/wildcard/caro/pull/1548) (dev workflow);
+  after the release PR, [#1600](https://github.com/wildcard/caro/pull/1600)
+  (recursive world-writable `chmod` is High risk),
+  [#1616](https://github.com/wildcard/caro/pull/1616) and
+  [#1618](https://github.com/wildcard/caro/pull/1618) (embedded context
+  window, one system prompt), [#1622](https://github.com/wildcard/caro/pull/1622)
+  (one `Configuration error:` prefix), [#1632](https://github.com/wildcard/caro/pull/1632)
+  (the crate ships its CVE rules), [#1588](https://github.com/wildcard/caro/pull/1588)
+  and [#1582](https://github.com/wildcard/caro/pull/1582) (website share cards
+  and Kyaro icons)
 
 **Release-reset note**: an earlier `chore(release): v1.5.0` landed
 2026-07-12 (commit `6f23d37`) and bumped `Cargo.toml`/`README`/
@@ -428,7 +437,7 @@ above.
 
 | Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
 |-----------|----------|---------------------|----------|----------|---------|
-| **v1.5.0** | Oct 11, 2026 | Decision layer, calibration, security bump + release reset | 15 | 100% | ✅ **RELEASED** |
+| **v1.5.0** | Oct 13, 2026 | Decision layer, calibration, security bump + release reset | 15 | 100% | ✅ **RELEASED** |
 | **v1.4.0** | May 9, 2026 | CaroML preview + safety hardening | 12 | 100% | ✅ **RELEASED** |
 | **v1.3.2** | May 9, 2026 | Static matcher coverage gaps | 7 | 100% | ✅ **RELEASED** |
 | **v1.3.1** | May 9, 2026 | P0/P1 safety patch | 4 | 100% | ✅ **RELEASED** |

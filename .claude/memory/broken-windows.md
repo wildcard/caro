@@ -536,3 +536,13 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Next step:** merge #1608. npm reads only the root lockfile for workspaces;
 `website/README.md` → "Workspace and lockfile" documents it. The other
 workspaces are BW-069.
+
+### BW-072: `update-homebrew.yml` writes the Linux ARM64 checksum into the Linux x86_64 block
+
+**Found:** 2026-10-13, v1.5.0 release follow-up (`claude/v1-5-0-notes-alignment`)
+**Issue:** #1636
+**Status:** open
+**Needs human?:** yes (release workflow change; #1635 needs the correct x86_64
+hash before it merges)
+**Next step:** start each sed range in `update-homebrew.yml` at the platform's
+`url` line (#1636 has the replay), and fix line 39 of the formula in #1635.
