@@ -298,16 +298,26 @@ jobs:
       # set; nothing here changes `[features] default`.
       #
       # Every step below uses continue-on-error and runs after the default
-      # upload, so a failure here cannot stop the default release. The
-      # `-remote` upload runs only when the build, the prepare step and (where
-      # the binary can run on the runner) the smoke test all succeeded. An
-      # unverified binary is never uploaded, and the default binary can never
-      # be uploaded under the `-remote` name.
+      # upload, so a failing build, prepare, smoke or upload step cannot stop
+      # the default assets from being uploaded. The `-remote` upload runs only
+      # after the smoke test passed, and the default binary can never be
+      # uploaded under the `-remote` name.
       #
-      # Known limits: the cross-built linux-arm64 binary cannot run on the
-      # runner, so it has no smoke test. The x86_64-apple-darwin binary is
-      # smoke-tested on an arm64 `macos-latest` runner and needs Rosetta 2; if
-      # it cannot run, that platform simply gets no `-remote` asset.
+      # Known limits:
+      # - A cancelled run, a job timeout or a runner failure during this extra
+      #   build ends the Release run without success. The default assets are
+      #   already on the release, but update-homebrew.yml and packages.yml only
+      #   start after a successful run, so they would not run. Every release
+      #   also waits for this build before those workflows start. A separate
+      #   job or workflow would remove both effects; that is an owner decision.
+      # - The smoke test runs the binary, except for the cross-built
+      #   linux-arm64 binary, which cannot run on the runner. That one gets a
+      #   static check on two strings that differ between the builds. It
+      #   proves the feature took effect, not that the binary runs. If those
+      #   error messages change, update the strings here.
+      # - The x86_64-apple-darwin binary is run on an arm64 `macos-latest`
+      #   runner and needs Rosetta 2. If it cannot run, that platform simply
+      #   gets no `-remote` asset.
       - name: Build remote-backends release binary
         id: build_remote
         continue-on-error: true
@@ -326,9 +336,11 @@ jobs:
         id: prepare_remote_asset
         if: steps.build_remote.outcome == 'success'
         continue-on-error: true
+        timeout-minutes: 10
         shell: bash
+        env:
+          VERSION: ${{ needs.prepare-release.outputs.version }}
         run: |
-          VERSION="${{ needs.prepare-release.outputs.version }}"
           BASE_NAME=$(echo "${{ matrix.asset_name }}" | sed 's/^caro-//')
           # caro-1.5.0-linux-amd64        -> caro-1.5.0-linux-amd64-remote
           # caro-1.5.0-windows-amd64.exe  -> caro-1.5.0-windows-amd64-remote.exe
@@ -353,11 +365,26 @@ jobs:
       # truncated output.
       - name: Smoke-test remote-backends artifact
         id: smoke_remote
-        if: steps.prepare_remote_asset.outcome == 'success' && matrix.target != 'aarch64-unknown-linux-gnu'
+        if: steps.prepare_remote_asset.outcome == 'success'
         continue-on-error: true
+        timeout-minutes: 5
         shell: bash
+        env:
+          REMOTE_ASSET: ${{ steps.prepare_remote_asset.outputs.remote_asset }}
+          TARGET: ${{ matrix.target }}
         run: |
-          OUT=$("./${{ steps.prepare_remote_asset.outputs.remote_asset }}" --backend-info < /dev/null 2>&1)
+          if [ "${TARGET}" = "aarch64-unknown-linux-gnu" ]; then
+            # Cross-built: cannot run here. The remote build carries the
+            # missing-key message; the default build carries the
+            # "not compiled" message instead.
+            if ! grep -aq 'ANTHROPIC_API_KEY environment variable not set' "./${REMOTE_ASSET}" \
+               || grep -aq 'which is not compiled into this build' "./${REMOTE_ASSET}"; then
+              echo "::error::arm64 binary does not look like a remote-backends build"
+              exit 1
+            fi
+            exit 0
+          fi
+          OUT=$("./${REMOTE_ASSET}" --backend-info < /dev/null 2>&1)
           echo "$OUT"
           if ! echo "$OUT" | grep -Eq '^[[:space:]]*ollama[[:space:]]'; then
             echo "::error::--backend-info printed no ollama row"
@@ -369,8 +396,9 @@ jobs:
           fi
 
       - name: Upload remote-backends assets
-        if: steps.prepare_remote_asset.outcome == 'success' && (steps.smoke_remote.outcome == 'success' || matrix.target == 'aarch64-unknown-linux-gnu')
+        if: steps.smoke_remote.outcome == 'success'
         continue-on-error: true
+        timeout-minutes: 10
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.prepare-release.outputs.tag }}

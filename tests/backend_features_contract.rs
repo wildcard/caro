@@ -32,19 +32,19 @@ const REMOTE_BACKENDS: [&str; 9] = [
 ];
 
 fn caro(home: &Path, args: &[&str]) -> Output {
+    // `env_clear` drops every inherited variable (API keys, CARO_* settings),
+    // so a developer's environment cannot change the output or reach a
+    // provider. Only PATH is kept, then HOME and the XDG dirs point at the
+    // temp dir.
+    let path = std::env::var_os("PATH").unwrap_or_default();
     Command::new(env!("CARGO_BIN_EXE_caro"))
         .args(args)
+        .env_clear()
+        .env("PATH", path)
         .env("HOME", home)
         .env("XDG_CONFIG_HOME", home)
         .env("XDG_DATA_HOME", home)
         .env("XDG_CACHE_HOME", home)
-        .env_remove("ANTHROPIC_API_KEY")
-        .env_remove("OPENROUTER_API_KEY")
-        .env_remove("XAI_API_KEY")
-        .env_remove("CARO_BACKEND")
-        .env_remove("CARO_DEFAULT_MODEL")
-        .env_remove("CARO_MODEL")
-        .env_remove("CARO_APPROVAL")
         .stdin(Stdio::null())
         .output()
         .expect("failed to run caro")
