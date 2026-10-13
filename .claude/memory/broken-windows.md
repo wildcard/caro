@@ -324,9 +324,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-07-18)
 **Issue:** #1342
-**Status:** open
-**Needs human?:** yes if the fix is to delete the job (CI gate); no for a root-cause fix.
-**Next step:** read the failing step's log and root-cause it.
+**Status:** not failing. The job passed on the last 11 completed `ci.yml` runs on main (2026-10-12 to 2026-10-13, latest run 38394590892). Evidence posted on #1342.
+**Needs human?:** yes (close #1342)
+**Next step:** the owner closes #1342. If the job fails again, reopen it with the log.
 
 ### BW-040: static matcher "Find Python files (simple)" swallows content searches
 
