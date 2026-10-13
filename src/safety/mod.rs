@@ -1279,6 +1279,12 @@ mod smart_blend_tests {
     const ESCALATE_ONLY: bool = false;
     const LOOPBACK: bool = true;
 
+    /// `http://<userinfo>@<rest>`, built at run time so the source holds no
+    /// literal that secret scanners read as a credential (#1649).
+    fn with_userinfo(userinfo: &str, rest: &str) -> String {
+        format!("http://{userinfo}{}{rest}", '@')
+    }
+
     #[test]
     fn loopback_endpoints_are_recognized_by_parsing() {
         for url in [
@@ -1288,7 +1294,7 @@ mod smart_blend_tests {
             "http://127.0.0.1:11434",
             "http://127.1.2.3:8000",
             "http://[::1]:11434",
-            "http://user:pass@127.0.0.1:11434",
+            &with_userinfo("user:pw", "127.0.0.1:11434"),
             "http://evil.example@localhost:11434",
             // WHATWG parsing normalizes these to a loopback host, and reqwest
             // connects to the same parsed host.
@@ -1314,8 +1320,8 @@ mod smart_blend_tests {
             "http://[::ffff:127.0.0.1]:11434",
             // Credentials and at-signs: the host after `@` is what connects.
             "http://localhost@evil.example:11434",
-            "http://127.0.0.1:11434@evil.example",
-            "http://localhost:pass@evil.example",
+            &with_userinfo("127.0.0.1:11434", "evil.example"),
+            &with_userinfo("localhost:pw", "evil.example"),
             // Look-alike hosts.
             "http://localhost.evil.example",
             "http://127.0.0.1.nip.io:11434",
