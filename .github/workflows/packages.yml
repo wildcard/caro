@@ -59,6 +59,9 @@ jobs:
   docker:
     name: Publish Docker Image
     needs: prepare
+    # v1.5.0 ships only on crates.io and GitHub Releases (Kyaro artwork
+    # notice, assets/kyaro/README.md).
+    if: needs.prepare.outputs.version != '1.5.0'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -110,6 +113,7 @@ jobs:
   npm:
     name: Publish npm Package
     needs: prepare
+    if: needs.prepare.outputs.version != '1.5.0'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -147,6 +151,7 @@ jobs:
   nuget:
     name: Publish NuGet Package
     needs: prepare
+    if: needs.prepare.outputs.version != '1.5.0'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -206,7 +211,22 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
+      - name: Summary (v1.5.0, ancillary channels skipped)
+        if: needs.prepare.outputs.version == '1.5.0'
+        run: |
+          echo "## Package Publishing Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** 1.5.0" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Docker, npm and NuGet publishing were **skipped**: v1.5.0 ships only on crates.io and GitHub Releases." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Cargo (crates.io):**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "cargo install caro@1.5.0" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
       - name: Summary
+        if: needs.prepare.outputs.version != '1.5.0'
         run: |
           echo "## Package Publishing Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

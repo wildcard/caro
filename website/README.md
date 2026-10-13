@@ -81,19 +81,19 @@ website/
 
 ### Prerequisites
 
-- Node.js 18+ or 20+
-- npm, pnpm, or yarn
+- Node.js 22.12 or later: astro requires `>=22.12.0` (site-build CI uses 22, Vercel uses 24)
+- npm. Do not run `pnpm install` or `yarn install` here: they write a second
+  lockfile.
 
 ### Installation
 
 ```bash
-# Install dependencies
+# From the repo root or from website/. Both use the root package-lock.json.
 npm install
-# or
-pnpm install
-# or
-yarn install
 ```
+
+See [Workspace and lockfile](#workspace-and-lockfile) before you add or update
+a dependency.
 
 ### Development
 
@@ -101,10 +101,6 @@ Start the development server:
 
 ```bash
 npm run dev
-# or
-pnpm dev
-# or
-yarn dev
 ```
 
 Visit `http://localhost:4321` to see your site.
@@ -115,10 +111,6 @@ Create a production build:
 
 ```bash
 npm run build
-# or
-pnpm build
-# or
-yarn build
 ```
 
 The static site will be built to `dist/`.
@@ -129,10 +121,6 @@ Preview the production build locally:
 
 ```bash
 npm run preview
-# or
-pnpm preview
-# or
-yarn preview
 ```
 
 ## Customization
@@ -213,7 +201,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Install dependencies
         run: npm install
         working-directory: ./website
@@ -375,6 +363,38 @@ The original single-file HTML version is preserved as `index.html` in this direc
 - Easier maintenance
 - Modern development workflow
 
-## Workspace Configuration
+## Workspace and lockfile
 
-This website is part of an npm workspaces monorepo. Changes to this workspace will trigger Vercel builds only for the website project, while other workspaces (docs-site, landing) will be automatically skipped.
+This website is the `caro-website` workspace of the npm workspaces monorepo
+(see `workspaces` in the root `package.json`). Changes to this workspace will
+trigger Vercel builds only for the website project, while other workspaces
+(docs-site, landing) will be automatically skipped.
+
+**The website has one lockfile: the root `package-lock.json`.** There is no
+`website/package-lock.json`, and `website/.gitignore` stops one from being
+committed.
+The other workspaces (`docs-site/`, `landing/`, `presentation/` and
+`apps/devrel/`) follow the same rule.
+
+npm finds the workspace root by itself. In `website/`, `npm prefix` prints the
+repo root, so `npm install` and `npm ci` read and write the root lockfile. A
+lockfile inside `website/` is never read, so it goes stale. The old one did: it
+had no `codex-pet-companion` and none of the build tools added in
+[#1588](https://github.com/wildcard/caro/pull/1588).
+
+| Who installs | Command | Lockfile used |
+|---|---|---|
+| You, locally | `npm install` in the repo root or in `website/` | root `package-lock.json` |
+| CI: `static-sites-build.yml`, `kyaro-icons.yml` | `npm ci` in the repo root | root `package-lock.json` |
+| CI: `translate-all.yml`, `validate-translations.yml` | `npm ci` in `website/` | root `package-lock.json` (npm resolves the workspace root) |
+| Vercel: caro.sh and Storybook | `npm install` in `website/` (the Root Directory) | root `package-lock.json` |
+
+To add or update a dependency, run npm from the repo root and commit both files:
+
+```bash
+npm install <package> --workspace=caro-website
+git add website/package.json package-lock.json
+```
+
+The `dependency-review` workflow checks the licenses of new packages in the
+lockfile against the allowlist in `.github/workflows/dependency-review.yml`.

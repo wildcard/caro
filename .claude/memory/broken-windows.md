@@ -32,15 +32,10 @@ search overlay first opens (`website/src/components/OmniSearch.astro`).
 
 **Found:** 2026-09-27, PR #1470 session
 **Issue:** canonical #1098 (oldest open); 41 duplicates closed 2026-10-03; dups #1520, #1541 closed 2026-10-09
-**Status:** fix in #1478: `CLAUDE.md` points at `Cargo.toml` and repeats no
-version, and the PR closes #1098. #1432 was closed as superseded on 2026-10-09.
+**Status:** fixed (#1478, merged 2026-10-11). `CLAUDE.md` points at `Cargo.toml` and repeats no version; #1098 closed.
 **Needs human?:** no
-**Next step:** merge #1478.
-Root cause: the daily QA routine (`trig_01Tk7DxyXV7LeYcFjgmTG1mZ`, 14:00 UTC)
-re-files instead of commenting on the existing issue. A "search before filing"
-edit was drafted 2026-10-03; only the maintainer can apply it (the routine was
-created via the API, so agents cannot update it). #1546 adds the
-search-before-filing step to the runner contract (CONTRACT.md section 6).
+**Next step:** none. Delete after 2026-10-18.
+
 
 ### BW-003: stale harness references (caro-eval, current-tasks.md, AGENTS.md, .kittify, --skill)
 
@@ -127,9 +122,10 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep, CI run 36658876598
 **Issue:** #1341
-**Status:** fixed (#1553, merged 2026-10-11). #1341 stays open until the 2026-10-12 nightly Extended Tests run is green.
+**Status:** open. #1553 (merged 2026-10-11) fixed the download: all 3 models load on the 2026-10-12 nightly (run 38195655733). The job is still red: SmolLM and TinyLlama fail 6 tests each on prompt overflow (BW-068, #1612), every model fails 3 on `caro list` (BW-029, #1550), and Qwen fails `e2e_multiple_commands_performance` (926 s on CPU for 4 commands).
 **Needs human?:** no (decided 2026-10-10: SmolLM uses the bundle.yml Q8_0 repo, StarCoder is dropped, CI runs on CPU only).
-**Next step:** confirm the 2026-10-12 nightly Extended Tests run is green, then close #1341. Delete after 2026-10-18.
+**Next step:** after BW-068 merges, check the next nightly; the #1550 and CPU-speed failures remain.
+
 
 ### BW-016: 1.5.0 declared in-repo but never tagged or published
 
@@ -215,9 +211,10 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-02, PR #1507 session (also red on main push be07b22 and every i18n-touching PR)
 **Issue:** #1508
-**Status:** open
+**Status:** fixed (#1565, merged 2026-10-11). #1508 closed; #1544 closed as superseded.
 **Needs human?:** no (run `translate.yml` or copy the English files; or relax the validator for missing namespaces)
-**Next step:** `en/playbook.json` (#1174) and `en/waitlist.json` (#599) were never mirrored into 13 locales. CI runs the validator without `--strict`, so the missing-file errors are the failure; the 207 untranslated warnings are only fatal in strict mode.
+**Next step:** none. Delete after 2026-10-18.
+
 
 ### BW-027: static safety floor rates reverse shells, credential exfiltration and `DROP DATABASE` as Safe
 
@@ -356,9 +353,10 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 
 **Found:** 2026-10-10 sweep register sync (issue filed 2026-09-24)
 **Issue:** #1472 (related: #1446, the vulnerability report)
-**Status:** open
-**Needs human?:** yes (dependency major-version bump)
-**Next step:** maintainer approves the bump; note that hf-hub 0.5 already pulls reqwest 0.12.
+**Status:** fixed (#1488, merged 2026-10-01). #1472 closed 2026-10-12 with owner approval; the optional `chromadb` / `knowledge` h2 0.3 paths stay in the approved `.cargo/audit.toml` entry (review 2026-12-31).
+**Needs human?:** no (owner decided 2026-10-12: close #1472 as done)
+**Next step:** none. Delete after 2026-10-19.
+
 
 ### BW-051: unrendered website components and unread locale fields hold 156 emoji
 
@@ -368,6 +366,35 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 **Needs human?:** yes for the distro-preferences UI (planned feature or remove); no for the rest
 **Next step:** remove `OmniMenu.astro`, `Waitlist.astro`,
 `landing/LPUseCases.astro` and the unread locale fields listed in #1591.
+
+### BW-068: llama.cpp "advancing context failed (error code 1)": prompt overflows n_ctx 2048
+
+**Found:** 2026-10-12, nightly verification of BW-015 (run 38195655733)
+**Issue:** #1612. The agent loop adds ~2.6 KB of context to the embedded system prompt. Real tokenizers count 1,955 (SmolLM) and 2,033 (TinyLlama) tokens on Linux; the macOS runner's context is larger and overflows 2048.
+**Status:** claimed-by sweep/2026-10-12-BW-1612 (#1616)
+**Needs human?:** no
+**Next step:** merge the PR; confirm on the next nightly.
+
+### BW-069: stale nested lockfiles in npm workspaces (docs-site, landing, presentation, apps/devrel)
+
+**Found:** 2026-10-12 sweep register sync
+**Issue:** #1609 (related: #1610)
+**Status:** fixed (#1620)
+**Needs human?:** no
+**Next step:** merge #1620. It deletes the nested `package-lock.json` in
+`docs-site/`, `landing/`, `presentation/` and `apps/devrel/`; the PR body
+has the per-project evidence that each Vercel build reads the root lockfile.
+Then confirm the first `caro-docs`, `caro-slides` and `cmdai-saas` production
+builds after the merge are READY (`cmdai` is already red, #1562).
+
+### BW-070: five nested lockfiles still pin sharp 0.34.5 (three advisories)
+
+**Found:** 2026-10-12 sweep register sync
+**Issue:** #1610 (overlaps BW-069 for the four workspace lockfiles)
+**Status:** open
+**Needs human?:** yes (sharp bump in `changelog/`; the owner asked for the lockfile deletions in #1609)
+**Next step:** owner approves the sharp 0.35.5 bump in `changelog/`. #1608 (BW-071) and
+#1620 (BW-069) delete the other four lockfiles.
 
 ---
 
@@ -388,9 +415,10 @@ waitlist/playbook locale files; #1508 is the CI symptom of both).
 
 **Found:** 2026-10-11, broken-window sweep (main health)
 **Issue:** #1340. The cleanup step deletes `~/.cargo/bin/caro` but not cargo's install record. `setup.sh` runs `cargo install caro`, which prints "already installed" and installs nothing.
-**Status:** claimed-by sweep/2026-10-11-BW-052 (#1605)
+**Status:** fixed (#1605, merged 2026-10-11). Install runs on main are green since `ee69deea`.
 **Needs human?:** no (test-step fix; no gate changes)
-**Next step:** merge the PR; the Install workflow runs on it.
+**Next step:** none. Delete after 2026-10-18.
+
 
 ### BW-053: an invalid `config.toml` is silently replaced with defaults
 
@@ -498,3 +526,13 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Status:** open
 **Needs human?:** yes (owner merges or closes the PRs)
 **Next step:** Owner triages the open update PRs.
+
+### BW-071: `website/package-lock.json` was dead and stale
+
+**Found:** 2026-10-12, owner task (`claude/zealous-meitner-y29aw1`)
+**Issue:** none (owner asked for the fix directly)
+**Status:** fixed (#1608)
+**Needs human?:** no
+**Next step:** merge #1608. npm reads only the root lockfile for workspaces;
+`website/README.md` → "Workspace and lockfile" documents it. The other
+workspaces are BW-069.
