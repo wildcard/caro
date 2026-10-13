@@ -132,7 +132,7 @@
   }
 
   .terminal-window {
-    background: #1e1e1e;
+    background: var(--bg-inverse);
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     overflow: hidden;
@@ -148,7 +148,7 @@
   }
 
   .terminal-header {
-    background: #2d2d2d;
+    background: var(--caro-grey-800);
     padding: 12px 16px;
     display: flex;
     align-items: center;
@@ -183,7 +183,7 @@
   .terminal-title {
     font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--caro-grey-300); /* 6.7:1 on the grey-800 title bar */
     flex: 1;
     text-align: center;
     font-weight: 500;
@@ -225,8 +225,9 @@
     gap: 8px;
   }
 
+  /* Console surface (#4f4f4f): every colour below is ≥ 4.5:1 on it. */
   .prompt {
-    color: #4ec9b0;
+    color: var(--term-safe);
     font-weight: 600;
     flex-shrink: 0;
   }
@@ -244,13 +245,13 @@
   }
 
   .caro-prefix {
-    color: #ff8c42;
+    color: var(--highlight);
     font-weight: 600;
     flex-shrink: 0;
   }
 
   .result {
-    color: #ce9178;
+    color: var(--highlight);
     word-break: break-word;
   }
 
@@ -261,12 +262,12 @@
   }
 
   .safety-check {
-    color: #6a9955;
+    color: var(--term-safe);
     font-weight: 600;
   }
 
   .safety-text {
-    color: #6a9955;
+    color: var(--term-fg);
     font-size: 13px;
   }
 

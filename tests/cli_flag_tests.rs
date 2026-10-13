@@ -200,7 +200,7 @@ fn backend_info_lists_known_backends() {
         "--backend-info output should mention 'backend', got:\n{}",
         combined
     );
-    for name in ["static", "embedded", "ollama", "vllm"] {
+    for name in ["embedded", "ollama", "vllm", "grok"] {
         assert!(
             combined.to_lowercase().contains(name),
             "--backend-info output should list '{}', got:\n{}",

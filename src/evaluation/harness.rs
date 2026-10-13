@@ -12,7 +12,8 @@ use tokio::time::timeout;
 use crate::backends::{CommandGenerator, GeneratorError};
 use crate::evaluation::baseline::DEFAULT_ECE_REGRESSION_THRESHOLD;
 use crate::evaluation::calibration::{
-    decision_failure_count, risk_agreement, source_counts, CalibrationRollup, LatencyPercentiles,
+    decision_failure_count, risk_agreement, risk_gate_calibration, source_counts,
+    CalibrationRollup, LatencyPercentiles,
 };
 use crate::evaluation::errors::Result;
 use crate::evaluation::{
@@ -213,6 +214,19 @@ impl EvaluationHarness {
     ///
     /// Returns error if evaluation cannot complete
     pub async fn run(&self) -> Result<BenchmarkReport> {
+        self.run_with_results().await.map(|(report, _)| report)
+    }
+
+    /// Runs the full evaluation and also returns every per-result record the
+    /// report was aggregated from, in the order they were produced.
+    ///
+    /// The report is a summary; the per-result records carry the fields that
+    /// summary drops (the generated command, the local and reference risk
+    /// verdicts, the confidence and its source). The consensus-label export
+    /// for the gate classifier (`sft_export::decision_label_pairs`, ADR-018)
+    /// needs those, so callers that write training data use this entry point
+    /// and `run` stays the summary-only path.
+    pub async fn run_with_results(&self) -> Result<(BenchmarkReport, Vec<EvaluationResult>)> {
         let start_time = Instant::now();
 
         // Filter available backends
@@ -229,9 +243,9 @@ impl EvaluationHarness {
 
         // Aggregate results
         let execution_time_ms = start_time.elapsed().as_millis() as u64;
-        let report = self.aggregate_results(all_results, execution_time_ms)?;
+        let report = self.aggregate_results(&all_results, execution_time_ms)?;
 
-        Ok(report)
+        Ok((report, all_results))
     }
 
     /// Runs evaluation for a specific category only
@@ -370,6 +384,7 @@ impl EvaluationHarness {
             decision_parse_failures: decision_failure_count(all_results.iter()),
             risk_agreement: agreement,
             risk_disagreements: disagreements,
+            risk_gate: risk_gate_calibration(all_results.iter()),
         })
     }
 
@@ -740,7 +755,7 @@ impl EvaluationHarness {
     /// Aggregates evaluation results into a benchmark report
     fn aggregate_results(
         &self,
-        results: Vec<EvaluationResult>,
+        results: &[EvaluationResult],
         execution_time_ms: u64,
     ) -> Result<BenchmarkReport> {
         // Calculate overall metrics
@@ -867,6 +882,7 @@ impl EvaluationHarness {
                     decision_parse_failures: decision_failure_count(backend_tests.iter().copied()),
                     risk_agreement: agreement,
                     risk_disagreements: disagreements,
+                    risk_gate: risk_gate_calibration(backend_tests.iter().copied()),
                 },
             );
         }
@@ -1068,6 +1084,28 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_run_with_results_returns_every_result() {
+        // Regression guard for the consensus-label export (ADR-018): the
+        // per-result records must cover exactly what the report summarises,
+        // or the JSONL written from them silently drops cases.
+        let dataset = create_simple_dataset();
+        let mut harness = EvaluationHarness::new(dataset, HarnessConfig::default()).unwrap();
+        harness.add_backend(
+            "mock-backend".to_string(),
+            Arc::new(MockBackend::new("mock")),
+        );
+
+        let (report, results) = harness.run_with_results().await.unwrap();
+
+        assert_eq!(results.len(), report.total_tests);
+        assert_eq!(
+            results.iter().filter(|r| r.passed).count(),
+            report.total_passed
+        );
+        assert!(results.iter().all(|r| r.backend_name == "mock-backend"));
+    }
+
+    #[tokio::test]
     async fn test_harness_with_multiple_backends() {
         let dataset = create_simple_dataset();
         let config = HarnessConfig::default();
@@ -1203,6 +1241,26 @@ mod tests {
             agreement("no_judge"),
             (None, 0),
             "reference alone is not agreement"
+        );
+
+        // Risk-gate baseline (#1510): confidence 0.9 scored against agreement.
+        let gate = |name: &str| report.backend_results[name].risk_gate;
+        let agrees = gate("agrees").expect("both verdicts present");
+        assert_eq!((agrees.n, agrees.coverage), (2, 1.0));
+        assert!(
+            (agrees.brier - 0.01).abs() < 1e-6,
+            "0.9 confident, always right"
+        );
+        let disagrees = gate("disagrees").expect("both verdicts present");
+        assert!(
+            (disagrees.brier - 0.81).abs() < 1e-6,
+            "0.9 confident, always wrong"
+        );
+        assert!((disagrees.ece - 0.9).abs() < 1e-6);
+        assert_eq!(
+            gate("no_judge"),
+            None,
+            "no local verdict, no gate to calibrate"
         );
     }
 

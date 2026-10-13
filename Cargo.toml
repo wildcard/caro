@@ -3,6 +3,8 @@ name = "caro"
 version = "1.5.0"
 edition = "2021"
 rust-version = "1.85"
+# Two [[bin]] targets: plain `cargo run` (README, tests' fallback) must pick caro (#1222, #1164).
+default-run = "caro"
 description = "Convert natural language to shell commands using local LLMs"
 license = "AGPL-3.0"
 authors = ["Wildcard <kobi@caro.sh>", "Claude Code <noreply@anthropic.com>"]
@@ -20,6 +22,12 @@ include = [
     "LICENSE",
     "README.crates.io.md",
     "CHANGELOG.md",
+    "assets/kyaro/README.md",
+    "assets/kyaro/001-idle/idle_ASCII/Idle_1.txt",
+    "assets/kyaro/008-shocked/shocked_ASCII/Shocked1.txt",
+    "assets/kyaro/006-happy bounce/happy bounce_ASCII/HappyBounce1.txt",
+    "assets/kyaro/003-sleeping/sleeping_ASCII/Sleeping01.txt",
+    "data/cve_rules/CVE-*.yaml",
 ]
 
 # Binary targets

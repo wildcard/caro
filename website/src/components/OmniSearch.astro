@@ -15,6 +15,7 @@
  */
 
 import { PAGES_INDEX } from '../config/pages';
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 import searchIndexData from '../config/search-index.json';
 
 // Search is always enabled - no feature flag needed
@@ -72,7 +73,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
         <kbd>esc</kbd>
       </div>
       <div class="omni-hotkey-hint">
-        <span class="omni-hint-icon">💡</span>
+        <TermGlyph g="▸" />
         <span>Tip: Use <kbd>⌘/</kbd> or <kbd>Ctrl+/</kbd> anywhere to open search</span>
       </div>
       <div id="omni-list" class="omni-list" role="listbox"></div>
@@ -112,7 +113,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
   }
 
   .omni-search-trigger:focus-visible {
-    outline: 2px solid var(--color-accent, #ff8c42);
+    outline: 2px solid var(--color-accent, var(--accent));
     outline-offset: 2px;
   }
 
@@ -153,7 +154,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
   }
 
   .dark .omni-trigger-kbd {
-    background: var(--color-bg, #1a1a1a);
+    background: var(--color-bg, #4f4f4f);
     border-color: var(--color-border, #555);
   }
 
@@ -239,7 +240,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: rgba(255, 140, 66, 0.06);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
     border-bottom: 1px solid var(--color-border, #e0e0e0);
     font-size: 12px;
     color: var(--color-text-secondary, #666);
@@ -249,10 +250,6 @@ const searchIndex = searchIndexData?.pages?.length > 0
     display: none;
   }
 
-  .omni-hint-icon {
-    font-size: 14px;
-  }
-
   .omni-hotkey-hint kbd {
     padding: 1px 5px;
     font-size: 10px;
@@ -260,7 +257,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
     background: var(--color-bg, #fff);
     border: 1px solid var(--color-border, #ddd);
     border-radius: 3px;
-    color: #ff8c42;
+    color: var(--accent-text);
   }
 
   .omni-list { flex: 1; overflow-y: auto; padding: 8px; }
@@ -280,15 +277,16 @@ const searchIndex = searchIndexData?.pages?.length > 0
     gap: 8px;
     padding: 10px 12px;
     margin: 4px 0 8px;
-    background: rgba(255, 140, 66, 0.08);
-    border: 1px dashed rgba(255, 140, 66, 0.3);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    border: 1px dashed color-mix(in srgb, var(--accent) 30%, transparent);
     border-radius: 8px;
     font-size: 13px;
     color: var(--color-text-secondary, #666);
   }
-  .omni-fuzzy-hint .omni-fuzzy-icon { font-size: 16px; }
+  /* Built with innerHTML, so the glyph gets TermGlyph's look from here. */
+  .omni-fuzzy-hint .omni-fuzzy-icon { font-family: var(--font-mono); font-weight: 700; line-height: 1; }
   .omni-fuzzy-hint .omni-fuzzy-correction {
-    color: #ff8c42;
+    color: var(--accent-text);
     font-weight: 500;
   }
 
@@ -305,11 +303,13 @@ const searchIndex = searchIndexData?.pages?.length > 0
     transition: background 0.1s;
   }
   .omni-item:hover { background: var(--color-bg-secondary, #f5f5f5); }
-  .omni-item.active { background: rgba(255,140,66,0.12); }
-  .omni-item.active .omni-title { color: #ff8c42; }
-  .omni-item.fuzzy { opacity: 0.85; }
+  /* 8% tint keeps --accent-text at 4.8:1 on paper. */
+  .omni-item.active { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .omni-item.active .omni-title { color: var(--accent-text); }
+  /* No opacity: it pulled titles under AA. Italic marks a fuzzy result. */
+  .omni-item.fuzzy .omni-title { font-style: italic; }
 
-  .omni-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+  .omni-icon { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0; font-family: var(--font-mono); font-weight: 700; line-height: 1; }
   .omni-info { flex: 1; min-width: 0; }
   .omni-title {
     font-size: 14px;
@@ -358,8 +358,9 @@ const searchIndex = searchIndexData?.pages?.length > 0
     border-radius: 3px;
   }
 
-  .omni-match { background: rgba(255,140,66,0.25); border-radius: 2px; }
-  .omni-fuzzy-match { background: rgba(255,140,66,0.15); border-radius: 2px; text-decoration: underline; text-decoration-style: dotted; }
+  /* Highlighter marks with their own ink: AA on any row, either mode (13:1). */
+  .omni-match { background: var(--highlight); color: var(--caro-grey-900); border-radius: 2px; }
+  .omni-fuzzy-match { background: var(--highlight); color: var(--caro-grey-900); border-radius: 2px; text-decoration: underline; text-decoration-style: dotted; }
 
   @media (max-width: 600px) {
     .omni-overlay { padding: 8vh 12px 12px; }
@@ -611,7 +612,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
 
         html += `
           <div class="omni-fuzzy-hint">
-            <span class="omni-fuzzy-icon">💡</span>
+            <span class="omni-fuzzy-icon" aria-hidden="true">▸</span>
             <span>Did you mean ${correctionText}?</span>
           </div>
         `;
@@ -632,7 +633,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
     function renderItem(page: any, idx: number, query: string, corrections: Map<string, string>, isFuzzy: boolean): string {
       const cls = `omni-item${idx === 0 ? ' active' : ''}${isFuzzy ? ' fuzzy' : ''}`;
       return `<a href="${page.path}" class="${cls}" data-idx="${idx}" role="option">
-        <span class="omni-icon">${page.icon || '📄'}</span>
+        <span class="omni-icon" aria-hidden="true">${page.icon || '▸'}</span>
         <div class="omni-info">
           <div class="omni-title">${highlight(page.title, query, corrections)}</div>
           ${page.description ? `<div class="omni-desc">${highlight(page.description, query, corrections)}</div>` : ''}
