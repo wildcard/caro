@@ -58,3 +58,15 @@ The 14:07 run on 2026-10-11 still used the routine's old prompt. So it read main
 - **Not taken:** its resolved-list line for #1044 ("Fixed 2026-05-09"). #1044 closed as a duplicate of #1098, which #1478 fixed on 2026-10-11.
 
 With #1604, 34 of the 35 runs tested Slot C surface #10. This branch is the fix that #1603 asks for: #1603 can close after a run reads this state with `state get`.
+
+## Added after seeding: #1653 (2026-10-13)
+
+The 14:08 run on 2026-10-13 also used the old prompt. It read main's May copy, filed no issue and opened PR #1653. Its changes were folded in by hand, with the rules above:
+
+- **Session log:** its entry goes on top, with a note on what it could not see. One duration figure became "[duration omitted]".
+- **Its rows win:** the 2026-10-13 smoke row, the dates of surfaces 10 and 32, and #1408's status ("open; fix PR #1415 pending").
+- **New surface:** `caro export` is surface 35, because the seed already uses 33 and 34.
+- **Flakes:** FLAKE-001 gets a "not triggered" line. FLAKE-002 gets the 2026-10-13 observation; #1653 had filed it under #1408 in FLAKE-001's section.
+- **Not taken:** its #1044 edits. The seed already lists #1044 as closed.
+
+With #1653, 35 of the 36 runs tested Slot C surface #10.
