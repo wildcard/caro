@@ -29,6 +29,15 @@ Unless you have prior written permission from the copyright holders, you may **n
 
 If you redistribute this software, you must **exclude** the Kyaro Assets unless you have explicit permission.
 
+**Official Caro v1.5.0 distribution.** Kobi Kadosh, the project owner, expressly authorizes the following four Kyaro ASCII frames, together with this notice, to be included in the official Caro v1.5.0 release published by the Caro project (the `caro` crate on crates.io and the Caro v1.5.0 GitHub Release binaries):
+
+- `001-idle/idle_ASCII/Idle_1.txt`
+- `008-shocked/shocked_ASCII/Shocked1.txt`
+- `006-happy bounce/happy bounce_ASCII/HappyBounce1.txt`
+- `003-sleeping/sleeping_ASCII/Sleeping01.txt`
+
+This permission covers only that official distribution. It does not license the Kyaro Assets under AGPL-3.0 and grants no rights to anyone else: the restrictions above, and the ownership and credits below, still apply to every other use, including redistributions, forks, and repackaging of Caro.
+
 ## 3. Ownership and Rights
 The Kyaro Assets are jointly owned by **Kobi Kadosh** and **Alrezky Caesaria** with equal standing. Morning Moon Studios is Alrezky Caesaria's pixel art studio (not a separate rights holder).
 

@@ -596,6 +596,29 @@ mod tests {
     }
 
     #[test]
+    fn agent_sized_prompt_fits_the_context_window() {
+        // Regression guard for #1612. The agent loop puts about 2.6 KB of
+        // context (execution context, directory context, its own system
+        // prompt) into the request. Measured with the real tokenizers, the
+        // full prompt was 1,955 (SmolLM) and 2,033 (TinyLlama) tokens, so a
+        // 2048-token window overflowed. Assume 2 chars per token, which is
+        // more pessimistic than any of the three CI models.
+        let backend = EmbeddedModelBackend::new().unwrap();
+        let request =
+            CommandRequest::new("show date", ShellType::Bash).with_context("x".repeat(4000));
+
+        let prompt = backend.create_system_prompt(&request);
+        let estimated_tokens = prompt.len() / 2 + 32; // + chat template tokens
+        let needed = estimated_tokens + EmbeddedConfig::default().max_tokens;
+
+        assert!(
+            needed <= crate::backends::embedded::EMBEDDED_N_CTX as usize,
+            "prompt needs ~{needed} tokens, window is {}",
+            crate::backends::embedded::EMBEDDED_N_CTX
+        );
+    }
+
+    #[test]
     fn test_json_response_parsing() {
         let backend = EmbeddedModelBackend::new().unwrap();
 

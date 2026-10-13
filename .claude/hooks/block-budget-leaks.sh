@@ -38,8 +38,22 @@ fi
 # - byte counts:       5 GB / 200 MB
 SENSITIVE_RE='\$[0-9]+([.,][0-9]+)?|\b[0-9]+[.,]?[0-9]*[[:space:]]*USD\b|\b[0-9]+[[:space:]]*(minutes?|mins?)\b|\b[0-9]+[[:space:]]*(GB|MB|TB|KB)\b'
 
+# During a merge of an already-pushed branch (one that a remote-tracking ref
+# contains), its lines are public, so diff against it: only lines this side
+# adds are new. An unpushed branch is not public, and its commits may never
+# have passed this hook, so its lines are scanned like any other.
+diff_cached() {
+  local mh
+  mh="$(git rev-parse -q --verify MERGE_HEAD 2>/dev/null)" || mh=""
+  if [[ -n "$mh" && -n "$(git for-each-ref --count=1 --contains "$mh" refs/remotes/ 2>/dev/null)" ]]; then
+    git diff --cached "$mh" "$@"
+  else
+    git diff --cached "$@"
+  fi
+}
+
 # Look only at staged files in protected paths.
-PROTECTED_FILES=$(git diff --cached --name-only --diff-filter=ACMRT 2>/dev/null \
+PROTECTED_FILES=$(diff_cached --name-only --diff-filter=ACMRT 2>/dev/null \
   | grep -E '^(\.beads/|\.claude/memory/)' || true)
 
 if [[ -z "$PROTECTED_FILES" ]]; then
@@ -49,7 +63,7 @@ fi
 # Scan staged diff (added lines only) for sensitive patterns.
 # Added lines only: skip each file's header (up to its first @@ hunk), so a
 # content line that itself starts with "++" is still scanned.
-LEAK=$(git diff --cached --unified=0 -- $PROTECTED_FILES 2>/dev/null \
+LEAK=$(diff_cached --unified=0 -- $PROTECTED_FILES 2>/dev/null \
   | awk '/^diff --git /{h=1; next} /^@@/{h=0; next} !h && /^\+/' \
   | grep -E -i "$SENSITIVE_RE" || true)
 

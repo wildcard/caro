@@ -1,5 +1,6 @@
 ---
 import { t, getLocalizedData } from '../i18n/config';
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   lang: string;
@@ -52,11 +53,11 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
         </div>
 
         <!-- Game area -->
-        <div id="game-area" class="game-area">
+        <div id="game-area" class="game-area" tabindex="-1">
           <!-- Caro in center -->
           <div class="caro-center">
             <img src="/caro-pixel.png" alt="Caro" />
-            <div id="caro-speech" class="speech-bubble">{t(lang, 'landing.game.messages.start.0')}</div>
+            <div id="caro-speech" class="speech-bubble" aria-live="polite">{t(lang, 'landing.game.messages.start.0')}</div>
           </div>
 
           <!-- Command options grid -->
@@ -78,7 +79,7 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
               </div>
               <div class="lives-display">
                 <span>{t(lang, 'landing.game.overlay.lives')}</span>
-                <span id="lives-display">❤️ ❤️ ❤️</span>
+                <span id="lives-display">♥ ♥ ♥</span>
               </div>
               <button id="start-btn" class="start-btn">{t(lang, 'landing.game.overlay.startButton')}</button>
               <div id="high-score-display" class="high-score">{t(lang, 'landing.game.overlay.highScore')} <span id="high-score">0</span></div>
@@ -92,10 +93,10 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
 
         <!-- Lives indicator -->
         <div class="footer-bar">
-          <div id="lives" class="lives">
-            <span class="heart">❤️</span>
-            <span class="heart">❤️</span>
-            <span class="heart">❤️</span>
+          <div id="lives" class="lives" role="img" data-label={t(lang, 'landing.game.overlay.lives')} aria-label={`${t(lang, 'landing.game.overlay.lives')}: 3`}>
+            <TermGlyph g="♥" class="heart" />
+            <TermGlyph g="♥" class="heart" />
+            <TermGlyph g="♥" class="heart" />
           </div>
           <div id="streak" class="streak">{t(lang, 'landing.game.streak')} <span id="streak-count">0</span></div>
         </div>
@@ -115,11 +116,13 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
     justify-content: center;
   }
 
+  /* Arcade cabinet on brand console greys (no gradients, no near-black).
+     Accent text on these greys is --highlight; red text cannot reach AA. */
   .quiz-cabinet {
-    background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+    background: var(--caro-grey-900);
     border-radius: 16px;
     padding: 20px;
-    box-shadow: 0 0 0 4px #ff8c42, 0 0 40px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 0 0 4px var(--accent), 0 0 40px color-mix(in srgb, var(--accent) 30%, transparent);
     max-width: 800px;
     width: 100%;
   }
@@ -141,29 +144,32 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
 
   .stat-label {
     font-size: 11px;
-    color: #ff8c42;
+    color: var(--caro-grey-300);
     letter-spacing: 2px;
   }
 
   .stat-value {
     font-size: 28px;
-    color: #fff;
+    color: var(--caro-white);
     font-weight: bold;
-    text-shadow: 0 0 10px rgba(255, 140, 66, 0.8);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 80%, transparent);
   }
 
   .title {
+    min-width: 0;
+    text-align: center;
+    overflow-wrap: anywhere;
     font-size: 22px;
     font-weight: bold;
-    color: #ff8c42;
-    text-shadow: 0 0 15px rgba(255, 140, 66, 0.8);
+    color: var(--highlight);
+    text-shadow: 0 0 15px color-mix(in srgb, var(--accent) 80%, transparent);
     letter-spacing: 3px;
     font-family: 'Courier New', monospace;
   }
 
   .progress-bar {
     height: 8px;
-    background: #222;
+    background: var(--caro-grey-950);
     border-radius: 4px;
     margin: 0 10px 15px;
     overflow: hidden;
@@ -171,13 +177,14 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
 
   .timer-fill {
     height: 100%;
-    background: linear-gradient(90deg, #2ecc71 0%, #f1c40f 50%, #e74c3c 100%);
+    background: var(--status-safe);
     width: 100%;
     transition: width 0.1s linear;
     border-radius: 4px;
   }
 
   .timer-fill.warning {
+    background: var(--accent);
     animation: pulse-warning 0.5s ease-in-out infinite;
   }
 
@@ -189,13 +196,22 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
   .game-area {
     position: relative;
     min-height: 450px;
-    background: radial-gradient(ellipse at center, #12121a 0%, #0a0a0f 100%);
+    background: var(--bg-inverse);
     border-radius: 12px;
     padding: 30px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+  }
+
+  .game-area:focus {
+    outline: none;
+  }
+
+  .game-area:focus-visible {
+    outline: 3px solid var(--highlight);
+    outline-offset: 2px;
   }
 
   .caro-center {
@@ -210,7 +226,7 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
     width: 80px;
     height: 80px;
     image-rendering: pixelated;
-    filter: drop-shadow(0 0 20px rgba(255, 140, 66, 0.6));
+    filter: drop-shadow(0 0 20px color-mix(in srgb, var(--accent) 60%, transparent));
     animation: float 2s ease-in-out infinite;
   }
 
@@ -221,12 +237,12 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
 
   .caro-center.correct img {
     animation: celebrate 0.5s ease-out;
-    filter: drop-shadow(0 0 30px #2ecc71);
+    filter: drop-shadow(0 0 30px var(--status-safe));
   }
 
   .caro-center.wrong img {
     animation: shake 0.5s ease-out;
-    filter: drop-shadow(0 0 30px #e74c3c);
+    filter: drop-shadow(0 0 30px var(--accent));
   }
 
   @keyframes celebrate {
@@ -242,8 +258,8 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
   }
 
   .speech-bubble {
-    background: #fff;
-    color: #333;
+    background: var(--caro-white);
+    color: var(--caro-grey-900);
     padding: 10px 18px;
     border-radius: 20px;
     font-family: 'Courier New', monospace;
@@ -261,22 +277,23 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
     left: 50%;
     transform: translateX(-50%);
     border: 8px solid transparent;
-    border-bottom-color: #fff;
+    border-bottom-color: var(--caro-white);
     border-top: 0;
   }
 
+  /* Solid status fills: dark ink on safe-green, white on --accent-fill. */
   .speech-bubble.correct {
-    background: #2ecc71;
-    color: #fff;
+    background: var(--status-safe);
+    color: var(--caro-grey-950);
   }
 
   .speech-bubble.wrong {
-    background: #e74c3c;
-    color: #fff;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
-  .speech-bubble.correct::before { border-bottom-color: #2ecc71; }
-  .speech-bubble.wrong::before { border-bottom-color: #e74c3c; }
+  .speech-bubble.correct::before { border-bottom-color: var(--status-safe); }
+  .speech-bubble.wrong::before { border-bottom-color: var(--accent-fill); }
 
   .options-grid {
     display: grid;
@@ -287,13 +304,15 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
   }
 
   .option-btn {
-    background: linear-gradient(180deg, #252535 0%, #1a1a28 100%);
-    border: 3px solid #444;
+    min-width: 0;
+    background: var(--caro-grey-800);
+    /* WCAG 1.4.11: grey-400 boundary is 3.1:1 on the grey-700 game area. */
+    border: 3px solid var(--caro-grey-400);
     border-radius: 12px;
     padding: 16px 20px;
     font-family: 'Courier New', monospace;
     font-size: 15px;
-    color: #ddd;
+    color: var(--term-fg);
     cursor: pointer;
     transition: all 0.15s ease;
     text-align: left;
@@ -304,10 +323,15 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
   }
 
   .option-btn:hover:not(:disabled) {
-    border-color: #ff8c42;
-    background: linear-gradient(180deg, #2a2a3a 0%, #1f1f2d 100%);
+    border-color: var(--accent);
+    background: var(--caro-grey-900);
     transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 5px 20px color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+
+  .option-btn:focus-visible {
+    outline: 3px solid var(--highlight);
+    outline-offset: 2px;
   }
 
   .option-btn:disabled {
@@ -315,29 +339,30 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
     opacity: 0.7;
   }
 
+  /* Reveal states: tint + border carry safe/danger; text stays console ink. */
   .option-btn.safe-reveal {
-    border-color: #2ecc71;
-    background: linear-gradient(180deg, #1a3a2a 0%, #0f2a1a 100%);
-    color: #2ecc71;
+    border-color: var(--status-safe);
+    background: color-mix(in srgb, var(--status-safe) 30%, transparent);
+    color: var(--term-fg);
   }
 
   .option-btn.danger-reveal {
-    border-color: #e74c3c;
-    background: linear-gradient(180deg, #3a1a1a 0%, #2a0f0f 100%);
-    color: #e74c3c;
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 25%, transparent);
+    color: var(--term-fg);
   }
 
   .option-btn.selected-correct {
-    border-color: #2ecc71;
-    background: #2ecc71;
-    color: #fff;
+    border-color: var(--status-safe);
+    background: var(--status-safe);
+    color: var(--caro-grey-950);
     animation: pop 0.3s ease-out;
   }
 
   .option-btn.selected-wrong {
-    border-color: #e74c3c;
-    background: #e74c3c;
-    color: #fff;
+    border-color: var(--accent-fill);
+    background: var(--accent-fill);
+    color: var(--on-accent);
     animation: shake 0.3s ease-out;
   }
 
@@ -352,28 +377,34 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
     justify-content: center;
     width: 32px;
     height: 32px;
-    background: linear-gradient(180deg, #ff8c42 0%, #e67635 100%);
-    color: #fff;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     font-size: 14px;
     font-weight: bold;
     border-radius: 8px;
     flex-shrink: 0;
   }
 
+  /* Commands read left-to-right on RTL pages too. */
   .option-cmd {
     flex: 1;
+    min-width: 0;
+    direction: ltr;
+    unicode-bidi: isolate;
+    text-align: left;
+    overflow-wrap: anywhere;
   }
 
   .option-cmd::before {
     content: '$ ';
-    color: #666;
+    color: var(--term-prompt);
   }
 
   /* Overlay */
   .overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.95);
+    background: var(--term-bg);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -391,21 +422,21 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
 
   .overlay-title {
     font-size: 32px;
-    color: #ff8c42;
+    color: var(--highlight);
     margin-bottom: 10px;
-    text-shadow: 0 0 20px rgba(255, 140, 66, 0.8);
+    text-shadow: 0 0 20px color-mix(in srgb, var(--accent) 80%, transparent);
     letter-spacing: 2px;
   }
 
   .overlay-subtitle {
-    color: #aaa;
+    color: var(--caro-grey-300);
     margin-bottom: 25px;
     font-size: 14px;
   }
 
   .rules {
     margin-bottom: 25px;
-    text-align: left;
+    text-align: start;
     display: inline-block;
   }
 
@@ -416,34 +447,36 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
     font-size: 13px;
   }
 
+  /* Rule colour lives in the tint and the rule line; text is console ink. */
+  .rule {
+    color: var(--term-fg);
+  }
+
   .rule.safe {
-    background: rgba(46, 204, 113, 0.2);
-    color: #2ecc71;
-    border-left: 3px solid #2ecc71;
+    background: color-mix(in srgb, var(--status-safe) 15%, transparent);
+    border-inline-start: 3px solid var(--status-safe);
   }
 
   .rule.danger {
-    background: rgba(231, 76, 60, 0.2);
-    color: #e74c3c;
-    border-left: 3px solid #e74c3c;
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    border-inline-start: 3px solid var(--accent);
   }
 
   .rule.timer {
-    background: rgba(241, 196, 15, 0.2);
-    color: #f1c40f;
-    border-left: 3px solid #f1c40f;
+    background: color-mix(in srgb, var(--highlight) 12%, transparent);
+    border-inline-start: 3px solid var(--highlight);
   }
 
   .lives-display {
     margin-bottom: 20px;
     font-size: 18px;
-    color: #fff;
+    color: var(--caro-white);
   }
 
   .start-btn {
-    background: linear-gradient(180deg, #ff8c42 0%, #e67635 100%);
+    background: var(--accent-fill);
     border: none;
-    color: #fff;
+    color: var(--on-accent);
     font-family: 'Courier New', monospace;
     font-size: 20px;
     font-weight: bold;
@@ -452,23 +485,28 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 2px;
-    box-shadow: 0 4px 0 #b35c20, 0 0 25px rgba(255, 140, 66, 0.4);
+    box-shadow: 0 4px 0 var(--accent-fill-hover), 0 0 25px color-mix(in srgb, var(--accent-fill) 40%, transparent);
     transition: all 0.1s;
   }
 
   .start-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 0 #b35c20, 0 0 35px rgba(255, 140, 66, 0.6);
+    box-shadow: 0 6px 0 var(--accent-fill-hover), 0 0 35px color-mix(in srgb, var(--accent-fill) 60%, transparent);
+  }
+
+  .start-btn:focus-visible {
+    outline: 3px solid var(--highlight);
+    outline-offset: 3px;
   }
 
   .start-btn:active {
     transform: translateY(2px);
-    box-shadow: 0 2px 0 #b35c20;
+    box-shadow: 0 2px 0 var(--accent-fill-hover);
   }
 
   .high-score {
     margin-top: 20px;
-    color: #666;
+    color: var(--caro-grey-300);
     font-size: 14px;
   }
 
@@ -485,15 +523,15 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
 
   .leaderboard-title {
     font-size: 20px;
-    color: #ff8c42;
+    color: var(--highlight);
     margin-bottom: 15px;
-    text-shadow: 0 0 15px rgba(255, 140, 66, 0.8);
+    text-shadow: 0 0 15px color-mix(in srgb, var(--accent) 80%, transparent);
     letter-spacing: 2px;
   }
 
   .leaderboard-list {
-    background: rgba(0, 0, 0, 0.5);
-    border: 2px solid #ff8c42;
+    background: var(--caro-grey-900);
+    border: 2px solid var(--accent);
     border-radius: 8px;
     padding: 15px;
     max-height: 300px;
@@ -506,21 +544,21 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
     align-items: center;
     padding: 10px 15px;
     margin: 5px 0;
-    background: linear-gradient(90deg, rgba(255, 140, 66, 0.1) 0%, transparent 100%);
-    border-left: 3px solid #666;
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border-inline-start: 3px solid var(--caro-grey-500);
     border-radius: 4px;
     font-size: 14px;
-    color: #ddd;
+    color: var(--term-fg);
   }
 
   .leaderboard-entry.top-3 {
-    border-left-color: #ff8c42;
-    background: linear-gradient(90deg, rgba(255, 140, 66, 0.2) 0%, transparent 100%);
+    border-inline-start-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
   }
 
   .leaderboard-entry.current-score {
-    border-left-color: #2ecc71;
-    background: linear-gradient(90deg, rgba(46, 204, 113, 0.3) 0%, transparent 100%);
+    border-inline-start-color: var(--status-safe);
+    background: color-mix(in srgb, var(--status-safe) 25%, transparent);
     animation: pulse-glow 1.5s ease-in-out infinite;
   }
 
@@ -531,7 +569,7 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
 
   .leaderboard-rank {
     font-weight: bold;
-    color: #ff8c42;
+    color: var(--highlight);
     min-width: 35px;
     font-size: 16px;
   }
@@ -542,18 +580,18 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
 
   .leaderboard-score {
     font-weight: bold;
-    color: #fff;
+    color: var(--caro-white);
     font-size: 16px;
   }
 
   .leaderboard-details {
-    color: #888;
+    color: var(--caro-grey-300);
     font-size: 12px;
-    margin-left: 10px;
+    margin-inline-start: 10px;
   }
 
   .medal {
-    margin-right: 8px;
+    margin-inline-end: 8px;
   }
 
   .footer-bar {
@@ -567,10 +605,12 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
   .lives {
     display: flex;
     gap: 8px;
-    font-size: 24px;
+    font-size: 22px;
   }
 
+  /* ♥ is a text glyph: it takes this colour, and the .lost filter greys it. */
   .lives .heart {
+    color: var(--accent);
     transition: all 0.3s;
   }
 
@@ -583,7 +623,7 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
   .streak {
     font-family: 'Courier New', monospace;
     font-size: 16px;
-    color: #f1c40f;
+    color: var(--highlight);
   }
 
   @media (max-width: 600px) {
@@ -715,7 +755,7 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
       const medals = ['🥇', '🥈', '🥉'];
 
       if (topScores.length === 0) {
-        leaderboardListEl.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No scores yet. Be the first!</div>';
+        leaderboardListEl.innerHTML = '<div style="text-align: center; color: var(--caro-grey-300); padding: 20px;">No scores yet. Be the first!</div>';
         return;
       }
 
@@ -810,11 +850,20 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
     function updateLives() {
       const hearts = livesEl!.querySelectorAll('.heart');
       hearts.forEach((h, i) => h.classList.toggle('lost', i >= lives));
-      livesDisplayEl!.textContent = '❤️ '.repeat(lives).trim() || '💔';
+      // The hearts are aria-hidden glyphs; the count is the accessible name.
+      livesEl!.setAttribute('aria-label', `${livesEl!.dataset.label}: ${lives}`);
+      livesDisplayEl!.textContent = '♥ '.repeat(lives).trim() || '0';
+    }
+
+    // Disabling or removing a focused option drops focus to <body> in
+    // Chromium and Firefox, so move it to the game area first.
+    function parkFocus() {
+      if (optionsGrid!.contains(document.activeElement)) gameArea!.focus({ preventScroll: true });
     }
 
     function showQuestion() {
       currentOptions = generateOptions();
+      parkFocus();
       optionsGrid!.innerHTML = '';
 
       const labels = ['A', 'B', 'C', 'D'];
@@ -865,6 +914,7 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
       const buttons = optionsGrid!.querySelectorAll('.option-btn');
 
       // Disable all buttons
+      parkFocus();
       buttons.forEach(b => (b as HTMLButtonElement).disabled = true);
 
       // Reveal all answers
@@ -923,6 +973,7 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
       if (!playing) return;
 
       const buttons = optionsGrid!.querySelectorAll('.option-btn');
+      parkFocus();
       buttons.forEach(b => (b as HTMLButtonElement).disabled = true);
 
       // Reveal answers
@@ -968,6 +1019,8 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
 
       overlay!.classList.add('hidden');
       showQuestion();
+      // The Start button just disappeared; keep keyboard focus in the game.
+      gameArea!.focus({ preventScroll: true });
     }
 
     function endGame() {
@@ -1004,17 +1057,17 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
       leaderboardEl!.classList.remove('hidden');
 
       overlay!.classList.remove('hidden');
+      if (gameSection!.contains(document.activeElement)) {
+        startBtn!.focus({ preventScroll: true });
+      }
     }
 
-    // Keyboard support
-    document.addEventListener('keydown', (e) => {
-      if (!playing) {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          startGame();
-        }
-        return;
-      }
+    // Keyboard support. Shortcuts listen on the game section only, and only
+    // while a round is running: a document-level handler used to swallow
+    // Enter/Space on every link of the page (WCAG 2.1.1, 2.1.4). The Start
+    // button handles Enter/Space natively.
+    gameSection.addEventListener('keydown', (e) => {
+      if (!playing) return;
 
       const key = e.key.toLowerCase();
       const index = { 'a': 0, 'b': 1, 'c': 2, 'd': 3, '1': 0, '2': 1, '3': 2, '4': 3 }[key];

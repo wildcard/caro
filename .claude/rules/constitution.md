@@ -40,7 +40,8 @@ These rules govern how code is written, reviewed, and released.
 7. **[feature-evidence.md](./feature-evidence.md)** — Every feature PR
    carries evidence (green CI run link), a runnable demo, and a named
    regression-guard test; the Monday planning routine compiles merged
-   demos into `docs/demos/<date>-weekly-demo.md`.
+   demos into a weekly demo report on the `automation/routine-status`
+   branch.
 
 ## Tier 3 — Workflow hygiene
 
@@ -57,6 +58,14 @@ yield to anything in Tier 1 or Tier 2.
 11. **[astro-esbuild-shell-syntax.md](./astro-esbuild-shell-syntax.md)** —
    Escape `{` in shell snippets inside `.astro` / `.jsx` / `.tsx` templates
    (esbuild treats it as a JSX expression boundary).
+12. **[design-dialogue-protocol.md](./design-dialogue-protocol.md)** — Brand
+   work with Claude Design: screenshots only via sub-agent, ask don't
+   instruct, user-gated sends, revert call sites not assets, visual audit
+   before merging brand-touching PRs.
+13. **[harness-changes.md](./harness-changes.md)** — Editing the harness itself
+   (`CLAUDE.md`, `.claude/`): search before adding, least privilege, no
+   unwired promises, retire with evidence. Path-scoped: loads only when harness
+   files are touched.
 
 ---
 

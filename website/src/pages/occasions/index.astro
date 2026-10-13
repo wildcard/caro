@@ -1,0 +1,295 @@
+---
+/**
+ * /occasions — review gallery for every occasion look (noindex).
+ *
+ * One card per occasion: when it runs, the CTA as it will render, the
+ * measured WCAG contrast of every occasion color, the hero art, and links
+ * that preview the homepage wearing that occasion in light or dark mode.
+ * The numbers are computed from the same code that generates the site CSS,
+ * so this page cannot drift from production.
+ */
+import Layout from '../../layouts/Layout.astro';
+import Navigation from '../../components/Navigation.astro';
+import Footer from '../../components/Footer.astro';
+import { OCCASIONS, type Occasion } from '../../config/occasions';
+import { HOLIDAYS } from '../../config/holidays';
+import { HUMANITY_EVENTS } from '../../data/humanity-events';
+import { formatEventDates } from '../../utils/humanity-events';
+import { resolveDateRange } from '../../lib/date-utils';
+import { contrast } from '../../lib/color';
+import {
+  DARK_PAGE,
+  PAPER,
+  WHITE,
+  artUrl,
+  occasionPalette,
+  ribbonBackground,
+} from '../../lib/occasion-css';
+
+const year = new Date().getFullYear();
+const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+// One occasion can have several sources (Eid al-Fitr and Eid al-Adha), so
+// list every holiday range, not only the first.
+function when(o: Occasion): string {
+  const ranges: string[] = [];
+  for (const src of o.sources) {
+    const h = HOLIDAYS.find((x) => x.id === src);
+    if (h) {
+      const r = resolveDateRange(h.dateRange, year) ?? resolveDateRange(h.dateRange, year + 1);
+      if (!r) continue;
+      const span = fmt(r.start) === fmt(r.end) ? fmt(r.start) : `${fmt(r.start)} – ${fmt(r.end)}`;
+      ranges.push(`${span} ${r.start.getFullYear()}`);
+      continue;
+    }
+    const e = HUMANITY_EVENTS.find((x) => x.id === src);
+    if (e) return `${formatEventDates(e, year)} · ${e.hasFullTheme ? 'banner + theme' : 'banner'}`;
+  }
+  return ranges.length ? `${ranges.join(' and ')} · opt-in` : '';
+}
+
+const groups: Array<[string, string, Occasion['kind']]> = [
+  ['Holidays', 'Opt-in. Visitors choose them from the navigation while the holiday is in season.', 'holiday'],
+  ['National days', 'Opt-in, and only offered to visitors in that country.', 'national'],
+  ['Humanity events', 'Automatic banner on the day or month. Six monthly events also theme the site.', 'humanity'],
+];
+
+const cards = OCCASIONS.map((o) => {
+  const p = occasionPalette(o);
+  return {
+    o,
+    p,
+    when: when(o),
+    ratios: {
+      fill: contrast(WHITE, p.fill),
+      ink: contrast(p.ink, PAPER),
+      inkDark: contrast(p.inkDark, DARK_PAGE),
+    },
+  };
+});
+const r = (n: number) => `${n.toFixed(2)}:1`;
+---
+
+<Layout
+  title="Occasion themes - Caro"
+  description="Every holiday, national day and humanity event look on caro.sh, with measured WCAG contrast and live previews."
+  noindex
+>
+  <Navigation />
+  <main id="main-content" class="occasions-page">
+    <header class="page-head">
+      <p class="eyebrow">Design system</p>
+      <h1>Occasion themes</h1>
+      <p class="lede">
+        Caro dresses up for {OCCASIONS.length} occasions. An occasion changes four things: the
+        CTA fill, a 4px ribbon above the page, the hero art and the event banner. Links, copy
+        and the brand mark stay Caro. Every fill must give white text at least 4.5:1; the build
+        fails if one does not.
+      </p>
+      <p class="lede">
+        Preview any page by adding <code>?occasion=&lt;id&gt;</code> (and optionally
+        <code>&amp;theme=dark</code>) to its URL. Nothing is saved.
+      </p>
+    </header>
+
+    {groups.map(([title, blurb, kind]) => (
+      <section class="group" aria-labelledby={`g-${kind}`}>
+        <h2 id={`g-${kind}`}>{title}</h2>
+        <p class="group-blurb">{blurb}</p>
+        <ul class="grid" role="list">
+          {cards.filter((c) => c.o.kind === kind).map(({ o, p, when, ratios }) => (
+            <li class="card">
+              <div class="card-art" style={`background-image:url(${artUrl(o.id, 'band')})`} aria-hidden="true"></div>
+              <div class="ribbon" style={`background:${ribbonBackground(o.ribbon)}`} aria-hidden="true"></div>
+              <div class="card-body">
+                <h3>{o.name}</h3>
+                <p class="when">{when}</p>
+                <p class="id"><code>{o.id}</code></p>
+                <span class="sample-cta" style={`background:${p.fill}`}>Get Started</span>
+                <dl class="ratios">
+                  <div><dt>White on fill</dt><dd>{r(ratios.fill)} <span class="pass">AA</span></dd></div>
+                  <div><dt>Ink on paper</dt><dd><span class="swatch" style={`background:${p.ink}`}></span>{r(ratios.ink)}</dd></div>
+                  <div><dt>Ink on dark</dt><dd><span class="swatch" style={`background:${p.inkDark}`}></span>{r(ratios.inkDark)}</dd></div>
+                </dl>
+                <p class="previews">
+                  Preview home:
+                  <a href={`/?occasion=${o.id}&theme=light`}>light<span class="visually-hidden"> mode, {o.name}</span></a>
+                  <a href={`/?occasion=${o.id}&theme=dark`}>dark<span class="visually-hidden"> mode, {o.name}</span></a>
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .occasions-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+
+  .page-head {
+    max-width: 760px;
+    margin-bottom: 40px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: var(--track-wider);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: clamp(32px, 5vw, 44px);
+    color: var(--fg-strong);
+    margin-bottom: 16px;
+  }
+
+  .lede {
+    font-size: 17px;
+    color: var(--fg);
+    margin-bottom: 12px;
+  }
+
+  .group {
+    padding: 0;
+    margin-top: 40px;
+  }
+
+  .group h2 {
+    text-align: start;
+    font-size: 26px;
+    margin-bottom: 4px;
+    color: var(--fg-strong);
+  }
+
+  .group-blurb {
+    color: var(--fg-muted);
+    margin-bottom: 20px;
+  }
+
+  .grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .card-art {
+    height: 72px;
+    background-color: var(--bg-subtle);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: auto 100%;
+  }
+
+  .ribbon {
+    height: 4px;
+  }
+
+  .card-body {
+    padding: 16px;
+  }
+
+  h3 {
+    font-size: 17px;
+    color: var(--fg-strong);
+    margin-bottom: 4px;
+  }
+
+  .when,
+  .id {
+    font-size: 14px;
+    color: var(--fg-muted);
+    margin-bottom: 4px;
+  }
+
+  .sample-cta {
+    display: inline-block;
+    margin: 10px 0 12px;
+    padding: 10px 18px;
+    border-radius: var(--radius-md);
+    color: var(--caro-white);
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .ratios {
+    margin: 0 0 12px;
+    font-size: 14px;
+  }
+
+  .ratios div {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .ratios dt {
+    color: var(--fg-muted);
+  }
+
+  .ratios dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    color: var(--fg);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+  }
+
+  .pass {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--status-safe-text);
+  }
+
+  .previews {
+    font-size: 14px;
+    color: var(--fg);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .previews a {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-weight: 600;
+  }
+
+  code {
+    font-size: 0.92em;
+  }
+</style>
