@@ -5,8 +5,8 @@
 //!   cargo test --test backend_features_contract
 //!   cargo test --test backend_features_contract --features remote-backends
 //!
-//! The release workflow builds a second, opt-in `-remote` binary with
-//! `--features remote-backends`. The default build stays minimal. These tests
+//! The manual `release-remote` workflow builds a second, opt-in `-remote`
+//! binary with `--features remote-backends`. The default build stays minimal. These tests
 //! pin both contracts. They make no network calls: no API key is set, so the
 //! hosted backends fail on configuration before any request.
 //!

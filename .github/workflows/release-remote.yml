@@ -1,0 +1,251 @@
+name: Release Remote (optional)
+
+# Opt-in build of the `-remote` binaries (#1081): the same source as a release
+# tag, built with `--features remote-backends` and named
+# `caro-<version>-<platform>-remote` (`-remote.exe` on Windows) with a
+# `.sha256` file. The default binary, the crates.io package and
+# `[features] default` are unchanged.
+#
+# Isolation from the stable release:
+# - Manual only (`workflow_dispatch`). No schedule, no `workflow_run`, no tag
+#   or pull-request trigger.
+# - A separate workflow. `release.yml`, `update-homebrew.yml` and
+#   `packages.yml` neither wait for it nor read its result, so a failure,
+#   timeout or cancellation here cannot hold back the stable release.
+# - Build-validation by default: with `publish` false, the run builds,
+#   smoke-tests and checksums every platform and keeps the files as workflow
+#   artifacts (7 days). It writes nothing to any release.
+# - Least privilege: the workflow has `contents: read`. Only the `publish` job
+#   has `contents: write`, and it is skipped unless `publish` is true.
+#
+# Publishing (`publish: true`) needs an existing published release for the tag.
+# It never creates, edits or deletes a release, never overwrites an asset, and
+# stops if any `-remote` asset is already on the release.
+#
+# All logic is in scripts/release-remote.sh. tests/release_remote_contract.rs
+# runs these step blocks against fixtures on Linux and macOS CI. What no CI
+# check covers is listed in CHANGELOG.md [Unreleased].
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag to build from (e.g., v1.5.0)'
+        required: true
+        type: string
+      publish:
+        description: 'Upload the verified -remote assets to the existing release for this tag'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-remote-${{ inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  resolve:
+    name: Resolve tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      version: ${{ steps.resolve.outputs.version }}
+      commit: ${{ steps.resolve.outputs.commit }}
+    steps:
+      # Tooling comes from the dispatched ref; the source to build comes from
+      # the tag, resolved once here to a commit.
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Resolve tag to commit
+        id: resolve
+        shell: bash
+        env:
+          TAG: ${{ inputs.tag }}
+        run: scripts/release-remote.sh resolve "$TAG" . >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build (${{ matrix.platform }})
+    needs: resolve
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            platform: linux-amd64
+            bin: caro
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            platform: linux-arm64
+            bin: caro
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            platform: macos-intel
+            bin: caro
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            platform: macos-silicon
+            bin: caro
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            platform: windows-amd64
+            bin: caro.exe
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Checkout release source at the resolved commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.resolve.outputs.commit }}
+          path: source
+
+      - name: Verify source is the resolved commit
+        id: check_source
+        shell: bash
+        env:
+          COMMIT: ${{ needs.resolve.outputs.commit }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: scripts/release-remote.sh check-source "$COMMIT" "$VERSION" source
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          targets: ${{ matrix.target }}
+          cache-key-suffix: release-remote-${{ matrix.target }}
+
+      - name: Install cross (for cross-compilation)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: cargo install cross
+
+      - name: Build remote-backends release binary
+        shell: bash
+        working-directory: source
+        env:
+          TARGET: ${{ matrix.target }}
+          CARO_RELEASE: 1
+        run: |
+          if [ "$TARGET" = "aarch64-unknown-linux-gnu" ]; then
+            cross build --release --features remote-backends --target "$TARGET"
+          else
+            cargo build --release --features remote-backends --target "$TARGET"
+          fi
+
+      - name: Prepare asset, checksum and manifest
+        id: prepare
+        shell: bash
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+          COMMIT: ${{ needs.resolve.outputs.commit }}
+          PLATFORM: ${{ matrix.platform }}
+          TARGET: ${{ matrix.target }}
+          BIN: ${{ matrix.bin }}
+        run: scripts/release-remote.sh prepare "$VERSION" "$PLATFORM" "source/target/${TARGET}/release/${BIN}" dist "$TAG" "$COMMIT"
+
+      # Runs before anything can be uploaded. The cross-built linux-arm64 binary
+      # cannot run here and gets a static string check instead.
+      - name: Smoke-test the asset
+        id: smoke
+        shell: bash
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+          PLATFORM: ${{ matrix.platform }}
+          TARGET: ${{ matrix.target }}
+        run: scripts/release-remote.sh smoke "dist/$(scripts/release-remote.sh name "$VERSION" "$PLATFORM")" "$TARGET"
+
+      - name: Verify binary and checksum pair
+        id: verify
+        shell: bash
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+          PLATFORM: ${{ matrix.platform }}
+        run: scripts/release-remote.sh verify dist "$VERSION" "$PLATFORM"
+
+      - name: Keep the verified files as a workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-remote-${{ matrix.platform }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish (off by default)
+    needs: [resolve, build]
+    if: ${{ inputs.publish == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Confirm the tag still points at the built commit
+        id: recheck
+        shell: bash
+        env:
+          TAG: ${{ needs.resolve.outputs.tag }}
+          COMMIT: ${{ needs.resolve.outputs.commit }}
+        run: scripts/release-remote.sh recheck "$TAG" "$COMMIT" .
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: release-remote-*
+          merge-multiple: true
+          path: dist
+
+      - name: Verify all five pairs and their identity
+        id: verify_all
+        shell: bash
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+          COMMIT: ${{ needs.resolve.outputs.commit }}
+        run: |
+          scripts/release-remote.sh verify dist "$VERSION"
+          scripts/release-remote.sh identity dist "$TAG" "$COMMIT" "$VERSION"
+
+      - name: Require a published release with no -remote assets yet
+        id: before
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: scripts/release-remote.sh release-assets "$TAG" | scripts/release-remote.sh release-state "$VERSION" --expect absent
+
+      - name: Upload (no overwrite)
+        id: upload
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: scripts/release-remote.sh upload dist "$TAG" "$VERSION"
+
+      - name: Confirm every pair is on the release
+        id: after
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: scripts/release-remote.sh release-assets "$TAG" | scripts/release-remote.sh release-state "$VERSION" --expect complete

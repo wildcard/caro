@@ -9,27 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Opt-in `-remote` release binaries** (#1081). For each platform whose
-  `-remote` build passes its check, a release also gets a second binary,
-  built with `--features remote-backends` and named
-  `caro-<version>-<platform>-remote` (`-remote.exe` on Windows), with a
-  `.sha256` file. The check runs the binary, except linux-arm64, which is
-  cross-built and gets a static check only. The binary is built to be able to
-  select Ollama, vLLM, Exo, Mesh-LLM, AI-Horde, the hybrid gateway, Claude,
-  OpenRouter and Grok; the checks confirm none is reported `not compiled` (on
-  linux-arm64, that the binary carries the remote code path), not that a
-  provider is reachable. The default binary, the crates.io package and
-  `[features] default` are unchanged: they still report those backends as
-  `not compiled` and fail with a remedy. The `-remote` steps run after the
-  default upload with `continue-on-error`, so a failure there cannot stop the
-  default assets from being uploaded. A platform whose `-remote` build, check
-  or upload fails gets no `-remote` asset and a warning in the run summary; an
-  interrupted upload can leave a binary without its `.sha256`. A cancelled run,
-  a job timeout or a runner failure during the extra build still ends the
-  Release run without success, which holds back the Homebrew and package
-  workflows.
-  `tests/backend_features_contract.rs` runs in the Linux and macOS unit-tests
-  CI jobs under both feature sets.
+- **Opt-in `-remote` binaries from a separate, manual workflow** (#1081).
+  `.github/workflows/release-remote.yml` builds an existing release tag with
+  `--features remote-backends` for the five release platforms and names the
+  binaries `caro-<version>-<platform>-remote` (`-remote.exe` on Windows), each
+  with a `.sha256` file. It runs only when started by hand. By default it builds,
+  smoke-tests and checksums, and keeps the files as workflow artifacts; it
+  writes nothing to any release. Setting `publish` uploads the verified files to
+  the existing release for that tag. It never overwrites an asset, never
+  creates or deletes a release, and stops if the tag moved since the build, a
+  checksum does not match, a binary and its `.sha256` do not come as a pair, or
+  any `-remote` asset is already on the release. The stable Release workflow,
+  the Homebrew workflow and the package workflow are unchanged and do not wait
+  for it. The default binary, the crates.io package and `[features] default`
+  are unchanged: they still report those backends as `not compiled` and fail
+  with a remedy. The smoke test runs the binary, except linux-arm64, which is
+  cross-built and gets a static string check. Both confirm the build compiles
+  Ollama, vLLM, Exo, Mesh-LLM, AI-Horde, the hybrid gateway, Claude,
+  OpenRouter and Grok in, not that a provider is reachable.
+  `tests/release_remote_contract.rs` runs the workflow's step blocks against
+  fixtures and a stub `gh`, offline, on Linux and macOS CI. No PR check builds
+  the `-remote` binaries on macOS, Windows or linux-arm64, or runs the Windows
+  path. `tests/backend_features_contract.rs` checks both feature sets on Linux
+  and macOS.
 - **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
   carry a `gold_tier`, `uncertain`, `rationale`, `labeller` and `labelled_at`.
   Labelled by an agent session on the owner's decision, blind to the static

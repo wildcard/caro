@@ -162,6 +162,16 @@ jobs:
       env:
         RUST_BACKTRACE: 1
 
+    # #1081: offline contract for the manual release-remote workflow. It runs
+    # that workflow's actual step blocks against fixtures and a stub `gh`: no
+    # build, no network, no upload. Unix-only, so Linux and macOS run it; the
+    # Windows path of the workflow is not exercised by any PR check.
+    - name: Run release-remote workflow contract (fixtures, offline)
+      if: runner.os != 'Windows' && !cancelled()
+      run: cargo test --test release_remote_contract --verbose
+      env:
+        RUST_BACKTRACE: 1
+
   # ============================================================================
   # Tier A: Knowledge Integration Tests (LanceDB backend)
   # ============================================================================
