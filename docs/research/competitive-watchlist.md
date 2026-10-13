@@ -1,7 +1,7 @@
 # Competitive Watchlist
 
 **Purpose**: the list of products we compare Caro against, or watch.
-**Owner**: maintainers. Anyone may add a row.
+**Owner**: `@wildcard` approves (`.github/STAKEHOLDERS.yml`: `docs/**`, `website/**`). Anyone may add a row.
 **Last full refresh**: 2026-10-11
 ([research note](./2026-10-11-competitive-landscape-refresh.md),
 [raw notes and sources](./2026-10-11-competitive-refresh/))
@@ -14,21 +14,32 @@ as good as the date we last checked it. This file keeps that date.
 Add a row to **Suggested** with the name, a link, and one line on why it
 matters. The next refresh checks it and moves it to a group below.
 
-## How to refresh
+## How to refresh (proposal; nothing is scheduled)
 
-1. **Monthly: re-check every product that has a `/compare` page.**
-   - Check each cell on its page, the `/compare` matrix
-     (`website/src/pages/compare/index.astro`) and the landing matrix
-     (`website/src/components/Comparison.astro`).
-   - Use primary sources only: vendor docs, license files, changelogs.
-   - Update the `verification` date and sources on each page, and
-     `lastVerified` in `website/src/data/compare-pages.ts`.
-   - Record what changed in a dated note in `docs/research/`.
-2. **Quarterly: run a discovery sweep.** Use the five topics in
-   [`2026-10-11-competitive-refresh/`](./2026-10-11-competitive-refresh/README.md)
-   as the template. The README lists the question each topic answers.
-3. **When a row changes status** (new entrant, open-sourced, retired),
-   update this file in the same PR as the website fix.
+This uses routines that already exist. It adds no new routine or storage.
+Wiring any step into an agent's instructions is an owner decision
+(see `docs/strategy/cross-harness-auto-mode.md`, decisions).
+
+| Step | Existing owner | What it does here |
+|---|---|---|
+| Spot changes | Hermes weekly competitive intelligence (`.hermes/AGENT.md` §2) | Reads the changelogs of each product with a `/compare` page. A changed fact becomes an issue labeled `area:website`. |
+| Harness hook evidence | caro-integrator nightly (`.claude/memory/integrator-playbook.md`) | Records hook behavior per harness and version (e.g. #1623 for Copilot CLI). |
+| Fix the copy | `caro-coder-loop`, routed by `.github/STAKEHOLDERS.yml` (`website/**`: technical-writer, dx-product-manager; human: `@wildcard`) | Updates the page, the `verification` block and `lastVerified` in `website/src/data/compare-pages.ts`. |
+| Check the result | QA loops (`qa_automation_loop`, `frustrated_qa_loop` in `.claude/automation/config/schedule.yaml`) | Re-reads the rendered claims. State goes through `bin/routine-status` on `automation/routine-status` (#1603; coordinate with #1536). |
+| Discovery sweep | Hermes, quarterly in its weekly slot | Uses the five topics in [`2026-10-11-competitive-refresh/`](./2026-10-11-competitive-refresh/README.md) as the template. |
+
+Rules for every refresh:
+
+- Check each changed cell on its page, the `/compare` matrix
+  (`website/src/pages/compare/index.astro`) and the landing matrix
+  (`website/src/components/Comparison.astro`).
+- Use primary sources: vendor docs, license files, changelogs. Date them.
+- When the only evidence is a vendor's silence, mark the cell `unknown`
+  ("Not documented"). Never turn a missing source into "no".
+- When a row changes status (new entrant, open-sourced, retired), update
+  this file in the same PR as the website fix.
+- Do not execute, benchmark or import a tool whose license restricts this
+  project (for example dcg's rider) without a human license decision.
 
 Write sourced claims only. Do not cite a third-party summary when the
 vendor's own docs say something else.
@@ -52,8 +63,8 @@ vendor's own docs say something else.
 
 | Rank | Product | Category | Why | Where it beats Caro |
 |---|---|---|---|---|
-| 1 | Atuin (Atuin AI) | NL→shell in shell history | Same job (`?` key), 32k stars | Already installed by many; frontier models with no setup |
-| 2 | Claude Code (auto mode) | Agentic CLI + LLM auto-approval | Largest agent audience; auto mode is a direct "is this safe?" product | Judges intent and context |
+| 1 | Atuin (Atuin AI) | NL→shell in shell history | Same job (`?` key), 32k stars; self-hosting supports local inference | Already installed by many; Hub models with no setup, or local when self-hosted |
+| 2 | Claude Code (auto mode) | Agentic CLI + LLM auto-approval | Second-largest measured agent audience (Codex CLI is first); auto mode is a direct "is this safe?" product | Judges intent and context; built-in critical-path protections |
 | 3 | Codex CLI (Auto-review) | Agentic CLI, Apache-2.0 | Open, local models (`--oss`), sandbox on by default | Sandbox contains what patterns miss |
 | 4 | iTerm2 | Terminal with AI | AI composer + opt-in safety check | AI lives in the terminal itself |
 | 5 | Shell-GPT | NL→shell CLI (MIT) | Best-known NL→shell CLI; no danger detection | Broader: chat, REPL, roles |
@@ -63,8 +74,8 @@ vendor's own docs say something else.
 
 | Product | License | Harnesses | Last checked | Notes |
 |---|---|---|---|---|
-| dcg (Destructive Command Guard) | "MIT with OpenAI/Anthropic rider" (not OSI) | 17+ | 2026-10-11 | Rust, 50+ rule packs, ~6.1k stars |
-| cc-safety-net | MIT | 14+ | 2026-10-11 | Parses wrappers; presets; ~1.6k stars |
+| dcg (Destructive Command Guard) | Source-available: MIT text + rider excluding OpenAI, Anthropic and parties acting for them; "use" includes benchmarking, testing, analyzing | 17+ | 2026-10-13 (license) | Rust, 50+ rule packs, ~6.1k stars. Docs-only comparison; no execution or reuse |
+| cc-safety-net | MIT | 16 | 2026-10-13 | Parsed commands, secret protection, cloud/IaC rulebooks; known limitations: incomplete event coverage, fail-open hosts |
 | Sage (Gen Digital) + AARTS draft | Apache-2.0 code, DRL 1.1 rules | 5 | 2026-10-11 | 300+ YAML rules; proposes an engine/host standard |
 | HOL Guard | Apache-2.0 | 16 | 2026-10-11 | Covers MCP, packages, secrets |
 | Numbat (Perplexity) | Apache-2.0 | many (unverified) | 2026-10-11 | Sequence rules; monitor-only by default |
@@ -74,12 +85,12 @@ vendor's own docs say something else.
 
 | Product | Mechanism | Last checked |
 |---|---|---|
-| Claude Code auto mode | Rules + LLM classifier, Claude models only | 2026-10-11 |
-| Codex Auto-review ("guardian") | Sandbox + reviewer agent; policy open source | 2026-10-11 |
+| Claude Code auto mode | Rules + built-in critical-path protections + LLM classifier, Claude models only; on by default from v2.1.283 | 2026-10-13 |
+| Codex Auto-review ("guardian") | Sandbox + reviewer agent, opt-in; policy open source; custom-provider bug has workarounds (openai/codex#31255) | 2026-10-13 |
 | Cursor Auto-review | Allowlist + sandbox + LLM classifier | 2026-10-11 |
 | VS Code Assisted permissions | LLM judge (experimental) | 2026-10-11 |
 | Grok Build Auto, Qwen Code auto | LLM classifier | 2026-10-11 |
-| Factory Droid autonomy levels | Model-assigned risk vs level | 2026-10-11 |
+| Factory Droid autonomy levels | Risk level compared with autonomy level (assigner unverified) | 2026-10-11 |
 
 ## Sandboxes (partners: the second layer under Caro)
 

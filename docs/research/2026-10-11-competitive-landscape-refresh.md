@@ -1,11 +1,11 @@
 # Competitive Landscape Refresh
 
-**Date**: 2026-10-11
+**Date**: 2026-10-11 (corrected 2026-10-13 after the PR #1583 review)
 **Status**: Research. Website fixes landed in the same PR. Positioning
 proposals are in
 [`docs/strategy/cross-harness-auto-mode.md`](../strategy/cross-harness-auto-mode.md).
 **Raw notes and sources**: [`2026-10-11-competitive-refresh/`](./2026-10-11-competitive-refresh/)
-(one file per topic, every claim with a URL and a date)
+(one file per topic; most claims carry a URL and a date; each file opens with dated corrections)
 **Living list**: [`competitive-watchlist.md`](./competitive-watchlist.md)
 
 Our comparison pages were written in 2025 and early 2026. The field moved
@@ -41,7 +41,7 @@ Confidence labels in the raw notes:
 | 5 | Copilot CLI cannot work offline | Since **2026-04-07**, Copilot CLI supports BYOK and local models (Ollama, vLLM, Foundry Local). `COPILOT_OFFLINE=true` stops all calls to GitHub. | [changelog](https://github.blog/changelog/2026-04-07-copilot-cli-now-supports-byok-and-local-models/) |
 | 6 | Copilot CLI is "partially" open source | The license is proprietary ("GitHub Copilot CLI License"). The repo holds no source code. | [LICENSE.md](https://github.com/github/copilot-cli/blob/main/LICENSE.md) |
 | 7 | Copilot CLI costs $10–19/month | Copilot Free includes the CLI. Paid plans: Pro $10, Pro+ $39, Max $100, Business $19/seat, Enterprise $39/seat. Billing has been in AI Credits since 2026-06-01. | [plans](https://docs.github.com/en/copilot/get-started/plans) |
-| 8 | Copilot CLI has no safety layer | Copilot CLI has deterministic `--deny-tool` rules, hooks, and a local OS sandbox (GA **2026-10-07**, off by default). It ships no curated list of dangerous commands. | [allowing tools](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/allowing-tools), [sandbox GA](https://github.blog/changelog/2026-10-07-local-sandboxing-for-gitHub-copilot-now-generally-available) |
+| 8 | Copilot CLI has no safety layer | Copilot CLI has deterministic `--deny-tool` rules, hooks, and a local OS sandbox (GA **2026-10-07**; the announcement does not state the default). Its docs describe no curated list of dangerous commands. | [allowing tools](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/allowing-tools), [sandbox GA](https://github.blog/changelog/2026-10-07-local-sandboxing-for-gitHub-copilot-now-generally-available) |
 | 9 | "Customizable safety rules" is Caro-only | All four competitors now let users write allow/deny rules. | raw notes |
 | 10 | OpenCode asks before commands ("partial") | OpenCode "allows all operations without requiring explicit approval" by default. | [config docs](https://opencode.ai/docs/config/) |
 | 11 | shell-gpt is "partially" open source | shell-gpt is MIT. | [repo](https://github.com/TheR1D/shell_gpt) |
@@ -49,34 +49,36 @@ Confidence labels in the raw notes:
 **Not changed:**
 
 - Kiro CLI is still closed source and runs only on Amazon Bedrock.
-- Warp AI still routes through Warp's servers, even with BYOK.
-- Warp rejects localhost endpoints.
+- Warp rejects localhost and private custom endpoints.
+- Where Warp AI traffic flows is **not settled**. The custom-endpoint docs say
+  prompts, context, the endpoint and the key transit Warp in the personal
+  custom-endpoint flow. Warp's pricing page and FAQ wording differs by
+  snapshot, and Enterprise BYOLLM has exceptions. We publish no general
+  routing claim until a dated exact-source packet settles it.
 
 ### New facts that change the strategy
 
-- **Every frontier harness now ships an LLM auto-approval judge.** Some vendors made theirs the default:
-  - Claude Code auto mode is the starting mode from v2.1.283.
-  - Codex has Auto-review ("guardian").
-  - Cursor Auto-review is the default since 3.6.
-  - VS Code has Assisted permissions.
-  - Grok Build and Qwen Code each have an Auto mode.
+- **Many harnesses now offer an LLM auto-approval judge; two turn it on by default.**
+  - On by default: Claude Code auto mode (starting mode from v2.1.283) and Cursor Auto-review (since 3.6).
+  - Opt-in: Codex Auto-review ("guardian", `approvals_reviewer = "auto_review"`), VS Code Assisted permissions (experimental; Manual is the default), and the Auto modes of Grok Build and Qwen Code (Ask is the default).
+  - Claude Code also has built-in protections for critical-path removal, and a mod surface (`tool.check`) that can approve before the classifier. Hooks and mods have different authority.
   - Details: [`auto-modes.md`](./2026-10-11-competitive-refresh/auto-modes.md).
-- **Each vendor's judge works only with that vendor's models or backend.**
-  - Claude Code auto mode needs a supported Claude model.
-  - Codex Auto-review fails on custom providers, because the `codex-auto-review` model name is hardcoded.
-  - Cursor's classifier runs on Cursor's backend.
-- **Two free cross-harness command guards already exist:**
-  - [dcg](https://github.com/Dicklesworthstone/destructive_command_guard): Rust, about 6.1k stars, 17+ harnesses.
-  - [cc-safety-net](https://github.com/kenryu42/cc-safety-net): MIT, about 1.6k stars, 14+ harnesses.
+- **Some judges are tied to their vendor; not all.**
+  - Claude Code auto mode needs a supported Claude model. Cursor's classifier runs on Cursor's backend.
+  - Codex Auto-review failed on custom providers because of a hardcoded model name. That is an operational bug with catalog and gateway workarounds ([openai/codex#31255](https://github.com/openai/codex/issues/31255)), not lock-in.
+  - goose Smart Approve uses the user's own provider.
+- **Two cross-harness command guards already exist:**
+  - [dcg](https://github.com/Dicklesworthstone/destructive_command_guard): Rust, about 6.1k stars, 17+ harnesses. **Source-available**: MIT text plus a rider that grants no rights to OpenAI, Anthropic, their affiliates or anyone acting for them, and that counts benchmarking, testing and analyzing as use. We compare it from public docs only, and do not execute, benchmark or import it.
+  - [cc-safety-net](https://github.com/kenryu42/cc-safety-net): MIT, about 1.6k stars, 16 harnesses (README, 2026-10-13), parsed-command handling, secret protection, cloud/IaC rulebooks. Its [known limitations](https://ccsafetynet.com/docs/guides/known-limitations) name incomplete event coverage and fail-open hosts.
   - Details: [`guardrail-tools.md`](./2026-10-11-competitive-refresh/guardrail-tools.md).
 - **Hooks converge on the Claude Code `PreToolUse` shape, but no formal standard exists.**
   - Copilot CLI, VS Code, Cursor and Grok Build read `.claude/settings.json` hooks.
   - Gen Digital proposed a draft engine/host standard, [AARTS v0.1](https://github.com/gendigitalinc/aarts). It has no named adopters yet.
-- **Regex guards on raw text can be bypassed.** Adversa AI's "GuardFall" disclosure (2026-06-30) shows the bypass class. PR #1513 measured 6 such gaps in Caro's safety core (tracked in #1054).
-- **[Atuin AI](https://docs.atuin.sh/latest/ai/introduction/) (2026-03) does Caro's core job.**
+- **Regex guards on raw text can be bypassed.** Adversa AI's "GuardFall" disclosure (2026-06-30) shows the bypass class. #1513 measured 6 such gaps in Caro's safety core. Open PR #1614 closes those six; #1639 lists the bypasses that remain. The parser work is #1302 and #1054.
+- **[Atuin AI](https://docs.atuin.sh/18.17/ai/introduction/) (2026-03) does Caro's core job.**
   - The `?` key turns English into bash, and Atuin flags dangerous commands.
   - It reaches 32k GitHub stars.
-  - By default it uses cloud models through Atuin Hub. A self-hosted server with local models has existed since 2026-07.
+  - It uses Atuin Hub by default, and [self-hosting](https://docs.atuin.sh/latest/ai/self-hosting/) supports local inference. It is a direct competitor on both jobs.
 
 ---
 
@@ -88,16 +90,18 @@ Confidence labels in the raw notes:
 | **Gone** | "Customizable safety rules" | Every competitor has user-written rules. |
 | **Gone** | "Works in your terminal" vs Warp, as a blanket claim | It holds against the Warp app, not against the Warp Agent CLI. |
 | **Eroded** | "Works offline" | Copilot CLI (opt-in), OpenCode (after configuration), Codex (`--oss`) and Atuin (self-hosted server) all work offline now. Caro is still **offline by default**, with no provider setup. |
-| **Durable** | A curated pattern library with risk levels, which blocks critical commands, with no configuration | No competitor on our pages ships one. dcg and cc-safety-net do, outside our pages. |
-| **Durable** | Local by default: an embedded model and no account | The model downloads once on first use. After that Caro needs no network. |
-| **Durable** | The whole stack is open, inference included | Warp opens only its client. Copilot CLI and Kiro CLI are proprietary. |
-| **Durable** | A shell specialist: one command, platform-aware, GNU/BSD-aware | Every competitor on our pages is a full coding agent. |
-| **Durable** | A weekly CVE-derived rule pipeline | No competitor found has one. |
+| **Holds, unmeasured** | A curated pattern library with risk levels; at the default safety level it blocks Critical commands, with no configuration | No competitor on our pages documents one. dcg and cc-safety-net ship rule sets outside our pages, and Claude Code has built-in critical-path protections. Whether Caro detects **more at the same nuisance rate** is unmeasured (test 1 in the strategy note). |
+| **Holds, scoped** | Local by default: the default embedded backend with a cached model, and no account | The model downloads once on first use. Optional remote backends send prompts to the server the user picks. |
+| **Holds, scoped** | The whole stack is open: code AGPL-3.0, default model (Qwen2.5-Coder 1.5B) Apache-2.0 | Warp opens only its client. Copilot CLI and Kiro CLI are proprietary. Other catalog models carry their own licenses. |
+| **Holds** | A shell specialist: one command, platform-aware, GNU/BSD-aware | Every competitor on our pages is a full coding agent. Atuin AI is the exception off our pages. |
+| **Not found elsewhere** | A weekly CVE-derived rule pipeline | Not seen in this sweep. That is not proof that no one has one. |
 
-The safe wording for safety claims is now: **"Caro ships a curated, tested
-set of 52+ patterns with risk levels. They run offline before every
-command, with no configuration."** Do not say "only Caro validates
-deterministically".
+The safe wording for safety claims is now: **"Caro ships a curated set of
+52+ patterns with risk levels. They run before every command, offline, with
+no configuration."** Do not say "only Caro validates deterministically", and
+do not claim better detection until a matched-nuisance-rate measurement
+exists. Note #1597: the website claims suite never calls the validator, so
+its green CI result is not evidence for any safety claim.
 
 ---
 
@@ -109,17 +113,18 @@ don't replace your terminal (TTY)".
 Facts that bear on it:
 
 - The Warp **app** is a terminal emulator. It replaces your terminal.
-- The Warp **Agent CLI** runs in any terminal, but needs a Warp account and the cloud.
+- The Warp **Agent CLI** runs in any terminal. It authenticates separately (Warp login or `WARP_API_KEY`) and needs the network. The app itself works without an account.
 - Warp hosts 16 third-party agents (Claude Code, Codex, OpenCode and others). Its denylist covers only Warp's own agent.
 
 | Option | Message | Holds today? |
 |---|---|---|
 | A | "Keep your terminal" | Partly. True against the app, false against the Agent CLI. |
-| B | "Fully open, fully local": the whole stack, inference included, is open and runs on your machine. Warp opens its client; its agent harness runs on Warp's servers. | Yes, with sources. |
-| C | "Your guard, in every agent": Caro checks commands from any agent in any terminal. | Only after `caro guard` (#1513) merges. |
+| B | "Fully open, fully local", scoped: with the default embedded backend and a cached model, the code (AGPL-3.0) and default model (Apache-2.0) are open and run on your machine. Warp opens its client; its server, Drive backend, orchestration and agent harness are not in the repository. | Yes, if scoped this way. |
+| C | "Your guard, in every agent": Caro checks commands from any agent in any terminal. | Not yet. `caro guard` merged in #1513 (2026-10-11) as an experimental, shadow-default hook for 4 harnesses. Verification comes first: #1597, #1537, #1623. |
 
-**Recommendation:** lead with B, keep A as the supporting line, and add
-C when #1513 ships. The rewritten `/compare/warp` page follows B + A.
+**Recommendation:** lead with the scoped B, keep A as the supporting line,
+and hold C until the guard's shadow evidence exists (spec 011 pilot). The
+rewritten `/compare/warp` page follows scoped B + A.
 
 ---
 
@@ -127,14 +132,14 @@ C when #1513 ships. The rewritten `/compare/warp` page follows B + A.
 
 | Harness | How it auto-approves | Locked to vendor models? | Open source? | Hook an external validator can use |
 |---|---|---|---|---|
-| Claude Code | Rules, then an LLM classifier (default mode from v2.1.283) | Yes (Claude only) | No (`srt` sandbox is Apache-2.0) | `PreToolUse` (allow/deny/ask/defer) |
-| Codex | OS sandbox; escalations go to the Auto-review agent ("guardian") | In practice yes (it breaks on custom providers) | Yes (Apache-2.0, policy in `core/src/guardian/policy.md`) | `PreToolUse` (allow/deny only) |
+| Claude Code | Rules, built-in critical-path protections, then an LLM classifier (default mode from v2.1.283); a `tool.check` mod can approve before the classifier | Yes (Claude only) | No (`srt` sandbox is Apache-2.0) | `PreToolUse` (allow/deny/ask/defer); mods (different authority) |
+| Codex | OS sandbox; escalations go to the Auto-review agent ("guardian"), opt-in | No by design; a custom-provider bug has workarounds (openai/codex#31255) | Yes (Apache-2.0, policy in `core/src/guardian/policy.md`) | `PreToolUse` (allow/deny only) |
 | Cursor | Allowlist, then sandbox, then an LLM classifier (default since 3.6) | Yes (Cursor backend) | No | `beforeShellExecution`, `preToolUse` |
 | Copilot CLI | Prompts; deny rules; optional sandbox | No (BYOK) | No | `preToolUse`, `permissionRequest`; also reads `.claude/settings.json` |
 | Gemini CLI | TOML policy engine, no judge | Gemini | Yes (Apache-2.0) | `BeforeTool` (veto only) |
 | Kiro CLI | Prompts plus `permissions.yaml` | Bedrock | No | `PreToolUse` (exit 2) |
 | OpenCode | Wildcard rules; allows all by default | No | Yes (MIT) | Plugin `tool.execute.before` |
-| Factory Droid | Model-assigned risk vs autonomy level | BYOK (unverified) | No | `PreToolUse` (Claude shape) |
+| Factory Droid | Risk level vs autonomy level (who assigns the risk is unverified) | BYOK (unverified) | No | `PreToolUse` (Claude shape) |
 
 The full table covers 20 harnesses: [`auto-modes.md`](./2026-10-11-competitive-refresh/auto-modes.md).
 
@@ -147,7 +152,7 @@ The full table covers 20 harnesses: [`auto-modes.md`](./2026-10-11-competitive-r
 
 **The strongest counter-argument:**
 
-- The built-in judge is free, on by default, and sees intent.
+- In Claude Code and Cursor, the built-in judge is free, on by default, and sees intent.
 - Every vendor says the sandbox, not the classifier, is the security boundary.
 
 ---
@@ -156,8 +161,8 @@ The full table covers 20 harnesses: [`auto-modes.md`](./2026-10-11-competitive-r
 
 From [`discovery.md`](./2026-10-11-competitive-refresh/discovery.md), ranked by overlap with Caro's two jobs ("I forgot the command" and "is this command safe?"), then by audience:
 
-1. **Atuin (Atuin AI)**: the same job, a big shell-user audience, and cloud by default.
-2. **Claude Code (auto mode)**: the largest agent audience; an LLM judge vs a deterministic floor.
+1. **Atuin (Atuin AI)**: the same job, a big shell-user audience; Hub by default, local inference when self-hosted.
+2. **Claude Code (auto mode)**: the second-largest measured agent audience (Codex CLI is first); an LLM judge plus built-in protections vs a deterministic floor.
 3. **Codex CLI**: open source, local models, a sandbox and deterministic rules. It forces an honest page.
 4. **iTerm2**: an AI composer and an opt-in model-based safety check, macOS only.
 5. **Shell-GPT**: the best-known NL→shell CLI, with no danger detection.
@@ -177,9 +182,13 @@ added to `ComparisonPageLayout`.
   optimizations" cells are judgment calls carried over from 2025.
 - Whether Copilot's "assisted" permission mode is an LLM judge (secondary source only).
 - Whether a Claude Code `PreToolUse` "allow" skips the auto-mode classifier.
-- dcg's license: its README says "MIT with an OpenAI/Anthropic rider". That
-  is not OSI open source, so do not import its rules into AGPL code.
-  This needs legal review.
+- dcg's license (read 2026-10-13): MIT text plus a rider. The rider grants
+  no rights to OpenAI, Anthropic, their affiliates or anyone acting for
+  them, and counts benchmarking, testing and analyzing as use. This project
+  does not execute, benchmark or import dcg; comparisons use public docs
+  only. Any test that involves dcg needs a human license decision first.
+- Copilot's local sandbox default: the GA changelog does not state it.
+- Warp AI routing: sources conflict; see section 1. No general claim.
 
 ## 7. Broken windows found (not fixed here)
 
@@ -190,5 +199,11 @@ added to `ComparisonPageLayout`.
 - The landing tooltip for "Privacy-first design" says "Minimal, anonymous
   telemetry with easy opt-out". GA builds use opt-in telemetry
   (`src/telemetry/config.rs`). The claim is about Caro, in 15 locales.
-- `website/src/config/search-index.json` still has the old Copilot
-  pricing. The `prebuild` step regenerates it on every deploy.
+- `website/src/config/search-index.json` is regenerated by `prebuild` on
+  every deploy; the committed copy lags the pages.
+- `website/src/pages/product/jobs-to-be-done.astro` still says "Bundled model
+  works where nothing else can". The model is downloaded on first use, and
+  the exclusivity claim no longer holds. Not in this PR's files.
+- #1597: the website claims suite calls a nonexistent `--validate-only` flag,
+  so its checks never reach the validator. #1537: the latest census
+  (at `4a84d09`) finds 26 of 49 test targets run in no workflow. Fix verification before stronger safety positioning.

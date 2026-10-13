@@ -1,9 +1,14 @@
 # Competitor map: command-safety, sandbox and guardrail tools for coding agents (as of 2026-10-11)
 
+> **Corrections, 2026-10-13** (PR #1583 review and owner-supplied sources). Inline text below is corrected where marked. Where this note and the corrections disagree, the corrections win.
+>
+> - dcg is source-available, not open source; see summary item 1. No execution, benchmarking or reuse by this project pending human license review.
+> - `caro guard` merged on 2026-10-11 (#1513).
+
 ## Summary (read this first)
 
-1. **Two open-source tools own the "cross-harness command guard" slot today.** `dcg` (Rust, 6,139 stars, 17+ harnesses) and `cc-safety-net` (TypeScript, 1,583 stars, 14+ harnesses). Both are deterministic, local, and hook-based. That is Caro's proposed position.
-2. **Every major harness now ships its own LLM auto-approver.** Claude Code auto mode (GA 2026-07-10), Codex Auto-review, Cursor 3.6 Auto-review (2026-05-29). This is the main substitute for an "auto-approval engine". Cursor's own docs call its classifier non-deterministic and not a security boundary. That leaves room for a deterministic, portable layer.
+1. **Two command guards lead the "cross-harness command guard" slot today** (corrected 2026-10-13, thread T8). `dcg` (Rust, 6,139 stars, 17+ harnesses) is **source-available**: MIT text plus a rider that grants no rights to OpenAI, Anthropic, their affiliates or anyone acting for them, and that defines "use" to include benchmarking, testing and analyzing. `cc-safety-net` (TypeScript, 1,583 stars) is **MIT**; on 2026-10-13 its README lists 16 harnesses, parsed-command handling, secret protection and cloud/IaC rulebooks, and its known-limitations page names incomplete event coverage and fail-open hosts (https://ccsafetynet.com/docs/guides/known-limitations). Both are deterministic, local and hook-based. That is Caro's proposed position. Do not execute, benchmark or import dcg; compare it from its public docs only, pending a human license review.
+2. **Several major harnesses now ship an LLM auto-approver** (corrected 2026-10-13, thread T26). Claude Code auto mode (GA 2026-07-10), Codex Auto-review, Cursor 3.6 Auto-review (2026-05-29). This is the main substitute for an "auto-approval engine". Cursor's own docs call its classifier non-deterministic and not a security boundary. That leaves room for a deterministic, portable layer.
 3. **Regex-on-raw-text guards have a public bypass class.** Adversa AI disclosed "GuardFall" on 2026-06-30. The fix is to parse commands the way the shell does. Caro has partial unquoting (`destructive_unescaped` in `src/safety/mod.rs`), not full shell-semantic parsing.
 4. **A vendor has proposed the engine-to-harness standard Caro would need.** Gen Digital's AARTS v0.1 (draft, 2026-03-05) defines host / adapter / security-engine roles. It has no named adopters yet. Gen's open-source `Sage` is the reference engine.
 5. **License matters for a "community-maintained" rule DB.** dcg's license bars OpenAI, Anthropic and their affiliates, so it is not OSI open source and an AGPL project cannot absorb its rules. Sage ships rules under DRL 1.1. Project CodeGuard uses CC BY 4.0. Caro's AGPL-3.0 is OSI-approved but copyleft.
@@ -141,7 +146,7 @@ Main landscape source is a **vendor-written** comparison (Pillar Security, 2026-
 
 Caro's claimed position: cross-agent, cross-harness, cross-model, community-maintained command-safety / auto-approval engine; deterministic regex rules with risk levels; local LLM; weekly CVE-derived rules; AGPL-3.0 Rust.
 
-**Caveat on "Caro has":** a grep of `src/` found no PreToolUse / hook-mode integration. So harness adapters and the auto-approve role are positioning, not shipped features. The "Caro has" lists below only claim shipped items (regex patterns + risk levels, CVE patterns in `src/safety/cve_patterns.rs`, local LLM, NL-to-command generation) and the license.
+**Caveat on "Caro has" (superseded 2026-10-13):** `caro guard` merged in #1513 on 2026-10-11 (`9516868`): a shadow-by-default PreToolUse adapter for Claude Code, Codex, Grok Build and OpenCode (ADR-020, spec 011). The original caveat follows: a grep of `src/` found no PreToolUse / hook-mode integration. So harness adapters and the auto-approve role are positioning, not shipped features. The "Caro has" lists below only claim shipped items (regex patterns + risk levels, CVE patterns in `src/safety/cve_patterns.rs`, local LLM, NL-to-command generation) and the license.
 
 **Substitute to watch first (not ranked, single-harness):** the harness-native auto-reviewers (Claude Code auto mode, Codex Auto-review, Cursor Auto-review). They do the "auto-approval" job for free, inside the harness. They are LLM classifiers, so they are not deterministic or auditable, and each covers one harness. Caro's opening is to be the deterministic, portable floor under them, or to export its rules into their native formats (Codex Starlark `prefix_rule`, Gemini TOML, Claude Code `permissions`, Cursor `permissions.json`).
 
@@ -152,7 +157,7 @@ Caro's claimed position: cross-agent, cross-harness, cross-model, community-main
 - **Note:** Caro cannot import dcg rules or code. The rider adds restrictions that AGPL-3.0 forbids (not legal advice).
 
 ### 2. cc-safety-net
-- **Why:** Cross-harness leader on reach (14+ agents), MIT, semantic command parsing, team-shareable policy folder, rule "rulebooks".
+- **Why:** Cross-harness leader on reach (16 harnesses per its README on 2026-10-13), MIT, semantic command parsing, team-shareable policy folder, rule "rulebooks".
 - **Caro has, it lacks:** Rust single binary (no Node runtime); CVE pipeline; risk levels; local LLM. Neither ships auto-approve.
 - **It has, Caro lacks:** semantic unwrapping of wrappers and interpreter one-liners; secret / sensitive-file gating for file tools (not only shell); GUI with Standard/Strict/Paranoid presets; library API; broad harness installer (`npx cc-safety-net install` + `doctor`).
 

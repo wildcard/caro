@@ -1,15 +1,25 @@
 # How agent harnesses decide to auto-approve shell commands (state as of 2026-10-11)
 
+> **Corrections, 2026-10-13** (PR #1583 review and owner-supplied sources). Inline text below is corrected where marked. Where this note and the corrections disagree, the corrections win.
+>
+> - **Claude Code** also ships built-in protections against removing critical paths, and a mod surface (`tool.check`) that can approve a call before the classifier runs. PreToolUse hooks and mods have different authority. Do not claim that Claude Code lacks curated checks, or that anything is universally non-overridable. Sources: https://code.claude.com/docs/en/permission-modes ; https://code.claude.com/docs/en/permissions#extend-permissions-with-hooks
+> - **Codex**: the custom-provider Auto-review failure is an operational bug with workarounds (openai/codex#31255), not model lock-in.
+> - **Default-on vs available**: see the corrected headline findings 1 and 2.
+
 Research for Caro's "cross-harness auto mode engine" positioning. All pages fetched 2026-10-11 unless a date is given.
 Legend: **[V]** = verified on a primary page in this session. **[S]** = secondary source only. **[U]** = could not verify.
 
 ## Headline findings
 
-1. Every frontier harness now ships an LLM-judged auto mode, and most turned it on by default in 2026:
-   Claude Code (classifier, default starting mode from v2.1.283), Codex (Auto-review / "guardian"), Cursor (Auto-review, default since 3.6),
-   VS Code Copilot (Assisted permissions, experimental), Grok Build (Auto), Qwen Code (Auto), Windsurf/Devin Desktop (Auto), goose (Smart Approve).
-2. Every built-in judge is tied to its vendor's models or backend. Claude Code auto mode needs a supported Claude model.
-   Codex Auto-review fails on custom providers (hardcoded `codex-auto-review` model). Cursor's classifier runs on Cursor's backend.
+1. Many harnesses now offer an LLM-judged auto mode, but only some turn it on by default (corrected 2026-10-13, thread T16):
+   - On by default: Claude Code (classifier; default starting mode from v2.1.283) and Cursor (Auto-review; default since 3.6).
+   - Available, not default: Codex Auto-review ("guardian") needs `approvals_reviewer = "auto_review"`; VS Code defaults to Manual
+     (Assisted permissions is experimental); Grok Build and Qwen Code default to Ask; Windsurf/Devin Desktop and goose Smart Approve are opt-in modes.
+2. Some built-in judges are tied to their vendor's models or backend (corrected 2026-10-13, thread T15):
+   - Claude Code auto mode needs a supported Claude model. Cursor's classifier runs on Cursor's backend.
+   - Codex Auto-review failed on custom providers because of a hardcoded `codex-auto-review` model name. This is an operational bug with
+     model-catalog and gateway workarounds (openai/codex#31255; https://learn.chatgpt.com/docs/sandboxing/auto-review), not inherent lock-in.
+   - goose Smart Approve uses the user's own configured provider, so it is provider-agnostic.
 3. There is no cross-harness policy standard. There IS de facto convergence on the Claude Code `PreToolUse` hook shape
    (stdin JSON with `tool_name`/`tool_input`; stdout `permissionDecision`; exit 2 = block). Copilot, Cursor, Grok Build and VS Code even read `.claude/settings.json` hooks directly.
 4. Two free, popular, multi-harness deterministic guards already exist: **dcg** (Rust, ~6.1k stars) and **cc-safety-net** (MIT, ~1.6k stars, 15+ CLIs).
@@ -99,7 +109,7 @@ Legend: **[V]** = verified on a primary page in this session. **[S]** = secondar
 
 ### Strongest counter-argument (why a user might not need Caro)
 
-The typical user already has a free, default-on judge that sees user intent, was tuned on real traffic (Anthropic: 0.4% false-positive rate for the full pipeline), and runs inside the harness with no install. The residual risks that matter most (prompt-injection chains, exfiltration, scope creep) depend on intent and context, which a stateless regex over one command cannot see. Rehberger's Aug 2026 chain beat Claude auto mode 60–80% of the time, and the fix everyone recommends is a sandbox and egress control, not a better list. Anthropic and Cursor both say their judges are "not a security boundary". Deterministic parsers are themselves bypassable: Roo Code CVE-2026-82536/82537 and Cursor CVE-2026-22708 are exactly the allowlist-parsing class that a regex engine invites. The deterministic niche is already served by MIT/permissive tools with wider harness coverage, while Caro is AGPL-3.0, which deters corporate hook deployment. Finally, in veto-only harnesses (Gemini CLI, Grok, Windsurf, Kiro, Cline) and even in Claude Code (deny/ask rules still apply after a hook "allow"), an external hook can only add denials. It cannot fully replace the native approval flow, so "auto mode engine" overstates what the integration point allows.
+A Claude Code or Cursor user already has a free judge that is on by default and sees user intent (Codex, VS Code, Grok and Qwen users must opt in; corrected 2026-10-13), was tuned on real traffic (Anthropic: 0.4% false-positive rate for the full pipeline), and runs inside the harness with no install. The residual risks that matter most (prompt-injection chains, exfiltration, scope creep) depend on intent and context, which a stateless regex over one command cannot see. Rehberger's Aug 2026 chain beat Claude auto mode 60–80% of the time, and the fix everyone recommends is a sandbox and egress control, not a better list. Anthropic and Cursor both say their judges are "not a security boundary". Deterministic parsers are themselves bypassable: Roo Code CVE-2026-82536/82537 and Cursor CVE-2026-22708 are exactly the allowlist-parsing class that a regex engine invites. The deterministic niche is already served by MIT/permissive tools with wider harness coverage, while Caro is AGPL-3.0, which deters corporate hook deployment. Finally, in veto-only harnesses (Gemini CLI, Grok, Windsurf, Kiro, Cline) and even in Claude Code (deny/ask rules still apply after a hook "allow"), an external hook can only add denials. It cannot fully replace the native approval flow, so "auto mode engine" overstates what the integration point allows.
 
 ### What would make the position defensible (for the owner to decide)
 

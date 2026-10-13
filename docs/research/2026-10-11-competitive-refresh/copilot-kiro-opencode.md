@@ -1,5 +1,13 @@
 # Competitive fact-check: GitHub Copilot CLI, Kiro CLI, OpenCode (as of 2026-10-11)
 
+> **Corrections, 2026-10-13** (PR #1583 review and owner-supplied sources). Where this note and the corrections disagree, the corrections win.
+>
+> - **Copilot offline** needs a local model **and** `COPILOT_OFFLINE=true`; a hosted BYOK endpoint still needs the network (https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-byok-models).
+> - **Copilot local-model discovery** (https://github.blog/changelog/2026-10-07-discover-local-models-in-github-copilot-cli/) finds local models you already run. It installs no runtime or model and does not turn on offline mode. Intelligent routing is described as future work.
+> - **Copilot sandbox default:** the GA changelog (2026-10-07) does not say whether it is on or off by default. Treat the default as unknown.
+> - **Copilot `assisted` mode** is a model judge only per a third-party report.
+> - **OpenCode defaults** (permissions page, updated 2026-10-13): most operations allow; `doom_loop` and `external_directory` ask; `.env` reads deny, with an `.env.example` exception.
+
 **Needs you:** Several website cells are out of date. The largest errors:
 
 1. **Copilot "Works 100% offline = no"** is wrong since 2026-04-07. BYOK, local models (Ollama/vLLM/Foundry Local) and `COPILOT_OFFLINE=true` shipped. GitHub auth is not required in BYOK mode.
@@ -9,7 +17,7 @@
 5. **OpenCode "Explicit confirmation = partial"** is generous. By default OpenCode "allows all operations without requiring explicit approval". It should be **no by default (opt-in `ask`)**.
 6. **Copilot "Multi-backend = no"** is outdated. It offers Anthropic/OpenAI/Google models plus BYOK for any OpenAI-compatible endpoint. Use **yes**, or **partial** if you count only GitHub-hosted models.
 
-The claim that holds for all three: **none of them ships a built-in deterministic library of destructive-command patterns that blocks `rm -rf /` by default.** All of them rely on prompting the user, user-written rules, sandboxing, or (Copilot "assisted" mode) a model judge. Caro's "52+ built-in patterns, zero config" claim is still a real differentiator. "Customizable" and "rule-based" are not.
+The claim that holds for all three: **none of them ships a built-in deterministic library of destructive-command patterns that blocks `rm -rf /` by default.** All of them rely on prompting the user, user-written rules, sandboxing, or (Copilot "assisted" mode, per a third-party report only; corrected 2026-10-13, thread T27) a model judge. Caro's "52+ built-in patterns, zero config" claim is still a real differentiator. "Customizable" and "rule-based" are not.
 
 Website files that carry these claims: `website/src/pages/compare/index.astro`, `website/src/pages/[lang]/compare/index.astro`, `website/src/pages/compare/github-copilot-cli.astro` (line 53 has "$10-19/month"), `website/src/config/search-index.json` (line 2400), `website/src/i18n/locales/*/landing.json`.
 
@@ -114,7 +122,7 @@ Confidence: High = primary source fetched today. Med = primary source seen in se
   - All three products use deterministic matching for *user-written* rules: Copilot `shell(cmd)` patterns, Kiro glob (V3) or regex (2.x), OpenCode wildcards.
   - None ships a curated, risk-graded destructive-command library on by default.
   - How Copilot decides a shell command is "read-only" is undocumented.
-  - Copilot's `assisted` permission mode is model-judged (per a third-party source).
+  - Copilot's `assisted` permission mode may be model-judged. Only a third-party source says so; the official reference confirms only the mode name.
 - **One Caro validator could plug into all three:**
   - A single `caro`-style validator command could act as Copilot `preToolUse` (exit 2 or `permissionDecision: deny`), Kiro `PreToolUse` (exit 2 + stderr) and an OpenCode `tool.execute.before` plugin (throw).
   - Copilot also loads hooks from `.claude/settings.json`.

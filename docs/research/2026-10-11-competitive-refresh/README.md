@@ -3,8 +3,11 @@
 These are the raw notes behind
 [`../2026-10-11-competitive-landscape-refresh.md`](../2026-10-11-competitive-landscape-refresh.md).
 Research agents wrote them on 2026-10-11 from vendor docs, repos, license
-files and changelogs. Each claim carries a URL, a source date and a
-confidence level. The parent session spot-checked the claims that change
+files and changelogs. Most claims carry a URL and a source date. Confidence
+labels vary by file: `warp.md`, `copilot-kiro-opencode.md` and
+`auto-modes.md` label each claim; `guardrail-tools.md` and `discovery.md`
+mark only unverified items. Each file opens with a dated corrections block
+from the PR #1583 review. The parent session spot-checked the claims that change
 our messaging. Check a claim against its source again before you quote it
 on the website.
 

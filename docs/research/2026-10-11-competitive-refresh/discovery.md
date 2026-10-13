@@ -1,5 +1,10 @@
 # Caro competitor discovery watchlist (2026-10-11)
 
+> **Corrections, 2026-10-13** (PR #1583 review and owner-supplied sources). Where this note and the corrections disagree, the corrections win.
+>
+> - **Atuin AI is a direct competitor that also runs locally.** Its docs describe self-hosting with local inference (https://docs.atuin.sh/18.17/ai/introduction/ ; https://docs.atuin.sh/latest/ai/self-hosting/). Do not frame it as cloud-only.
+> - **Audience:** Codex CLI has the largest measured agent audience here; Claude Code is second.
+
 **Needs you:** Two existing compare pages contain claims that are no longer true. See "Drift on existing pages" at the end. Fixing them is a separate task.
 
 **Result:** I list 77 entries in three groups. The top 6 new `/compare` candidates are **Atuin (Atuin AI), iTerm2, Shell-GPT, Claude Code, Codex CLI, and AIChat**.
@@ -30,7 +35,7 @@
 | Product | What | NL→shell | Local models | License | Existing terminal | Built-in safety | Status | Source URL | Source date |
 |---|---|---|---|---|---|---|---|---|---|
 | **Atuin AI** (in Atuin) | Shell-history tool (Rust). Press `?` on an empty prompt and describe the task. Enter runs the command, Tab edits it, `f` asks follow-up questions. Opt-in. | Yes | Partial. The default uses Atuin Hub with cloud "frontier models". It needs an account and is "currently free". Since July 2026 you can self-host `atuin-ai-server` with Ollama, vLLM, LM Studio, llama.cpp or LiteLLM. | MIT (client); Apache-2.0 (atuin-ai-server) | Yes (zsh, bash, fish) | **Hybrid.** The LLM scores danger and confidence. The blog also names static checks, and the docs say Hub checks for patterns the LLM missed. A flagged command needs Enter twice. | Active: v18.23.0, 2026-09-21 | https://docs.atuin.sh/latest/ai/introduction/ · https://blog.atuin.sh/atuin-v18-13 · https://blog.atuin.sh/atuin-ai-oss/ | 2026-03-18 (launch); 2026-07-14 (OSS server) |
-| **Shell-GPT (sgpt)** | Python LLM CLI. `--shell` makes an OS- and shell-aware command. A Ctrl+L hotkey works in bash and zsh. | Yes | Partial. Ollama via LiteLLM. README: "not optimized for local models". | MIT | Yes | A prompt only: `[E]xecute, [D]escribe, [A]bort`. `--no-interaction` skips it. No danger detection. | Active (slow): 1.5.1, 2026-05-06; last commit 2026-07-02 | https://github.com/TheR1D/shell_gpt | 2026-05-06 |
+| **Shell-GPT (sgpt)** | Python LLM CLI. `--shell` makes an OS- and shell-aware command. A Ctrl+L hotkey works in bash and zsh. | Yes | Partial. Ollama via LiteLLM. README: "not optimized for local models". | MIT | Yes | A prompt only: `[E]xecute, [D]escribe, [A]bort`. `--no-interaction` skips it. No danger detection. | Slow: 1.5.1, 2026-05-06; last commit 2026-07-02 (corrected 2026-10-13, thread T17) | https://github.com/TheR1D/shell_gpt | 2026-05-06 |
 | **AIChat** | All-in-one Rust LLM CLI with a "Shell Assistant" (`-e`), REPL, RAG and agents | Yes | Yes (Ollama and OpenAI-compatible) | MIT OR Apache-2.0 | Yes | Execute menu exists; no danger detection found (unv.) | Stale: v0.30.0, 2025-07-07; last commit 2026-02-23 | https://github.com/sigoden/aichat | 2025-07-07 |
 | **AI Shell** (Builder.io) | Node CLI that explains the script, then asks to run it | Yes | Custom OpenAI endpoint only; local not documented | MIT | Yes | Run / Revise / Cancel prompt. `-s` skips the explanation. | Stale: 1.0.12, 2024-10-01; npm 279 downloads per 30 days | https://github.com/BuilderIO/ai-shell | 2024-10-01 |
 | **Butterfish** | Go wrapper around your shell. Capital-letter prompts, autosuggest, `!` agent mode, `@` single command. | Yes | Any OpenAI-compatible endpoint (LM Studio named). Prompts are tuned for OpenAI. | MIT | Yes (wraps the shell) | You review each command. The `!!` and `@@` modes skip review ("USE WITH CAUTION"). | Active (slow): v0.4.3, 2026-06-03 | https://github.com/bakks/butterfish | 2026-06-03 |

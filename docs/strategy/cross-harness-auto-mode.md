@@ -1,233 +1,266 @@
-# Caro as a Cross-Harness Auto-Mode Engine
+# Caro and Agent Auto Modes: Positioning, Tests and Decisions
 
-**Date**: 2026-10-11 (revised after the devil's-advocate review, §9)
-**Status**: Positioning hypothesis, not a feature spec. It clears none of the
-gates in [`validation-discipline.md`](../../.claude/rules/validation-discipline.md)
-(see §7). Treat every "Caro would" below as a claim to test.
-**Evidence**: [`2026-10-11-competitive-landscape-refresh.md`](../research/2026-10-11-competitive-landscape-refresh.md),
-[`auto-modes.md`](../research/2026-10-11-competitive-refresh/auto-modes.md),
-[`guardrail-tools.md`](../research/2026-10-11-competitive-refresh/guardrail-tools.md)
-**Builds on**: PR #1513 (`caro guard`, spec 011, ADR-019, not merged yet)
-and [`GUARDIAN_AGENT.md`](../GUARDIAN_AGENT.md)
+**Date**: 2026-10-11, revised 2026-10-13 after the PR #1583 review and the
+owner's sourced corrections.
+**Status**: Positioning hypothesis and test plan. Not a feature spec. It
+clears none of the gates in
+[`validation-discipline.md`](../../.claude/rules/validation-discipline.md).
+Nothing in this note is scheduled, and no decision below is approved.
+**Evidence**: [`2026-10-11-competitive-landscape-refresh.md`](../research/2026-10-11-competitive-landscape-refresh.md)
+and its [raw notes](../research/2026-10-11-competitive-refresh/README.md)
+**Builds on**: `caro guard` (#1513, merged 2026-10-11 as `9516868`;
+[ADR-020](../adr/ADR-020-guardian-hook-harness-adapters.md);
+[spec 011](../../specs/011-harness-guardian/spec.md)) and
+[`GUARDIAN_AGENT.md`](../GUARDIAN_AGENT.md)
+**Approver**: `@wildcard` (`.github/STAKEHOLDERS.yml`: every area)
 
-## 1. The thesis
+## 1. Recommendation
 
-Every frontier agent now ships an "auto mode": something that decides
-whether the agent's next shell command may run without asking you.
+1. **Position Caro as an integrated, local-by-default shell specialist with
+   bundled deterministic checks.** Do not position it as a cross-harness
+   auto-mode engine yet.
+2. **Scope "fully open, fully local"** to the stable default embedded backend
+   with a cached model. The code is AGPL-3.0. The default model (Qwen2.5-Coder
+   1.5B) is Apache-2.0. Optional remote backends send prompts off the machine.
+3. **Keep `caro guard` shadow-only** until the spec 011 pilot passes. Any
+   new guard behavior ships opt-in and labeled experimental.
+4. **Fix verification before stronger safety claims.**
+   - #1597: the website claims suite never calls the validator.
+   - #1537: 26 of 49 test targets run in no workflow (census at `4a84d09`).
+5. **Coexist with cc-safety-net and dcg for now.** Claim differentiation only
+   after test 1 shows better detection at a matched nuisance rate.
+6. **Defer rule-pack licensing.** There are no outside contributors yet.
 
-- **Claude Code**: an auto mode classifier.
-- **Codex**: Auto-review, also called "guardian".
-- **Cursor**: Auto-review.
-- **VS Code**: Assisted permissions.
-- **Grok Build** and **Qwen Code**: each has an Auto mode.
+## 2. What the vendors ship (corrected)
 
-**The owner's thesis:** Caro becomes the alternative engine. It has these
-properties:
-
-- **Cross-agent, cross-harness, cross-model.**
-- **Under the user's control.** The user can configure it and inspect its
-  decisions.
-- **Maintained over time by a community** of security researchers and
-  terminal power users.
-
-What the vendor modes do and do not give users today:
-
-- **Configurable in prose.** Claude Code has `autoMode` settings and
-  `claude auto-mode critique`. Codex's reviewer policy is open source and
-  replaceable (`[auto_review].policy`).
-- **Not portable.** A policy written for one harness does not run in
-  another.
-- **Not deterministic.** Each judge is an LLM on the vendor's model, and
-  the vendor can change it server-side.
-- **Tied to the vendor's model.** Claude Code auto mode needs a supported
-  Claude model. Codex Auto-review breaks on custom providers. Cursor's
-  classifier runs on Cursor's backend.
-- **Sends data off the machine.** Each judge sends parts of the transcript
-  to the vendor.
-
-Codex also runs an OS sandbox and deterministic `execpolicy` rules by
-default. The honest comparison is Caro against a whole stack, not against
-the classifier alone.
-
-## 2. What the vendors ship
-
-| | Claude Code auto mode | Codex Auto-review | Cursor Auto-review | Caro (proposed) |
+| | Claude Code auto mode | Codex Auto-review ("guardian") | Cursor Auto-review | Caro today |
 |---|---|---|---|---|
-| Decides with | Rules, then an LLM classifier | Sandbox + execpolicy rules, then a reviewer agent | Allowlist, sandbox, then a classifier | Deterministic floor, then an optional local judge |
-| Models | Claude only | Breaks on custom providers | Cursor backend | Any, or none |
-| Open source | No | Yes (`core/src/guardian/policy.md`) | No | Yes (AGPL-3.0) |
-| User-editable policy | Prose (`autoMode`) | Prose (`[auto_review].policy`) + Starlark rules | Prose (`permissions.json`) | Rules files |
-| Same policy in other harnesses | No | No | No | Through hooks, if the hooks allow it (§4) |
-| Sandbox | Optional, off by default | On by default | Yes | None (ADR-010 is only proposed) |
+| On by default | Yes, from v2.1.283 | No (`approvals_reviewer = "auto_review"`) | Yes, from 3.6 | `caro guard` is opt-in, shadow by default |
+| Decides with | Rules, built-in critical-path protections, then an LLM classifier | OS sandbox and execpolicy rules, then a reviewer agent | Allowlist, sandbox, then a classifier | 52+ patterns with risk levels; Critical blocked at the default safety level |
+| Extension points | `PreToolUse` hooks, and mods (`tool.check`) that can approve before the classifier. Hooks and mods have different authority. | `PreToolUse` (allow/deny), editable policy | `beforeShellExecution`, `preToolUse` | `[safety]` custom patterns and allowlist |
+| Models | Claude only | Any provider by design; a custom-provider bug has workarounds ([openai/codex#31255](https://github.com/openai/codex/issues/31255)) | Cursor backend | Embedded by default; remote optional |
+| Open source | No | Yes (Apache-2.0) | No | Yes (AGPL-3.0) |
 
-## 3. Where Caro would sit
+Other facts that limit the claims we can make:
+
+- goose Smart Approve uses the user's own provider, so it is provider-agnostic.
+- cc-safety-net (MIT) covers 16 harnesses and parses commands. It protects
+  secrets and has cloud/IaC rulebooks. Its documented limits are incomplete
+  event coverage and fail-open hosts.
+- dcg is source-available. Its rider excludes Anthropic and parties acting
+  for it, and counts benchmarking, testing and analyzing as use.
+- Atuin AI does Caro's core job, with local inference when self-hosted.
+- Vendors say neither a classifier nor a pattern list is a security boundary.
+
+Sources and dates: research note §1 and §4.
+
+## 3. Where `caro guard` sits today
 
 ```
  agent proposes a shell command
             │
             ▼
- harness PreToolUse hook ──► caro guard
-            │                 ├─ 1. deterministic floor: critical → deny (no LLM, cannot be overridden)
-            │                 ├─ 2. curated rules: high → ask
-            │                 ├─ 3. routine rules: known-safe → no opinion today, "allow" only if §4 spike passes
-            │                 └─ 4. optional local judge for the rest (opt-in, escalates to ask, never relaxes 1)
+ harness hook (PreToolUse) ──► caro guard (shadow by default: logs only)
+            │                    enforce mode (opt-in): Critical → deny, High → ask,
+            │                    otherwise no opinion; never emits "allow"
             ▼
- harness's own rules / auto mode (still runs)
+ harness's own rules, protections and auto mode (unchanged)
             ▼
- OS sandbox (srt, Codex sandbox, Copilot MXC, nono…)  ← the real boundary
+ OS sandbox, if the user runs one  ← the real boundary
             ▼
  shell
 ```
 
-This keeps the `GUARDIAN_AGENT.md` principle: the floor is not an LLM. A
-judge may only escalate to "ask" (ADR-017). Caro adds to the vendor's mode
-and the sandbox; it replaces neither. Every vendor says its classifier is
-not a security boundary. Caro's regex floor is not one either.
+The guard adds a deterministic floor. It replaces neither the vendor's
+mode nor a sandbox. An "approver" role that emits "allow" is out of scope
+until tests 1–3 pass and a human safety review signs off.
 
-## 4. Two roles, and what each needs
+## 4. The five tests
 
-**Role 1: the guard (instrumentation first, not a market position).**
+Every test runs on strings or harmless stub commands (`true`, `printf ok`).
+No test executes a destructive command, calls a paid vendor model, or runs
+dcg. Pin versions when the test starts and record them in the result.
 
-- It denies critical commands and asks on high-risk ones. It never says
-  "allow". PR #1513 builds it, in shadow mode by default.
-- As a product, it is a third deterministic regex guard, entering behind
-  dcg and cc-safety-net. Its value today is **data**: the shadow log shows
-  what Caro would deny or ask on real agent traffic.
-- Copilot CLI, Cursor and VS Code read `.claude/settings.json` hooks, so
-  the Claude adapter may also reach them. Test this before you claim it.
+Reference versions seen on 2026-10-11 (re-pin at run time):
 
-**Role 2: the approver for harnesses without a vendor judge.**
+| Component | Version |
+|---|---|
+| Caro | `origin/main` at `c3169411` (includes #1513); re-test on #1614 if it merges |
+| Claude Code | 2.1.296 |
+| Codex CLI | 0.162.1 |
+| GitHub Copilot CLI | 1.0.95 |
+| OpenCode | 1.19.0 |
+| cc-safety-net | pin the release tag at run time (not recorded) |
+| Grok Build | pin at run time (not recorded) |
 
-- Users who bring their own model get no Claude, Codex or Cursor judge.
-  Other approaches exist:
-  - goose Smart Approve uses the user's own provider.
-  - Cline lets the model mark its own commands.
-  - Dippy and safe-chains auto-approve routine commands with real
-    parsers.
-  - Sage, HOL Guard and Numbat gate across harnesses.
-- The approver must emit "allow". Many hooks cannot do that:
+### Test 1: matched-friction delta
 
-| Harness (BYO-model capable) | Hook can "allow"? | Evidence |
-|---|---|---|
-| Codex on a custom provider | Yes | Verified; order versus Auto-review undocumented |
-| Copilot CLI (BYOK) | Yes | Verified |
-| Factory Droid | Yes (Claude shape) | Verified; BYOK unverified |
-| OpenCode | Not useful: it allows all by default | Verified |
-| Cline, Gemini CLI, Kiro, Windsurf | No (veto only) | Verified |
-| Aider | Git hooks only | Verified |
-| Crush, Mistral Vibe | Unknown | Not researched |
-| Zed | Through ACP `session/request_permission`, not hooks | Secondary source |
+- **Question:** at the same nuisance rate, does Caro catch more destructive
+  commands than cc-safety-net?
+- **Method:** run every corpus string through Caro (the `SafetyValidator`
+  library, or `caro guard --harness generic --mode enforce --no-log` on
+  stdin) and through cc-safety-net's documented checker. Nothing executes.
+- **Metrics:** misses (false negatives) on destructive cases **and** false
+  positives on benign cases. Report both, per class. A larger deny set alone
+  proves nothing.
+- **Controls:**
+  - Labels are fixed before any tool runs.
+  - A no-op baseline is scored alongside.
+  - Caro is scored at both `moderate` and `strict` safety levels.
+  - The corpus includes a 25% holdout that nobody tunes against.
+- **Corpus (proposal, not an existing threshold):** 400 cases (200 benign,
+  120 destructive, 80 ambiguous), each labeled by two people.
+- **Threshold to claim differentiation:** Caro's recall exceeds
+  cc-safety-net's at a matched false-positive rate on the holdout, with a
+  bootstrap 95% interval that excludes zero. Otherwise: coexist, and claim
+  nothing.
+- **Excluded:** dcg (license rider). Including it needs a human license
+  decision.
+- **Owner:** `@wildcard`; agents `safety-pattern-auditor` and
+  `qa-testing-expert` (STAKEHOLDERS: `src/safety/**`, `tests/safety_*`).
+- **Depends on:** #1597 (a real-validator harness), the cc-safety-net license
+  check (MIT; done), and the corpus labels.
+- **DoD:** the corpus, labels, versions and a per-class table are committed
+  under `tests/`, and the result is recorded in this note.
 
-- Role 2 also needs work that does not exist yet:
-  - A real shell parser. Regex on raw text gets bypassed: GuardFall, Roo
-    Code CVE-2026-82536/82537, and the 6 gaps that #1513 measured (#1054).
-  - Flag-level knowledge of routine commands, as in safe-chains and Dippy.
-  - A calibrated local judge that cannot relax the floor (ADR-017/018).
+### Test 2: semantic-equivalence attacks and benign lookalikes
 
-## 5. The community idea (aspiration, no evidence yet)
+- **Question:** does a command that means the same thing get the same
+  verdict, and does a harmless lookalike stay quiet?
+- **Corpus:**
+  - The bypass classes in #1639 and the GuardFall classes, each paired with
+    its plain canonical form.
+  - Benign lookalikes: `echo`, commit messages, heredocs, quoted mentions.
+- **Controls:** each canonical form must be flagged. If one is not, that
+  pair is void.
+- **Metric:** the share of equivalence pairs with the same verdict, and the
+  false-positive count on lookalikes.
+- **Threshold:** any Critical-class miss becomes a #1639 entry. Fixes go
+  through `safety-pattern-developer` TDD. This test never changes patterns
+  itself.
+- **Owner:** `@wildcard` as human safety owner; agents
+  `safety-pattern-auditor` and `safety-pattern-developer`.
+- **Depends on:** #1614 (segment-aware validation, open), with #1302 and
+  #1054 for parser work.
+- **DoD:** the pair list and results are committed, and each miss links to
+  an issue.
 
-Caro has **no outside rule contributors today**. The CVE pipeline is
-automated. The research found almost no community rule packs for agent
-commands: 1 Codex execpolicy repo, with 1 star. The ideas below are
-options, not plans:
+### Test 3: hook authority and coverage, version-pinned, with a non-executing stub
 
-1. **Tags that security people use**: MITRE ATT&CK IDs and the OWASP
-   Agentic Top 10 (ASI02, ASI05).
-2. **A benchmark built on corpora Caro did not write**:
-   - GuardFall examples, Atomic Red Team commands, AgentDojo.
-   - Publish the corpus and the harness, so others can reproduce the
-     results.
-   - Caro cannot cheaply run vendor judges on a stateless corpus.
-     Single-command tests also favor stateless rules over intent-aware
-     judges. Say both.
-3. **Shadow logs stay local.** Users can share a redacted log by hand. No
-   upload path, so "never leaves your machine" stays true.
-4. **Export to native formats** (Codex `prefix_rule`, Gemini TOML, Claude
-   `permissions`). The export loses detail, and it removes a reason to
-   install Caro. Treat it as reach, not lock-in.
-5. **Standards**: watch the AARTS draft (Gen Digital). Sage, its reference
-   engine, is the closest rival with a large company behind it.
+- **Question:** what does each harness really do with a hook decision?
+- **Method:** install a stub hook that logs its payload and returns a fixed
+  decision. The agent's command is always harmless (`true`).
+- **What to probe, per harness:**
+  - Which of deny, ask and allow is honored.
+  - Behavior on timeout (the stub sleeps past the limit) and on failure
+    (non-zero exit, malformed JSON).
+  - The `cwd` field.
+  - Interactive vs headless runs.
+  - Subagent tool calls.
+  - Custom and MCP tools.
+- **Model calls:** use local-model modes where they exist (Codex `--oss`,
+  OpenCode with a local provider, Copilot BYOK with `COPILOT_OFFLINE=true`).
+  Claude Code needs Anthropic models; a live run there needs an owner
+  decision on paid calls (D8). Without one, record its documented behavior
+  only.
+- **Claude Code specifics:**
+  - Does a hook "allow" skip the classifier?
+  - How do hooks and `tool.check` mods rank against each other?
+- **Copilot CLI:** routed to #1623 (live contract; nested vs top-level
+  `permissionDecision`).
+- **Owner:** `@wildcard`; executing agent caro-integrator (per #1623).
+  `src/guard/**` has no area in `.github/STAKEHOLDERS.yml`, which is a gap
+  to fill.
+- **Depends on:** #1623; #1512 (unknown tool names, timeout detection).
+- **DoD:** a version-pinned matrix (harness × probe) is committed to
+  `docs/coding-agents/`, and ADR-020's adapter table is updated.
 
-## 6. The case against
+### Test 4: clean-cache local setup, offline egress and resource cost
 
-1. **The vendor judge is free, on by default, and sees intent.** Prompt
-   injection and exfiltration need context. A stateless check of one
-   command cannot see it.
-2. **The sandbox is the boundary.**
-   - In late Aug 2026, Johann Rehberger reported a prompt-injection chain
-     that beat Claude auto mode in 60–80% of a small number of runs.
-   - The source is secondary coverage, for example
-     [BankInfoSecurity](https://www.bankinfosecurity.net/hidden-attack-slips-past-claude-code-auto-mode-a-32693).
-     We did not read his post.
-   - Anthropic called auto mode a best-effort convenience, not a security
-     guarantee.
-   - The fix everyone recommends is a sandbox and egress control.
-3. **The deterministic niche is taken.** These tools are free and further
-   ahead:
-   - dcg: ~6.1k stars, 17+ harnesses.
-   - cc-safety-net: MIT, ~1.6k stars, 14+ harnesses.
-   - Sage + AARTS (Gen Digital), HOL Guard (16 harnesses), and Numbat
-     (Perplexity).
-4. **AGPL may slow adoption** as a hook in companies.
-5. **Most hooks cannot fully replace native auto mode.** Many accept only
-   vetoes. Claude Code applies its own deny/ask rules after a hook
-   "allow", and nobody has tested whether "allow" skips its classifier.
-6. **Yolo users chose yolo to avoid prompts.** "Ask on high" brings the
-   prompts back and may get the guard uninstalled.
+- **Question:** does the scoped "fully local" claim hold on a clean machine?
+- **Method:**
+  1. Start from an empty model cache and time the first command.
+  2. Record the download size.
+  3. Block the network and run N `--dry-run` commands with the default
+     embedded backend.
+  4. Count outbound connection attempts.
+  5. Record RSS, p50/p95 latency and disk use.
+- **Control:** the same run with the network on.
+- **Threshold:** zero outbound attempts after the cached download. Any
+  attempt falsifies the claim, and the website copy changes.
+- **Owner:** `@wildcard`; agents `llm-integration-expert` and
+  `macos-unix-systems-expert` (`src/backends/embedded_backend.rs`), and
+  `rust-cli-expert` (`src/cache/**`).
+- **Depends on:** nothing. This is the cheapest test.
+- **DoD:** a script, raw numbers per OS, and the result recorded in the
+  research note.
 
-## 7. Validation status and what breaks at 100 users
+### Test 5: shadow user value and retention
 
-None of the five gates is cleared:
+- **Use the existing spec 011 pilot. Do not invent new metrics.**
+  - 10 opted-in users, 2 weeks.
+  - Cohort: users who pre-approve shell commands.
+- **Reconsider the guard if any of these holds (spec 011):**
+  - fewer than 1 would-be deny/ask per 500 logged commands;
+  - 20% or more of would-be asks are routine (user-labeled);
+  - p95 latency of 500 ms or more.
+- **Quality controls:**
+  - User labels need `caro guard report --label` (#1512).
+  - Logs stay local; users share redacted logs by hand.
+  - Report how many users kept the hook installed at day 14, as a
+    descriptive number only.
+- **Interviews (proposal):** 8 exploratory interviews with
+  bring-your-own-model users. They are not a kill criterion. They count
+  toward Gate 1's 20 transcripts.
+- **#1510 data gates** govern any judge or classifier work that follows.
+- **Owner:** `@wildcard`. Transcripts go to `docs/discovery/transcripts/` via
+  the `caro.discovery` skill. A human runs the interviews.
+- **DoD:** the pilot evaluation is posted on #1512, and transcripts are
+  saved under the anonymization rules.
 
-- **Gate 1: zero transcripts** (`docs/discovery/transcripts/` is empty).
-  The two roles have two cohorts:
-  - **Role 1**: people who already run vendor auto modes, or pre-approved
-    shell access, across at least two harnesses.
-  - **Role 2**: people who bring their own or local models, in harnesses
-    with no vendor judge. This cohort is undefined and unsized.
-- **Selection bias.** Shadow mode attracts safety-minded users. It measures
-  what Caro would block, not what it misses or whether anyone wants it.
+## 5. Prioritized work packet
 
-What breaks at 100 real users:
+| P | Item | Evidence | Benefit | Falsifier | Maintenance cost | Disposition | Stakeholders | DoD |
+|---|---|---|---|---|---|---|---|---|
+| P0 | #1583: factual repair and merge conflicts | 26 review threads; 5 conflicting pages | Public claims match sources | A reviewer finds an unsourced claim | Re-check per refresh | Local fix ready on `review/pr1583-fixes`; push needs owner go | `@wildcard`; technical-writer, dx-product-manager | Threads answered; CI green; no conflicts |
+| P0 | #1597: claims suite calls the real validator | `--validate-only` does not exist; 8 of 12 landing scenarios disagree | Safety claims become testable | Suite stays green while copy is false | One test file | Existing issue; needs copy or pattern decisions | `@wildcard` (safety); qa-testing-expert | Suite fails on a false claim |
+| P0 | #1537: test-target census | 26 of 49 targets run in no workflow (`4a84d09`) | Regression guards run | A new target is silently skipped | CI time | Existing issue; CI-gate decision | `@wildcard` (`.github/workflows/**`) | Every target runs, or is listed with a reason |
+| P1 | #1054, #1614, #1639, #1302: safety core | Measured bypasses; #1614 open | Fewer bypasses | Test 2 | Parser upkeep | One human safety review track | `@wildcard`; safety-pattern-auditor, safety-pattern-developer | Each class fixed or recorded as accepted |
+| P1 | #1623: Copilot CLI live contract | Output shape unverified; silent fail-open risk | Guard works in Copilot | Test 3 | One adapter | Existing issue | `@wildcard`; caro-integrator | Live result documented |
+| P1 | #1512 / spec 011: guard delta and pilot | Kill criteria exist | Evidence before positioning | Tests 1 and 5 | Log and labels | Existing tracking issue | `@wildcard` | Pilot evaluated |
+| P2 | Discovery before any engine work | Gate 1 has 0 transcripts | Real demand signal | Interviews find no pain | Human time | Proposal; respects #1510 gates | `@wildcard`; `caro.discovery` | Transcripts saved; ledger updated |
 
-- **Latency and memory:** a local judge per tool call, on machines that
-  already run a local model.
-- **Fail direction:** Grok Build and Defender fail open on timeout. An
-  approver that fails open is worse than none.
-- **Friction:** too many "ask" verdicts and users uninstall.
-- **Rule churn:** CVE rules are compiled into the binary, so each rule
-  update needs a release.
-- **Hook drift:** each harness changes its hook semantics on its own
-  schedule.
+## 6. The case against (kept for honesty)
 
-## 8. Cheap falsifiers (run these before building anything new)
+1. In Claude Code and Cursor, the vendor judge is free, on by default and
+   sees intent. Claude Code also has built-in critical-path protections.
+2. Vendors say the sandbox is the boundary. Prompt-injection chains have
+   beaten LLM auto modes (late Aug 2026, secondary coverage).
+3. cc-safety-net (MIT, 16 harnesses) and dcg are further ahead on reach.
+4. Some companies avoid AGPL code, even as a local hook.
+5. Many harnesses accept only vetoes from a hook.
+6. Users chose auto modes to avoid prompts; extra asks may get the guard
+   uninstalled.
 
-1. **Allow-capability spike (1 day).** In each harness in §4, check that a
-   hook "allow" is honored and removes a prompt. If it fails, Role 2's
-   target list collapses.
-2. **Delta test.** Replay a week of #1513 shadow traffic through dcg and
-   cc-safety-net. If Caro's deny/ask set is not larger, Role 1 has no
-   differentiation.
-3. **Bypass test.** Run the GuardFall corpus and the Roo CVE class
-   against today's validator.
-4. **Claude test (1 hour).** Check whether a `PreToolUse` "allow" skips
-   the auto-mode classifier.
-5. **Eight interviews** with OpenCode, Cline or Crush users who bring
-   their own model. If half already run dcg or a sandbox, Role 2 is dead.
+## 7. Decisions for the owner (choices, none approved)
 
-## 9. Decisions for the owner
-
-| # | Decision | Default |
-|---|---|---|
-| 1 | Warp messaging after Warp open-sourced its client | Lead with "fully open, fully local". This holds: the code is AGPL-3.0, and the default model (Qwen2.5-Coder 1.5B) is Apache-2.0. Keep "keep your terminal" as the supporting line. |
-| 2 | Compete with dcg and cc-safety-net, or interoperate | **Undecided until the delta test (§8.2).** cc-safety-net (MIT), Dippy (MIT) and safe-chains (Apache-2.0) can be reused legally. dcg's license rider blocks reuse. |
-| 3 | License rule packs separately (e.g. CC BY 4.0) | **Defer.** There are no contributors yet, and GPL-3.0 sources (GTFOBins) would conflict. This needs a human: it is a licensing decision. |
-| 4 | What to build first | **Role 1 as instrumentation only** (#1513, shadow mode). Gate parser and judge work on the falsifiers in §8. |
-| 5 | Recurring competitive refresh | Monthly re-check of `/compare` facts, quarterly discovery sweep. |
-
-The devil's-advocate review that shaped this revision is posted on PR #1583.
+| # | Decision | Options | Default |
+|---|---|---|---|
+| D1 | Lead message | (a) scoped "fully open, fully local"; (b) "keep your terminal"; (c) hold | (a), with (b) as the supporting line |
+| D2 | Positioning | (a) local-by-default shell specialist with bundled checks; (b) cross-harness engine now | (a) |
+| D3 | `caro guard` mode | (a) shadow-only until the spec 011 pilot passes; (b) recommend enforce now | (a); new features opt-in and experimental |
+| D4 | cc-safety-net and dcg | (a) coexist until test 1; (b) compete; (c) interoperate now | (a) |
+| D5 | Rule-pack license | (a) defer; (b) decide now | (a) |
+| D6 | dcg | (a) docs-only comparison; (b) seek a human license-eligibility decision to test it | (a) |
+| D7 | Refresh cadence | (a) route through Hermes, the integrator, coder-loop and QA as in the watchlist; (b) a new routine | (a); wiring it into agent instructions is a separate change |
+| D8 | Paid vendor calls for test 3 (Claude Code) | (a) docs only; (b) approve a capped live run | (a) |
+| D9 | Test corpus and interviews | (a) adopt the 400-case corpus and 8 interviews as proposals; (b) other | (a), not as graduation thresholds |
+| D10 | Push the local fixes to PR #1583 | (a) after review of the local patch; (b) hold | (a) |
 
 ## Open items
 
-- `GUARDIAN_AGENT.md` says "62+" patterns; `CLAUDE.md` and the website
-  say "52+". Count the patterns once and align both.
+- `GUARDIAN_AGENT.md` and `CLAUDE.md` still say "CRITICAL, HIGH, MEDIUM,
+  LOW". The code uses Safe/Moderate/High/Critical. `GUARDIAN_AGENT.md` also
+  says "62+" patterns, while other files say "52+". Align them in a separate
+  change.
+- `src/guard/**` has no entry in `.github/STAKEHOLDERS.yml`.

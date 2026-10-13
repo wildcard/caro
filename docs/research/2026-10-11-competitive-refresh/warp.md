@@ -1,5 +1,10 @@
 # Warp fact-check for the Caro vs Warp pages (as of 2026-10-11)
 
+> **Corrections, 2026-10-13** (PR #1583 review and owner-supplied sources). Inline text below is corrected where marked. Where this note and the corrections disagree, the corrections win.
+>
+> - **Routing is scoped, not universal.** Warp's custom-endpoint docs (re-read 2026-10-11) say prompts, context, the endpoint and the key transit Warp in the documented **personal custom-endpoint flow**, and that private/localhost URLs are rejected (https://docs.warp.dev/agents/inference/custom-inference-endpoint/). The BYOK page describes its own flow (https://docs.warp.dev/agents/inference/bring-your-own-api-key/). Warp's pricing page and FAQ wording differs between snapshots, and Enterprise BYOLLM has exceptions (https://www.warp.dev/pricing). Do not publish "every Warp AI request goes through Warp's servers". Rows 2 and 3 and the "Fully offline or local" note below overstate this; read them as limited to the documented personal endpoint/BYOK flows, pending a dated exact-source packet.
+> - **Accounts:** the Warp app works without an account; the Agent CLI authenticates separately (login or `WARP_API_KEY`).
+
 **Needs you:** Our Warp pages are wrong on 5 claims: open source, cross-platform, rule-based safety, existing terminal, and model-agnostic. These claims are still correct: cloud required for AI, no offline/air-gapped use, telemetry on by default (Free and individual plans).
 
 Pages that make these claims:
@@ -91,7 +96,7 @@ Method: every claim was checked against warp.dev, docs.warp.dev, the warpdotdev 
 
 ### 5. Safety and command approval
 - **Autonomy options:** Each action type (apply diffs, read files, create plans, execute commands, interact with running commands, MCP) has Agent decides / Always ask / Always allow / Never. Applying diffs under "Agent decides" behaves like "Always ask".
-- **Allowlist and denylist:** Both are regex lists. The allowlist starts empty. The denylist overrides the allowlist and "Agent decides", so a match always needs approval.
+- **Allowlist and denylist:** Both are regex lists. The allowlist starts empty. In normal autonomy modes, the denylist overrides the allowlist and "Agent decides", so a match needs approval (corrected 2026-10-13, thread T19; see the auto-approve bypass below).
 - **Auto-approve bypass:** Auto-approve / "Run until completion" bypasses the user denylist by default. To stop that:
   - App: Settings > Agents > Warp Agent > Input.
   - CLI: `auto_approve_bypasses_command_denylist = false`.
