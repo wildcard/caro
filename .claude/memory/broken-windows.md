@@ -396,60 +396,6 @@ builds after the merge are READY (`cmdai` is already red, #1562).
 **Next step:** owner approves the sharp 0.35.5 bump in `changelog/`. #1608 (BW-071) and
 #1620 (BW-069) delete the other four lockfiles.
 
-(Entries still on open PR branches: BW-020 #1221, BW-021 #1165, BW-022 #1162 and BW-023 #1163 on the #1522 branch; BW-024 #1530 and BW-025 #1533 on the #1532 branch.)
-
-### BW-026: `Install` workflow red on main: setup.sh reports success with no binary
-
-**Found:** 2026-10-07 sweep (red on every main push since at least 2026-04-30)
-**Issue:** #1340
-**Status:** claimed-by sweep/2026-10-07-BW-026 (#1539). Root cause: the cleanup step deletes `~/.cargo/bin/caro`, but cargo's metadata still lists caro. `cargo install` then prints "already installed" and exits 0, so setup.sh says "Installed" and `caro --help` exits 127. Real users who delete the binary hit the same thing.
-**Needs human?:** no
-**Next step:** merge the PR.
-
-### BW-027: CI never runs 23 of 46 integration test targets
-
-**Found:** 2026-10-07 sweep
-**Issue:** #1537
-**Status:** open
-**Needs human?:** yes (CI gate). Options are in the issue: run `cargo test --tests`, or fail when a target is not named in a workflow.
-**Next step:** maintainer picks an option on #1537.
-
-### BW-028: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
-
-**Found:** 2026-10-07 sweep (issue filed 2026-10-03)
-**Issue:** #1508
-**Status:** open
-**Needs human?:** no
-**Next step:** add the missing locale files (English fallback content), or run the translate workflow.
-
-### BW-029: hybrid sanitizer lets paths with spaces and inline credentials reach the remote
-
-**Found:** 2026-10-07 sweep (issue filed 2026-10-03)
-**Issue:** #1518
-**Status:** open
-**Needs human?:** yes. The issue marks it as a privacy-policy surface: the owner confirms what may leave the machine.
-**Next step:** owner decides; then add failing cases for both inputs in `src/backends/hybrid/sanitizer.rs` and widen the redaction rules.
-
-### BW-030: static matcher "Find Python files (simple)" swallows content searches
-
-**Found:** 2026-10-07 sweep (issue filed 2026-10-03)
-**Issue:** #1516
-**Status:** claimed-by claude/blissful-archimedes-sl737k (#1517)
-**Needs human?:** no
-**Next step:** merge #1517.
-
----
-
-## Dedup pending (2026-10-07)
-
-The session's permission classifier refused the close again. The 2026-10-03
-dedup groups (a table, separate from the BW entries) are on the #1522 branch.
-New since then:
-
-| Canonical | Duplicates |
-|---|---|
-| #1269 | #1523 (same CPU-stub root cause: the stub matches "rm" in the system prompt) |
-
 ---
 
 ## Dedup done (2026-10-09)
@@ -469,9 +415,9 @@ waitlist/playbook locale files; #1508 is the CI symptom of both).
 
 **Found:** 2026-10-11, broken-window sweep (main health)
 **Issue:** #1340. The cleanup step deletes `~/.cargo/bin/caro` but not cargo's install record. `setup.sh` runs `cargo install caro`, which prints "already installed" and installs nothing.
-**Status:** fixed (#1605, merged 2026-10-11). Install runs on main are green since `ee69deea`.
-**Needs human?:** no (test-step fix; no gate changes)
-**Next step:** none. Delete after 2026-10-18.
+**Status:** CI fixed (#1605, merged 2026-10-11). Install runs on main are green since `ee69deea`. The user-facing half is open: `setup.sh` still reports success when cargo skips the install and no binary exists. Claimed by sweep/2026-10-07-BW-026 (#1539), which also runs `tests/test_setup.sh` in CI.
+**Needs human?:** yes (#1539 adds a step to `.github/workflows/installer.yml`)
+**Next step:** the owner reviews #1539. Delete this entry after #1539 merges.
 
 
 ### BW-053: an invalid `config.toml` is silently replaced with defaults
@@ -602,3 +548,11 @@ hash before it merges)
 `bin.install` line and ends at the next platform's `sha256` line. Start each
 range at the `url` line only (`/url .*-linux-arm64"/,/sha256/`; #1636 has the
 replay), and fix line 39 of the formula in #1635.
+
+### BW-073: CI never runs 23 of 46 integration test targets
+
+**Found:** 2026-10-07, broken-window sweep (first recorded in #1539; moved here on 2026-10-13)
+**Issue:** #1537
+**Status:** open
+**Needs human?:** yes (adds CI jobs)
+**Next step:** decide which of the 23 targets join `ci.yml`, starting with the 5 contract tests.
