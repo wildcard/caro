@@ -637,6 +637,20 @@ mod tests {
         assert!(OpenAiCompatBackend::new(config).is_ok());
     }
 
+    /// #1647: a hosted judge never relaxes, even pointed at a loopback proxy.
+    #[test]
+    fn hosted_judge_is_never_loopback() {
+        for endpoint in ["https://openrouter.ai/api/v1", "http://127.0.0.1:8080/v1"] {
+            let config = OpenAiCompatConfig {
+                api_key: "test-key".to_string(),
+                endpoint: endpoint.to_string(),
+                ..Default::default()
+            };
+            let backend = OpenAiCompatBackend::new(config).unwrap();
+            assert!(!backend.risk_judge_is_loopback(), "{endpoint}");
+        }
+    }
+
     #[test]
     fn test_parse_valid_json() {
         let config = OpenAiCompatConfig {

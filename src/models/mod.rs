@@ -359,8 +359,9 @@ pub enum ApprovalMode {
     Auto,
     /// Blend the static decision with a bounded LLM "risk judge": relax benign
     /// flagged commands, escalate static-`Safe` commands the judge finds risky.
-    /// A `Critical` static match is never relaxed, and a hosted judge (Grok,
-    /// OpenRouter) may only escalate (`safety::judge_may_relax`).
+    /// A `Critical` static match is never relaxed, and only a judge at a
+    /// loopback endpoint may relax: a hosted judge, or Ollama/vLLM on another
+    /// host, may only escalate (`CommandGenerator::risk_judge_is_loopback`).
     Smart,
 }
 

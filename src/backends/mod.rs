@@ -88,6 +88,15 @@ pub trait CommandGenerator: Send + Sync {
         false
     }
 
+    /// Whether this backend's risk judge runs on this machine: its endpoint
+    /// parses to a loopback host. Only such a judge may *relax* a static
+    /// decision in `--approval smart`; every other judge may only escalate
+    /// (#1647). The default is `false`, so an unknown or hosted judge never
+    /// lowers the static risk and confirmation floor.
+    fn risk_judge_is_loopback(&self) -> bool {
+        false
+    }
+
     /// Act as a "frontier advisor": review and improve a low-confidence draft.
     ///
     /// The default is a no-op (`None`): a backend opts out of advising, so a

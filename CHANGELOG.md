@@ -20,10 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   hosted judges do not get the working directory. `caro guard report` adds a
   "by source" line. `classify_risk` now also works for the `grok` and
   `openrouter` backends. In `--approval smart` these hosted judges may only
-  escalate: they cannot relax a command the static rules flagged (local
-  `ollama`/`vllm` judges keep the two-way blend). Guarded by the `judge_*` tests in `src/guard/mod.rs`
+  escalate: they cannot relax a command the static rules flagged. An
+  `ollama`/`vllm` judge keeps the two-way blend only when its URL parses to a
+  loopback host (`localhost`, `127.0.0.0/8`, `::1`); on any other or
+  unparsable endpoint it may only escalate too (#1647). Guarded by the `judge_*` tests in `src/guard/mod.rs`
   and `ollama_judge_escalates_a_static_pass_to_ask` in `tests/e2e_guard.rs`,
-  and the `hosted_*` tests in `safety::smart_blend_tests`.
+  and the `smart_blend_tests` plus `*_judge_is_loopback_*` backend tests.
 - **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
   carry a `gold_tier`, `uncertain`, `rationale`, `labeller` and `labelled_at`.
   Labelled by an agent session on the owner's decision, blind to the static
