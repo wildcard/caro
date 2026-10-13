@@ -36,7 +36,7 @@ class Caro < Formula
       end
     else
       url "https://github.com/wildcard/caro/releases/download/v#{version}/caro-#{version}-linux-amd64"
-      sha256 "46b0d7429efb5fbcbc283b0e0dab28076c17b05acb65571609887c0c54d401e7"
+      sha256 "4ca6785045d0f709482a7f5ad8222c98ad298ee43b0927a5ab392fea3c11a833"
 
       def install
         bin.install "caro-#{version}-linux-amd64" => "caro"
