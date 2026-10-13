@@ -24,6 +24,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `ollama`/`vllm` judges keep the two-way blend). Guarded by the `judge_*` tests in `src/guard/mod.rs`
   and `ollama_judge_escalates_a_static_pass_to_ask` in `tests/e2e_guard.rs`,
   and the `hosted_*` tests in `safety::smart_blend_tests`.
+- **Segment- and wrapper-aware safety validation (#1054).** The validator
+  now scans each statement of a command line, each statement without its
+  `sudo`/`env`/`timeout`/`nice`/`nohup`/`xargs`/`busybox` prefix, and each
+  `sh -c` / `env -S` / `eval` payload (up to 3 levels deep, with no cap on
+  the number of statements), so `bash -c 'rm -rf /'` and
+  `git status; chmod -R 777 ~` no longer pass. New patterns: recursive
+  world-writable `chmod` and unfiltered `find -delete`/`-exec rm` on root or
+  home (Critical, also in the catastrophic floor; a filtered `find` is High),
+  base64-decoded payload piped into a shell (Critical), `eval` of a variable
+  or of downloaded/decoded
+  content (High), other `eval "$(…)"` (Moderate), and interpreter one-liners
+  deleting root, home or a system directory (High). `python` patterns now
+  match `python3`. `echo`/`printf` arguments are never unwrapped, also
+  inside a payload (`bash -c 'echo rm -rf /'` stays allowed). Guarded by
+  `tests/safety_segment_evasion_contract.rs` and
+  `enforce_catches_segment_and_wrapper_evasions` in `tests/e2e_guard.rs`.
 - **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
   carry a `gold_tier`, `uncertain`, `rationale`, `labeller` and `labelled_at`.
   Labelled by an agent session on the owner's decision, blind to the static
