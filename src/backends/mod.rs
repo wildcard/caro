@@ -89,8 +89,11 @@ pub trait CommandGenerator: Send + Sync {
         false
     }
 
-    /// Whether this backend's risk judge runs on this machine: its endpoint
-    /// parses to a loopback host. Only such a judge may *relax* a static
+    /// Whether this backend's risk judge is configured at a loopback endpoint:
+    /// its URL parses to a loopback host. This is configuration evidence, not
+    /// proof the judge runs on this device (a loopback listener can forward
+    /// elsewhere, and `localhost` resolves through the system resolver).
+    /// Only such a judge may *relax* a static
     /// decision in `--approval smart`; every other judge may only escalate
     /// (#1647). The default is `false`, so an unknown or hosted judge never
     /// lowers the static risk and confirmation floor. Hosted backends keep

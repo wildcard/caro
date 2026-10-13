@@ -112,9 +112,9 @@ impl OllamaBackend {
     /// Create a new Ollama backend
     pub fn new(base_url: Url, model_name: String) -> Result<Self, GeneratorError> {
         let mut builder = Client::builder().timeout(Duration::from_secs(30));
-        // A loopback endpoint is reached directly, never through a proxy or
-        // a redirect, so the host `risk_judge_is_loopback` checks is the host
-        // the request reaches (#1647).
+        // A loopback endpoint is connected to directly: no proxy and no
+        // redirect may send the request to a host other than the configured
+        // one (#1647). What listens on that loopback port is not verified.
         if crate::safety::is_loopback_endpoint(base_url.as_str()) {
             builder = builder
                 .no_proxy()
