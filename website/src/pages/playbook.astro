@@ -91,7 +91,7 @@ const repo = 'https://github.com/wildcard/caro';
 >
   <Navigation />
 
-  <main class="playbook">
+  <main id="main-content" class="playbook">
     <header class="hero">
       <p class="eyebrow">Founder Playbook</p>
       <h1>Where Caro is on the founder arc</h1>
@@ -203,7 +203,7 @@ const repo = 'https://github.com/wildcard/caro';
     text-transform: uppercase;
     letter-spacing: 0.12em;
     font-size: 0.85rem;
-    color: var(--accent);
+    color: var(--accent-text);
     margin-bottom: 0.75rem;
   }
 
@@ -218,6 +218,12 @@ const repo = 'https://github.com/wildcard/caro';
     line-height: 1.55;
     max-width: 60ch;
     color: var(--fg-muted);
+  }
+
+  .subtitle a {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .playbook h2 {
@@ -241,7 +247,7 @@ const repo = 'https://github.com/wildcard/caro';
   .stage-grid {
     display: grid;
     gap: 1.25rem;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
   }
 
   .stage {
@@ -285,8 +291,8 @@ const repo = 'https://github.com/wildcard/caro';
   }
 
   .status--current {
-    background: var(--accent);
-    color: var(--caro-white, #ffffff);
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .status--planned {
@@ -338,7 +344,7 @@ const repo = 'https://github.com/wildcard/caro';
 
   .gates h3::before {
     content: 'Gate ' counter(gate) ' — ';
-    color: var(--accent);
+    color: var(--accent-text);
     font-weight: 500;
   }
 
@@ -359,7 +365,7 @@ const repo = 'https://github.com/wildcard/caro';
 
   .audit a,
   .links a {
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: none;
     border-bottom: 1px solid currentColor;
   }

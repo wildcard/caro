@@ -19,7 +19,7 @@ const { lang } = Astro.params as { lang: Locale };
 >
   <Navigation lang={lang} />
 
-  <div class="credits-page">
+  <main id="main-content" class="credits-page">
     <!-- Opening Crawl / Hero -->
     <section class="credits-hero">
       <div class="stars"></div>
@@ -41,15 +41,15 @@ const { lang } = Astro.params as { lang: Locale };
 
     <!-- Note: Full credits content would be imported from the main credits.astro -->
     <!-- For now, this is a placeholder structure that can be expanded -->
-    <main class="credits-content">
+    <div class="credits-content">
       <section class="credits-section">
         <div class="container">
           <p>Credits content will be localized in future iterations.</p>
           <p><a href="/credits">View English credits page →</a></p>
         </div>
       </section>
-    </main>
-  </div>
+    </div>
+  </main>
 </Layout>
 
 <style>
@@ -67,7 +67,7 @@ const { lang } = Astro.params as { lang: Locale };
     text-align: center;
     padding: 80px 20px;
     overflow: hidden;
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+    background: var(--bg-inverse);
   }
 
   .stars, .twinkling {
@@ -81,20 +81,22 @@ const { lang } = Astro.params as { lang: Locale };
     display: block;
   }
 
+  /* Same star field as the English /credits page (the old /stars.png and
+     /twinkling.png assets do not exist). */
   .stars {
-    background: #000 url('/stars.png') repeat top center;
+    background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle fill="%23FFF" cx="50" cy="50" r="1"/><circle fill="%23FFF" cx="100" cy="30" r="0.5"/><circle fill="%23FFF" cx="150" cy="80" r="1"/><circle fill="%23FFF" cx="30" cy="120" r="0.5"/><circle fill="%23FFF" cx="170" cy="150" r="1"/><circle fill="%23FFF" cx="80" cy="180" r="0.5"/></svg>') repeat;
+    background-size: 200px 200px;
     z-index: 0;
+    animation: twinkle 5s ease-in-out infinite;
   }
 
-  .twinkling {
-    background: transparent url('/twinkling.png') repeat top center;
-    z-index: 1;
-    animation: move-twink-back 200s linear infinite;
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
   }
 
-  @keyframes move-twink-back {
-    from { background-position: 0 0; }
-    to { background-position: -10000px 5000px; }
+  @media (prefers-reduced-motion: reduce) {
+    .stars { animation: none; }
   }
 
   .container {
@@ -109,7 +111,7 @@ const { lang } = Astro.params as { lang: Locale };
   }
 
   .episode {
-    color: #4da6ff;
+    color: #ffd700;
     font-size: 14px;
     letter-spacing: 4px;
     margin-bottom: 20px;
@@ -118,23 +120,24 @@ const { lang } = Astro.params as { lang: Locale };
   h1 {
     font-size: 72px;
     font-weight: 700;
-    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #ffd700;
     margin-bottom: 10px;
   }
 
   .tagline {
     font-size: 24px;
-    color: #ccc;
+    color: #fff;
     font-style: italic;
   }
 
   .intro {
     font-size: 18px;
     line-height: 1.8;
-    color: #ddd;
+    color: #e0e0e0;
+  }
+
+  .intro strong {
+    color: var(--highlight);
   }
 
   .credits-content {
@@ -146,8 +149,9 @@ const { lang } = Astro.params as { lang: Locale };
   }
 
   .credits-section a {
-    color: #ff8c42;
-    text-decoration: none;
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .credits-section a:hover {

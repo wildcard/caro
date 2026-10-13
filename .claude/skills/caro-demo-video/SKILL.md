@@ -209,7 +209,7 @@ shipped MP4 means the video is lying about the product.
 
 ### Baseline manifest
 
-[`demos/remotion-video/.baseline-manifest.json`](../../demos/remotion-video/.baseline-manifest.json)
+[`demos/remotion-video/.baseline-manifest.json`](../../../demos/remotion-video/.baseline-manifest.json)
 is the source of truth. It records:
 
 1. **Tripwire SHAs** — SHA-256 of each watched file at the last
@@ -246,7 +246,7 @@ Default output is JSON; `--human` is for terminals.
 Three independent channels — at least one will catch drift:
 
 1. **CI watcher (path-filtered)** —
-   [`.github/workflows/caro-demo-drift.yml`](../../.github/workflows/caro-demo-drift.yml)
+   [`.github/workflows/caro-demo-drift.yml`](../../../.github/workflows/caro-demo-drift.yml)
    runs `check-drift.sh` on every PR that touches a watched file. If
    drift is detected, the workflow comments on the PR with the specific
    files that changed and links here.

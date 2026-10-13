@@ -1,11 +1,12 @@
 ---
 // GTM Navigation - Minimal, conversion-focused
+import CaroMark from '../icons/CaroMark.astro';
 ---
 
 <nav class="nav">
   <div class="nav-container">
     <a href="/" class="logo">
-      <span class="logo-icon">🐕</span>
+      <CaroMark size={28} />
       <span class="logo-text">caro</span>
     </a>
 
@@ -60,10 +61,6 @@
     color: var(--color-text);
   }
 
-  .logo-icon {
-    font-size: 28px;
-  }
-
   .nav-links {
     display: flex;
     align-items: center;
@@ -93,7 +90,7 @@
   }
 
   .github-link:hover {
-    border-color: #ff8c42;
+    border-color: var(--accent);
   }
 
   .star-count {
@@ -102,8 +99,8 @@
   }
 
   .nav-cta {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     padding: 10px 24px;
     border-radius: 8px;
     text-decoration: none;
@@ -113,8 +110,9 @@
   }
 
   .nav-cta:hover {
+    background: var(--accent-fill-hover);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-fill) 30%, transparent);
   }
 
   @media (max-width: 768px) {
@@ -125,6 +123,11 @@
     .logo {
       font-size: 20px;
     }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-cta { transition: none; }
+    .nav-cta:hover { transform: none; }
   }
 </style>
 

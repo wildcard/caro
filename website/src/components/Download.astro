@@ -15,13 +15,13 @@ const copiedLabel = t(lang, 'common.buttons.copied');
 
 <section id="download" class="download-section">
   <div class="container">
-    <h2>Get Started with Caro</h2>
-    <p class="section-subtitle">Bring your loyal shell companion to your terminal</p>
+    <h2>{t(lang, 'download.title')}</h2>
+    <p class="section-subtitle">{t(lang, 'download.subtitle')}</p>
 
-    <div class="install-tabs">
-      <button class="tab-button active" data-tab="homebrew">Homebrew</button>
-      <button class="tab-button" data-tab="script">Install Script</button>
-      <button class="tab-button" data-tab="cargo">Cargo</button>
+    <div class="install-tabs" lang="en">
+      <button class="tab-button active" data-tab="homebrew" aria-pressed="true" aria-controls="panel-homebrew">Homebrew</button>
+      <button class="tab-button" data-tab="script" aria-pressed="false" aria-controls="panel-script">Install Script</button>
+      <button class="tab-button" data-tab="cargo" aria-pressed="false" aria-controls="panel-cargo">Cargo</button>
     </div>
 
     <div class="install-panels">
@@ -30,7 +30,7 @@ const copiedLabel = t(lang, 'common.buttons.copied');
           <code>brew install wildcard/caro/caro</code>
           <button class="copy-button" data-command="brew install wildcard/caro/caro" data-copy-label={copyLabel} data-copied-label={copiedLabel}>{copyLabel}</button>
         </div>
-        <p class="install-note">Recommended for macOS and Linux with Homebrew</p>
+        <p class="install-note" lang="en" dir="ltr">Recommended for macOS and Linux with Homebrew</p>
       </div>
 
       <div class="install-panel" id="panel-script">
@@ -38,7 +38,7 @@ const copiedLabel = t(lang, 'common.buttons.copied');
           <code>bash &lt;(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)</code>
           <button class="copy-button" data-command="bash <(curl --proto '=https' --tlsv1.2 -sSfL https://setup.caro.sh)" data-copy-label={copyLabel} data-copied-label={copiedLabel}>{copyLabel}</button>
         </div>
-        <p class="install-note">Auto-detects platform and installs the best option</p>
+        <p class="install-note" lang="en" dir="ltr">Auto-detects platform and installs the best option</p>
       </div>
 
       <div class="install-panel" id="panel-cargo">
@@ -46,11 +46,11 @@ const copiedLabel = t(lang, 'common.buttons.copied');
           <code>cargo install caro</code>
           <button class="copy-button" data-command="cargo install caro" data-copy-label={copyLabel} data-copied-label={copiedLabel}>{copyLabel}</button>
         </div>
-        <p class="install-note">Requires Rust. Use <code>--features embedded-mlx</code> for Apple Silicon GPU.</p>
+        <p class="install-note" lang="en" dir="ltr">Requires Rust. Use <code>--features embedded-mlx</code> for Apple Silicon GPU.</p>
       </div>
     </div>
 
-    <p class="binary-intro">Or download pre-built binaries (v{SITE_CONFIG.version}):</p>
+    <p class="binary-intro" lang="en" dir="ltr">Or download pre-built binaries (v{SITE_CONFIG.version}):</p>
 
     <div class="download-options">
       <a href={`${SITE_CONFIG.downloads.baseUrl}/v${SITE_CONFIG.version}/caro-${SITE_CONFIG.version}-macos-silicon`} class="download-link">macOS (Apple Silicon)</a>
@@ -61,34 +61,34 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     </div>
 
     <div class="usage-modes">
-      <h3>Multiple Ways to Use Caro</h3>
+      <h3>{t(lang, 'download.usageModes.title')}</h3>
 
       <div class="modes-grid">
         <div class="mode-card">
-          <h4>🔧 Standalone CLI</h4>
+          <h4><span lang="en" dir="ltr"><span class="term-glyph" aria-hidden="true">$</span> Standalone CLI</span></h4>
           <div class="mode-command">
             caro "list files &gt; 100MB"
           </div>
         </div>
 
         <div class="mode-card">
-          <h4>🔌 MCP for Claude <span class="coming-soon">Coming Soon</span></h4>
-          <p>
+          <h4><span lang="en" dir="ltr"><span class="term-glyph" aria-hidden="true">❯</span> MCP for Claude</span> <span class="coming-soon">{t(lang, 'download.comingSoonBadge')}</span></h4>
+          <p lang="en" dir="ltr">
             Add Caro as an MCP server to Claude Desktop and let her handle all shell commands seamlessly.
           </p>
         </div>
 
         <div class="mode-card">
-          <h4>✨ Dedicated Skill <span class="available-now">Available Now</span></h4>
-          <p>
+          <h4><span lang="en" dir="ltr"><span class="term-glyph" aria-hidden="true">▸</span> Dedicated Skill</span> <span class="available-now">{t(lang, 'common.status.availableNow')}</span></h4>
+          <p lang="en" dir="ltr">
             Use Caro as a Skill to offload shell command generation and execution while Claude focuses on your work. Install with <code>/plugin install wildcard/caro</code>
           </p>
         </div>
       </div>
 
       <div class="quick-start">
-        <h3>Quick Start</h3>
-        <div class="quick-start-steps">
+        <h3>{t(lang, 'download.quickStart.title')}</h3>
+        <div class="quick-start-steps" lang="en" dir="ltr">
           <p>After installing, just use Caro:</p>
           <div class="quick-start-command">
             caro "find all python files modified in the last 7 days"
@@ -102,17 +102,47 @@ const copiedLabel = t(lang, 'common.buttons.copied');
 
 <style>
   .download-section {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     text-align: center;
   }
 
+  /* Red band: every text uses --on-accent at full strength. White at 80-90%
+     opacity, or on a white tint, drops below 4.5:1 on --accent-fill. */
   .download-section h2 {
-    color: white;
+    color: var(--on-accent);
   }
 
   .download-section .section-subtitle {
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--on-accent);
+  }
+
+  .term-glyph {
+    font-family: var(--font-mono);
+    font-weight: 700;
+  }
+
+  /* Commands read left-to-right on RTL pages too. */
+  .install-command code,
+  .install-note code,
+  .mode-command,
+  .quick-start-command,
+  .mode-card code {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  .mode-command,
+  .quick-start-command {
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .copy-button:focus-visible,
+  .tab-button:focus-visible,
+  .download-link:focus-visible {
+    outline: 3px solid var(--on-accent);
+    outline-offset: 2px;
   }
 
   .install-command {
@@ -126,16 +156,20 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
   }
 
   .install-command code {
-    color: #fff;
+    min-width: 0;
+    color: var(--on-accent);
+    overflow-wrap: anywhere;
   }
 
   .copy-button {
+    flex-shrink: 0;
     background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: var(--on-accent);
     padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
@@ -155,10 +189,13 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     max-width: 600px;
   }
 
+  /* Segmented control: outlined white label on the red band; the active
+     tab inverts to a white chip with --accent-fill ink (same pair as
+     the CTA, reversed). Hover darkens rather than whitening the fill. */
   .tab-button {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: rgba(255, 255, 255, 0.8);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    color: var(--on-accent);
     padding: 10px 24px;
     border-radius: 6px;
     cursor: pointer;
@@ -168,14 +205,14 @@ const copiedLabel = t(lang, 'common.buttons.copied');
   }
 
   .tab-button:hover {
-    background: rgba(255, 255, 255, 0.25);
-    color: white;
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--on-accent);
   }
 
   .tab-button.active {
-    background: rgba(255, 255, 255, 0.3);
-    color: white;
-    border-color: rgba(255, 255, 255, 0.5);
+    background: var(--on-accent);
+    color: var(--accent-fill);
+    border-color: var(--on-accent);
   }
 
   .install-panels {
@@ -192,7 +229,7 @@ const copiedLabel = t(lang, 'common.buttons.copied');
 
   .install-note {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--on-accent);
     margin-top: 10px;
     text-align: center;
   }
@@ -218,9 +255,11 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     flex-wrap: wrap;
   }
 
+  /* White chip, --accent-fill ink: 5.0:1 in both modes (--accent-hover
+     was 4.2:1 light / 4.0:1 dark). */
   .download-link {
-    background: white;
-    color: #ff6b35;
+    background: var(--on-accent);
+    color: var(--accent-fill);
     padding: 14px 30px;
     border-radius: 8px;
     text-decoration: none;
@@ -229,6 +268,8 @@ const copiedLabel = t(lang, 'common.buttons.copied');
   }
 
   .download-link:hover {
+    color: var(--accent-fill-hover);
+    text-decoration: underline;
     transform: translateY(-2px);
   }
 
@@ -270,8 +311,10 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     margin-top: 30px;
   }
 
+  /* A dark tint keeps white text above 4.5:1; a white tint fell to 4.47:1. */
   .mode-card {
-    background: rgba(255, 255, 255, 0.1);
+    min-width: 0;
+    background: rgba(0, 0, 0, 0.15);
     padding: 25px;
     border-radius: 8px;
   }
@@ -298,7 +341,7 @@ const copiedLabel = t(lang, 'common.buttons.copied');
 
   .quick-start {
     margin-top: 50px;
-    text-align: left;
+    text-align: start;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
@@ -326,24 +369,30 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     font-family: monospace;
   }
 
+  /* Outlined pill (white on the dark-tinted card), and a solid safe-green
+     chip with dark ink (5.4:1 light / 9.6:1 dark). */
   .coming-soon {
+    display: inline-block;
     font-size: 12px;
-    background: rgba(255, 255, 255, 0.3);
-    padding: 3px 8px;
+    background: transparent;
+    border: 1px solid var(--on-accent);
+    color: var(--on-accent);
+    padding: 2px 8px;
     border-radius: 12px;
-    font-weight: 500;
-    margin-left: 8px;
+    font-weight: 600;
+    margin-inline-start: 8px;
     white-space: nowrap;
   }
 
   .available-now {
+    display: inline-block;
     font-size: 12px;
-    background: rgba(76, 175, 80, 0.2);
-    color: rgba(255, 255, 255, 0.95);
+    background: var(--status-safe);
+    color: var(--caro-grey-950);
     padding: 3px 8px;
     border-radius: 12px;
-    font-weight: 500;
-    margin-left: 8px;
+    font-weight: 600;
+    margin-inline-start: 8px;
     white-space: nowrap;
   }
 
@@ -353,8 +402,7 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     border-radius: 4px;
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 0.9em;
-    color: rgba(255, 255, 255, 0.95);
-    white-space: nowrap;
+    color: var(--on-accent);
   }
 
   /* Tablet breakpoint */
@@ -384,7 +432,7 @@ const copiedLabel = t(lang, 'common.buttons.copied');
   /* Mobile breakpoint */
   @media (max-width: 600px) {
     .download-section {
-      text-align: left;
+      text-align: start;
     }
 
     .download-section h2,
@@ -412,7 +460,7 @@ const copiedLabel = t(lang, 'common.buttons.copied');
     .install-command {
       flex-direction: column;
       gap: 12px;
-      text-align: left;
+      text-align: start;
       padding: 16px;
       max-width: 100%;
     }
@@ -523,8 +571,12 @@ const copiedLabel = t(lang, 'common.buttons.copied');
         const tabId = button.getAttribute('data-tab');
 
         // Update active tab button
-        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabButtons.forEach(btn => {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-pressed', 'false');
+        });
         button.classList.add('active');
+        button.setAttribute('aria-pressed', 'true');
 
         // Update active panel
         document.querySelectorAll('.install-panel').forEach(panel => {
