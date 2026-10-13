@@ -93,7 +93,9 @@ pub trait CommandGenerator: Send + Sync {
     /// parses to a loopback host. Only such a judge may *relax* a static
     /// decision in `--approval smart`; every other judge may only escalate
     /// (#1647). The default is `false`, so an unknown or hosted judge never
-    /// lowers the static risk and confirmation floor.
+    /// lowers the static risk and confirmation floor. Hosted backends keep
+    /// `false` whatever their URL, so this means "may relax", not only
+    /// "the URL is loopback".
     fn risk_judge_is_loopback(&self) -> bool {
         false
     }

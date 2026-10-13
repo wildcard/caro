@@ -398,3 +398,78 @@ async fn loopback_vllm_judge_bypasses_an_http_proxy() {
     });
     assert_judge_bypasses_proxy("vllm", "vllm_url", "/v1/chat/completions", body).await;
 }
+
+/// #1647: a loopback judge never follows a redirect, so a local listener
+/// cannot hand the command to another host. The second server stands in for
+/// a remote host; it must get no request.
+#[cfg(all(feature = "remote-backends", not(windows)))]
+async fn assert_judge_ignores_redirect(judge: &str, url_key: &str, route: &str, body: Value) {
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    let elsewhere = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path(route))
+        .respond_with(ResponseTemplate::new(200).set_body_json(body))
+        .expect(0)
+        .mount(&elsewhere)
+        .await;
+    let local = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path(route))
+        .respond_with(
+            ResponseTemplate::new(307)
+                .insert_header("location", format!("{}{route}", elsewhere.uri()).as_str()),
+        )
+        .mount(&local)
+        .await;
+
+    let home = TempDir::new().unwrap();
+    let toml = format!("[backends]\n{url_key} = \"{}\"\n", local.uri());
+    for dir in [
+        home.path().join("config").join("caro"),
+        home.path().join("Library/Application Support/caro"),
+    ] {
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("config.toml"), &toml).unwrap();
+    }
+    let log = home.path().join("d.jsonl");
+    let out = guard(
+        &home,
+        &[
+            "--harness",
+            "generic",
+            "--mode",
+            "enforce",
+            "--judge",
+            judge,
+            "--log",
+            log.to_str().unwrap(),
+        ],
+        r#"{"command":"ls -la"}"#,
+    );
+    let rec = last_record(&log);
+    assert_eq!(
+        rec["source"], "static+judge_error",
+        "{judge}: {:?} {rec}",
+        out
+    );
+    assert_eq!(out.status.code(), Some(0), "{judge}: {:?}", out);
+    // `expect(0)` on `elsewhere` is verified when it drops.
+}
+
+#[cfg(all(feature = "remote-backends", not(windows)))]
+#[tokio::test(flavor = "multi_thread")]
+async fn loopback_ollama_judge_ignores_a_redirect() {
+    let body = serde_json::json!({ "response": HIGH_VERDICT, "done": true });
+    assert_judge_ignores_redirect("ollama", "ollama_url", "/api/generate", body).await;
+}
+
+#[cfg(all(feature = "remote-backends", not(windows)))]
+#[tokio::test(flavor = "multi_thread")]
+async fn loopback_vllm_judge_ignores_a_redirect() {
+    let body = serde_json::json!({
+        "choices": [{ "message": { "role": "assistant", "content": HIGH_VERDICT } }]
+    });
+    assert_judge_ignores_redirect("vllm", "vllm_url", "/v1/chat/completions", body).await;
+}

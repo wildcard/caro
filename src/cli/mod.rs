@@ -1418,7 +1418,7 @@ mod tests {
         let mut ctx = high_ctx();
         ctx.static_risk = RiskLevel::Safe;
         let d = smart_decision(&judge, "ls", &ctx, SafetyLevel::Moderate, false).await;
-        assert!(d.requires_confirmation || d.blocked, "{d:?}");
+        assert!(d.requires_confirmation && !d.blocked, "{d:?}");
     }
 
     #[test]
