@@ -372,6 +372,16 @@ fn workflow_is_manual_only_and_publication_is_off_by_default() {
     let raw = fs::read_to_string(root().join(WORKFLOW)).unwrap();
     assert!(!raw.contains("softprops/action-gh-release"));
     assert!(!raw.contains("--clobber"));
+    // The build job runs code from a tag: no cache may be saved from it.
+    for (_, j) in get(&wf, "jobs").as_mapping().unwrap() {
+        for st in steps(j) {
+            let uses = st.get("uses").and_then(Value::as_str).unwrap_or("");
+            assert!(
+                !uses.contains("cache") && !uses.contains("setup-rust"),
+                "no cache may be saved from a job that builds tag source: {uses}"
+            );
+        }
+    }
 }
 
 #[test]
