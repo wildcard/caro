@@ -22,7 +22,7 @@ Legend: **[V]** = verified on a primary page in this session. **[S]** = secondar
    - goose Smart Approve uses the user's own configured provider, so it is provider-agnostic.
 3. There is no cross-harness policy standard. There IS de facto convergence on the Claude Code `PreToolUse` hook shape
    (stdin JSON with `tool_name`/`tool_input`; stdout `permissionDecision`; exit 2 = block). Copilot, Cursor, Grok Build and VS Code even read `.claude/settings.json` hooks directly.
-4. Two free, popular, multi-harness deterministic guards already exist: **dcg** (Rust, ~6.1k stars) and **cc-safety-net** (MIT, ~1.6k stars, 15+ CLIs).
+4. Two free, popular, multi-harness deterministic guards already exist: **dcg** (Rust, ~6.1k stars) and **cc-safety-net** (MIT, ~1.6k stars, 15+ CLIs on 2026-10-11; 16 harnesses per its README on 2026-10-13).
 5. Vendors and researchers agree that neither a classifier nor a regex list is a security boundary. The OS sandbox and egress control are.
 
 ## Comparison table
@@ -88,7 +88,7 @@ Legend: **[V]** = verified on a primary page in this session. **[S]** = secondar
 | Project | Licence | Size | Coverage | Approach |
 |---|---|---|---|---|
 | **dcg** (Destructive Command Guard), github.com/Dicklesworthstone/destructive_command_guard | "custom" (LICENSE file; earlier write-ups say MIT) [V]/[S] | ~6.1k stars, Rust | Claude Code, Codex (`~/.codex/hooks.json`), Gemini CLI, Copilot CLI, VS Code Copilot, Cursor, Grok, Antigravity, OpenCode, Crush, Pi, Hermes… [V] | Deterministic; 50+ packs; severity levels; rule modes deny/warn/log/ask; per-agent profiles; no LLM. Default-allow for unmatched commands. [V] |
-| **cc-safety-net**, github.com/kenryu42/claude-code-safety-net | MIT [V] | ~1.6k stars, TypeScript/Bun | 15+ CLIs incl. Amp, Antigravity, Claude Code, Codex, Cursor, Devin CLI, Factory, Gemini CLI, Copilot CLI, Grok, Kimi, OpenCode [V] | Parses commands (sees through `bash -c`, `python -c`); secret-path protection; rulebooks (Terraform, AWS, gcloud, Azure); presets; "not a sandbox". [V] |
+| **cc-safety-net**, github.com/kenryu42/claude-code-safety-net | MIT [V] | ~1.6k stars, TypeScript/Bun | 15+ CLIs (16 on 2026-10-13) incl. Amp, Antigravity, Claude Code, Codex, Cursor, Devin CLI, Factory, Gemini CLI, Copilot CLI, Grok, Kimi, OpenCode [V] | Parses commands (sees through `bash -c`, `python -c`); secret-path protection; rulebooks (Terraform, AWS, gcloud, Azure); presets; "not a sandbox". [V] |
 
 ## Implications for Caro as a cross-harness auto-mode engine
 
@@ -104,7 +104,7 @@ Legend: **[V]** = verified on a primary page in this session. **[S]** = secondar
 ### Who already covers it
 
 - **Inside each frontier harness:** on-by-default, intent-aware LLM judges (Claude Code, Cursor, Codex, VS Code, Grok, Qwen).
-- **Cross-harness deterministic layer:** dcg and cc-safety-net already install into 12–15 harnesses for free. Caro would enter third into the "destructive-command regex" niche.
+- **Cross-harness deterministic layer:** dcg (source-available) and cc-safety-net (MIT) already install into many harnesses (17+ and 16, per their READMEs). Caro would enter third into the "destructive-command regex" niche.
 - **Hard boundary:** OS sandboxes (Codex default-on; Claude Code `srt`; Cursor; Antigravity).
 
 ### Strongest counter-argument (why a user might not need Caro)
@@ -116,7 +116,7 @@ A Claude Code or Cursor user already has a free judge that is on by default and 
 1. Target BYO-model and local-model setups first, where no vendor judge works.
 2. Ship one policy file that compiles to every hook dialect, plus an ACP client-side decider.
 3. Use a real shell parser, not regex-only matching, to avoid the Roo/Cursor bypass classes.
-4. Publish false-positive rate/false-negative rate on a shared benchmark against dcg, cc-safety-net and vendor judges.
+4. Publish false-positive and false-negative rates on a shared benchmark against cc-safety-net and vendor judges (dcg excluded pending a human license decision; corrected 2026-10-13).
 5. Emit decisions as OTel events for audit.
 
 ## Unverified / gaps

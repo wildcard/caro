@@ -25,17 +25,22 @@ Status values:
 | Warp | Risk level per command | none found | — | 2026-10-11 | unknown |
 | Warp | macOS, Linux, Windows; no BSD build listed | https://docs.warp.dev/getting-started/quickstart/installation-and-setup/ | 2026-10-09 | 2026-10-11 | primary (BSD: absence only) |
 | Warp | GNU/BSD awareness, platform detection | none found | — | 2026-10-13 | unknown |
+| Warp | Single-binary install (use-cases row) | not verified | — | 2026-10-13 | unknown |
 | Copilot CLI | Proprietary "GitHub Copilot CLI License" | https://github.com/github/copilot-cli/blob/main/LICENSE.md | undated | 2026-10-11 | primary |
 | Copilot CLI | BYOK incl. local models; offline needs a local model + `COPILOT_OFFLINE=true`; no GitHub login with own provider | https://github.blog/changelog/2026-04-07-copilot-cli-now-supports-byok-and-local-models/ ; https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-byok-models | 2026-04-07 | 2026-10-11 | primary |
 | Copilot CLI | Local-model discovery installs nothing and does not enable offline mode | https://github.blog/changelog/2026-10-07-discover-local-models-in-github-copilot-cli/ | 2026-10-07 | 2026-10-13 (owner packet) | primary |
 | Copilot CLI | OS sandbox GA | https://github.blog/changelog/2026-10-07-local-sandboxing-for-gitHub-copilot-now-generally-available | 2026-10-07 | 2026-10-13 | primary |
 | Copilot CLI | Sandbox on or off by default | the GA changelog does not say | — | 2026-10-13 | unknown |
 | Copilot CLI | Built-in pattern library; risk levels | none found | — | 2026-10-11 | unknown |
+| Copilot CLI | Install script installs a single `copilot` binary from a release tarball | https://raw.githubusercontent.com/github/copilot-cli/main/install.sh | undated | 2026-10-13 | primary |
+| Copilot CLI | Default asks before possibly dangerous commands (does not block) | https://docs.github.com/en/copilot/responsible-use/copilot-cli | undated | 2026-10-11 | primary |
 | Copilot CLI | Deny rules (`--deny-tool`), hooks | https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/allowing-tools | undated | 2026-10-11 | primary |
 | Copilot CLI | Plans (Free includes the CLI; paid $10–$100, $19–$39/seat; AI Credits since 2026-06) | https://docs.github.com/en/copilot/get-started/plans | undated | 2026-10-11 | primary |
 | Kiro CLI | Closed source (AWS IP License) | https://kiro.dev/license/ | undated | 2026-10-11 | primary |
 | Kiro CLI | Models on Bedrock; no local or custom endpoint listed; sign-in required | https://kiro.dev/docs/models/ ; https://kiro.dev/faq/ | 2026-10-08 | 2026-10-11 | primary |
 | Kiro CLI | `permissions.yaml` deny/ask/allow; read-only commands auto-run | https://kiro.dev/docs/permissions/ | 2026-10-10 | 2026-10-11 | primary |
+| Kiro CLI | Built-in pattern library; risk levels | none found (closed source) | — | 2026-10-13 | unknown |
+| Kiro CLI | Default asks (does not block) for non-read-only commands | https://kiro.dev/docs/permissions/ | 2026-10-10 | 2026-10-11 | primary |
 | Kiro CLI | Paid plans from $20/month | https://kiro.dev/pricing/ | undated | 2026-10-11 | primary |
 | Kiro CLI | Free tier covers the CLI | not confirmed | — | 2026-10-11 | unknown (not published) |
 | OpenCode | MIT | https://github.com/anomalyco/opencode | 2026-10-11 | 2026-10-11 | primary |
@@ -52,3 +57,5 @@ Status values:
 | User controls: `[safety]` custom patterns and allowlist | `src/safety/mod.rs` (`SafetyConfig`) |
 | Default model Qwen2.5-Coder 1.5B, Apache-2.0, downloaded on first use | `src/model_catalog.rs`; `models/qwen2.5-coder-1.5b/README.md`; `src/model_loader.rs` |
 | Telemetry opt-in on GA builds | `src/telemetry/config.rs` |
+| No BSD release build (landing "macOS/Linux/BSD" row is `partial`) | `.github/workflows/release.yml` targets: Linux, macOS, Windows |
+| Claims checked against the real validator (`caro guard --harness generic --mode enforce --no-log`): `rm -rf /` and the fork bomb deny (Critical), `chmod -R 777 /etc` asks (High), `ls -la` no objection | local oracle run, see the validation report |

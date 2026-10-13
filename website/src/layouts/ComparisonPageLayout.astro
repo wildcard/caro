@@ -20,7 +20,8 @@ interface HeadToHeadRow {
   feature: string;
   caro: boolean | string;
   competitor: boolean | string;
-  winner: 'caro' | 'competitor' | 'tie';
+  // 'none': no highlight, e.g. when the competitor value is unknown.
+  winner: 'caro' | 'competitor' | 'tie' | 'none';
 }
 
 interface DetailSection {
@@ -138,6 +139,7 @@ function renderValue(value: boolean | string) {
             </tbody>
           </table>
         </div>
+        <p class="table-legend"><span aria-hidden="true">✓</span> Yes · <span aria-hidden="true">✗</span> No · <span aria-hidden="true">◐</span> Partial or opt-in · <span aria-hidden="true">?</span> Not documented by the vendor</p>
       </div>
     </section>
 
@@ -224,6 +226,7 @@ function renderValue(value: boolean | string) {
 
   .tldr { padding: 50px 20px; background: var(--color-bg-secondary); }
 
+  .table-legend { margin-top: 12px; font-size: 13px; color: var(--color-text-secondary); text-align: center; }
   .verification { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--color-border); font-size: 14px; color: var(--color-text-secondary); }
   .verification p { margin: 0 0 8px; }
   .verification ul { margin: 0; padding-left: 20px; }

@@ -210,7 +210,9 @@ Reference versions seen on 2026-10-11 (re-pin at run time):
 - **Threshold:** zero outbound attempts after the cached download. Any
   attempt falsifies the claim, and the website copy changes.
 - **Owner:** `@wildcard`; agents `llm-integration-expert` and
-  `macos-unix-systems-expert` (`src/backends/embedded_backend.rs`), and
+  `macos-unix-systems-expert` (STAKEHOLDERS glob `src/backends/embedded_backend.rs`;
+  the file is now `src/backends/embedded/embedded_backend.rs`, so that glob is
+  stale and only `src/backends/**` owners apply), and
   `rust-cli-expert` (`src/cache/**`).
 - **Depends on:** nothing. This is the cheapest test.
 - **DoD:** a script, raw numbers per OS, and the result recorded in the
@@ -322,4 +324,5 @@ note):
   LOW". The code uses Safe/Moderate/High/Critical. `GUARDIAN_AGENT.md` also
   says "62+" patterns, while other files say "52+". Align them in a separate
   change.
-- `src/guard/**` has no entry in `.github/STAKEHOLDERS.yml`.
+- `src/guard/**` has no entry in `.github/STAKEHOLDERS.yml`, and the
+  `src/backends/embedded_backend.rs` entry points at a moved file.
