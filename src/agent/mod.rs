@@ -19,14 +19,20 @@ use tracing::{debug, info, warn};
 #[cfg(feature = "knowledge")]
 use crate::knowledge::{default_knowledge_path, KnowledgeIndex};
 
-/// Agent loop for iterative command refinement
+/// Agent loop for iterative command refinement.
+///
+/// The LLM budget is fixed: at most two backend calls per request. The first
+/// call drafts the command. A second call runs only to repair a draft that
+/// fails validation, or to refine a low-confidence or platform-mismatched
+/// draft (the advisor, when configured, may take that second turn instead).
+/// The second call is skipped once half of `timeout` has passed. Guarded by
+/// `tests::llm_passes_are_bounded_*`.
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
     static_matcher: Option<StaticMatcher>,
     validator: CommandValidator,
     context: ExecutionContext,
     directory_context: DirectoryContext,
-    _max_iterations: usize,
     timeout: Duration,
     confidence_threshold: f64,
     /// Optional frontier advisor consulted only on low-confidence drafts
@@ -74,7 +80,6 @@ impl AgentLoop {
             validator,
             context,
             directory_context,
-            _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
             confidence_threshold: 0.8,        // Default: refine if confidence < 80%
             advisor: None,
@@ -1062,6 +1067,76 @@ mod tests {
         assert!(!context.contains("SYSTEM_PROMPT"), "{context}");
         assert!(!context.contains("CRITICAL RULES"), "{context}");
         assert!(context.contains("PLATFORM NOTES"), "{context}");
+    }
+
+    /// Counts `generate_command` calls and always returns the same draft.
+    struct CountingBackend {
+        command: &'static str,
+        confidence: f64,
+        calls: Arc<std::sync::atomic::AtomicUsize>,
+    }
+
+    #[async_trait]
+    impl CommandGenerator for CountingBackend {
+        async fn generate_command(
+            &self,
+            _request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            Ok(mock_command(self.command, self.confidence))
+        }
+        async fn is_available(&self) -> bool {
+            true
+        }
+        fn backend_info(&self) -> BackendInfo {
+            BackendInfo {
+                backend_type: BackendType::Mock,
+                model_name: "counting".to_string(),
+                supports_streaming: false,
+                max_tokens: 100,
+                typical_latency_ms: 1,
+                memory_usage_mb: 0,
+                version: "test".to_string(),
+            }
+        }
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    async fn backend_calls(command: &'static str, confidence: f64) -> usize {
+        let calls = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let backend = CountingBackend {
+            command,
+            confidence,
+            calls: calls.clone(),
+        };
+        let agent = AgentLoop::new(
+            Arc::new(backend),
+            ExecutionContext::detect(),
+            CapabilityProfile::ubuntu(),
+        )
+        .with_static_matcher(false);
+        let _ = agent.generate_command("list files").await;
+        calls.load(Ordering::SeqCst)
+    }
+
+    /// A draft that stays low-confidence gets one refinement, not a loop.
+    #[tokio::test]
+    async fn llm_passes_are_bounded_on_refinement() {
+        assert_eq!(backend_calls("ls", 0.1).await, 2);
+    }
+
+    /// A draft that stays invalid gets one repair, then the request fails.
+    #[tokio::test]
+    async fn llm_passes_are_bounded_on_repair() {
+        assert_eq!(backend_calls("rm -rf /", 0.99).await, 2);
+    }
+
+    /// A confident, valid draft costs one call.
+    #[tokio::test]
+    async fn llm_passes_are_bounded_on_a_good_draft() {
+        assert_eq!(backend_calls("ls", 0.99).await, 1);
     }
 
     fn agent_loop(primary: MockBackend, advisor: Option<Arc<MockBackend>>) -> AgentLoop {

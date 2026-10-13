@@ -42,8 +42,9 @@ a leak. We hold the same line on caro's hot paths:
   acquire/release; checksum verification before any read returns
 - **Embedded backend**: model load → inference → unload, with errors
   returning `GeneratorError` rather than propagating panics through the loop
-- **Agent loop**: hard `_max_iterations: 2` cap and a 15‑second timeout,
-  re‑checked mid‑refinement so a slow backend cannot starve the user
+- **Agent loop**: at most two backend calls per request (a draft, then one
+  repair or refinement). The second call is skipped once half of the
+  15‑second budget is spent. Guarded by `agent::tests::llm_passes_are_bounded_*`
 - **No `unsafe`**: zero `unsafe { }` blocks in the crate; FFI/concurrency
   ride on `tokio`, `Arc`, `Mutex`, `RwLock` and the `regex` crate
 
