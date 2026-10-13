@@ -3103,6 +3103,61 @@ async fn run_evaluation_tests(
     }
 }
 
+/// Subcommands whose extra words fall back to a prompt (refs #1550). Each
+/// one takes no operands, so `caro list files` can only mean a prompt.
+/// `init` and `test` also take no operands, but they select setup and
+/// evaluation modes, so their parse errors stay unchanged.
+const PROMPT_FALLBACK_SUBCOMMANDS: &[&str] = &["list", "doctor", "jobs"];
+
+/// Parse the command line.
+///
+/// Bare-root fallback (refs #1550): when the first word is one of
+/// [`PROMPT_FALLBACK_SUBCOMMANDS`] and clap rejects the plain word right
+/// after it, the whole line is a prompt. So `caro list files` works like
+/// `caro "list files"`. Every other parse error is returned unchanged:
+/// extra operands after a valid call (`caro run deploy prod`,
+/// `caro config set k v extra`) never reach the generator.
+fn parse_cli_from<I, T>(args: I) -> Result<Cli, clap::Error>
+where
+    I: IntoIterator<Item = T>,
+    T: Into<std::ffi::OsString> + Clone,
+{
+    use clap::error::{ContextKind, ContextValue, ErrorKind};
+
+    let args: Vec<std::ffi::OsString> = args.into_iter().map(Into::into).collect();
+    let err = match Cli::try_parse_from(&args) {
+        Ok(cli) => return Ok(cli),
+        Err(err) => err,
+    };
+
+    let (Some(first), Some(second)) = (
+        args.get(1).and_then(|a| a.to_str()),
+        args.get(2).and_then(|a| a.to_str()),
+    ) else {
+        return Err(err);
+    };
+    // The rejected word must be the plain word right after the subcommand
+    // name. These subcommands take no operands, so it is always that word.
+    let rejects_second = err.kind() == ErrorKind::UnknownArgument
+        && !second.starts_with('-')
+        && matches!(
+            err.get(ContextKind::InvalidArg),
+            Some(ContextValue::String(arg)) if arg == second
+        );
+    if !rejects_second || !PROMPT_FALLBACK_SUBCOMMANDS.contains(&first) {
+        return Err(err);
+    }
+
+    // A subcommand can only match as the first argument
+    // (`args_conflicts_with_subcommands`), so `--` there makes it a prompt.
+    let mut as_prompt = args;
+    as_prompt.insert(1, "--".into());
+    match Cli::try_parse_from(as_prompt) {
+        Ok(cli) if cli.command.is_none() => Ok(cli),
+        _ => Err(err),
+    }
+}
+
 #[tokio::main]
 async fn main() {
     // Check for --version (with or without --verbose) before clap parsing
@@ -3119,7 +3174,7 @@ async fn main() {
         process::exit(0);
     }
 
-    let mut cli = Cli::parse();
+    let mut cli = parse_cli_from(std::env::args_os()).unwrap_or_else(|e| e.exit());
 
     // Handle --backend-info as a meta flag (like --version): print the status
     // table and exit without requiring a prompt or touching telemetry/setup.
@@ -4438,6 +4493,121 @@ async fn handle_guard(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Issue #1550 (bounded scope): an unquoted prompt that starts with
+    // `list`, `doctor` or `jobs` ("list files") falls back to a prompt.
+    // Every other parse error keeps clap's original error.
+
+    fn parse(args: &[&str]) -> Result<Cli, clap::Error> {
+        parse_cli_from(std::iter::once("caro").chain(args.iter().copied()))
+    }
+
+    fn words(w: &[&str]) -> Vec<String> {
+        w.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn test_1550_valid_subcommand_still_runs() {
+        let cli = parse(&["list"]).expect("caro list parses");
+        assert!(matches!(
+            cli.command,
+            Some(Commands::List { global: false })
+        ));
+
+        let cli = parse(&["list", "--global"]).expect("caro list --global parses");
+        assert!(matches!(cli.command, Some(Commands::List { global: true })));
+
+        let cli = parse(&["doctor"]).expect("caro doctor parses");
+        assert!(matches!(cli.command, Some(Commands::Doctor)));
+    }
+
+    #[test]
+    fn test_1550_unparsable_subcommand_words_become_a_prompt() {
+        for args in [
+            &["list", "files"][..],
+            &["list", "files", ">", "output.txt"][..],
+            &["doctor", "my", "disk"][..],
+            &["jobs", "for", "today"][..],
+        ] {
+            let cli = parse(args).unwrap_or_else(|e| panic!("{args:?} should parse: {e}"));
+            assert!(cli.command.is_none(), "{args:?} must not run a subcommand");
+            assert_eq!(cli.trailing_args, words(args), "{args:?}");
+        }
+    }
+
+    #[test]
+    fn test_1550_global_flags_unchanged() {
+        // #1163: a global flag before a subcommand name already makes the
+        // words a prompt. The fallback must not change that.
+        let cli = parse(&["--dry-run", "list", "files"]).expect("parses");
+        assert!(cli.dry_run);
+        assert!(cli.command.is_none());
+        assert_eq!(cli.trailing_args, words(&["list", "files"]));
+
+        let cli = parse(&["--shell", "bash", "list", "files"]).expect("parses");
+        assert_eq!(cli.shell.as_deref(), Some("bash"));
+        assert!(cli.command.is_none());
+        assert_eq!(cli.trailing_args, words(&["list", "files"]));
+    }
+
+    #[test]
+    fn test_1550_unknown_subcommand_flag_still_errors() {
+        // Only plain words fall back. A mistyped flag keeps clap's error.
+        let err = parse(&["list", "--globl"]).err().expect("must fail");
+        assert_eq!(err.kind(), clap::error::ErrorKind::UnknownArgument);
+    }
+
+    #[test]
+    fn test_1550_extra_operands_after_valid_calls_keep_the_error() {
+        // The fallback covers only the bare-root case ("list files"). Extra
+        // words after a valid operational or nested call keep clap's
+        // original error, so config operands never reach the generator.
+        let mut rerouted = Vec::new();
+        for args in [
+            &["run", "deploy", "prod"][..],
+            &["config", "set", "k", "v", "extra"][..],
+            &["config", "set", "backend", "token-value", "extra"][..],
+            &["integration", "bash", "extra"][..],
+            &["list", "--global", "files"][..],
+            &["guard", "extra"][..],
+            &["test", "--suite", "x", "extra"][..],
+            &["init", "repo"][..],
+            &["test", "my", "scripts"][..],
+        ] {
+            let original = Cli::try_parse_from(std::iter::once("caro").chain(args.iter().copied()))
+                .err()
+                .unwrap_or_else(|| panic!("{args:?} must be a clap error on its own"));
+            match parse(args) {
+                Err(err)
+                    if err.kind() == original.kind() && err.to_string() == original.to_string() => {
+                }
+                other => rerouted.push(format!("{args:?} => {:?}", other.map(|c| c.trailing_args))),
+            }
+        }
+        assert!(
+            rerouted.is_empty(),
+            "must keep the original error: {rerouted:#?}"
+        );
+    }
+
+    #[test]
+    fn test_1550_fallback_never_sets_flags() {
+        // Words after the fallback point are prompt text, not flags
+        let cli = parse(&["list", "files", "-x"]).expect("parses");
+        assert!(!cli.execute);
+        assert!(cli.command.is_none());
+        assert_eq!(cli.trailing_args, words(&["list", "files", "-x"]));
+    }
+
+    #[test]
+    fn test_1550_help_and_nested_typos_unchanged() {
+        let err = parse(&["list", "--help"]).err().expect("help is an Err");
+        assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);
+
+        // A mistyped nested subcommand keeps its error, it is not a prompt
+        let err = parse(&["config", "bogus"]).err().expect("must fail");
+        assert_eq!(err.kind(), clap::error::ErrorKind::InvalidSubcommand);
+    }
 
     // WP03: Prompt Source Resolution Tests
 
