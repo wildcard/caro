@@ -73,10 +73,11 @@ pub trait CommandGenerator: Send + Sync {
     ///
     /// The default is a no-op (`None`): backends that cannot reliably judge
     /// risk opt out, and the caller falls back to the static decision
-    /// (fail-safe). Implementing this lets a backend relax benign flagged
-    /// commands or escalate static-`Safe` commands it finds dangerous —
-    /// always bounded by the hard floor in
-    /// [`blend_smart_decision`](crate::safety::blend_smart_decision).
+    /// (fail-safe). Implementing this lets a backend escalate static-`Safe`
+    /// commands it finds dangerous, and, only when
+    /// [`risk_judge_is_loopback`](Self::risk_judge_is_loopback) is true,
+    /// relax benign flagged commands — always bounded by the hard floor in
+    /// [`blend_smart_decision_for`](crate::safety::blend_smart_decision_for).
     async fn classify_risk(&self, _command: &str, _ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
         None
     }

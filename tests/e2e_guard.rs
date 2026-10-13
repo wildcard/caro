@@ -330,23 +330,19 @@ async fn ollama_judge_escalates_a_static_pass_to_ask() {
 /// the endpoint Caro checks is the endpoint it talks to. Not on Windows, for
 /// the same config-dir reason as the test above.
 #[cfg(all(feature = "remote-backends", not(windows)))]
-#[tokio::test(flavor = "multi_thread")]
-async fn loopback_judge_bypasses_an_http_proxy() {
+async fn assert_judge_bypasses_proxy(judge: &str, url_key: &str, route: &str, body: Value) {
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     let server = MockServer::start().await;
     Mock::given(method("POST"))
-        .and(path("/api/generate"))
-        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "response": r#"{"risk": "high", "reason": "r", "confidence": 0.9}"#,
-            "done": true
-        })))
+        .and(path(route))
+        .respond_with(ResponseTemplate::new(200).set_body_json(body))
         .mount(&server)
         .await;
 
     let home = TempDir::new().unwrap();
-    let toml = format!("[backends]\nollama_url = \"{}\"\n", server.uri());
+    let toml = format!("[backends]\n{url_key} = \"{}\"\n", server.uri());
     for dir in [
         home.path().join("config").join("caro"),
         home.path().join("Library/Application Support/caro"),
@@ -365,7 +361,7 @@ async fn loopback_judge_bypasses_an_http_proxy() {
             "--mode",
             "enforce",
             "--judge",
-            "ollama",
+            judge,
             "--log",
             log.to_str().unwrap(),
         ],
@@ -380,6 +376,25 @@ async fn loopback_judge_bypasses_an_http_proxy() {
     .output()
     .unwrap();
     let rec = last_record(&log);
-    assert_eq!(rec["source"], "static+judge", "{:?} {rec}", out);
-    assert_eq!(out.status.code(), Some(3), "{:?}", out);
+    assert_eq!(rec["source"], "static+judge", "{judge}: {:?} {rec}", out);
+    assert_eq!(out.status.code(), Some(3), "{judge}: {:?}", out);
+}
+
+#[cfg(all(feature = "remote-backends", not(windows)))]
+const HIGH_VERDICT: &str = r#"{"risk": "high", "reason": "r", "confidence": 0.9}"#;
+
+#[cfg(all(feature = "remote-backends", not(windows)))]
+#[tokio::test(flavor = "multi_thread")]
+async fn loopback_ollama_judge_bypasses_an_http_proxy() {
+    let body = serde_json::json!({ "response": HIGH_VERDICT, "done": true });
+    assert_judge_bypasses_proxy("ollama", "ollama_url", "/api/generate", body).await;
+}
+
+#[cfg(all(feature = "remote-backends", not(windows)))]
+#[tokio::test(flavor = "multi_thread")]
+async fn loopback_vllm_judge_bypasses_an_http_proxy() {
+    let body = serde_json::json!({
+        "choices": [{ "message": { "role": "assistant", "content": HIGH_VERDICT } }]
+    });
+    assert_judge_bypasses_proxy("vllm", "vllm_url", "/v1/chat/completions", body).await;
 }

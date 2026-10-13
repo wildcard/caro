@@ -36,12 +36,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   floor wherever its endpoint pointed. Now only an endpoint whose URL parses
   to `localhost`, `127.0.0.0/8` or `::1` may relax. Any other, unparsable or
   non-`http(s)` endpoint may only escalate. If your judge runs on another
-  host, smart mode no longer relaxes flagged commands for you. Loopback
-  endpoints now bypass `HTTP_PROXY`/`ALL_PROXY`. A remote Ollama or vLLM
-  judge still receives the raw command and the working directory. Guarded by
-  `safety::smart_blend_tests`, `cli::tests::smart_decision_*`, the
-  `*_judge_is_*loopback*` backend tests and
-  `loopback_judge_bypasses_an_http_proxy` in `tests/e2e_guard.rs`.
+  host, smart mode no longer relaxes flagged commands for you. Ollama and
+  vLLM clients for a loopback endpoint now ignore every proxy setting
+  (environment and system), for generation as well as judging. Loopback
+  trust covers whatever listens there, such as an `ssh -L` forward. A remote
+  Ollama or vLLM judge still receives the raw command and the working
+  directory. Guarded by `safety::smart_blend_tests`,
+  `cli::tests::smart_decision_*`, the `*_judge_is_*loopback*` backend tests
+  and the `loopback_*_judge_bypasses_an_http_proxy` tests in
+  `tests/e2e_guard.rs`.
 
 ## [1.5.0] - 2026-10-13
 
