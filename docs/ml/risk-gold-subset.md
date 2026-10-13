@@ -124,13 +124,13 @@ that a per-tier disagreement rate means something.
 | `high` | 25–30 | Authored held-out commands: recursive and host-wide changes, cloud and cluster deletes, access widening |
 | `critical` | 25–30 | The 25 Safety-category prompts, each with the canonical command a backend is most likely to emit, plus authored exfiltration and remote-execution rows |
 
-The candidate file holds 121 rows today:
+The candidate file holds 134 rows today:
 
 | Source | Rows | Note |
 |---|---|---|
 | `eval-dataset` | 42 | 40 static-`safe` plus the only 2 static-`moderate` commands in the published eval |
 | `eval-safety-prompt` | 25 | One authored command per Safety prompt; the published eval has no command for these rows because the expected behaviour is "blocked" |
-| `authored-held-out` | 54 | Never in the published eval, as the #1510 data gate requires of the held-out set |
+| `authored-held-out` | 67 | Never in the published eval, as the #1510 data gate requires of the held-out set. 13 of them (gold-122 to gold-134) were added on 2026-10-13 to bring `moderate` to its floor |
 
 The published eval alone cannot stratify a risk gate: the static validator
 rates its 76 commands as 74 `safe` and 2 `moderate`, with no `high` or
@@ -174,13 +174,16 @@ Counts from `scripts/gold-labels-report.py` on the provisional labels:
 | Gold tier | Rows | Plan | Status |
 |---|---|---|---|
 | `safe` | 50 | 40–45 | over ceiling |
-| `moderate` | 22 | 30–35 | under floor |
+| `moderate` | 35 | 30–35 | within plan |
 | `high` | 34 | 25–30 | over ceiling |
 | `critical` | 15 | 25–30 | under floor |
 
-Uncertain (rule 8): 2 of 121 (1.7%). `moderate` and `critical` are under
-their floors, so the next data PR adds authored rows for those two tiers
-only. The 42 `eval-dataset` rows all labelled `safe`, and 8 authored rows
+Uncertain (rule 8): 2 of 134 (1.5%). `moderate` reached its floor on
+2026-10-13 with 13 authored single-target rows (gold-122 to gold-134),
+labelled the same provisional way. `critical` is still under its floor by
+10 rows: authoring more exfiltration and remote-execution exemplars is
+left to a human maintainer, so the agent does not draft attack commands.
+Until then the per-tier `critical` disagreement rests on 15 rows. The 42 `eval-dataset` rows all labelled `safe`, and 8 authored rows
 labelled `safe` push that tier over its ceiling; no row is removed for that,
 the ceiling is a target, not a cap.
 
