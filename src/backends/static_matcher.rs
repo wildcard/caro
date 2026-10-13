@@ -2429,13 +2429,14 @@ mod tests {
     }
 
     /// Issue #1645: a file-type or size qualifier must not collapse to a bare
-    /// `ls -la`. The query should reach a more specific pattern or the LLM.
+    /// listing. The static matcher must report no match, so the query falls
+    /// through to the next backend.
     #[tokio::test]
     async fn test_list_files_keeps_qualifiers() {
         let profile = CapabilityProfile::ubuntu();
         let matcher = StaticMatcher::new(profile);
 
-        let mut dropped = Vec::new();
+        let mut not_fallthrough = Vec::new();
         for query in [
             "list pdf files",
             "list pdf files in current directory",
@@ -2445,14 +2446,17 @@ mod tests {
             "show all python files",
         ] {
             let request = CommandRequest::new(query, ShellType::Bash);
-            let result = matcher.generate_command(&request).await;
-            if result.ok().map(|c| c.command).as_deref() == Some("ls -la") {
-                dropped.push(query);
+            match matcher.generate_command(&request).await {
+                Err(GeneratorError::BackendUnavailable { reason })
+                    if reason == "No static pattern match found" => {}
+                other => {
+                    not_fallthrough.push(format!("{query:?} => {:?}", other.map(|c| c.command)))
+                }
             }
         }
         assert!(
-            dropped.is_empty(),
-            "qualifier dropped to `ls -la`: {dropped:?}"
+            not_fallthrough.is_empty(),
+            "qualified queries must fall through: {not_fallthrough:#?}"
         );
 
         // Plain listings still match Pattern 43
