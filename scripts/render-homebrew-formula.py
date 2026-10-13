@@ -6,10 +6,16 @@ import sys
 from pathlib import Path
 
 PLATFORMS = ("macos-silicon", "macos-intel", "linux-amd64", "linux-arm64")
+NUMERIC = r"(?:0|[1-9][0-9]*)"
+PRERELEASE = r"(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)"
+VERSION_PATTERN = re.compile(
+    NUMERIC + r"\." + NUMERIC + r"\." + NUMERIC
+    + r"(?:-" + PRERELEASE + r"(?:\." + PRERELEASE + r")*)?"
+    + r"(?:\+[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*)?")
 
 
 def render_formula(source, version, checksums):
-    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?(?:\+[A-Za-z0-9.-]+)?", version):
+    if not VERSION_PATTERN.fullmatch(version):
         raise ValueError("Invalid release version")
     if set(checksums) != set(PLATFORMS):
         raise ValueError("All four platform checksums are required")

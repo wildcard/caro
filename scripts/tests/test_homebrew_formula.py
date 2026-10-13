@@ -48,6 +48,13 @@ class HomebrewFormulaTests(unittest.TestCase):
         self.assertIn('version "1.5.0-rc.1+build.7"', result)
         self.assertEqual(platform_hashes(result), HASHES)
 
+    def test_rejects_malformed_semver_identifiers(self):
+        for version in ("1.5.0+build..7", "1.5.0+build.", "1.5.0+.build",
+                        "1.5.0-rc..1", "01.5.0", "1.5.0-01"):
+            with self.subTest(version=version):
+                with self.assertRaisesRegex(ValueError, "Invalid release version"):
+                    formula.render_formula(self.source, version, HASHES)
+
     def test_invalid_input_leaves_file_unchanged(self):
         with tempfile.TemporaryDirectory(dir=ROOT) as directory:
             path = Path(directory) / "caro.rb"
