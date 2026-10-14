@@ -14,7 +14,7 @@ pub use exo::ExoBackend;
 pub use mesh::MeshBackend;
 pub use ollama::OllamaBackend;
 pub use openai_compat::{OpenAiCompatBackend, OpenAiCompatConfig, Provider};
-pub use vllm::VllmBackend;
+pub use vllm::{ResponseMeta, VllmBackend};
 
 /// Context lengths below this floor risk silently truncating even caro's
 /// short system prompts. Ollama's own default `num_ctx` (2048) sits right
