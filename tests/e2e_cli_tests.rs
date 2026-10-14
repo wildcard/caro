@@ -58,10 +58,15 @@ impl CliTestRunner {
         let deadline = call_deadline();
         let output = run_with_deadline(&mut cmd, deadline);
         if output.timed_out {
+            let tail: String = {
+                let lines: Vec<&str> = output.stderr.lines().collect();
+                lines[lines.len().saturating_sub(20)..].join("\n")
+            };
             panic!(
-                "caro call killed after the {:?} deadline (CARO_E2E_CALL_DEADLINE_SECS). Args: {:?}",
+                "caro call killed after the {:?} deadline (CARO_E2E_CALL_DEADLINE_SECS). Args: {:?}\nLast stderr lines:\n{}",
                 deadline.unwrap_or_default(),
-                args
+                args,
+                tail
             );
         }
 
@@ -129,8 +134,14 @@ struct CallOutput {
 /// Run `cmd` with piped output. When `deadline` passes, kill the child's whole
 /// process group (Unix), so no orphan keeps the job busy, and reap it.
 /// Output is drained on threads so a full pipe cannot block the child.
+/// The own process group also means Ctrl-C on an interactive `cargo test`
+/// does not reach the child; the deadline (or the run's end) stops it.
 fn run_with_deadline(cmd: &mut Command, deadline: Option<Duration>) -> CallOutput {
-    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
+    // stdin is null, as `Command::output()` sets it: caro reads stdin when it
+    // is not a terminal, so an inherited open pipe would block every call.
+    cmd.stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
     #[cfg(unix)]
     {
         use std::os::unix::process::CommandExt;
@@ -236,6 +247,15 @@ mod harness_deadline {
             !alive(grandchild),
             "grandchild {grandchild} survived the deadline"
         );
+    }
+
+    /// caro reads stdin when it is not a terminal, so the child must get
+    /// /dev/null, as `Command::output()` gave it, not the test's stdin.
+    #[test]
+    fn child_stdin_is_null_not_inherited() {
+        let out = run_with_deadline(&mut sh("cat; echo done"), Some(Duration::from_secs(5)));
+        assert!(!out.timed_out, "child blocked reading inherited stdin");
+        assert_eq!(out.stdout, "done\n");
     }
 
     #[test]
