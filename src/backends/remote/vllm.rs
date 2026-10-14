@@ -1582,6 +1582,86 @@ mod fail_closed_tests {
         assert!(legacy.parse_command_response(SALVAGED).is_ok());
     }
 
+    // ---- Verbatim regression from the real 039bb92 trial (data only, never run) ----
+    // Prompt: find python files modified in the last 7 days
+
+    /// Decoded inner model payload, byte for byte. Invalid JSON: the quotes
+    /// around *.py are unescaped.
+    const TRIAL_PAYLOAD: &str = r##"{"cmd": "find / -type f -name "*.py" -mtime -7", "needs_clarification": true, "p": 0.5, "question": "What are the Python files modified in the last 7 days?"}"##;
+    /// What 039bb92 accepted as the command (ends with `?`, no closing quote).
+    const TRIAL_CORRUPTED_039: &str = r##"find / -type f -name "*.py" -mtime -7", "needs_clarification": true, "p": 0.5, "question": "What are the Python files modified in the last 7 days?"##;
+
+    #[test]
+    fn trial_payload_039_baseline_is_the_corrupted_command() {
+        // Baseline: the lenient parser (what 039bb92 ran on the route) returns the
+        // corrupted text. This is the old behavior, kept only outside the route.
+        let legacy =
+            VllmBackend::new(Url::parse("http://127.0.0.1:9").unwrap(), MODEL.to_string()).unwrap();
+        assert_eq!(
+            legacy.parse_command_response(TRIAL_PAYLOAD).unwrap(),
+            TRIAL_CORRUPTED_039
+        );
+    }
+
+    #[test]
+    fn trial_payload_is_a_parse_error_with_no_command() {
+        let err = strict_backend()
+            .parse_strict_reply(TRIAL_PAYLOAD)
+            .unwrap_err();
+        assert!(matches!(err, GeneratorError::ParseError { .. }), "{err:?}");
+    }
+
+    #[test]
+    fn escaped_mixed_shape_is_rejected_at_low_and_high_probability() {
+        let b = strict_backend();
+        for p in ["0.5", "0.9", "0.1", "1.0"] {
+            let raw = format!(
+                r#"{{"cmd": "find / -type f -name \"*.py\" -mtime -7", "needs_clarification": true, "p": {p}, "question": "Which directory?"}}"#
+            );
+            let err = b.parse_strict_reply(&raw).unwrap_err();
+            assert!(
+                matches!(err, GeneratorError::ParseError { .. }),
+                "p={p}: {err:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn escaped_cmd_only_and_clarification_only_are_the_positive_controls() {
+        let b = strict_backend();
+        assert_eq!(
+            b.parse_strict_reply(r#"{"cmd": "find / -type f -name \"*.py\" -mtime -7"}"#)
+                .unwrap(),
+            r#"find / -type f -name "*.py" -mtime -7"#
+        );
+        match b.parse_strict_reply(
+            r#"{"needs_clarification": true, "p": 0.9, "question": "What are the Python files modified in the last 7 days?"}"#,
+        ) {
+            Err(GeneratorError::NeedsClarification { question, .. }) => {
+                assert!(question.unwrap().ends_with('?'));
+            }
+            other => panic!("{other:?}"),
+        }
+        // Below the gate floor there is no command either: a parse error, never `cmd`.
+        assert!(matches!(
+            b.parse_strict_reply(
+                r#"{"needs_clarification": true, "p": 0.5, "question": "Which directory?"}"#
+            ),
+            Err(GeneratorError::ParseError { .. })
+        ));
+    }
+
+    #[tokio::test]
+    async fn trial_payload_through_the_real_backend_yields_no_command() {
+        let err = content_outcome(TRIAL_PAYLOAD).await.unwrap_err();
+        match err {
+            GeneratorError::ParseError { content } => {
+                assert!(content.contains(MODEL), "{content}");
+            }
+            other => panic!("{other:?}"),
+        }
+    }
+
     async fn content_outcome(content: &str) -> Result<GeneratedCommand, GeneratorError> {
         let server = MockServer::start().await;
         healthy(&server).await;
