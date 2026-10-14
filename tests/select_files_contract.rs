@@ -3,7 +3,7 @@
 //! Runs the real binary with a private HOME. Nothing here starts a model,
 //! opens a network connection or executes a generated command: every run is
 //! `--dry-run`.
-#![cfg(unix)]
+#![cfg(target_os = "linux")]
 
 use std::process::{Command, Output};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -245,4 +245,253 @@ fn unknown_backend_names_are_still_rejected() {
         ],
     );
     assert!(!out.status.success());
+}
+
+// ------------------------------------------------ eval route and flags ----
+
+fn tiny_suite(dir: &TempDir) -> std::path::PathBuf {
+    let p = dir.path().join("suite.yaml");
+    std::fs::write(
+        &p,
+        "metadata:\n  name: tiny\n  description: select-files conflict check\ntest_cases:\n  - input: please\n    expected_outputs: [\"x\"]\n    category: edge_case\n",
+    )
+    .unwrap();
+    p
+}
+
+#[test]
+fn eval_route_rejects_every_model_request_before_initialization() {
+    let h = TempDir::new().unwrap();
+    let suite = tiny_suite(&h);
+    let s = suite.to_str().unwrap();
+    // `Cli` uses args_conflicts_with_subcommands: a top-level flag before
+    // `test` sends the words down the normal route, not the subcommand. Those
+    // forms are therefore pinned together with `--backend select-files`, where
+    // the main route rejects them before any backend is built. A form without
+    // `--backend` would start the default (embedded) backend and is NOT run.
+    let cases: Vec<Vec<&str>> = vec![
+        vec![
+            "test",
+            "--backend",
+            "select-files",
+            "--model-name",
+            "m",
+            "--suite",
+            s,
+        ],
+        vec![
+            "--backend",
+            "select-files",
+            "--model-name",
+            "m",
+            "test",
+            "--suite",
+            s,
+        ],
+        vec![
+            "--backend",
+            "select-files",
+            "--force-llm",
+            "test",
+            "--suite",
+            s,
+        ],
+        vec![
+            "--backend",
+            "select-files",
+            "--advisor",
+            "claude",
+            "test",
+            "--suite",
+            s,
+        ],
+    ];
+    for args in cases {
+        let out = caro(&h, &[], &args);
+        let all = format!(
+            "{}{}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        );
+        assert!(!out.status.success(), "{args:?}: {all}");
+        assert!(
+            all.contains("cannot be used with --backend select-files"),
+            "{args:?}: {all}"
+        );
+        // refused before the suite was loaded or any generator was built
+        assert!(!all.contains("Loaded test suite"), "{args:?}: {all}");
+        assert!(!all.contains("Download"), "{args:?}: {all}");
+    }
+}
+
+#[test]
+fn eval_route_ignores_inherited_model_settings() {
+    let h = TempDir::new().unwrap();
+    let suite = tiny_suite(&h);
+    // Config file model name and env model name are inherited, not requests.
+    std::fs::create_dir_all(h.path().join("caro")).ok();
+    let out = caro(
+        &h,
+        &[("CARO_MODEL", "some-model")],
+        &[
+            "test",
+            "--backend",
+            "select-files",
+            "--suite",
+            suite.to_str().unwrap(),
+        ],
+    );
+    let all = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(
+        all.contains("Running evaluation tests with backend: select-files"),
+        "{all}"
+    );
+    assert!(all.contains("Loaded test suite: tiny"), "{all}");
+    assert!(!all.contains("cannot be used"), "{all}");
+}
+
+// ------------------------------------------- real CLI output bytes ----
+
+fn fixture_with_non_utf8() -> TempDir {
+    use std::os::unix::ffi::OsStrExt;
+    let d = TempDir::new().unwrap();
+    std::fs::write(d.path().join("a.py"), b"").unwrap();
+    std::fs::write(d.path().join("sp ace.py"), b"").unwrap();
+    let odd = std::ffi::OsStr::from_bytes(b"\xff\xfe.py");
+    std::fs::write(d.path().join(odd), b"").unwrap();
+    d
+}
+
+fn caro_in(home: &TempDir, cwd: &std::path::Path, args: &[&str]) -> Output {
+    let mut c = Command::new(env!("CARGO_BIN_EXE_caro"));
+    c.args(args)
+        .current_dir(cwd)
+        .env_clear()
+        .env("PATH", "/usr/bin:/bin")
+        .env("HOME", home.path())
+        .env("XDG_CONFIG_HOME", home.path())
+        .env("XDG_CACHE_HOME", home.path().join("cache"))
+        .env("CARO_TELEMETRY_ENABLED", "false");
+    c.output().expect("run caro")
+}
+
+#[test]
+fn cli_stdout_is_exactly_the_nul_records_including_non_utf8_names() {
+    let home = TempDir::new().unwrap();
+    let fx = fixture_with_non_utf8();
+    let out = caro_in(
+        &home,
+        fx.path(),
+        &["--backend", "select-files", "-x", "list all python files"],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    // stdout holds nothing but the records
+    assert_eq!(*out.stdout.last().unwrap(), 0, "must end with NUL");
+    let mut recs: Vec<Vec<u8>> = out.stdout[..out.stdout.len() - 1]
+        .split(|b| *b == 0)
+        .map(<[u8]>::to_vec)
+        .collect();
+    recs.sort();
+    let mut want: Vec<Vec<u8>> = vec![
+        b"./a.py".to_vec(),
+        b"./sp ace.py".to_vec(),
+        b"./\xff\xfe.py".to_vec(),
+    ];
+    want.sort();
+    assert_eq!(recs, want);
+    // and equals what the same command prints when run directly
+    let direct = Command::new("/usr/bin/find")
+        .args(["-P", ".", "-type", "f", "-iname", "*.py", "-print0"])
+        .current_dir(fx.path())
+        .output()
+        .unwrap();
+    let mut d: Vec<Vec<u8>> = direct.stdout[..direct.stdout.len() - 1]
+        .split(|b| *b == 0)
+        .map(<[u8]>::to_vec)
+        .collect();
+    d.sort();
+    assert_eq!(recs, d);
+    // human text went to stderr, not into the records
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("Command:"), "{err}");
+    assert!(err.contains("NUL-separated"), "{err}");
+}
+
+#[test]
+fn cli_json_keeps_semantics_and_marks_lossy_text() {
+    let home = TempDir::new().unwrap();
+    let fx = fixture_with_non_utf8();
+    let out = caro_in(
+        &home,
+        fx.path(),
+        &[
+            "--backend",
+            "select-files",
+            "-x",
+            "-o",
+            "json",
+            "list all python files",
+        ],
+    );
+    let text = String::from_utf8_lossy(&out.stdout).into_owned();
+    let v: serde_json::Value = serde_json::from_str(&text[text.find('{').unwrap()..]).unwrap();
+    assert_eq!(v["exit_code"], 0);
+    assert_eq!(v["stdout_encoding"], "lossy-utf8");
+    let s = v["stdout"].as_str().unwrap();
+    assert!(s.contains("./a.py\u{0}"), "{s:?}");
+    assert!(s.contains('\u{fffd}'), "{s:?}");
+}
+
+#[test]
+fn cli_failure_keeps_stderr_exit_and_error() {
+    let home = TempDir::new().unwrap();
+    let fx = TempDir::new().unwrap();
+    let out = caro_in(
+        &home,
+        fx.path(),
+        &[
+            "--backend",
+            "select-files",
+            "-x",
+            "-o",
+            "json",
+            "list python files in nope",
+        ],
+    );
+    let text = String::from_utf8_lossy(&out.stdout).into_owned();
+    let v: serde_json::Value = serde_json::from_str(&text[text.find('{').unwrap()..]).unwrap();
+    assert_eq!(v["exit_code"], 1);
+    assert!(
+        v["stderr"].as_str().unwrap().contains("No such file"),
+        "{v}"
+    );
+    assert!(v["execution_error"]
+        .as_str()
+        .unwrap()
+        .contains("exited with code 1"));
+    // plain mode: nothing on stdout, find's message on stderr
+    let out = caro_in(
+        &home,
+        fx.path(),
+        &[
+            "--backend",
+            "select-files",
+            "-x",
+            "list python files in nope",
+        ],
+    );
+    assert!(
+        out.stdout.is_empty(),
+        "{:?}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    assert!(String::from_utf8_lossy(&out.stderr).contains("No such file"));
 }

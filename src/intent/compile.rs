@@ -56,6 +56,63 @@ pub fn render(argv: &[String]) -> String {
         .join(" ")
 }
 
+/// Text for the pure [`CommandValidator`](crate::prompts::CommandValidator).
+///
+/// That validator is a raw-string heuristic: it compares the first word with
+/// its tool allowlist (`/usr/bin/find` is not `find`), and it splits and
+/// pattern-matches the whole line, so a harmless quoted operand such as
+/// `'a;b|c.txt'` would be read as shell syntax. The emitted command has
+/// already been proved closed and one-word-per-operand by [`check_closed`],
+/// so the probe keeps every structural token and replaces only the two
+/// operand kinds that carry user data (root, name pattern) with fixed
+/// placeholders. User data is still covered by the full-command
+/// `SafetyValidator` that runs afterwards on the real string.
+///
+/// Fail closed: any command that does not re-parse and pass `check_closed`
+/// returns `Err` and is not run.
+pub fn validation_probe(command: &str) -> Result<String, String> {
+    let argv = shell_words::split(command).map_err(|e| format!("unparsable command: {e}"))?;
+    let exe = argv.first().ok_or("empty command")?;
+    let p = std::path::Path::new(exe);
+    if !p.is_absolute() || p.file_name().and_then(|n| n.to_str()) != Some("find") {
+        return Err("the executable is not an absolute path to find".into());
+    }
+    check_closed(&argv, exe)?;
+    let at = |s: &str| -> Result<String, String> {
+        let ok = s.strip_prefix('@').is_some_and(|d| {
+            !d.is_empty() && d.len() <= 19 && d.bytes().all(|b| b.is_ascii_digit())
+        });
+        if ok {
+            Ok(s.to_string())
+        } else {
+            Err("a time operand is not @<digits>".into())
+        }
+    };
+    let mut probe = vec![
+        "find".to_string(),
+        "-P".into(),
+        "ROOT".into(),
+        "-type".into(),
+        "f".into(),
+    ];
+    let mut i = 5;
+    if matches!(argv.get(i).map(String::as_str), Some("-name" | "-iname")) {
+        probe.extend([argv[i].clone(), "NAME".into()]);
+        i += 2;
+    }
+    if argv.get(i).map(String::as_str) == Some("-newermt") {
+        probe.extend([
+            "-newermt".to_string(),
+            at(&argv[i + 1])?,
+            "!".into(),
+            "-newermt".into(),
+            at(&argv[i + 4])?,
+        ]);
+    }
+    probe.push("-print0".into());
+    Ok(probe.join(" "))
+}
+
 /// Structural check on the emitted argv: only the closed token set, in the
 /// canonical order. Policy check, not behavioral evidence.
 pub fn check_closed(argv: &[String], find: &str) -> Result<(), String> {
@@ -161,6 +218,40 @@ mod tests {
         assert!(r.contains("'a b;rm -rf x$(id)`y`'"));
         let (a, _) = cmd("find files in \"!\"");
         assert!(a.contains(&"./!".to_string()));
+    }
+
+    #[test]
+    fn probe_keeps_structure_and_hides_operands() {
+        let (_, r) =
+            cmd("find files named \"a;b|c $(x).txt\" in \"-x\" modified in the last 2 hours");
+        let p = validation_probe(&r).unwrap();
+        assert_eq!(
+            p,
+            format!(
+                "find -P ROOT -type f -name NAME -newermt @{} ! -newermt @{T0} -print0",
+                T0 - 7200
+            )
+        );
+        assert_eq!(
+            validation_probe(&cmd("list all pdf files").1).unwrap(),
+            "find -P ROOT -type f -iname NAME -print0"
+        );
+    }
+
+    #[test]
+    fn probe_fails_closed() {
+        for bad in [
+            "find -P . -type f -print0",                        // relative executable
+            "/usr/bin/ls -P . -type f -print0",                 // not find
+            "/usr/bin/find -P . -type f -print0 -delete",       // extra token
+            "/usr/bin/find -P . -type f -exec rm {} + -print0", // -exec
+            "/usr/bin/find -P . -type f -newermt @1 ! -newermt @x -print0",
+            "/usr/bin/find -P . -type f -print0 | sh",
+            "/usr/bin/find -P 'unbalanced -type f -print0",
+            "",
+        ] {
+            assert!(validation_probe(bad).is_err(), "{bad}");
+        }
     }
 
     #[test]

@@ -7,6 +7,9 @@
 //! generation. The result is a receipt, not a cache. It makes no claim about
 //! who built the binary or about races after the check.
 
+// Off Linux, `verify` refuses and the rest is unused.
+#![cfg_attr(not(target_os = "linux"), allow(dead_code, unused_imports))]
+
 use std::io::Read;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -39,6 +42,8 @@ pub enum IdentityError {
     Failed { path: String, why: String },
     #[error("'{path}' is not GNU findutils (banner: {banner:?})")]
     NotGnu { path: String, banner: String },
+    #[error("select-files supports GNU findutils on Linux only")]
+    Unsupported,
 }
 
 /// Runs `<exe> --version`. A trait so tests need no real process.
@@ -66,7 +71,18 @@ impl Default for SystemRunner {
 }
 
 impl VersionRunner for SystemRunner {
+    /// One fixed deadline covers spawn, execution and output collection.
+    ///
+    /// stdout is drained on a thread while the child runs, so a verbose child
+    /// never blocks on a full pipe. The thread keeps at most
+    /// [`MAX_VERSION_BYTES`]; more output kills the child. If the child has
+    /// exited but a descendant still holds the pipe open, the deadline still
+    /// ends the wait (the reader thread is detached and ends when the pipe
+    /// closes; it owns nothing the verifier waits on).
     fn run(&self, exe: &Path) -> Result<Vec<u8>, RunFailure> {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        use std::sync::{mpsc, Arc};
+
         let mut child = Command::new(exe)
             .arg("--version")
             .env_clear()
@@ -76,32 +92,70 @@ impl VersionRunner for SystemRunner {
             .stderr(Stdio::null())
             .spawn()
             .map_err(|e| RunFailure::Other(format!("spawn: {e}")))?;
-        let start = Instant::now();
+        let deadline = Instant::now() + self.timeout;
+        let overflow = Arc::new(AtomicBool::new(false));
+        let (tx, rx) = mpsc::channel::<Vec<u8>>();
+        if let Some(mut so) = child.stdout.take() {
+            let overflow = overflow.clone();
+            std::thread::spawn(move || {
+                let mut kept = Vec::new();
+                let mut chunk = [0u8; 4096];
+                loop {
+                    match so.read(&mut chunk) {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => {
+                            if kept.len() + n > MAX_VERSION_BYTES as usize {
+                                overflow.store(true, Ordering::SeqCst);
+                                // keep draining so the child is not blocked
+                                // while the verifier kills it
+                                continue;
+                            }
+                            kept.extend_from_slice(&chunk[..n]);
+                        }
+                    }
+                }
+                let _ = tx.send(kept);
+            });
+        } else {
+            let _ = tx.send(Vec::new());
+        }
+        // Terminate and reap; never leave the child behind.
+        fn stop(child: &mut std::process::Child) {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
         let status = loop {
+            if overflow.load(Ordering::SeqCst) {
+                stop(&mut child);
+                return Err(RunFailure::Other("output exceeds the size bound".into()));
+            }
             match child.try_wait() {
                 Ok(Some(s)) => break s,
-                Ok(None) if start.elapsed() >= self.timeout => {
-                    // Terminate and reap; never leave the child behind.
-                    let _ = child.kill();
-                    let _ = child.wait();
+                Ok(None) if Instant::now() >= deadline => {
+                    stop(&mut child);
                     return Err(RunFailure::TimedOut);
                 }
                 Ok(None) => std::thread::sleep(Duration::from_millis(5)),
                 Err(e) => {
-                    let _ = child.kill();
-                    let _ = child.wait();
+                    stop(&mut child);
                     return Err(RunFailure::Other(format!("wait: {e}")));
                 }
             }
         };
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        let out = match rx.recv_timeout(remaining) {
+            Ok(v) => v,
+            Err(_) => {
+                // Pipe still held open after the child exited: fail closed.
+                stop(&mut child);
+                return Err(RunFailure::TimedOut);
+            }
+        };
+        if overflow.load(Ordering::SeqCst) {
+            return Err(RunFailure::Other("output exceeds the size bound".into()));
+        }
         if !status.success() {
             return Err(RunFailure::Other(format!("exit status {status}")));
-        }
-        let mut out = Vec::new();
-        if let Some(so) = child.stdout.take() {
-            so.take(MAX_VERSION_BYTES)
-                .read_to_end(&mut out)
-                .map_err(|e| RunFailure::Other(format!("read: {e}")))?;
         }
         Ok(out)
     }
@@ -119,11 +173,17 @@ pub fn parse_gnu_banner(stdout: &[u8]) -> Option<(String, String)> {
     ok.then(|| (first.to_string(), rest.to_string()))
 }
 
+#[cfg(unix)]
 fn is_executable_file(p: &Path) -> bool {
     use std::os::unix::fs::PermissionsExt;
     std::fs::metadata(p)
         .map(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
         .unwrap_or(false)
+}
+
+#[cfg(not(unix))]
+fn is_executable_file(p: &Path) -> bool {
+    std::fs::metadata(p).map(|m| m.is_file()).unwrap_or(false)
 }
 
 /// Resolve the executable among `candidates`, then verify it.
@@ -176,11 +236,18 @@ pub fn verify_with(
 }
 
 /// Production check, run at backend selection.
+#[cfg(target_os = "linux")]
 pub fn verify() -> Result<FindReceipt, IdentityError> {
     verify_with(&SystemRunner::default(), FIND_CANDIDATES)
 }
 
-#[cfg(test)]
+/// select-files is GNU/Linux only; other platforms refuse at selection.
+#[cfg(not(target_os = "linux"))]
+pub fn verify() -> Result<FindReceipt, IdentityError> {
+    Err(IdentityError::Unsupported)
+}
+
+#[cfg(all(test, target_os = "linux"))]
 mod tests {
     use super::*;
 
@@ -271,6 +338,76 @@ mod tests {
             !Path::new(&format!("/proc/{pid}")).exists(),
             "child {pid} still present"
         );
+    }
+
+    fn script(dir: &Path, name: &str, body: &str) -> std::path::PathBuf {
+        use std::os::unix::fs::PermissionsExt;
+        let p = dir.join(name);
+        std::fs::write(&p, format!("#!/bin/sh\n{body}\n")).unwrap();
+        std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+        p
+    }
+
+    #[test]
+    fn exited_child_with_held_pipe_ends_at_the_deadline() {
+        // The script exits at once, but a background `sleep` inherits stdout
+        // and keeps the pipe open. The verifier must not wait for EOF.
+        let dir = tempfile::tempdir().unwrap();
+        let pidfile = dir.path().join("sleeper.pid");
+        let s = script(
+            dir.path(),
+            "heldfind",
+            &format!(
+                "echo 'find (GNU findutils) 4.9.0'\nsleep 20 &\necho $! > '{}'\nexit 0",
+                pidfile.display()
+            ),
+        );
+        let r = SystemRunner {
+            timeout: Duration::from_millis(500),
+        };
+        let t = Instant::now();
+        assert_eq!(r.run(&s), Err(RunFailure::TimedOut));
+        assert!(t.elapsed() < Duration::from_secs(5), "{:?}", t.elapsed());
+        // clean up the synthetic sleeper (own pid from the fixture)
+        if let Ok(pid) = std::fs::read_to_string(&pidfile) {
+            let _ = Command::new("kill").arg(pid.trim()).status();
+        }
+    }
+
+    #[test]
+    fn verbose_output_is_drained_and_bounded() {
+        let dir = tempfile::tempdir().unwrap();
+        // 40 KiB of padding after a valid banner: under the cap, must pass
+        // and must not depend on the child exiting before a pipe fills.
+        let ok = script(
+            dir.path(),
+            "bigok",
+            "echo 'find (GNU findutils) 4.9.0'\nhead -c 40000 /dev/zero | tr '\\0' x\necho",
+        );
+        let r = SystemRunner::default();
+        let out = r.run(&ok).unwrap();
+        assert!(out.starts_with(b"find (GNU findutils)"));
+        // 1 MiB: over the cap. Must fail promptly, never hang or buffer all.
+        let big = script(
+            dir.path(),
+            "bigbad",
+            "echo 'find (GNU findutils) 4.9.0'\nhead -c 1048576 /dev/zero | tr '\\0' x",
+        );
+        let t = Instant::now();
+        let e = r.run(&big).unwrap_err();
+        assert!(
+            matches!(e, RunFailure::Other(ref m) if m.contains("size bound")),
+            "{e:?}"
+        );
+        assert!(t.elapsed() < Duration::from_secs(5));
+        // endless output: killed and reaped at the bound or the deadline
+        let endless = script(dir.path(), "endless", "yes");
+        let r2 = SystemRunner {
+            timeout: Duration::from_millis(800),
+        };
+        let t = Instant::now();
+        assert!(r2.run(&endless).is_err());
+        assert!(t.elapsed() < Duration::from_secs(5));
     }
 
     #[test]

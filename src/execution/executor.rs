@@ -19,6 +19,16 @@ pub struct ExecutionResult {
     pub success: bool,
 }
 
+/// Result of [`CommandExecutor::execute_raw`]: streams are unchanged bytes.
+#[derive(Debug, Clone)]
+pub struct RawExecutionResult {
+    pub exit_code: i32,
+    pub stdout: Vec<u8>,
+    pub stderr: Vec<u8>,
+    pub execution_time_ms: u64,
+    pub success: bool,
+}
+
 /// Command executor errors
 #[derive(Debug, thiserror::Error)]
 pub enum ExecutorError {
@@ -58,6 +68,27 @@ impl CommandExecutor {
 
     /// Execute a command and capture output
     pub fn execute(&self, command: &str) -> Result<ExecutionResult, ExecutorError> {
+        let (output, execution_time_ms) = self.run(command)?;
+        Ok(self.process_output(output, execution_time_ms))
+    }
+
+    /// Execute a command and keep stdout and stderr as raw bytes.
+    ///
+    /// `execute` converts both streams with `String::from_utf8_lossy`. A
+    /// NUL-delimited listing (`find -print0`) can hold file names that are
+    /// not UTF-8, so the select-files route needs the bytes unchanged.
+    pub fn execute_raw(&self, command: &str) -> Result<RawExecutionResult, ExecutorError> {
+        let (output, execution_time_ms) = self.run(command)?;
+        Ok(RawExecutionResult {
+            exit_code: output.status.code().unwrap_or(-1),
+            success: output.status.success(),
+            stdout: output.stdout,
+            stderr: output.stderr,
+            execution_time_ms,
+        })
+    }
+
+    fn run(&self, command: &str) -> Result<(Output, u64), ExecutorError> {
         let start_time = Instant::now();
 
         // Create the appropriate shell command based on platform
@@ -75,7 +106,7 @@ impl CommandExecutor {
 
         let execution_time_ms = start_time.elapsed().as_millis() as u64;
 
-        Ok(self.process_output(output, execution_time_ms))
+        Ok((output, execution_time_ms))
     }
 
     /// Run the command, killing it (and its whole process group on Unix)

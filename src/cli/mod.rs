@@ -42,6 +42,9 @@ pub struct CliApp {
     /// call, then the same validation, approval and executor. No AgentLoop
     /// repair, refinement, advisor or model risk judge.
     one_shot: bool,
+    /// The pure command validator the agent loop uses, applied once to the
+    /// one-shot route's structural probe (no repair, no second generation).
+    one_shot_validator: Option<crate::prompts::CommandValidator>,
 }
 
 /// True when `name` selects the deterministic file-selection backend.
@@ -52,7 +55,7 @@ fn is_select_files(name: &str) -> bool {
 /// Reject flags that ask for a model when the model-free backend is chosen.
 /// Model settings that are only inherited (env, config file) are not
 /// requests for this run; they are ignored by the caller.
-fn select_files_conflicts(
+pub fn select_files_conflicts(
     force_llm: bool,
     advisor: Option<&str>,
     explicit_model: Option<&str>,
@@ -184,6 +187,14 @@ pub struct CliResult {
     pub detected_context: String,
     pub exit_code: Option<i32>,
     pub stdout: Option<String>,
+    /// Exact stdout bytes of the executed command. Set only by the
+    /// select-files route (NUL-delimited output, file names may not be
+    /// UTF-8); `stdout` above is then a lossy text copy.
+    #[serde(skip)]
+    pub raw_stdout: Option<Vec<u8>>,
+    /// `"lossy-utf8"` when `stdout` had to replace invalid UTF-8 bytes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stdout_encoding: Option<String>,
     pub stderr: Option<String>,
     pub execution_error: Option<String>,
     /// Whether explanation mode is enabled
@@ -387,6 +398,8 @@ impl CliApp {
 
         // Detect platform capabilities for command generation (uses cache for fast startup)
         let profile = CapabilityProfile::detect_or_cached().await;
+        let one_shot_validator =
+            one_shot.then(|| crate::prompts::CommandValidator::new(profile.clone()));
 
         // Create agent loop with backend, context, and profile
         // If force_llm is true, disable the static matcher
@@ -407,7 +420,26 @@ impl CliApp {
             validator,
             context,
             one_shot,
+            one_shot_validator,
         })
+    }
+
+    /// Run the pure command validator once on the select-files command.
+    /// A failure is final: no repair and no second generation.
+    fn validate_one_shot(&self, command: &str) -> Result<(), CliError> {
+        let fail = |details: String| CliError::GenerationFailed {
+            details: format!("Validation failed: {details}"),
+        };
+        let Some(validator) = &self.one_shot_validator else {
+            return Err(fail("no validator is configured".into()));
+        };
+        let probe = crate::intent::compile::validation_probe(command).map_err(fail)?;
+        let result = validator.validate(&probe);
+        if result.is_valid() {
+            Ok(())
+        } else {
+            Err(fail(result.error_message()))
+        }
     }
 
     /// Build the named frontier advisor and attach it to the agent loop, or
@@ -1042,6 +1074,9 @@ impl CliApp {
             self.agent_loop.generate_command(&prompt).await
         }
         .map_err(map_generation_error)?;
+        if self.one_shot {
+            self.validate_one_shot(&generated.command)?;
+        }
         let generation_time = gen_start.elapsed();
 
         // Validate command safety
@@ -1135,34 +1170,69 @@ impl CliApp {
 
         // Execute command if requested and allowed
         // Note: dry_run prevents execution even if execute/interactive flags are set
+        let mut raw_stdout: Option<Vec<u8>> = None;
         let (exit_code, stdout, stderr, execution_error, execution_time_ms) =
             if (args.execute() || args.interactive()) && can_execute && !args.dry_run() {
                 use crate::execution::CommandExecutor;
 
                 let executor = CommandExecutor::new(shell);
-                match executor.execute(&generated.command) {
-                    Ok(result) => (
-                        Some(result.exit_code),
-                        Some(result.stdout),
-                        Some(result.stderr),
-                        if !result.success {
-                            Some(format!("Command exited with code {}", result.exit_code))
-                        } else {
-                            None
-                        },
-                        result.execution_time_ms,
-                    ),
-                    Err(e) => (
-                        None,
-                        None,
-                        None,
-                        Some(format!("Execution failed: {}", e)),
-                        0,
-                    ),
+                if self.one_shot {
+                    // select-files: keep stdout as the exact bytes `find -print0`
+                    // wrote; the text copy below is for JSON consumers only.
+                    match executor.execute_raw(&generated.command) {
+                        Ok(r) => {
+                            let text = String::from_utf8_lossy(&r.stdout).into_owned();
+                            let err = String::from_utf8_lossy(&r.stderr).into_owned();
+                            raw_stdout = Some(r.stdout);
+                            (
+                                Some(r.exit_code),
+                                Some(text),
+                                Some(err),
+                                if !r.success {
+                                    Some(format!("Command exited with code {}", r.exit_code))
+                                } else {
+                                    None
+                                },
+                                r.execution_time_ms,
+                            )
+                        }
+                        Err(e) => (
+                            None,
+                            None,
+                            None,
+                            Some(format!("Execution failed: {}", e)),
+                            0,
+                        ),
+                    }
+                } else {
+                    match executor.execute(&generated.command) {
+                        Ok(result) => (
+                            Some(result.exit_code),
+                            Some(result.stdout),
+                            Some(result.stderr),
+                            if !result.success {
+                                Some(format!("Command exited with code {}", result.exit_code))
+                            } else {
+                                None
+                            },
+                            result.execution_time_ms,
+                        ),
+                        Err(e) => (
+                            None,
+                            None,
+                            None,
+                            Some(format!("Execution failed: {}", e)),
+                            0,
+                        ),
+                    }
                 }
             } else {
                 (None, None, None, None, 0)
             };
+        let stdout_encoding = raw_stdout
+            .as_ref()
+            .filter(|b| std::str::from_utf8(b).is_err())
+            .map(|_| "lossy-utf8".to_string());
 
         // The 'executed' field indicates whether safety checks passed (original behavior)
         let executed = can_execute;
@@ -1227,6 +1297,8 @@ impl CliApp {
             detected_context: prompt.clone(),
             exit_code,
             stdout,
+            raw_stdout,
+            stdout_encoding,
             stderr,
             execution_error,
             explain_mode,
@@ -1621,6 +1693,9 @@ mod tests {
             validator,
             context,
             one_shot: true,
+            one_shot_validator: Some(crate::prompts::CommandValidator::new(
+                CapabilityProfile::ubuntu(),
+            )),
         };
         (app, calls, clock)
     }
@@ -1661,6 +1736,78 @@ mod tests {
                 clarify,
                 "{req}: {err}"
             );
+        }
+    }
+
+    /// Returns a fixed command, counting calls.
+    struct Fixed(String, Arc<AtomicUsize>);
+
+    #[async_trait]
+    impl CommandGenerator for Fixed {
+        async fn generate_command(
+            &self,
+            request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            self.1.fetch_add(1, Ordering::SeqCst);
+            let mut g = MockCommandGenerator::new()
+                .generate_command(request)
+                .await?;
+            g.command = self.0.clone();
+            Ok(g)
+        }
+        async fn is_available(&self) -> bool {
+            true
+        }
+        fn backend_info(&self) -> crate::backends::BackendInfo {
+            MockCommandGenerator::new().backend_info()
+        }
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn one_shot_runs_the_pure_validator_once_and_fails_closed() {
+        let bad = [
+            // not the emitted shape: extra action, other tool, relative exe
+            "/usr/bin/find -P . -type f -print0 -delete",
+            "/usr/bin/ls -la",
+            "find -P . -type f -print0",
+            "/usr/bin/find -P . -type f -exec rm {} + -print0",
+        ];
+        for cmd in bad {
+            let (mut app, _, _) = one_shot_app().await;
+            let calls = Arc::new(AtomicUsize::new(0));
+            app.backend = Arc::new(Fixed(cmd.into(), calls.clone()));
+            let err = app
+                .run_with_args(Args("list all python files".into()))
+                .await
+                .unwrap_err();
+            assert!(
+                err.to_string().contains("Validation failed"),
+                "{cmd}: {err}"
+            );
+            assert_eq!(
+                calls.load(Ordering::SeqCst),
+                1,
+                "no second generation: {cmd}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn one_shot_validator_accepts_public_and_benign_requests() {
+        for req in [
+            "find python files modified in the last 7 days",
+            "list all python files",
+            "list all PDF files",
+            "find files named used.txt",
+            "find files named \"awk '{print $1}' | xargs echo.txt\"",
+            "find files named \"rm -rf; sudo dd.txt\" in \"-x\"",
+        ] {
+            let (app, _, _) = one_shot_app().await;
+            let r = app.run_with_args(Args(req.into())).await;
+            assert!(r.is_ok(), "{req}: {:?}", r.err());
         }
     }
 

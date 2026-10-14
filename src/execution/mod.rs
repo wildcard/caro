@@ -9,7 +9,7 @@ use std::path::PathBuf;
 mod executor;
 mod shell;
 
-pub use executor::{CommandExecutor, ExecutionResult, ExecutorError};
+pub use executor::{CommandExecutor, ExecutionResult, ExecutorError, RawExecutionResult};
 pub use shell::{PlatformDetector, ShellDetector};
 
 /// Execution-related errors
