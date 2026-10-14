@@ -606,9 +606,9 @@ workspaces are BW-069.
 
 **Found:** 2026-10-13, broken-window sweep (a worktree checkout ran out of disk)
 **Issue:** #1655
-**Status:** open
+**Status:** fixed (#1659, merged 2026-10-14). Index-only removal of the 669 files; they stay on disk and in history. `scripts/check-tracked-build-outputs.sh` guards against a repeat.
 **Needs human?:** no
-**Next step:** `git rm -r --cached tests/evaluation/target`; `.gitignore` already ignores the path.
+**Next step:** none; #1655 is closed. Delete after 2026-10-21.
 
 ### BW-085: `caro-demo-drift` repeats its PR comment on every push and blames the PR for drift on `main`
 
