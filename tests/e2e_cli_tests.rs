@@ -162,24 +162,35 @@ fn run_with_deadline(cmd: &mut Command, deadline: Option<Duration>) -> CallOutpu
         buf
     });
 
+    // Wait until the child has exited AND both pipes are closed: a descendant
+    // can keep them open after the child exits. The deadline covers both.
+    let pgid = child.id();
     let mut timed_out = false;
-    let status = loop {
-        if let Some(status) = child.try_wait().expect("Failed to poll caro") {
-            break status;
+    let mut exited = false;
+    loop {
+        if !exited {
+            exited = child.try_wait().expect("Failed to poll caro").is_some();
+        }
+        if exited && out_reader.is_finished() && err_reader.is_finished() {
+            break;
         }
         if deadline.is_some_and(|d| start.elapsed() >= d) {
             timed_out = true;
+            // The group id stays reserved while any member lives, so this is
+            // safe even after the child itself was reaped.
             #[cfg(unix)]
             // SAFETY: plain syscall; a negative pid signals the whole group.
             unsafe {
-                libc::kill(-(child.id() as i32), libc::SIGKILL);
+                libc::kill(-(pgid as i32), libc::SIGKILL);
             }
             #[cfg(not(unix))]
             child.kill().ok();
-            break child.wait().expect("Failed to reap caro");
+            break;
         }
         thread::sleep(Duration::from_millis(20));
-    };
+    }
+    // Reaps the child, or returns the status `try_wait` already cached.
+    let status = child.wait().expect("Failed to reap caro");
 
     let stdout = out_reader.join().expect("stdout reader");
     let stderr = err_reader.join().expect("stderr reader");
@@ -246,6 +257,23 @@ mod harness_deadline {
         assert!(
             !alive(grandchild),
             "grandchild {grandchild} survived the deadline"
+        );
+    }
+
+    /// The child exits but a descendant keeps stdout open: draining must
+    /// still stop at the deadline.
+    #[test]
+    fn deadline_covers_output_held_by_a_descendant() {
+        let start = Instant::now();
+        let out = run_with_deadline(
+            &mut sh("sleep 30 & echo started"),
+            Some(Duration::from_millis(300)),
+        );
+        assert!(out.timed_out);
+        assert!(
+            start.elapsed() < Duration::from_secs(5),
+            "took {:?}",
+            start.elapsed()
         );
     }
 
