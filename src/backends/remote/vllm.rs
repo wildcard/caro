@@ -74,19 +74,21 @@ impl PromptMode {
 }
 
 /// Schema modes stay off until an independent receipt from the pinned server
-/// shows it accepts this exact `response_format` and the `anyOf` union. Flip
+/// shows it constrains output with this exact `response_format` (envelope
+/// `json_schema.schema`) and the `anyOf` union, and that its replies pass
+/// `parse_strict_reply`. Flip
 /// only with that receipt; see [`reply_schema`] and [`response_format`].
 pub const SCHEMA_SUPPORT_VERIFIED: bool = false;
 
-/// The closed reply schema: exactly a command object OR a typed clarification
-/// object, nothing mixed. Each branch is a complete object schema with
-/// `additionalProperties: false`; the `anyOf` node has no sibling `properties`
-/// (llama.cpp cannot mix them). The branches exclude each other, so `anyOf`
-/// and `oneOf` accept the same replies. The `0..=1` bounds on `p` are the
-/// shape the independent tester proposed; the pinned converter documents
-/// numeric bounds for integers only and skips others silently, so the strict
-/// parser stays the authority on `p`. This only narrows what the server
-/// samples. Matches the tester's proposed contract, not yet a server receipt.
+/// The one canonical closed reply schema: exactly a command object OR a typed
+/// clarification object, nothing mixed. Root `anyOf` of two disjoint object
+/// branches, each `additionalProperties: false`, with no sibling `properties`
+/// beside the `anyOf` (llama.cpp cannot mix them). `p` is a plain number with
+/// no `minimum`/`maximum`: the pinned converter documents bounds for integers
+/// only and skips others silently. The `0..=1` range, the default `0.9`,
+/// `null` rejection and the confidence floor are enforced by
+/// `parse_strict_reply`, the authority on every reply. The schema only narrows
+/// what the server samples, and an HTTP 200 is not evidence it did.
 pub fn reply_schema() -> serde_json::Value {
     serde_json::json!({
         "anyOf": [
@@ -102,7 +104,7 @@ pub fn reply_schema() -> serde_json::Value {
                 "type": "object",
                 "properties": {
                     "needs_clarification": {"type": "boolean", "const": true},
-                    "p": {"type": "number", "minimum": 0, "maximum": 1},
+                    "p": {"type": "number"},
                     "question": {"type": "string", "minLength": 1}
                 },
                 "required": ["needs_clarification", "question"],
@@ -112,12 +114,14 @@ pub fn reply_schema() -> serde_json::Value {
     })
 }
 
-/// The `response_format` request field, in the shape the pinned llama.cpp
-/// server README documents for `/v1/chat/completions`: `type` and `schema` at
-/// the same level. (The nested OpenAI shape `{"type":"json_schema",
-/// "json_schema":{"schema":..}}` is not documented there and is not used.)
+/// The `response_format` request field: `{"type":"json_schema","json_schema":
+/// {"schema": <reply_schema>}}`. Source inspection of the pinned llama.cpp
+/// b11429 server shows that for `type: json_schema` it reads
+/// `response_format.json_schema.schema`; a sibling `response_format.schema`
+/// is ignored and the output becomes generic JSON. (An earlier version of this
+/// code used the sibling form, based on the server README; that was wrong.)
 pub fn response_format() -> serde_json::Value {
-    serde_json::json!({"type": "json_schema", "schema": reply_schema()})
+    serde_json::json!({"type": "json_schema", "json_schema": {"schema": reply_schema()}})
 }
 
 /// Build the fail-closed backend for an explicit `--backend vllm`. The CLI
@@ -1785,6 +1789,8 @@ mod fail_closed_tests {
             r#"{"needs_clarification": true}"#,
             r#"{"needs_clarification": true, "question": ""}"#,
             r#"{"needs_clarification": true, "p": 2.0, "question": "q"}"#,
+            r#"{"needs_clarification": true, "p": -0.5, "question": "q"}"#,
+            r#"{"needs_clarification": true, "p": 1.0001, "question": "q"}"#,
             r#"{"needs_clarification": true, "p": "high", "question": "q"}"#,
             r#"{"needs_clarification": true, "p": 0.2, "question": "q"}"#,
             r#"{"cmd": "ls", "needs_clarification": true, "p": 0.95, "question": "q"}"#,
@@ -1978,10 +1984,10 @@ mod fail_closed_tests {
         let rf = response_format();
         assert_eq!(rf["type"], "json_schema");
         assert!(
-            rf.get("json_schema").is_none(),
-            "top-level schema, not nested"
+            rf.get("schema").is_none(),
+            "no sibling schema: the pinned server ignores it"
         );
-        let schema = &rf["schema"];
+        let schema = &rf["json_schema"]["schema"];
         assert!(
             schema.get("properties").is_none(),
             "no properties beside anyOf"
@@ -2001,21 +2007,20 @@ mod fail_closed_tests {
             branches[1]["required"],
             json!(["needs_clarification", "question"])
         );
-        assert_eq!(
-            branches[1]["properties"]["p"],
-            json!({"type": "number", "minimum": 0, "maximum": 1})
-        );
+        assert_eq!(branches[1]["properties"]["p"], json!({"type": "number"}));
         // No mixed branch: no branch lists both cmd and a clarification field.
         for b in branches {
             let props = b["properties"].as_object().unwrap();
             assert!(!(props.contains_key("cmd") && props.contains_key("question")));
         }
-        // The independent tester's proposed contract, verbatim.
-        let proposed: serde_json::Value = serde_json::from_str(
-            r#"{"type":"json_schema","schema":{"anyOf":[{"type":"object","properties":{"cmd":{"type":"string","minLength":1}},"required":["cmd"],"additionalProperties":false},{"type":"object","properties":{"needs_clarification":{"type":"boolean","const":true},"p":{"type":"number","minimum":0,"maximum":1},"question":{"type":"string","minLength":1}},"required":["needs_clarification","question"],"additionalProperties":false}]}}"#,
-        )
-        .unwrap();
-        assert_eq!(rf, proposed);
+        // The canonical files the tester validates are what the code sends.
+        let file_rf = include_str!("../../../tests/fixtures/vllm/response_format.canonical.json");
+        let file_schema = include_str!("../../../tests/fixtures/vllm/reply_schema.canonical.json");
+        assert_eq!(serde_json::to_string(&rf).unwrap(), file_rf.trim_end());
+        assert_eq!(
+            serde_json::to_string(&reply_schema()).unwrap(),
+            file_schema.trim_end()
+        );
     }
 
     #[test]
