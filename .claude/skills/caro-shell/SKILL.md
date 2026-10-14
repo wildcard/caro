@@ -24,7 +24,7 @@ Don't use this skill for:
 
 ## What caro provides
 
-[`caro`](https://crates.io/crates/caro) is a Rust CLI that converts natural language → POSIX shell commands using local LLMs (MLX on Apple Silicon, Candle CPU elsewhere). The default `cargo install caro` build ships with the embedded backend only; remote providers (Ollama, vLLM, Exo) require a custom build with `--features remote-backends`. Every generated command goes through 52+ dangerous-pattern safety regexes before being shown to the user. Risk levels: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`.
+[`caro`](https://crates.io/crates/caro) is a Rust CLI that converts natural language → POSIX shell commands using local LLMs (MLX on Apple Silicon, Candle CPU elsewhere). The default `cargo install caro` build ships with the embedded backend only. Every other backend (Ollama, vLLM, Exo, Mesh, AI-Horde, hybrid, and the hosted `claude` / `openrouter` / `grok` APIs) requires a custom build with `--features remote-backends`; `caro --backend-info` shows which ones the installed binary has (`available` vs `not compiled`). Every generated command goes through 52+ dangerous-pattern safety regexes before being shown to the user. Risk levels: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`.
 
 ## How to invoke
 
@@ -54,11 +54,11 @@ Don't use this skill for:
    |---|---|
    | (none — let caro pick default) | **Default for agents.** caro picks `embedded` (local model, zero-cost, deterministic). Right choice for autonomous loops. |
    | `--backend embedded` | Be explicit about the local-model path |
-   | `--backend ollama --model qwen2.5-coder:7b` | Only if the user explicitly asks for a local Ollama server |
+   | `--backend ollama --model-name qwen2.5-coder:7b` | Only if the user explicitly asks for a local Ollama server **and** `caro --backend-info` lists `ollama` as `available` |
    | `--explain` | Include a rationale — useful when the user asked WHY, not just WHAT |
    | `--shell zsh` (or `bash`/`fish`) | Target a specific shell |
 
-   **Do not** pass `--backend claude` or `--backend static` in this version: both are advertised by `caro --backend-info` but rejected by the `--backend` validator at v1.4.0. Tracking issue: caro-zh41. Do not pass `--quiet` either — it suppresses the safety information you need to surface.
+   **Non-embedded backends** (`ollama`, `claude`, `openrouter`, `grok`, …) only work in a binary built with `--features remote-backends`, plus that backend's server or API key (`ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, `XAI_API_KEY`). The default binary rejects them with `Configuration error: Backend '<name>' requires the 'remote-backends' feature` and exit 1 ([#1081](https://github.com/wildcard/caro/issues/1081)). Run `caro --backend-info` before passing `--backend`; if the backend is `not compiled`, drop the flag and use the default. There is no `static` backend. The model flag is `--model-name`; `--model` is a usage error. Do not pass `--quiet` either — it suppresses the safety information you need to surface.
 
 3. **Detect synthesis failures before presenting** — caro's output today has three known failure modes that look like success ([audit 2026-05-16](../../audits/2026-05-16-caro-dogfood/audit.md), tracking issue caro-bnr6). Before presenting any command from caro, run these tripwires:
 
@@ -127,7 +127,7 @@ Caro will likely return either a refusal or a heavily caveated `find /tmp -minde
 - **No `--quiet` flag**, ever — it suppresses the safety information.
 - **No paid backends by default.** Do not pass `--backend claude` or recommend paid remote backends unless the user explicitly asks. The default (no flag) gives caro's embedded local model, which is free and deterministic — the right choice for an autonomous agent loop.
 - **One command per call.** If the user wants a multi-step pipeline that doesn't fit on one line, iterate — call caro once per step.
-- **Tripwire before trust.** Per step 3 of "How to invoke", scan caro's output for placeholder / empty / echo-refusal failure modes before presenting. These are known v1.4.0 bugs (caro-bnr6); the binary reports success even when synthesis failed, so the skill is the safety net.
+- **Tripwire before trust.** Per step 3 of "How to invoke", scan caro's output for placeholder / empty / echo-refusal failure modes before presenting. These are known bugs, first recorded on v1.4.0 (caro-bnr6); the binary reports success even when synthesis failed, so the skill is the safety net.
 
 ## Agent contract by risk tier
 
