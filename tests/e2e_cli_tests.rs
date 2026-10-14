@@ -401,7 +401,10 @@ fn e2e_shell_type_selection() {
     let shells = ["bash", "zsh", "fish", "sh"];
 
     for shell in &shells {
-        let output = runner.run_success(&["list files", "--shell", shell]);
+        // Flags go before the prompt: trailing words after the prompt join it
+        // (`trailing_var_arg`), which sent "list files --shell bash" to the
+        // model instead of testing `--shell` (#1654).
+        let output = runner.run_success(&["--shell", shell, "list files"]);
         assert!(!output.is_empty(), "No output for shell: {}", shell);
         assert!(
             !output.to_lowercase().contains("error"),
