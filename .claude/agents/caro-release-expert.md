@@ -32,6 +32,7 @@ description: |
   user: "What's the complete release checklist for v1.0.3?"
   assistant: "I'll use the caro-release-expert agent to walk through the full release process and verification steps."
   </example>
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
+import TermGlyph, { type Glyph } from '../ui/TermGlyph/TermGlyph.astro';
 
 // Roadmap data
 const milestones = [
@@ -13,7 +14,7 @@ const milestones = [
     totalItems: 15,
     completedItems: 0,
     focus: "Production-ready core functionality",
-    icon: "🎯",
+    icon: "▸",
     color: "#22c55e",
     deliverables: [
       { category: "Critical", items: ["Fix error blocking release (#150)"] },
@@ -37,7 +38,7 @@ const milestones = [
     totalItems: 25,
     completedItems: 0,
     focus: "Public launch, marketing, and documentation",
-    icon: "🌐",
+    icon: "▸",
     color: "#3b82f6",
     deliverables: [
       { category: "Website", items: ["Interactive terminal landing page (#130)", "Website value proposition (#138)", "SEO & social meta tags (#156)", "ASCII art morphs (#151)"] },
@@ -61,7 +62,7 @@ const milestones = [
     totalItems: 22,
     completedItems: 1,
     focus: "Innovation and advanced capabilities",
-    icon: "🚀",
+    icon: "▸",
     color: "#a855f7",
     deliverables: [
       { category: "Distributed Intelligence", items: ["Karo distributed terminal system (#133)", "Jazz integration for cross-device sync (#154)"] },
@@ -79,9 +80,9 @@ const milestones = [
 ];
 
 const strategicThemes = [
-  { quarter: "Q1 2026", theme: "Foundation", description: "Establish production-ready core, optimize performance, build reliable infrastructure", icon: "🏗️", color: "#22c55e" },
-  { quarter: "Q2 2026", theme: "Launch", description: "Public website launch, comprehensive documentation, marketing and community building", icon: "🚀", color: "#3b82f6" },
-  { quarter: "Q3 2026", theme: "Innovation", description: "Advanced AI features, distributed intelligence, voice interaction, next-gen capabilities", icon: "✨", color: "#a855f7" }
+  { quarter: "Q1 2026", theme: "Foundation", description: "Establish production-ready core, optimize performance, build reliable infrastructure", icon: "▸", detailIcon: "🏗️", color: "#22c55e" },
+  { quarter: "Q2 2026", theme: "Launch", description: "Public website launch, comprehensive documentation, marketing and community building", icon: "▸", detailIcon: "🚀", color: "#3b82f6" },
+  { quarter: "Q3 2026", theme: "Innovation", description: "Advanced AI features, distributed intelligence, voice interaction, next-gen capabilities", icon: "▸", detailIcon: "✨", color: "#a855f7" }
 ];
 
 const totalItems = milestones.reduce((sum, m) => sum + m.totalItems, 0);
@@ -197,7 +198,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
               {milestones.map((milestone, index) => (
                 <div class="timeline-milestone" style={`--milestone-color: ${milestone.color}`}>
                   <div class="milestone-marker">
-                    <span class="milestone-icon">{milestone.icon}</span>
+                    <span class="milestone-icon"><TermGlyph g={milestone.icon as Glyph} /></span>
                   </div>
                   <div class="milestone-info">
                     <span class="milestone-version">{milestone.version}</span>
@@ -225,7 +226,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
           <div class="themes-preview">
             {strategicThemes.map((theme) => (
               <div class="theme-card" style={`--theme-color: ${theme.color}`}>
-                <span class="theme-icon">{theme.icon}</span>
+                <span class="theme-icon"><TermGlyph g={theme.icon as Glyph} /></span>
                 <div class="theme-content">
                   <span class="theme-quarter">{theme.quarter}</span>
                   <span class="theme-name">{theme.theme}</span>
@@ -245,13 +246,13 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       <section class="slide slide-milestone" data-slide="3" tabindex="0" aria-label="Slide 3">
         <div class="slide-content">
           <div class="milestone-header" style="--accent: #22c55e">
-            <span class="milestone-badge">{milestones[0].icon} {milestones[0].version}</span>
+            <span class="milestone-badge"><TermGlyph g={milestones[0].icon as Glyph} /> {milestones[0].version}</span>
             <h2>{milestones[0].title}</h2>
             <p class="milestone-focus">{milestones[0].focus}</p>
             <div class="milestone-meta">
-              <span class="meta-item">📅 Due: {milestones[0].dueDate}</span>
-              <span class="meta-item">⏳ {milestones[0].daysRemaining} days</span>
-              <span class="meta-item">📊 {milestones[0].completedItems}/{milestones[0].totalItems} items</span>
+              <span class="meta-item"><TermGlyph g="▸" /> Due: {milestones[0].dueDate}</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[0].daysRemaining} days</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[0].completedItems}/{milestones[0].totalItems} items</span>
             </div>
           </div>
 
@@ -291,13 +292,13 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       <section class="slide slide-milestone" data-slide="4" tabindex="0" aria-label="Slide 4">
         <div class="slide-content">
           <div class="milestone-header" style="--accent: #3b82f6">
-            <span class="milestone-badge">{milestones[1].icon} {milestones[1].version}</span>
+            <span class="milestone-badge"><TermGlyph g={milestones[1].icon as Glyph} /> {milestones[1].version}</span>
             <h2>{milestones[1].title}</h2>
             <p class="milestone-focus">{milestones[1].focus}</p>
             <div class="milestone-meta">
-              <span class="meta-item">📅 Due: {milestones[1].dueDate}</span>
-              <span class="meta-item">⏳ {milestones[1].daysRemaining} days</span>
-              <span class="meta-item">📊 {milestones[1].completedItems}/{milestones[1].totalItems} items</span>
+              <span class="meta-item"><TermGlyph g="▸" /> Due: {milestones[1].dueDate}</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[1].daysRemaining} days</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[1].completedItems}/{milestones[1].totalItems} items</span>
             </div>
           </div>
 
@@ -337,13 +338,13 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       <section class="slide slide-milestone" data-slide="5" tabindex="0" aria-label="Slide 5">
         <div class="slide-content">
           <div class="milestone-header" style="--accent: #a855f7">
-            <span class="milestone-badge">{milestones[2].icon} {milestones[2].version}</span>
+            <span class="milestone-badge"><TermGlyph g={milestones[2].icon as Glyph} /> {milestones[2].version}</span>
             <h2>{milestones[2].title}</h2>
             <p class="milestone-focus">{milestones[2].focus}</p>
             <div class="milestone-meta">
-              <span class="meta-item">📅 Due: {milestones[2].dueDate}</span>
-              <span class="meta-item">⏳ {milestones[2].daysRemaining} days</span>
-              <span class="meta-item">📊 {milestones[2].completedItems}/{milestones[2].totalItems} items</span>
+              <span class="meta-item"><TermGlyph g="▸" /> Due: {milestones[2].dueDate}</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[2].daysRemaining} days</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[2].completedItems}/{milestones[2].totalItems} items</span>
             </div>
           </div>
 
@@ -388,7 +389,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
           <div class="themes-detail">
             {strategicThemes.map((theme, index) => (
               <div class="theme-detail-card" style={`--theme-color: ${theme.color}; --delay: ${index * 0.2}s`}>
-                <div class="theme-detail-icon">{theme.icon}</div>
+                <div class="theme-detail-icon">{theme.detailIcon}</div>
                 <div class="theme-detail-content">
                   <div class="theme-detail-header">
                     <span class="theme-detail-quarter">{theme.quarter}</span>
@@ -405,12 +406,12 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
             <h4>Project Tracking</h4>
             <div class="links-grid">
               <a href="https://github.com/users/wildcard/projects/2" target="_blank" rel="noopener noreferrer" class="tracking-link">
-                <span class="link-icon">🔧</span>
+                <span class="link-icon"><TermGlyph g="▸" /></span>
                 <span class="link-text">Product Development</span>
                 <span class="link-count">36 items</span>
               </a>
               <a href="https://github.com/users/wildcard/projects/3" target="_blank" rel="noopener noreferrer" class="tracking-link">
-                <span class="link-icon">📢</span>
+                <span class="link-icon"><TermGlyph g="▸" /></span>
                 <span class="link-text">Marketing & DevRel</span>
                 <span class="link-count">29 items</span>
               </a>
@@ -842,7 +843,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .milestone-icon {
-    font-size: 28px;
+    font-size: 22px;
   }
 
   .milestone-info {
@@ -1177,7 +1178,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .link-icon {
-    font-size: 24px;
+    font-size: 18px;
   }
 
   .link-text {

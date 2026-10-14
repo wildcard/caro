@@ -2,6 +2,7 @@
 import Layout from './Layout.astro';
 import AnnouncementBanner from '../components/AnnouncementBanner.astro';
 import Navigation from '../components/Navigation.astro';
+import ShareBar from '../components/ShareBar.astro';
 import type { Locale } from '../i18n/config';
 
 interface Props {
@@ -27,6 +28,7 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
   description={description}
   type="article"
   publishedTime={publishedTime}
+  readingTime={readTime}
   image={image}
   tags={tags}
   lang={lang}
@@ -37,7 +39,7 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
   <main id="main-content" class="blog-post">
     <div class="blog-post-header">
       <div class="container">
-        <a href="/blog" class="back-link">← Back to all stories</a>
+        <a href="/blog" class="back-link" data-md-skip>← Back to all stories</a>
 
         <div class="blog-post-meta">
           <time datetime={date}>
@@ -58,10 +60,11 @@ const publishedTime = isNaN(dateObj.getTime()) ? new Date().toISOString() : date
     <article class="blog-post-content">
       <div class="container">
         <slot />
+        <ShareBar title={title} />
       </div>
     </article>
 
-    <div class="blog-post-footer">
+    <div class="blog-post-footer" data-md-skip>
       <div class="container">
         <a href="/blog" class="back-link-footer">← Back to all stories</a>
       </div>

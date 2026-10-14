@@ -1,5 +1,6 @@
 ---
 import { t, getLocalizedData } from '../i18n/config';
+import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   lang: string;
@@ -78,7 +79,7 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
               </div>
               <div class="lives-display">
                 <span>{t(lang, 'landing.game.overlay.lives')}</span>
-                <span id="lives-display">❤️ ❤️ ❤️</span>
+                <span id="lives-display">♥ ♥ ♥</span>
               </div>
               <button id="start-btn" class="start-btn">{t(lang, 'landing.game.overlay.startButton')}</button>
               <div id="high-score-display" class="high-score">{t(lang, 'landing.game.overlay.highScore')} <span id="high-score">0</span></div>
@@ -92,10 +93,10 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
 
         <!-- Lives indicator -->
         <div class="footer-bar">
-          <div id="lives" class="lives">
-            <span class="heart">❤️</span>
-            <span class="heart">❤️</span>
-            <span class="heart">❤️</span>
+          <div id="lives" class="lives" role="img" data-label={t(lang, 'landing.game.overlay.lives')} aria-label={`${t(lang, 'landing.game.overlay.lives')}: 3`}>
+            <TermGlyph g="♥" class="heart" />
+            <TermGlyph g="♥" class="heart" />
+            <TermGlyph g="♥" class="heart" />
           </div>
           <div id="streak" class="streak">{t(lang, 'landing.game.streak')} <span id="streak-count">0</span></div>
         </div>
@@ -604,10 +605,12 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
   .lives {
     display: flex;
     gap: 8px;
-    font-size: 24px;
+    font-size: 22px;
   }
 
+  /* ♥ is a text glyph: it takes this colour, and the .lost filter greys it. */
   .lives .heart {
+    color: var(--accent);
     transition: all 0.3s;
   }
 
@@ -847,7 +850,9 @@ const messages = getLocalizedData(lang, 'landing.game.messages');
     function updateLives() {
       const hearts = livesEl!.querySelectorAll('.heart');
       hearts.forEach((h, i) => h.classList.toggle('lost', i >= lives));
-      livesDisplayEl!.textContent = '❤️ '.repeat(lives).trim() || '💔';
+      // The hearts are aria-hidden glyphs; the count is the accessible name.
+      livesEl!.setAttribute('aria-label', `${livesEl!.dataset.label}: ${lives}`);
+      livesDisplayEl!.textContent = '♥ '.repeat(lives).trim() || '0';
     }
 
     // Disabling or removing a focused option drops focus to <body> in

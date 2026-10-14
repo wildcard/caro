@@ -1,17 +1,23 @@
 # Risk-Gate Gold Subset — Label Guide and Candidate List
 
-**Status:** Phase 4 data-gate item (#1510, ADR-018). Labels not yet collected.
-**Owner:** `ml-ds-engineer` role; labels are written by a maintainer.
+**Status:** Phase 4 data-gate item (#1510, ADR-018). Provisional agent labels collected 2026-10-12; human review pending.
+**Owner:** `ml-ds-engineer` role; gold labels are written by a maintainer. The current labels are provisional (see [Current labels](#current-labels-provisional-agent-labelled)).
 **Deliverable of this document:** the label rules, the acceptance threshold
 fixed *before* any label is reviewed, the stratification plan, the labeller's
 candidate list in [`risk-gold-candidates.jsonl`](./risk-gold-candidates.jsonl),
 and the static validator's verdicts kept apart in
 [`risk-gold-static-tiers.jsonl`](./risk-gold-static-tiers.jsonl).
-**Not** a set of labels: every `gold_tier` in the candidates file is `null`.
+The candidates file carries provisional `gold_tier` values; they are not maintainer gold until a human signs the file.
 
-ADR-018 is cited throughout. It is on PR #1511 and not yet on `main`, so this
-document does not link to it; the stop rule and the raise-only invariant are
-restated here where they are used.
+ADR-018 is cited throughout:
+[`docs/adr/ADR-018-gate-classifier-calibration-experiment.md`](../adr/ADR-018-gate-classifier-calibration-experiment.md)
+(merged in #1511). The stop rule and the raise-only invariant are restated
+here where they are used, so this document reads on its own.
+
+Before opening the labels PR, run
+`python3 scripts/gold-labels-report.py docs/ml/risk-gold-candidates.jsonl`.
+It checks that only the five labeller fields changed and prints the per-tier
+counts and the uncertain rate for the PR body.
 
 ## Why
 
@@ -98,8 +104,10 @@ Apply in order; the first rule that fires sets the tier.
   reading it first would anchor the label, so the blinding is by file, not
   by instruction, and this guide lists no command with its static tier.
 - Does not relabel a row after seeing the judge's verdict. Labels are frozen
-  when the PR that fills `gold_tier` merges; a later correction is a new
-  row with a new id and the old row marked `superseded_by`.
+  when the first human-signed version of the file merges; a later correction
+  is a new row with a new id and the old row marked `superseded_by`. The
+  provisional agent labels (see below) are the one exception: a human review
+  may change them in place because they are not yet gold.
 - Does not add commands from the pilot run that the labeller finds
   interesting. Additions go through the stratification plan below, so the
   tier mix stays as designed.
@@ -130,9 +138,51 @@ rates its 76 commands as 74 `safe` and 2 `moderate`, with no `high` or
 authored, and that is by design, not a shortcut: the gate is being measured
 on exactly the commands the published scoreboard never shows it.
 
-The target counts are *gold* tiers, which do not exist yet. After labelling,
-if a tier lands under its floor, the next PR adds authored rows for that
-tier only and reports the new counts here.
+The target counts are *gold* tiers. After labelling, if a tier lands under
+its floor, the next PR adds authored rows for that tier only and reports the
+new counts here.
+
+### Current labels: provisional, agent-labelled
+
+The 121 rows were labelled on 2026-10-12 by a Claude Code agent session, on
+the owner's decision, because no human labeller was available. The labels
+follow this guide's rules, cite the rule in `rationale`, and were made
+without opening `risk-gold-static-tiers.jsonl`, so the blinding holds. One
+reading of the rules was fixed while labelling and is recorded here so a
+reviewer can disagree with it in one place: the numbered rules are applied
+first; when exactly one fires it sets the tier; when two numbered rules
+both fire on the same command and give different tiers, rule 8 wins (take
+the higher, set `uncertain`), not the earlier rule; the tier table decides
+only when no numbered rule fires, and such rationales start with "no
+numbered rule fires"; when no rule fires and two tier descriptions both
+fit, rule 8 again takes the higher. A rule that names the command but
+whose scope bullets do not fit (`terminate` on a cloud instance) does not
+fire, and the tier table decides. They
+are **provisional**: a model labelling the gold that is meant to score a
+model judge is not independent of it. Until a human has reviewed the file:
+
+- `labeller` reads `claude-code-agent (provisional, pending human review)`.
+- A human review PR may change `gold_tier`, `uncertain` and `rationale` in
+  place and set `labeller` to their handle. The freeze-on-merge rule and the
+  `superseded_by` rule start with the first human-signed version.
+- The pilot judged run must not use these labels to decide the 15-point
+  stop rule. It may report disagreement against them only as a non-binding,
+  provisional result, marked as such.
+
+Counts from `scripts/gold-labels-report.py` on the provisional labels:
+
+| Gold tier | Rows | Plan | Status |
+|---|---|---|---|
+| `safe` | 50 | 40–45 | over ceiling |
+| `moderate` | 22 | 30–35 | under floor |
+| `high` | 34 | 25–30 | over ceiling |
+| `critical` | 15 | 25–30 | under floor |
+
+Uncertain (rule 8): 2 of 121 (1.7%). `moderate` and `critical` are under
+their floors, so the next data PR adds authored rows for those two tiers
+only. The 42 `eval-dataset` rows all labelled `safe`, and 8 authored rows
+labelled `safe` push that tier over its ceiling; no row is removed for that,
+the ceiling is a target, not a cap.
 
 ## What the static floor got wrong
 
@@ -201,9 +251,10 @@ In this order, so the proxy is measured before it is used:
 ## See also
 
 - `.claude/rules/validation-discipline.md` — the gate this subset serves
-- ADR-018, gate-classifier calibration experiment (PR #1511, not yet on
-  `main`; the file lands at `docs/adr/ADR-018-gate-classifier-calibration-experiment.md`)
+- [`docs/adr/ADR-018-gate-classifier-calibration-experiment.md`](../adr/ADR-018-gate-classifier-calibration-experiment.md)
   — the experiment design; item 4 of its decision is this document
+- `scripts/gold-labels-report.py` — validates the labelled file and prints
+  the labels-PR report
 - `docs/ml/sft-data-pipeline.md` — why Safety-category rows are dropped from
   generation SFT and kept for the risk-label feed
 - `docs/PERFORMANCE.md` — the risk-gate baseline this subset calibrates

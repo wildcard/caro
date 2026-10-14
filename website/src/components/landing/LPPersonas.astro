@@ -1,6 +1,7 @@
 ---
 // LPPersonas.astro - Three personas section with interactive CTAs
-import Glyph from '../../ui/Glyph/Glyph.astro';
+import KyaroIcon from '../../ui/KyaroIcon/KyaroIcon.astro';
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
 ---
 
 <section class="personas" id="personas">
@@ -14,7 +15,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
       <!-- The Accelerator -->
       <div class="persona-card accelerator" data-persona="accelerator">
         <div class="persona-icon">
-          <Glyph name="kyaro-mark" size={32} aria-label="Accelerator" />
+          <KyaroIcon name="running" />
         </div>
         <h3 class="persona-title">The Accelerator</h3>
         <p class="persona-role">Individual Developer</p>
@@ -55,7 +56,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
       <!-- The Guardian -->
       <div class="persona-card guardian" data-persona="guardian">
         <div class="persona-icon">
-          <Glyph name="kyaro-mark" size={32} aria-label="Guardian" />
+          <KyaroIcon name="danger" />
         </div>
         <h3 class="persona-title">The Guardian</h3>
         <p class="persona-role">Security & Platform Lead</p>
@@ -81,11 +82,11 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
             <h4>What Caro Catches</h4>
             <div class="use-case danger">
               <code class="input blocked">rm -rf /</code>
-              <span class="blocked-badge">⛔ BLOCKED</span>
+              <span class="blocked-badge"><TermGlyph g="✗" /> BLOCKED</span>
             </div>
             <div class="use-case danger">
               <code class="input blocked">:()&#123; :|:& &#125;;:</code>
-              <span class="blocked-badge">⛔ FORK BOMB</span>
+              <span class="blocked-badge"><TermGlyph g="✗" /> FORK BOMB</span>
             </div>
             <p class="expanded-note">52+ dangerous patterns are validated before any command runs. Your team is protected by default.</p>
           </div>
@@ -100,7 +101,7 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
       <!-- The Operator -->
       <div class="persona-card operator" data-persona="operator">
         <div class="persona-icon">
-          <Glyph name="kyaro-mark" size={32} aria-label="Operator" />
+          <KyaroIcon name="asking" />
         </div>
         <h3 class="persona-title">The Operator</h3>
         <p class="persona-role">SRE / DevOps Engineer</p>
@@ -282,17 +283,10 @@ import Glyph from '../../ui/Glyph/Glyph.astro';
     opacity: 1;
   }
 
+  /* KyaroIcon brings its own 56 px stage tile. */
   .persona-icon {
-    width: 56px;
-    height: 56px;
-    background: var(--bg-stage);
-    border-radius: var(--radius-md);
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
     margin-bottom: 20px;
-    color: var(--accent-text);
   }
 
   .persona-title {

@@ -5,7 +5,8 @@
  */
 import { SITE_CONFIG } from '../config/site';
 import { t, type Locale } from '../i18n/config';
-import Glyph from '../ui/Glyph/Glyph.astro';
+import KyaroIcon from '../ui/KyaroIcon/KyaroIcon.astro';
+import TermGlyph, { type Glyph } from '../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -26,7 +27,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
       <!-- Brand Column -->
       <div class="footer-brand">
         <a href="/" class="brand-link">
-          <Glyph name="kyaro-mark" size={20} class="brand-icon" aria-label="Kyaro mark" />
+          <KyaroIcon name="face-ready" />
           <span class="brand-name">Caro</span>
         </a>
         <p class="brand-tagline">{t(lang, 'landing.footer.brand.tagline')}</p>
@@ -108,7 +109,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     <!-- Kyaro Mascot Section -->
     <div class="kyaro-banner">
       <div class="kyaro-content">
-        <Glyph name="kyaro-mark" size={32} class="kyaro-emoji" aria-label="Kyaro mark" />
+        <KyaroIcon name="ready" />
         <div class="kyaro-info">
           <p class="kyaro-title">{t(lang, 'landing.footer.kyaro.title')}</p>
           <p class="kyaro-text">
@@ -123,7 +124,7 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     <div class="footer-bottom">
       <div class="bottom-content">
         <p class="copyright">
-          {t(lang, 'landing.footer.bottom.built')} <strong>{t(lang, 'landing.footer.bottom.brandName')}</strong> {t(lang, 'landing.footer.bottom.heart')}
+          {t(lang, 'landing.footer.bottom.built')} <strong>{t(lang, 'landing.footer.bottom.brandName')}</strong> <TermGlyph g={t(lang, 'landing.footer.bottom.heart') as Glyph} />
         </p>
         <p class="inspiration">
           {t(lang, 'landing.footer.bottom.inspiration')}
@@ -175,9 +176,6 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     margin-bottom: 12px;
   }
 
-  .brand-icon {
-    font-size: 28px;
-  }
 
   .brand-name {
     font-size: 26px;
@@ -290,13 +288,6 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     align-items: center;
     gap: 16px;
     justify-content: center;
-  }
-
-  /* The mark inherits currentColor; the card is paper, so use dark ink. */
-  .kyaro-emoji {
-    font-size: 32px;
-    line-height: 1;
-    color: var(--fg-strong);
   }
 
   .kyaro-info {
@@ -530,10 +521,6 @@ const version = import.meta.env.PUBLIC_VERSION || '1.1.0';
     .kyaro-banner {
       margin-top: 20px;
       padding: 14px;
-    }
-
-    .kyaro-emoji {
-      font-size: 28px;
     }
   }
 </style>

@@ -1,6 +1,7 @@
 ---
 import { t, type Locale } from '../../i18n/config';
 import GitHubMark from '../icons/GitHubMark.astro';
+import CaroMark from '../icons/CaroMark.astro';
 import OccasionMenu from '../OccasionMenu.astro';
 
 interface Props {
@@ -15,7 +16,7 @@ const repo = 'https://github.com/wildcard/caro';
 <nav class="lp-nav" aria-label={t(lang, 'landing.navigation.label')}>
   <div class="container">
     <a href={home} class="nav-brand">
-      <span class="brand-prompt" aria-hidden="true">&gt;_</span>{t(lang, 'landing.navigation.brand')}
+      <CaroMark size={28} />{t(lang, 'landing.navigation.brand')}
     </a>
 
     <!-- Desktop: inline row. Mobile (≤760px): disclosure panel under the bar. -->
@@ -110,20 +111,13 @@ const repo = 'https://github.com/wildcard/caro';
 
   .nav-brand {
     display: inline-flex;
-    align-items: baseline;
-    gap: 6px;
+    align-items: center;
+    gap: 10px;
     font-family: var(--font-display);
     font-size: 22px;
     font-weight: 700;
     color: var(--fg-strong);
     text-decoration: none;
-  }
-
-  /* Terminal-glyph mark (sanctioned for surfaces where the mascot does not
-     fit). Red is decorative here; the wordmark carries the name. */
-  .brand-prompt {
-    color: var(--accent);
-    font-size: 0.8em;
   }
 
   .nav-links {

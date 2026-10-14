@@ -1,0 +1,77 @@
+---
+/**
+ * KyaroIcon - one icon from the Kyaro icon set.
+ *
+ * The icons are cut 1:1 from Alrezky Caesaria's Kyaro sprite frames by
+ * scripts/kyaro_icons.py; the rules are in docs/brand/ICONOGRAPHY.md.
+ * Pixel art stays sharp only at whole-number scales, so the rendered size is
+ * the icon's native size (48 px figures, 24 px faces) times `scale`. There is
+ * no free `size` prop on purpose. Kyaro is never recolored, so there is no
+ * currentColor either.
+ *
+ * Kyaro always stands on a stage-grey tile (--caro-grey-200, both themes).
+ * The sprite's outline (#000) and coat (#343434) vanish on the dark
+ * surfaces; the tile keeps it readable everywhere. The tile adds 1/12 of the icon size on
+ * each side: a 48 px figure takes a 56 px slot, a 24 px face a 28 px slot.
+ *
+ * Decorative by default (alt=""): the card or link around it carries the
+ * name. Pass `label` when the icon is the only thing that says what it is.
+ *
+ * @example
+ * <KyaroIcon name="danger" />
+ * <KyaroIcon name="face-ready" scale={2} label="Kyaro" />
+ */
+import manifest from '../../data/kyaro-icons.json';
+
+export type KyaroIconName = keyof typeof manifest.icons;
+
+interface Props {
+  name: KyaroIconName;
+  scale?: 1 | 2 | 3;
+  label?: string;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+}
+
+const { name, scale = 1, label, class: className, loading = 'lazy' } = Astro.props;
+
+const icon = manifest.icons[name];
+if (!icon) {
+  throw new Error(`[KyaroIcon] unknown icon "${name}"; see website/src/data/kyaro-icons.json`);
+}
+if (!Number.isInteger(scale) || scale < 1 || scale > 3) {
+  throw new Error(`[KyaroIcon] scale must be 1, 2 or 3, got ${scale}`);
+}
+const px = icon.size * scale;
+const pad = (icon.size / 12) * scale;
+---
+
+<img
+  src={icon.src}
+  width={px}
+  height={px}
+  alt={label ?? ''}
+  loading={loading}
+  decoding="async"
+  draggable="false"
+  class:list={['kyaro-icon', icon.size < 48 && 'kyaro-icon--face', className]}
+  style={`padding: ${pad}px`}
+/>
+
+<style>
+  .kyaro-icon {
+    display: inline-block;
+    flex-shrink: 0;
+    max-width: none;
+    /* The site resets to border-box; the padding must not shrink the art. */
+    box-sizing: content-box;
+    background: var(--caro-grey-200);
+    border-radius: var(--radius-md);
+    image-rendering: pixelated;
+    vertical-align: bottom;
+  }
+
+  .kyaro-icon--face {
+    border-radius: var(--radius-sm);
+  }
+</style>

@@ -202,3 +202,31 @@ fn broken_config_asks_without_leaking_config_text() {
     assert!(!logged.contains(&marker), "{logged}");
     assert!(!String::from_utf8_lossy(&out.stderr).contains(&marker));
 }
+
+/// The six evasions measured in spec 011 ("Known gaps") reached the shell
+/// with no opinion before #1054. Segment- and wrapper-aware validation must
+/// now give each one a verdict the harness acts on.
+#[test]
+fn enforce_catches_segment_and_wrapper_evasions() {
+    let home = TempDir::new().unwrap();
+    for (cmd, want) in [
+        ("bash -c 'rm -rf /'", "deny"),
+        ("git status; chmod -R 777 ~", "deny"),
+        ("find / -delete", "deny"),
+        ("echo cm0gLXJmIC8= | base64 -d | sh", "deny"),
+        ("eval \"$X\"", "ask"),
+        ("python3 -c 'import shutil;shutil.rmtree(\"/\")'", "ask"),
+    ] {
+        let out = guard(
+            &home,
+            &["--mode", "enforce", "--no-log"],
+            &claude_payload(cmd),
+        );
+        assert_eq!(out.status.code(), Some(0), "{cmd:?}");
+        assert_eq!(
+            stdout_json(&out)["hookSpecificOutput"]["permissionDecision"],
+            want,
+            "{cmd:?}"
+        );
+    }
+}

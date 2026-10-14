@@ -1,6 +1,7 @@
 ---
 name: prompt-tuner
 description: Use this agent when you need to improve embedded LLM system prompt based on evaluation test failures. This agent should be used proactively when working on prompt engineering, LLM accuracy improvement, or when evaluation tests show poor command generation quality. Examples: <example>Context: User wants to improve LLM command generation accuracy. user: "The embedded backend is only getting 27% accuracy on tests" assistant: "I'll use the prompt-tuner agent to analyze the test failures and improve the system prompt."</example> <example>Context: User ran evaluation tests and wants to fix failures. user: "Can you tune the prompt to fix these find command issues?" assistant: "Let me use the prompt-tuner agent to systematically improve the system prompt based on the failure patterns."</example> <example>Context: User is working on LLM prompt engineering for caro. user: "The model keeps using GNU flags instead of BSD flags" assistant: "I'll engage the prompt-tuner agent to add BSD-compatibility rules to the system prompt."</example>
+tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
 ---
 
