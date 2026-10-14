@@ -2017,9 +2017,13 @@ impl CommandGenerator for StaticMatcher {
         // SLOT FIDELITY: a template that drops or invents a value is not an answer.
         // Fall through so a backend that can bind the request, or the clarify
         // path, gets it. Content search carries the user's term itself.
+        let mut unbound: Option<String> = None;
         let matched = matched.filter(|(command, matched_by, _)| {
-            matched_by.starts_with("Search Python file contents")
-                || super::slot_fidelity::slot_violation(&request.input, command).is_none()
+            if matched_by.starts_with("Search Python file contents") {
+                return true;
+            }
+            unbound = super::slot_fidelity::slot_violation(&request.input, command);
+            unbound.is_none()
         });
 
         if let Some((command, matched_by, confidence)) = matched {
@@ -2060,7 +2064,10 @@ impl CommandGenerator for StaticMatcher {
         } else {
             // No match - return error so we can fall through to LLM
             Err(GeneratorError::BackendUnavailable {
-                reason: "No static pattern match found".to_string(),
+                reason: match unbound {
+                    Some(why) => format!("template cannot bind the request: {why}"),
+                    None => "No static pattern match found".to_string(),
+                },
             })
         }
     }

@@ -1,32 +1,40 @@
 //! Semantic acceptance for template (static-matcher) answers. Offline.
 //!
-//! Each case states an outcome, not a snapshot: which values the command must
-//! carry, or that the matcher must decline (fall through) because no template
-//! can bind the request. The tests call `StaticMatcher` only. They never touch
-//! the model loader, the network, or a shell. Strings that name `rm`, `kill`
-//! and the like are matcher inputs or outputs and are never executed.
+//! SCOPE: this is intermediate correctness ("reject known-wrong templates").
+//! It is NOT the A2 end-to-end pass of the acceptance umbrella (#1662): a
+//! declined request still reaches the CPU stub or the model downloader.
 //!
-//! Regression guard for the slot-fidelity gate and for word-start keyword
-//! matching (acceptance issue: wildcard/caro, "CLI usefulness acceptance").
+//! Each case states an outcome, not a snapshot: which values the command must
+//! carry, or that the matcher must decline for a named reason because no
+//! template can bind the request. Fixture tests run read-only allowlisted
+//! commands on a disposable directory and check real counts and files.
+//!
+//! The tests call `StaticMatcher` only. They never touch the model loader or
+//! the network. Strings that name `rm`, `mv` and the like are matcher inputs
+//! or outputs and are never executed.
 
 use caro::backends::static_matcher::StaticMatcher;
 use caro::backends::CommandGenerator;
 use caro::models::{CommandRequest, ShellType};
 use caro::prompts::CapabilityProfile;
+use std::path::{Path, PathBuf};
 
 /// What a correct answer to the query looks like.
 enum Outcome {
-    /// A command is returned, holds every `must` value and none of `never`.
-    Bound {
+    /// A command is returned and holds every `must` value.
+    Bound { must: &'static [&'static str] },
+    /// Either a command that holds every `must` value, or a decline whose
+    /// reason names the part that no template could bind.
+    BoundOrDecline {
         must: &'static [&'static str],
-        never: &'static [&'static str],
+        why: &'static str,
     },
-    /// A command, if any, must not hold `never`. Declining is allowed. The
-    /// word-start unit test in `static_matcher` shows the keyword itself.
+    /// No template may answer. The error must be the gate's own decline and
+    /// name `why`, not any error.
+    Decline { why: &'static str },
+    /// Regression only: a command, if any, must not hold `never`. This is not
+    /// a complete-operation pass.
     Avoid { never: &'static [&'static str] },
-    /// No template may answer. The matcher returns an error so a backend that
-    /// can bind the request, or the clarify path, gets it.
-    Decline,
 }
 
 struct Case {
@@ -34,54 +42,87 @@ struct Case {
     outcome: Outcome,
 }
 
+const GATE: &str = "template cannot bind the request";
+
 const CASES: &[Case] = &[
-    // Explicit file names must survive into the command.
+    // Explicit file names must survive into the command, with exact case.
     Case {
         query: "count lines in README.md",
         outcome: Outcome::Bound {
             must: &["README.md"],
-            never: &[],
         },
     },
     Case {
+        query: "count lines in README.MD",
+        outcome: Outcome::Decline { why: "README.MD" },
+    },
+    Case {
         query: "count lines in 'my file.txt'",
-        outcome: Outcome::Decline,
+        outcome: Outcome::Decline { why: "my file.txt" },
     },
     Case {
         query: "count words in café notes.txt",
-        outcome: Outcome::Decline,
+        outcome: Outcome::Decline { why: "notes.txt" },
     },
     Case {
         query: "count words in -rf.txt",
-        outcome: Outcome::Decline,
+        outcome: Outcome::Decline { why: "-rf.txt" },
     },
     Case {
         query: "show first 10 lines of data.csv",
-        outcome: Outcome::Decline,
+        outcome: Outcome::Decline { why: "data.csv" },
+    },
+    Case {
+        query: "count HTTP status codes in logs/access.log",
+        outcome: Outcome::Decline {
+            why: "logs/access.log",
+        },
     },
     // Destinations and ports must survive.
     Case {
         query: "find large files over 100MB in ~/Downloads",
-        outcome: Outcome::Decline,
+        outcome: Outcome::Decline { why: "~/Downloads" },
+    },
+    Case {
+        query: "find all PDF files larger than 10MB in Downloads",
+        outcome: Outcome::BoundOrDecline {
+            must: &["pdf", "10M", "Downloads"],
+            why: "Downloads",
+        },
     },
     Case {
         query: "show processes using port 3000",
-        outcome: Outcome::Decline,
+        outcome: Outcome::Decline { why: "3000" },
     },
     Case {
         query: "kill the process on port 3000",
-        outcome: Outcome::Decline,
+        outcome: Outcome::Decline { why: "3000" },
+    },
+    // File-type words must survive.
+    Case {
+        query: "list all Python files",
+        outcome: Outcome::Decline { why: "python" },
+    },
+    Case {
+        query: "find all rust files modified today",
+        outcome: Outcome::Decline { why: "rust" },
+    },
+    Case {
+        query: "replace all tabs with spaces in python files",
+        outcome: Outcome::Decline { why: "python" },
     },
     // A stand-in value must not be presented as an answer.
     Case {
         query: "create a zip archive of the src folder",
-        outcome: Outcome::Decline,
+        outcome: Outcome::Decline { why: "src" },
     },
     Case {
         query: "show docker containers by memory usage",
-        outcome: Outcome::Decline,
+        outcome: Outcome::Decline {
+            why: "container_name",
+        },
     },
-    // "remove" is not "move": never answer a delete request with `mv`.
+    // "remove" is not "move": regression only.
     Case {
         query: "remove old log files",
         outcome: Outcome::Avoid { never: &["mv "] },
@@ -90,7 +131,7 @@ const CASES: &[Case] = &[
         query: "remove temp files",
         outcome: Outcome::Avoid { never: &["mv "] },
     },
-    // Values the gate must not mistake for literals: apostrophes, "and/or".
+    // Words the gate must not mistake for literals.
     Case {
         query: "what's using the most disk in the user's home",
         outcome: Outcome::Avoid {
@@ -99,67 +140,68 @@ const CASES: &[Case] = &[
     },
     Case {
         query: "search for TODO comments in all Python files",
-        outcome: Outcome::Bound {
-            must: &["TODO"],
-            never: &[],
-        },
+        outcome: Outcome::Bound { must: &["TODO"] },
     },
     Case {
         query: "find files larger than 1GB",
-        outcome: Outcome::Bound {
-            must: &["+1G"],
-            never: &[],
-        },
+        outcome: Outcome::Bound { must: &["+1G"] },
     },
     // Controls: plain, fully bound requests keep their template answer.
     Case {
         query: "list all files",
-        outcome: Outcome::Bound {
-            must: &["ls"],
-            never: &[],
-        },
+        outcome: Outcome::Bound { must: &["ls"] },
     },
     Case {
         query: "show disk usage",
-        outcome: Outcome::Bound {
-            must: &["df"],
-            never: &[],
-        },
+        outcome: Outcome::Bound { must: &["df"] },
     },
     Case {
         query: "find files modified in the last 24 hours",
         outcome: Outcome::Bound {
             must: &["-mtime 0"],
-            never: &[],
         },
     },
 ];
 
 /// Judge one matcher result against the stated outcome.
 fn judge(case: &Case, result: Result<String, String>) -> Result<(), String> {
-    match (&case.outcome, result) {
-        (Outcome::Decline, Err(_)) => Ok(()),
-        (Outcome::Decline, Ok(cmd)) => Err(format!("`{}` must decline, got `{cmd}`", case.query)),
-        // Bound cases may also decline, but only if they hold no value to lose.
-        (Outcome::Bound { must, never }, Ok(cmd)) => {
-            for m in *must {
-                if !cmd.contains(m) {
-                    return Err(format!("`{}`: `{cmd}` lacks `{m}`", case.query));
-                }
+    let holds = |cmd: &str, must: &[&str]| -> Result<(), String> {
+        let lower = cmd.to_lowercase();
+        for m in must {
+            // Type words match as text; names and directories match exactly.
+            let found = if m.chars().all(|c| c.is_ascii_lowercase()) {
+                lower.contains(m)
+            } else {
+                cmd.contains(m)
+            };
+            if !found {
+                return Err(format!("`{}`: `{cmd}` lacks `{m}`", case.query));
             }
-            for n in *never {
-                if cmd.contains(n) {
-                    return Err(format!("`{}`: `{cmd}` holds forbidden `{n}`", case.query));
-                }
-            }
-            Ok(())
         }
-        (Outcome::Avoid { .. }, Err(_)) => Ok(()),
+        Ok(())
+    };
+    match (&case.outcome, result) {
+        (Outcome::Bound { must }, Ok(cmd)) => holds(&cmd, must),
+        (Outcome::Bound { .. }, Err(e)) => Err(format!("`{}` was declined: {e}", case.query)),
+        (Outcome::BoundOrDecline { must, .. }, Ok(cmd)) => holds(&cmd, must),
+        (Outcome::BoundOrDecline { why, .. }, Err(e)) | (Outcome::Decline { why }, Err(e)) => {
+            if e.contains(GATE) && e.contains(why) {
+                Ok(())
+            } else {
+                Err(format!(
+                    "`{}`: decline `{e}` does not name `{why}` from the gate",
+                    case.query
+                ))
+            }
+        }
+        (Outcome::Decline { .. }, Ok(cmd)) => {
+            Err(format!("`{}` must decline, got `{cmd}`", case.query))
+        }
         (Outcome::Avoid { never }, Ok(cmd)) => match never.iter().find(|n| cmd.contains(**n)) {
             Some(n) => Err(format!("`{}`: `{cmd}` holds forbidden `{n}`", case.query)),
             None => Ok(()),
         },
-        (Outcome::Bound { .. }, Err(e)) => Err(format!("`{}` was declined: {e}", case.query)),
+        (Outcome::Avoid { .. }, Err(_)) => Ok(()),
     }
 }
 
@@ -170,6 +212,13 @@ async fn ask(query: &str) -> Result<String, String> {
         .await
         .map(|g| g.command)
         .map_err(|e| e.to_string())
+}
+
+fn case(query: &str) -> &'static Case {
+    CASES
+        .iter()
+        .find(|c| c.query == query)
+        .expect("case exists")
 }
 
 #[tokio::test]
@@ -188,7 +237,7 @@ async fn template_answers_carry_the_users_values() {
 }
 
 /// Negative control: the judge must reject the exact wrong answers that
-/// v1.5.0 and earlier main gave. If it does not, the table above proves nothing.
+/// v1.5.0 and earlier main gave. If it does not, the table proves nothing.
 #[test]
 fn judge_rejects_the_known_wrong_answers() {
     let wrong: &[(&str, &str)] = &[
@@ -200,38 +249,171 @@ fn judge_rejects_the_known_wrong_answers() {
             "create a zip archive of the src folder",
             "tar -czf archive.tar.gz directory/",
         ),
+        ("list all Python files", "ls -la"),
         ("remove old log files", "mv source.txt /path/to/dest.txt"),
     ];
     for (q, cmd) in wrong {
-        let case = CASES.iter().find(|c| c.query == *q).expect("case exists");
         assert!(
-            judge(case, Ok((*cmd).to_string())).is_err(),
+            judge(case(q), Ok((*cmd).to_string())).is_err(),
             "judge accepted wrong answer `{cmd}` for `{q}`"
         );
     }
 }
 
-/// Mutation proof for the gate itself: a bound value is accepted, so the
-/// gate is not simply declining everything.
+/// Mutation control: removing any one constraint from a faithful PDF answer
+/// must turn the judge red. `10M` alone is not enough.
+#[test]
+fn pdf_answer_needs_type_threshold_and_directory() {
+    let q = case("find all PDF files larger than 10MB in Downloads");
+    let faithful = "find Downloads -type f -iname '*.pdf' -size +10M";
+    assert!(judge(q, Ok(faithful.into())).is_ok());
+    for mutant in [
+        "find Downloads -type f -size +10M",        // PDF filter removed
+        "find Downloads -type f -iname '*.pdf'",    // threshold removed
+        "find . -type f -iname '*.pdf' -size +10M", // directory removed
+        "find . -type f -size +10M",                // the old template answer
+    ] {
+        assert!(
+            judge(q, Ok(mutant.into())).is_err(),
+            "judge accepted `{mutant}`"
+        );
+    }
+}
+
+/// Mutation control for the decline arm: an unrelated error is not a decline.
+#[test]
+fn decline_must_come_from_the_gate_and_name_the_value() {
+    let q = case("count lines in 'my file.txt'");
+    assert!(judge(
+        q,
+        Err("Backend is not available: No static pattern match found".into())
+    )
+    .is_err());
+    assert!(judge(
+        q,
+        Err("template cannot bind the request: something else".into())
+    )
+    .is_err());
+    assert!(judge(
+        q,
+        Err("template cannot bind the request: user value `my file.txt` is missing".into())
+    )
+    .is_ok());
+}
+
+// ---------------------------------------------------------------------------
+// Native fixture outcomes (disposable directory, read-only allowlisted commands)
+// ---------------------------------------------------------------------------
+
+struct Fixture(PathBuf);
+
+impl Fixture {
+    fn new(tag: &str) -> Self {
+        let dir = std::env::temp_dir().join(format!("caro-semantic-{tag}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        Fixture(dir)
+    }
+    fn path(&self) -> &Path {
+        &self.0
+    }
+}
+
+impl Drop for Fixture {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+/// Run `cmd` in `dir` only if it is on the read-only allowlist.
+fn run_readonly(cmd: &str, dir: &Path) -> Result<String, String> {
+    let wc = cmd.starts_with("wc -")
+        && cmd
+            .chars()
+            .all(|c| c.is_alphanumeric() || " ._-".contains(c));
+    let find = cmd.starts_with("find . ")
+        && !cmd.contains("-delete")
+        && !cmd.contains("-exec")
+        && !cmd.contains("-ok");
+    if !(wc || find) {
+        return Err(format!("`{cmd}` is not on the read-only allowlist"));
+    }
+    let out = std::process::Command::new("sh")
+        .arg("-c")
+        .arg(cmd)
+        .current_dir(dir)
+        .output()
+        .map_err(|e| e.to_string())?;
+    Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
+}
+
+/// The README count must be the real number of lines in the fixture file.
+fn counted_lines(cmd: &str, dir: &Path) -> Result<(), String> {
+    let out = run_readonly(cmd, dir)?;
+    let n: usize = out
+        .split_whitespace()
+        .next()
+        .unwrap_or("")
+        .parse()
+        .map_err(|_| format!("no count in `{out}`"))?;
+    if n == 3 && cmd.contains("-l ") {
+        Ok(())
+    } else {
+        Err(format!("`{cmd}` gave {n}, fixture has 3 lines"))
+    }
+}
+
 #[tokio::test]
-async fn bound_value_is_accepted() {
+async fn readme_count_is_the_real_line_count() {
+    let fx = Fixture::new("count");
+    std::fs::write(fx.path().join("README.md"), "one\ntwo\nthree\n").unwrap();
+    // A decoy with a different line count, so naming the wrong file is caught.
+    std::fs::write(fx.path().join("README.MD"), "x\n").unwrap();
     let cmd = ask("count lines in README.md")
         .await
         .expect("bound request answers");
-    assert!(cmd.contains("README.md"), "{cmd}");
+    counted_lines(&cmd, fx.path()).unwrap();
+    // Mutation controls: wrong operation and wrong file both turn it red.
+    assert!(counted_lines("wc -c README.md", fx.path()).is_err());
+    assert!(counted_lines("wc -l README.MD", fx.path()).is_err());
 }
 
-/// Fixture outcome on a case-sensitive file system: two distinct files exist,
-/// and a command that names the other one is the wrong answer. A decline is
-/// acceptable; a different file is not.
+#[tokio::test]
+async fn recent_python_files_are_the_requested_set() {
+    let fx = Fixture::new("py");
+    std::fs::write(fx.path().join("recent.py"), "x").unwrap();
+    std::fs::write(fx.path().join("note.txt"), "x").unwrap();
+    let old = std::fs::File::create(fx.path().join("stale.py")).unwrap();
+    let thirty_days = std::time::Duration::from_secs(30 * 24 * 3600);
+    old.set_modified(std::time::SystemTime::now() - thirty_days)
+        .unwrap();
+
+    let oracle = |cmd: &str| -> Result<(), String> {
+        let out = run_readonly(cmd, fx.path())?;
+        if out == "./recent.py" {
+            Ok(())
+        } else {
+            Err(format!("`{cmd}` listed `{out}`, expected only ./recent.py"))
+        }
+    };
+    let cmd = ask("find all python files modified in the last 7 days")
+        .await
+        .expect("bound request answers");
+    oracle(&cmd).unwrap();
+    // Mutation controls: dropping the type or the age turns it red.
+    assert!(oracle("find . -type f -mtime -7").is_err());
+    assert!(oracle("find . -name \"*.py\" -type f").is_err());
+}
+
+/// Two distinct files differ only by case on a case-sensitive file system. A
+/// command that names the other one is the wrong answer; a decline is fine.
 #[tokio::test]
 async fn exact_case_file_is_the_requested_target() {
-    let dir = std::env::temp_dir().join(format!("caro-semantic-{}", std::process::id()));
-    std::fs::create_dir_all(&dir).unwrap();
+    let fx = Fixture::new("case");
     for name in ["README.md", "README.MD"] {
-        std::fs::write(dir.join(name), "one\ntwo\n").unwrap();
+        std::fs::write(fx.path().join(name), "one\ntwo\n").unwrap();
     }
-    let distinct = std::fs::read_dir(&dir).unwrap().count() == 2;
+    let distinct = std::fs::read_dir(fx.path()).unwrap().count() == 2;
     for (query, wanted) in [
         ("count lines in README.MD", "README.MD"),
         ("count lines in README.md", "README.md"),
@@ -244,5 +426,4 @@ async fn exact_case_file_is_the_requested_target() {
             );
         }
     }
-    std::fs::remove_dir_all(&dir).unwrap();
 }
