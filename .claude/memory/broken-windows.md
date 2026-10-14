@@ -122,7 +122,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep, CI run 36658876598
 **Issue:** #1341
-**Status:** open. The 2026-10-13 nightly (run 38336457787) has no prompt-overflow failures (BW-068 fixed). SmolLM and Qwen each fail 4 tests: 3 are `caro list files` (BW-029, #1550, draft #1651) and 1 is `e2e_multiple_commands_performance` (1911 s vs a 60 s budget). TinyLlama was cancelled at GitHub's 360-minute job limit. Both run-time problems are #1654 (BW-083).
+**Status:** open. The 2026-10-13 nightly (run 38336457787) has no prompt-overflow failures (BW-068 fixed). SmolLM and Qwen each fail 4 tests: 3 are `caro list files` (BW-029, #1550, draft #1651) and 1 is `e2e_multiple_commands_performance`, which asserts `< 60s`. It took 1911.492889208 s on SmolLM and 571.94813475 s on Qwen. TinyLlama was cancelled at GitHub's 360-minute job limit. Both run-time problems are #1654 (BW-083).
 **Needs human?:** no (decided 2026-10-10: SmolLM uses the bundle.yml Q8_0 repo, StarCoder is dropped, CI runs on CPU only).
 **Next step:** after #1651 merges, the remaining red is #1654 (needs human).
 
@@ -549,10 +549,10 @@ workspaces are BW-069.
 ### BW-077: CVE ruleset can compile to 0 rules from a stale shared build script
 
 **Found:** 2026-10-13, broken-window sweep (register sync)
-**Issue:** #1652
-**Status:** open (not reproduced; awaiting response)
-**Needs human?:** no
-**Next step:** reproduce with a clean `target/` and a stale one; add a build check that fails on 0 rules.
+**Issue:** #1652 (corrected 2026-10-13)
+**Status:** open, scoped. The original `remote-backends` regression is disproven. A clean worktree with a fresh target dir gives 2 rules and `safety_text_contract` 7/7 for both default and default + `remote-backends`. The 0-rule result came from a contaminated shared `target/`. It is not a technical blocker for any PR.
+**Needs human?:** yes (the safety owner decides the hardening scope: fail or warn on a missing rules dir, read the runtime `CARGO_MANIFEST_DIR`).
+**Next step:** the safety owner picks the hardening scope in #1652. The sweep does not take this over.
 
 ### BW-078: telemetry upload WARN printed above configuration errors
 
