@@ -324,9 +324,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-07-18)
 **Issue:** #1342
-**Status:** not failing. The job passed on the last 11 completed `ci.yml` runs on main (2026-10-12 to 2026-10-13, latest run 38394590892). Evidence posted on #1342.
-**Needs human?:** yes (close #1342)
-**Next step:** the owner closes #1342. If the job fails again, reopen it with the log.
+**Status:** not reproducing; no root cause found. The job passed on the last 11 main push runs (2026-10-12 to 2026-10-13, latest run 38394590892; job 115286473160 ran 7/7 ChromaDB tests). Evidence posted on #1342.
+**Needs human?:** yes (decide whether to close #1342 without a root cause; it stays open until then)
+**Next step:** the owner decides on #1342. If the job fails again, add the log there.
 
 ### BW-040: static matcher "Find Python files (simple)" swallows content searches
 
@@ -460,7 +460,7 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 
 **Found:** 2026-10-11, broken-window sweep
 **Issue:** #1592
-**Status:** closed. The owner closed #1592 on 2026-10-12 with no linked PR or comment.
+**Status:** fixed (#1600, merged 2026-10-12, `a5624c50`). #1592 closed when #1600 merged.
 **Needs human?:** no
 **Next step:** none. Delete after 2026-10-19.
 
