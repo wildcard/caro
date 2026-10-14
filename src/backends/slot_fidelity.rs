@@ -95,6 +95,12 @@ const NOT_A_DIRECTORY: &[&str] = &[
     "aws",
     "gcp",
     "azure",
+    "iso",
+    "rfc",
+    "listen",
+    "established",
+    "apache",
+    "nginx",
 ];
 
 /// Lowercase directory names people say without a capital letter or "folder".
@@ -109,7 +115,8 @@ const KNOWN_DIRS: &[&str] = &[
 
 /// Words after "in the ... folder" that name a place the template already means.
 const IMPLIED_PLACE: &[&str] = &[
-    "current", "this", "same", "working", "parent", "home", "that",
+    "current", "this", "same", "working", "parent", "home", "that", "a", "an", "each", "every",
+    "any", "all", "one", "your", "its", "their",
 ];
 
 struct Rx {
@@ -124,6 +131,8 @@ struct Rx {
     lower_dest: Regex,
     size: Regex,
     types: Vec<Regex>,
+    digits: Regex,
+    port_in_cmd: Regex,
 }
 
 fn rx() -> &'static Rx {
@@ -141,6 +150,8 @@ fn rx() -> &'static Rx {
         port: Regex::new(r"(?i)\b(?:ports?\s*:?\s*|(?:tcp|udp)\s+)(\d{1,5}(?:\s*(?:,|or|and)\s*\d{1,5})*)\b").unwrap(),
         size: Regex::new(r"(?i)\b(\d+(?:\.\d+)?)\s*([kmgt])b?\b").unwrap(),
         lower_dest: Regex::new(r"(?i)\b(?:in|under|inside|within)\s+(?:the\s+|my\s+)?([a-z]+)\b").unwrap(),
+        digits: Regex::new(r"\d+").unwrap(),
+        port_in_cmd: Regex::new(r":(\d{2,5})\b").unwrap(),
         types: TYPE_WORDS
             .iter()
             .map(|(w, _)| Regex::new(&format!(r"\b{w}\s+files?\b")).unwrap())
@@ -170,7 +181,7 @@ pub(crate) struct Literal {
 }
 
 /// Abbreviations that look like file names but are not.
-const NOT_A_LITERAL: &[&str] = &["e.g", "i.e", "etc", "vs"];
+const NOT_A_LITERAL: &[&str] = &["e.g", "i.e", "etc", "vs", "tar.gz", "tar.bz2", "tar.xz"];
 
 /// A whitespace-separated token that names a path or file.
 ///
@@ -195,7 +206,6 @@ fn is_path_token(t: &str, name: &Regex) -> bool {
 /// Explicit values the user wrote that a faithful command must contain.
 pub(crate) fn query_literals(query: &str) -> Vec<Literal> {
     let re = rx();
-    let digits = Regex::new(r"\d+").unwrap();
     let mut out: Vec<Literal> = Vec::new();
     let text = |t: &str| Literal {
         text: t.to_string(),
@@ -225,7 +235,7 @@ pub(crate) fn query_literals(query: &str) -> Vec<Literal> {
         }
     }
     for cap in re.port.captures_iter(query) {
-        for n in digits.find_iter(&cap[1]) {
+        for n in re.digits.find_iter(&cap[1]) {
             out.push(Literal {
                 port: true,
                 ..num(n.as_str())
@@ -442,8 +452,7 @@ pub(crate) fn slot_violation(query: &str, command: &str) -> Option<String> {
         .filter(|l| l.port)
         .map(|l| l.text)
         .collect();
-    let port_in_cmd = Regex::new(r":(\d{2,5})\b").unwrap();
-    for cap in port_in_cmd.captures_iter(command) {
+    for cap in re.port_in_cmd.captures_iter(command) {
         if !asked_ports.contains(&cap[1].to_string()) {
             return Some(format!(
                 "template command adds the port `{}` the user did not name",
@@ -765,5 +774,20 @@ mod tests {
             slot_violation("find files larger than 100MB", "find . -type f -size +100M").is_none()
         );
         assert!(slot_violation("find files larger than 1GB", "find . -type f -size +1G").is_none());
+    }
+
+    #[test]
+    fn compound_extensions_formats_and_articles_are_not_literals_or_folders() {
+        assert!(slot_violation(
+            "create a tar.gz archive of the src directory",
+            "tar -czf src.tar.gz src/"
+        )
+        .is_none());
+        assert!(slot_violation("show current date in ISO format", "date +%Y-%m-%d").is_none());
+        assert!(slot_violation("list ports in LISTEN state", "ss -tlnp").is_none());
+        assert!(slot_violation("list all files in a directory", "ls -la").is_none());
+        assert!(slot_violation("show disk usage of each folder", "du -sh */").is_none());
+        // A named folder is still required.
+        assert!(slot_violation("show disk usage of the logs folder", "du -sh */").is_some());
     }
 }

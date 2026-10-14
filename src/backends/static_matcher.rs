@@ -1934,15 +1934,24 @@ impl StaticMatcher {
         None
     }
 
-    /// True when `kw` occurs in `query` starting at a word boundary, so "move"
-    /// matches "move files" but not "remove files". Suffixes ("lines") still
-    /// match, and a unit after a digit ("100MB") starts a word.
+    /// True when `kw` occurs in `query` and is not the tail of a word that a
+    /// reversing prefix turns around: "move" matches "move files" but not
+    /// "remove files" ("re", "un", "de", "dis" + keyword). Other compounds still
+    /// match ("log" in "syslog"), and a unit after a digit ("100MB") counts.
     fn has_word_start(query: &str, kw: &str) -> bool {
+        const REVERSING: [&str; 4] = ["re", "un", "de", "dis"];
         query.match_indices(kw).any(|(i, _)| {
-            query[..i]
+            let before = &query[..i];
+            let word: String = before
                 .chars()
-                .next_back()
-                .is_none_or(|c| !c.is_alphabetic())
+                .rev()
+                .take_while(|c| c.is_alphabetic())
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect();
+            // The letters in front of the keyword, back to the word start.
+            !REVERSING.contains(&word.as_str())
         })
     }
 
@@ -2104,7 +2113,11 @@ mod tests {
         assert!(StaticMatcher::has_word_start("count the lines", "line"));
         assert!(StaticMatcher::has_word_start("files over 100mb", "mb"));
         assert!(StaticMatcher::has_word_start("bigger than 1gb", "gb"));
-        assert!(!StaticMatcher::has_word_start("rapid", "pid"));
+        assert!(StaticMatcher::has_word_start("show syslog lines", "log"));
+        assert!(!StaticMatcher::has_word_start(
+            "undelete the file",
+            "delete"
+        ));
     }
 
     use super::*;

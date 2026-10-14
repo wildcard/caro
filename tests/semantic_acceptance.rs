@@ -140,6 +140,15 @@ const CASES: &[Case] = &[
         query: "find files larger than 1GB",
         outcome: Outcome::Bound { must: &["+1G"] },
     },
+    // False-decline controls: correct answers the gate must keep.
+    Case {
+        query: "show last 20 lines of syslog",
+        outcome: Outcome::Bound { must: &["syslog"] },
+    },
+    Case {
+        query: "show current date in ISO format",
+        outcome: Outcome::Bound { must: &["date"] },
+    },
     // Controls: plain, fully bound requests keep their template answer.
     Case {
         query: "list all files",
