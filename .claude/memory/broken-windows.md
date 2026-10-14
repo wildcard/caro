@@ -606,6 +606,6 @@ workspaces are BW-069.
 
 **Found:** 2026-10-13, broken-window sweep (a worktree checkout ran out of disk)
 **Issue:** #1655
-**Status:** open
+**Status:** claimed by `fix/1655-untrack-eval-target`. Index-only removal of the 669 files; they stay on disk and in history. `scripts/check-tracked-build-outputs.sh` guards against a repeat.
 **Needs human?:** no
-**Next step:** `git rm -r --cached tests/evaluation/target`; `.gitignore` already ignores the path.
+**Next step:** merge the PR.
