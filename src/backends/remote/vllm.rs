@@ -457,7 +457,16 @@ Request: {}
         let (response, tokens) = self
             .call_vllm_api(&self.create_system_prompt(request), None)
             .await?;
-        let command = self.parse_command_response(&response)?;
+        // A reply that is not a command keeps its error type but gains the
+        // endpoint and model. A clarification question passes through unchanged.
+        let command = self
+            .parse_command_response(&response)
+            .map_err(|e| match e {
+                GeneratorError::ParseError { content } => GeneratorError::ParseError {
+                    content: format!("{}: reply is not a command: {content}", self.ctx()),
+                },
+                other => other,
+            })?;
         let measured = tokens
             .as_deref()
             .and_then(|t| crate::backends::command_token_confidence(t, &command));
@@ -527,7 +536,11 @@ Request: {}
                 }
             } else {
                 GeneratorError::GenerationFailed {
-                    details: format!("HTTP request failed: {}", e),
+                    details: if self.fail_closed {
+                        format!("{}: HTTP request failed: {}", self.ctx(), e)
+                    } else {
+                        format!("HTTP request failed: {}", e)
+                    },
                 }
             }
         })?;
@@ -535,7 +548,15 @@ Request: {}
         // Check for authentication errors
         if response.status() == 401 || response.status() == 403 {
             return Err(GeneratorError::BackendUnavailable {
-                reason: "Authentication failed - invalid API key".to_string(),
+                reason: if self.fail_closed {
+                    format!(
+                        "{}: Authentication failed (HTTP {}); this keyless route sends no API key",
+                        self.ctx(),
+                        response.status()
+                    )
+                } else {
+                    "Authentication failed - invalid API key".to_string()
+                },
             });
         }
 
@@ -593,7 +614,11 @@ Request: {}
             Ok((choice.message.content.clone(), tokens))
         } else {
             Err(GeneratorError::ParseError {
-                content: "vLLM response contained no choices".to_string(),
+                content: if self.fail_closed {
+                    format!("{}: response contained no choices", self.ctx())
+                } else {
+                    "vLLM response contained no choices".to_string()
+                },
             })
         }
     }
@@ -1413,7 +1438,7 @@ mod fail_closed_tests {
     }
 
     #[tokio::test]
-    async fn http_400_is_not_retried_as_unsupported_logprobs() {
+    async fn http_400_is_surfaced_once_and_never_retried() {
         let server = MockServer::start().await;
         healthy(&server).await;
         // Exactly one POST is allowed; a retry would fail the `expect(1)`.
@@ -1499,6 +1524,93 @@ mod fail_closed_tests {
         let body: serde_json::Value = serde_json::from_slice(&posts[0].body).unwrap();
         assert_eq!(body["logprobs"], true);
         assert_eq!(body["max_tokens"], 100);
+    }
+
+    #[tokio::test]
+    async fn auth_empty_choices_and_non_command_replies_name_endpoint_and_model() {
+        // 401: BackendUnavailable, names endpoint + model, says the route is keyless.
+        let s = MockServer::start().await;
+        healthy(&s).await;
+        mount_completion(&s, ResponseTemplate::new(401), 1).await;
+        match backend(&s).generate_command(&req()).await.unwrap_err() {
+            GeneratorError::BackendUnavailable { reason } => {
+                assert!(
+                    reason.contains("Authentication failed") && reason.contains("401"),
+                    "{reason}"
+                );
+                assert!(
+                    reason.contains(&s.uri()) && reason.contains(MODEL),
+                    "{reason}"
+                );
+                assert!(reason.contains("keyless"), "{reason}");
+            }
+            other => panic!("expected BackendUnavailable, got {other:?}"),
+        }
+
+        // 200 with no choices: ParseError, names endpoint + model.
+        let s = MockServer::start().await;
+        healthy(&s).await;
+        mount_completion(
+            &s,
+            ResponseTemplate::new(200).set_body_json(json!({"model": MODEL, "choices": []})),
+            1,
+        )
+        .await;
+        match backend(&s).generate_command(&req()).await.unwrap_err() {
+            GeneratorError::ParseError { content } => {
+                assert!(content.contains("no choices"), "{content}");
+                assert!(
+                    content.contains(&s.uri()) && content.contains(MODEL),
+                    "{content}"
+                );
+            }
+            other => panic!("expected ParseError, got {other:?}"),
+        }
+
+        // 200 whose reply is not a command: ParseError, names endpoint + model.
+        let s = MockServer::start().await;
+        healthy(&s).await;
+        let body = json!({"model": MODEL, "choices": [{"message": {"role": "assistant", "content": "I cannot help"}}]});
+        mount_completion(&s, ResponseTemplate::new(200).set_body_json(body), 1).await;
+        match backend(&s).generate_command(&req()).await.unwrap_err() {
+            GeneratorError::ParseError { content } => {
+                assert!(content.contains("reply is not a command"), "{content}");
+                assert!(
+                    content.contains(&s.uri()) && content.contains(MODEL),
+                    "{content}"
+                );
+            }
+            other => panic!("expected ParseError, got {other:?}"),
+        }
+    }
+
+    #[tokio::test]
+    async fn selected_alias_among_several_is_accepted_and_absence_is_not() {
+        let s = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/health"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&s)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/models"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(
+                    json!({"data": [{"id": "first"}, {"id": MODEL}, {"id": "third"}]}),
+                ),
+            )
+            .mount(&s)
+            .await;
+        mount_completion(
+            &s,
+            ResponseTemplate::new(200).set_body_json(completion(Some(MODEL), true)),
+            1,
+        )
+        .await;
+        assert_eq!(
+            backend(&s).generate_command(&req()).await.unwrap().command,
+            "ls -la"
+        );
     }
 
     #[test]

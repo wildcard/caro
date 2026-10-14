@@ -482,6 +482,11 @@ enum Commands {
         /// A leading `caro --model-name X test` does not reach this subcommand.
         #[arg(long = "model-name")]
         model_name: Option<String>,
+
+        /// Output format: "plain" (default) or "json" (one object on stdout;
+        /// banners and diagnostics go to stderr).
+        #[arg(long, default_value = "plain")]
+        output: String,
     },
 
     /// Generate shell completion scripts
@@ -2976,23 +2981,74 @@ async fn handle_profile_command(command: ProfileCommands) -> Result<(), String> 
 // Evaluation Tests
 // =============================================================================
 
-/// Run evaluation tests on command generation
+/// Run evaluation tests on command generation.
+///
+/// With `json`, stdout carries exactly one parseable object: the results on a
+/// run, or `{"executed":false,"error":{"kind","message"}}` when the run could
+/// not start. Banners and human diagnostics go to stderr and the status is
+/// non-zero on any failure.
 async fn run_evaluation_tests(
+    backend_name: &str,
+    verbose: bool,
+    suite_path: Option<&str>,
+    profile_id: Option<&str>,
+    prompt_style_str: &str,
+    model_name: Option<&str>,
+    json: bool,
+) -> Result<(), String> {
+    let mut printed_json = false;
+    let result = run_evaluation_tests_inner(
+        backend_name,
+        verbose,
+        suite_path,
+        profile_id,
+        prompt_style_str,
+        model_name,
+        json,
+        &mut printed_json,
+    )
+    .await;
+    if json && !printed_json {
+        if let Err(message) = &result {
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&serde_json::json!({
+                    "executed": false,
+                    "error": {"kind": "EvaluationFailed", "message": message},
+                }))
+                .unwrap_or_default()
+            );
+        }
+    }
+    result
+}
+
+#[allow(clippy::too_many_arguments)]
+async fn run_evaluation_tests_inner(
     backend_name: &str,
     _verbose: bool,
     suite_path: Option<&str>,
     profile_id: Option<&str>,
     prompt_style_str: &str,
     model_name: Option<&str>,
+    json: bool,
+    printed_json: &mut bool,
 ) -> Result<(), String> {
     use caro::prompts::PromptStyle;
+
+    // Human text goes to stdout, or to stderr when stdout is reserved for JSON.
+    macro_rules! say {
+        ($($t:tt)*) => {
+            if json { eprintln!($($t)*) } else { println!($($t)*) }
+        };
+    }
     let prompt_style: PromptStyle = prompt_style_str.parse().map_err(|e: String| e)?;
 
-    println!("Running evaluation tests with backend: {}", backend_name);
+    say!("Running evaluation tests with backend: {}", backend_name);
     if backend_name == "embedded" {
-        println!("Prompt style: {}", prompt_style);
+        say!("Prompt style: {}", prompt_style);
     }
-    println!();
+    say!();
 
     // Create backend (boxed to allow different types)
     let backend: Box<dyn CommandGenerator> = match backend_name {
@@ -3013,10 +3069,18 @@ async fn run_evaluation_tests(
                 let cfg = ConfigManager::new()
                     .and_then(|m| m.load())
                     .map_err(|e| format!("Failed to load config: {}", e))?;
-                let model = model_name.or(cfg.model_name.as_deref());
+                // Same precedence as the CLI route: flag > CARO_MODEL > config.
+                let model = caro::cli::resolve_model_name(
+                    model_name.map(str::to_string),
+                    std::env::var("CARO_MODEL").ok(),
+                    cfg.model_name.clone(),
+                );
                 Box::new(
-                    caro::backends::remote::vllm::explicit_from_config(&cfg.backends, model)
-                        .map_err(|e| format!("Failed to create vLLM backend: {}", e))?,
+                    caro::backends::remote::vllm::explicit_from_config(
+                        &cfg.backends,
+                        model.as_deref(),
+                    )
+                    .map_err(|e| format!("Failed to create vLLM backend: {}", e))?,
                 )
             }
             #[cfg(not(feature = "remote-backends"))]
@@ -3037,7 +3101,7 @@ async fn run_evaluation_tests(
 
     // Load test suite
     let mut suite = if let Some(path) = suite_path {
-        println!("Loading test suite from: {}", path);
+        say!("Loading test suite from: {}", path);
         EvalSuite::from_yaml(path)
             .map_err(|e| format!("Failed to load test suite from {}: {}", path, e))?
     } else {
@@ -3046,14 +3110,14 @@ async fn run_evaluation_tests(
 
     // Filter by profile if specified
     if let Some(profile) = profile_id {
-        println!("Filtering tests for profile: {}", profile);
+        say!("Filtering tests for profile: {}", profile);
         suite = suite.filter_by_profile(profile);
     }
 
-    println!("Loaded test suite: {}", suite.name);
-    println!("Description: {}", suite.description);
-    println!("Total test cases: {}", suite.test_cases.len());
-    println!();
+    say!("Loaded test suite: {}", suite.name);
+    say!("Description: {}", suite.description);
+    say!("Total test cases: {}", suite.test_cases.len());
+    say!();
 
     // Run tests
     let mut results = EvalResults {
@@ -3121,7 +3185,22 @@ async fn run_evaluation_tests(
     }
 
     // Print results
-    results.print_summary();
+    if json {
+        say!(
+            "{} passed, {} failed of {}",
+            results.passed,
+            results.failed,
+            results.total_cases
+        );
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&results)
+                .map_err(|e| format!("serialize results: {e}"))?
+        );
+        *printed_json = true;
+    } else {
+        results.print_summary();
+    }
 
     // A backend error (unreachable server, model not served, bad status) is not
     // a wrong answer. Say which, with the endpoint and model the backend names.
@@ -3231,7 +3310,16 @@ async fn main() {
             profile,
             prompt_style,
             model_name: test_model_name,
+            output: test_output,
         }) => {
+            let json = match test_output.as_str() {
+                "plain" => false,
+                "json" => true,
+                other => {
+                    eprintln!("Error running tests: unknown --output '{other}' (plain or json)");
+                    process::exit(2);
+                }
+            };
             match run_evaluation_tests(
                 &backend,
                 verbose,
@@ -3239,6 +3327,7 @@ async fn main() {
                 profile.as_deref(),
                 &prompt_style,
                 test_model_name.as_deref().or(cli.model_name.as_deref()),
+                json,
             )
             .await
             {
@@ -3749,6 +3838,27 @@ async fn main() {
             process::exit(0);
         }
         Err(e) => {
+            // With `-o json`, stdout carries exactly one parseable object and the
+            // human diagnostics stay on stderr. The shape reuses `executed` and
+            // `dry_run` from the success output and adds `error`.
+            if cli
+                .output
+                .as_deref()
+                .and_then(|o| o.parse::<caro::cli::OutputFormat>().ok())
+                == Some(caro::cli::OutputFormat::Json)
+            {
+                let debug = format!("{e:?}");
+                let kind = debug.split([' ', '{', '(']).next().unwrap_or("Error");
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&serde_json::json!({
+                        "executed": false,
+                        "dry_run": cli.dry_run,
+                        "error": {"kind": kind, "message": e.to_string()},
+                    }))
+                    .unwrap_or_default()
+                );
+            }
             eprintln!("Error: {}", e);
             match e {
                 CliError::NotImplemented => {

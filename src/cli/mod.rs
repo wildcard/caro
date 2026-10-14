@@ -71,6 +71,48 @@ pub struct CliConfig {
     pub approval_mode: ApprovalMode,
 }
 
+/// Model-name precedence shared by `caro` and `caro test`:
+/// flag > `CARO_MODEL` environment value > config file `model_name`.
+pub fn resolve_model_name(
+    flag: Option<String>,
+    env: Option<String>,
+    config: Option<String>,
+) -> Option<String> {
+    flag.or(env).or(config)
+}
+
+/// When `user_config` selects the explicit vLLM backend (any letter case),
+/// build its fail-closed backend; otherwise `None`. This builds no embedded
+/// backend and attaches no fallback, so an unreachable or wrong server is an
+/// error and never a silent switch to a local model download. A build without
+/// `remote-backends` returns a configuration error instead of switching.
+pub fn explicit_vllm_backend(
+    user_config: &crate::models::UserConfiguration,
+) -> Option<Result<Box<dyn CommandGenerator>, CliError>> {
+    if !user_config
+        .default_model
+        .as_deref()
+        .is_some_and(|m| m.eq_ignore_ascii_case("vllm"))
+    {
+        return None;
+    }
+    #[cfg(feature = "remote-backends")]
+    {
+        let built = crate::backends::remote::vllm::explicit_from_config(
+            &user_config.backends,
+            user_config.model_name.as_deref(),
+        )
+        .map(|b| Box::new(b) as Box<dyn CommandGenerator>)
+        .map_err(CliApp::backend_config_error);
+        tracing::info!("Using vLLM backend (explicit, fail-closed)");
+        Some(built)
+    }
+    #[cfg(not(feature = "remote-backends"))]
+    Some(Err(CliError::ConfigurationError {
+        message: "backend 'vllm' needs a build with --features remote-backends".to_string(),
+    }))
+}
+
 /// Result of CLI command execution
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CliResult {
@@ -254,9 +296,11 @@ impl CliApp {
         }
 
         // Model name: CLI flag > env var > config file
-        let effective_model_name = model_name_override
-            .or_else(|| std::env::var("CARO_MODEL").ok())
-            .or_else(|| user_config.model_name.clone());
+        let effective_model_name = resolve_model_name(
+            model_name_override,
+            std::env::var("CARO_MODEL").ok(),
+            user_config.model_name.clone(),
+        );
 
         if let Some(model_name) = effective_model_name {
             user_config.model_name = Some(model_name);
@@ -395,26 +439,8 @@ impl CliApp {
             // An explicitly chosen vLLM server is fail-closed: no embedded
             // backend is built or attached, so an unreachable or wrong server
             // is an error and never a silent switch to a local model download.
-            if user_config
-                .default_model
-                .as_deref()
-                .is_some_and(|m| m.eq_ignore_ascii_case("vllm"))
-            {
-                #[cfg(feature = "remote-backends")]
-                {
-                    let backend = crate::backends::remote::vllm::explicit_from_config(
-                        &user_config.backends,
-                        user_config.model_name.as_deref(),
-                    )
-                    .map_err(Self::backend_config_error)?;
-                    tracing::info!("Using vLLM backend (explicit, fail-closed)");
-                    return Ok(Box::new(backend));
-                }
-                #[cfg(not(feature = "remote-backends"))]
-                return Err(CliError::ConfigurationError {
-                    message: "backend 'vllm' needs a build with --features remote-backends"
-                        .to_string(),
-                });
+            if let Some(explicit) = explicit_vllm_backend(user_config) {
+                return explicit;
             }
 
             use crate::backends::embedded::EmbeddedModelBackend;
