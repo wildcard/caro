@@ -1912,14 +1912,14 @@ impl StaticMatcher {
             let all_required = pattern
                 .required_keywords
                 .iter()
-                .all(|kw| query_lower.contains(kw));
+                .all(|kw| Self::has_word_start(&query_lower, kw));
 
             if all_required {
                 // Optional-keyword coverage is the confidence signal
                 let optional_count = pattern
                     .optional_keywords
                     .iter()
-                    .filter(|kw| query_lower.contains(*kw))
+                    .filter(|kw| Self::has_word_start(&query_lower, kw))
                     .count();
 
                 // Require at least some optional keywords for keyword-only match
@@ -1932,6 +1932,17 @@ impl StaticMatcher {
         }
 
         None
+    }
+
+    /// True when `kw` occurs in `query` starting at a word boundary, so "move"
+    /// matches "move files" but not "remove files". Suffixes ("lines") still match.
+    fn has_word_start(query: &str, kw: &str) -> bool {
+        query.match_indices(kw).any(|(i, _)| {
+            query[..i]
+                .chars()
+                .next_back()
+                .is_none_or(|c| !c.is_alphanumeric())
+        })
     }
 
     /// Select the appropriate command based on platform
@@ -2001,6 +2012,14 @@ impl CommandGenerator for StaticMatcher {
                 )
             }),
         };
+
+        // SLOT FIDELITY: a template that drops or invents a value is not an answer.
+        // Fall through so a backend that can bind the request, or the clarify
+        // path, gets it. Content search carries the user's term itself.
+        let matched = matched.filter(|(command, matched_by, _)| {
+            matched_by.starts_with("Search Python file contents")
+                || super::slot_fidelity::slot_violation(&request.input, command).is_none()
+        });
 
         if let Some((command, matched_by, confidence)) = matched {
             // SAFETY VALIDATION: Validate the GENERATED command
