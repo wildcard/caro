@@ -51,6 +51,38 @@ fn quote_arg(a: &str) -> String {
     }
 }
 
+/// True when `s` is inert to a POSIX shell: outside single quotes it holds
+/// only letters, digits, `_@%+=:,./-` and single spaces; inside single quotes
+/// anything; and the only escape is the `\'` that `quote_arg` writes between
+/// two quoted parts. No expansion, substitution, glob, separator or redirect
+/// can occur. A pre-execution guard for tests that hand a rendering to a shell.
+pub fn rendering_is_inert(s: &str) -> bool {
+    let b = s.as_bytes();
+    let (mut i, mut quoted) = (0, false);
+    while i < b.len() {
+        let c = b[i];
+        if quoted {
+            if c == b'\'' {
+                quoted = false;
+            }
+        } else if c == b'\'' {
+            quoted = true;
+        } else if c == b'\\' && b.get(i + 1) == Some(&b'\'') && i > 0 && b[i - 1] == b'\'' {
+            i += 1; // the `\'` between two quoted parts
+        } else if !(c.is_ascii_alphanumeric()
+            || c == b' '
+            || matches!(
+                c,
+                b'_' | b'@' | b'%' | b'+' | b'=' | b':' | b',' | b'.' | b'/' | b'-'
+            ))
+        {
+            return false;
+        }
+        i += 1;
+    }
+    !quoted
+}
+
 /// Render the shell string. Every argument is its own shell word.
 pub fn render(argv: &[String]) -> String {
     argv.iter()
@@ -226,6 +258,36 @@ mod tests {
         assert!(r.contains("'a b;rm -rf x$(id)`y`'"));
         let (a, _) = cmd("find files in \"!\"");
         assert!(a.contains(&"./!".to_string()));
+    }
+
+    #[test]
+    fn inert_guard_accepts_renderings_and_rejects_shell_syntax() {
+        // everything the renderer emits is inert, hostile literals included
+        for req in [
+            "list all python files",
+            "find python files modified in the last 7 days",
+            "find files named \"a b;rm -rf x$(id)`y`'z.txt\" in \"-x\"",
+            "find files named \"!bang.txt\" in \"(\"",
+        ] {
+            let (_, r) = cmd(req);
+            assert!(rendering_is_inert(&r), "{r}");
+        }
+        // unquoted shell syntax is not inert
+        for bad in [
+            "find . -name a b;rm -rf x.txt -print0",
+            "find . -name $(id).txt",
+            "find . -name `id`.txt",
+            "find . -name *.py",
+            "find . ! -name x",
+            "find . -name x > out",
+            "find . -name 'x",
+            "find . -name x|sh",
+            "find . -name x&",
+            "find . -name \"x\"",
+            "find . -name x\\ y",
+        ] {
+            assert!(!rendering_is_inert(bad), "{bad}");
+        }
     }
 
     #[test]

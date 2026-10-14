@@ -121,6 +121,22 @@ fn select(request: &str, cwd: &Path) -> Records {
         .plan(request, T0)
         .unwrap_or_else(|e| panic!("{request}: {e}"));
     assert!(plan.command.ends_with("-print0"));
+    // Pre-execution guard: nothing is handed to a shell unless the rendering
+    // is inert (every literal single-quoted) and is the closed read-only find
+    // that round-trips to its argv. A renderer bug fails here, before any
+    // shell sees the string.
+    assert!(
+        caro::intent::compile::rendering_is_inert(&plan.command),
+        "refusing to run a non-inert rendering: {}",
+        plan.command
+    );
+    caro::intent::compile::check_closed(&plan.argv, &plan.argv[0])
+        .unwrap_or_else(|e| panic!("refusing to run a non-closed command: {e}"));
+    assert_eq!(
+        shell_words::split(&plan.command).unwrap(),
+        plan.argv,
+        "rendering must round-trip to its argv before any shell runs"
+    );
     let by_argv = run_argv(&plan.argv, cwd).unwrap_or_else(|e| panic!("{request}: argv: {e}"));
     for sh in shells() {
         let by_sh = run_shell(sh, &plan.command, cwd)
