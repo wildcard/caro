@@ -406,6 +406,11 @@ pub struct VllmBackend {
     max_tokens: u32,
     /// Whether to ask for per-token log-probs (default true).
     logprobs: bool,
+    /// Request timeout the HTTP client was built with.
+    timeout: Duration,
+    /// Redirects are refused (schema contract only; other routes keep the
+    /// default client).
+    no_redirects: bool,
     /// Request shape for the fail-closed route (legacy mode is always baseline).
     prompt_mode: PromptMode,
     /// Set only by [`VllmBackend::with_schema_contract`]: the operator named the
@@ -422,14 +427,19 @@ pub struct VllmBackend {
 }
 
 impl VllmBackend {
+    fn build_client(timeout: Duration, no_redirects: bool) -> Result<Client, GeneratorError> {
+        let mut builder = Client::builder().timeout(timeout);
+        if no_redirects {
+            builder = builder.redirect(reqwest::redirect::Policy::none());
+        }
+        builder.build().map_err(|e| GeneratorError::ConfigError {
+            message: format!("Failed to create HTTP client: {}", e),
+        })
+    }
+
     /// Create a new vLLM backend
     pub fn new(base_url: Url, model_name: String) -> Result<Self, GeneratorError> {
-        let client = Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .map_err(|e| GeneratorError::ConfigError {
-                message: format!("Failed to create HTTP client: {}", e),
-            })?;
+        let client = Self::build_client(Duration::from_secs(30), false)?;
 
         Ok(Self {
             base_url,
@@ -439,6 +449,8 @@ impl VllmBackend {
             embedded_fallback: None,
             max_tokens: DEFAULT_MAX_TOKENS,
             logprobs: true,
+            timeout: Duration::from_secs(30),
+            no_redirects: false,
             prompt_mode: PromptMode::Baseline,
             schema_contract: false,
             fail_closed: false,
@@ -481,12 +493,39 @@ impl VllmBackend {
                 "backends.vllm_schema_contract_endpoint `{endpoint}` is not a valid URL: {e}"
             ))
         })?;
+        if !self.fail_closed {
+            return Err(refuse(
+                "schema modes exist only on the fail-closed explicit route".to_string(),
+            ));
+        }
+        // The contract is keyless and compares scheme, host, port and path
+        // only. Credentials, a query or a fragment would make "same endpoint"
+        // incomplete (absolute joins drop query and fragment; userinfo changes
+        // authentication), so such URLs are refused instead of half-compared.
+        for (label, url) in [
+            ("bound endpoint", &bound),
+            ("configured endpoint", &self.base_url),
+        ] {
+            if !url.username().is_empty() || url.password().is_some() {
+                return Err(refuse(format!(
+                    "the {label} carries credentials; the schema contract is keyless"
+                )));
+            }
+            if url.query().is_some() || url.fragment().is_some() {
+                return Err(refuse(format!(
+                    "the {label} has a query or fragment, which requests drop"
+                )));
+            }
+        }
         if !same_endpoint(&bound, &self.base_url) {
             return Err(refuse(format!(
                 "the contract is bound to `{bound}` but the configured endpoint is `{}`",
                 self.base_url
             )));
         }
+        // A contract endpoint must not hand the request to another host.
+        self.no_redirects = true;
+        self.client = Self::build_client(self.timeout, true)?;
         self.schema_contract = true;
         Ok(self)
     }
@@ -494,7 +533,7 @@ impl VllmBackend {
     /// Choose the request shape. Schema modes need
     /// [`VllmBackend::with_schema_contract`] first.
     pub fn with_prompt_mode(mut self, mode: PromptMode) -> Result<Self, GeneratorError> {
-        if mode.uses_schema() && !self.schema_contract {
+        if mode.uses_schema() && !(self.schema_contract && self.fail_closed) {
             return Err(GeneratorError::ConfigError {
                 message: format!(
                     "vllm prompt mode `{}` is gated: it needs backends.vllm_schema_contract = \
@@ -520,11 +559,8 @@ impl VllmBackend {
 
     /// Set the per-request timeout. Rebuilds the HTTP client.
     pub fn with_timeout(mut self, timeout: Duration) -> Result<Self, GeneratorError> {
-        self.client = Client::builder().timeout(timeout).build().map_err(|e| {
-            GeneratorError::ConfigError {
-                message: format!("Failed to create HTTP client: {}", e),
-            }
-        })?;
+        self.client = Self::build_client(timeout, self.no_redirects)?;
+        self.timeout = timeout;
         Ok(self)
     }
 
@@ -1118,6 +1154,17 @@ Rules:
     ) -> Result<GeneratedCommand, GeneratorError> {
         if self.fail_closed {
             return self.generate_fail_closed(request).await;
+        }
+        // Schema modes exist only on the fail-closed route. A legacy backend
+        // that somehow carries one refuses before any HTTP call instead of
+        // silently sending a format-less request through the lenient parser.
+        if self.prompt_mode.uses_schema() {
+            return Err(GeneratorError::ConfigError {
+                message: format!(
+                    "vllm prompt mode `{}` is refused on the legacy route",
+                    self.prompt_mode.as_str()
+                ),
+            });
         }
         self.checked_context
             .get_or_init(|| self.warn_on_context_length())
@@ -2430,6 +2477,226 @@ mod fail_closed_tests {
             out.unwrap_err(),
             GeneratorError::ParseError { .. }
         ));
+    }
+
+    // ---- Schema modes need the fail-closed route; endpoint and transport limits ----
+
+    fn legacy_backend(url: &str) -> VllmBackend {
+        VllmBackend::new(Url::parse(url).unwrap(), MODEL.to_string()).unwrap()
+    }
+
+    #[test]
+    fn schema_builder_order_cannot_reach_the_legacy_route() {
+        // Not fail-closed: the contract and the mode are both refused, in
+        // either order, with the exact same endpoint and a valid id.
+        let legacy = legacy_backend("http://127.0.0.1:9");
+        let err = legacy
+            .with_schema_contract(SCHEMA_CONTRACT_ID, "http://127.0.0.1:9")
+            .err()
+            .unwrap();
+        assert!(err.to_string().contains("fail-closed"), "{err}");
+        for mode in [PromptMode::Schema, PromptMode::Combined] {
+            assert!(legacy_backend("http://127.0.0.1:9")
+                .with_prompt_mode(mode)
+                .is_err());
+        }
+        // fail_closed() after the fact does not retroactively open anything.
+        let late = legacy_backend("http://127.0.0.1:9").fail_closed();
+        assert!(late.with_prompt_mode(PromptMode::Schema).is_err());
+        // Ordinary legacy modes still work.
+        assert!(legacy_backend("http://127.0.0.1:9")
+            .with_prompt_mode(PromptMode::Context)
+            .is_ok());
+    }
+
+    #[tokio::test]
+    async fn a_legacy_backend_that_somehow_carries_a_schema_mode_sends_nothing() {
+        // Defense in depth: force the state the builders now forbid and prove
+        // that generation refuses before any GET or POST.
+        let server = MockServer::start().await;
+        healthy(&server).await;
+        mount_completion(&server, ResponseTemplate::new(200), 0).await;
+        for mode in [PromptMode::Schema, PromptMode::Combined] {
+            let mut legacy = legacy_backend(&server.uri());
+            legacy.prompt_mode = mode;
+            let err = legacy.generate_command(&req()).await.unwrap_err();
+            assert!(err.to_string().contains("legacy route"), "{err}");
+        }
+        assert!(server.received_requests().await.unwrap().is_empty());
+        // And the ordinary legacy request is unchanged (no response_format).
+        let ok = MockServer::start().await;
+        mount_completion(
+            &ok,
+            ResponseTemplate::new(200).set_body_json(completion(Some(MODEL), true)),
+            1,
+        )
+        .await;
+        legacy_backend(&ok.uri())
+            .generate_command(&req())
+            .await
+            .unwrap();
+        let sent = ok.received_requests().await.unwrap();
+        let post = sent.iter().find(|r| r.method.as_str() == "POST").unwrap();
+        let body: serde_json::Value = serde_json::from_slice(&post.body).unwrap();
+        assert!(body.get("response_format").is_none());
+    }
+
+    #[test]
+    fn contract_endpoint_refuses_credentials_query_and_fragment() {
+        let try_bind = |configured: &str, bound: &str| {
+            strict_backend_at(configured)
+                .with_schema_contract(SCHEMA_CONTRACT_ID, bound)
+                .err()
+                .map(|e| e.to_string())
+        };
+        for (configured, bound, needle) in [
+            (
+                "http://127.0.0.1:9",
+                "http://user:pw@127.0.0.1:9",
+                "carries credentials",
+            ),
+            (
+                "http://127.0.0.1:9",
+                "http://user@127.0.0.1:9",
+                "carries credentials",
+            ),
+            (
+                "http://user:pw@127.0.0.1:9",
+                "http://127.0.0.1:9",
+                "carries credentials",
+            ),
+            (
+                "http://user:pw@127.0.0.1:9",
+                "http://user:pw@127.0.0.1:9",
+                "carries credentials",
+            ),
+            (
+                "http://127.0.0.1:9",
+                "http://127.0.0.1:9?x=1",
+                "query or fragment",
+            ),
+            (
+                "http://127.0.0.1:9",
+                "http://127.0.0.1:9#frag",
+                "query or fragment",
+            ),
+            (
+                "http://127.0.0.1:9?x=1",
+                "http://127.0.0.1:9",
+                "query or fragment",
+            ),
+        ] {
+            let err = try_bind(configured, bound)
+                .unwrap_or_else(|| panic!("{configured} vs {bound} must be refused"));
+            assert!(err.contains(needle), "{configured} vs {bound}: {err}");
+        }
+        assert!(try_bind("http://127.0.0.1:9", "http://127.0.0.1:9").is_none());
+    }
+
+    fn strict_backend_at(url: &str) -> VllmBackend {
+        legacy_backend(url).fail_closed()
+    }
+
+    /// Two mock servers: A answers the readiness GETs and replies to the POST
+    /// with a redirect to B. B must never be contacted when a contract is bound.
+    async fn redirecting_pair(post_status: u16, health_redirect: bool) -> (MockServer, MockServer) {
+        let a = MockServer::start().await;
+        let b = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(completion(Some(MODEL), true)))
+            .mount(&b)
+            .await;
+        Mock::given(method("GET"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(json!({"status": "ok", "data": [{"id": MODEL}]})),
+            )
+            .mount(&b)
+            .await;
+        if health_redirect {
+            Mock::given(method("GET"))
+                .and(path("/health"))
+                .respond_with(
+                    ResponseTemplate::new(307)
+                        .insert_header("Location", format!("{}/health", b.uri())),
+                )
+                .mount(&a)
+                .await;
+        } else {
+            healthy(&a).await;
+            Mock::given(method("POST"))
+                .and(path("/v1/chat/completions"))
+                .respond_with(
+                    ResponseTemplate::new(post_status)
+                        .insert_header("Location", format!("{}/v1/chat/completions", b.uri())),
+                )
+                .mount(&a)
+                .await;
+        }
+        (a, b)
+    }
+
+    #[tokio::test]
+    async fn a_bound_contract_never_follows_a_redirect_off_the_endpoint() {
+        for status in [301u16, 302, 307, 308] {
+            let (a, b) = redirecting_pair(status, false).await;
+            let backend = backend(&a)
+                .with_schema_contract(SCHEMA_CONTRACT_ID, &a.uri())
+                .unwrap()
+                .with_prompt_mode(PromptMode::Combined)
+                .unwrap()
+                .with_timeout(Duration::from_secs(5)) // rebuilt client keeps the policy
+                .unwrap();
+            let err = backend.generate_command(&req()).await.unwrap_err();
+            assert!(
+                err.to_string().contains(&status.to_string()),
+                "{status}: {err}"
+            );
+            let posts_a = a
+                .received_requests()
+                .await
+                .unwrap()
+                .iter()
+                .filter(|r| r.method.as_str() == "POST")
+                .count();
+            assert_eq!(posts_a, 1, "{status}: one POST, no retry");
+            assert!(
+                b.received_requests().await.unwrap().is_empty(),
+                "{status}: nothing reached the other host"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn a_bound_contract_does_not_follow_a_readiness_redirect_either() {
+        let (a, b) = redirecting_pair(200, true).await;
+        let backend = backend(&a)
+            .with_schema_contract(SCHEMA_CONTRACT_ID, &a.uri())
+            .unwrap()
+            .with_prompt_mode(PromptMode::Schema)
+            .unwrap();
+        assert!(backend.generate_command(&req()).await.is_err());
+        assert!(b.received_requests().await.unwrap().is_empty());
+        assert!(a
+            .received_requests()
+            .await
+            .unwrap()
+            .iter()
+            .all(|r| r.method.as_str() != "POST"));
+    }
+
+    #[tokio::test]
+    async fn ordinary_routes_keep_the_default_redirect_behavior() {
+        // Transport for baseline and context is unchanged: only the schema
+        // contract refuses redirects.
+        let (a, b) = redirecting_pair(307, false).await;
+        let out = backend(&a)
+            .with_prompt_mode(PromptMode::Context)
+            .unwrap()
+            .generate_command(&req())
+            .await;
+        assert!(out.is_ok(), "{out:?}");
+        assert_eq!(b.received_requests().await.unwrap().len(), 1);
     }
 
     // ---- Verbatim regression from the real 039bb92 trial (data only, never run) ----

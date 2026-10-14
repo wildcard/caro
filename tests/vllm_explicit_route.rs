@@ -725,6 +725,11 @@ async fn contract_missing_unknown_or_bound_elsewhere_fails_before_any_request() 
             Some((CONTRACT_ID, Some("http://127.0.0.1:1"))),
             "is bound to",
         ),
+        (
+            "userinfo",
+            Some((CONTRACT_ID, Some("http://user:pw@127.0.0.1:1"))),
+            "carries credentials",
+        ),
     ] {
         for eval in [false, true] {
             let server = serve(&[ALIAS], ok_reply()).await;
