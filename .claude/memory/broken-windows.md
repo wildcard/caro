@@ -260,7 +260,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-22)
 **Issue:** #1467
-**Status:** open (#1454 mentions it)
+**Status:** claimed-by sweep/2026-10-14-BW-031
 **Needs human?:** no
 **Next step:** build the header from `env!("CARGO_PKG_VERSION")` in `src/backends/remote/ai_horde.rs`.
 
@@ -526,9 +526,9 @@ workspaces are BW-069.
 
 **Found:** 2026-10-13, broken-window sweep (register sync)
 **Issue:** #1626
-**Status:** claimed-by sweep/2026-10-13-BW-1626 (#1656)
+**Status:** fixed (#1656, merged 2026-10-14). The GPU-layer helpers are `allow(dead_code)` off the MLX build.
 **Needs human?:** no
-**Next step:** merge the PR.
+**Next step:** none; #1626 is closed. Delete after 2026-10-21.
 
 ### BW-075: static matcher Pattern 43 drops file-type and size qualifiers ("list pdf files" gives `ls -la`)
 
@@ -609,3 +609,19 @@ workspaces are BW-069.
 **Status:** open
 **Needs human?:** no
 **Next step:** `git rm -r --cached tests/evaluation/target`; `.gitignore` already ignores the path.
+
+### BW-085: `caro-demo-drift` repeats its PR comment on every push and blames the PR for drift on `main`
+
+**Found:** 2026-10-14, broken-window sweep (register sync)
+**Issue:** #1666
+**Status:** open
+**Needs human?:** no
+**Next step:** make the comment sticky (marker plus update in `.github/workflows/caro-demo-drift.yml`); compare against the merge base, not the last render.
+
+### BW-086: website `integrations.ts` Claude/Ollama entries and `--model` snippet are stale after v1.5.0
+
+**Found:** 2026-10-14, broken-window sweep (register sync)
+**Issue:** #1657
+**Status:** open
+**Needs human?:** no
+**Next step:** rewrite the three entries in `website/src/data/integrations.ts` for 1.5.0 behavior; use `--model-name` in the snippet.
