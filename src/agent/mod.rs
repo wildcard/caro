@@ -1005,7 +1005,10 @@ DO NOT include explanations, comments, or multiple commands - just ONE valid com
 
 /// Awaits a probe with its process-group guard armed. Only a successful
 /// wait disarms it: if the wait fails, or the deadline drops this future,
-/// the guard kills the group, so the probe's children do not outlive it.
+/// the guard kills the group, so children still in it do not outlive the
+/// probe. After a successful wait the guard does nothing: a background
+/// child the tool left running, or one that left the group (`setsid`),
+/// keeps running.
 async fn wait_guarded<T, E>(
     pid: Option<u32>,
     wait: impl std::future::Future<Output = Result<T, E>>,
@@ -1551,11 +1554,9 @@ mod tests {
     #[cfg(unix)]
     #[tokio::test]
     async fn command_probe_captures_stdout() {
-        use std::os::unix::fs::PermissionsExt;
         let dir = tempfile::tempdir().unwrap();
         let tool = dir.path().join("tool");
-        std::fs::write(&tool, "#!/bin/sh\necho \"tool 1.2.3\"\n").unwrap();
-        std::fs::set_permissions(&tool, std::fs::Permissions::from_mode(0o755)).unwrap();
+        write_script(&tool, "#!/bin/sh\necho \"tool 1.2.3\"\n");
 
         let info = AgentLoop::get_command_info(tool.to_str().unwrap())
             .await
@@ -1634,16 +1635,43 @@ mod tests {
     /// worker's pid in `worker.pid`, and waits. Returns (script, pidfile).
     #[cfg(unix)]
     fn hanging_script(dir: &std::path::Path) -> (std::path::PathBuf, std::path::PathBuf) {
-        use std::os::unix::fs::PermissionsExt;
         let script = dir.join("hangs");
         let pidfile = dir.join("worker.pid");
         let body = format!(
-            "#!/bin/sh\nsleep 3600 &\necho $! > {}\nwait\n",
+            "#!/bin/sh\n[ \"$1\" = --warm ] && exit 0\nsleep 3600 &\necho $! > {}\nwait\n",
             pidfile.display()
         );
-        std::fs::write(&script, body).unwrap();
-        std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
+        write_script(&script, &body);
         (script, pidfile)
+    }
+
+    /// Writes an executable script and waits until it can be executed.
+    /// A test thread that forks while the file is open for writing keeps
+    /// the write handle until it execs, and exec of the script then fails
+    /// with ETXTBSY. Once one run with `--warm` succeeds, no writer is
+    /// left, so later runs cannot hit it. The script must exit at once
+    /// when given `--warm`.
+    #[cfg(unix)]
+    fn write_script(path: &std::path::Path, body: &str) {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::write(path, body).unwrap();
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o755)).unwrap();
+        for _ in 0..200 {
+            match std::process::Command::new(path)
+                .arg("--warm")
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status()
+            {
+                Ok(_) => return,
+                Err(e) if e.raw_os_error() == Some(libc::ETXTBSY) => {
+                    std::thread::sleep(Duration::from_millis(10))
+                }
+                Err(e) => panic!("cannot run {}: {e}", path.display()),
+            }
+        }
+        panic!("{} stayed busy (ETXTBSY)", path.display());
     }
 
     /// Polls `pidfile` until the script has written the worker's pid.
