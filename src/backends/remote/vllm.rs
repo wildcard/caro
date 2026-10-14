@@ -102,9 +102,14 @@ struct StrictCmdReply {
 #[serde(deny_unknown_fields)]
 struct StrictAskReply {
     needs_clarification: bool,
-    #[serde(default)]
+    /// Absent is allowed; an explicit `null` is not.
+    #[serde(default, deserialize_with = "number_not_null")]
     p: Option<f64>,
     question: String,
+}
+
+fn number_not_null<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Option<f64>, D::Error> {
+    <f64 as Deserialize>::deserialize(d).map(Some)
 }
 
 /// The JSON text of a reply that is a bare object, or exactly one fenced block
@@ -1524,6 +1529,13 @@ mod fail_closed_tests {
             r#"{"needs_clarification": true, "p": 2.0, "question": "q"}"#,
             r#"{"needs_clarification": true, "p": "high", "question": "q"}"#,
             r#"{"needs_clarification": true, "p": 0.2, "question": "q"}"#,
+            r#"{"cmd": "ls", "needs_clarification": true, "p": 0.95, "question": "q"}"#,
+            r#"{"cmd": "ls", "needs_clarification": true, "p": 0.1, "question": "q"}"#,
+            r#"{"cmd": "ls", "p": 0.9}"#,
+            r#"{"needs_clarification": true, "p": null, "question": "q"}"#,
+            r#"{"cmd": "ls"}{"needs_clarification": true, "question": "q"}"#,
+            "{\"cmd\": \"ls\"}\n{\"cmd\": \"pwd\"}",
+            "\u{feff}{\"cmd\": \"ls\"}",
             // fence abuse
             "```json {\"cmd\": \"ls\"} ```",
             "text\n```json\n{\"cmd\": \"ls\"}\n```",

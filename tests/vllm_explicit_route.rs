@@ -471,6 +471,69 @@ async fn cli_route_sends_one_real_request_even_for_a_static_matchable_prompt() {
     assert!(!home.embedded_cache_exists());
 }
 
+fn content_reply(model: Option<&str>, content: &str) -> ResponseTemplate {
+    let mut body = json!({
+        "choices": [{"message": {"role": "assistant", "content": content}}],
+        "usage": {"prompt_tokens": 31, "completion_tokens": 9, "total_tokens": 40}
+    });
+    if let Some(m) = model {
+        body["model"] = json!(m);
+    }
+    ResponseTemplate::new(200).set_body_json(body)
+}
+
+/// Synthetic data, never run: unescaped quotes plus trailing decision fields.
+const CORRUPT_CONTENT: &str = r#"{"cmd": "find . -name "*.py" corrupt-marker", "needs_clarification": true, "p": 0.9, "question": "which directory?"}"#;
+
+#[tokio::test]
+async fn cli_route_fails_when_the_reply_does_not_name_a_model() {
+    let server = serve(
+        &[ALIAS],
+        content_reply(None, &format!("{{\"cmd\": \"{NONCE_CMD}\"}}")),
+    )
+    .await;
+    let home = Arc::new(Home::new("cli-no-model", &server.uri(), None));
+    let (a, o) = cli_args(STATIC_PROMPT, Some(ALIAS), &[]);
+    let out = run(&home, a, o, vec![]).await;
+    assert!(!out.success, "{}\n{}", out.stdout, out.stderr);
+    let all = format!("{}{}", out.stdout, out.stderr);
+    assert!(all.contains("does not name the model"), "{all}");
+    assert!(!out.stdout.contains("nonce-7f3a9c"), "{}", out.stdout);
+    assert!(!all.contains("unverified"), "{all}");
+    assert_eq!(posts(&server).await.len(), 1, "no retry");
+}
+
+#[tokio::test]
+async fn cli_and_eval_routes_reject_corrupt_structured_content() {
+    for (name, eval) in [("cli-corrupt", false), ("eval-corrupt", true)] {
+        let server = serve(&[ALIAS], content_reply(Some(ALIAS), CORRUPT_CONTENT)).await;
+        let home = Arc::new(Home::new(name, &server.uri(), None));
+        let (a, o) = if eval {
+            eval_args(Some(ALIAS), &suite(&home), false)
+        } else {
+            cli_args(STATIC_PROMPT, Some(ALIAS), &[])
+        };
+        let out = run(&home, a, o, vec![]).await;
+        assert!(!out.success, "{name}: {}\n{}", out.stdout, out.stderr);
+        // The error may quote the rejected reply; no other line may carry it.
+        for line in format!("{}\n{}", out.stdout, out.stderr).lines() {
+            assert!(
+                !line.contains("corrupt-marker") || line.contains("reply is not a command"),
+                "{name}: corrupted text surfaced outside an error: {line}"
+            );
+        }
+        if eval {
+            assert!(out.stdout.contains("Overall: 0/2"), "{}", out.stdout);
+        }
+        assert!(
+            out.stderr.contains(ALIAS) || out.stdout.contains(ALIAS),
+            "{name}: {}\n{}",
+            out.stdout,
+            out.stderr
+        );
+    }
+}
+
 #[tokio::test]
 async fn cli_route_unreachable_is_a_nonzero_error_naming_endpoint_and_model() {
     let home = Arc::new(Home::new("clidown", "http://127.0.0.1:9", None));
