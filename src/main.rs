@@ -3128,6 +3128,9 @@ async fn run_evaluation_tests_inner(
         suite = suite.filter_by_profile(profile);
     }
 
+    if backend_name == "select-files" {
+        say!("Note: this run compares generated command text and applies the pure structural check. It does not run safety, approval or execution.");
+    }
     say!("Loaded test suite: {}", suite.name);
     say!("Description: {}", suite.description);
     say!("Total test cases: {}", suite.test_cases.len());
@@ -3156,7 +3159,16 @@ async fn run_evaluation_tests_inner(
         let (passed, actual, error) = match result {
             Ok(cmd) => {
                 let matches = test_case.expected_outputs.contains(&cmd.command);
-                (matches, Some(cmd.command), None)
+                // This harness compares generated text only. For select-files
+                // also require the same pure structural validation the CLI
+                // applies; a match alone is not integrated acceptance.
+                match backend_name {
+                    "select-files" => match caro::intent::compile::validation_probe(&cmd.command) {
+                        Ok(_) => (matches, Some(cmd.command), None),
+                        Err(e) => (false, Some(cmd.command), Some(format!("validation: {e}"))),
+                    },
+                    _ => (matches, Some(cmd.command), None),
+                }
             }
             Err(e) => (false, None, Some(e.to_string())),
         };

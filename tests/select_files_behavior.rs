@@ -192,7 +192,14 @@ fn window_boundaries_match_two_independent_oracles() {
     let refs = TempDir::new().unwrap(); // outside the searched tree
     let ns_ok = ns_supported(tree.path());
     if !ns_ok {
-        println!("SKIPPED(window_boundaries): nanosecond rows (file system keeps whole seconds)");
+        // A required criterion that cannot be verified is a failure, not a
+        // green skip. The override exists only to let a receipt run report it.
+        let msg = "UNVERIFIED(window_boundaries): nanosecond mtime precision not available on this file system";
+        println!("{msg}");
+        assert!(
+            std::env::var("SELECT_FILES_ALLOW_UNVERIFIED_PRECISION").is_ok(),
+            "{msg}"
+        );
     }
     let mut graded: Vec<(String, i128)> = vec![];
     for row in rows() {

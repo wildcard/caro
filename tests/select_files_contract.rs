@@ -495,3 +495,111 @@ fn cli_failure_keeps_stderr_exit_and_error() {
     );
     assert!(String::from_utf8_lossy(&out.stderr).contains("No such file"));
 }
+
+// ------------------------------------- env and config selected route ----
+
+fn write_config(home: &TempDir, body: &str) {
+    let dir = home.path().join("caro");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(
+        dir.join("config.toml"),
+        format!("{body}\n[telemetry]\nenabled = false\nfirst_run = false\n"),
+    )
+    .unwrap();
+}
+
+fn json_no_flag(home: &TempDir, envs: &[(&str, &str)], extra: &[&str], req: &str) -> Output {
+    let mut args = vec!["--dry-run", "-o", "json", "-v"];
+    args.extend_from_slice(extra);
+    args.push(req);
+    caro(home, envs, &args)
+}
+
+#[test]
+fn env_only_backend_selects_the_deterministic_route() {
+    let h = TempDir::new().unwrap();
+    let out = json_no_flag(
+        &h,
+        &[("CARO_BACKEND", "select-files")],
+        &[],
+        "list all pdf files",
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let t = String::from_utf8_lossy(&out.stdout).into_owned();
+    let v: serde_json::Value = serde_json::from_str(&t[t.find('{').unwrap()..]).unwrap();
+    assert!(command(&v).ends_with("-iname '*.pdf' -print0"));
+    assert!(v["debug_info"]
+        .as_str()
+        .unwrap()
+        .contains("intent-deterministic"));
+}
+
+#[test]
+fn config_selected_backend_ignores_inherited_model_and_rejects_force_llm() {
+    let h = TempDir::new().unwrap();
+    write_config(
+        &h,
+        "default_model = \"select-files\"\nmodel_name = \"inherited-model\"",
+    );
+    let out = json_no_flag(&h, &[], &[], "list all python files");
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let t = String::from_utf8_lossy(&out.stdout).into_owned();
+    let v: serde_json::Value = serde_json::from_str(&t[t.find('{').unwrap()..]).unwrap();
+    let dbg = v["debug_info"].as_str().unwrap();
+    assert!(
+        dbg.contains("Model: none") && !dbg.contains("inherited-model"),
+        "{dbg}"
+    );
+    // The effective backend comes from the config file, so the conflicts apply.
+    let out = json_no_flag(&h, &[], &["--force-llm"], "list all python files");
+    assert!(!out.status.success());
+    assert!(
+        String::from_utf8_lossy(&out.stderr).contains("cannot be used with --backend select-files")
+    );
+    let out = json_no_flag(&h, &[], &["--model-name", "m"], "list all python files");
+    assert!(!out.status.success());
+}
+
+#[test]
+fn flag_beats_env_beats_config_for_the_selected_route() {
+    let h = TempDir::new().unwrap();
+    // config and env name other backends; those are never constructed because
+    // a higher-priority source selects select-files.
+    write_config(&h, "default_model = \"embedded\"");
+    let out = json_no_flag(
+        &h,
+        &[("CARO_BACKEND", "select-files")],
+        &[],
+        "list all python files",
+    );
+    assert!(
+        out.status.success(),
+        "env over config: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let out = caro(
+        &h,
+        &[("CARO_BACKEND", "embedded")],
+        &[
+            "--backend",
+            "select-files",
+            "--dry-run",
+            "-o",
+            "json",
+            "list all python files",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "flag over env: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+}

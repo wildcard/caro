@@ -31,7 +31,10 @@ pub fn argv(intent: &VerifiedIntent, find: &str) -> Vec<String> {
 }
 
 /// Quote one argument for a POSIX shell. A conservative safe set stays bare;
-/// everything else, including `!` (history expansion), is single-quoted.
+/// everything else, including `!`, is single-quoted. Quoting `!` is the
+/// canonical renderer policy (an interactive shell may treat a bare `!`
+/// specially). A non-interactive `sh -c` / `bash -c` gives the same selected
+/// set either way; no behavioral claim rests on this quote.
 fn quote_arg(a: &str) -> String {
     let safe = !a.is_empty()
         && a.bytes().all(|b| {
