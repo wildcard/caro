@@ -3,9 +3,11 @@
 /// These tests run the actual caro binary as a user would and verify behavior
 /// from a user's perspective. Tests are based on the comprehensive manual QA
 /// test cases and validate the complete user experience.
+use std::io::Read;
 use std::path::Path;
 use std::process::{Command, Stdio};
-use std::time::Duration;
+use std::thread;
+use std::time::{Duration, Instant};
 
 use serde_json::Value;
 use tempfile::TempDir;
@@ -53,18 +55,22 @@ impl CliTestRunner {
         cmd.env("CARO_CONFIG_DIR", self.temp_dir.path());
         cmd.env_remove("CARO_CACHE_DIR");
 
-        let output = cmd
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .output()
-            .expect("Failed to execute caro");
+        let deadline = call_deadline();
+        let output = run_with_deadline(&mut cmd, deadline);
+        if output.timed_out {
+            panic!(
+                "caro call killed after the {:?} deadline (CARO_E2E_CALL_DEADLINE_SECS). Args: {:?}",
+                deadline.unwrap_or_default(),
+                args
+            );
+        }
 
         let execution_time = start_time.elapsed();
 
         CliTestResult {
-            stdout: String::from_utf8_lossy(&output.stdout).to_string(),
-            stderr: String::from_utf8_lossy(&output.stderr).to_string(),
-            exit_code: output.status.code().unwrap_or(-1),
+            stdout: output.stdout,
+            stderr: output.stderr,
+            exit_code: output.exit_code,
             execution_time,
         }
     }
@@ -100,6 +106,147 @@ struct CliTestResult {
     stderr: String,
     exit_code: i32,
     execution_time: Duration,
+}
+
+/// Hard per-call deadline for one caro process (#1654), in seconds, from
+/// `CARO_E2E_CALL_DEADLINE_SECS`. Unset, empty or `0` means no deadline.
+fn call_deadline() -> Option<Duration> {
+    std::env::var("CARO_E2E_CALL_DEADLINE_SECS")
+        .ok()
+        .and_then(|v| v.trim().parse::<u64>().ok())
+        .filter(|secs| *secs > 0)
+        .map(Duration::from_secs)
+}
+
+/// Output of one child process run by [`run_with_deadline`].
+struct CallOutput {
+    stdout: String,
+    stderr: String,
+    exit_code: i32,
+    timed_out: bool,
+}
+
+/// Run `cmd` with piped output. When `deadline` passes, kill the child's whole
+/// process group (Unix), so no orphan keeps the job busy, and reap it.
+/// Output is drained on threads so a full pipe cannot block the child.
+fn run_with_deadline(cmd: &mut Command, deadline: Option<Duration>) -> CallOutput {
+    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        cmd.process_group(0);
+    }
+    let start = Instant::now();
+    let mut child = cmd.spawn().expect("Failed to execute caro");
+    let mut out = child.stdout.take().expect("piped stdout");
+    let mut err = child.stderr.take().expect("piped stderr");
+    let out_reader = thread::spawn(move || {
+        let mut buf = Vec::new();
+        out.read_to_end(&mut buf).ok();
+        buf
+    });
+    let err_reader = thread::spawn(move || {
+        let mut buf = Vec::new();
+        err.read_to_end(&mut buf).ok();
+        buf
+    });
+
+    let mut timed_out = false;
+    let status = loop {
+        if let Some(status) = child.try_wait().expect("Failed to poll caro") {
+            break status;
+        }
+        if deadline.is_some_and(|d| start.elapsed() >= d) {
+            timed_out = true;
+            #[cfg(unix)]
+            // SAFETY: plain syscall; a negative pid signals the whole group.
+            unsafe {
+                libc::kill(-(child.id() as i32), libc::SIGKILL);
+            }
+            #[cfg(not(unix))]
+            child.kill().ok();
+            break child.wait().expect("Failed to reap caro");
+        }
+        thread::sleep(Duration::from_millis(20));
+    };
+
+    let stdout = out_reader.join().expect("stdout reader");
+    let stderr = err_reader.join().expect("stderr reader");
+    CallOutput {
+        stdout: String::from_utf8_lossy(&stdout).to_string(),
+        stderr: String::from_utf8_lossy(&stderr).to_string(),
+        exit_code: status.code().unwrap_or(-1),
+        timed_out,
+    }
+}
+
+/// Deadline tests (#1654). They run `sh`, not caro: no model, no network.
+#[cfg(unix)]
+mod harness_deadline {
+    use super::*;
+
+    fn sh(script: &str) -> Command {
+        let mut cmd = Command::new("sh");
+        cmd.arg("-c").arg(script);
+        cmd
+    }
+
+    /// Running, not a zombie. A killed orphan can stay a zombie when PID 1
+    /// does not reap it (some containers), so read /proc where it exists.
+    fn alive(pid: i32) -> bool {
+        if let Ok(stat) = std::fs::read_to_string(format!("/proc/{pid}/stat")) {
+            let state = stat.rsplit(')').next().unwrap_or("").trim_start();
+            return !state.starts_with('Z') && !state.starts_with('X');
+        }
+        // SAFETY: signal 0 only checks that the process exists.
+        unsafe { libc::kill(pid, 0) == 0 }
+    }
+
+    #[test]
+    fn no_deadline_keeps_exit_code_and_output() {
+        let out = run_with_deadline(&mut sh("echo hi; exit 3"), None);
+        assert!(!out.timed_out);
+        assert_eq!(out.exit_code, 3);
+        assert_eq!(out.stdout.trim(), "hi");
+    }
+
+    #[test]
+    fn hung_call_is_killed_at_deadline() {
+        let start = Instant::now();
+        let out = run_with_deadline(&mut sh("sleep 30"), Some(Duration::from_millis(300)));
+        assert!(out.timed_out);
+        assert!(
+            start.elapsed() < Duration::from_secs(5),
+            "took {:?}",
+            start.elapsed()
+        );
+    }
+
+    #[test]
+    fn deadline_kills_the_whole_process_group() {
+        // The shell prints its background child's pid, then waits on it.
+        let out = run_with_deadline(
+            &mut sh("sleep 30 & echo $!; wait"),
+            Some(Duration::from_millis(300)),
+        );
+        assert!(out.timed_out);
+        let grandchild: i32 = out.stdout.trim().parse().expect("grandchild pid");
+        thread::sleep(Duration::from_millis(200));
+        assert!(
+            !alive(grandchild),
+            "grandchild {grandchild} survived the deadline"
+        );
+    }
+
+    #[test]
+    fn large_output_does_not_block_the_child() {
+        let out = run_with_deadline(
+            &mut sh("head -c 2000000 /dev/zero | tr '\\0' x"),
+            Some(Duration::from_secs(10)),
+        );
+        assert!(!out.timed_out);
+        assert_eq!(out.stdout.len(), 2_000_000);
+    }
 }
 
 // =============================================================================
