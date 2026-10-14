@@ -966,8 +966,9 @@ pub struct BackendsConfig {
     #[serde(default)]
     pub vllm_logprobs: Option<bool>,
     /// Request shape for the explicit `--backend vllm` route: `baseline`,
-    /// `context` (default), `schema` or `combined`. The schema modes are
-    /// refused until they are verified against the pinned server.
+    /// `context` (default), `schema` or `combined`. `schema` and `combined`
+    /// are refused unless `vllm_schema_contract` is set and bound to this
+    /// endpoint.
     #[serde(default)]
     pub vllm_prompt_mode: Option<String>,
     /// Opt-in schema contract for the `schema` and `combined` prompt modes.
@@ -975,7 +976,9 @@ pub struct BackendsConfig {
     /// is the operator's statement about the server, not a capability check.
     #[serde(default)]
     pub vllm_schema_contract: Option<String>,
-    /// The endpoint the contract was verified for. Must equal `vllm_url`.
+    /// The endpoint the operator asserts the contract holds for. Must equal
+    /// `vllm_url`. Nothing checks the server; this only ties the assertion to
+    /// the configured URL string.
     #[serde(default)]
     pub vllm_schema_contract_endpoint: Option<String>,
     /// Exo cluster endpoint (default `http://localhost:52415`).
@@ -1252,6 +1255,18 @@ impl ConfigSchema {
         known_keys.insert("backends.vllm_max_tokens".to_string(), "u32".to_string());
         known_keys.insert("backends.vllm_timeout_secs".to_string(), "u64".to_string());
         known_keys.insert("backends.vllm_logprobs".to_string(), "bool".to_string());
+        known_keys.insert(
+            "backends.vllm_prompt_mode".to_string(),
+            "String".to_string(),
+        );
+        known_keys.insert(
+            "backends.vllm_schema_contract".to_string(),
+            "String".to_string(),
+        );
+        known_keys.insert(
+            "backends.vllm_schema_contract_endpoint".to_string(),
+            "String".to_string(),
+        );
         known_keys.insert(
             "backends.vllm_prompt_mode".to_string(),
             "String".to_string(),

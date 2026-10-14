@@ -91,6 +91,10 @@ pub const SCHEMA_SUPPORT_VERIFIED: bool = false;
 /// endpoint behaves like that one"), made in config with
 /// `backends.vllm_schema_contract` and `backends.vllm_schema_contract_endpoint`.
 /// Nothing here detects capability or treats any localhost server as verified.
+/// The binding ties the assertion to the configured URL string only: it does
+/// not prove which server answers, and the HTTP client follows redirects like
+/// any default `reqwest` client. A path prefix is compared, although requests
+/// join absolute paths and drop it.
 pub const SCHEMA_CONTRACT_ID: &str = "llama.cpp-b11429/json_schema.schema/anyOf-v1";
 
 fn same_endpoint(a: &Url, b: &Url) -> bool {
