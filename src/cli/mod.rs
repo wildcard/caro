@@ -1902,6 +1902,29 @@ mod tests {
             app.backend.backend_info().backend_type,
             crate::models::BackendType::SelectFiles
         );
+        // Wiring: the backend the CLI built was verified at selection. Its
+        // output carries the real GNU banner and canonical path, equal to an
+        // independent verification of the installed find.
+        let receipt = crate::intent::find_identity::verify().expect("GNU find on Linux");
+        let out = app
+            .backend
+            .generate_command(&CommandRequest::new(
+                "list all python files",
+                ShellType::Bash,
+            ))
+            .await
+            .unwrap();
+        assert!(
+            out.explanation
+                .contains(&format!("{} at {}", receipt.banner, receipt.path)),
+            "identity receipt missing from the CLI-built backend: {}",
+            out.explanation
+        );
+        assert!(
+            out.command.starts_with(&format!("{} ", receipt.path)),
+            "{}",
+            out.command
+        );
         // an env-selected backend gets the same conflict rules
         let e = CliApp::with_overrides(CliConfig::default(), None, None, true, None).await;
         assert!(e.is_err());
