@@ -36,3 +36,9 @@ jobs:
 
       - name: Test routine status write-back
         run: tests/harness/routine-status.test.sh
+
+      - name: Test tracked build-output guard
+        run: tests/harness/tracked-build-outputs.test.sh
+
+      - name: No tracked build outputs (#1655)
+        run: scripts/check-tracked-build-outputs.sh
