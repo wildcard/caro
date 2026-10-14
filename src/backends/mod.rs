@@ -5,6 +5,7 @@ pub mod embedded;
 pub mod hybrid;
 #[cfg(feature = "remote-backends")]
 pub mod remote;
+mod slot_fidelity;
 pub mod static_matcher;
 
 use async_trait::async_trait;
