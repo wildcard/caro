@@ -39,7 +39,7 @@ pub const MAX_BACKEND_CALLS: usize = 2;
 /// Time: the follow-up (repair, advisor or refine, including the command
 /// probes that feed refine) is skipped once half of `timeout` has passed,
 /// and cut off when `timeout` runs out: refine keeps the draft, repair
-/// fails closed with `GeneratorError::Timeout`. The advisor gets half of
+/// fails closed with `ValidationFailed` (the reason says it was cut off). The advisor gets half of
 /// what is left, so the local refine it falls back to still has time. The
 /// initial call has no deadline (a first-run model load can take longer
 /// than the budget). Cutting off a backend that runs on `spawn_blocking`
@@ -333,12 +333,14 @@ impl AgentLoop {
             {
                 Ok(repaired) => repaired?,
                 Err(_) => {
-                    warn!(
-                        "Repair ran past the time budget; failing closed ({})",
-                        validation.error_message()
-                    );
-                    return Err(GeneratorError::Timeout {
-                        timeout: self.timeout,
+                    warn!("Repair ran past the time budget; failing closed");
+                    // ValidationFailed, like a skipped repair: the user sees
+                    // why the draft was refused, not only that time ran out.
+                    return Err(GeneratorError::ValidationFailed {
+                        reason: format!(
+                            "{} (repair cut off at the time budget)",
+                            validation.error_message()
+                        ),
                     });
                 }
             };
@@ -425,6 +427,10 @@ impl AgentLoop {
                 None
             });
             if let Some(advised) = advised {
+                if let Some(advisor) = &self.advisor {
+                    let backend = advisor.backend_info().backend_type.to_string();
+                    Self::emit_generation_success(&backend, &advised, start);
+                }
                 info!(
                     "Command generation complete via advisor in {:?}",
                     start.elapsed()
@@ -1521,7 +1527,7 @@ mod tests {
             t0.elapsed()
         );
         assert!(
-            matches!(result, Err(GeneratorError::Timeout { .. })),
+            matches!(result, Err(GeneratorError::ValidationFailed { ref reason }) if reason.contains("cut off")),
             "{result:?}"
         );
     }
