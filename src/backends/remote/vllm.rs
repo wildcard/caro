@@ -596,13 +596,25 @@ Request: {}
             *slot = Some(meta.clone());
         }
         if self.fail_closed {
-            if let Some(returned) = &meta.returned_model {
-                if returned != &self.model_name {
+            // Identity is required, not optional: a reply that does not name
+            // the model that answered cannot show it matches the selected one.
+            // Missing usage stays "unverified"; missing identity is an error.
+            match &meta.returned_model {
+                Some(returned) if returned == &self.model_name => {}
+                Some(returned) => {
                     return Err(GeneratorError::GenerationFailed {
                         details: format!(
                             "{}: response names model `{}`, which does not match the selected model",
                             self.ctx(),
                             returned
+                        ),
+                    });
+                }
+                None => {
+                    return Err(GeneratorError::GenerationFailed {
+                        details: format!(
+                            "{}: response does not name the model that answered, so it cannot be checked against the selected model",
+                            self.ctx()
                         ),
                     });
                 }
@@ -1242,7 +1254,109 @@ mod fail_closed_tests {
     }
 
     #[tokio::test]
-    async fn missing_response_model_and_usage_are_unverified_not_assumed() {
+    async fn missing_usage_is_unverified_not_assumed() {
+        let server = MockServer::start().await;
+        healthy(&server).await;
+        mount_completion(
+            &server,
+            ResponseTemplate::new(200).set_body_json(completion(Some(MODEL), false)),
+            1,
+        )
+        .await;
+        let b = backend(&server);
+        let out = b.generate_command(&req()).await.unwrap();
+        let meta = b.last_response_meta().unwrap();
+        assert_eq!(meta.returned_model.as_deref(), Some(MODEL));
+        assert_eq!(meta.completion_tokens, None);
+        assert!(out.explanation.contains("usage unverified"));
+    }
+
+    /// Identity controls: only an exact model name passes. Each failure names
+    /// the endpoint and the selected model, and still makes exactly one POST.
+    async fn identity_outcome(body: serde_json::Value) -> Result<GeneratedCommand, GeneratorError> {
+        let server = MockServer::start().await;
+        healthy(&server).await;
+        mount_completion(&server, ResponseTemplate::new(200).set_body_json(body), 1).await;
+        let out = backend(&server).generate_command(&req()).await;
+        if let Err(e) = &out {
+            let text = e.to_string();
+            assert!(text.contains(MODEL), "{text}");
+            assert!(text.contains(&server.uri()), "{text}");
+        }
+        out
+    }
+
+    fn body_with_model(model: serde_json::Value) -> serde_json::Value {
+        let mut body = completion(Some(MODEL), true);
+        match model {
+            serde_json::Value::Null => {
+                body.as_object_mut().unwrap().remove("model");
+            }
+            other => {
+                body["model"] = other;
+            }
+        }
+        body
+    }
+
+    #[tokio::test]
+    async fn absent_response_model_fails_closed() {
+        let err = identity_outcome(body_with_model(serde_json::Value::Null))
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("does not name the model"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn explicit_null_response_model_fails_closed() {
+        let mut body = completion(Some(MODEL), true);
+        body["model"] = serde_json::Value::Null;
+        let err = identity_outcome(body).await.unwrap_err();
+        assert!(err.to_string().contains("does not name the model"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn malformed_response_model_fails_closed() {
+        for bad in [
+            serde_json::json!(7),
+            serde_json::json!(["x"]),
+            serde_json::json!({"id": MODEL}),
+        ] {
+            let err = identity_outcome(body_with_model(bad)).await.unwrap_err();
+            assert!(matches!(err, GeneratorError::ParseError { .. }), "{err:?}");
+        }
+    }
+
+    #[tokio::test]
+    async fn empty_or_near_miss_response_model_fails_closed() {
+        for bad in [
+            "",
+            "Qwen2.5-Coder-0.5B",
+            "qwen2.5-coder-0.5b ",
+            "qwen2.5-coder-0.5b-extra",
+        ] {
+            let err = identity_outcome(body_with_model(serde_json::json!(bad)))
+                .await
+                .unwrap_err();
+            assert!(
+                err.to_string()
+                    .contains("does not match the selected model"),
+                "{bad:?}: {err}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn exact_alias_response_model_passes() {
+        let out = identity_outcome(body_with_model(serde_json::json!(MODEL)))
+            .await
+            .unwrap();
+        assert_eq!(out.command, "ls -la");
+    }
+
+    #[tokio::test]
+    async fn legacy_mode_still_accepts_a_reply_without_a_model() {
+        // The identity requirement belongs to the explicit fail-closed route only.
         let server = MockServer::start().await;
         healthy(&server).await;
         mount_completion(
@@ -1251,13 +1365,10 @@ mod fail_closed_tests {
             1,
         )
         .await;
-        let b = backend(&server);
-        let out = b.generate_command(&req()).await.unwrap();
-        let meta = b.last_response_meta().unwrap();
-        assert_eq!(meta.returned_model, None);
-        assert_eq!(meta.completion_tokens, None);
-        assert!(out.explanation.contains("returned model unverified"));
-        assert!(out.explanation.contains("usage unverified"));
+        let legacy =
+            VllmBackend::new(Url::parse(&server.uri()).unwrap(), MODEL.to_string()).unwrap();
+        let out = legacy.generate_command(&req()).await.unwrap();
+        assert_eq!(out.command, "ls -la");
     }
 
     #[tokio::test]

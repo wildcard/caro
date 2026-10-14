@@ -373,6 +373,24 @@ async fn eval_route_fails_when_the_reply_names_another_model() {
 }
 
 #[tokio::test]
+async fn eval_route_fails_when_the_reply_does_not_name_a_model() {
+    let reply = ResponseTemplate::new(200).set_body_json(json!({
+        "choices": [{"message": {"role": "assistant", "content": format!("{{\"cmd\": \"{NONCE_CMD}\"}}")}}],
+        "usage": {"prompt_tokens": 31, "completion_tokens": 9, "total_tokens": 40}
+    }));
+    let server = serve(&[ALIAS], reply).await;
+    let home = Arc::new(Home::new("no-model", &server.uri(), None));
+    let (a, o) = eval_args(Some(ALIAS), &suite(&home), false);
+    let out = run(&home, a, o, vec![]).await;
+    assert!(!out.success);
+    assert!(
+        out.stderr.contains("does not name the model") && out.stderr.contains(ALIAS),
+        "{}",
+        out.stderr
+    );
+}
+
+#[tokio::test]
 async fn eval_json_success_is_one_parseable_object_with_no_summary_text() {
     let server = serve(&[ALIAS], ok_reply()).await;
     let home = Arc::new(Home::new("evaljson", &server.uri(), None));
