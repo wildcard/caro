@@ -1169,6 +1169,12 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     .await
     .map_err(|e| format!("initializing backend: {}", e))?;
     let backend: Arc<dyn CommandGenerator> = cli_app.backend_arc();
+    if backend.backend_info().backend_type == caro::models::BackendType::SelectFiles {
+        return Err(
+            "--backend select-files is a one-shot command generator and is not available in AI mode"
+                .into(),
+        );
+    }
     // Derive the backend name from the *actually constructed* backend so the
     // off-host privacy warning is accurate even when auto-detection picks a
     // different backend than the config/CLI hint suggested. The string must
@@ -1189,6 +1195,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         // default, so it is intentionally NOT treated as an off-host leak here.
         caro::models::BackendType::Hybrid => "hybrid".to_string(),
         caro::models::BackendType::Grok => "grok".to_string(),
+        caro::models::BackendType::SelectFiles => "select-files".to_string(),
     };
 
     let exec_ctx = ExecutionContext::detect();
@@ -3091,9 +3098,16 @@ async fn run_evaluation_tests_inner(
                 );
             }
         }
+        "select-files" => Box::new({
+            // Defense in depth: the caller already ran the full conflict check.
+            caro::cli::select_files_conflicts(false, None, model_name)
+                .map_err(|e| e.to_string())?;
+            caro::intent::SelectFilesGenerator::new()
+                .map_err(|e| format!("Failed to create select-files backend: {}", e))?
+        }),
         _ => {
             return Err(format!(
-                "Unknown backend: {}. Supported: static, embedded, vllm",
+                "Unknown backend: {}. Supported: static, embedded, vllm, select-files",
                 backend_name
             ));
         }
@@ -3114,6 +3128,9 @@ async fn run_evaluation_tests_inner(
         suite = suite.filter_by_profile(profile);
     }
 
+    if backend_name == "select-files" {
+        say!("Note: this run compares generated command text and applies the pure structural check. It does not run safety, approval or execution.");
+    }
     say!("Loaded test suite: {}", suite.name);
     say!("Description: {}", suite.description);
     say!("Total test cases: {}", suite.test_cases.len());
@@ -3142,7 +3159,16 @@ async fn run_evaluation_tests_inner(
         let (passed, actual, error) = match result {
             Ok(cmd) => {
                 let matches = test_case.expected_outputs.contains(&cmd.command);
-                (matches, Some(cmd.command), None)
+                // This harness compares generated text only. For select-files
+                // also require the same pure structural validation the CLI
+                // applies; a match alone is not integrated acceptance.
+                match backend_name {
+                    "select-files" => match caro::intent::compile::validation_probe(&cmd.command) {
+                        Ok(_) => (matches, Some(cmd.command), None),
+                        Err(e) => (false, Some(cmd.command), Some(format!("validation: {e}"))),
+                    },
+                    _ => (matches, Some(cmd.command), None),
+                }
             }
             Err(e) => (false, None, Some(e.to_string())),
         };
@@ -3324,6 +3350,18 @@ async fn main() {
                     process::exit(2);
                 }
             };
+            if backend.eq_ignore_ascii_case(caro::intent::BACKEND_NAME) {
+                // Same conflict rule as `--backend select-files` on the main path:
+                // global and subcommand model flags, --force-llm and --advisor.
+                if let Err(e) = caro::cli::select_files_conflicts(
+                    cli.force_llm,
+                    cli.advisor.as_deref(),
+                    test_model_name.as_deref().or(cli.model_name.as_deref()),
+                ) {
+                    eprintln!("Error running tests: {}", e);
+                    process::exit(2);
+                }
+            }
             match run_evaluation_tests(
                 &backend,
                 verbose,
@@ -3587,11 +3625,24 @@ async fn main() {
         .as_deref()
         .and_then(|o| o.parse::<caro::cli::OutputFormat>().ok())
         == Some(caro::cli::OutputFormat::Json);
+    // The select-files route reserves stdout for the command's own bytes, so
+    // its logs go to stderr too. The backend is resolved the way
+    // `with_overrides` resolves it (flag, env, config) before it is built.
+    let logs_to_stderr = json_stdout
+        || caro::cli::effective_backend_is_select_files(
+            cli.backend.as_deref(),
+            std::env::var("CARO_BACKEND").ok().as_deref(),
+            caro::config::ConfigManager::new()
+                .ok()
+                .and_then(|m| m.load().ok())
+                .and_then(|c| c.default_model)
+                .as_deref(),
+        );
     if cli.verbose {
         let builder = tracing_subscriber::fmt()
             .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
             .with_level(true);
-        if json_stdout {
+        if logs_to_stderr {
             builder.with_writer(std::io::stderr).init();
         } else {
             builder.init();
@@ -3601,7 +3652,7 @@ async fn main() {
         let builder = tracing_subscriber::fmt()
             .with_env_filter("caro=warn")
             .without_time();
-        if json_stdout {
+        if logs_to_stderr {
             builder.with_writer(std::io::stderr).init();
         } else {
             builder.init();
@@ -3990,7 +4041,9 @@ async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
         }
     }
 
-    Ok(was_blocked)
+    // select-files: a failed find, an execution error or an output write
+    // error is a nonzero process status. Other backends keep their status.
+    Ok(was_blocked || caro::cli::select_files_run_failed(&result))
 }
 
 async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Result<(), CliError> {
@@ -4000,11 +4053,18 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
     // When running through shell wrapper, use stderr for display output
     // so stdout is reserved for the command in edit mode
     let in_wrapper = std::env::var("CARO_WRAPPER").is_ok();
+    // select-files results keep stdout for the command's own bytes (NUL
+    // records), so human text goes to stderr for them. This is separate from
+    // `in_wrapper`, which also switches the shell-wrapper protocol.
+    let to_stderr = in_wrapper
+        || result
+            .explanation
+            .starts_with(caro::intent::OUTPUT_FRAMING_LABEL);
 
     // Helper macro to print to stderr when in wrapper mode
     macro_rules! display {
         ($($arg:tt)*) => {
-            if in_wrapper {
+            if to_stderr {
                 eprintln!($($arg)*);
             } else {
                 println!($($arg)*);
@@ -4145,6 +4205,20 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         }
     }
 
+    // The select-files route ends in `find -print0`: say so wherever the
+    // command is shown, even when the explanation is hidden.
+    if result
+        .explanation
+        .starts_with(caro::intent::OUTPUT_FRAMING_LABEL)
+    {
+        display!(
+            "{}",
+            "Output is NUL-separated (find -print0): machine-readable. Pipe it to 'xargs -0'."
+                .dimmed()
+        );
+        display!("");
+    }
+
     // Handle dry-run mode
     if cli.dry_run {
         display!("{}", "Dry Run Mode:".bold().cyan());
@@ -4174,6 +4248,30 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         fn execute_and_capture(result: &mut caro::cli::CliResult, command: &str) {
             use caro::execution::CommandExecutor;
             let executor = CommandExecutor::new(result.shell_used);
+            if result
+                .explanation
+                .starts_with(caro::intent::OUTPUT_FRAMING_LABEL)
+            {
+                // select-files: keep the exact stdout bytes (see CliApp).
+                match executor.execute_raw(command) {
+                    Ok(r) => {
+                        result.exit_code = Some(r.exit_code);
+                        result.stdout = Some(String::from_utf8_lossy(&r.stdout).into_owned());
+                        result.stderr = Some(String::from_utf8_lossy(&r.stderr).into_owned());
+                        result.stdout_encoding = std::str::from_utf8(&r.stdout)
+                            .is_err()
+                            .then(|| "lossy-utf8".to_string());
+                        result.raw_stdout = Some(r.stdout);
+                        result.execution_error = (!r.success)
+                            .then(|| format!("Command exited with code {}", r.exit_code));
+                        result.timing_info.execution_time_ms = r.execution_time_ms;
+                    }
+                    Err(e) => {
+                        result.execution_error = Some(format!("Execution failed: {}", e));
+                    }
+                }
+                return;
+            }
             match executor.execute(command) {
                 Ok(exec_result) => {
                     result.exit_code = Some(exec_result.exit_code);
@@ -4305,8 +4403,17 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             );
         }
 
-        // Print stdout if present
-        if let Some(stdout) = &result.stdout {
+        // select-files: write the exact bytes, nothing added, nothing split.
+        if let Some(raw) = &result.raw_stdout {
+            use std::io::Write;
+            let mut out = std::io::stdout().lock();
+            if let Err(e) = out.write_all(raw).and_then(|_| out.flush()) {
+                // Partial bytes stay written; the failure is reported and
+                // makes the process exit nonzero (see `run_cli`).
+                eprintln!("caro: failed to write command output: {e}");
+                result.execution_error = Some(format!("Output write failed: {e}"));
+            }
+        } else if let Some(stdout) = &result.stdout {
             if !stdout.trim().is_empty() {
                 display!("");
                 display!("{}", "Standard Output:".bold());
@@ -4398,7 +4505,15 @@ fn print_backend_info() {
     println!("  {:<12}  {:<16}  {:<5}", "-------", "------", "-----");
 
     for (name, notes) in CLI_SERVABLE_BACKENDS {
-        let status: &str = if *name == "embedded" {
+        let status: &str = if *name == "select-files" {
+            // No model and no remote feature: always compiled in. GNU find is
+            // checked when the backend is selected; Linux only.
+            if cfg!(target_os = "linux") {
+                "available"
+            } else {
+                "linux only"
+            }
+        } else if *name == "embedded" {
             // Always compiled in; downloads its model on first use.
             "available"
         } else if !remote_backends_compiled {

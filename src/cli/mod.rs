@@ -38,6 +38,75 @@ pub struct CliApp {
     validator: SafetyValidator,
     #[allow(dead_code)]
     context: ExecutionContext,
+    /// Deterministic one-shot route (`--backend select-files`): one generator
+    /// call, then the same validation, approval and executor. No AgentLoop
+    /// repair, refinement, advisor or model risk judge.
+    one_shot: bool,
+    /// The pure command validator the agent loop uses, applied once to the
+    /// one-shot route's structural probe (no repair, no second generation).
+    one_shot_validator: Option<crate::prompts::CommandValidator>,
+}
+
+/// True when `name` selects the deterministic file-selection backend.
+fn is_select_files(name: &str) -> bool {
+    name.eq_ignore_ascii_case(crate::intent::BACKEND_NAME)
+}
+
+/// Which backend the run selects, by the same priority `with_overrides` uses
+/// (flag, then `CARO_BACKEND`, then the config file). Pure; used to keep
+/// diagnostics off stdout before the backend exists.
+pub fn effective_backend_is_select_files(
+    flag: Option<&str>,
+    env: Option<&str>,
+    config: Option<&str>,
+) -> bool {
+    flag.or(env).or(config).is_some_and(is_select_files)
+}
+
+/// True when a select-files run executed the command and it failed: a
+/// nonzero exit, an execution error, or an output write error. The process
+/// then exits nonzero; stdout bytes and stderr are kept as they were.
+pub fn select_files_run_failed(result: &CliResult) -> bool {
+    result
+        .explanation
+        .starts_with(crate::intent::OUTPUT_FRAMING_LABEL)
+        && (result.execution_error.is_some() || result.exit_code.is_some_and(|c| c != 0))
+}
+
+/// Reject flags that ask for a model when the model-free backend is chosen.
+/// Model settings that are only inherited (env, config file) are not
+/// requests for this run; they are ignored by the caller.
+pub fn select_files_conflicts(
+    force_llm: bool,
+    advisor: Option<&str>,
+    explicit_model: Option<&str>,
+) -> Result<(), CliError> {
+    let flag = if force_llm {
+        "--force-llm"
+    } else if advisor.is_some() {
+        "--advisor"
+    } else if explicit_model.is_some() {
+        "--model-name"
+    } else {
+        return Ok(());
+    };
+    Err(CliError::InvalidArgument {
+        message: format!(
+            "{flag} cannot be used with --backend select-files: that backend is deterministic and uses no model"
+        ),
+    })
+}
+
+/// Map a generator error to the CLI error shown to the user.
+fn map_generation_error(e: GeneratorError) -> CliError {
+    match e {
+        GeneratorError::NeedsClarification { question, p } => {
+            CliError::NeedsClarification { question, p }
+        }
+        other => CliError::GenerationFailed {
+            details: other.to_string(),
+        },
+    }
 }
 
 impl CliApp {
@@ -139,6 +208,14 @@ pub struct CliResult {
     pub detected_context: String,
     pub exit_code: Option<i32>,
     pub stdout: Option<String>,
+    /// Exact stdout bytes of the executed command. Set only by the
+    /// select-files route (NUL-delimited output, file names may not be
+    /// UTF-8); `stdout` above is then a lossy text copy.
+    #[serde(skip)]
+    pub raw_stdout: Option<Vec<u8>>,
+    /// `"lossy-utf8"` when `stdout` had to replace invalid UTF-8 bytes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stdout_encoding: Option<String>,
     pub stderr: Option<String>,
     pub execution_error: Option<String>,
     /// Whether explanation mode is enabled
@@ -284,6 +361,16 @@ impl CliApp {
             .or(env_backend)
             .or_else(|| user_config.default_model.clone());
 
+        // The deterministic backend refuses model flags before anything else.
+        let one_shot = effective_backend.as_deref().is_some_and(is_select_files);
+        if one_shot {
+            select_files_conflicts(
+                force_llm,
+                advisor_override.as_deref(),
+                model_name_override.as_deref(),
+            )?;
+        }
+
         // Validate backend name if specified
         if let Some(ref backend) = effective_backend {
             Self::validate_backend_name(backend)?;
@@ -302,7 +389,11 @@ impl CliApp {
             user_config.model_name.clone(),
         );
 
-        if let Some(model_name) = effective_model_name {
+        if one_shot {
+            // Inherited model settings (CARO_MODEL, config file) are ignored:
+            // this route uses no model, and its provenance says so.
+            user_config.model_name = None;
+        } else if let Some(model_name) = effective_model_name {
             user_config.model_name = Some(model_name);
         }
 
@@ -328,6 +419,8 @@ impl CliApp {
 
         // Detect platform capabilities for command generation (uses cache for fast startup)
         let profile = CapabilityProfile::detect_or_cached().await;
+        let one_shot_validator =
+            one_shot.then(|| crate::prompts::CommandValidator::new(profile.clone()));
 
         // Create agent loop with backend, context, and profile
         // If force_llm is true, disable the static matcher
@@ -347,7 +440,27 @@ impl CliApp {
             agent_loop,
             validator,
             context,
+            one_shot,
+            one_shot_validator,
         })
+    }
+
+    /// Run the pure command validator once on the select-files command.
+    /// A failure is final: no repair and no second generation.
+    fn validate_one_shot(&self, command: &str) -> Result<(), CliError> {
+        let fail = |details: String| CliError::GenerationFailed {
+            details: format!("Validation failed: {details}"),
+        };
+        let Some(validator) = &self.one_shot_validator else {
+            return Err(fail("no validator is configured".into()));
+        };
+        let probe = crate::intent::compile::validation_probe(command).map_err(fail)?;
+        let result = validator.validate(&probe);
+        if result.is_valid() {
+            Ok(())
+        } else {
+            Err(fail(result.error_message()))
+        }
     }
 
     /// Build the named frontier advisor and attach it to the agent loop, or
@@ -419,6 +532,20 @@ impl CliApp {
     async fn create_backend(
         user_config: &crate::models::UserConfiguration,
     ) -> Result<Box<dyn CommandGenerator>, CliError> {
+        // The deterministic backend checks GNU `find` once, here, at selection.
+        if user_config
+            .default_model
+            .as_deref()
+            .is_some_and(is_select_files)
+        {
+            let g = crate::intent::SelectFilesGenerator::new().map_err(|e| {
+                CliError::ConfigurationError {
+                    message: e.to_string(),
+                }
+            })?;
+            return Ok(Box::new(g));
+        }
+
         // For test builds only, use mock backend
         #[cfg(test)]
         {
@@ -950,7 +1077,7 @@ impl CliApp {
         })?;
 
         // Create command request
-        let _request = CommandRequest {
+        let request = CommandRequest {
             input: prompt.clone(),
             context: None,
             shell,
@@ -961,18 +1088,16 @@ impl CliApp {
 
         // Generate command using agent loop (handles iterations internally)
         let gen_start = Instant::now();
-        let generated = self
-            .agent_loop
-            .generate_command(&prompt)
-            .await
-            .map_err(|e| match e {
-                GeneratorError::NeedsClarification { question, p } => {
-                    CliError::NeedsClarification { question, p }
-                }
-                other => CliError::GenerationFailed {
-                    details: other.to_string(),
-                },
-            })?;
+        let generated = if self.one_shot {
+            // One generator call, one clock read; no repair or refinement.
+            self.backend.generate_command(&request).await
+        } else {
+            self.agent_loop.generate_command(&prompt).await
+        }
+        .map_err(map_generation_error)?;
+        if self.one_shot {
+            self.validate_one_shot(&generated.command)?;
+        }
         let generation_time = gen_start.elapsed();
 
         // Validate command safety
@@ -1066,34 +1191,69 @@ impl CliApp {
 
         // Execute command if requested and allowed
         // Note: dry_run prevents execution even if execute/interactive flags are set
+        let mut raw_stdout: Option<Vec<u8>> = None;
         let (exit_code, stdout, stderr, execution_error, execution_time_ms) =
             if (args.execute() || args.interactive()) && can_execute && !args.dry_run() {
                 use crate::execution::CommandExecutor;
 
                 let executor = CommandExecutor::new(shell);
-                match executor.execute(&generated.command) {
-                    Ok(result) => (
-                        Some(result.exit_code),
-                        Some(result.stdout),
-                        Some(result.stderr),
-                        if !result.success {
-                            Some(format!("Command exited with code {}", result.exit_code))
-                        } else {
-                            None
-                        },
-                        result.execution_time_ms,
-                    ),
-                    Err(e) => (
-                        None,
-                        None,
-                        None,
-                        Some(format!("Execution failed: {}", e)),
-                        0,
-                    ),
+                if self.one_shot {
+                    // select-files: keep stdout as the exact bytes `find -print0`
+                    // wrote; the text copy below is for JSON consumers only.
+                    match executor.execute_raw(&generated.command) {
+                        Ok(r) => {
+                            let text = String::from_utf8_lossy(&r.stdout).into_owned();
+                            let err = String::from_utf8_lossy(&r.stderr).into_owned();
+                            raw_stdout = Some(r.stdout);
+                            (
+                                Some(r.exit_code),
+                                Some(text),
+                                Some(err),
+                                if !r.success {
+                                    Some(format!("Command exited with code {}", r.exit_code))
+                                } else {
+                                    None
+                                },
+                                r.execution_time_ms,
+                            )
+                        }
+                        Err(e) => (
+                            None,
+                            None,
+                            None,
+                            Some(format!("Execution failed: {}", e)),
+                            0,
+                        ),
+                    }
+                } else {
+                    match executor.execute(&generated.command) {
+                        Ok(result) => (
+                            Some(result.exit_code),
+                            Some(result.stdout),
+                            Some(result.stderr),
+                            if !result.success {
+                                Some(format!("Command exited with code {}", result.exit_code))
+                            } else {
+                                None
+                            },
+                            result.execution_time_ms,
+                        ),
+                        Err(e) => (
+                            None,
+                            None,
+                            None,
+                            Some(format!("Execution failed: {}", e)),
+                            0,
+                        ),
+                    }
                 }
             } else {
                 (None, None, None, None, 0)
             };
+        let stdout_encoding = raw_stdout
+            .as_ref()
+            .filter(|b| std::str::from_utf8(b).is_err())
+            .map(|_| "lossy-utf8".to_string());
 
         // The 'executed' field indicates whether safety checks passed (original behavior)
         let executed = can_execute;
@@ -1158,6 +1318,8 @@ impl CliApp {
             detected_context: prompt.clone(),
             exit_code,
             stdout,
+            raw_stdout,
+            stdout_encoding,
             stderr,
             execution_error,
             explain_mode,
@@ -1441,5 +1603,475 @@ mod tests {
             msg.contains("caro --backend embedded"),
             "suggests the embedded alternative"
         );
+    }
+
+    // ---- select-files one-shot route -------------------------------------
+
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    /// Wraps the real deterministic generator and counts calls.
+    struct Counting {
+        inner: crate::intent::SelectFilesGenerator,
+        calls: Arc<AtomicUsize>,
+    }
+
+    #[async_trait]
+    impl CommandGenerator for Counting {
+        async fn generate_command(
+            &self,
+            request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            self.inner.generate_command(request).await
+        }
+        async fn is_available(&self) -> bool {
+            true
+        }
+        fn backend_info(&self) -> crate::backends::BackendInfo {
+            self.inner.backend_info()
+        }
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    struct Args(String);
+
+    impl IntoCliArgs for Args {
+        fn prompt(&self) -> Option<String> {
+            Some(self.0.clone())
+        }
+        fn shell(&self) -> Option<String> {
+            Some("bash".into())
+        }
+        fn backend(&self) -> Option<String> {
+            None
+        }
+        fn model_name(&self) -> Option<String> {
+            None
+        }
+        fn safety(&self) -> Option<String> {
+            None
+        }
+        fn output(&self) -> Option<String> {
+            Some("json".into())
+        }
+        fn confirm(&self) -> bool {
+            false
+        }
+        fn verbose(&self) -> bool {
+            false
+        }
+        fn config_file(&self) -> Option<String> {
+            None
+        }
+        fn execute(&self) -> bool {
+            false
+        }
+        fn dry_run(&self) -> bool {
+            true
+        }
+        fn interactive(&self) -> bool {
+            false
+        }
+        fn force_llm(&self) -> bool {
+            false
+        }
+        fn explain(&self) -> bool {
+            false
+        }
+    }
+
+    async fn one_shot_app() -> (
+        CliApp,
+        Arc<AtomicUsize>,
+        Arc<crate::intent::clock::FixedClock>,
+    ) {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let clock = Arc::new(crate::intent::clock::FixedClock::new(1_760_000_000));
+        let receipt = crate::intent::find_identity::FindReceipt {
+            path: "/usr/bin/find".into(),
+            banner: "find (GNU findutils) 4.9.0".into(),
+            version: "4.9.0".into(),
+        };
+        let backend: Arc<dyn CommandGenerator> = Arc::new(Counting {
+            inner: crate::intent::SelectFilesGenerator::with_parts(
+                receipt,
+                Box::new(clock.clone()),
+            ),
+            calls: calls.clone(),
+        });
+        let context = ExecutionContext::detect();
+        // The loop gets a *different* backend: if the one-shot branch were
+        // skipped, the mock would answer and `calls` would stay at zero.
+        let loop_backend: Arc<dyn CommandGenerator> = Arc::new(MockCommandGenerator::new());
+        let agent_loop = AgentLoop::new(loop_backend, context.clone(), CapabilityProfile::ubuntu());
+        let validator = SafetyValidator::new(crate::safety::SafetyConfig::moderate()).unwrap();
+        let app = CliApp {
+            config: CliConfig::default(),
+            backend,
+            agent_loop,
+            validator,
+            context,
+            one_shot: true,
+            one_shot_validator: Some(crate::prompts::CommandValidator::new(
+                CapabilityProfile::ubuntu(),
+            )),
+        };
+        (app, calls, clock)
+    }
+
+    #[tokio::test]
+    async fn one_shot_makes_exactly_one_generator_call_and_one_clock_read() {
+        // `used.txt` contains "sed" and the awk/xargs literal contains tool
+        // names: the frozen AgentLoop refine heuristic would regenerate on
+        // these. The one-shot route must not.
+        for req in [
+            "find files named used.txt modified in the last 7 days",
+            "find files named \"awk '{print $1}' | xargs echo.txt\" modified in the last 3 days",
+            "find python files modified in the last 7 days",
+        ] {
+            let (app, calls, clock) = one_shot_app().await;
+            let res = app.run_with_args(Args(req.into())).await.unwrap();
+            assert_eq!(calls.load(Ordering::SeqCst), 1, "{req}");
+            assert_eq!(clock.reads(), 1, "{req}");
+            assert!(res.generated_command.ends_with("-print0"), "{req}");
+            assert!(
+                res.blocked_reason.is_none(),
+                "{req}: {:?}",
+                res.blocked_reason
+            );
+            assert!(!res.requires_confirmation, "{req}");
+        }
+    }
+
+    #[tokio::test]
+    async fn one_shot_refusals_make_one_call_and_no_command() {
+        for (req, clarify) in [("please", false), ("files modified today", true)] {
+            let (app, calls, clock) = one_shot_app().await;
+            let err = app.run_with_args(Args(req.into())).await.unwrap_err();
+            assert_eq!(calls.load(Ordering::SeqCst), 1, "{req}");
+            assert_eq!(clock.reads(), 1, "{req}");
+            assert_eq!(
+                matches!(err, CliError::NeedsClarification { .. }),
+                clarify,
+                "{req}: {err}"
+            );
+        }
+    }
+
+    /// Returns a fixed command, counting calls.
+    struct Fixed(String, Arc<AtomicUsize>);
+
+    #[async_trait]
+    impl CommandGenerator for Fixed {
+        async fn generate_command(
+            &self,
+            request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            self.1.fetch_add(1, Ordering::SeqCst);
+            let mut g = MockCommandGenerator::new()
+                .generate_command(request)
+                .await?;
+            g.command = self.0.clone();
+            Ok(g)
+        }
+        async fn is_available(&self) -> bool {
+            true
+        }
+        fn backend_info(&self) -> crate::backends::BackendInfo {
+            MockCommandGenerator::new().backend_info()
+        }
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn one_shot_runs_the_pure_validator_once_and_fails_closed() {
+        let bad = [
+            // not the emitted shape: extra action, other tool, relative exe
+            "/usr/bin/find -P . -type f -print0 -delete",
+            "/usr/bin/ls -la",
+            "find -P . -type f -print0",
+            "/usr/bin/find -P . -type f -exec rm {} + -print0",
+        ];
+        for cmd in bad {
+            let (mut app, _, _) = one_shot_app().await;
+            let calls = Arc::new(AtomicUsize::new(0));
+            app.backend = Arc::new(Fixed(cmd.into(), calls.clone()));
+            let err = app
+                .run_with_args(Args("list all python files".into()))
+                .await
+                .unwrap_err();
+            assert!(
+                err.to_string().contains("Validation failed"),
+                "{cmd}: {err}"
+            );
+            assert_eq!(
+                calls.load(Ordering::SeqCst),
+                1,
+                "no second generation: {cmd}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn one_shot_validator_accepts_public_and_benign_requests() {
+        for req in [
+            "find python files modified in the last 7 days",
+            "list all python files",
+            "list all PDF files",
+            "find files named used.txt",
+            "find files named \"awk '{print $1}' | xargs echo.txt\"",
+            "find files named \"rm -rf; sudo dd.txt\" in \"-x\"",
+        ] {
+            let (app, _, _) = one_shot_app().await;
+            let r = app.run_with_args(Args(req.into())).await;
+            assert!(r.is_ok(), "{req}: {:?}", r.err());
+        }
+    }
+
+    // ---- backend selection by env and config (cfg(test): other names -> mock) ----
+
+    /// Sets env vars for one test and restores them. Tests using it are
+    /// `#[serial]` because the environment is process-global.
+    struct EnvGuard(Vec<(&'static str, Option<std::ffi::OsString>)>);
+
+    impl EnvGuard {
+        fn set(vars: &[(&'static str, &std::ffi::OsStr)]) -> Self {
+            let saved = vars
+                .iter()
+                .map(|(k, _)| (*k, std::env::var_os(k)))
+                .collect();
+            for (k, v) in vars {
+                std::env::set_var(k, v);
+            }
+            Self(saved)
+        }
+
+        /// Remove `keys` now; the guard puts their old values back on drop.
+        fn removing(mut self, keys: &[&'static str]) -> Self {
+            for k in keys {
+                self.0.push((*k, std::env::var_os(k)));
+                std::env::remove_var(k);
+            }
+            self
+        }
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            for (k, v) in &self.0 {
+                match v {
+                    Some(v) => std::env::set_var(k, v),
+                    None => std::env::remove_var(k),
+                }
+            }
+        }
+    }
+
+    /// Private config/cache dirs; clears the backend and model env vars.
+    fn private_env(config_toml: Option<&str>) -> (tempfile::TempDir, EnvGuard) {
+        let dir = tempfile::tempdir().unwrap();
+        if let Some(body) = config_toml {
+            std::fs::create_dir_all(dir.path().join("caro")).unwrap();
+            std::fs::write(dir.path().join("caro/config.toml"), body).unwrap();
+        }
+        let g = EnvGuard::set(&[
+            ("XDG_CONFIG_HOME", dir.path().as_os_str()),
+            ("XDG_CACHE_HOME", dir.path().as_os_str()),
+            ("HOME", dir.path().as_os_str()),
+        ])
+        .removing(&["CARO_BACKEND", "CARO_MODEL"]);
+        (dir, g)
+    }
+
+    // select-files is GNU/Linux only; elsewhere selection refuses (test below).
+    #[cfg(target_os = "linux")]
+    #[tokio::test]
+    #[serial_test::serial]
+    async fn env_only_selects_the_deterministic_route() {
+        let (_d, _g) = private_env(None);
+        let _e = EnvGuard::set(&[("CARO_BACKEND", "select-files".as_ref())]);
+        let app = CliApp::with_overrides(CliConfig::default(), None, None, false, None)
+            .await
+            .unwrap();
+        assert!(app.one_shot && app.one_shot_validator.is_some());
+        assert_eq!(
+            app.backend.backend_info().backend_type,
+            crate::models::BackendType::SelectFiles
+        );
+        // Wiring: the backend the CLI built was verified at selection. Its
+        // output carries the real GNU banner and canonical path, equal to an
+        // independent verification of the installed find.
+        let receipt = crate::intent::find_identity::verify().expect("GNU find on Linux");
+        let out = app
+            .backend
+            .generate_command(&CommandRequest::new(
+                "list all python files",
+                ShellType::Bash,
+            ))
+            .await
+            .unwrap();
+        assert!(
+            out.explanation
+                .contains(&format!("{} at {}", receipt.banner, receipt.path)),
+            "identity receipt missing from the CLI-built backend: {}",
+            out.explanation
+        );
+        assert!(
+            out.command.starts_with(&format!("{} ", receipt.path)),
+            "{}",
+            out.command
+        );
+        // an env-selected backend gets the same conflict rules
+        let e = CliApp::with_overrides(CliConfig::default(), None, None, true, None).await;
+        assert!(e.is_err());
+    }
+
+    // select-files is GNU/Linux only; elsewhere selection refuses (test below).
+    #[cfg(target_os = "linux")]
+    #[tokio::test]
+    #[serial_test::serial]
+    async fn config_selected_route_ignores_inherited_model_and_keeps_conflicts() {
+        let (_d, _g) = private_env(Some(
+            "default_model = \"select-files\"\nmodel_name = \"inherited-model\"\n",
+        ));
+        let app = CliApp::with_overrides(CliConfig::default(), None, None, false, None)
+            .await
+            .unwrap();
+        assert!(app.one_shot);
+        let info = app.backend.backend_info();
+        assert_eq!(info.model_name, "none (deterministic)");
+        for (force, adv, model) in [
+            (true, None, None),
+            (false, Some("claude".to_string()), None),
+            (false, None, Some("m".to_string())),
+        ] {
+            let r = CliApp::with_overrides(CliConfig::default(), None, model, force, adv).await;
+            assert!(
+                r.is_err(),
+                "config-selected backend must reject model flags"
+            );
+        }
+        // CARO_MODEL is inherited too
+        let _m = EnvGuard::set(&[("CARO_MODEL", "env-model".as_ref())]);
+        let app = CliApp::with_overrides(CliConfig::default(), None, None, false, None)
+            .await
+            .unwrap();
+        assert_eq!(
+            app.backend.backend_info().model_name,
+            "none (deterministic)"
+        );
+    }
+
+    // select-files is GNU/Linux only; elsewhere selection refuses (test below).
+    #[cfg(target_os = "linux")]
+    #[tokio::test]
+    #[serial_test::serial]
+    async fn flag_beats_env_beats_config() {
+        // Other backend names become the mock under cfg(test): nothing real
+        // is built, so this cannot reach a model.
+        let (_d, _g) = private_env(Some("default_model = \"embedded\"\n"));
+        let _e = EnvGuard::set(&[("CARO_BACKEND", "select-files".as_ref())]);
+        let app = CliApp::with_overrides(CliConfig::default(), None, None, false, None)
+            .await
+            .unwrap();
+        assert!(app.one_shot, "env beats config");
+        drop(_e);
+        let _e = EnvGuard::set(&[("CARO_BACKEND", "embedded".as_ref())]);
+        let app = CliApp::with_overrides(
+            CliConfig::default(),
+            Some("select-files".into()),
+            None,
+            false,
+            None,
+        )
+        .await
+        .unwrap();
+        assert!(app.one_shot, "flag beats env");
+        let app = CliApp::with_overrides(CliConfig::default(), None, None, false, None)
+            .await
+            .unwrap();
+        assert!(
+            !app.one_shot,
+            "env embedded stays the normal route (mock here)"
+        );
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    #[test]
+    fn select_files_refuses_off_linux() {
+        let e = crate::intent::SelectFilesGenerator::new().err().unwrap();
+        assert!(e.to_string().contains("Linux"), "{e}");
+    }
+
+    #[test]
+    fn effective_backend_priority_matches_with_overrides() {
+        let f = effective_backend_is_select_files;
+        assert!(f(Some("select-files"), None, None));
+        assert!(f(None, Some("SELECT-FILES"), Some("embedded")));
+        assert!(f(None, None, Some("select-files")));
+        assert!(!f(
+            Some("embedded"),
+            Some("select-files"),
+            Some("select-files")
+        ));
+        assert!(!f(None, None, None));
+    }
+
+    #[test]
+    fn select_files_run_failed_needs_the_label_and_a_failure() {
+        let mk = |expl: &str, code: Option<i32>, err: Option<&str>| CliResult {
+            generated_command: String::new(),
+            explanation: expl.into(),
+            executed: true,
+            blocked_reason: None,
+            requires_confirmation: false,
+            confirmation_prompt: String::new(),
+            alternatives: vec![],
+            shell_used: ShellType::Bash,
+            output_format: OutputFormat::Plain,
+            debug_info: None,
+            generation_details: String::new(),
+            timing_info: TimingInfo::default(),
+            warnings: vec![],
+            detected_context: String::new(),
+            exit_code: code,
+            stdout: None,
+            raw_stdout: None,
+            stdout_encoding: None,
+            stderr: None,
+            execution_error: err.map(String::from),
+            explain_mode: false,
+            detailed_explanation: None,
+            dry_run: false,
+        };
+        let l = crate::intent::OUTPUT_FRAMING_LABEL;
+        assert!(!select_files_run_failed(&mk(l, None, None)), "not executed");
+        assert!(!select_files_run_failed(&mk(l, Some(0), None)));
+        assert!(select_files_run_failed(&mk(l, Some(1), None)));
+        assert!(select_files_run_failed(&mk(l, Some(0), Some("write"))));
+        assert!(select_files_run_failed(&mk(l, None, Some("spawn"))));
+        assert!(
+            !select_files_run_failed(&mk("other", Some(1), Some("x"))),
+            "other backends unchanged"
+        );
+    }
+
+    #[test]
+    fn select_files_conflicts_reject_explicit_model_requests_only() {
+        assert!(select_files_conflicts(false, None, None).is_ok());
+        for (f, a, m, flag) in [
+            (true, None, None, "--force-llm"),
+            (false, Some("claude"), None, "--advisor"),
+            (false, None, Some("m"), "--model-name"),
+        ] {
+            let e = select_files_conflicts(f, a, m).unwrap_err().to_string();
+            assert!(e.contains(flag) && e.contains("select-files"), "{e}");
+        }
+        assert!(is_select_files("select-files") && is_select_files("SELECT-FILES"));
+        assert!(!is_select_files("vllm"));
     }
 }
