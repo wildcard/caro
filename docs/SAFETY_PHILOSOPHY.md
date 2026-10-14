@@ -43,8 +43,10 @@ a leak. We hold the same line on caro's hot paths:
 - **Embedded backend**: model load → inference → unload, with errors
   returning `GeneratorError` rather than propagating panics through the loop
 - **Agent loop**: at most 2 primary-backend calls (`MAX_BACKEND_CALLS`, test-pinned).
-  A 15‑second budget is checked before each follow-up call and skips it when
-  spent. It is a soft check: one slow backend call can still run past it
+  The 15‑second budget is checked once, after the initial call: past half of
+  it (7.5 s) the repair or refine follow-up is skipped. It is a soft check.
+  The loop sets no per-call timeout, and nothing re-checks the time between
+  the optional advisor call and the refine, so a slow call can run past 15 s
 - **No `unsafe`**: zero `unsafe { }` blocks in the crate; FFI/concurrency
   ride on `tokio`, `Arc`, `Mutex`, `RwLock` and the `regex` crate
 
