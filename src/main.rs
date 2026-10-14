@@ -3131,7 +3131,11 @@ async fn run_evaluation_tests_inner(
     };
 
     for test_case in &suite.test_cases {
-        let request = CommandRequest::new(&test_case.input, ShellType::Bash);
+        let mut request = CommandRequest::new(&test_case.input, ShellType::Bash);
+        // Same working directory the CLI route sends: where this process runs.
+        if let Ok(dir) = std::env::current_dir() {
+            request = request.with_working_directory(dir);
+        }
 
         let result = backend.generate_command(&request).await;
 

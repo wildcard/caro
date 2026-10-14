@@ -605,6 +605,7 @@ impl AgentLoop {
                 self.context.get_platform_rules()
             )),
             backend_preference: None,
+            working_directory: Some(self.context.cwd.clone()),
         };
 
         self.backend.generate_command(&request).await
@@ -674,6 +675,7 @@ impl AgentLoop {
                 context_str, dir_context_str, system_prompt
             )),
             backend_preference: None,
+            working_directory: Some(self.context.cwd.clone()),
         };
 
         self.backend.generate_command(&request).await
@@ -700,6 +702,7 @@ impl AgentLoop {
                 context_str, system_prompt
             )),
             backend_preference: None,
+            working_directory: Some(self.context.cwd.clone()),
         };
 
         self.backend.generate_command(&request).await
@@ -1121,6 +1124,27 @@ mod tests {
         assert!(!context.contains("SYSTEM_PROMPT"), "{context}");
         assert!(!context.contains("CRITICAL RULES"), "{context}");
         assert!(context.contains("PLATFORM NOTES"), "{context}");
+    }
+
+    /// The request carries the explicit working directory of the execution
+    /// context, so a backend can resolve relative paths against it.
+    #[tokio::test]
+    async fn initial_request_carries_the_execution_working_directory() {
+        let slot = Arc::new(std::sync::Mutex::new(None));
+        let mut ctx = ExecutionContext::detect();
+        ctx.cwd = std::path::PathBuf::from("/work/project");
+        let agent = AgentLoop::new(
+            Arc::new(RequestRecorder(slot.clone())),
+            ctx,
+            CapabilityProfile::ubuntu(),
+        )
+        .with_static_matcher(false);
+        let _ = agent.generate_command("show date").await;
+        let request = slot.lock().unwrap().clone().expect("backend was called");
+        assert_eq!(
+            request.working_directory,
+            Some(std::path::PathBuf::from("/work/project"))
+        );
     }
 
     fn agent_loop(primary: MockBackend, advisor: Option<Arc<MockBackend>>) -> AgentLoop {

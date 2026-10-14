@@ -105,6 +105,7 @@ async fn test_basic_command_generation() {
         shell: ShellType::Bash,
         safety_level: SafetyLevel::Moderate,
         backend_preference: None,
+        working_directory: None,
     };
 
     let result = backend.generate_command(&request).await;
@@ -141,6 +142,7 @@ async fn test_invalid_request_handling() {
         shell: ShellType::Bash,
         safety_level: SafetyLevel::Moderate,
         backend_preference: None,
+        working_directory: None,
     };
 
     // Note: Mock backend doesn't validate input, but real backends should
@@ -159,6 +161,7 @@ async fn test_backend_unavailable_error() {
         shell: ShellType::Bash,
         safety_level: SafetyLevel::Moderate,
         backend_preference: None,
+        working_directory: None,
     };
 
     let result = backend.generate_command(&request).await;
@@ -183,6 +186,7 @@ async fn test_timeout_behavior() {
         shell: ShellType::Bash,
         safety_level: SafetyLevel::Moderate,
         backend_preference: None,
+        working_directory: None,
     };
 
     let start = Instant::now();
@@ -213,6 +217,7 @@ async fn test_concurrent_requests() {
             shell: ShellType::Bash,
             safety_level: SafetyLevel::Moderate,
             backend_preference: None,
+            working_directory: None,
         })
         .collect::<Vec<_>>();
 
@@ -322,6 +327,7 @@ async fn test_response_time_requirements() {
         shell: ShellType::Bash,
         safety_level: SafetyLevel::Moderate,
         backend_preference: None,
+        working_directory: None,
     };
 
     let start = Instant::now();
@@ -353,6 +359,7 @@ async fn test_trait_object_usage() {
         shell: ShellType::Bash,
         safety_level: SafetyLevel::Moderate,
         backend_preference: None,
+        working_directory: None,
     };
 
     let result = backend.generate_command(&request).await;

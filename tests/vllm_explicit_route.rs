@@ -107,6 +107,7 @@ impl Home {
         let proxy = format!("http://{}", self.proxy.local_addr().unwrap());
         let mut cmd = Command::new(env!("CARGO_BIN_EXE_caro"));
         cmd.args(args)
+            .current_dir(&self.dir)
             .env_clear()
             .env("PATH", std::env::var("PATH").unwrap_or_default())
             .env("HOME", &self.dir)
@@ -531,6 +532,114 @@ async fn cli_and_eval_routes_reject_corrupt_structured_content() {
             out.stdout,
             out.stderr
         );
+    }
+}
+
+// -------------------------------------------------------------------------
+// Prompt modes: what the real binary puts on the wire (mock server, no model)
+// -------------------------------------------------------------------------
+
+fn canonical(home: &Home) -> String {
+    std::fs::canonicalize(&home.dir)
+        .unwrap()
+        .to_string_lossy()
+        .to_string()
+}
+
+fn user_text(body: &serde_json::Value) -> String {
+    body["messages"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|m| m["role"] == "user")
+        .unwrap()["content"]
+        .as_str()
+        .unwrap()
+        .to_string()
+}
+
+#[tokio::test]
+async fn cli_route_default_sends_system_plus_delimited_task_with_the_working_directory() {
+    let server = serve(&[ALIAS], ok_reply()).await;
+    let home = Arc::new(Home::new("ctx-cli", &server.uri(), None));
+    let (a, o) = cli_args(STATIC_PROMPT, Some(ALIAS), &[]);
+    let out = run(&home, a, o, vec![]).await;
+    assert!(out.success, "{}\n{}", out.stdout, out.stderr);
+    let sent = posts(&server).await;
+    assert_eq!(sent.len(), 1);
+    let roles: Vec<_> = sent[0]["messages"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|m| m["role"].as_str().unwrap().to_string())
+        .collect();
+    assert_eq!(roles, ["system", "user"]);
+    let user = user_text(&sent[0]);
+    assert!(user.starts_with("<request>\n"), "{user}");
+    assert!(
+        user.contains(&format!("working_directory: {}", canonical(&home))),
+        "{user}"
+    );
+    assert!(sent[0].get("response_format").is_none());
+    // Only the path travels: no user name, no command list, no listing.
+    let all = sent[0].to_string();
+    assert!(!all.contains("available_commands"), "{all}");
+}
+
+#[tokio::test]
+async fn eval_route_default_sends_the_working_directory_for_every_case() {
+    let server = serve(&[ALIAS], ok_reply()).await;
+    let home = Arc::new(Home::new("ctx-eval", &server.uri(), None));
+    let (a, o) = eval_args(Some(ALIAS), &suite(&home), false);
+    let _ = run(&home, a, o, vec![]).await;
+    let sent = posts(&server).await;
+    assert_eq!(sent.len(), 2);
+    for body in &sent {
+        assert!(
+            user_text(body).contains(&format!("working_directory: {}", canonical(&home))),
+            "{body}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn baseline_switch_reproduces_the_single_message_request() {
+    let server = serve(&[ALIAS], ok_reply()).await;
+    let home = Arc::new(Home::new("ctx-base", &server.uri(), None));
+    let (a, o) = cli_args(STATIC_PROMPT, Some(ALIAS), &[]);
+    let out = run(
+        &home,
+        a,
+        o,
+        vec![("CARO_VLLM_PROMPT_MODE", "baseline".to_string())],
+    )
+    .await;
+    assert!(out.success, "{}\n{}", out.stdout, out.stderr);
+    let sent = posts(&server).await;
+    assert_eq!(sent[0]["messages"].as_array().unwrap().len(), 1);
+    assert!(!sent[0].to_string().contains(&canonical(&home)));
+}
+
+#[tokio::test]
+async fn gated_schema_modes_fail_before_any_request_on_both_routes() {
+    for mode in ["schema", "combined"] {
+        let server = serve(&[ALIAS], ok_reply()).await;
+        let home = Arc::new(Home::new("ctx-gate", &server.uri(), None));
+        let env = vec![("CARO_VLLM_PROMPT_MODE", mode.to_string())];
+        let (a, o) = cli_args(STATIC_PROMPT, Some(ALIAS), &[]);
+        let out = run(&home, a, o, env.clone()).await;
+        assert!(!out.success, "{mode}: {}", out.stdout);
+        let all = format!("{}{}", out.stdout, out.stderr);
+        assert!(all.contains("gated"), "{mode}: {all}");
+        let (a, o) = eval_args(Some(ALIAS), &suite(&home), false);
+        let out = run(&home, a, o, env).await;
+        assert!(!out.success);
+        assert!(
+            format!("{}{}", out.stdout, out.stderr).contains("gated"),
+            "{mode}"
+        );
+        assert_eq!(posts(&server).await.len(), 0, "{mode}: no request was sent");
+        assert_eq!(home.proxy_connections(), 0);
     }
 }
 

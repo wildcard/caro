@@ -956,6 +956,7 @@ impl CliApp {
             shell,
             safety_level,
             backend_preference: None,
+            working_directory: None,
         };
 
         // Generate command using agent loop (handles iterations internally)

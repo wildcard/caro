@@ -448,6 +448,7 @@ mod tests {
             safety_level: SafetyLevel::Moderate,
             context: None,
             backend_preference: None,
+            working_directory: None,
         }
     }
 
