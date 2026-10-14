@@ -319,6 +319,26 @@ fn shell_tokens(command: &str) -> Option<Vec<String>> {
     Some(out)
 }
 
+/// The program a command runs and the operands it acts on. A leading `sudo`,
+/// `env` or `time` is skipped. Printing programs (`echo`, `printf`) and no-ops
+/// act on nothing, so they have no operands: `echo Documents` does not search
+/// Documents. Scope: first program only; later stages of a pipeline are not
+/// inspected, so a proof must appear in the first program's name or operands.
+fn program_and_operands(tokens: &[String]) -> (&str, &[String]) {
+    let skip = tokens
+        .iter()
+        .take_while(|t| matches!(t.as_str(), "sudo" | "env" | "time"))
+        .count();
+    let Some(program) = tokens.get(skip) else {
+        return ("", &[]);
+    };
+    let operands = &tokens[skip + 1..];
+    if matches!(program.as_str(), "echo" | "printf" | "true" | "false" | ":") {
+        return (program, &[]);
+    }
+    (program, operands)
+}
+
 /// Equivalence we allow between a typed path and a command argument: one
 /// leading `./` and one trailing `/` on a directory. Case and Unicode are exact.
 fn normalize_path(p: &str) -> &str {
@@ -359,13 +379,12 @@ fn has_literal(command: &str, lit: &Literal) -> bool {
     let Some(tokens) = shell_tokens(command) else {
         return false;
     };
-    // `echo notes.txt` prints the name; it does not act on the file.
-    if tokens.first().is_some_and(|p| p == "echo" || p == "printf") {
-        return false;
-    }
-    tokens.iter().enumerate().any(|(i, t)| {
+    // `echo notes.txt` prints the name; it has no operands, so it never matches.
+    let (_, operands) = program_and_operands(&tokens);
+    operands.iter().enumerate().any(|(i, t)| {
         let excluded = i > 0
-            && (tokens[i - 1].starts_with("--exclude") || tokens[i - 1].starts_with("--ignore"));
+            && (operands[i - 1].starts_with("--exclude")
+                || operands[i - 1].starts_with("--ignore"));
         !excluded && normalize_path(t) == want
     })
 }
@@ -413,7 +432,9 @@ pub(crate) fn slot_violation(query: &str, command: &str) -> Option<String> {
     // A destination is one whole argument or one whole path component, exact case.
     let in_place = |dest: &str| {
         tokens.as_ref().is_some_and(|ts| {
-            ts.iter()
+            program_and_operands(ts)
+                .1
+                .iter()
                 .any(|t| t.split('/').any(|part| part == dest) || t == dest)
         })
     };
@@ -427,16 +448,17 @@ pub(crate) fn slot_violation(query: &str, command: &str) -> Option<String> {
     let re = rx();
     for ((word, proofs), asked) in TYPE_WORDS.iter().zip(&re.types) {
         if asked.is_match(&q) {
+            // A `.ext` proof must end an operand (a filter such as `*.pdf`); a
+            // program proof (`python3`, `jq`) must start the program name.
             let proven = tokens.as_ref().is_some_and(|ts| {
-                ts.iter().any(|t| {
-                    let t = t.to_lowercase();
-                    proofs.iter().any(|p| {
-                        if p.starts_with('.') {
-                            t.ends_with(p)
-                        } else {
-                            t.starts_with(p)
-                        }
-                    })
+                let (program, operands) = program_and_operands(ts);
+                let program = program.rsplit('/').next().unwrap_or(program).to_lowercase();
+                proofs.iter().any(|p| {
+                    if p.starts_with('.') {
+                        operands.iter().any(|t| t.to_lowercase().ends_with(p))
+                    } else {
+                        program.starts_with(p)
+                    }
                 })
             });
             if !proven {
@@ -789,5 +811,19 @@ mod tests {
         assert!(slot_violation("show disk usage of each folder", "du -sh */").is_none());
         // A named folder is still required.
         assert!(slot_violation("show disk usage of the logs folder", "du -sh */").is_some());
+    }
+
+    #[test]
+    fn printing_programs_and_data_arguments_prove_nothing() {
+        // Never executed: these are matcher inputs only.
+        assert!(slot_violation("list files in Documents", "echo Documents").is_some());
+        assert!(slot_violation("list files in Documents", "printf Documents").is_some());
+        assert!(slot_violation("list files in Documents", "ls Documents").is_none());
+        assert!(slot_violation("find all python files", "echo x.py").is_some());
+        assert!(slot_violation("find all python files", "ls python_cache").is_some());
+        assert!(slot_violation("find all python files", "find . -name '*.py' -type f").is_none());
+        assert!(slot_violation("find all python files", "sudo find . -name '*.py'").is_none());
+        assert!(slot_violation("run all python files tests", "python3 -m pytest").is_none());
+        assert!(slot_violation("count lines in notes.txt", "true notes.txt").is_some());
     }
 }
