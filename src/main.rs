@@ -3625,11 +3625,24 @@ async fn main() {
         .as_deref()
         .and_then(|o| o.parse::<caro::cli::OutputFormat>().ok())
         == Some(caro::cli::OutputFormat::Json);
+    // The select-files route reserves stdout for the command's own bytes, so
+    // its logs go to stderr too. The backend is resolved the way
+    // `with_overrides` resolves it (flag, env, config) before it is built.
+    let logs_to_stderr = json_stdout
+        || caro::cli::effective_backend_is_select_files(
+            cli.backend.as_deref(),
+            std::env::var("CARO_BACKEND").ok().as_deref(),
+            caro::config::ConfigManager::new()
+                .ok()
+                .and_then(|m| m.load().ok())
+                .and_then(|c| c.default_model)
+                .as_deref(),
+        );
     if cli.verbose {
         let builder = tracing_subscriber::fmt()
             .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
             .with_level(true);
-        if json_stdout {
+        if logs_to_stderr {
             builder.with_writer(std::io::stderr).init();
         } else {
             builder.init();
@@ -3639,7 +3652,7 @@ async fn main() {
         let builder = tracing_subscriber::fmt()
             .with_env_filter("caro=warn")
             .without_time();
-        if json_stdout {
+        if logs_to_stderr {
             builder.with_writer(std::io::stderr).init();
         } else {
             builder.init();
@@ -4028,7 +4041,9 @@ async fn run_cli(cli: &Cli) -> Result<bool, CliError> {
         }
     }
 
-    Ok(was_blocked)
+    // select-files: a failed find, an execution error or an output write
+    // error is a nonzero process status. Other backends keep their status.
+    Ok(was_blocked || caro::cli::select_files_run_failed(&result))
 }
 
 async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Result<(), CliError> {
@@ -4392,8 +4407,12 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         if let Some(raw) = &result.raw_stdout {
             use std::io::Write;
             let mut out = std::io::stdout().lock();
-            let _ = out.write_all(raw);
-            let _ = out.flush();
+            if let Err(e) = out.write_all(raw).and_then(|_| out.flush()) {
+                // Partial bytes stay written; the failure is reported and
+                // makes the process exit nonzero (see `run_cli`).
+                eprintln!("caro: failed to write command output: {e}");
+                result.execution_error = Some(format!("Output write failed: {e}"));
+            }
         } else if let Some(stdout) = &result.stdout {
             if !stdout.trim().is_empty() {
                 display!("");

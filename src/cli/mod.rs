@@ -52,6 +52,27 @@ fn is_select_files(name: &str) -> bool {
     name.eq_ignore_ascii_case(crate::intent::BACKEND_NAME)
 }
 
+/// Which backend the run selects, by the same priority `with_overrides` uses
+/// (flag, then `CARO_BACKEND`, then the config file). Pure; used to keep
+/// diagnostics off stdout before the backend exists.
+pub fn effective_backend_is_select_files(
+    flag: Option<&str>,
+    env: Option<&str>,
+    config: Option<&str>,
+) -> bool {
+    flag.or(env).or(config).is_some_and(is_select_files)
+}
+
+/// True when a select-files run executed the command and it failed: a
+/// nonzero exit, an execution error, or an output write error. The process
+/// then exits nonzero; stdout bytes and stderr are kept as they were.
+pub fn select_files_run_failed(result: &CliResult) -> bool {
+    result
+        .explanation
+        .starts_with(crate::intent::OUTPUT_FRAMING_LABEL)
+        && (result.execution_error.is_some() || result.exit_code.is_some_and(|c| c != 0))
+}
+
 /// Reject flags that ask for a model when the model-free backend is chosen.
 /// Model settings that are only inherited (env, config file) are not
 /// requests for this run; they are ignored by the caller.
@@ -1939,6 +1960,59 @@ mod tests {
         assert!(
             !app.one_shot,
             "env embedded stays the normal route (mock here)"
+        );
+    }
+
+    #[test]
+    fn effective_backend_priority_matches_with_overrides() {
+        let f = effective_backend_is_select_files;
+        assert!(f(Some("select-files"), None, None));
+        assert!(f(None, Some("SELECT-FILES"), Some("embedded")));
+        assert!(f(None, None, Some("select-files")));
+        assert!(!f(
+            Some("embedded"),
+            Some("select-files"),
+            Some("select-files")
+        ));
+        assert!(!f(None, None, None));
+    }
+
+    #[test]
+    fn select_files_run_failed_needs_the_label_and_a_failure() {
+        let mk = |expl: &str, code: Option<i32>, err: Option<&str>| CliResult {
+            generated_command: String::new(),
+            explanation: expl.into(),
+            executed: true,
+            blocked_reason: None,
+            requires_confirmation: false,
+            confirmation_prompt: String::new(),
+            alternatives: vec![],
+            shell_used: ShellType::Bash,
+            output_format: OutputFormat::Plain,
+            debug_info: None,
+            generation_details: String::new(),
+            timing_info: TimingInfo::default(),
+            warnings: vec![],
+            detected_context: String::new(),
+            exit_code: code,
+            stdout: None,
+            raw_stdout: None,
+            stdout_encoding: None,
+            stderr: None,
+            execution_error: err.map(String::from),
+            explain_mode: false,
+            detailed_explanation: None,
+            dry_run: false,
+        };
+        let l = crate::intent::OUTPUT_FRAMING_LABEL;
+        assert!(!select_files_run_failed(&mk(l, None, None)), "not executed");
+        assert!(!select_files_run_failed(&mk(l, Some(0), None)));
+        assert!(select_files_run_failed(&mk(l, Some(1), None)));
+        assert!(select_files_run_failed(&mk(l, Some(0), Some("write"))));
+        assert!(select_files_run_failed(&mk(l, None, Some("spawn"))));
+        assert!(
+            !select_files_run_failed(&mk("other", Some(1), Some("x"))),
+            "other backends unchanged"
         );
     }
 

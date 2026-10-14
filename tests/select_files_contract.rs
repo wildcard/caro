@@ -487,3 +487,98 @@ fn cli_failure_keeps_stderr_exit_and_error() {
     );
     assert!(String::from_utf8_lossy(&out.stderr).contains("No such file"));
 }
+
+// -------------------------------------- exit status and log routing ----
+
+#[test]
+fn failed_find_gives_a_nonzero_process_status_in_every_format() {
+    let home = TempDir::new().unwrap();
+    let fx = TempDir::new().unwrap();
+    for extra in [vec![], vec!["-o", "json"]] {
+        let mut args = vec!["--backend", "select-files", "-x"];
+        args.extend(extra.iter().copied());
+        args.push("list python files in nope");
+        let out = caro_in(&home, fx.path(), &args);
+        assert_eq!(out.status.code(), Some(1), "{extra:?}");
+    }
+    // a successful run stays zero
+    let out = caro_in(
+        &home,
+        fx.path(),
+        &["--backend", "select-files", "-x", "list all python files"],
+    );
+    assert_eq!(out.status.code(), Some(0));
+}
+
+#[test]
+fn stdout_write_failure_is_reported_and_nonzero() {
+    // /dev/full accepts open and fails every write with ENOSPC.
+    let home = TempDir::new().unwrap();
+    let fx = fixture_with_non_utf8();
+    let full = std::fs::OpenOptions::new()
+        .write(true)
+        .open("/dev/full")
+        .unwrap();
+    let mut c = Command::new(env!("CARGO_BIN_EXE_caro"));
+    c.args(["--backend", "select-files", "-x", "list all python files"])
+        .current_dir(fx.path())
+        .env_clear()
+        .env("PATH", "/usr/bin:/bin")
+        .env("HOME", home.path())
+        .env("XDG_CONFIG_HOME", home.path())
+        .env("XDG_CACHE_HOME", home.path().join("cache"))
+        .env("CARO_TELEMETRY_ENABLED", "false")
+        .stdout(full);
+    let out = c.output().unwrap();
+    assert_ne!(out.status.code(), Some(0));
+    assert!(
+        String::from_utf8_lossy(&out.stderr).contains("failed to write command output"),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
+#[test]
+fn verbose_debug_logging_stays_off_stdout_on_the_selected_route() {
+    let home = TempDir::new().unwrap();
+    let fx = fixture_with_non_utf8();
+    let mut c = Command::new(env!("CARGO_BIN_EXE_caro"));
+    c.args([
+        "--backend",
+        "select-files",
+        "-v",
+        "-x",
+        "list all python files",
+    ])
+    .current_dir(fx.path())
+    .env_clear()
+    .env("PATH", "/usr/bin:/bin")
+    .env("HOME", home.path())
+    .env("XDG_CONFIG_HOME", home.path())
+    .env("XDG_CACHE_HOME", home.path().join("cache"))
+    .env("CARO_TELEMETRY_ENABLED", "false")
+    .env("RUST_LOG", "caro=debug");
+    let out = c.output().unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    // stdout is the records and nothing else
+    assert_eq!(*out.stdout.last().unwrap(), 0);
+    assert!(
+        out.stdout.starts_with(b"./"),
+        "{:?}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let recs: Vec<&[u8]> = out.stdout[..out.stdout.len() - 1]
+        .split(|b| *b == 0)
+        .collect();
+    assert!(recs
+        .iter()
+        .all(|r| r.starts_with(b"./") && r.ends_with(b".py")));
+    assert_eq!(recs.len(), 3);
+    // the backend-preference trace is on stderr
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("Backend preference"), "{err}");
+}
