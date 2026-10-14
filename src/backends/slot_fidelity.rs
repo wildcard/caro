@@ -304,18 +304,21 @@ pub(crate) fn query_literals(query: &str) -> Vec<Literal> {
     out
 }
 
-/// Split a command into shell-like tokens, or `None` if it cannot be parsed
-/// (an unbalanced quote). Quotes group text, a backslash escapes one character,
-/// and whitespace and `| & ; < > ( ) `` ` `` ` separate tokens outside quotes.
-/// A value after `NAME=` (not `--opt=`) is also offered on its own, for
-/// `dd of=/dev/x`.
-fn shell_tokens(command: &str) -> Option<Vec<String>> {
-    let mut out = Vec::new();
+/// Split a command into syntactic stages of shell-like tokens, or `None` if it
+/// cannot be parsed (an unbalanced quote). A stage ends at `| & ; ( )` or a
+/// backtick outside quotes, so `a | b`, `a; b` and `a && b` are three-way
+/// splits of the same kind: *syntactic* stages, not necessarily pipeline stages.
+/// Within a stage, quotes group text, a backslash escapes one character, and
+/// whitespace, `<` and `>` separate tokens. A value after `NAME=` (not
+/// `--opt=`) is also offered on its own, for `dd of=/dev/x`.
+fn shell_stages(command: &str) -> Option<Vec<Vec<String>>> {
+    let mut stages: Vec<Vec<String>> = Vec::new();
+    let mut stage: Vec<String> = Vec::new();
     let mut cur = String::new();
     let mut had_quote = false;
     let mut quote: Option<char> = None;
     let mut chars = command.chars();
-    let flush = |cur: &mut String, had_quote: &mut bool, out: &mut Vec<String>| {
+    let flush = |cur: &mut String, had_quote: &mut bool, stage: &mut Vec<String>| {
         if !cur.is_empty() || *had_quote {
             if let Some((lhs, rhs)) = cur.split_once('=') {
                 let plain = lhs
@@ -324,10 +327,10 @@ fn shell_tokens(command: &str) -> Option<Vec<String>> {
                     .is_some_and(|c| c.is_alphabetic() || c == '_')
                     && lhs.chars().all(|c| c.is_alphanumeric() || c == '_');
                 if plain && !rhs.is_empty() && !rhs.contains('=') {
-                    out.push(rhs.to_string());
+                    stage.push(rhs.to_string());
                 }
             }
-            out.push(std::mem::take(cur));
+            stage.push(std::mem::take(cur));
         }
         *had_quote = false;
     };
@@ -348,8 +351,14 @@ fn shell_tokens(command: &str) -> Option<Vec<String>> {
                 had_quote = true;
             }
             None if c == '\\' => cur.push(chars.next()?),
-            None if c.is_whitespace() || "|&;<>()`".contains(c) => {
-                flush(&mut cur, &mut had_quote, &mut out)
+            None if "|&;()`".contains(c) => {
+                flush(&mut cur, &mut had_quote, &mut stage);
+                if !stage.is_empty() {
+                    stages.push(std::mem::take(&mut stage));
+                }
+            }
+            None if c.is_whitespace() || "<>".contains(c) => {
+                flush(&mut cur, &mut had_quote, &mut stage)
             }
             None => cur.push(c),
         }
@@ -357,8 +366,16 @@ fn shell_tokens(command: &str) -> Option<Vec<String>> {
     if quote.is_some() {
         return None;
     }
-    flush(&mut cur, &mut had_quote, &mut out);
-    Some(out)
+    flush(&mut cur, &mut had_quote, &mut stage);
+    if !stage.is_empty() {
+        stages.push(stage);
+    }
+    Some(stages)
+}
+
+/// All tokens of all stages, in order (the first-program view used for names).
+fn shell_tokens(command: &str) -> Option<Vec<String>> {
+    shell_stages(command).map(|stages| stages.into_iter().flatten().collect())
 }
 
 /// The program a command runs and the operands it acts on. A leading `sudo`,
@@ -395,27 +412,48 @@ fn normalize_path(p: &str) -> &str {
     }
 }
 
-/// True when the command carries the user's value. Names and paths must be one
-/// exact argument that is not an excluded or echoed mention. Numbers need a
-/// non-word boundary and no trailing dot (`8.8.8.8.` is not `8.8.8.8`).
+/// True when the command carries the user's value.
 ///
-/// Scope: this does not parse a whole shell line. A literal that is the target
-/// of a different sub-command (`wc -l y.txt; echo notes.txt`) is a known gap.
+/// Names and paths must be one exact argument of the first program that is not
+/// an excluded or echoed mention. Numbers (ports, IPs, ids, sizes) must appear,
+/// with a non-word boundary and no trailing dot (`8.8.8.8.` is not `8.8.8.8`),
+/// in an operand of at least one syntactic stage whose program is not a print or
+/// no-op program (`echo`, `printf`, `true`, `false`, `:`).
+///
+/// Limits, stated so nobody reads more into the check: this is not a shell
+/// parser and not a proof that a program uses the number as the requested port,
+/// address or size. `ls; foo 3000` passes for "port 3000", because `foo` is an
+/// ordinary program. Names are checked against the first program only, so a
+/// name used by another sub-command (`wc -l y.txt; echo notes.txt`) is a gap.
 fn has_literal(command: &str, lit: &Literal) -> bool {
     if lit.numeric {
         let word = |c: char| c.is_alphanumeric() || c == '_';
-        if lit.port && shell_tokens(command).is_some_and(|t| t.first().is_some_and(|p| p == "kill"))
+        let in_operand = |operand: &str| {
+            operand.match_indices(&lit.text).any(|(i, _)| {
+                let before_ok = operand[..i].chars().next_back().is_none_or(|c| !word(c));
+                let after_ok = operand[i + lit.text.len()..]
+                    .chars()
+                    .next()
+                    .is_none_or(|c| !word(c) && c != '.');
+                before_ok && after_ok
+            })
+        };
+        let Some(stages) = shell_stages(command) else {
+            return false;
+        };
+        // A port is not a process id: `kill 3000` does not match "port 3000".
+        if lit.port
+            && stages
+                .first()
+                .is_some_and(|st| program_and_operands(st).0 == "kill")
         {
             return false;
         }
-        return command.match_indices(&lit.text).any(|(i, _)| {
-            let before_ok = command[..i].chars().next_back().is_none_or(|c| !word(c));
-            let after_ok = command[i + lit.text.len()..]
-                .chars()
-                .next()
-                .is_none_or(|c| !word(c) && c != '.');
-            before_ok && after_ok
-        });
+        // The number must sit in an operand of some stage whose program is not a
+        // print or no-op program. Which program uses it, and how, is not checked.
+        return stages
+            .iter()
+            .any(|st| program_and_operands(st).1.iter().any(|op| in_operand(op)));
     }
     let want = normalize_path(&lit.text);
     let Some(tokens) = shell_tokens(command) else {
@@ -910,5 +948,64 @@ mod tests {
         assert!(slot_violation(q, "ls Documents").is_some());
         assert!(slot_violation(q, "ls Documents/Projects").is_none());
         assert!(slot_violation("list files in Documents inside Archive", "ls Documents").is_some());
+    }
+
+    // ---- numeric literals: syntactic stages (pure tests; no string is ever run) ----
+
+    #[test]
+    fn numeric_literal_in_a_print_or_noop_stage_is_not_the_requested_value() {
+        let port = "show processes using port 3000";
+        for cmd in [
+            "echo :3000",
+            "printf :3000",
+            "true :3000",
+            "false :3000",
+            ": 3000",
+            "ls; echo 3000",
+            "ls && printf 3000",
+            "ls | echo :3000",
+            "sudo echo :3000",
+        ] {
+            assert!(slot_violation(port, cmd).is_some(), "accepted `{cmd}`");
+        }
+        assert!(slot_violation("ping 8.8.8.8", "echo 8.8.8.8").is_some());
+        assert!(slot_violation("find files larger than 500MB", "echo +500M").is_some());
+        assert!(slot_violation("kill process 1234", "echo 1234").is_some());
+    }
+
+    #[test]
+    fn numeric_literal_in_an_ordinary_operand_is_accepted() {
+        let port = "show processes using port 3000";
+        assert!(slot_violation(port, "lsof -i :3000").is_none());
+        assert!(slot_violation(port, "ps aux | grep 3000").is_none());
+        assert!(slot_violation(port, "sudo lsof -i :3000").is_none());
+        assert!(slot_violation("ping 8.8.8.8", "ping -c 4 8.8.8.8").is_none());
+        assert!(
+            slot_violation("find files larger than 500MB", "find . -type f -size +500M").is_none()
+        );
+        assert!(slot_violation("kill process 1234", "kill 1234").is_none());
+        // Quoted scripts stay one operand.
+        assert!(slot_violation("show port 443", "ss -tn '( dport = :443 )'").is_none());
+    }
+
+    #[test]
+    fn bsd_established_connections_pipeline_keeps_its_port_in_a_later_stage() {
+        let q = "show all established connections to port 443";
+        assert!(slot_violation(q, "netstat -an | grep ESTABLISHED | grep :443").is_none());
+        // Same pipeline whose last stage prints the port instead of filtering on it.
+        assert!(slot_violation(q, "netstat -an | grep ESTABLISHED | echo :443").is_some());
+    }
+
+    #[test]
+    fn documented_limit_an_ordinary_program_may_carry_the_number_without_using_it() {
+        // Not a defect to fix here: the gate cannot tell what `foo` does with 3000.
+        // This test pins the stated limit so nobody widens the claim silently.
+        assert!(slot_violation("show processes using port 3000", "ls; foo 3000").is_none());
+    }
+
+    #[test]
+    fn a_port_is_still_not_a_process_id() {
+        assert!(slot_violation("kill the process on port 3000", "kill 3000").is_some());
+        assert!(slot_violation("kill the process on port 3000", "sudo kill 3000").is_some());
     }
 }
