@@ -169,7 +169,7 @@ fn rx() -> &'static Rx {
         ip: Regex::new(r"\b(\d{1,3}(?:\.\d{1,3}){3})\b").unwrap(),
         pid: Regex::new(r"(?i)\b(?:pid|process(?:\s+id)?|kill)\s+(\d{1,7})\b").unwrap(),
         // "in Downloads", "under the Documents".
-        cap_dest: Regex::new(r"\b(?:[Ii]n|[Uu]nder|[Ii]nside|[Ww]ithin)\s+(?:the\s+|my\s+)?(\p{Lu}[\p{L}\p{N}_.-]*)(?:\s+(\p{L}[\p{L}\p{N}]*))?")
+        cap_dest: Regex::new(r"\b(?:[Ii]n|[Uu]nder|[Ii]nside|[Ww]ithin)\s+(?:the\s+|my\s+)?(\p{Lu}[\p{L}\p{N}_.-]*)")
             .unwrap(),
         // "in the src folder", "in logs directory".
         named_dest: Regex::new(
@@ -438,8 +438,16 @@ fn destinations(query: &str) -> Vec<String> {
     for cap in re.cap_dest.captures_iter(query) {
         let w = cap[1].trim_end_matches(['.', ',']).to_string();
         let lower = w.to_lowercase();
-        let next = cap.get(2).map(|m| m.as_str().to_lowercase());
-        // "ISO" is a format only in "ISO format"; otherwise it is a folder name.
+        // The word(s) after the name, read separately so "in A under B" still
+        // yields both destinations. Numbers ("ISO 8601", "RFC 3339") are skipped.
+        let after = &query[cap.get(1).map_or(0, |m| m.end())..];
+        let next = after
+            .split_whitespace()
+            .map(|w| {
+                w.trim_matches(|c: char| !c.is_alphanumeric())
+                    .to_lowercase()
+            })
+            .find(|w| !w.is_empty() && !w.chars().all(|c| c.is_ascii_digit()));
         let format_context = FORMAT_WORDS.contains(&lower.as_str())
             && next.as_deref().is_some_and(|n| FORMAT_NEXT.contains(&n));
         if !format_context && !NOT_A_DIRECTORY.contains(&lower.as_str()) {
@@ -890,5 +898,17 @@ mod tests {
         assert!(slot_violation("list files in ISO", "ls -la").is_some());
         assert!(slot_violation("list ports in LISTEN state", "ss -tlnp").is_none());
         assert!(slot_violation("list files in LISTEN", "ls -la").is_some());
+    }
+
+    #[test]
+    fn format_with_a_number_and_chained_destinations() {
+        assert!(slot_violation("show date in ISO 8601 format", "date +%Y-%m-%d").is_none());
+        assert!(slot_violation("show date in RFC 3339 format", "date -u +%FT%TZ").is_none());
+        assert!(slot_violation("list files in ISO 8601", "ls -la").is_some());
+        // Both destinations are required, not only the first.
+        let q = "list files in Documents under Projects";
+        assert!(slot_violation(q, "ls Documents").is_some());
+        assert!(slot_violation(q, "ls Documents/Projects").is_none());
+        assert!(slot_violation("list files in Documents inside Archive", "ls Documents").is_some());
     }
 }
