@@ -44,6 +44,7 @@ pub mod eval;
 pub mod evaluation;
 pub mod execution;
 pub mod guard;
+pub mod intent;
 pub mod logging;
 pub mod model_catalog;
 pub mod model_loader;

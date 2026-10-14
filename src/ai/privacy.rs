@@ -93,7 +93,9 @@ pub fn may_leak_context_offhost(
         // `allow_public` turns that off.
         BackendType::Hybrid => hybrid_allow_public,
         // On-device.
-        BackendType::Mock | BackendType::Embedded | BackendType::Mlx => false,
+        BackendType::Mock | BackendType::Embedded | BackendType::Mlx | BackendType::SelectFiles => {
+            false
+        }
     };
     anything_optin && off_host
 }

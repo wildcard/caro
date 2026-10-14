@@ -38,6 +38,51 @@ pub struct CliApp {
     validator: SafetyValidator,
     #[allow(dead_code)]
     context: ExecutionContext,
+    /// Deterministic one-shot route (`--backend select-files`): one generator
+    /// call, then the same validation, approval and executor. No AgentLoop
+    /// repair, refinement, advisor or model risk judge.
+    one_shot: bool,
+}
+
+/// True when `name` selects the deterministic file-selection backend.
+fn is_select_files(name: &str) -> bool {
+    name.eq_ignore_ascii_case(crate::intent::BACKEND_NAME)
+}
+
+/// Reject flags that ask for a model when the model-free backend is chosen.
+/// Model settings that are only inherited (env, config file) are not
+/// requests for this run; they are ignored by the caller.
+fn select_files_conflicts(
+    force_llm: bool,
+    advisor: Option<&str>,
+    explicit_model: Option<&str>,
+) -> Result<(), CliError> {
+    let flag = if force_llm {
+        "--force-llm"
+    } else if advisor.is_some() {
+        "--advisor"
+    } else if explicit_model.is_some() {
+        "--model-name"
+    } else {
+        return Ok(());
+    };
+    Err(CliError::InvalidArgument {
+        message: format!(
+            "{flag} cannot be used with --backend select-files: that backend is deterministic and uses no model"
+        ),
+    })
+}
+
+/// Map a generator error to the CLI error shown to the user.
+fn map_generation_error(e: GeneratorError) -> CliError {
+    match e {
+        GeneratorError::NeedsClarification { question, p } => {
+            CliError::NeedsClarification { question, p }
+        }
+        other => CliError::GenerationFailed {
+            details: other.to_string(),
+        },
+    }
 }
 
 impl CliApp {
@@ -284,6 +329,16 @@ impl CliApp {
             .or(env_backend)
             .or_else(|| user_config.default_model.clone());
 
+        // The deterministic backend refuses model flags before anything else.
+        let one_shot = effective_backend.as_deref().is_some_and(is_select_files);
+        if one_shot {
+            select_files_conflicts(
+                force_llm,
+                advisor_override.as_deref(),
+                model_name_override.as_deref(),
+            )?;
+        }
+
         // Validate backend name if specified
         if let Some(ref backend) = effective_backend {
             Self::validate_backend_name(backend)?;
@@ -302,7 +357,11 @@ impl CliApp {
             user_config.model_name.clone(),
         );
 
-        if let Some(model_name) = effective_model_name {
+        if one_shot {
+            // Inherited model settings (CARO_MODEL, config file) are ignored:
+            // this route uses no model, and its provenance says so.
+            user_config.model_name = None;
+        } else if let Some(model_name) = effective_model_name {
             user_config.model_name = Some(model_name);
         }
 
@@ -347,6 +406,7 @@ impl CliApp {
             agent_loop,
             validator,
             context,
+            one_shot,
         })
     }
 
@@ -419,6 +479,20 @@ impl CliApp {
     async fn create_backend(
         user_config: &crate::models::UserConfiguration,
     ) -> Result<Box<dyn CommandGenerator>, CliError> {
+        // The deterministic backend checks GNU `find` once, here, at selection.
+        if user_config
+            .default_model
+            .as_deref()
+            .is_some_and(is_select_files)
+        {
+            let g = crate::intent::SelectFilesGenerator::new().map_err(|e| {
+                CliError::ConfigurationError {
+                    message: e.to_string(),
+                }
+            })?;
+            return Ok(Box::new(g));
+        }
+
         // For test builds only, use mock backend
         #[cfg(test)]
         {
@@ -950,7 +1024,7 @@ impl CliApp {
         })?;
 
         // Create command request
-        let _request = CommandRequest {
+        let request = CommandRequest {
             input: prompt.clone(),
             context: None,
             shell,
@@ -961,18 +1035,13 @@ impl CliApp {
 
         // Generate command using agent loop (handles iterations internally)
         let gen_start = Instant::now();
-        let generated = self
-            .agent_loop
-            .generate_command(&prompt)
-            .await
-            .map_err(|e| match e {
-                GeneratorError::NeedsClarification { question, p } => {
-                    CliError::NeedsClarification { question, p }
-                }
-                other => CliError::GenerationFailed {
-                    details: other.to_string(),
-                },
-            })?;
+        let generated = if self.one_shot {
+            // One generator call, one clock read; no repair or refinement.
+            self.backend.generate_command(&request).await
+        } else {
+            self.agent_loop.generate_command(&prompt).await
+        }
+        .map_err(map_generation_error)?;
         let generation_time = gen_start.elapsed();
 
         // Validate command safety
@@ -1441,5 +1510,172 @@ mod tests {
             msg.contains("caro --backend embedded"),
             "suggests the embedded alternative"
         );
+    }
+
+    // ---- select-files one-shot route -------------------------------------
+
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    /// Wraps the real deterministic generator and counts calls.
+    struct Counting {
+        inner: crate::intent::SelectFilesGenerator,
+        calls: Arc<AtomicUsize>,
+    }
+
+    #[async_trait]
+    impl CommandGenerator for Counting {
+        async fn generate_command(
+            &self,
+            request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            self.inner.generate_command(request).await
+        }
+        async fn is_available(&self) -> bool {
+            true
+        }
+        fn backend_info(&self) -> crate::backends::BackendInfo {
+            self.inner.backend_info()
+        }
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    struct Args(String);
+
+    impl IntoCliArgs for Args {
+        fn prompt(&self) -> Option<String> {
+            Some(self.0.clone())
+        }
+        fn shell(&self) -> Option<String> {
+            Some("bash".into())
+        }
+        fn backend(&self) -> Option<String> {
+            None
+        }
+        fn model_name(&self) -> Option<String> {
+            None
+        }
+        fn safety(&self) -> Option<String> {
+            None
+        }
+        fn output(&self) -> Option<String> {
+            Some("json".into())
+        }
+        fn confirm(&self) -> bool {
+            false
+        }
+        fn verbose(&self) -> bool {
+            false
+        }
+        fn config_file(&self) -> Option<String> {
+            None
+        }
+        fn execute(&self) -> bool {
+            false
+        }
+        fn dry_run(&self) -> bool {
+            true
+        }
+        fn interactive(&self) -> bool {
+            false
+        }
+        fn force_llm(&self) -> bool {
+            false
+        }
+        fn explain(&self) -> bool {
+            false
+        }
+    }
+
+    async fn one_shot_app() -> (
+        CliApp,
+        Arc<AtomicUsize>,
+        Arc<crate::intent::clock::FixedClock>,
+    ) {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let clock = Arc::new(crate::intent::clock::FixedClock::new(1_760_000_000));
+        let receipt = crate::intent::find_identity::FindReceipt {
+            path: "/usr/bin/find".into(),
+            banner: "find (GNU findutils) 4.9.0".into(),
+            version: "4.9.0".into(),
+        };
+        let backend: Arc<dyn CommandGenerator> = Arc::new(Counting {
+            inner: crate::intent::SelectFilesGenerator::with_parts(
+                receipt,
+                Box::new(clock.clone()),
+            ),
+            calls: calls.clone(),
+        });
+        let context = ExecutionContext::detect();
+        // The loop gets a *different* backend: if the one-shot branch were
+        // skipped, the mock would answer and `calls` would stay at zero.
+        let loop_backend: Arc<dyn CommandGenerator> = Arc::new(MockCommandGenerator::new());
+        let agent_loop = AgentLoop::new(loop_backend, context.clone(), CapabilityProfile::ubuntu());
+        let validator = SafetyValidator::new(crate::safety::SafetyConfig::moderate()).unwrap();
+        let app = CliApp {
+            config: CliConfig::default(),
+            backend,
+            agent_loop,
+            validator,
+            context,
+            one_shot: true,
+        };
+        (app, calls, clock)
+    }
+
+    #[tokio::test]
+    async fn one_shot_makes_exactly_one_generator_call_and_one_clock_read() {
+        // `used.txt` contains "sed" and the awk/xargs literal contains tool
+        // names: the frozen AgentLoop refine heuristic would regenerate on
+        // these. The one-shot route must not.
+        for req in [
+            "find files named used.txt modified in the last 7 days",
+            "find files named \"awk '{print $1}' | xargs echo.txt\" modified in the last 3 days",
+            "find python files modified in the last 7 days",
+        ] {
+            let (app, calls, clock) = one_shot_app().await;
+            let res = app.run_with_args(Args(req.into())).await.unwrap();
+            assert_eq!(calls.load(Ordering::SeqCst), 1, "{req}");
+            assert_eq!(clock.reads(), 1, "{req}");
+            assert!(res.generated_command.ends_with("-print0"), "{req}");
+            assert!(
+                res.blocked_reason.is_none(),
+                "{req}: {:?}",
+                res.blocked_reason
+            );
+            assert!(!res.requires_confirmation, "{req}");
+        }
+    }
+
+    #[tokio::test]
+    async fn one_shot_refusals_make_one_call_and_no_command() {
+        for (req, clarify) in [("please", false), ("files modified today", true)] {
+            let (app, calls, clock) = one_shot_app().await;
+            let err = app.run_with_args(Args(req.into())).await.unwrap_err();
+            assert_eq!(calls.load(Ordering::SeqCst), 1, "{req}");
+            assert_eq!(clock.reads(), 1, "{req}");
+            assert_eq!(
+                matches!(err, CliError::NeedsClarification { .. }),
+                clarify,
+                "{req}: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn select_files_conflicts_reject_explicit_model_requests_only() {
+        assert!(select_files_conflicts(false, None, None).is_ok());
+        for (f, a, m, flag) in [
+            (true, None, None, "--force-llm"),
+            (false, Some("claude"), None, "--advisor"),
+            (false, None, Some("m"), "--model-name"),
+        ] {
+            let e = select_files_conflicts(f, a, m).unwrap_err().to_string();
+            assert!(e.contains(flag) && e.contains("select-files"), "{e}");
+        }
+        assert!(is_select_files("select-files") && is_select_files("SELECT-FILES"));
+        assert!(!is_select_files("vllm"));
     }
 }

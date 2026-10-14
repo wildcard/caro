@@ -58,6 +58,10 @@ pub const CLI_SERVABLE_BACKENDS: &[(&str, &str)] = &[
         "openrouter",
         "OpenRouter hosted models (requires: OPENROUTER_API_KEY)",
     ),
+    (
+        "select-files",
+        "experimental, no model: regular files under one root by name or extension and an optional rolling modified window (GNU find on Linux; NUL-delimited output)",
+    ),
 ];
 
 /// Core trait that all command generation backends must implement

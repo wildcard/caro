@@ -454,6 +454,9 @@ pub enum BackendType {
     Hybrid,
     /// xAI Grok via its OpenAI-compatible API
     Grok,
+    /// Deterministic regular-file selection (no model; GNU/Linux)
+    #[serde(rename = "select-files")]
+    SelectFiles,
 }
 
 impl std::str::FromStr for BackendType {
@@ -473,6 +476,7 @@ impl std::str::FromStr for BackendType {
             "ai-horde" | "aihorde" | "horde" => Ok(Self::AiHorde),
             "hybrid" => Ok(Self::Hybrid),
             "grok" | "xai" => Ok(Self::Grok),
+            "select-files" => Ok(Self::SelectFiles),
             _ => Err(format!("Unknown backend type: {}", s)),
         }
     }
@@ -493,6 +497,7 @@ impl std::fmt::Display for BackendType {
             Self::AiHorde => write!(f, "ai-horde"),
             Self::Hybrid => write!(f, "hybrid"),
             Self::Grok => write!(f, "grok"),
+            Self::SelectFiles => write!(f, "select-files"),
         }
     }
 }

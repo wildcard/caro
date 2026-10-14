@@ -1169,6 +1169,12 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     .await
     .map_err(|e| format!("initializing backend: {}", e))?;
     let backend: Arc<dyn CommandGenerator> = cli_app.backend_arc();
+    if backend.backend_info().backend_type == caro::models::BackendType::SelectFiles {
+        return Err(
+            "--backend select-files is a one-shot command generator and is not available in AI mode"
+                .into(),
+        );
+    }
     // Derive the backend name from the *actually constructed* backend so the
     // off-host privacy warning is accurate even when auto-detection picks a
     // different backend than the config/CLI hint suggested. The string must
@@ -1189,6 +1195,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         // default, so it is intentionally NOT treated as an off-host leak here.
         caro::models::BackendType::Hybrid => "hybrid".to_string(),
         caro::models::BackendType::Grok => "grok".to_string(),
+        caro::models::BackendType::SelectFiles => "select-files".to_string(),
     };
 
     let exec_ctx = ExecutionContext::detect();
@@ -3091,9 +3098,13 @@ async fn run_evaluation_tests_inner(
                 );
             }
         }
+        "select-files" => Box::new(
+            caro::intent::SelectFilesGenerator::new()
+                .map_err(|e| format!("Failed to create select-files backend: {}", e))?,
+        ),
         _ => {
             return Err(format!(
-                "Unknown backend: {}. Supported: static, embedded, vllm",
+                "Unknown backend: {}. Supported: static, embedded, vllm, select-files",
                 backend_name
             ));
         }
@@ -4145,6 +4156,20 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
         }
     }
 
+    // The select-files route ends in `find -print0`: say so wherever the
+    // command is shown, even when the explanation is hidden.
+    if result
+        .explanation
+        .starts_with(caro::intent::OUTPUT_FRAMING_LABEL)
+    {
+        display!(
+            "{}",
+            "Output is NUL-separated (find -print0): machine-readable. Pipe it to 'xargs -0'."
+                .dimmed()
+        );
+        display!("");
+    }
+
     // Handle dry-run mode
     if cli.dry_run {
         display!("{}", "Dry Run Mode:".bold().cyan());
@@ -4398,7 +4423,11 @@ fn print_backend_info() {
     println!("  {:<12}  {:<16}  {:<5}", "-------", "------", "-----");
 
     for (name, notes) in CLI_SERVABLE_BACKENDS {
-        let status: &str = if *name == "embedded" {
+        let status: &str = if *name == "select-files" {
+            // No model and no remote feature: always compiled in. GNU find is
+            // checked when the backend is selected.
+            "available"
+        } else if *name == "embedded" {
             // Always compiled in; downloads its model on first use.
             "available"
         } else if !remote_backends_compiled {
