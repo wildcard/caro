@@ -131,13 +131,7 @@ const CASES: &[Case] = &[
         query: "remove temp files",
         outcome: Outcome::Avoid { never: &["mv "] },
     },
-    // Words the gate must not mistake for literals.
-    Case {
-        query: "what's using the most disk in the user's home",
-        outcome: Outcome::Avoid {
-            never: &["README.md"],
-        },
-    },
+    // Controls that bind a type word and a size (apostrophes are unit-tested in slot_fidelity).
     Case {
         query: "search for TODO comments in all Python files",
         outcome: Outcome::Bound { must: &["TODO"] },
@@ -308,10 +302,21 @@ fn decline_must_come_from_the_gate_and_name_the_value() {
 struct Fixture(PathBuf);
 
 impl Fixture {
+    /// A fresh directory this process creates and owns. `create_dir` fails if
+    /// the path already exists, so nothing is deleted before ownership is clear.
     fn new(tag: &str) -> Self {
-        let dir = std::env::temp_dir().join(format!("caro-semantic-{tag}-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&dir);
-        std::fs::create_dir_all(&dir).unwrap();
+        use std::sync::atomic::{AtomicU32, Ordering};
+        static N: AtomicU32 = AtomicU32::new(0);
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let dir = std::env::temp_dir().join(format!(
+            "caro-semantic-{tag}-{}-{nanos}-{}",
+            std::process::id(),
+            N.fetch_add(1, Ordering::Relaxed)
+        ));
+        std::fs::create_dir(&dir).expect("fresh fixture dir must not exist");
         Fixture(dir)
     }
     fn path(&self) -> &Path {
@@ -320,31 +325,76 @@ impl Fixture {
 }
 
 impl Drop for Fixture {
+    /// Removes only the directory this fixture created.
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.0);
     }
 }
 
-/// Run `cmd` in `dir` only if it is on the read-only allowlist.
+/// The exact read-only commands the fixture tests may run, as program + argv.
+/// No shell is involved, so operators, substitution and redirection have no
+/// meaning. A command that is not in this map is rejected, never run.
+fn approved_argv(cmd: &str) -> Option<(&'static str, &'static [&'static str])> {
+    Some(match cmd {
+        "wc -l README.md" => ("wc", &["-l", "README.md"]),
+        "wc -l README.MD" => ("wc", &["-l", "README.MD"]),
+        "wc -c README.md" => ("wc", &["-c", "README.md"]),
+        r#"find . -name "*.py" -type f -mtime -7"# => (
+            "find",
+            &[".", "-name", "*.py", "-type", "f", "-mtime", "-7"],
+        ),
+        r#"find . -name "*.py" -type f"# => ("find", &[".", "-name", "*.py", "-type", "f"]),
+        "find . -type f -mtime -7" => ("find", &[".", "-type", "f", "-mtime", "-7"]),
+        _ => return None,
+    })
+}
+
+/// Run an approved command in `dir` and return stdout. Checks the exit status.
 fn run_readonly(cmd: &str, dir: &Path) -> Result<String, String> {
-    let wc = cmd.starts_with("wc -")
-        && cmd
-            .chars()
-            .all(|c| c.is_alphanumeric() || " ._-".contains(c));
-    let find = cmd.starts_with("find . ")
-        && !cmd.contains("-delete")
-        && !cmd.contains("-exec")
-        && !cmd.contains("-ok");
-    if !(wc || find) {
-        return Err(format!("`{cmd}` is not on the read-only allowlist"));
-    }
-    let out = std::process::Command::new("sh")
-        .arg("-c")
-        .arg(cmd)
+    let (program, argv) =
+        approved_argv(cmd).ok_or_else(|| format!("`{cmd}` is not on the read-only allowlist"))?;
+    let out = std::process::Command::new(program)
+        .args(argv)
         .current_dir(dir)
         .output()
         .map_err(|e| e.to_string())?;
+    if !out.status.success() {
+        return Err(format!("`{cmd}` exited with {}", out.status));
+    }
     Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
+}
+
+/// Rejection tests call only the lookup, so no unsafe string is ever executed.
+#[test]
+fn allowlist_rejects_shell_tricks_without_running_them() {
+    for unsafe_cmd in [
+        "find . -print; touch SENTINEL",
+        "find . -fprint SENTINEL",
+        "find . -type f -delete",
+        "find . -exec true {} +",
+        "find / -type f",
+        "find ../ -type f",
+        "wc -l /etc/hostname",
+        "wc -l ../README.md",
+        "wc -l README.md; touch SENTINEL",
+        "wc -l README.md > SENTINEL",
+        "wc -l $(touch SENTINEL)",
+        "wc -l `touch SENTINEL`",
+        "wc -l README.md | cat",
+        "sh -c true",
+    ] {
+        assert!(
+            approved_argv(unsafe_cmd).is_none(),
+            "allowlist accepted `{unsafe_cmd}`"
+        );
+    }
+}
+
+#[test]
+fn fixture_dirs_are_unique_and_owned() {
+    let (a, b) = (Fixture::new("own"), Fixture::new("own"));
+    assert_ne!(a.path(), b.path());
+    assert!(a.path().is_dir() && b.path().is_dir());
 }
 
 /// The README count must be the real number of lines in the fixture file.
@@ -368,14 +418,23 @@ async fn readme_count_is_the_real_line_count() {
     let fx = Fixture::new("count");
     std::fs::write(fx.path().join("README.md"), "one\ntwo\nthree\n").unwrap();
     // A decoy with a different line count, so naming the wrong file is caught.
-    std::fs::write(fx.path().join("README.MD"), "x\n").unwrap();
+    // On a case-insensitive file system (macOS default) the two names are one
+    // file, so the decoy is only written, and checked, when they stay distinct.
+    let decoy = !fx.path().join("README.MD").exists();
+    if decoy {
+        std::fs::write(fx.path().join("README.MD"), "x\n").unwrap();
+    }
+    let decoy = decoy
+        && std::fs::read_to_string(fx.path().join("README.md")).unwrap() == "one\ntwo\nthree\n";
     let cmd = ask("count lines in README.md")
         .await
         .expect("bound request answers");
     counted_lines(&cmd, fx.path()).unwrap();
     // Mutation controls: wrong operation and wrong file both turn it red.
     assert!(counted_lines("wc -c README.md", fx.path()).is_err());
-    assert!(counted_lines("wc -l README.MD", fx.path()).is_err());
+    if decoy {
+        assert!(counted_lines("wc -l README.MD", fx.path()).is_err());
+    }
 }
 
 #[tokio::test]

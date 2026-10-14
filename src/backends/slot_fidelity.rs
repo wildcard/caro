@@ -44,21 +44,67 @@ const PLACEHOLDERS: &[&str] = &[
     " dest/",
 ];
 
-/// File-type words and the command text that proves the filter was kept.
+/// File-type words and the proof that the filter reached the command. A proof
+/// that starts with `.` must end an argument (`*.pdf`, `report.pdf`); any other
+/// proof must start an argument (`python3`, `cargo`).
 const TYPE_WORDS: &[(&str, &[&str])] = &[
-    ("pdf", &["pdf"]),
+    ("pdf", &[".pdf"]),
     ("python", &[".py", "python"]),
-    ("rust", &[".rs", "rust", "cargo"]),
-    ("markdown", &[".md", "markdown"]),
-    ("yaml", &[".yaml", ".yml", "yaml"]),
-    ("json", &[".json", "json"]),
-    ("csv", &[".csv", "csv"]),
+    ("rust", &[".rs", "cargo", "rustc"]),
+    ("markdown", &[".md", ".markdown"]),
+    ("yaml", &[".yaml", ".yml"]),
+    ("json", &[".json", "jq"]),
+    ("csv", &[".csv"]),
 ];
 
 /// Capitalised words after "in" that are not a directory name.
 const NOT_A_DIRECTORY: &[&str] = &[
-    "python", "rust", "json", "yaml", "markdown", "csv", "pdf", "bash", "zsh", "fish", "linux",
-    "macos", "git", "docker", "utc", "english",
+    "python",
+    "rust",
+    "json",
+    "yaml",
+    "markdown",
+    "csv",
+    "pdf",
+    "bash",
+    "zsh",
+    "fish",
+    "linux",
+    "macos",
+    "git",
+    "docker",
+    "utc",
+    "english",
+    "gb",
+    "mb",
+    "kb",
+    "tb",
+    "ubuntu",
+    "debian",
+    "fedora",
+    "centos",
+    "unix",
+    "windows",
+    "production",
+    "staging",
+    "development",
+    "prod",
+    "dev",
+    "ci",
+    "kubernetes",
+    "aws",
+    "gcp",
+    "azure",
+];
+
+/// Lowercase directory names people say without a capital letter or "folder".
+const KNOWN_DIRS: &[&str] = &[
+    "downloads",
+    "documents",
+    "desktop",
+    "pictures",
+    "music",
+    "videos",
 ];
 
 /// Words after "in the ... folder" that name a place the template already means.
@@ -75,6 +121,9 @@ struct Rx {
     pid: Regex,
     cap_dest: Regex,
     named_dest: Regex,
+    lower_dest: Regex,
+    size: Regex,
+    types: Vec<Regex>,
 }
 
 fn rx() -> &'static Rx {
@@ -88,12 +137,19 @@ fn rx() -> &'static Rx {
         // A name token: any name char (letter, mark, digit, _ or -) before the
         // dot, then an extension that holds a letter (so 3.14 is not a file).
         name: Regex::new(r"[\p{L}\p{M}\p{N}_-]\.(?:[\p{N}]*[\p{L}\p{M}][\p{L}\p{M}\p{N}]*)$").unwrap(),
-        port: Regex::new(r"(?i)\bport\s*:?\s*(\d{1,5})\b").unwrap(),
+        // "port 3000", "ports 3000 or 3001", "tcp 22"; every number is a literal.
+        port: Regex::new(r"(?i)\b(?:ports?\s*:?\s*|(?:tcp|udp)\s+)(\d{1,5}(?:\s*(?:,|or|and)\s*\d{1,5})*)\b").unwrap(),
+        size: Regex::new(r"(?i)\b(\d+(?:\.\d+)?)\s*([kmgt])b?\b").unwrap(),
+        lower_dest: Regex::new(r"(?i)\b(?:in|under|inside|within)\s+(?:the\s+|my\s+)?([a-z]+)\b").unwrap(),
+        types: TYPE_WORDS
+            .iter()
+            .map(|(w, _)| Regex::new(&format!(r"\b{w}\s+files?\b")).unwrap())
+            .collect(),
         colon_port: Regex::new(r"(?:^|[\s@])(?:localhost|[\w.-]+)?:(\d{2,5})\b").unwrap(),
         ip: Regex::new(r"\b(\d{1,3}(?:\.\d{1,3}){3})\b").unwrap(),
         pid: Regex::new(r"(?i)\b(?:pid|process(?:\s+id)?|kill)\s+(\d{1,7})\b").unwrap(),
         // "in Downloads", "under the Documents".
-        cap_dest: Regex::new(r"\b(?:in|under|inside|within)\s+(?:the\s+|my\s+)?(\p{Lu}[\p{L}\p{N}_.-]*)")
+        cap_dest: Regex::new(r"\b(?:[Ii]n|[Uu]nder|[Ii]nside|[Ww]ithin)\s+(?:the\s+|my\s+)?(\p{Lu}[\p{L}\p{N}_.-]*)")
             .unwrap(),
         // "in the src folder", "in logs directory".
         named_dest: Regex::new(
@@ -109,6 +165,8 @@ fn rx() -> &'static Rx {
 pub(crate) struct Literal {
     pub text: String,
     pub numeric: bool,
+    /// A TCP/UDP port, which must not be satisfied by a `kill 3000` argument.
+    pub port: bool,
 }
 
 /// Abbreviations that look like file names but are not.
@@ -137,14 +195,17 @@ fn is_path_token(t: &str, name: &Regex) -> bool {
 /// Explicit values the user wrote that a faithful command must contain.
 pub(crate) fn query_literals(query: &str) -> Vec<Literal> {
     let re = rx();
+    let digits = Regex::new(r"\d+").unwrap();
     let mut out: Vec<Literal> = Vec::new();
     let text = |t: &str| Literal {
         text: t.to_string(),
         numeric: false,
+        port: false,
     };
     let num = |t: &str| Literal {
         text: t.to_string(),
         numeric: true,
+        port: false,
     };
 
     for cap in re.quoted.captures_iter(query) {
@@ -163,10 +224,28 @@ pub(crate) fn query_literals(query: &str) -> Vec<Literal> {
             out.push(text(t));
         }
     }
-    for r in [&re.port, &re.pid, &re.colon_port, &re.ip] {
+    for cap in re.port.captures_iter(query) {
+        for n in digits.find_iter(&cap[1]) {
+            out.push(Literal {
+                port: true,
+                ..num(n.as_str())
+            });
+        }
+    }
+    for cap in re.colon_port.captures_iter(query) {
+        out.push(Literal {
+            port: true,
+            ..num(&cap[1])
+        });
+    }
+    for r in [&re.pid, &re.ip] {
         for cap in r.captures_iter(query) {
             out.push(num(&cap[1]));
         }
+    }
+    // Sizes: "500MB" must reach the command as 500M, not as another number.
+    for cap in re.size.captures_iter(query) {
+        out.push(num(&format!("{}{}", &cap[1], cap[2].to_uppercase())));
     }
     out.sort();
     out.dedup();
@@ -245,23 +324,40 @@ fn normalize_path(p: &str) -> &str {
 }
 
 /// True when the command carries the user's value. Names and paths must be one
-/// exact argument. Numbers need a non-word boundary.
+/// exact argument that is not an excluded or echoed mention. Numbers need a
+/// non-word boundary and no trailing dot (`8.8.8.8.` is not `8.8.8.8`).
+///
+/// Scope: this does not parse a whole shell line. A literal that is the target
+/// of a different sub-command (`wc -l y.txt; echo notes.txt`) is a known gap.
 fn has_literal(command: &str, lit: &Literal) -> bool {
     if lit.numeric {
         let word = |c: char| c.is_alphanumeric() || c == '_';
+        if lit.port && shell_tokens(command).is_some_and(|t| t.first().is_some_and(|p| p == "kill"))
+        {
+            return false;
+        }
         return command.match_indices(&lit.text).any(|(i, _)| {
             let before_ok = command[..i].chars().next_back().is_none_or(|c| !word(c));
-            let mut after = command[i + lit.text.len()..].chars();
-            let after_ok = match after.next() {
-                None => true,
-                Some('.') => after.next().is_none_or(|c| !word(c)),
-                Some(c) => !word(c),
-            };
+            let after_ok = command[i + lit.text.len()..]
+                .chars()
+                .next()
+                .is_none_or(|c| !word(c) && c != '.');
             before_ok && after_ok
         });
     }
     let want = normalize_path(&lit.text);
-    shell_tokens(command).is_some_and(|tokens| tokens.iter().any(|t| normalize_path(t) == want))
+    let Some(tokens) = shell_tokens(command) else {
+        return false;
+    };
+    // `echo notes.txt` prints the name; it does not act on the file.
+    if tokens.first().is_some_and(|p| p == "echo" || p == "printf") {
+        return false;
+    }
+    tokens.iter().enumerate().any(|(i, t)| {
+        let excluded = i > 0
+            && (tokens[i - 1].starts_with("--exclude") || tokens[i - 1].starts_with("--ignore"));
+        !excluded && normalize_path(t) == want
+    })
 }
 
 /// Bare destination words the user wrote ("Downloads", "src" in "the src folder").
@@ -271,6 +367,12 @@ fn destinations(query: &str) -> Vec<String> {
     for cap in re.cap_dest.captures_iter(query) {
         let w = cap[1].trim_end_matches(['.', ',']).to_string();
         if !NOT_A_DIRECTORY.contains(&w.to_lowercase().as_str()) {
+            out.push(w);
+        }
+    }
+    for cap in re.lower_dest.captures_iter(query) {
+        let w = cap[1].to_string();
+        if KNOWN_DIRS.contains(&w.as_str()) {
             out.push(w);
         }
     }
@@ -297,18 +399,55 @@ pub(crate) fn slot_violation(query: &str, command: &str) -> Option<String> {
     }
     let q = query.to_lowercase();
     let c = command.to_lowercase();
+    let tokens = shell_tokens(command);
+    // A destination is one whole argument or one whole path component, exact case.
+    let in_place = |dest: &str| {
+        tokens.as_ref().is_some_and(|ts| {
+            ts.iter()
+                .any(|t| t.split('/').any(|part| part == dest) || t == dest)
+        })
+    };
     for dest in destinations(query) {
-        if !c.contains(&dest.to_lowercase()) {
+        if !in_place(&dest) {
             return Some(format!(
                 "destination `{dest}` is missing from the template command"
             ));
         }
     }
-    for (word, proofs) in TYPE_WORDS {
-        let asked = Regex::new(&format!(r"\b{word}\b")).unwrap().is_match(&q);
-        if asked && !proofs.iter().any(|p| c.contains(p)) {
+    let re = rx();
+    for ((word, proofs), asked) in TYPE_WORDS.iter().zip(&re.types) {
+        if asked.is_match(&q) {
+            let proven = tokens.as_ref().is_some_and(|ts| {
+                ts.iter().any(|t| {
+                    let t = t.to_lowercase();
+                    proofs.iter().any(|p| {
+                        if p.starts_with('.') {
+                            t.ends_with(p)
+                        } else {
+                            t.starts_with(p)
+                        }
+                    })
+                })
+            });
+            if !proven {
+                return Some(format!(
+                    "file type `{word}` is missing from the template command"
+                ));
+            }
+        }
+    }
+    // The command must not add a port the user did not name.
+    let asked_ports: Vec<String> = query_literals(query)
+        .into_iter()
+        .filter(|l| l.port)
+        .map(|l| l.text)
+        .collect();
+    let port_in_cmd = Regex::new(r":(\d{2,5})\b").unwrap();
+    for cap in port_in_cmd.captures_iter(command) {
+        if !asked_ports.contains(&cap[1].to_string()) {
             return Some(format!(
-                "file type `{word}` is missing from the template command"
+                "template command adds the port `{}` the user did not name",
+                &cap[1]
             ));
         }
     }
@@ -532,5 +671,99 @@ mod tests {
             "sed -i 's/old_text/new_text/g' *.txt"
         )
         .is_some());
+    }
+
+    #[test]
+    fn destination_is_a_whole_argument_with_exact_case() {
+        let q = "find files in Documents";
+        assert!(slot_violation(q, "find Documents").is_none());
+        assert!(slot_violation(q, "find ~/Documents/old").is_none());
+        assert!(slot_violation(q, "find documents").is_some());
+        assert!(slot_violation(q, "ls /home/DocumentsX").is_some());
+        assert!(slot_violation(q, "find . -name Documents_backup").is_some());
+        assert!(slot_violation("list files in the src folder", "ls SRC").is_some());
+        assert!(slot_violation("list files in the src folder", "ls src").is_none());
+    }
+
+    #[test]
+    fn lowercase_and_sentence_initial_destinations_are_found() {
+        assert!(slot_violation(
+            "find files larger than 10MB in downloads",
+            "find . -size +10M"
+        )
+        .is_some());
+        assert!(slot_violation(
+            "In Downloads find files larger than 10MB",
+            "find . -size +10M"
+        )
+        .is_some());
+        assert!(slot_violation(
+            "find files larger than 10MB in downloads",
+            "find downloads -size +10M"
+        )
+        .is_none());
+    }
+
+    #[test]
+    fn units_and_environment_words_are_not_directories() {
+        assert!(slot_violation("show disk usage in GB", "df -h").is_none());
+        assert!(slot_violation("show disk usage in MB sorted", "df -h").is_none());
+        assert!(slot_violation("list processes in Production", "ps aux").is_none());
+        assert!(slot_violation("show network interfaces in Ubuntu", "ip addr show").is_none());
+    }
+
+    #[test]
+    fn type_word_needs_an_extension_or_program_argument() {
+        let q = "find all pdf files";
+        assert!(slot_violation(q, "find . -name '*.pdf'").is_none());
+        assert!(slot_violation(q, "find . -name pdf_backup.txt").is_some());
+        assert!(slot_violation(q, "find . -type f").is_some());
+        assert!(slot_violation(q, "echo pdf").is_some());
+        // The bare word without "file(s)" is not a file-type request.
+        assert!(slot_violation("convert csv to json", "echo ok").is_none());
+        assert!(slot_violation(
+            "set up a Python virtual environment",
+            "python3 -m venv .venv"
+        )
+        .is_none());
+    }
+
+    #[test]
+    fn every_named_port_is_required_and_none_is_added() {
+        assert!(slot_violation("use port 3000 or 3001", "lsof -i :3000").is_some());
+        assert!(slot_violation("use port 3000 or 3001", "lsof -i :3000 -i :3001").is_none());
+        assert!(slot_violation("what is on port 3000", "lsof -i :3000 -i :8080").is_some());
+        assert!(slot_violation("show tcp 22", "ss -tn sport = :8080").is_some());
+        assert!(slot_violation("kill the process on port 3000", "kill 3000").is_some());
+    }
+
+    #[test]
+    fn ip_with_trailing_dot_is_a_different_value() {
+        assert!(slot_violation("ping 8.8.8.8", "ping 8.8.8.8.").is_some());
+        assert!(slot_violation("ping 8.8.8.8", "ping -c 4 8.8.8.8").is_none());
+    }
+
+    #[test]
+    fn echoed_or_excluded_mention_is_not_the_target() {
+        let q = "count lines in notes.txt";
+        assert!(slot_violation(q, "echo notes.txt").is_some());
+        assert!(slot_violation(q, "wc -l --exclude notes.txt y.txt").is_some());
+        assert!(slot_violation(q, "wc -l notes.txt").is_none());
+    }
+
+    #[test]
+    fn size_threshold_must_match() {
+        assert!(
+            slot_violation("find files larger than 500MB", "find . -type f -size +50M").is_some()
+        );
+        assert!(slot_violation(
+            "find files larger than 3.5 GB",
+            "find . -type f -size +100M"
+        )
+        .is_some());
+        assert!(
+            slot_violation("find files larger than 100MB", "find . -type f -size +100M").is_none()
+        );
+        assert!(slot_violation("find files larger than 1GB", "find . -type f -size +1G").is_none());
     }
 }
