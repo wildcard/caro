@@ -46,7 +46,7 @@ technical:
     description: "Daily ML/DS engineer pass — dataset growth, base-model selection, training experiments"
     schedule: "5 0 * * *"           # Daily 12:05 AM (5 min after metrics_collection's slot, kept for when it is re-enabled; parallel_runs=false)
     skill: "/ml-fine-tune-loop"
-    enabled: true
+    enabled: false  # Off until training is explicitly authorized; the old entry had no enabled field
     timeout_minutes: 30           # 30-min default from the runner contract (#1506); the loop states no cap
     notify_on_failure: true
 
