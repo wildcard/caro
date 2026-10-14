@@ -8,6 +8,7 @@ on:
       - '.github/workflows/installer.yml'
       - 'install.sh'
       - 'setup.sh'
+      - 'tests/test_setup.sh'
 
 env:
   CARGO_TERM_COLOR: always
@@ -21,6 +22,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+
+      - name: Unit-test setup.sh
+        if: matrix.os == 'ubuntu-latest'
+        run: ./tests/test_setup.sh
 
       - name: Install zsh for ubuntu
         if: matrix.os == 'ubuntu-latest'

@@ -415,9 +415,9 @@ waitlist/playbook locale files; #1508 is the CI symptom of both).
 
 **Found:** 2026-10-11, broken-window sweep (main health)
 **Issue:** #1340. The cleanup step deletes `~/.cargo/bin/caro` but not cargo's install record. `setup.sh` runs `cargo install caro`, which prints "already installed" and installs nothing.
-**Status:** fixed (#1605, merged 2026-10-11). Install runs on main are green since `ee69deea`.
-**Needs human?:** no (test-step fix; no gate changes)
-**Next step:** none. Delete after 2026-10-18.
+**Status:** CI fixed (#1605, merged 2026-10-11). Install runs on main are green since `ee69deea`. The user-facing half is open: `setup.sh` still reports success when cargo skips the install and no binary exists. Claimed by sweep/2026-10-07-BW-026 (#1539), which also runs `tests/test_setup.sh` in CI.
+**Needs human?:** yes (#1539 adds a step to `.github/workflows/installer.yml`)
+**Next step:** the owner reviews #1539. Delete this entry after #1539 merges.
 
 
 ### BW-053: an invalid `config.toml` is silently replaced with defaults
@@ -548,3 +548,11 @@ hash before it merges)
 `bin.install` line and ends at the next platform's `sha256` line. Start each
 range at the `url` line only (`/url .*-linux-arm64"/,/sha256/`; #1636 has the
 replay), and fix line 39 of the formula in #1635.
+
+### BW-073: CI never runs 23 of 46 integration test targets
+
+**Found:** 2026-10-07, broken-window sweep (first recorded in #1539; moved here on 2026-10-13)
+**Issue:** #1537
+**Status:** open
+**Needs human?:** yes (adds CI jobs)
+**Next step:** decide which of the 23 targets join `ci.yml`, starting with the 5 contract tests.
