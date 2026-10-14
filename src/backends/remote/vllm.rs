@@ -15,6 +15,39 @@ use crate::decision::decide_with_retry;
 use crate::models::{RiskJudgeContext, RiskJudgment};
 use crate::prompts::{build_risk_judge_prompt, parse_risk_judgment, risk_judge_schema};
 
+/// Output-token cap used unless configured otherwise.
+const DEFAULT_MAX_TOKENS: u32 = 100;
+
+/// Model used by the explicit `--backend vllm` route when neither
+/// `--model-name` nor the config names one.
+pub const DEFAULT_MODEL: &str = "codellama/CodeLlama-7b-hf";
+
+/// Endpoint used when `[backends].vllm_url` is unset.
+pub const DEFAULT_URL: &str = "http://localhost:8000";
+
+/// Build the fail-closed backend for an explicit `--backend vllm`. The CLI
+/// generation path and `caro test --backend vllm` both call this, so the two
+/// routes honor the same endpoint, model and limits. Keyless: no credential is
+/// read or sent. Nothing here constructs or attaches an embedded backend.
+pub fn explicit_from_config(
+    cfg: &crate::models::BackendsConfig,
+    model_name: Option<&str>,
+) -> Result<VllmBackend, GeneratorError> {
+    let url_str = cfg.vllm_url.as_deref().unwrap_or(DEFAULT_URL);
+    let url = Url::parse(url_str).map_err(|e| GeneratorError::ConfigError {
+        message: format!("backends.vllm_url `{url_str}` is not a valid URL: {e}"),
+    })?;
+    let model = model_name.unwrap_or(DEFAULT_MODEL).to_string();
+    let mut backend = VllmBackend::new(url, model)?
+        .with_max_tokens(cfg.vllm_max_tokens.unwrap_or(DEFAULT_MAX_TOKENS))
+        .with_logprobs(cfg.vllm_logprobs.unwrap_or(true))
+        .fail_closed();
+    if let Some(secs) = cfg.vllm_timeout_secs {
+        backend = backend.with_timeout(Duration::from_secs(secs))?;
+    }
+    Ok(backend)
+}
+
 /// Regex pattern to extract command from malformed JSON with unescaped quotes
 /// Handles cases like: {"cmd": "find . -type f -name "*.txt""}
 static CMD_EXTRACT_REGEX: Lazy<Regex> =
@@ -30,6 +63,9 @@ struct VllmRequest {
     max_tokens: u32,
     stream: bool,
     /// Ask for per-token log-probs so confidence is measured, not constant (#1464).
+    /// Omitted when false: some servers reject the field, and the explicit
+    /// local route asks for no log-probs (`vllm_logprobs = false`).
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
     logprobs: bool,
     /// JSON Schema for guided decoding; set on decision requests only (#1465).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -47,7 +83,10 @@ struct VllmMessage {
 #[derive(Debug, Deserialize)]
 struct VllmResponse {
     choices: Vec<VllmChoice>,
-    #[allow(dead_code)]
+    /// The model the server says it used. Absent on some servers.
+    #[serde(default)]
+    model: Option<String>,
+    #[serde(default)]
     usage: Option<VllmUsage>,
 }
 
@@ -99,12 +138,44 @@ struct VllmResponseMessage {
 /// vLLM usage statistics
 #[derive(Debug, Deserialize)]
 struct VllmUsage {
-    #[allow(dead_code)]
-    prompt_tokens: u32,
-    #[allow(dead_code)]
-    completion_tokens: u32,
-    #[allow(dead_code)]
-    total_tokens: u32,
+    #[serde(default)]
+    prompt_tokens: Option<u32>,
+    #[serde(default)]
+    completion_tokens: Option<u32>,
+    #[serde(default)]
+    total_tokens: Option<u32>,
+}
+
+/// What one request told us about the model that answered. A field the server
+/// did not send is `None`: unverified, never assumed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ResponseMeta {
+    /// The model name Caro asked for.
+    pub requested_model: String,
+    /// The model the server named in its reply, if it named one.
+    pub returned_model: Option<String>,
+    pub prompt_tokens: Option<u32>,
+    pub completion_tokens: Option<u32>,
+    pub total_tokens: Option<u32>,
+}
+
+impl ResponseMeta {
+    /// One honest line for `GeneratedCommand::explanation`. It reports what the
+    /// server said; it is not proof that inference ran on that model.
+    pub fn summary(&self) -> String {
+        let model = match &self.returned_model {
+            Some(m) => format!("returned model `{m}`"),
+            None => "returned model unverified (not in response)".to_string(),
+        };
+        let usage = match (self.prompt_tokens, self.completion_tokens) {
+            (Some(p), Some(c)) => format!("usage prompt={p} completion={c}"),
+            _ => "usage unverified (not in response)".to_string(),
+        };
+        format!(
+            "requested model `{}`, {model}, {usage}",
+            self.requested_model
+        )
+    }
 }
 
 /// Response shape for `GET /v1/models`, used only to check the context
@@ -132,6 +203,15 @@ pub struct VllmBackend {
     client: Client,
     api_key: Option<String>,
     embedded_fallback: Option<Arc<dyn CommandGenerator>>,
+    /// Output-token cap per request (default 100).
+    max_tokens: u32,
+    /// Whether to ask for per-token log-probs (default true).
+    logprobs: bool,
+    /// Fail-closed mode (explicit local route): no fallback, readiness and
+    /// served-model checks first, a named model mismatch is an error.
+    fail_closed: bool,
+    /// The most recent reply's model/usage record.
+    last_meta: std::sync::Mutex<Option<ResponseMeta>>,
     /// Ensures the served-context-length probe (`/v1/models`) and its log
     /// line fire at most once per backend instance, not on every request.
     checked_context: OnceCell<()>,
@@ -153,8 +233,49 @@ impl VllmBackend {
             client,
             api_key: None,
             embedded_fallback: None,
+            max_tokens: DEFAULT_MAX_TOKENS,
+            logprobs: true,
+            fail_closed: false,
+            last_meta: std::sync::Mutex::new(None),
             checked_context: OnceCell::new(),
         })
+    }
+
+    /// Set the per-request output-token cap.
+    pub fn with_max_tokens(mut self, max_tokens: u32) -> Self {
+        self.max_tokens = max_tokens;
+        self
+    }
+
+    /// Set the per-request timeout. Rebuilds the HTTP client.
+    pub fn with_timeout(mut self, timeout: Duration) -> Result<Self, GeneratorError> {
+        self.client = Client::builder().timeout(timeout).build().map_err(|e| {
+            GeneratorError::ConfigError {
+                message: format!("Failed to create HTTP client: {}", e),
+            }
+        })?;
+        Ok(self)
+    }
+
+    /// Ask (or not) for per-token log-probs. Off omits the field entirely.
+    pub fn with_logprobs(mut self, logprobs: bool) -> Self {
+        self.logprobs = logprobs;
+        self
+    }
+
+    /// Fail-closed mode for an explicitly chosen server. Never falls back to
+    /// another backend, checks readiness and that the selected model is served,
+    /// and fails if the reply names a different model. Existing callers that do
+    /// not call this keep the old behavior.
+    pub fn fail_closed(mut self) -> Self {
+        self.fail_closed = true;
+        self.embedded_fallback = None;
+        self
+    }
+
+    /// Model/usage record of the most recent reply, if any.
+    pub fn last_response_meta(&self) -> Option<ResponseMeta> {
+        self.last_meta.lock().ok().and_then(|g| g.clone())
     }
 
     /// Set API key for authentication
@@ -165,7 +286,9 @@ impl VllmBackend {
 
     /// Add embedded fallback backend
     pub fn with_embedded_fallback(mut self, fallback: Arc<dyn CommandGenerator>) -> Self {
-        self.embedded_fallback = Some(fallback);
+        if !self.fail_closed {
+            self.embedded_fallback = Some(fallback);
+        }
         self
     }
 
@@ -253,6 +376,112 @@ Request: {}
         })
     }
 
+    /// `endpoint ..., model ...` text for error messages.
+    fn ctx(&self) -> String {
+        format!(
+            "vLLM endpoint {}, model `{}`",
+            self.base_url, self.model_name
+        )
+    }
+
+    /// Fail-closed readiness: the endpoint answers `/health` and serves the
+    /// selected model. The selected model is matched by exact id; a different
+    /// first entry is never substituted.
+    async fn preflight(&self) -> Result<(), GeneratorError> {
+        let ctx = self.ctx();
+        let health = self
+            .base_url
+            .join("/health")
+            .map_err(|e| GeneratorError::ConfigError {
+                message: format!("{ctx}: invalid base URL: {e}"),
+            })?;
+        match self.client.get(health).send().await {
+            Err(e) => {
+                return Err(GeneratorError::BackendUnavailable {
+                    reason: format!("{ctx}: unreachable: {e}"),
+                })
+            }
+            Ok(r) if !r.status().is_success() => {
+                return Err(GeneratorError::BackendUnavailable {
+                    reason: format!("{ctx}: not ready (GET /health returned {})", r.status()),
+                })
+            }
+            Ok(_) => {}
+        }
+
+        let models_url =
+            self.base_url
+                .join("/v1/models")
+                .map_err(|e| GeneratorError::ConfigError {
+                    message: format!("{ctx}: invalid base URL: {e}"),
+                })?;
+        let mut req = self.client.get(models_url);
+        if let Some(api_key) = &self.api_key {
+            req = req.header(header::AUTHORIZATION, format!("Bearer {}", api_key));
+        }
+        let resp = req
+            .send()
+            .await
+            .map_err(|e| GeneratorError::BackendUnavailable {
+                reason: format!("{ctx}: cannot list models: {e}"),
+            })?;
+        if !resp.status().is_success() {
+            return Err(GeneratorError::GenerationFailed {
+                details: format!("{ctx}: GET /v1/models returned {}", resp.status()),
+            });
+        }
+        let models: VllmModelsResponse =
+            resp.json().await.map_err(|e| GeneratorError::ParseError {
+                content: format!("{ctx}: /v1/models body is not a model list: {e}"),
+            })?;
+        if !models.data.iter().any(|m| m.id == self.model_name) {
+            let served: Vec<&str> = models.data.iter().map(|m| m.id.as_str()).collect();
+            return Err(GeneratorError::BackendUnavailable {
+                reason: format!(
+                    "{ctx}: model `{}` is not served (served: [{}])",
+                    self.model_name,
+                    served.join(", ")
+                ),
+            });
+        }
+        Ok(())
+    }
+
+    /// Fail-closed generation: preflight, one request, no fallback. Transport,
+    /// status, parse and model-mismatch errors reach the caller unchanged.
+    async fn generate_fail_closed(
+        &self,
+        request: &CommandRequest,
+    ) -> Result<GeneratedCommand, GeneratorError> {
+        self.preflight().await?;
+        let (response, tokens) = self
+            .call_vllm_api(&self.create_system_prompt(request), None)
+            .await?;
+        let command = self.parse_command_response(&response)?;
+        let measured = tokens
+            .as_deref()
+            .and_then(|t| crate::backends::command_token_confidence(t, &command));
+        let (confidence_score, confidence_source) = match measured {
+            Some(c) => (c, crate::models::ConfidenceSource::Measured),
+            None => (0.0, crate::models::ConfidenceSource::Unknown),
+        };
+        let summary = self
+            .last_response_meta()
+            .map(|m| m.summary())
+            .unwrap_or_else(|| "response metadata unverified".to_string());
+        Ok(GeneratedCommand {
+            command,
+            explanation: format!("Generated by {} ({summary})", self.ctx()),
+            safety_level: RiskLevel::Safe, // validated by the caller (CLI SafetyValidator)
+            estimated_impact: "Remote inference operation".to_string(),
+            alternatives: vec![],
+            backend_used: format!("vLLM ({})", self.model_name),
+            generation_time_ms: 0,
+            confidence_score,
+            confidence_source,
+        })
+    }
+
     /// Call vLLM API for inference
     /// Returns the reply text and, when the server returned `logprobs`, the
     /// measured confidence of that reply.
@@ -268,9 +497,9 @@ Request: {}
                 content: prompt.to_string(),
             }],
             temperature: 0.1,
-            max_tokens: 100,
+            max_tokens: self.max_tokens,
             stream: false,
-            logprobs: true,
+            logprobs: self.logprobs,
             guided_json,
         };
 
@@ -290,7 +519,11 @@ Request: {}
         let response = req_builder.send().await.map_err(|e| {
             if e.is_connect() || e.is_timeout() {
                 GeneratorError::BackendUnavailable {
-                    reason: format!("vLLM server unavailable: {}", e),
+                    reason: if self.fail_closed {
+                        format!("{}: unreachable or timed out: {}", self.ctx(), e)
+                    } else {
+                        format!("vLLM server unavailable: {}", e)
+                    },
                 }
             } else {
                 GeneratorError::GenerationFailed {
@@ -308,7 +541,11 @@ Request: {}
 
         if !response.status().is_success() {
             return Err(GeneratorError::GenerationFailed {
-                details: format!("vLLM API error: {}", response.status()),
+                details: if self.fail_closed {
+                    format!("{}: vLLM API error: {}", self.ctx(), response.status())
+                } else {
+                    format!("vLLM API error: {}", response.status())
+                },
             });
         }
 
@@ -317,8 +554,39 @@ Request: {}
                 .json()
                 .await
                 .map_err(|e| GeneratorError::ParseError {
-                    content: format!("Failed to parse vLLM response: {}", e),
+                    content: if self.fail_closed {
+                        format!("{}: failed to parse response: {}", self.ctx(), e)
+                    } else {
+                        format!("Failed to parse vLLM response: {}", e)
+                    },
                 })?;
+
+        let meta = ResponseMeta {
+            requested_model: self.model_name.clone(),
+            returned_model: vllm_response.model.clone(),
+            prompt_tokens: vllm_response.usage.as_ref().and_then(|u| u.prompt_tokens),
+            completion_tokens: vllm_response
+                .usage
+                .as_ref()
+                .and_then(|u| u.completion_tokens),
+            total_tokens: vllm_response.usage.as_ref().and_then(|u| u.total_tokens),
+        };
+        if let Ok(mut slot) = self.last_meta.lock() {
+            *slot = Some(meta.clone());
+        }
+        if self.fail_closed {
+            if let Some(returned) = &meta.returned_model {
+                if returned != &self.model_name {
+                    return Err(GeneratorError::GenerationFailed {
+                        details: format!(
+                            "{}: response names model `{}`, which does not match the selected model",
+                            self.ctx(),
+                            returned
+                        ),
+                    });
+                }
+            }
+        }
 
         if let Some(choice) = vllm_response.choices.first() {
             let tokens = token_logprobs(choice.logprobs.as_ref());
@@ -381,6 +649,9 @@ Request: {}
         &self,
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
+        if self.fail_closed {
+            return self.generate_fail_closed(request).await;
+        }
         self.checked_context
             .get_or_init(|| self.warn_on_context_length())
             .await;
@@ -511,7 +782,7 @@ impl CommandGenerator for VllmBackend {
             backend_type: BackendType::VLlm,
             model_name: self.model_name.clone(),
             supports_streaming: false,
-            max_tokens: 100,
+            max_tokens: self.max_tokens,
             typical_latency_ms: 3000,
             memory_usage_mb: 0, // External server
             version: "1.0".to_string(),
@@ -802,5 +1073,462 @@ mod confidence_tests {
                 .expect("no /v1/chat/completions request recorded");
             assert!(body(completion_req).get("guided_json").is_none());
         }
+    }
+}
+
+/// Contracts for the fail-closed local route, run against the real
+/// `VllmBackend` over HTTP (wiremock). They prove the HTTP contract only; a
+/// stand-alone server proves only the server. Neither is model inference.
+#[cfg(test)]
+mod fail_closed_tests {
+    use super::*;
+    use crate::models::{CommandRequest, SafetyLevel, ShellType};
+    use serde_json::json;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    const MODEL: &str = "qwen2.5-coder-0.5b";
+
+    fn req() -> CommandRequest {
+        CommandRequest {
+            input: "list files".to_string(),
+            shell: ShellType::Bash,
+            safety_level: SafetyLevel::Moderate,
+            context: None,
+            backend_preference: None,
+        }
+    }
+
+    fn backend(server: &MockServer) -> VllmBackend {
+        VllmBackend::new(Url::parse(&server.uri()).unwrap(), MODEL.to_string())
+            .unwrap()
+            .with_max_tokens(64)
+            .with_logprobs(false)
+            .fail_closed()
+    }
+
+    async fn healthy(server: &MockServer) {
+        Mock::given(method("GET"))
+            .and(path("/health"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({"status": "ok"})))
+            .mount(server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/models"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(json!({"data": [{"id": MODEL}]})),
+            )
+            .mount(server)
+            .await;
+    }
+
+    fn completion(model: Option<&str>, usage: bool) -> serde_json::Value {
+        let mut v = json!({"choices": [{"message": {"role": "assistant",
+            "content": "{\"cmd\": \"ls -la\"}"}}]});
+        if let Some(m) = model {
+            v["model"] = json!(m);
+        }
+        if usage {
+            v["usage"] = json!({"prompt_tokens": 40, "completion_tokens": 12, "total_tokens": 52});
+        }
+        v
+    }
+
+    async fn mount_completion(server: &MockServer, resp: ResponseTemplate, times: u64) {
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .respond_with(resp)
+            .expect(times)
+            .mount(server)
+            .await;
+    }
+
+    /// A fallback that must never be reached.
+    struct MustNotRun(Arc<AtomicBool>);
+
+    #[async_trait]
+    impl CommandGenerator for MustNotRun {
+        async fn generate_command(
+            &self,
+            _: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            self.0.store(true, Ordering::SeqCst);
+            Err(GeneratorError::Internal {
+                message: "fallback ran".into(),
+            })
+        }
+        async fn is_available(&self) -> bool {
+            true
+        }
+        fn backend_info(&self) -> BackendInfo {
+            unreachable!("not used")
+        }
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn sends_selected_model_cap_and_no_logprobs_and_reports_truthfully() {
+        let server = MockServer::start().await;
+        healthy(&server).await;
+        mount_completion(
+            &server,
+            ResponseTemplate::new(200).set_body_json(completion(Some(MODEL), true)),
+            1,
+        )
+        .await;
+        let b = backend(&server);
+        let out = b.generate_command(&req()).await.unwrap();
+        assert_eq!(out.command, "ls -la");
+
+        let posts: Vec<_> = server
+            .received_requests()
+            .await
+            .unwrap()
+            .into_iter()
+            .filter(|r| r.method.as_str() == "POST")
+            .collect();
+        assert_eq!(posts.len(), 1, "exactly one real HTTP generation request");
+        let body: serde_json::Value = serde_json::from_slice(&posts[0].body).unwrap();
+        assert_eq!(body["model"], MODEL);
+        assert_eq!(body["max_tokens"], 64);
+        assert!(
+            body.get("logprobs").is_none(),
+            "logprobs=false omits the field"
+        );
+
+        let meta = b.last_response_meta().unwrap();
+        assert_eq!(meta.requested_model, MODEL);
+        assert_eq!(meta.returned_model.as_deref(), Some(MODEL));
+        assert_eq!(
+            (meta.prompt_tokens, meta.completion_tokens),
+            (Some(40), Some(12))
+        );
+        assert!(out
+            .explanation
+            .contains("returned model `qwen2.5-coder-0.5b`"));
+        assert!(out.explanation.contains("usage prompt=40 completion=12"));
+        assert_eq!(
+            out.confidence_source,
+            crate::models::ConfidenceSource::Unknown
+        );
+    }
+
+    #[tokio::test]
+    async fn missing_response_model_and_usage_are_unverified_not_assumed() {
+        let server = MockServer::start().await;
+        healthy(&server).await;
+        mount_completion(
+            &server,
+            ResponseTemplate::new(200).set_body_json(completion(None, false)),
+            1,
+        )
+        .await;
+        let b = backend(&server);
+        let out = b.generate_command(&req()).await.unwrap();
+        let meta = b.last_response_meta().unwrap();
+        assert_eq!(meta.returned_model, None);
+        assert_eq!(meta.completion_tokens, None);
+        assert!(out.explanation.contains("returned model unverified"));
+        assert!(out.explanation.contains("usage unverified"));
+    }
+
+    #[tokio::test]
+    async fn response_naming_another_model_fails() {
+        let server = MockServer::start().await;
+        healthy(&server).await;
+        mount_completion(
+            &server,
+            ResponseTemplate::new(200).set_body_json(completion(Some("other-model"), true)),
+            1,
+        )
+        .await;
+        let err = backend(&server).generate_command(&req()).await.unwrap_err();
+        match err {
+            GeneratorError::GenerationFailed { details } => {
+                assert!(details.contains("other-model"), "{details}");
+                assert!(details.contains(MODEL), "{details}");
+                assert!(details.contains("does not match"), "{details}");
+            }
+            other => panic!("expected GenerationFailed, got {other:?}"),
+        }
+    }
+
+    #[tokio::test]
+    async fn selected_model_must_be_listed_and_first_entry_is_not_substituted() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/health"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/models"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(json!({"data": [{"id": "some-other-model"}, {"id": "third"}]})),
+            )
+            .mount(&server)
+            .await;
+        mount_completion(&server, ResponseTemplate::new(200), 0).await;
+        let err = backend(&server).generate_command(&req()).await.unwrap_err();
+        match err {
+            GeneratorError::BackendUnavailable { reason } => {
+                assert!(
+                    reason.contains(MODEL) && reason.contains("is not served"),
+                    "{reason}"
+                );
+                assert!(
+                    reason.contains("some-other-model"),
+                    "lists what is served: {reason}"
+                );
+                assert!(
+                    reason.contains(&server.uri()),
+                    "names the endpoint: {reason}"
+                );
+            }
+            other => panic!("expected BackendUnavailable, got {other:?}"),
+        }
+    }
+
+    #[tokio::test]
+    async fn not_ready_health_is_unavailable_and_nothing_is_generated() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/health"))
+            .respond_with(
+                ResponseTemplate::new(503)
+                    .set_body_json(json!({"error": {"code": 503, "message": "Loading model"}})),
+            )
+            .mount(&server)
+            .await;
+        mount_completion(&server, ResponseTemplate::new(200), 0).await;
+        let err = backend(&server).generate_command(&req()).await.unwrap_err();
+        match err {
+            GeneratorError::BackendUnavailable { reason } => {
+                assert!(
+                    reason.contains("not ready") && reason.contains("503"),
+                    "{reason}"
+                );
+            }
+            other => panic!("expected BackendUnavailable, got {other:?}"),
+        }
+    }
+
+    #[tokio::test]
+    async fn unreachable_endpoint_names_endpoint_and_model() {
+        // Port 9 (discard) on loopback: nothing listens, the connect is refused.
+        let b = VllmBackend::new(Url::parse("http://127.0.0.1:9").unwrap(), MODEL.to_string())
+            .unwrap()
+            .fail_closed();
+        match b.generate_command(&req()).await.unwrap_err() {
+            GeneratorError::BackendUnavailable { reason } => {
+                assert!(
+                    reason.contains("127.0.0.1:9") && reason.contains(MODEL),
+                    "{reason}"
+                );
+                assert!(reason.contains("unreachable"), "{reason}");
+            }
+            other => panic!("expected BackendUnavailable, got {other:?}"),
+        }
+    }
+
+    #[tokio::test]
+    async fn bad_status_models_status_and_bad_bodies_stay_distinct() {
+        // /v1/models 500
+        let s = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/health"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&s)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/models"))
+            .respond_with(ResponseTemplate::new(500))
+            .mount(&s)
+            .await;
+        let e = backend(&s).generate_command(&req()).await.unwrap_err();
+        assert!(
+            matches!(&e, GeneratorError::GenerationFailed { details } if details.contains("/v1/models returned 500")),
+            "{e:?}"
+        );
+
+        // /v1/models not JSON
+        let s = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/health"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&s)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/models"))
+            .respond_with(ResponseTemplate::new(200).set_body_string("not json"))
+            .mount(&s)
+            .await;
+        let e = backend(&s).generate_command(&req()).await.unwrap_err();
+        assert!(
+            matches!(&e, GeneratorError::ParseError { content } if content.contains("not a model list")),
+            "{e:?}"
+        );
+
+        // chat 500
+        let s = MockServer::start().await;
+        healthy(&s).await;
+        mount_completion(&s, ResponseTemplate::new(500), 1).await;
+        let e = backend(&s).generate_command(&req()).await.unwrap_err();
+        assert!(
+            matches!(&e, GeneratorError::GenerationFailed { details } if details.contains("500") && details.contains(MODEL)),
+            "{e:?}"
+        );
+
+        // chat 200 with a non-OpenAI body
+        let s = MockServer::start().await;
+        healthy(&s).await;
+        mount_completion(&s, ResponseTemplate::new(200).set_body_string("<html>"), 1).await;
+        let e = backend(&s).generate_command(&req()).await.unwrap_err();
+        assert!(
+            matches!(&e, GeneratorError::ParseError { content } if content.contains("failed to parse response")),
+            "{e:?}"
+        );
+
+        // chat 200 whose reply is not a command
+        let s = MockServer::start().await;
+        healthy(&s).await;
+        let body = json!({"model": MODEL, "choices": [{"message": {"role": "assistant", "content": "I cannot help"}}]});
+        mount_completion(&s, ResponseTemplate::new(200).set_body_json(body), 1).await;
+        let e = backend(&s).generate_command(&req()).await.unwrap_err();
+        assert!(matches!(e, GeneratorError::ParseError { .. }), "{e:?}");
+
+        // chat 401
+        let s = MockServer::start().await;
+        healthy(&s).await;
+        mount_completion(&s, ResponseTemplate::new(401), 1).await;
+        let e = backend(&s).generate_command(&req()).await.unwrap_err();
+        assert!(
+            matches!(&e, GeneratorError::BackendUnavailable { reason } if reason.contains("Authentication failed")),
+            "{e:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn http_400_is_not_retried_as_unsupported_logprobs() {
+        let server = MockServer::start().await;
+        healthy(&server).await;
+        // Exactly one POST is allowed; a retry would fail the `expect(1)`.
+        mount_completion(&server, ResponseTemplate::new(400), 1).await;
+        let b = VllmBackend::new(Url::parse(&server.uri()).unwrap(), MODEL.to_string())
+            .unwrap()
+            .with_logprobs(true)
+            .fail_closed();
+        let e = b.generate_command(&req()).await.unwrap_err();
+        assert!(
+            matches!(&e, GeneratorError::GenerationFailed { details } if details.contains("400")),
+            "{e:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn no_fallback_runs_in_either_attachment_order() {
+        for attach_after in [true, false] {
+            let server = MockServer::start().await;
+            healthy(&server).await;
+            mount_completion(&server, ResponseTemplate::new(500), 1).await;
+            let ran = Arc::new(AtomicBool::new(false));
+            let fb: Arc<dyn CommandGenerator> = Arc::new(MustNotRun(ran.clone()));
+            let base =
+                VllmBackend::new(Url::parse(&server.uri()).unwrap(), MODEL.to_string()).unwrap();
+            let b = if attach_after {
+                base.fail_closed().with_embedded_fallback(fb)
+            } else {
+                base.with_embedded_fallback(fb).fail_closed()
+            };
+            assert!(b.generate_command(&req()).await.is_err());
+            assert!(
+                !ran.load(Ordering::SeqCst),
+                "fallback ran (attach_after={attach_after})"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn timeout_is_configurable_and_reported_with_endpoint() {
+        let server = MockServer::start().await;
+        healthy(&server).await;
+        mount_completion(
+            &server,
+            ResponseTemplate::new(200)
+                .set_body_json(completion(Some(MODEL), true))
+                .set_delay(Duration::from_millis(1500)),
+            1,
+        )
+        .await;
+        let b = backend(&server)
+            .with_timeout(Duration::from_millis(200))
+            .unwrap();
+        match b.generate_command(&req()).await.unwrap_err() {
+            GeneratorError::BackendUnavailable { reason } => {
+                assert!(
+                    reason.contains("timed out") && reason.contains(MODEL),
+                    "{reason}"
+                );
+            }
+            other => panic!("expected BackendUnavailable, got {other:?}"),
+        }
+    }
+
+    #[tokio::test]
+    async fn legacy_mode_still_sends_logprobs_and_default_cap() {
+        let server = MockServer::start().await;
+        mount_completion(
+            &server,
+            ResponseTemplate::new(200).set_body_json(completion(None, false)),
+            1,
+        )
+        .await;
+        let b = VllmBackend::new(Url::parse(&server.uri()).unwrap(), "legacy".to_string()).unwrap();
+        b.generate_command(&req()).await.unwrap();
+        let posts: Vec<_> = server
+            .received_requests()
+            .await
+            .unwrap()
+            .into_iter()
+            .filter(|r| r.method.as_str() == "POST")
+            .collect();
+        let body: serde_json::Value = serde_json::from_slice(&posts[0].body).unwrap();
+        assert_eq!(body["logprobs"], true);
+        assert_eq!(body["max_tokens"], 100);
+    }
+
+    #[test]
+    fn explicit_from_config_honors_endpoint_model_and_limits() {
+        let cfg = crate::models::BackendsConfig {
+            vllm_url: Some("http://127.0.0.1:8123".into()),
+            vllm_max_tokens: Some(64),
+            vllm_timeout_secs: Some(7),
+            vllm_logprobs: Some(false),
+            ..Default::default()
+        };
+        let b = explicit_from_config(&cfg, Some("my-alias")).unwrap();
+        assert_eq!(b.base_url.as_str(), "http://127.0.0.1:8123/");
+        assert_eq!(b.model_name, "my-alias");
+        assert_eq!(b.max_tokens, 64);
+        assert!(!b.logprobs && b.fail_closed && b.embedded_fallback.is_none());
+        assert_eq!(b.api_key, None, "keyless");
+
+        let d = explicit_from_config(&Default::default(), None).unwrap();
+        assert_eq!(d.model_name, DEFAULT_MODEL);
+        assert_eq!(d.base_url.as_str(), "http://localhost:8000/");
+        assert!(d.logprobs && d.max_tokens == 100);
+
+        let bad = crate::models::BackendsConfig {
+            vllm_url: Some("not a url".into()),
+            ..Default::default()
+        };
+        assert!(matches!(
+            explicit_from_config(&bad, None),
+            Err(GeneratorError::ConfigError { .. })
+        ));
     }
 }

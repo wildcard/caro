@@ -457,7 +457,7 @@ enum Commands {
     // },
     /// Run evaluation tests on command generation quality
     Test {
-        /// Backend to test (static, mlx, ollama, or embedded)
+        /// Backend to test (static, embedded, or vllm)
         #[arg(short, long, default_value = "static")]
         backend: String,
 
@@ -477,6 +477,11 @@ enum Commands {
         /// (llm-cmd-style terse prompt). Has no effect on the static backend.
         #[arg(long, default_value = "default")]
         prompt_style: String,
+
+        /// Model name for the vllm backend (overrides the config `model_name`).
+        /// A leading `caro --model-name X test` does not reach this subcommand.
+        #[arg(long = "model-name")]
+        model_name: Option<String>,
     },
 
     /// Generate shell completion scripts
@@ -2978,6 +2983,7 @@ async fn run_evaluation_tests(
     suite_path: Option<&str>,
     profile_id: Option<&str>,
     prompt_style_str: &str,
+    model_name: Option<&str>,
 ) -> Result<(), String> {
     use caro::prompts::PromptStyle;
     let prompt_style: PromptStyle = prompt_style_str.parse().map_err(|e: String| e)?;
@@ -2999,9 +3005,31 @@ async fn run_evaluation_tests(
                 .map_err(|e| format!("Failed to create embedded backend: {}", e))?
                 .with_prompt_style(prompt_style),
         ),
+        "vllm" => {
+            // Same factory as `caro --backend vllm`: the configured endpoint and
+            // model, fail-closed, no embedded backend and no static matcher.
+            #[cfg(feature = "remote-backends")]
+            {
+                let cfg = ConfigManager::new()
+                    .and_then(|m| m.load())
+                    .map_err(|e| format!("Failed to load config: {}", e))?;
+                let model = model_name.or(cfg.model_name.as_deref());
+                Box::new(
+                    caro::backends::remote::vllm::explicit_from_config(&cfg.backends, model)
+                        .map_err(|e| format!("Failed to create vLLM backend: {}", e))?,
+                )
+            }
+            #[cfg(not(feature = "remote-backends"))]
+            {
+                let _ = model_name;
+                return Err(
+                    "backend 'vllm' needs a build with --features remote-backends".to_string(),
+                );
+            }
+        }
         _ => {
             return Err(format!(
-                "Unknown backend: {}. Supported: static, embedded",
+                "Unknown backend: {}. Supported: static, embedded, vllm",
                 backend_name
             ));
         }
@@ -3094,6 +3122,20 @@ async fn run_evaluation_tests(
 
     // Print results
     results.print_summary();
+
+    // A backend error (unreachable server, model not served, bad status) is not
+    // a wrong answer. Say which, with the endpoint and model the backend names.
+    for r in results
+        .individual_results
+        .iter()
+        .filter(|r| r.error.is_some())
+    {
+        eprintln!(
+            "error: case {:?} could not be generated: {}",
+            r.input,
+            r.error.as_deref().unwrap_or_default()
+        );
+    }
 
     // Exit with error if tests failed
     if results.failed > 0 {
@@ -3188,6 +3230,7 @@ async fn main() {
             suite,
             profile,
             prompt_style,
+            model_name: test_model_name,
         }) => {
             match run_evaluation_tests(
                 &backend,
@@ -3195,6 +3238,7 @@ async fn main() {
                 suite.as_deref(),
                 profile.as_deref(),
                 &prompt_style,
+                test_model_name.as_deref().or(cli.model_name.as_deref()),
             )
             .await
             {

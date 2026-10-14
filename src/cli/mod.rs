@@ -392,6 +392,31 @@ impl CliApp {
                 return Ok(Box::new(MockCommandGenerator::new()));
             }
 
+            // An explicitly chosen vLLM server is fail-closed: no embedded
+            // backend is built or attached, so an unreachable or wrong server
+            // is an error and never a silent switch to a local model download.
+            if user_config
+                .default_model
+                .as_deref()
+                .is_some_and(|m| m.eq_ignore_ascii_case("vllm"))
+            {
+                #[cfg(feature = "remote-backends")]
+                {
+                    let backend = crate::backends::remote::vllm::explicit_from_config(
+                        &user_config.backends,
+                        user_config.model_name.as_deref(),
+                    )
+                    .map_err(Self::backend_config_error)?;
+                    tracing::info!("Using vLLM backend (explicit, fail-closed)");
+                    return Ok(Box::new(backend));
+                }
+                #[cfg(not(feature = "remote-backends"))]
+                return Err(CliError::ConfigurationError {
+                    message: "backend 'vllm' needs a build with --features remote-backends"
+                        .to_string(),
+                });
+            }
+
             use crate::backends::embedded::EmbeddedModelBackend;
             use std::sync::Arc;
 
@@ -631,29 +656,6 @@ impl CliApp {
                             } else {
                                 tracing::warn!(
                                     "Exo backend not available, falling back to embedded"
-                                );
-                            }
-                        }
-                    }
-                    #[cfg(feature = "remote-backends")]
-                    "vllm" => {
-                        use crate::backends::remote::VllmBackend;
-                        use reqwest::Url;
-
-                        if let Ok(vllm_url) = Url::parse(vllm_url_str) {
-                            let vllm_backend =
-                                VllmBackend::new(vllm_url, "codellama/CodeLlama-7b-hf".to_string())
-                                    .map_err(|e| CliError::ConfigurationError {
-                                        message: format!("Failed to create vLLM backend: {}", e),
-                                    })?
-                                    .with_embedded_fallback(embedded_arc.clone());
-
-                            if vllm_backend.is_available().await {
-                                tracing::info!("Using vLLM backend (user preference)");
-                                return Ok(Box::new(vllm_backend));
-                            } else {
-                                tracing::warn!(
-                                    "vLLM backend not available, falling back to embedded"
                                 );
                             }
                         }
