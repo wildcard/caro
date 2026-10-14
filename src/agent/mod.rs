@@ -13,7 +13,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::process::Stdio;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+// tokio's clock, so the budget and `tokio::time::timeout` agree (and paused
+// test clocks see the same time).
+use tokio::time::Instant;
 use tracing::{debug, info, warn};
 
 #[cfg(feature = "knowledge")]
@@ -35,9 +38,14 @@ pub const MAX_BACKEND_CALLS: usize = 2;
 ///
 /// Time: the follow-up (repair, advisor or refine, including the command
 /// probes that feed refine) is skipped once half of `timeout` has passed,
-/// and cut off when `timeout` runs out; the loop then acts as if it had
-/// skipped it. The initial call has no deadline (a first-run model load can
-/// take longer than the budget). Guarded by `tests::second_pass_deadline_*`.
+/// and cut off when `timeout` runs out: refine keeps the draft, repair
+/// fails closed with `GeneratorError::Timeout`. The advisor gets half of
+/// what is left, so the local refine it falls back to still has time. The
+/// initial call has no deadline (a first-run model load can take longer
+/// than the budget). Cutting off a backend that runs on `spawn_blocking`
+/// (embedded MLX) returns on time, but the blocking thread runs to the end;
+/// the CLI exits through `process::exit`, which does not wait for it.
+/// Guarded by `tests::second_pass_deadline_*`.
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
     static_matcher: Option<StaticMatcher>,
@@ -325,9 +333,12 @@ impl AgentLoop {
             {
                 Ok(repaired) => repaired?,
                 Err(_) => {
-                    warn!("Repair ran past the time budget");
-                    return Err(GeneratorError::ValidationFailed {
-                        reason: validation.error_message(),
+                    warn!(
+                        "Repair ran past the time budget; failing closed ({})",
+                        validation.error_message()
+                    );
+                    return Err(GeneratorError::Timeout {
+                        timeout: self.timeout,
                     });
                 }
             };
@@ -367,6 +378,8 @@ impl AgentLoop {
         let elapsed = start.elapsed();
         if elapsed > self.timeout / 2 {
             warn!("Timeout approaching, skipping refinement");
+            let backend = self.backend.backend_info().backend_type.to_string();
+            Self::emit_generation_success(&backend, &initial, start);
             return Ok(initial);
         }
 
@@ -402,13 +415,15 @@ impl AgentLoop {
         // the local worker is uncertain; if it can't safely help we resume
         // locally with the normal refinement below (fail-safe).
         if low_confidence && self.advisor.is_some() {
-            let advised =
-                tokio::time::timeout(self.remaining(start), self.try_advisor(prompt, &initial))
-                    .await
-                    .unwrap_or_else(|_| {
-                        warn!("Advisor ran past the time budget; resuming locally");
-                        None
-                    });
+            let advised = tokio::time::timeout(
+                self.remaining(start) / 2,
+                self.try_advisor(prompt, &initial),
+            )
+            .await
+            .unwrap_or_else(|_| {
+                warn!("Advisor ran past the time budget; resuming locally");
+                None
+            });
             if let Some(advised) = advised {
                 info!(
                     "Command generation complete via advisor in {:?}",
@@ -437,8 +452,19 @@ impl AgentLoop {
             Ok(refined) => refined?,
             Err(_) => {
                 warn!("Refinement ran past the time budget; keeping the draft");
-                let backend = self.backend.backend_info().backend_type.to_string();
-                Self::emit_generation_success(&backend, &initial, start);
+                // A success, but marked: the draft was not refined.
+                crate::telemetry::emit_event(
+                    crate::telemetry::events::EventType::CommandGeneration {
+                        backend: self.backend.backend_info().backend_type.to_string(),
+                        duration_ms: start.elapsed().as_millis() as u64,
+                        success: true,
+                        error_category: Some("refine_timeout".to_string()),
+                        confidence: initial
+                            .has_confidence()
+                            .then_some(initial.confidence_score as f32),
+                        confidence_source: Some(initial.confidence_source.to_string()),
+                    },
+                );
                 return Ok(initial);
             }
         };
@@ -980,10 +1006,10 @@ struct ProbeGroup(Option<u32>);
 impl Drop for ProbeGroup {
     fn drop(&mut self) {
         #[cfg(unix)]
-        if let Some(pgid) = self.0 {
+        if let Some(pgid) = self.0.and_then(|p| libc::pid_t::try_from(p).ok()) {
             // SAFETY: kill(2) has no memory-safety preconditions.
             unsafe {
-                libc::kill(-(pgid as libc::pid_t), libc::SIGKILL);
+                libc::kill(-pgid, libc::SIGKILL);
             }
         }
     }
@@ -1475,7 +1501,7 @@ mod tests {
             .generate_command("list files")
             .await;
         assert!(
-            t0.elapsed() <= Duration::from_secs(15),
+            t0.elapsed() <= Duration::from_secs(15) && t0.elapsed() >= Duration::from_secs(7),
             "{:?}",
             t0.elapsed()
         );
@@ -1490,12 +1516,12 @@ mod tests {
             .generate_command("delete everything")
             .await;
         assert!(
-            t0.elapsed() <= Duration::from_secs(15),
+            t0.elapsed() <= Duration::from_secs(15) && t0.elapsed() >= Duration::from_secs(7),
             "{:?}",
             t0.elapsed()
         );
         assert!(
-            matches!(result, Err(GeneratorError::ValidationFailed { .. })),
+            matches!(result, Err(GeneratorError::Timeout { .. })),
             "{result:?}"
         );
     }
@@ -1515,6 +1541,73 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(info.version.as_deref(), Some("tool 1.2.3"));
+    }
+
+    /// An advisor that never answers gets half the remaining budget; the
+    /// local refine it falls back to still runs. Real clock with a 2 s
+    /// budget: refine runs real `--version`/`--help` probes, and a paused
+    /// clock would jump past the deadline while they run.
+    #[tokio::test]
+    async fn second_pass_deadline_leaves_refine_time_after_a_hung_advisor() {
+        struct HangingAdvisor;
+        #[async_trait]
+        impl CommandGenerator for HangingAdvisor {
+            async fn generate_command(
+                &self,
+                _request: &CommandRequest,
+            ) -> Result<GeneratedCommand, GeneratorError> {
+                unreachable!("only advise is used")
+            }
+            async fn advise(
+                &self,
+                _draft: &GeneratedCommand,
+                _request: &CommandRequest,
+            ) -> Option<GeneratedCommand> {
+                tokio::time::sleep(Duration::from_secs(3600)).await;
+                None
+            }
+            async fn is_available(&self) -> bool {
+                true
+            }
+            fn backend_info(&self) -> BackendInfo {
+                BackendInfo {
+                    backend_type: BackendType::Mock,
+                    model_name: "hanging-advisor".to_string(),
+                    supports_streaming: false,
+                    max_tokens: 100,
+                    typical_latency_ms: 1,
+                    memory_usage_mb: 0,
+                    version: "test".to_string(),
+                }
+            }
+            async fn shutdown(&self) -> Result<(), GeneratorError> {
+                Ok(())
+            }
+        }
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let primary = CountingBackend {
+            command: "ls".to_string(),
+            confidence: 0.3,
+            calls: calls.clone(),
+            advise_calls: Arc::new(AtomicUsize::new(0)),
+        };
+        let agent = AgentLoop::new(
+            Arc::new(primary),
+            ExecutionContext::detect(),
+            CapabilityProfile::ubuntu(),
+        )
+        .with_static_matcher(false)
+        .with_advisor(Arc::new(HangingAdvisor));
+        let mut agent = agent;
+        agent.timeout = Duration::from_secs(2);
+
+        let t0 = tokio::time::Instant::now();
+        let result = agent.generate_command("list files").await;
+        assert!(t0.elapsed() <= Duration::from_secs(3), "{:?}", t0.elapsed());
+        assert_eq!(result.unwrap().command, "ls");
+        // Draft + local refine: the advisor's timeout left the refine time.
+        assert_eq!(calls.load(Ordering::SeqCst), MAX_BACKEND_CALLS);
     }
 
     /// A command probe (`--version`/`--help`) that never exits must yield,
@@ -1554,12 +1647,17 @@ mod tests {
         assert!(joined.is_ok(), "probe did not yield to cancellation");
 
         // The probe's own child must not outlive the cancelled probe.
+        // Dead or zombie counts as gone. /proc on Linux, `ps` elsewhere.
         let alive = || {
-            let out = std::process::Command::new("ps")
-                .args(["-o", "stat=", "-p", &pid])
-                .output()
-                .unwrap();
-            let stat = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            let stat = match std::fs::read_to_string(format!("/proc/{pid}/stat")) {
+                Ok(s) => s.rsplit(')').next().unwrap_or("").trim().to_string(),
+                Err(_) if std::path::Path::new("/proc/self").exists() => String::new(),
+                Err(_) => std::process::Command::new("ps")
+                    .args(["-o", "stat=", "-p", &pid])
+                    .output()
+                    .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+                    .expect("ps is needed to check the worker on this platform"),
+            };
             !stat.is_empty() && !stat.starts_with('Z')
         };
         for _ in 0..50 {
