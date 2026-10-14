@@ -2202,7 +2202,7 @@ mod fail_closed_tests {
 
     #[test]
     fn the_global_capability_claim_stays_false() {
-        assert!(!SCHEMA_SUPPORT_VERIFIED);
+        const { assert!(!SCHEMA_SUPPORT_VERIFIED) };
     }
 
     #[test]
