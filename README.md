@@ -288,11 +288,11 @@ surface that matches your stack:
 | Tool | How | Status |
 |---|---|---|
 | **Claude Code** | Auto-discovered skill at `.claude/skills/caro-shell/SKILL.md` (bundled with this repo). Triggers when the user asks for shell-command synthesis. | ✅ Working |
-| **Claude Code (MCP)** | `caro mcp serve` — exposes `generate_command` / `validate_command` / `explain_safety` over the Model Context Protocol. | 🚧 In progress |
-| **Codex / Cursor / Continue / Aider / Tabby** | Point at `caro serve --openai` (an OpenAI Chat Completions endpoint backed by caro's safety validator). | 🚧 In progress |
-| **opencode / crush / droid / Sourcegraph Amp / Letta** | Via the upcoming `caro mcp serve` MCP server. | ⏳ Planned |
-| **Gemini CLI / Jules** | Native Gemini backend. | 🚧 In progress (PR #782) |
-| **OpenRouter** (incl. `auto`) | Native backend wrapping `openrouter.ai/api/v1`. | ⏳ Planned |
+| **Claude Code (MCP)** | `caro mcp serve` — will expose `generate_command` / `validate_command` / `explain_safety` over the Model Context Protocol. Not implemented yet. | ⏳ Planned ([#928](https://github.com/wildcard/caro/issues/928)) |
+| **Codex / Cursor / Continue / Aider / Tabby** | `caro serve --openai` — an OpenAI Chat Completions endpoint backed by caro's safety validator. Not implemented yet. | ⏳ Planned ([#929](https://github.com/wildcard/caro/issues/929)) |
+| **opencode / crush / droid / Sourcegraph Amp / Letta** | Via the planned `caro mcp serve` MCP server. | ⏳ Planned |
+| **Gemini CLI / Jules** | Native Gemini backend. No active work ([PR #782](https://github.com/wildcard/caro/pull/782) closed unmerged). | ⏳ Planned |
+| **OpenRouter** (incl. `auto`) | Native backend wrapping `openrouter.ai/api/v1`. Code is on `main` but not yet selectable via `--backend` and not in a release. | 🚧 Not wired ([#1081](https://github.com/wildcard/caro/issues/1081)) |
 
 Full matrix with copy-paste configs and live status:
 **[caro.sh/integrations](https://caro.sh/integrations)** — maintained by the
