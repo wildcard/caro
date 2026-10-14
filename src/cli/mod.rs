@@ -439,11 +439,19 @@ impl CliApp {
                 .ai_horde_url
                 .as_deref()
                 .unwrap_or(crate::backends::remote::ai_horde::AI_HORDE_DEFAULT_URL);
+            // Resolved only when AI-Horde is actually built, so an unset
+            // `ai_horde_key_env` variable does not break other backends.
             #[cfg(feature = "remote-backends")]
-            let ai_horde_key_str = backends_cfg
-                .ai_horde_key
-                .as_deref()
-                .unwrap_or(crate::backends::remote::ai_horde::AI_HORDE_ANON_KEY);
+            let ai_horde_key = || -> Result<String, CliError> {
+                backends_cfg
+                    .resolve_ai_horde_key()
+                    .map(|key| {
+                        key.unwrap_or_else(|| {
+                            crate::backends::remote::ai_horde::AI_HORDE_ANON_KEY.to_string()
+                        })
+                    })
+                    .map_err(|message| CliError::ConfigurationError { message })
+            };
 
             // Check for user-specified model preference. `validate_backend_name`
             // accepts any case, so normalize before dispatching on the name.
@@ -494,7 +502,7 @@ impl CliApp {
                     "ai-horde" | "aihorde" | "horde" => {
                         use crate::backends::remote::AiHordeBackend;
 
-                        let horde = AiHordeBackend::new(ai_horde_url_str, ai_horde_key_str)
+                        let horde = AiHordeBackend::new(ai_horde_url_str, ai_horde_key()?)
                             .map_err(|e| CliError::ConfigurationError {
                                 message: format!("Failed to create AI-Horde backend: {}", e),
                             })?
@@ -541,7 +549,7 @@ impl CliApp {
                                 )
                             }
                             "ai-horde" | "aihorde" | "horde" => Arc::new(
-                                AiHordeBackend::new(ai_horde_url_str, ai_horde_key_str).map_err(
+                                AiHordeBackend::new(ai_horde_url_str, ai_horde_key()?).map_err(
                                     |e| CliError::ConfigurationError {
                                         message: format!(
                                             "Failed to create AI-Horde remote for hybrid: {}",
