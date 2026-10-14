@@ -21,6 +21,9 @@ enum Outcome {
         must: &'static [&'static str],
         never: &'static [&'static str],
     },
+    /// A command, if any, must not hold `never`. Declining is allowed. The
+    /// word-start unit test in `static_matcher` shows the keyword itself.
+    Avoid { never: &'static [&'static str] },
     /// No template may answer. The matcher returns an error so a backend that
     /// can bind the request, or the clarify path, gets it.
     Decline,
@@ -88,16 +91,31 @@ const CASES: &[Case] = &[
     // "remove" is not "move": never answer a delete request with `mv`.
     Case {
         query: "remove old log files",
-        outcome: Outcome::Bound {
-            must: &[],
-            never: &["mv "],
-        },
+        outcome: Outcome::Avoid { never: &["mv "] },
     },
     Case {
         query: "remove temp files",
+        outcome: Outcome::Avoid { never: &["mv "] },
+    },
+    // Values the gate must not mistake for literals: apostrophes, "and/or".
+    Case {
+        query: "what's using the most disk in the user's home",
+        outcome: Outcome::Avoid {
+            never: &["README.md"],
+        },
+    },
+    Case {
+        query: "search for TODO comments in all Python files",
         outcome: Outcome::Bound {
-            must: &[],
-            never: &["mv "],
+            must: &["TODO"],
+            never: &[],
+        },
+    },
+    Case {
+        query: "find files larger than 1GB",
+        outcome: Outcome::Bound {
+            must: &["+1G"],
+            never: &[],
         },
     },
     // Controls: plain, fully bound requests keep their template answer.
@@ -143,7 +161,11 @@ fn judge(case: &Case, result: Result<String, String>) -> Result<(), String> {
             }
             Ok(())
         }
-        (Outcome::Bound { must: [], .. }, Err(_)) => Ok(()),
+        (Outcome::Avoid { .. }, Err(_)) => Ok(()),
+        (Outcome::Avoid { never }, Ok(cmd)) => match never.iter().find(|n| cmd.contains(**n)) {
+            Some(n) => Err(format!("`{}`: `{cmd}` holds forbidden `{n}`", case.query)),
+            None => Ok(()),
+        },
         (Outcome::Bound { .. }, Err(e)) => Err(format!("`{}` was declined: {e}", case.query)),
     }
 }

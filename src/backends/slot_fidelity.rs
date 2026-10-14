@@ -36,20 +36,36 @@ const PLACEHOLDERS: &[&str] = &[
     " dest/",
 ];
 
-fn literal_regexes() -> &'static (Regex, Regex, Regex) {
-    static RE: OnceLock<(Regex, Regex, Regex)> = OnceLock::new();
-    RE.get_or_init(|| {
-        (
-            // Quoted text: 'my file.txt' or "my file.txt".
-            Regex::new(r#"'([^']+)'|"([^"]+)""#).unwrap(),
-            // Path or file-name token: has a slash, a leading ~ or ., or a
-            // letter-led extension (notes.txt, café.md, v2/report.pdf).
-            Regex::new(r"[^\s'\x22]*[/~][^\s'\x22]*|[^\s'\x22]*\p{L}\.[\p{L}0-9]{1,5}\b").unwrap(),
-            // Port numbers: "port 3000", "port :8080".
-            Regex::new(r"(?i)\bport\s*:?\s*(\d{1,5})\b").unwrap(),
+struct Literals {
+    quoted: Regex,
+    path: Regex,
+    port: Regex,
+    ip: Regex,
+    pid: Regex,
+}
+
+fn literal_regexes() -> &'static Literals {
+    static RE: OnceLock<Literals> = OnceLock::new();
+    RE.get_or_init(|| Literals {
+        // Quoted text. The opening quote follows whitespace or starts the query
+        // and the closing quote precedes whitespace, punctuation or the end, so
+        // the apostrophes in "what's" and "user's" are not quotes.
+        quoted: Regex::new(r#"(?:^|\s)(?:'([^']+)'|"([^"]+)")(?:$|[\s.,;:?!])"#).unwrap(),
+        // Path or file name: starts with / ~ or ., or has a letter-led
+        // extension (notes.txt, café.md). A bare "a/b" is ambiguous with
+        // "and/or" and "tcp/udp", so it is not a literal.
+        path: Regex::new(
+            r"(?:^|\s)((?:[/~.][^\s'\x22]*)|(?:[^\s'\x22/]*\p{L}\.[\p{L}0-9]{1,5}))(?:$|\s)",
         )
+        .unwrap(),
+        port: Regex::new(r"(?i)\bport\s*:?\s*(\d{1,5})\b").unwrap(),
+        ip: Regex::new(r"\b(\d{1,3}(?:\.\d{1,3}){3})\b").unwrap(),
+        pid: Regex::new(r"(?i)\b(?:pid|process(?:\s+id)?)\s+(\d{1,7})\b").unwrap(),
     })
 }
+
+/// Abbreviations that look like file names but are not.
+const NOT_A_LITERAL: &[&str] = &["e.g", "i.e", "etc", "vs"];
 
 fn trim_punct(s: &str) -> &str {
     s.trim_matches(|c: char| matches!(c, '.' | ',' | ';' | ':' | '?' | '!' | ')' | '('))
@@ -57,29 +73,31 @@ fn trim_punct(s: &str) -> &str {
 
 /// Explicit literals the user wrote that a faithful command must contain.
 pub(crate) fn query_literals(query: &str) -> Vec<String> {
-    let (quoted, path, port) = literal_regexes();
+    let re = literal_regexes();
     let mut out: Vec<String> = Vec::new();
-    let mut rest = query.to_string();
 
-    for cap in quoted.captures_iter(query) {
-        let lit = cap
-            .get(1)
-            .or_else(|| cap.get(2))
-            .map(|m| m.as_str().to_string());
-        if let Some(l) = lit {
-            out.push(l);
+    for cap in re.quoted.captures_iter(query) {
+        if let Some(m) = cap.get(1).or_else(|| cap.get(2)) {
+            out.push(m.as_str().to_string());
         }
     }
     // Remove quoted text so its inner tokens are not counted twice.
-    rest = quoted.replace_all(&rest, " ").into_owned();
+    let rest = re.quoted.replace_all(query, " ").into_owned();
 
-    for m in path.find_iter(&rest) {
-        let lit = trim_punct(m.as_str());
-        if !lit.is_empty() {
+    for cap in re.path.captures_iter(&rest) {
+        let lit = trim_punct(&cap[1]);
+        let abbreviation = NOT_A_LITERAL.contains(&lit.to_lowercase().as_str());
+        // A lone "." or ".." is the current/parent directory, not a name.
+        if !lit.is_empty() && !abbreviation && lit != "." && lit != ".." {
             out.push(lit.to_string());
         }
     }
-    for cap in port.captures_iter(query) {
+    for rx in [&re.port, &re.pid] {
+        for cap in rx.captures_iter(query) {
+            out.push(cap[1].to_string());
+        }
+    }
+    for cap in re.ip.captures_iter(query) {
         out.push(cap[1].to_string());
     }
     out.sort();
@@ -87,10 +105,27 @@ pub(crate) fn query_literals(query: &str) -> Vec<String> {
     out
 }
 
+/// True when `lit` occurs in `command` as a whole token: not inside a longer
+/// word, number, path segment or file name (`80` is not in `8080`).
+fn contains_token(command: &str, lit: &str) -> bool {
+    let (command, lit) = (command.to_lowercase(), lit.to_lowercase());
+    let word = |c: char| c.is_alphanumeric() || c == '_';
+    command.match_indices(&lit).any(|(i, _)| {
+        let before_ok = command[..i].chars().next_back().is_none_or(|c| !word(c));
+        let mut after = command[i + lit.len()..].chars();
+        let after_ok = match after.next() {
+            None => true,
+            Some('.') => after.next().is_none_or(|c| !word(c)),
+            Some(c) => !word(c),
+        };
+        before_ok && after_ok
+    })
+}
+
 /// Why `command` does not faithfully answer `query`, or `None` if it does.
 pub(crate) fn slot_violation(query: &str, command: &str) -> Option<String> {
     for lit in query_literals(query) {
-        if !command.contains(&lit) {
+        if !contains_token(command, &lit) {
             return Some(format!(
                 "user value `{lit}` is missing from the template command"
             ));
@@ -152,5 +187,31 @@ mod tests {
             "find . -type f -size +100M"
         )
         .is_none());
+    }
+
+    #[test]
+    fn apostrophes_and_ambiguous_slashes_are_not_literals() {
+        assert!(query_literals("what's using the most disk in the user's home").is_empty());
+        assert!(query_literals("show tcp/udp and/or 24/7 sockets, e.g. listening").is_empty());
+    }
+
+    #[test]
+    fn literal_match_is_case_insensitive_and_whole_token() {
+        assert!(slot_violation("count lines in README.MD", "wc -l README.md").is_none());
+        assert!(slot_violation("what is on port 80", "lsof -i :8080").is_some());
+        assert!(slot_violation("show files in /tmp", "ls /tmpx").is_some());
+        assert!(slot_violation("count words in notes.txt", "wc -w old_notes.txt.bak").is_some());
+        assert!(slot_violation("count words in notes.txt", "wc -w notes.txt").is_none());
+    }
+
+    #[test]
+    fn ip_and_pid_are_literals() {
+        assert!(slot_violation(
+            "failed auth from IP 192.168.1.100",
+            "grep failed /var/log/auth.log"
+        )
+        .is_some());
+        assert!(slot_violation("kill process 1234", "kill 4321").is_some());
+        assert!(slot_violation("kill process 1234", "kill 1234").is_none());
     }
 }

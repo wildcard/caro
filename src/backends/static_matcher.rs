@@ -1935,13 +1935,14 @@ impl StaticMatcher {
     }
 
     /// True when `kw` occurs in `query` starting at a word boundary, so "move"
-    /// matches "move files" but not "remove files". Suffixes ("lines") still match.
+    /// matches "move files" but not "remove files". Suffixes ("lines") still
+    /// match, and a unit after a digit ("100MB") starts a word.
     fn has_word_start(query: &str, kw: &str) -> bool {
         query.match_indices(kw).any(|(i, _)| {
             query[..i]
                 .chars()
                 .next_back()
-                .is_none_or(|c| !c.is_alphanumeric())
+                .is_none_or(|c| !c.is_alphabetic())
         })
     }
 
@@ -2089,6 +2090,16 @@ impl CommandGenerator for StaticMatcher {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn keyword_needs_a_word_start() {
+        assert!(!StaticMatcher::has_word_start("remove old files", "move"));
+        assert!(StaticMatcher::has_word_start("move old files", "move"));
+        assert!(StaticMatcher::has_word_start("count the lines", "line"));
+        assert!(StaticMatcher::has_word_start("files over 100mb", "mb"));
+        assert!(StaticMatcher::has_word_start("bigger than 1gb", "gb"));
+        assert!(!StaticMatcher::has_word_start("rapid", "pid"));
+    }
+
     use super::*;
 
     #[test]
