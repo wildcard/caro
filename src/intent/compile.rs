@@ -81,6 +81,11 @@ pub fn validation_probe(command: &str) -> Result<String, String> {
         return Err("the executable is not an absolute path to find".into());
     }
     check_closed(&argv, exe)?;
+    // The text must be exactly the canonical rendering of its own argv, so an
+    // unquoted `$(..)` or a hand-written line can never pass as a root.
+    if render(&argv) != command {
+        return Err("the command is not the canonical rendering of its argv".into());
+    }
     let at = |s: &str| -> Result<String, String> {
         let ok = s.strip_prefix('@').is_some_and(|d| {
             !d.is_empty() && d.len() <= 19 && d.bytes().all(|b| b.is_ascii_digit())
@@ -251,6 +256,9 @@ mod tests {
             "/usr/bin/find -P . -type f -newermt @1 ! -newermt @x -print0",
             "/usr/bin/find -P . -type f -print0 | sh",
             "/usr/bin/find -P 'unbalanced -type f -print0",
+            "/usr/bin/find -P ./$(id) -type f -print0", // unquoted substitution root
+            "/usr/bin/find  -P . -type f -print0",      // not the canonical spacing
+            "/usr/bin/find -P \"./x\" -type f -print0", // not the canonical quoting
             "",
         ] {
             assert!(validation_probe(bad).is_err(), "{bad}");

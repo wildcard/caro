@@ -1,8 +1,12 @@
 //! Process-level contract for `--backend select-files` (deterministic, no model).
 //!
-//! Runs the real binary with a private HOME. Nothing here starts a model,
-//! opens a network connection or executes a generated command: every run is
-//! `--dry-run`.
+//! Runs the real binary with a private HOME. Every argv must contain an
+//! explicit `--backend select-files` (the helpers refuse anything else before
+//! spawning), so no run can reach a default, embedded or model backend. Most
+//! runs are `--dry-run`. The `-x` runs execute only the compiler-generated
+//! read-only `find` command, on disposable fixture directories.
+//! Env-only, config-selected and precedence routes are lib tests in
+//! `src/cli/mod.rs`, where every other backend name becomes a mock.
 #![cfg(target_os = "linux")]
 
 use std::process::{Command, Output};
@@ -313,8 +317,10 @@ fn eval_route_rejects_every_model_request_before_initialization() {
 fn eval_route_ignores_inherited_model_settings() {
     let h = TempDir::new().unwrap();
     let suite = tiny_suite(&h);
-    // Config file model name and env model name are inherited, not requests.
-    std::fs::create_dir_all(h.path().join("caro")).ok();
+    // CARO_MODEL is inherited, not an explicit request. (Config-file model
+    // names are covered by a lib test in src/cli/mod.rs.) This pins only that
+    // the route starts and the suite loads; the suite's single case is a
+    // refusal, so it is not evidence of supported eval generation.
     let out = caro(
         &h,
         &[("CARO_MODEL", "some-model")],
@@ -348,6 +354,7 @@ fn fixture_with_non_utf8() -> TempDir {
     std::fs::write(d.path().join("sp ace.py"), b"").unwrap();
     let odd = std::ffi::OsStr::from_bytes(b"\xff\xfe.py");
     std::fs::write(d.path().join(odd), b"").unwrap();
+    std::fs::write(d.path().join("new\nline.py"), b"").unwrap();
     d
 }
 
@@ -396,6 +403,7 @@ fn cli_stdout_is_exactly_the_nul_records_including_non_utf8_names() {
         b"./a.py".to_vec(),
         b"./sp ace.py".to_vec(),
         b"./\xff\xfe.py".to_vec(),
+        b"./new\nline.py".to_vec(),
     ];
     want.sort();
     assert_eq!(recs, want);
@@ -577,7 +585,7 @@ fn verbose_debug_logging_stays_off_stdout_on_the_selected_route() {
     assert!(recs
         .iter()
         .all(|r| r.starts_with(b"./") && r.ends_with(b".py")));
-    assert_eq!(recs.len(), 3);
+    assert_eq!(recs.len(), 4);
     // the backend-preference trace is on stderr
     let err = String::from_utf8_lossy(&out.stderr);
     assert!(err.contains("Backend preference"), "{err}");

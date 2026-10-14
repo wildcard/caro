@@ -128,6 +128,12 @@ impl VersionRunner for SystemRunner {
         let mut status = None;
         let mut chunk = [0u8; 4096];
         loop {
+            // The one fixed deadline is checked before anything is read or
+            // accepted: a child that finishes late stays TimedOut.
+            if Instant::now() >= deadline {
+                stop(&mut child);
+                return Err(RunFailure::TimedOut);
+            }
             // Drain whatever is readable now.
             while !eof {
                 match so.read(&mut chunk) {
@@ -157,6 +163,10 @@ impl VersionRunner for SystemRunner {
                 }
             }
             if let (Some(s), true) = (status, eof) {
+                if Instant::now() >= deadline {
+                    stop(&mut child);
+                    return Err(RunFailure::TimedOut);
+                }
                 // Child exited and the pipe closed: collected within the bound.
                 // Kill any straggler in the group (no-op when it is empty).
                 stop(&mut child);
@@ -407,6 +417,26 @@ mod tests {
             .to_string();
         std::thread::sleep(Duration::from_millis(100));
         assert!(!running(&pid), "synthetic sleeper {pid} survived");
+    }
+
+    #[test]
+    fn completion_after_the_deadline_is_timed_out() {
+        let dir = tempfile::tempdir().unwrap();
+        // A valid banner, but only after the deadline has passed.
+        let s = script(
+            dir.path(),
+            "latefind",
+            "sleep 0.4\necho 'find (GNU findutils) 4.9.0'",
+        );
+        let r = SystemRunner {
+            timeout: Duration::from_millis(150),
+        };
+        assert_eq!(r.run(&s), Err(RunFailure::TimedOut));
+        // The same script is accepted with room to finish.
+        let r = SystemRunner {
+            timeout: Duration::from_secs(3),
+        };
+        assert!(r.run(&s).is_ok());
     }
 
     #[test]

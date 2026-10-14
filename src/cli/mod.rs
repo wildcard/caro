@@ -1849,6 +1849,15 @@ mod tests {
             }
             Self(saved)
         }
+
+        /// Remove `keys` now; the guard puts their old values back on drop.
+        fn removing(mut self, keys: &[&'static str]) -> Self {
+            for k in keys {
+                self.0.push((*k, std::env::var_os(k)));
+                std::env::remove_var(k);
+            }
+            self
+        }
     }
 
     impl Drop for EnvGuard {
@@ -1873,12 +1882,13 @@ mod tests {
             ("XDG_CONFIG_HOME", dir.path().as_os_str()),
             ("XDG_CACHE_HOME", dir.path().as_os_str()),
             ("HOME", dir.path().as_os_str()),
-        ]);
-        std::env::remove_var("CARO_BACKEND");
-        std::env::remove_var("CARO_MODEL");
+        ])
+        .removing(&["CARO_BACKEND", "CARO_MODEL"]);
         (dir, g)
     }
 
+    // select-files is GNU/Linux only; elsewhere selection refuses (test below).
+    #[cfg(target_os = "linux")]
     #[tokio::test]
     #[serial_test::serial]
     async fn env_only_selects_the_deterministic_route() {
@@ -1897,6 +1907,8 @@ mod tests {
         assert!(e.is_err());
     }
 
+    // select-files is GNU/Linux only; elsewhere selection refuses (test below).
+    #[cfg(target_os = "linux")]
     #[tokio::test]
     #[serial_test::serial]
     async fn config_selected_route_ignores_inherited_model_and_keeps_conflicts() {
@@ -1931,6 +1943,8 @@ mod tests {
         );
     }
 
+    // select-files is GNU/Linux only; elsewhere selection refuses (test below).
+    #[cfg(target_os = "linux")]
     #[tokio::test]
     #[serial_test::serial]
     async fn flag_beats_env_beats_config() {
@@ -1961,6 +1975,13 @@ mod tests {
             !app.one_shot,
             "env embedded stays the normal route (mock here)"
         );
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    #[test]
+    fn select_files_refuses_off_linux() {
+        let e = crate::intent::SelectFilesGenerator::new().err().unwrap();
+        assert!(e.to_string().contains("Linux"), "{e}");
     }
 
     #[test]
