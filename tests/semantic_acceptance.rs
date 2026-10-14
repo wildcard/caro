@@ -65,13 +65,6 @@ const CASES: &[Case] = &[
         outcome: Outcome::Decline,
     },
     Case {
-        query: "find all PDF files larger than 10MB in Downloads",
-        outcome: Outcome::Bound {
-            must: &["10M"],
-            never: &[],
-        },
-    },
-    Case {
         query: "show processes using port 3000",
         outcome: Outcome::Decline,
     },

@@ -38,7 +38,7 @@ const PLACEHOLDERS: &[&str] = &[
 
 struct Literals {
     quoted: Regex,
-    path: Regex,
+    name: Regex,
     port: Regex,
     ip: Regex,
     pid: Regex,
@@ -47,17 +47,13 @@ struct Literals {
 fn literal_regexes() -> &'static Literals {
     static RE: OnceLock<Literals> = OnceLock::new();
     RE.get_or_init(|| Literals {
-        // Quoted text. The opening quote follows whitespace or starts the query
-        // and the closing quote precedes whitespace, punctuation or the end, so
-        // the apostrophes in "what's" and "user's" are not quotes.
-        quoted: Regex::new(r#"(?:^|\s)(?:'([^']+)'|"([^"]+)")(?:$|[\s.,;:?!])"#).unwrap(),
-        // Path or file name: starts with / ~ or ., or has a letter-led
-        // extension (notes.txt, café.md). A bare "a/b" is ambiguous with
-        // "and/or" and "tcp/udp", so it is not a literal.
-        path: Regex::new(
-            r"(?:^|\s)((?:[/~.][^\s'\x22]*)|(?:[^\s'\x22/]*\p{L}\.[\p{L}0-9]{1,5}))(?:$|\s)",
-        )
-        .unwrap(),
+        // Quoted text. The opening quote follows whitespace, "(" or the start
+        // of the query, so the apostrophes in "what's" and "users'" are not
+        // quotes. Only the opening edge is checked so adjacent quoted values
+        // ('a.txt' 'b.txt') are both found.
+        quoted: Regex::new(r#"(?:^|[\s(])(?:'([^']+)'|"([^"]+)")"#).unwrap(),
+        // A name token with a letter-led extension (notes.txt, café.md, src/main.rs).
+        name: Regex::new(r"\p{L}\.[\p{L}0-9]{1,5}$").unwrap(),
         port: Regex::new(r"(?i)\bport\s*:?\s*(\d{1,5})\b").unwrap(),
         ip: Regex::new(r"\b(\d{1,3}(?:\.\d{1,3}){3})\b").unwrap(),
         pid: Regex::new(r"(?i)\b(?:pid|process(?:\s+id)?)\s+(\d{1,7})\b").unwrap(),
@@ -67,8 +63,21 @@ fn literal_regexes() -> &'static Literals {
 /// Abbreviations that look like file names but are not.
 const NOT_A_LITERAL: &[&str] = &["e.g", "i.e", "etc", "vs"];
 
-fn trim_punct(s: &str) -> &str {
-    s.trim_matches(|c: char| matches!(c, '.' | ',' | ';' | ':' | '?' | '!' | ')' | '('))
+/// A whitespace-separated token that names a path or file.
+///
+/// Counts: `/abs`, `~/x`, `./x`, `../x`, `.dotfile`, `dir/`, `a/b.ext`, `name.ext`.
+/// Does not count: `and/or`, `tcp/udp`, `24/7` (a slash alone is ambiguous).
+fn is_path_token(t: &str, name: &Regex) -> bool {
+    if t.is_empty() || t == "." || t == ".." || NOT_A_LITERAL.contains(&t.to_lowercase().as_str()) {
+        return false;
+    }
+    let dotfile = t.starts_with('.') && t.chars().nth(1).is_some_and(|c| c.is_alphanumeric());
+    t.starts_with(['/', '~'])
+        || t.starts_with("./")
+        || t.starts_with("../")
+        || dotfile
+        || t.ends_with('/')
+        || name.is_match(t)
 }
 
 /// Explicit literals the user wrote that a faithful command must contain.
@@ -84,12 +93,12 @@ pub(crate) fn query_literals(query: &str) -> Vec<String> {
     // Remove quoted text so its inner tokens are not counted twice.
     let rest = re.quoted.replace_all(query, " ").into_owned();
 
-    for cap in re.path.captures_iter(&rest) {
-        let lit = trim_punct(&cap[1]);
-        let abbreviation = NOT_A_LITERAL.contains(&lit.to_lowercase().as_str());
-        // A lone "." or ".." is the current/parent directory, not a name.
-        if !lit.is_empty() && !abbreviation && lit != "." && lit != ".." {
-            out.push(lit.to_string());
+    for tok in rest.split_whitespace() {
+        let t = tok
+            .trim_start_matches(['(', '\'', '"'])
+            .trim_end_matches(['.', ',', ';', ':', '?', '!', ')', '\'', '"']);
+        if is_path_token(t, &re.name) {
+            out.push(t.to_string());
         }
     }
     for rx in [&re.port, &re.pid] {
@@ -213,5 +222,22 @@ mod tests {
         .is_some());
         assert!(slot_violation("kill process 1234", "kill 4321").is_some());
         assert!(slot_violation("kill process 1234", "kill 1234").is_none());
+    }
+
+    #[test]
+    fn adjacent_literals_are_all_required() {
+        assert!(slot_violation("delete 'a.txt' 'b.txt'", "rm a.txt").is_some());
+        assert!(slot_violation("copy a.txt b.txt", "cp a.txt").is_some());
+        assert!(slot_violation("list /var/log, /tmp", "ls /var/log").is_some());
+        assert!(slot_violation("list /var/log, /tmp", "ls /var/log /tmp").is_none());
+    }
+
+    #[test]
+    fn relative_dirs_dotfiles_and_parens_are_literals() {
+        assert!(slot_violation("find src/main.rs", "wc -l main.rs").is_some());
+        assert!(slot_violation("list files in my_dir/", "ls").is_some());
+        assert!(slot_violation("show .env", "cat env").is_some());
+        assert!(slot_violation("count lines in ./notes.txt", "wc -l ./notes.txt").is_none());
+        assert!(slot_violation("count lines (old.txt)", "wc -l new.txt").is_some());
     }
 }
