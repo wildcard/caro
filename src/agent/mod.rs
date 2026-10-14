@@ -36,7 +36,8 @@ pub struct AgentLoop {
     /// means generation never executes any program: a generated command is data
     /// until the safety validator and the user have approved it.
     probe: Option<Arc<dyn CommandProbe>>,
-    /// Generation-only mode (`--dry-run`): even an installed probe is never called.
+    /// Generation-only mode: even an installed probe is never called. The CLI
+    /// installs no probe, so it does not need to set this.
     dry_run: bool,
     /// Knowledge index for learning from past commands (optional)
     #[cfg(feature = "knowledge")]
@@ -1393,5 +1394,13 @@ mod tests {
             assert!(!is_plain_program_name(bad), "{bad}");
         }
         assert!(!is_plain_program_name(&"a".repeat(65)));
+    }
+
+    #[test]
+    fn cli_never_installs_a_command_probe() {
+        for src in [include_str!("../cli/mod.rs"), include_str!("../main.rs")] {
+            assert!(!src.contains("with_command_probe"));
+            assert!(!src.contains("SystemCommandProbe"));
+        }
     }
 }

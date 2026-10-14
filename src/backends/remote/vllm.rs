@@ -90,6 +90,42 @@ struct VllmResponse {
     usage: Option<VllmUsage>,
 }
 
+/// Exact shape of a command reply on the fail-closed route.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StrictCmdReply {
+    cmd: String,
+}
+
+/// Exact shape of a clarification reply on the fail-closed route.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StrictAskReply {
+    needs_clarification: bool,
+    #[serde(default)]
+    p: Option<f64>,
+    question: String,
+}
+
+/// The JSON text of a reply that is a bare object, or exactly one fenced block
+/// and nothing else. `None` for any other prose or fragment.
+fn strip_whole_message_fence(response: &str) -> Option<&str> {
+    let t = response.trim();
+    let body = if let Some(rest) = t.strip_prefix("```") {
+        let rest = rest
+            .strip_prefix("json\n")
+            .or_else(|| rest.strip_prefix('\n'))?;
+        let body = rest.strip_suffix("```")?;
+        if !body.ends_with('\n') || body.contains("```") {
+            return None;
+        }
+        body.trim()
+    } else {
+        t
+    };
+    body.starts_with('{').then_some(body)
+}
+
 /// vLLM choice structure
 #[derive(Debug, Deserialize)]
 struct VllmChoice {
@@ -376,6 +412,66 @@ Request: {}
         })
     }
 
+    /// Strict parse for the explicit fail-closed route.
+    ///
+    /// Accepts exactly one of two JSON objects, optionally wrapped in one
+    /// whole-message Markdown fence (a line "```json" or "```", the object, a
+    /// line "```", and only whitespace outside):
+    ///
+    /// - `{"cmd": "<non-empty string>"}`
+    /// - `{"needs_clarification": true, "p": <0..=1>, "question": "<non-empty>"}`
+    ///   (`p` optional; at or above the gate floor)
+    ///
+    /// Anything else is an error: malformed JSON, trailing data, unknown or
+    /// duplicate fields, a non-string or empty `cmd`, a `cmd` mixed with
+    /// clarification fields, `needs_clarification: false`. Nothing is
+    /// salvaged, repaired or regex-extracted into command text.
+    fn parse_strict_reply(&self, response: &str) -> Result<String, GeneratorError> {
+        let bad = |why: &str| GeneratorError::ParseError {
+            content: format!("{why}: {response}"),
+        };
+        let inner = strip_whole_message_fence(response).ok_or_else(|| {
+            bad("reply is not a bare JSON object or one whole-message fenced JSON object")
+        })?;
+
+        if let Ok(reply) = serde_json::from_str::<StrictCmdReply>(inner) {
+            let cmd = reply.cmd.trim();
+            if cmd.is_empty() {
+                return Err(bad("`cmd` is empty"));
+            }
+            // The legacy "echo a question" command is a clarification, not a command.
+            if let Some(c) = crate::decision::clarification_from_raw(inner) {
+                if c.should_ask() {
+                    return Err(GeneratorError::from_clarification(&c));
+                }
+            }
+            return Ok(cmd.to_string());
+        }
+        if let Ok(ask) = serde_json::from_str::<StrictAskReply>(inner) {
+            if !ask.needs_clarification {
+                return Err(bad("`needs_clarification` is false and there is no `cmd`"));
+            }
+            if ask.question.trim().is_empty() {
+                return Err(bad("clarification has an empty `question`"));
+            }
+            let p = ask.p.unwrap_or(0.9);
+            if !(0.0..=1.0).contains(&p) {
+                return Err(bad("clarification `p` is outside 0..=1"));
+            }
+            let c = crate::decision::Clarification {
+                needed: crate::decision::Noul::new(p),
+                question: Some(ask.question.trim().to_string()),
+            };
+            if c.should_ask() {
+                return Err(GeneratorError::from_clarification(&c));
+            }
+            return Err(bad("clarification below the confidence floor and no `cmd`"));
+        }
+        Err(bad(
+            "reply is not exactly {\"cmd\": string} or a typed clarification object",
+        ))
+    }
+
     /// `endpoint ..., model ...` text for error messages.
     fn ctx(&self) -> String {
         format!(
@@ -459,14 +555,12 @@ Request: {}
             .await?;
         // A reply that is not a command keeps its error type but gains the
         // endpoint and model. A clarification question passes through unchanged.
-        let command = self
-            .parse_command_response(&response)
-            .map_err(|e| match e {
-                GeneratorError::ParseError { content } => GeneratorError::ParseError {
-                    content: format!("{}: reply is not a command: {content}", self.ctx()),
-                },
-                other => other,
-            })?;
+        let command = self.parse_strict_reply(&response).map_err(|e| match e {
+            GeneratorError::ParseError { content } => GeneratorError::ParseError {
+                content: format!("{}: reply is not a command: {content}", self.ctx()),
+            },
+            other => other,
+        })?;
         let measured = tokens
             .as_deref()
             .and_then(|t| crate::backends::command_token_confidence(t, &command));
@@ -1369,6 +1463,163 @@ mod fail_closed_tests {
             VllmBackend::new(Url::parse(&server.uri()).unwrap(), MODEL.to_string()).unwrap();
         let out = legacy.generate_command(&req()).await.unwrap();
         assert_eq!(out.command, "ls -la");
+    }
+
+    // ---- Strict structured content on the fail-closed route ----
+
+    fn strict_backend() -> VllmBackend {
+        VllmBackend::new(Url::parse("http://127.0.0.1:9").unwrap(), MODEL.to_string())
+            .unwrap()
+            .fail_closed()
+    }
+
+    /// Synthetic stand-in for the reported defect: unescaped inner quotes, then
+    /// clarification fields trailing after the command. Data only, never run.
+    const SALVAGED: &str = r#"{"cmd": "find . -name "*.py"", "needs_clarification": true, "p": 0.9, "question": "which directory?"}"#;
+
+    #[test]
+    fn strict_parser_accepts_only_the_exact_shapes() {
+        let b = strict_backend();
+        let ok = |raw: &str| b.parse_strict_reply(raw).unwrap();
+        assert_eq!(ok(r#"{"cmd": "ls -la"}"#), "ls -la");
+        assert_eq!(ok("  {\"cmd\": \" ls \"}\n"), "ls");
+        // Legitimate escaped quotes inside the JSON string.
+        assert_eq!(
+            ok(r#"{"cmd": "find . -name \"*.py\""}"#),
+            r#"find . -name "*.py""#
+        );
+        // One whole-message fence, with or without the json tag.
+        assert_eq!(ok("```json\n{\"cmd\": \"ls\"}\n```"), "ls");
+        assert_eq!(ok("```\n{\"cmd\": \"ls\"}\n```\n"), "ls");
+    }
+
+    #[test]
+    fn strict_parser_rejects_everything_else_without_salvage() {
+        let b = strict_backend();
+        let bad = [
+            SALVAGED,
+            r#"{"cmd": "ls"} trailing"#,
+            r#"Sure! {"cmd": "ls"}"#,
+            r#"{"cmd": "ls"}{"cmd": "pwd"}"#,
+            r#"{"cmd": "ls", "extra": 1}"#,
+            r#"{"cmd": "ls", "cmd": "pwd"}"#,
+            r#"{"cmd": ""}"#,
+            r#"{"cmd": "   "}"#,
+            r#"{"cmd": 5}"#,
+            r#"{"cmd": null}"#,
+            r#"{"cmd": ["ls"]}"#,
+            r#"{}"#,
+            r#"[]"#,
+            r#"cmd: ls"#,
+            r#"{"cmd": "ls""#,
+            r#"{'cmd': 'ls'}"#,
+            // contradictory decisions
+            r#"{"cmd": "ls", "needs_clarification": true, "question": "q"}"#,
+            r#"{"cmd": "ls", "needs_clarification": false}"#,
+            r#"{"needs_clarification": false}"#,
+            r#"{"needs_clarification": false, "question": "q"}"#,
+            r#"{"needs_clarification": "true", "question": "q"}"#,
+            r#"{"needs_clarification": true}"#,
+            r#"{"needs_clarification": true, "question": ""}"#,
+            r#"{"needs_clarification": true, "p": 2.0, "question": "q"}"#,
+            r#"{"needs_clarification": true, "p": "high", "question": "q"}"#,
+            r#"{"needs_clarification": true, "p": 0.2, "question": "q"}"#,
+            // fence abuse
+            "```json {\"cmd\": \"ls\"} ```",
+            "text\n```json\n{\"cmd\": \"ls\"}\n```",
+            "```json\n{\"cmd\": \"ls\"}\n```\nmore",
+            "```json\n{\"cmd\": \"ls\"}\n```\n```json\n{\"cmd\": \"pwd\"}\n```",
+            "```json\nnot json\n```",
+            "```python\n{\"cmd\": \"ls\"}\n```",
+            "```json\n{\"cmd\": \"ls\"}",
+        ];
+        for raw in bad {
+            let err = b.parse_strict_reply(raw);
+            assert!(err.is_err(), "must reject, got {err:?} for {raw}");
+        }
+    }
+
+    #[test]
+    fn strict_parser_keeps_typed_clarification() {
+        let b = strict_backend();
+        for raw in [
+            r#"{"needs_clarification": true, "p": 0.9, "question": "Which directory?"}"#,
+            r#"{"needs_clarification": true, "question": "Which directory?"}"#,
+            "```json\n{\"needs_clarification\": true, \"p\": 0.8, \"question\": \"Which?\"}\n```",
+        ] {
+            match b.parse_strict_reply(raw) {
+                Err(GeneratorError::NeedsClarification { question, .. }) => {
+                    assert!(question.unwrap().ends_with('?'));
+                }
+                other => panic!("{raw}: {other:?}"),
+            }
+        }
+        // The legacy "echo a question" command is not a runnable command.
+        assert!(matches!(
+            b.parse_strict_reply(r#"{"cmd": "echo 'Please clarify which directory'"}"#),
+            Err(GeneratorError::NeedsClarification { .. })
+        ));
+    }
+
+    #[test]
+    fn legacy_parser_is_unchanged_and_still_salvages() {
+        // Control for scope: the lenient parser outside the explicit route is
+        // untouched. This is the baseline behavior the strict route refuses.
+        let legacy =
+            VllmBackend::new(Url::parse("http://127.0.0.1:9").unwrap(), MODEL.to_string()).unwrap();
+        assert!(legacy.parse_command_response(SALVAGED).is_ok());
+    }
+
+    async fn content_outcome(content: &str) -> Result<GeneratedCommand, GeneratorError> {
+        let server = MockServer::start().await;
+        healthy(&server).await;
+        let mut body = completion(Some(MODEL), true);
+        body["choices"][0]["message"]["content"] = json!(content);
+        mount_completion(&server, ResponseTemplate::new(200).set_body_json(body), 1).await;
+        backend(&server).generate_command(&req()).await
+    }
+
+    #[tokio::test]
+    async fn explicit_route_rejects_malformed_and_ambiguous_content() {
+        for raw in [
+            SALVAGED,
+            r#"{"cmd": "ls"} trailing"#,
+            r#"{"cmd": "ls", "needs_clarification": true, "question": "q"}"#,
+            r#"{"cmd": ""}"#,
+            r#"{"cmd": 7}"#,
+        ] {
+            let err = content_outcome(raw).await.unwrap_err();
+            match &err {
+                GeneratorError::ParseError { content } => {
+                    assert!(
+                        content.contains(MODEL) && content.contains("127.0.0.1"),
+                        "{content}"
+                    );
+                }
+                other => panic!("{raw}: {other:?}"),
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn explicit_route_accepts_valid_content_and_surfaces_clarification() {
+        let out = content_outcome(r#"{"cmd": "find . -name \"*.py\""}"#)
+            .await
+            .unwrap();
+        assert_eq!(out.command, r#"find . -name "*.py""#);
+        let out = content_outcome("```json\n{\"cmd\": \"ls -la\"}\n```")
+            .await
+            .unwrap();
+        assert_eq!(out.command, "ls -la");
+        let err = content_outcome(
+            r#"{"needs_clarification": true, "p": 0.9, "question": "Which directory?"}"#,
+        )
+        .await
+        .unwrap_err();
+        assert!(
+            matches!(err, GeneratorError::NeedsClarification { .. }),
+            "{err:?}"
+        );
     }
 
     #[tokio::test]
