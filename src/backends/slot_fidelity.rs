@@ -65,17 +65,16 @@ const NOT_A_LITERAL: &[&str] = &["e.g", "i.e", "etc", "vs"];
 
 /// A whitespace-separated token that names a path or file.
 ///
-/// Counts: `/abs`, `~/x`, `./x`, `../x`, `.dotfile`, `dir/`, `a/b.ext`, `name.ext`.
-/// Does not count: `and/or`, `tcp/udp`, `24/7` (a slash alone is ambiguous).
+/// Counts: `/abs`, `~/x`, `./x`, `../x`, `dir/`, `a/b.ext`, `name.ext`.
+/// Does not count: `and/or`, `tcp/udp`, `24/7` (a slash alone is ambiguous) or
+/// `.py` (a bare extension, not a file; dotfiles such as `.env` are a known gap).
 fn is_path_token(t: &str, name: &Regex) -> bool {
     if t.is_empty() || t == "." || t == ".." || NOT_A_LITERAL.contains(&t.to_lowercase().as_str()) {
         return false;
     }
-    let dotfile = t.starts_with('.') && t.chars().nth(1).is_some_and(|c| c.is_alphanumeric());
     t.starts_with(['/', '~'])
         || t.starts_with("./")
         || t.starts_with("../")
-        || dotfile
         || t.ends_with('/')
         || name.is_match(t)
 }
@@ -114,27 +113,74 @@ pub(crate) fn query_literals(query: &str) -> Vec<String> {
     out
 }
 
-/// True when `lit` occurs in `command` as a whole token: not inside a longer
-/// word, number, path segment or file name (`80` is not in `8080`).
-fn contains_token(command: &str, lit: &str) -> bool {
-    let (command, lit) = (command.to_lowercase(), lit.to_lowercase());
-    let word = |c: char| c.is_alphanumeric() || c == '_';
-    command.match_indices(&lit).any(|(i, _)| {
-        let before_ok = command[..i].chars().next_back().is_none_or(|c| !word(c));
-        let mut after = command[i + lit.len()..].chars();
-        let after_ok = match after.next() {
-            None => true,
-            Some('.') => after.next().is_none_or(|c| !word(c)),
-            Some(c) => !word(c),
-        };
-        before_ok && after_ok
-    })
+/// Split a command into shell-like tokens. Quotes group text, and the
+/// characters `| & ; < > ( )` and whitespace separate tokens outside quotes.
+/// A token after `=` (`of=/dev/x`) is also offered on its own.
+fn shell_tokens(command: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut cur = String::new();
+    let mut quote: Option<char> = None;
+    let push = |cur: &mut String, out: &mut Vec<String>| {
+        if !cur.is_empty() {
+            if let Some((_, rhs)) = cur.split_once('=') {
+                if !rhs.is_empty() {
+                    out.push(rhs.to_string());
+                }
+            }
+            out.push(std::mem::take(cur));
+        }
+    };
+    for c in command.chars() {
+        match quote {
+            Some(q) if c == q => quote = None,
+            Some(_) => cur.push(c),
+            None if c == '\'' || c == '"' => quote = Some(c),
+            None if c.is_whitespace() || "|&;<>()".contains(c) => push(&mut cur, &mut out),
+            None => cur.push(c),
+        }
+    }
+    push(&mut cur, &mut out);
+    out
+}
+
+/// Equivalence we allow between a typed path and a command argument: one
+/// leading `./` and a trailing `/` on a directory. Case and Unicode are exact.
+fn normalize_path(p: &str) -> &str {
+    let p = p.strip_prefix("./").unwrap_or(p);
+    if p.len() > 1 {
+        p.trim_end_matches('/')
+    } else {
+        p
+    }
+}
+
+/// True when the command carries the user's literal as one exact argument.
+/// Numbers (ports, IPs, process ids) need a non-word boundary instead, since
+/// they sit inside arguments like `:3000`.
+fn has_literal(command: &str, lit: &str) -> bool {
+    if lit.chars().all(|c| c.is_ascii_digit() || c == '.') {
+        let word = |c: char| c.is_alphanumeric() || c == '_';
+        return command.match_indices(lit).any(|(i, _)| {
+            let before_ok = command[..i].chars().next_back().is_none_or(|c| !word(c));
+            let mut after = command[i + lit.len()..].chars();
+            let after_ok = match after.next() {
+                None => true,
+                Some('.') => after.next().is_none_or(|c| !word(c)),
+                Some(c) => !word(c),
+            };
+            before_ok && after_ok
+        });
+    }
+    let want = normalize_path(lit);
+    shell_tokens(command)
+        .iter()
+        .any(|t| normalize_path(t) == want)
 }
 
 /// Why `command` does not faithfully answer `query`, or `None` if it does.
 pub(crate) fn slot_violation(query: &str, command: &str) -> Option<String> {
     for lit in query_literals(query) {
-        if !contains_token(command, &lit) {
+        if !has_literal(command, &lit) {
             return Some(format!(
                 "user value `{lit}` is missing from the template command"
             ));
@@ -205,8 +251,21 @@ mod tests {
     }
 
     #[test]
-    fn literal_match_is_case_insensitive_and_whole_token() {
-        assert!(slot_violation("count lines in README.MD", "wc -l README.md").is_none());
+    fn literal_match_is_exact_case_and_whole_argument() {
+        // Two distinct files on a case-sensitive file system.
+        assert!(slot_violation("count lines in README.MD", "wc -l README.md").is_some());
+        assert!(slot_violation("count lines in README.MD", "wc -l README.MD").is_none());
+        assert!(
+            slot_violation("count lines in 'Café Notes.txt'", "wc -l 'café notes.txt'").is_some()
+        );
+        assert!(
+            slot_violation("count lines in 'Café Notes.txt'", "wc -l 'Café Notes.txt'").is_none()
+        );
+        assert!(slot_violation(
+            "count lines in 'Café Notes.txt'",
+            "wc -l \"Café Notes.txt\""
+        )
+        .is_none());
         assert!(slot_violation("what is on port 80", "lsof -i :8080").is_some());
         assert!(slot_violation("show files in /tmp", "ls /tmpx").is_some());
         assert!(slot_violation("count words in notes.txt", "wc -w old_notes.txt.bak").is_some());
@@ -236,8 +295,26 @@ mod tests {
     fn relative_dirs_dotfiles_and_parens_are_literals() {
         assert!(slot_violation("find src/main.rs", "wc -l main.rs").is_some());
         assert!(slot_violation("list files in my_dir/", "ls").is_some());
-        assert!(slot_violation("show .env", "cat env").is_some());
         assert!(slot_violation("count lines in ./notes.txt", "wc -l ./notes.txt").is_none());
         assert!(slot_violation("count lines (old.txt)", "wc -l new.txt").is_some());
+    }
+
+    #[test]
+    fn descendant_or_other_directory_is_not_the_requested_target() {
+        assert!(slot_violation("list /tmp", "ls /tmp/subdir").is_some());
+        assert!(slot_violation("list /tmp", "ls /tmp").is_none());
+        assert!(slot_violation("list /tmp", "ls /tmp/").is_none());
+        assert!(slot_violation("count words in notes.txt", "wc -w /other/notes.txt").is_some());
+        assert!(slot_violation("count words in notes.txt", "wc -w notes.txt/extra").is_some());
+        assert!(slot_violation("count words in notes.txt", "wc -w ./notes.txt").is_none());
+        assert!(slot_violation("count words in ./notes.txt", "wc -w notes.txt").is_none());
+        assert!(slot_violation("list /var/log", "ls /var/log2").is_some());
+    }
+
+    #[test]
+    fn shell_tokens_split_on_operators_and_quotes() {
+        assert!(slot_violation("sort notes.txt", "cat notes.txt|sort").is_none());
+        assert!(slot_violation("copy 'my file.txt'", "cp 'my file.txt' out").is_none());
+        assert!(slot_violation("copy my.txt to /dev/x", "dd if=my.txt of=/dev/x").is_none());
     }
 }

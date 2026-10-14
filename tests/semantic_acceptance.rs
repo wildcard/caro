@@ -220,3 +220,29 @@ async fn bound_value_is_accepted() {
         .expect("bound request answers");
     assert!(cmd.contains("README.md"), "{cmd}");
 }
+
+/// Fixture outcome on a case-sensitive file system: two distinct files exist,
+/// and a command that names the other one is the wrong answer. A decline is
+/// acceptable; a different file is not.
+#[tokio::test]
+async fn exact_case_file_is_the_requested_target() {
+    let dir = std::env::temp_dir().join(format!("caro-semantic-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    for name in ["README.md", "README.MD"] {
+        std::fs::write(dir.join(name), "one\ntwo\n").unwrap();
+    }
+    let distinct = std::fs::read_dir(&dir).unwrap().count() == 2;
+    for (query, wanted) in [
+        ("count lines in README.MD", "README.MD"),
+        ("count lines in README.md", "README.md"),
+    ] {
+        if let Ok(cmd) = ask(query).await {
+            let target = cmd.split_whitespace().last().unwrap_or_default();
+            assert!(
+                !distinct || target == wanted,
+                "`{query}` answered `{cmd}`, which names a different file than `{wanted}`"
+            );
+        }
+    }
+    std::fs::remove_dir_all(&dir).unwrap();
+}
