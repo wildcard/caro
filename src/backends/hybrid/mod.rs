@@ -82,6 +82,7 @@ impl HybridBackend {
             safety_level: request.safety_level,
             context,
             backend_preference: request.backend_preference.clone(),
+            working_directory: None,
         };
         (sanitized, session)
     }
@@ -288,6 +289,7 @@ mod tests {
             safety_level: SafetyLevel::Moderate,
             context: None,
             backend_preference: None,
+            working_directory: None,
         }
     }
 

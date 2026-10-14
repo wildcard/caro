@@ -594,6 +594,7 @@ mod tests {
             safety_level: crate::models::SafetyLevel::Moderate,
             context: None,
             backend_preference: None,
+            working_directory: None,
         };
 
         let result = backend.generate_command(&request).await.unwrap();
@@ -722,6 +723,7 @@ mod tests {
                 safety_level: SafetyLevel::Moderate,
                 context: None,
                 backend_preference: None,
+                working_directory: None,
             };
             let generated = backend(&server).generate_command(&request).await.unwrap();
             assert_eq!(generated.command, "ls");

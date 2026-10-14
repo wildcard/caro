@@ -46,6 +46,16 @@ struct Home {
 impl Home {
     /// A fresh directory this test creates and owns (no pre-delete).
     fn new(tag: &str, vllm_url: &str, config_model: Option<&str>) -> Self {
+        Self::with_backends_extra(tag, vllm_url, config_model, "")
+    }
+
+    /// Like [`Home::new`], with extra `[backends]` lines appended to the config.
+    fn with_backends_extra(
+        tag: &str,
+        vllm_url: &str,
+        config_model: Option<&str>,
+        extra: &str,
+    ) -> Self {
         let nanos = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_nanos())
@@ -61,7 +71,7 @@ impl Home {
         std::fs::write(
             cfg.join("config.toml"),
             format!(
-                "{model_line}[backends]\nvllm_url = \"{vllm_url}\"\nvllm_max_tokens = 64\nvllm_timeout_secs = 5\nvllm_logprobs = false\n"
+                "{model_line}[backends]\nvllm_url = \"{vllm_url}\"\nvllm_max_tokens = 64\nvllm_timeout_secs = 5\nvllm_logprobs = false\n{extra}"
             ),
         )
         .unwrap();
@@ -107,6 +117,7 @@ impl Home {
         let proxy = format!("http://{}", self.proxy.local_addr().unwrap());
         let mut cmd = Command::new(env!("CARGO_BIN_EXE_caro"));
         cmd.args(args)
+            .current_dir(&self.dir)
             .env_clear()
             .env("PATH", std::env::var("PATH").unwrap_or_default())
             .env("HOME", &self.dir)
@@ -531,6 +542,273 @@ async fn cli_and_eval_routes_reject_corrupt_structured_content() {
             out.stdout,
             out.stderr
         );
+    }
+}
+
+// -------------------------------------------------------------------------
+// Prompt modes: what the real binary puts on the wire (mock server, no model)
+// -------------------------------------------------------------------------
+
+fn canonical(home: &Home) -> String {
+    std::fs::canonicalize(&home.dir)
+        .unwrap()
+        .to_string_lossy()
+        .to_string()
+}
+
+fn user_text(body: &serde_json::Value) -> String {
+    body["messages"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|m| m["role"] == "user")
+        .unwrap()["content"]
+        .as_str()
+        .unwrap()
+        .to_string()
+}
+
+#[tokio::test]
+async fn cli_route_default_sends_system_plus_delimited_task_with_the_working_directory() {
+    let server = serve(&[ALIAS], ok_reply()).await;
+    let home = Arc::new(Home::new("ctx-cli", &server.uri(), None));
+    let (a, o) = cli_args(STATIC_PROMPT, Some(ALIAS), &[]);
+    let out = run(&home, a, o, vec![]).await;
+    assert!(out.success, "{}\n{}", out.stdout, out.stderr);
+    let sent = posts(&server).await;
+    assert_eq!(sent.len(), 1);
+    let roles: Vec<_> = sent[0]["messages"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|m| m["role"].as_str().unwrap().to_string())
+        .collect();
+    assert_eq!(roles, ["system", "user"]);
+    let user = user_text(&sent[0]);
+    assert!(user.starts_with("<request>\n"), "{user}");
+    assert!(
+        user.contains(&format!("working_directory: {}", canonical(&home))),
+        "{user}"
+    );
+    assert!(sent[0].get("response_format").is_none());
+    // Only the path travels: no user name, no command list, no listing.
+    let all = sent[0].to_string();
+    assert!(!all.contains("available_commands"), "{all}");
+}
+
+#[tokio::test]
+async fn eval_route_default_sends_the_working_directory_for_every_case() {
+    let server = serve(&[ALIAS], ok_reply()).await;
+    let home = Arc::new(Home::new("ctx-eval", &server.uri(), None));
+    let (a, o) = eval_args(Some(ALIAS), &suite(&home), false);
+    let _ = run(&home, a, o, vec![]).await;
+    let sent = posts(&server).await;
+    assert_eq!(sent.len(), 2);
+    for body in &sent {
+        assert!(
+            user_text(body).contains(&format!("working_directory: {}", canonical(&home))),
+            "{body}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn baseline_switch_reproduces_the_single_message_request() {
+    let server = serve(&[ALIAS], ok_reply()).await;
+    let home = Arc::new(Home::new("ctx-base", &server.uri(), None));
+    let (a, o) = cli_args(STATIC_PROMPT, Some(ALIAS), &[]);
+    let out = run(
+        &home,
+        a,
+        o,
+        vec![("CARO_VLLM_PROMPT_MODE", "baseline".to_string())],
+    )
+    .await;
+    assert!(out.success, "{}\n{}", out.stdout, out.stderr);
+    let sent = posts(&server).await;
+    assert_eq!(sent[0]["messages"].as_array().unwrap().len(), 1);
+    assert!(!sent[0].to_string().contains(&canonical(&home)));
+}
+
+#[tokio::test]
+async fn gated_schema_modes_fail_before_any_request_on_both_routes() {
+    for mode in ["schema", "combined"] {
+        let server = serve(&[ALIAS], ok_reply()).await;
+        let home = Arc::new(Home::new("ctx-gate", &server.uri(), None));
+        let env = vec![("CARO_VLLM_PROMPT_MODE", mode.to_string())];
+        let (a, o) = cli_args(STATIC_PROMPT, Some(ALIAS), &[]);
+        let out = run(&home, a, o, env.clone()).await;
+        assert!(!out.success, "{mode}: {}", out.stdout);
+        let all = format!("{}{}", out.stdout, out.stderr);
+        assert!(all.contains("gated"), "{mode}: {all}");
+        let (a, o) = eval_args(Some(ALIAS), &suite(&home), false);
+        let out = run(&home, a, o, env).await;
+        assert!(!out.success);
+        assert!(
+            format!("{}{}", out.stdout, out.stderr).contains("gated"),
+            "{mode}"
+        );
+        assert_eq!(posts(&server).await.len(), 0, "{mode}: no request was sent");
+        assert_eq!(home.proxy_connections(), 0);
+    }
+}
+
+// -------------------------------------------------------------------------
+// Opt-in schema contract (mock server only; the canonical envelope bytes)
+// -------------------------------------------------------------------------
+
+const CANON_RF: &str = include_str!("fixtures/vllm/response_format.canonical.json");
+const CONTRACT_ID: &str = "llama.cpp-b11429/json_schema.schema/anyOf-v1";
+
+fn contract_cfg(endpoint: &str, id: &str) -> String {
+    format!("vllm_schema_contract = \"{id}\"\nvllm_schema_contract_endpoint = \"{endpoint}\"\n")
+}
+
+fn schema_env(mode: &str) -> Vec<(&'static str, String)> {
+    vec![("CARO_VLLM_PROMPT_MODE", mode.to_string())]
+}
+
+#[tokio::test]
+async fn cli_route_with_a_bound_contract_sends_the_canonical_format_once() {
+    let canon: serde_json::Value = serde_json::from_str(CANON_RF).unwrap();
+    for mode in ["schema", "combined"] {
+        let server = serve(&[ALIAS], ok_reply()).await;
+        let extra = contract_cfg(&server.uri(), CONTRACT_ID);
+        let home = Arc::new(Home::with_backends_extra(
+            "sch-cli",
+            &server.uri(),
+            None,
+            &extra,
+        ));
+        let (a, o) = cli_args(STATIC_PROMPT, Some(ALIAS), &[]);
+        let out = run(&home, a, o, schema_env(mode)).await;
+        assert!(out.success, "{mode}: {}\n{}", out.stdout, out.stderr);
+        assert!(out.stdout.contains("nonce-7f3a9c"), "{}", out.stdout);
+        let sent = posts(&server).await;
+        assert_eq!(sent.len(), 1, "{mode}: one generation POST");
+        assert_eq!(sent[0]["response_format"], canon, "{mode}");
+        assert_eq!(home.proxy_connections(), 0);
+    }
+}
+
+#[tokio::test]
+async fn eval_route_with_a_bound_contract_sends_the_canonical_format_for_every_case() {
+    let canon: serde_json::Value = serde_json::from_str(CANON_RF).unwrap();
+    let server = serve(&[ALIAS], ok_reply()).await;
+    let extra = contract_cfg(&server.uri(), CONTRACT_ID);
+    let home = Arc::new(Home::with_backends_extra(
+        "sch-eval",
+        &server.uri(),
+        None,
+        &extra,
+    ));
+    let (a, o) = eval_args(Some(ALIAS), &suite(&home), false);
+    let _ = run(&home, a, o, schema_env("combined")).await;
+    let sent = posts(&server).await;
+    assert_eq!(sent.len(), 2);
+    for body in &sent {
+        assert_eq!(body["response_format"], canon);
+    }
+}
+
+#[tokio::test]
+async fn contract_missing_unknown_or_bound_elsewhere_fails_before_any_request() {
+    for (tag, extra_for, needle) in [
+        ("nocontract", None, "vllm_schema_contract is not set"),
+        (
+            "unknown",
+            Some(("openai/json_schema-v1", None)),
+            "unknown schema contract",
+        ),
+        (
+            "elsewhere",
+            Some((CONTRACT_ID, Some("http://127.0.0.1:1"))),
+            "is bound to",
+        ),
+        (
+            "userinfo",
+            Some((CONTRACT_ID, Some("http://user:pw@127.0.0.1:1"))),
+            "carries credentials",
+        ),
+    ] {
+        for eval in [false, true] {
+            let server = serve(&[ALIAS], ok_reply()).await;
+            let extra = match extra_for {
+                None => String::new(),
+                Some((id, ep)) => contract_cfg(ep.unwrap_or(&server.uri()), id),
+            };
+            let home = Arc::new(Home::with_backends_extra(tag, &server.uri(), None, &extra));
+            let (a, o) = if eval {
+                eval_args(Some(ALIAS), &suite(&home), false)
+            } else {
+                cli_args(STATIC_PROMPT, Some(ALIAS), &[])
+            };
+            let out = run(&home, a, o, schema_env("schema")).await;
+            assert!(!out.success, "{tag} eval={eval}: {}", out.stdout);
+            let all = format!("{}{}", out.stdout, out.stderr);
+            assert!(all.contains(needle), "{tag} eval={eval}: {all}");
+            let received = server.received_requests().await.unwrap();
+            assert!(
+                received.is_empty(),
+                "{tag} eval={eval}: no HTTP of any kind"
+            );
+            assert_eq!(home.proxy_connections(), 0);
+        }
+    }
+}
+
+#[tokio::test]
+async fn default_and_context_runs_ignore_contract_keys_and_send_no_format() {
+    let server = serve(&[ALIAS], ok_reply()).await;
+    let extra = contract_cfg(&server.uri(), CONTRACT_ID);
+    let home = Arc::new(Home::with_backends_extra(
+        "sch-default",
+        &server.uri(),
+        None,
+        &extra,
+    ));
+    let (a, o) = cli_args(STATIC_PROMPT, Some(ALIAS), &[]);
+    let out = run(&home, a, o, vec![]).await;
+    assert!(out.success, "{}\n{}", out.stdout, out.stderr);
+    assert!(posts(&server).await[0].get("response_format").is_none());
+}
+
+#[tokio::test]
+async fn out_of_range_or_mistyped_p_never_becomes_a_command_on_either_route() {
+    for p in ["2", "-0.5", "null", "\"high\""] {
+        for eval in [false, true] {
+            let content = format!(
+                r#"{{"needs_clarification": true, "p": {p}, "question": "corrupt-marker?"}}"#
+            );
+            let server = serve(&[ALIAS], content_reply(Some(ALIAS), &content)).await;
+            let extra = contract_cfg(&server.uri(), CONTRACT_ID);
+            let home = Arc::new(Home::with_backends_extra(
+                "sch-p",
+                &server.uri(),
+                None,
+                &extra,
+            ));
+            let (a, o) = if eval {
+                eval_args(Some(ALIAS), &suite(&home), false)
+            } else {
+                cli_args(STATIC_PROMPT, Some(ALIAS), &[])
+            };
+            let out = run(&home, a, o, schema_env("combined")).await;
+            assert!(
+                !out.success,
+                "p={p} eval={eval}: {}\n{}",
+                out.stdout, out.stderr
+            );
+            for line in format!("{}\n{}", out.stdout, out.stderr).lines() {
+                assert!(
+                    !line.contains("corrupt-marker") || line.contains("not a command"),
+                    "p={p}: question text surfaced as a command: {line}"
+                );
+            }
+            if eval {
+                assert!(out.stdout.contains("Overall: 0/2"), "{}", out.stdout);
+            }
+        }
     }
 }
 

@@ -23,6 +23,13 @@ pub struct CommandRequest {
 
     /// Optional backend preference
     pub backend_preference: Option<String>,
+
+    /// Directory the generated command will run in. Relative paths in the
+    /// command resolve against it. Only the path is sent to a backend that
+    /// uses it: no listing, environment or command list travels with it. The
+    /// path itself can contain a user name (for example `/home/<user>/proj`).
+    #[serde(default)]
+    pub working_directory: Option<std::path::PathBuf>,
 }
 
 impl CommandRequest {
@@ -37,6 +44,7 @@ impl CommandRequest {
             safety_level: SafetyLevel::default(),
             context: None,
             backend_preference: None,
+            working_directory: None,
         }
     }
 
@@ -49,6 +57,12 @@ impl CommandRequest {
     /// Set the context (builder pattern)
     pub fn with_context(mut self, ctx: impl Into<String>) -> Self {
         self.context = Some(ctx.into());
+        self
+    }
+
+    /// Set the working directory (builder pattern)
+    pub fn with_working_directory(mut self, dir: impl Into<std::path::PathBuf>) -> Self {
+        self.working_directory = Some(dir.into());
         self
     }
 
@@ -951,6 +965,22 @@ pub struct BackendsConfig {
     /// (default true). Set `false` for servers that reject the field.
     #[serde(default)]
     pub vllm_logprobs: Option<bool>,
+    /// Request shape for the explicit `--backend vllm` route: `baseline`,
+    /// `context` (default), `schema` or `combined`. `schema` and `combined`
+    /// are refused unless `vllm_schema_contract` is set and bound to this
+    /// endpoint.
+    #[serde(default)]
+    pub vllm_prompt_mode: Option<String>,
+    /// Opt-in schema contract for the `schema` and `combined` prompt modes.
+    /// The only known id is `llama.cpp-b11429/json_schema.schema/anyOf-v1`. It
+    /// is the operator's statement about the server, not a capability check.
+    #[serde(default)]
+    pub vllm_schema_contract: Option<String>,
+    /// The endpoint the operator asserts the contract holds for. Must equal
+    /// `vllm_url`. Nothing checks the server; this only ties the assertion to
+    /// the configured URL string.
+    #[serde(default)]
+    pub vllm_schema_contract_endpoint: Option<String>,
     /// Exo cluster endpoint (default `http://localhost:52415`).
     #[serde(default)]
     pub exo_url: Option<String>,
@@ -1225,6 +1255,22 @@ impl ConfigSchema {
         known_keys.insert("backends.vllm_max_tokens".to_string(), "u32".to_string());
         known_keys.insert("backends.vllm_timeout_secs".to_string(), "u64".to_string());
         known_keys.insert("backends.vllm_logprobs".to_string(), "bool".to_string());
+        known_keys.insert(
+            "backends.vllm_prompt_mode".to_string(),
+            "String".to_string(),
+        );
+        known_keys.insert(
+            "backends.vllm_schema_contract".to_string(),
+            "String".to_string(),
+        );
+        known_keys.insert(
+            "backends.vllm_schema_contract_endpoint".to_string(),
+            "String".to_string(),
+        );
+        known_keys.insert(
+            "backends.vllm_prompt_mode".to_string(),
+            "String".to_string(),
+        );
         known_keys.insert("backends.exo_url".to_string(), "String".to_string());
         known_keys.insert("backends.ai_horde_url".to_string(), "String".to_string());
         known_keys.insert("backends.ai_horde_key".to_string(), "String".to_string());
