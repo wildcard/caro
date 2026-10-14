@@ -74,20 +74,22 @@ impl PromptMode {
 }
 
 /// Schema modes stay off until an independent receipt from the pinned server
-/// shows it accepts this exact `response_format` and the `oneOf` union. Flip
+/// shows it accepts this exact `response_format` and the `anyOf` union. Flip
 /// only with that receipt; see [`reply_schema`] and [`response_format`].
 pub const SCHEMA_SUPPORT_VERIFIED: bool = false;
 
 /// The closed reply schema: exactly a command object OR a typed clarification
 /// object, nothing mixed. Each branch is a complete object schema with
-/// `additionalProperties: false`; the `oneOf` node has no sibling `properties`
-/// (llama.cpp cannot mix them). `p` has no numeric bounds because the pinned
-/// converter supports bounds for integers only; the strict parser still checks
-/// `0..=1`. The parser stays the authority: this only narrows what the server
-/// samples.
+/// `additionalProperties: false`; the `anyOf` node has no sibling `properties`
+/// (llama.cpp cannot mix them). The branches exclude each other, so `anyOf`
+/// and `oneOf` accept the same replies. The `0..=1` bounds on `p` are the
+/// shape the independent tester proposed; the pinned converter documents
+/// numeric bounds for integers only and skips others silently, so the strict
+/// parser stays the authority on `p`. This only narrows what the server
+/// samples. Matches the tester's proposed contract, not yet a server receipt.
 pub fn reply_schema() -> serde_json::Value {
     serde_json::json!({
-        "oneOf": [
+        "anyOf": [
             {
                 "type": "object",
                 "properties": {
@@ -99,8 +101,8 @@ pub fn reply_schema() -> serde_json::Value {
             {
                 "type": "object",
                 "properties": {
-                    "needs_clarification": {"const": true},
-                    "p": {"type": "number"},
+                    "needs_clarification": {"type": "boolean", "const": true},
+                    "p": {"type": "number", "minimum": 0, "maximum": 1},
                     "question": {"type": "string", "minLength": 1}
                 },
                 "required": ["needs_clarification", "question"],
@@ -126,6 +128,16 @@ pub fn explicit_from_config(
     cfg: &crate::models::BackendsConfig,
     model_name: Option<&str>,
 ) -> Result<VllmBackend, GeneratorError> {
+    explicit_from_config_with_mode_env(cfg, model_name, std::env::var("CARO_VLLM_PROMPT_MODE").ok())
+}
+
+/// [`explicit_from_config`] with the `CARO_VLLM_PROMPT_MODE` value passed in,
+/// so tests do not depend on the caller's shell environment.
+fn explicit_from_config_with_mode_env(
+    cfg: &crate::models::BackendsConfig,
+    model_name: Option<&str>,
+    mode_env: Option<String>,
+) -> Result<VllmBackend, GeneratorError> {
     let url_str = cfg.vllm_url.as_deref().unwrap_or(DEFAULT_URL);
     let url = Url::parse(url_str).map_err(|e| GeneratorError::ConfigError {
         message: format!("backends.vllm_url `{url_str}` is not a valid URL: {e}"),
@@ -138,8 +150,7 @@ pub fn explicit_from_config(
         .fail_closed();
     // `CARO_VLLM_PROMPT_MODE` overrides the config, like `CARO_MODEL` does for
     // the model name, so one binary can be ablated without editing files.
-    let mode_raw = std::env::var("CARO_VLLM_PROMPT_MODE")
-        .ok()
+    let mode_raw = mode_env
         .filter(|v| !v.trim().is_empty())
         .or_else(|| cfg.vllm_prompt_mode.clone());
     if let Some(raw) = mode_raw {
@@ -405,7 +416,7 @@ impl VllmBackend {
         if mode.uses_schema() && !SCHEMA_SUPPORT_VERIFIED {
             return Err(GeneratorError::ConfigError {
                 message: format!(
-                    "vllm prompt mode `{}` is gated: response_format support is not verified                      against the pinned llama.cpp server yet. Use baseline or context.",
+                    "vllm prompt mode `{}` is gated: response_format support is not verified against the pinned llama.cpp server yet. Use baseline or context.",
                     mode.as_str()
                 ),
             });
@@ -766,7 +777,6 @@ Rules:
         &self,
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
-        self.preflight().await?;
         if self.prompt_mode.uses_schema() && !self.schema_unlocked && !SCHEMA_SUPPORT_VERIFIED {
             return Err(GeneratorError::ConfigError {
                 message: format!(
@@ -776,6 +786,7 @@ Rules:
                 ),
             });
         }
+        self.preflight().await?;
         let response_format = self.prompt_mode.uses_schema().then(response_format);
         let (response, tokens) = self
             .call_vllm_chat(self.chat_messages(request), None, response_format)
@@ -1850,7 +1861,7 @@ mod fail_closed_tests {
             VllmBackend::new(Url::parse("http://127.0.0.1:9").unwrap(), MODEL.to_string()).unwrap();
         assert_eq!(legacy.prompt_mode(), PromptMode::Baseline);
         let cfg = crate::models::BackendsConfig::default();
-        let b = explicit_from_config(&cfg, Some(MODEL)).unwrap();
+        let b = explicit_from_config_with_mode_env(&cfg, Some(MODEL), None).unwrap();
         assert_eq!(b.prompt_mode(), PromptMode::Context);
         for (raw, want) in [
             ("baseline", PromptMode::Baseline),
@@ -1861,7 +1872,7 @@ mod fail_closed_tests {
                 ..Default::default()
             };
             assert_eq!(
-                explicit_from_config(&cfg, Some(MODEL))
+                explicit_from_config_with_mode_env(&cfg, Some(MODEL), None)
                     .unwrap()
                     .prompt_mode(),
                 want
@@ -1876,14 +1887,18 @@ mod fail_closed_tests {
                 vllm_prompt_mode: Some(raw.to_string()),
                 ..Default::default()
             };
-            let err = explicit_from_config(&cfg, Some(MODEL)).err().unwrap();
+            let err = explicit_from_config_with_mode_env(&cfg, Some(MODEL), None)
+                .err()
+                .unwrap();
             assert!(err.to_string().contains("gated"), "{raw}: {err}");
         }
         let cfg = crate::models::BackendsConfig {
             vllm_prompt_mode: Some("grammar".to_string()),
             ..Default::default()
         };
-        let err = explicit_from_config(&cfg, Some(MODEL)).err().unwrap();
+        let err = explicit_from_config_with_mode_env(&cfg, Some(MODEL), None)
+            .err()
+            .unwrap();
         assert!(err.to_string().contains("not one of"), "{err}");
     }
 
@@ -1969,9 +1984,9 @@ mod fail_closed_tests {
         let schema = &rf["schema"];
         assert!(
             schema.get("properties").is_none(),
-            "no properties beside oneOf"
+            "no properties beside anyOf"
         );
-        let branches = schema["oneOf"].as_array().unwrap();
+        let branches = schema["anyOf"].as_array().unwrap();
         assert_eq!(branches.len(), 2);
         for b in branches {
             assert_eq!(b["type"], "object");
@@ -1986,16 +2001,21 @@ mod fail_closed_tests {
             branches[1]["required"],
             json!(["needs_clarification", "question"])
         );
-        assert_eq!(branches[1]["properties"]["p"], json!({"type": "number"}));
+        assert_eq!(
+            branches[1]["properties"]["p"],
+            json!({"type": "number", "minimum": 0, "maximum": 1})
+        );
         // No mixed branch: no branch lists both cmd and a clarification field.
         for b in branches {
             let props = b["properties"].as_object().unwrap();
             assert!(!(props.contains_key("cmd") && props.contains_key("question")));
         }
-        assert_eq!(
-            serde_json::to_string(&rf).unwrap(),
-            r#"{"schema":{"oneOf":[{"additionalProperties":false,"properties":{"cmd":{"minLength":1,"type":"string"}},"required":["cmd"],"type":"object"},{"additionalProperties":false,"properties":{"needs_clarification":{"const":true},"p":{"type":"number"},"question":{"minLength":1,"type":"string"}},"required":["needs_clarification","question"],"type":"object"}]},"type":"json_schema"}"#
-        );
+        // The independent tester's proposed contract, verbatim.
+        let proposed: serde_json::Value = serde_json::from_str(
+            r#"{"type":"json_schema","schema":{"anyOf":[{"type":"object","properties":{"cmd":{"type":"string","minLength":1}},"required":["cmd"],"additionalProperties":false},{"type":"object","properties":{"needs_clarification":{"type":"boolean","const":true},"p":{"type":"number","minimum":0,"maximum":1},"question":{"type":"string","minLength":1}},"required":["needs_clarification","question"],"additionalProperties":false}]}}"#,
+        )
+        .unwrap();
+        assert_eq!(rf, proposed);
     }
 
     #[test]
@@ -2036,6 +2056,10 @@ mod fail_closed_tests {
         b.prompt_mode = PromptMode::Combined;
         let err = b.generate_command(&req()).await.unwrap_err();
         assert!(err.to_string().contains("gated"), "{err}");
+        assert!(
+            server.received_requests().await.unwrap().is_empty(),
+            "not even a readiness GET before the gate refuses"
+        );
     }
 
     #[tokio::test]

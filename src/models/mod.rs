@@ -26,7 +26,8 @@ pub struct CommandRequest {
 
     /// Directory the generated command will run in. Relative paths in the
     /// command resolve against it. Only the path is sent to a backend that
-    /// uses it: no listing, environment or user name travels with it.
+    /// uses it: no listing, environment or command list travels with it. The
+    /// path itself can contain a user name (for example `/home/<user>/proj`).
     #[serde(default)]
     pub working_directory: Option<std::path::PathBuf>,
 }
