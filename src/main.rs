@@ -3575,18 +3575,33 @@ async fn main() {
     // Store resolved prompt back into cli for downstream usage
     cli.prompt = Some(resolved.text);
 
-    // Initialize tracing/logging
+    // Initialize tracing/logging. With `-o json`, stdout carries exactly one
+    // parseable object, so log lines go to stderr (plain and YAML keep the
+    // default writer). Coordinated with #916; no broader logging change.
+    let json_stdout = cli
+        .output
+        .as_deref()
+        .and_then(|o| o.parse::<caro::cli::OutputFormat>().ok())
+        == Some(caro::cli::OutputFormat::Json);
     if cli.verbose {
-        tracing_subscriber::fmt()
+        let builder = tracing_subscriber::fmt()
             .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
-            .with_level(true)
-            .init();
+            .with_level(true);
+        if json_stdout {
+            builder.with_writer(std::io::stderr).init();
+        } else {
+            builder.init();
+        }
     } else {
         // Hide all logs in non-verbose mode for clean output
-        tracing_subscriber::fmt()
+        let builder = tracing_subscriber::fmt()
             .with_env_filter("caro=warn")
-            .without_time()
-            .init();
+            .without_time();
+        if json_stdout {
+            builder.with_writer(std::io::stderr).init();
+        } else {
+            builder.init();
+        }
     }
 
     // Initialize telemetry

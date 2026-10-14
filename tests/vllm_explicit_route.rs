@@ -551,3 +551,59 @@ async fn model_precedence_holds_on_the_cli_and_the_eval_route() {
     );
     assert_eq!(home.proxy_connections(), 0);
 }
+
+// -------------------------------------------------------------------------
+// Verbose JSON: log lines must stay off stdout (#916 coordination)
+// -------------------------------------------------------------------------
+
+#[tokio::test]
+async fn verbose_json_success_keeps_logs_off_stdout() {
+    let server = serve(&[ALIAS], ok_reply()).await;
+    let home = Arc::new(Home::new("vjsonok", &server.uri(), None));
+    let (a, o) = cli_args(STATIC_PROMPT, Some(ALIAS), &["-v", "-o", "json"]);
+    let out = run(&home, a, o, vec![("RUST_LOG", "caro=info".into())]).await;
+    assert!(out.success, "{}\n{}", out.stdout, out.stderr);
+    let v: serde_json::Value =
+        serde_json::from_str(out.stdout.trim()).expect("stdout is exactly one JSON object");
+    assert!(v.is_object());
+    assert!(
+        v["generated_command"]
+            .as_str()
+            .unwrap()
+            .contains("nonce-7f3a9c"),
+        "{v}"
+    );
+    assert!(
+        out.stderr.contains("Using vLLM backend"),
+        "the log line exists and went to stderr: {}",
+        out.stderr
+    );
+    assert!(
+        !out.stdout.contains("Using vLLM backend"),
+        "no log text on stdout"
+    );
+    assert_eq!(posts(&server).await.len(), 1, "a real mock HTTP receipt");
+    assert_eq!(home.proxy_connections(), 0);
+    assert!(!home.embedded_cache_exists(), "no embedded path");
+}
+
+#[tokio::test]
+async fn verbose_json_failure_keeps_logs_off_stdout_and_is_nonzero() {
+    let home = Arc::new(Home::new("vjsonfail", "http://127.0.0.1:9", None));
+    let (a, o) = cli_args(STATIC_PROMPT, Some(ALIAS), &["-v", "-o", "json"]);
+    let out = run(&home, a, o, vec![("RUST_LOG", "caro=info".into())]).await;
+    assert!(!out.success);
+    let v: serde_json::Value =
+        serde_json::from_str(out.stdout.trim()).expect("stdout is exactly one JSON object");
+    assert_eq!(v["executed"], false);
+    let msg = v["error"]["message"].as_str().unwrap();
+    assert!(msg.contains("127.0.0.1:9") && msg.contains(ALIAS), "{msg}");
+    assert!(
+        out.stderr.contains("Using vLLM backend") && out.stderr.contains("Error:"),
+        "{}",
+        out.stderr
+    );
+    assert!(!out.stdout.contains("Using vLLM backend"));
+    assert_eq!(home.proxy_connections(), 0);
+    assert!(!home.embedded_cache_exists(), "no embedded path");
+}
