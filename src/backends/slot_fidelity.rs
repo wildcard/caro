@@ -95,12 +95,21 @@ const NOT_A_DIRECTORY: &[&str] = &[
     "aws",
     "gcp",
     "azure",
-    "iso",
-    "rfc",
-    "listen",
-    "established",
-    "apache",
-    "nginx",
+];
+
+/// Capitalised words that are a format or a state only when followed by one of
+/// `FORMAT_NEXT` ("in ISO format", "in LISTEN state"). Otherwise they are folders.
+const FORMAT_WORDS: &[&str] = &["iso", "rfc", "listen", "established"];
+const FORMAT_NEXT: &[&str] = &[
+    "format",
+    "state",
+    "states",
+    "mode",
+    "standard",
+    "notation",
+    "8601",
+    "timestamp",
+    "connections",
 ];
 
 /// Lowercase directory names people say without a capital letter or "folder".
@@ -160,7 +169,7 @@ fn rx() -> &'static Rx {
         ip: Regex::new(r"\b(\d{1,3}(?:\.\d{1,3}){3})\b").unwrap(),
         pid: Regex::new(r"(?i)\b(?:pid|process(?:\s+id)?|kill)\s+(\d{1,7})\b").unwrap(),
         // "in Downloads", "under the Documents".
-        cap_dest: Regex::new(r"\b(?:[Ii]n|[Uu]nder|[Ii]nside|[Ww]ithin)\s+(?:the\s+|my\s+)?(\p{Lu}[\p{L}\p{N}_.-]*)")
+        cap_dest: Regex::new(r"\b(?:[Ii]n|[Uu]nder|[Ii]nside|[Ww]ithin)\s+(?:the\s+|my\s+)?(\p{Lu}[\p{L}\p{N}_.-]*)(?:\s+(\p{L}[\p{L}\p{N}]*))?")
             .unwrap(),
         // "in the src folder", "in logs directory".
         named_dest: Regex::new(
@@ -181,7 +190,23 @@ pub(crate) struct Literal {
 }
 
 /// Abbreviations that look like file names but are not.
-const NOT_A_LITERAL: &[&str] = &["e.g", "i.e", "etc", "vs", "tar.gz", "tar.bz2", "tar.xz"];
+const NOT_A_LITERAL: &[&str] = &["e.g", "i.e", "etc", "vs"];
+
+/// Archive formats. They are a format word, not a file name, only in "a tar.gz
+/// archive"; after "in", "of", "from" and the like they name a file.
+const ARCHIVE_FORMATS: &[&str] = &["tar.gz", "tar.bz2", "tar.xz"];
+const ARCHIVE_NEXT: &[&str] = &[
+    "archive",
+    "archives",
+    "tarball",
+    "file",
+    "files",
+    "compressed",
+    "format",
+];
+const TARGET_PREPOSITIONS: &[&str] = &[
+    "in", "of", "from", "to", "into", "named", "called", "at", "on",
+];
 
 /// A whitespace-separated token that names a path or file.
 ///
@@ -226,10 +251,27 @@ pub(crate) fn query_literals(query: &str) -> Vec<Literal> {
     // Remove quoted text so its inner tokens are not counted twice.
     let rest = re.quoted.replace_all(query, " ").into_owned();
 
-    for tok in rest.split_whitespace() {
-        let t = tok
-            .trim_start_matches(['(', '\'', '"'])
-            .trim_end_matches(['.', ',', ';', ':', '?', '!', ')', '\'', '"']);
+    let words: Vec<&str> = rest
+        .split_whitespace()
+        .map(|tok| {
+            tok.trim_start_matches(['(', '\'', '"'])
+                .trim_end_matches(['.', ',', ';', ':', '?', '!', ')', '\'', '"'])
+        })
+        .collect();
+    for (i, t) in words.iter().enumerate() {
+        // "a tar.gz archive" names a format; "lines in tar.gz" names a file.
+        if ARCHIVE_FORMATS.contains(t) {
+            let next_is_noun = words
+                .get(i + 1)
+                .is_some_and(|n| ARCHIVE_NEXT.contains(&n.to_lowercase().as_str()));
+            let after_target =
+                i > 0 && TARGET_PREPOSITIONS.contains(&words[i - 1].to_lowercase().as_str());
+            if next_is_noun && !after_target {
+                continue;
+            }
+            out.push(text(t));
+            continue;
+        }
         if is_path_token(t, &re.name) {
             out.push(text(t));
         }
@@ -395,7 +437,12 @@ fn destinations(query: &str) -> Vec<String> {
     let mut out = Vec::new();
     for cap in re.cap_dest.captures_iter(query) {
         let w = cap[1].trim_end_matches(['.', ',']).to_string();
-        if !NOT_A_DIRECTORY.contains(&w.to_lowercase().as_str()) {
+        let lower = w.to_lowercase();
+        let next = cap.get(2).map(|m| m.as_str().to_lowercase());
+        // "ISO" is a format only in "ISO format"; otherwise it is a folder name.
+        let format_context = FORMAT_WORDS.contains(&lower.as_str())
+            && next.as_deref().is_some_and(|n| FORMAT_NEXT.contains(&n));
+        if !format_context && !NOT_A_DIRECTORY.contains(&lower.as_str()) {
             out.push(w);
         }
     }
@@ -825,5 +872,23 @@ mod tests {
         assert!(slot_violation("find all python files", "sudo find . -name '*.py'").is_none());
         assert!(slot_violation("run all python files tests", "python3 -m pytest").is_none());
         assert!(slot_violation("count lines in notes.txt", "true notes.txt").is_some());
+    }
+
+    #[test]
+    fn format_and_archive_words_are_exempt_only_in_context() {
+        // Never executed: matcher inputs only.
+        assert!(slot_violation("count lines in tar.gz", "wc -l other.log").is_some());
+        assert!(slot_violation("count lines in tar.gz", "wc -l tar.gz").is_none());
+        assert!(
+            slot_violation("create a tar.gz archive of src", "tar -czf src.tar.gz src/").is_none()
+        );
+        assert!(slot_violation("extract files from tar.gz", "tar -xzf other.tgz").is_some());
+        assert!(slot_violation("list files in Nginx", "ls -la").is_some());
+        assert!(slot_violation("list files in Apache", "ls -la").is_some());
+        assert!(slot_violation("list files in Nginx", "ls Nginx").is_none());
+        assert!(slot_violation("show current date in ISO format", "date +%Y-%m-%d").is_none());
+        assert!(slot_violation("list files in ISO", "ls -la").is_some());
+        assert!(slot_violation("list ports in LISTEN state", "ss -tlnp").is_none());
+        assert!(slot_violation("list files in LISTEN", "ls -la").is_some());
     }
 }

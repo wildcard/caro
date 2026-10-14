@@ -1934,24 +1934,22 @@ impl StaticMatcher {
         None
     }
 
-    /// True when `kw` occurs in `query` and is not the tail of a word that a
-    /// reversing prefix turns around: "move" matches "move files" but not
-    /// "remove files" ("re", "un", "de", "dis" + keyword). Other compounds still
-    /// match ("log" in "syslog"), and a unit after a digit ("100MB") counts.
+    /// True when `kw` occurs in `query` at a word start ("move" in "move files",
+    /// not in "remove files"; a unit after a digit, "100MB", counts). A keyword
+    /// inside a longer word matches only for the listed compounds, so "all" does
+    /// not match "small" or "install" and "pid" does not match "rapid".
     fn has_word_start(query: &str, kw: &str) -> bool {
-        const REVERSING: [&str; 4] = ["re", "un", "de", "dis"];
+        // (letters before the keyword, keyword): real compounds, e.g. sys+log.
+        const COMPOUNDS: [(&str, &str); 2] = [("sys", "log"), ("change", "log")];
         query.match_indices(kw).any(|(i, _)| {
             let before = &query[..i];
-            let word: String = before
+            before
                 .chars()
-                .rev()
-                .take_while(|c| c.is_alphabetic())
-                .collect::<Vec<_>>()
-                .into_iter()
-                .rev()
-                .collect();
-            // The letters in front of the keyword, back to the word start.
-            !REVERSING.contains(&word.as_str())
+                .next_back()
+                .is_none_or(|c| !c.is_alphabetic())
+                || COMPOUNDS
+                    .iter()
+                    .any(|(prefix, word)| *word == kw && before.ends_with(prefix))
         })
     }
 
@@ -2117,6 +2115,21 @@ mod tests {
         assert!(!StaticMatcher::has_word_start(
             "undelete the file",
             "delete"
+        ));
+        // A keyword inside a longer word must not match (regression of review 6).
+        assert!(!StaticMatcher::has_word_start("rapid", "pid"));
+        assert!(!StaticMatcher::has_word_start(
+            "list the smallest files",
+            "all"
+        ));
+        assert!(!StaticMatcher::has_word_start(
+            "kill small processes",
+            "all"
+        ));
+        assert!(!StaticMatcher::has_word_start("remove install logs", "all"));
+        assert!(!StaticMatcher::has_word_start(
+            "remove firewall rules",
+            "all"
         ));
     }
 

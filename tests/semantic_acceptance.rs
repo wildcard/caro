@@ -140,6 +140,11 @@ const CASES: &[Case] = &[
         query: "find files larger than 1GB",
         outcome: Outcome::Bound { must: &["+1G"] },
     },
+    // A folder named like a product or format word is still a folder.
+    Case {
+        query: "list all files in Nginx",
+        outcome: Outcome::Decline { why: "Nginx" },
+    },
     // False-decline controls: correct answers the gate must keep.
     Case {
         query: "show last 20 lines of syslog",
