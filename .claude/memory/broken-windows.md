@@ -260,7 +260,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-22)
 **Issue:** #1467
-**Status:** claimed-by sweep/2026-10-14-BW-031
+**Status:** claimed-by sweep/2026-10-14-BW-031 (#1667)
 **Needs human?:** no
 **Next step:** build the header from `env!("CARGO_PKG_VERSION")` in `src/backends/remote/ai_horde.rs`.
 
@@ -625,3 +625,11 @@ workspaces are BW-069.
 **Status:** open
 **Needs human?:** no
 **Next step:** rewrite the three entries in `website/src/data/integrations.ts` for 1.5.0 behavior; use `--model-name` in the snippet.
+
+### BW-087: `Security Audit` red on every PR: rustls 0.21.12 and 0.23.45 hit RUSTSEC-2026-0346 to 0349
+
+**Found:** 2026-10-14, broken-window sweep (CI on #1667)
+**Issue:** #1668
+**Status:** open
+**Needs human?:** yes (dependency and audit-policy decision)
+**Next step:** owner picks the options in #1668: patch 0.23.x in the lockfile, then move or record the 0.21.x path.
