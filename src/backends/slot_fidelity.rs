@@ -378,11 +378,14 @@ fn shell_tokens(command: &str) -> Option<Vec<String>> {
     shell_stages(command).map(|stages| stages.into_iter().flatten().collect())
 }
 
-/// The program a command runs and the operands it acts on. A leading `sudo`,
-/// `env` or `time` is skipped. Printing programs (`echo`, `printf`) and no-ops
-/// act on nothing, so they have no operands: `echo Documents` does not search
-/// Documents. Scope: first program only; later stages of a pipeline are not
-/// inspected, so a proof must appear in the first program's name or operands.
+/// The program a stage runs and the operands it acts on. A leading bare `sudo`,
+/// `env` or `time` is skipped; options and assignments after them (`sudo -u bob`,
+/// `X=1`) and other wrappers (`nohup`, `command`, `xargs`) are not, so a print
+/// program behind such a wrapper is not recognised. Printing programs (`echo`,
+/// `printf`) and no-ops act on nothing, so they have no operands: `echo
+/// Documents` does not search Documents. Names are checked against the first
+/// program's operands only; numbers are checked in every syntactic stage (see
+/// `has_literal`). Not a shell parser.
 fn program_and_operands(tokens: &[String]) -> (&str, &[String]) {
     let skip = tokens
         .iter()
@@ -425,6 +428,8 @@ fn normalize_path(p: &str) -> &str {
 /// address or size. `ls; foo 3000` passes for "port 3000", because `foo` is an
 /// ordinary program. Names are checked against the first program only, so a
 /// name used by another sub-command (`wc -l y.txt; echo notes.txt`) is a gap.
+/// A print program behind a wrapper (`sudo -u bob echo 3000`, `X=1 echo 3000`,
+/// `ls | xargs echo 3000`) is not recognised as a print program.
 fn has_literal(command: &str, lit: &Literal) -> bool {
     if lit.numeric {
         let word = |c: char| c.is_alphanumeric() || c == '_';
