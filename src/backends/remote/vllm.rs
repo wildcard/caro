@@ -73,12 +73,32 @@ impl PromptMode {
     }
 }
 
-/// Schema modes stay off until an independent receipt from the pinned server
-/// shows it constrains output with this exact `response_format` (envelope
-/// `json_schema.schema`) and the `anyOf` union, and that its replies pass
-/// `parse_strict_reply`. Flip
-/// only with that receipt; see [`reply_schema`] and [`response_format`].
+/// Global capability claim: "every vLLM-style server honors this schema".
+/// Never true. Schema modes are an explicit opt-in bound to one endpoint; see
+/// [`SCHEMA_CONTRACT_ID`] and [`VllmBackend::with_schema_contract`].
 pub const SCHEMA_SUPPORT_VERIFIED: bool = false;
+
+/// The only schema contract this build knows. It records what an independent
+/// tester verified, and nothing more: llama.cpp release b11429 (source
+/// d81235049384534c167caea52b85a694f6103d14) serving
+/// Qwen2.5-Coder-0.5B-Instruct-GGUF Q4_K_M with its bundled chat template read
+/// `response_format.json_schema.schema` (the nested envelope), conformed six
+/// valid requests to the canonical `anyOf` schema, and answered a malformed
+/// schema with HTTP 400. Structural capability only: no claim about answer
+/// quality, other servers, other models or other templates.
+///
+/// Using it is a deliberate statement by the operator ("the server at this
+/// endpoint behaves like that one"), made in config with
+/// `backends.vllm_schema_contract` and `backends.vllm_schema_contract_endpoint`.
+/// Nothing here detects capability or treats any localhost server as verified.
+pub const SCHEMA_CONTRACT_ID: &str = "llama.cpp-b11429/json_schema.schema/anyOf-v1";
+
+fn same_endpoint(a: &Url, b: &Url) -> bool {
+    a.scheme() == b.scheme()
+        && a.host_str() == b.host_str()
+        && a.port_or_known_default() == b.port_or_known_default()
+        && a.path().trim_end_matches('/') == b.path().trim_end_matches('/')
+}
 
 /// The one canonical closed reply schema: exactly a command object OR a typed
 /// clarification object, nothing mixed. Root `anyOf` of two disjoint object
@@ -163,6 +183,14 @@ fn explicit_from_config_with_mode_env(
                 "vllm prompt mode `{raw}` is not one of baseline, context, schema, combined"
             ),
         })?;
+        if mode.uses_schema() {
+            let id = cfg.vllm_schema_contract.as_deref().unwrap_or_default();
+            let bound = cfg
+                .vllm_schema_contract_endpoint
+                .as_deref()
+                .unwrap_or_default();
+            backend = backend.with_schema_contract(id, bound)?;
+        }
         backend = backend.with_prompt_mode(mode)?;
     }
     if let Some(secs) = cfg.vllm_timeout_secs {
@@ -376,8 +404,9 @@ pub struct VllmBackend {
     logprobs: bool,
     /// Request shape for the fail-closed route (legacy mode is always baseline).
     prompt_mode: PromptMode,
-    /// Set only by tests that exercise the gated schema request shape.
-    schema_unlocked: bool,
+    /// Set only by [`VllmBackend::with_schema_contract`]: the operator named the
+    /// known contract and bound it to this backend's endpoint.
+    schema_contract: bool,
     /// Fail-closed mode (explicit local route): no fallback, readiness and
     /// served-model checks first, a named model mismatch is an error.
     fail_closed: bool,
@@ -407,20 +436,66 @@ impl VllmBackend {
             max_tokens: DEFAULT_MAX_TOKENS,
             logprobs: true,
             prompt_mode: PromptMode::Baseline,
-            schema_unlocked: false,
+            schema_contract: false,
             fail_closed: false,
             last_meta: std::sync::Mutex::new(None),
             checked_context: OnceCell::new(),
         })
     }
 
-    /// Choose the request shape. Schema modes are refused until
-    /// [`SCHEMA_SUPPORT_VERIFIED`] is flipped with a pinned-server receipt.
+    /// Declare that the server at this backend's endpoint follows
+    /// [`SCHEMA_CONTRACT_ID`]. `contract` must be that id and `endpoint` must
+    /// be this backend's own endpoint; otherwise this fails before any HTTP
+    /// call. It is configuration, not detection.
+    pub fn with_schema_contract(
+        mut self,
+        contract: &str,
+        endpoint: &str,
+    ) -> Result<Self, GeneratorError> {
+        let refuse = |why: String| GeneratorError::ConfigError {
+            message: format!("vllm schema mode is gated, refused: {why}"),
+        };
+        if contract.trim().is_empty() {
+            return Err(refuse(format!(
+                "backends.vllm_schema_contract is not set (known contract: `{SCHEMA_CONTRACT_ID}`)"
+            )));
+        }
+        if contract != SCHEMA_CONTRACT_ID {
+            return Err(refuse(format!(
+                "unknown schema contract `{contract}` (known contract: `{SCHEMA_CONTRACT_ID}`)"
+            )));
+        }
+        if endpoint.trim().is_empty() {
+            return Err(refuse(
+                "backends.vllm_schema_contract_endpoint is not set; the contract must be bound \
+                 to the configured endpoint"
+                    .to_string(),
+            ));
+        }
+        let bound = Url::parse(endpoint).map_err(|e| {
+            refuse(format!(
+                "backends.vllm_schema_contract_endpoint `{endpoint}` is not a valid URL: {e}"
+            ))
+        })?;
+        if !same_endpoint(&bound, &self.base_url) {
+            return Err(refuse(format!(
+                "the contract is bound to `{bound}` but the configured endpoint is `{}`",
+                self.base_url
+            )));
+        }
+        self.schema_contract = true;
+        Ok(self)
+    }
+
+    /// Choose the request shape. Schema modes need
+    /// [`VllmBackend::with_schema_contract`] first.
     pub fn with_prompt_mode(mut self, mode: PromptMode) -> Result<Self, GeneratorError> {
-        if mode.uses_schema() && !SCHEMA_SUPPORT_VERIFIED {
+        if mode.uses_schema() && !self.schema_contract {
             return Err(GeneratorError::ConfigError {
                 message: format!(
-                    "vllm prompt mode `{}` is gated: response_format support is not verified against the pinned llama.cpp server yet. Use baseline or context.",
+                    "vllm prompt mode `{}` is gated: it needs backends.vllm_schema_contract = \
+                     `{SCHEMA_CONTRACT_ID}` bound to this endpoint with \
+                     backends.vllm_schema_contract_endpoint. Use baseline or context otherwise.",
                     mode.as_str()
                 ),
             });
@@ -431,13 +506,6 @@ impl VllmBackend {
 
     pub fn prompt_mode(&self) -> PromptMode {
         self.prompt_mode
-    }
-
-    #[cfg(test)]
-    fn with_prompt_mode_unlocked(mut self, mode: PromptMode) -> Self {
-        self.prompt_mode = mode;
-        self.schema_unlocked = true;
-        self
     }
 
     /// Set the per-request output-token cap.
@@ -781,10 +849,10 @@ Rules:
         &self,
         request: &CommandRequest,
     ) -> Result<GeneratedCommand, GeneratorError> {
-        if self.prompt_mode.uses_schema() && !self.schema_unlocked && !SCHEMA_SUPPORT_VERIFIED {
+        if self.prompt_mode.uses_schema() && !self.schema_contract {
             return Err(GeneratorError::ConfigError {
                 message: format!(
-                    "{}: prompt mode `{}` is gated until response_format support is verified",
+                    "{}: prompt mode `{}` is gated: no schema contract is bound to this endpoint",
                     self.ctx(),
                     self.prompt_mode.as_str()
                 ),
@@ -2024,10 +2092,14 @@ mod fail_closed_tests {
     }
 
     #[test]
-    fn schema_and_combined_request_shapes_when_unlocked() {
+    fn schema_and_combined_request_shapes_with_a_bound_contract() {
         let r = ctx_req("list files", Some("/w"));
-        let schema = strict_backend().with_prompt_mode_unlocked(PromptMode::Schema);
-        let combined = strict_backend().with_prompt_mode_unlocked(PromptMode::Combined);
+        let schema = contract_backend()
+            .with_prompt_mode(PromptMode::Schema)
+            .unwrap();
+        let combined = contract_backend()
+            .with_prompt_mode(PromptMode::Combined)
+            .unwrap();
         let (s, c) = (body_of(&schema, &r), body_of(&combined, &r));
         assert_eq!(s["response_format"], response_format());
         assert_eq!(c["response_format"], response_format());
@@ -2101,6 +2173,259 @@ mod fail_closed_tests {
         assert!(body.get("response_format").is_none());
         assert_eq!(body["model"], MODEL);
         assert_eq!(body["max_tokens"], 64);
+    }
+
+    // ---- Opt-in schema contract bound to one endpoint ----
+
+    const CANON_RF: &str =
+        include_str!("../../../tests/fixtures/vllm/response_format.canonical.json");
+
+    fn contract_backend() -> VllmBackend {
+        strict_backend()
+            .with_schema_contract(SCHEMA_CONTRACT_ID, "http://127.0.0.1:9")
+            .unwrap()
+    }
+
+    fn schema_cfg(
+        mode: &str,
+        contract: Option<&str>,
+        endpoint: Option<&str>,
+    ) -> crate::models::BackendsConfig {
+        crate::models::BackendsConfig {
+            vllm_url: Some("http://127.0.0.1:9".to_string()),
+            vllm_prompt_mode: Some(mode.to_string()),
+            vllm_schema_contract: contract.map(str::to_string),
+            vllm_schema_contract_endpoint: endpoint.map(str::to_string),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn the_global_capability_claim_stays_false() {
+        assert!(!SCHEMA_SUPPORT_VERIFIED);
+    }
+
+    #[test]
+    fn schema_modes_need_the_known_contract_bound_to_the_configured_endpoint() {
+        for mode in ["schema", "combined"] {
+            let refused = |cfg: crate::models::BackendsConfig, needle: &str| {
+                let err = explicit_from_config_with_mode_env(&cfg, Some(MODEL), None)
+                    .err()
+                    .unwrap_or_else(|| panic!("{mode}: must be refused"));
+                assert!(err.to_string().contains(needle), "{mode}: {err}");
+            };
+            // No contract, no endpoint: the default for anyone who just sets the mode.
+            refused(
+                schema_cfg(mode, None, None),
+                "vllm_schema_contract is not set",
+            );
+            // Unknown contract.
+            refused(
+                schema_cfg(
+                    mode,
+                    Some("openai/json_schema-v1"),
+                    Some("http://127.0.0.1:9"),
+                ),
+                "unknown schema contract",
+            );
+            // Known contract, no binding.
+            refused(
+                schema_cfg(mode, Some(SCHEMA_CONTRACT_ID), None),
+                "vllm_schema_contract_endpoint is not set",
+            );
+            // Binding that is not a URL.
+            refused(
+                schema_cfg(mode, Some(SCHEMA_CONTRACT_ID), Some("not a url")),
+                "not a valid URL",
+            );
+            // Binding to a different server: host, port, scheme or path.
+            for other in [
+                "http://127.0.0.1:8000",
+                "http://localhost:9",
+                "https://127.0.0.1:9",
+                "http://127.0.0.1:9/v2",
+            ] {
+                refused(
+                    schema_cfg(mode, Some(SCHEMA_CONTRACT_ID), Some(other)),
+                    "is bound to",
+                );
+            }
+            // Matching binding (a trailing slash is the same endpoint).
+            for ok in ["http://127.0.0.1:9", "http://127.0.0.1:9/"] {
+                let b = explicit_from_config_with_mode_env(
+                    &schema_cfg(mode, Some(SCHEMA_CONTRACT_ID), Some(ok)),
+                    Some(MODEL),
+                    None,
+                )
+                .unwrap();
+                assert_eq!(b.prompt_mode().as_str(), mode);
+            }
+        }
+        // Contract keys alone do not change the default mode or add a format.
+        let cfg = crate::models::BackendsConfig {
+            vllm_schema_contract: Some(SCHEMA_CONTRACT_ID.to_string()),
+            vllm_schema_contract_endpoint: Some("http://localhost:8000".to_string()),
+            ..Default::default()
+        };
+        let b = explicit_from_config_with_mode_env(&cfg, Some(MODEL), None).unwrap();
+        assert_eq!(b.prompt_mode(), PromptMode::Context);
+        let body = body_of(&b, &ctx_req("list files", Some("/w")));
+        assert!(body.get("response_format").is_none());
+        // The legacy constructor never carries a contract.
+        let legacy =
+            VllmBackend::new(Url::parse("http://127.0.0.1:9").unwrap(), MODEL.to_string()).unwrap();
+        assert!(legacy.with_prompt_mode(PromptMode::Schema).is_err());
+    }
+
+    async fn schema_post(
+        mode: PromptMode,
+        reply: ResponseTemplate,
+    ) -> (
+        Result<GeneratedCommand, GeneratorError>,
+        Vec<serde_json::Value>,
+    ) {
+        let server = MockServer::start().await;
+        healthy(&server).await;
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .respond_with(reply)
+            .mount(&server)
+            .await;
+        let b = backend(&server)
+            .with_schema_contract(SCHEMA_CONTRACT_ID, &server.uri())
+            .unwrap()
+            .with_prompt_mode(mode)
+            .unwrap();
+        let out = b
+            .generate_command(&ctx_req("list files", Some("/work/project")))
+            .await;
+        let bodies = server
+            .received_requests()
+            .await
+            .unwrap()
+            .into_iter()
+            .filter(|r| r.method.as_str() == "POST")
+            .map(|r| serde_json::from_slice(&r.body).unwrap())
+            .collect();
+        (out, bodies)
+    }
+
+    fn reply_with_content(content: &str) -> ResponseTemplate {
+        let mut body = completion(Some(MODEL), true);
+        body["choices"][0]["message"]["content"] = json!(content);
+        ResponseTemplate::new(200).set_body_json(body)
+    }
+
+    #[tokio::test]
+    async fn opted_in_schema_and_combined_send_exactly_the_canonical_bytes_once() {
+        let canon: serde_json::Value = serde_json::from_str(CANON_RF).unwrap();
+        for (mode, messages) in [(PromptMode::Schema, 1), (PromptMode::Combined, 2)] {
+            let (out, bodies) = schema_post(mode, reply_with_content(r#"{"cmd": "ls -la"}"#)).await;
+            assert_eq!(out.unwrap().command, "ls -la");
+            assert_eq!(bodies.len(), 1, "one generation POST");
+            assert_eq!(bodies[0]["response_format"], canon);
+            assert_eq!(bodies[0]["messages"].as_array().unwrap().len(), messages);
+            assert_eq!(bodies[0]["model"], MODEL);
+            assert!(bodies[0].get("guided_json").is_none());
+            // The serialized field is byte-identical to the canonical file.
+            let sent = serde_json::to_string(&bodies[0]["response_format"]).unwrap();
+            assert_eq!(sent, CANON_RF.trim_end());
+        }
+    }
+
+    #[tokio::test]
+    async fn schema_mode_never_retries_or_falls_back_to_json_only_on_http_400() {
+        for mode in [PromptMode::Schema, PromptMode::Combined] {
+            let (out, bodies) = schema_post(
+                mode,
+                ResponseTemplate::new(400).set_body_string("bad schema"),
+            )
+            .await;
+            let err = out.unwrap_err();
+            assert!(err.to_string().contains("400"), "{err}");
+            assert_eq!(
+                bodies.len(),
+                1,
+                "no second request, with or without a format"
+            );
+            assert!(bodies[0].get("response_format").is_some());
+        }
+    }
+
+    #[tokio::test]
+    async fn schema_mode_keeps_the_identity_check() {
+        let mut body = completion(Some("other-model"), true);
+        body["choices"][0]["message"]["content"] = json!(r#"{"cmd": "ls"}"#);
+        let (out, _) = schema_post(
+            PromptMode::Combined,
+            ResponseTemplate::new(200).set_body_json(body),
+        )
+        .await;
+        let err = out.unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("does not match the selected model"),
+            "{err}"
+        );
+        let mut body = completion(None, true);
+        body["choices"][0]["message"]["content"] = json!(r#"{"cmd": "ls"}"#);
+        let (out, _) = schema_post(
+            PromptMode::Schema,
+            ResponseTemplate::new(200).set_body_json(body),
+        )
+        .await;
+        assert!(out
+            .unwrap_err()
+            .to_string()
+            .contains("does not name the model"));
+    }
+
+    /// The canonical plain-number `p` accepts 2 on the wire; the application
+    /// check does not. A conforming server cannot produce these, a broken or
+    /// different one can, and none of them may become a command.
+    #[tokio::test]
+    async fn schema_valid_but_out_of_range_or_mistyped_p_never_becomes_a_command() {
+        for p in [
+            "2", "-0.5", "1.0001", "null", "\"high\"", "\"\"", "true", "[0.9]",
+        ] {
+            for mode in [PromptMode::Schema, PromptMode::Combined] {
+                let content = format!(
+                    r#"{{"needs_clarification": true, "p": {p}, "question": "Which directory?"}}"#
+                );
+                let (out, bodies) = schema_post(mode, reply_with_content(&content)).await;
+                let err = out.expect_err(&format!("p={p} must not succeed"));
+                assert!(
+                    matches!(err, GeneratorError::ParseError { .. }),
+                    "p={p}: {err:?}"
+                );
+                assert_eq!(bodies.len(), 1);
+            }
+        }
+        // Valid p still asks the question; it never yields a command.
+        let (out, _) = schema_post(
+            PromptMode::Schema,
+            reply_with_content(r#"{"needs_clarification": true, "p": 0.9, "question": "Which?"}"#),
+        )
+        .await;
+        assert!(matches!(
+            out.unwrap_err(),
+            GeneratorError::NeedsClarification { .. }
+        ));
+    }
+
+    #[tokio::test]
+    async fn schema_mode_with_a_mixed_reply_is_still_rejected() {
+        let (out, _) = schema_post(
+            PromptMode::Combined,
+            reply_with_content(
+                r#"{"cmd": "ls", "needs_clarification": true, "p": "", "question": "q"}"#,
+            ),
+        )
+        .await;
+        assert!(matches!(
+            out.unwrap_err(),
+            GeneratorError::ParseError { .. }
+        ));
     }
 
     // ---- Verbatim regression from the real 039bb92 trial (data only, never run) ----

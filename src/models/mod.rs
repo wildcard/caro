@@ -970,6 +970,14 @@ pub struct BackendsConfig {
     /// refused until they are verified against the pinned server.
     #[serde(default)]
     pub vllm_prompt_mode: Option<String>,
+    /// Opt-in schema contract for the `schema` and `combined` prompt modes.
+    /// The only known id is `llama.cpp-b11429/json_schema.schema/anyOf-v1`. It
+    /// is the operator's statement about the server, not a capability check.
+    #[serde(default)]
+    pub vllm_schema_contract: Option<String>,
+    /// The endpoint the contract was verified for. Must equal `vllm_url`.
+    #[serde(default)]
+    pub vllm_schema_contract_endpoint: Option<String>,
     /// Exo cluster endpoint (default `http://localhost:52415`).
     #[serde(default)]
     pub exo_url: Option<String>,
