@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-10-12 (late pass, 23:10 PT) — caro 1.5.0 published; native-backend re-validation, no new PR
+
+- **Validated:** ✓ VERIFIED against the published **caro 1.5.0** (crates.io `newest_version=1.5.0`, updated 2026-10-13 01:27Z UTC; GitHub release `caro v1.5.0` = Latest). Binary: `caro-1.5.0-macos-silicon` from the release, sha256 matched the published `.sha256`, `--version` → `caro 1.5.0 (d705666 2026-10-12)`.
+  - `--backend-info` → 10 backends; only `embedded` is `available`, and the other 9 (including claude/openrouter/grok) show `not compiled`. PASS for honesty: the #1115 divergence is gone in a shipped binary.
+  - `--backend claude|openrouter|ollama --dry-run` → exit 1 with a loud `remote-backends` config error and the install remedy. PASS for loud failure. Still FAIL for reachability (#1081: the release artifact omits `remote-backends`).
+  - `--backend static` → exit 1, rejected with the roster list. PASS.
+  - `--backend embedded --dry-run "list pdf files in current directory"` → **`ls -la`**, answered by static-matcher Pattern 43 at `Confidence: 1.00`. Same for `list pdf files`, `list python files here` and `list large files in current directory`. On 1.4.0 (2026-07-11) the qualified query reached the model and returned `ls *.pdf`. Cause: #1487 widened Pattern 43 with `[^/~]*` + a current-directory suffix. P1, but it's a static-matcher fix in the QA/coder lane, not integration wiring, so I filed it instead of fixing it.
+- **Shipped:** no new PR. Tonight's one PR is #1624 (earlier pass today). This pass only adds this log entry and the matrix re-dates to that branch.
+- **Filed:** [#1645](https://github.com/wildcard/caro/issues/1645). Pattern 43 drops file-type qualifiers (P1, `bug`+`integration`). Dedup-searched `Pattern 43`, `List files (simple)`, `static matcher drops intent` across open and closed issues. Evidence comments: [#1419](https://github.com/wildcard/caro/issues/1419#issuecomment-6139443897) (1.5.0 is published; left the close to a maintainer) and [#1081](https://github.com/wildcard/caro/issues/1081#issuecomment-6139444129) (1.5.0 still ships without `remote-backends`).
+- **Discovered:** a stale `v1.5.1` **Draft** GitHub release (2026-08-17) is still listed. No `.claude/releases/v1.5.0-acceptance.md` exists yet. #1629 (caro-shell SKILL.md backend guidance stale after v1.5.0) was already filed today.
+- **Next pass should:** merge-check #1624, then run `/plugin marketplace add wildcard/caro` against GitHub and close #1490. Then take #1629 (SKILL.md guidance refresh), which is small and now unblocked by the 1.5.0 release. #1081 (ship `remote-backends` in release artifacts) is the highest-leverage row, but it's a release-workflow and binary-size decision for maintainers.
+
+---
+
+## 2026-10-12 (23:00 PT fire) — Claude Code plugin manifest fix (#1490)
+
+- **Validated:** ✓ VERIFIED. Published `caro 1.4.0` is still the newest on crates.io (`cargo search`); v1.5.0 releases are Drafts only (#1419). Ran `claude plugin validate .claude-plugin/marketplace.json` on `origin/main` @ `a5624c50` → **FAIL, 4 errors** (name with spaces, missing `owner`, missing `plugins[]`, id charset) plus 9 unknown-field warnings. This confirms the INFERRED claims in #1490: the plugin route advertised on the website could not install. Skill choice confirmed by reading both SKILL.md files: `caro-shell` is canonical; the manifest shipped `caro-shell-helper`, which is DEPRECATED.
+- **Shipped:** PR (branch `integrator/20261012`): `.claude-plugin/marketplace.json` rewritten to the `owner` + `plugins[]` shape (marketplace `caro`, plugin `caro-shell`, `source: ./`, `strict: false`, `skills: [./.claude/skills/caro-shell]`). `claude plugin validate` → ✔ passed. End-to-end in an isolated `CLAUDE_CONFIG_DIR`: `plugin marketplace add <path>` + `plugin install caro-shell@caro` → installed and enabled. Website one-liners (Hero, Download, IntegrationMethods, GetStartedPaths, blog post) changed to the two-step flow; BW-018 marked fixed; matrix row added.
+- **Filed:** none. #1490 is the home.
+- **Discovered:** with `source: ./` the plugin cache copies the whole repo (both skill dirs on disk), but only the listed skill is loaded. A thinner install would need a dedicated plugin directory; not worth it tonight. Still open: i18n `landing.json` strings and the deprecated `caro-shell-helper` docs mention the old one-liner. The Astro build was not run (no `node_modules` in the worktree); edits are plain text with no braces or backticks.
+- **Not validated this pass:** `/plugin marketplace add wildcard/caro` against the GitHub remote can only be tested after merge.
+- **Next pass should:** after merge, run `/plugin marketplace add wildcard/caro` + install against GitHub, mark the matrix row ✅, close #1490. Then the topmost code row is #1081 wiring/feature-gate work, or #1623 (Copilot CLI guard harness).
+
+---
+
 ## 2026-07-11 (23:00 PT fire, post-merge pass) — #1298 landed; verify + close-the-loop, no code PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.4.0` (crates.io, 2026-05-09 — still newest). Confirmed **PR #1298 MERGED** (2026-07-12 UTC, commit `2a76cf90`) and **issue #1115 CLOSED**. Re-ran the #1115 repro on the shipped binary: `caro --backend-info` still advertises `static` (available) + `claude` (configurable), yet `caro --backend claude --dry-run -p "list pdf files"` → `Error: Invalid argument: Unknown backend 'claude'` and `--backend static` → identical. So the P0 divergence #1298 fixed on `main` is **still live in the shipped artifact** — this is now purely a release-cadence gap, not a code gap. PASS data point: `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls *.pdf` ✓. New-roster gap: `caro --backend ai-horde` → `Unknown backend` (main exposes it via #1209; published 1.4.0 knows only embedded/ollama/exo/vllm). Inspected `main` source: `CLI_SERVABLE_BACKENDS` (`src/backends/mod.rs:35`) now the single source of truth for `validate_backend_name`/`print_backend_info`/`available_backends`/help; `create_backend` (`src/cli/mod.rs:295`) still has no `claude`/`openrouter` arm (wiring half deferred, per the in-code comment).

@@ -147,9 +147,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-01 sweep (nightly-discovery)
 **Issue:** #1490
-**Status:** open
+**Status:** fixed in the 2026-10-12 integrator PR (pending merge)
 **Needs human?:** no
-**Next step:** check the current plugin marketplace schema and `/plugin install` syntax, then update the docs and marketplace.json.
+**Next step:** none once merged. Delete after 2026-10-26. Website one-liners now read `/plugin marketplace add wildcard/caro` + `/plugin install caro-shell@caro`; the deprecated `caro-shell-helper` docs/i18n strings still carry the old form.
 
 ### BW-019: Lint & Format red on every PR since Rust 1.99 clippy
 
