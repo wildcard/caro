@@ -1811,6 +1811,137 @@ mod tests {
         }
     }
 
+    // ---- backend selection by env and config (cfg(test): other names -> mock) ----
+
+    /// Sets env vars for one test and restores them. Tests using it are
+    /// `#[serial]` because the environment is process-global.
+    struct EnvGuard(Vec<(&'static str, Option<std::ffi::OsString>)>);
+
+    impl EnvGuard {
+        fn set(vars: &[(&'static str, &std::ffi::OsStr)]) -> Self {
+            let saved = vars
+                .iter()
+                .map(|(k, _)| (*k, std::env::var_os(k)))
+                .collect();
+            for (k, v) in vars {
+                std::env::set_var(k, v);
+            }
+            Self(saved)
+        }
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            for (k, v) in &self.0 {
+                match v {
+                    Some(v) => std::env::set_var(k, v),
+                    None => std::env::remove_var(k),
+                }
+            }
+        }
+    }
+
+    /// Private config/cache dirs; clears the backend and model env vars.
+    fn private_env(config_toml: Option<&str>) -> (tempfile::TempDir, EnvGuard) {
+        let dir = tempfile::tempdir().unwrap();
+        if let Some(body) = config_toml {
+            std::fs::create_dir_all(dir.path().join("caro")).unwrap();
+            std::fs::write(dir.path().join("caro/config.toml"), body).unwrap();
+        }
+        let g = EnvGuard::set(&[
+            ("XDG_CONFIG_HOME", dir.path().as_os_str()),
+            ("XDG_CACHE_HOME", dir.path().as_os_str()),
+            ("HOME", dir.path().as_os_str()),
+        ]);
+        std::env::remove_var("CARO_BACKEND");
+        std::env::remove_var("CARO_MODEL");
+        (dir, g)
+    }
+
+    #[tokio::test]
+    #[serial_test::serial]
+    async fn env_only_selects_the_deterministic_route() {
+        let (_d, _g) = private_env(None);
+        let _e = EnvGuard::set(&[("CARO_BACKEND", "select-files".as_ref())]);
+        let app = CliApp::with_overrides(CliConfig::default(), None, None, false, None)
+            .await
+            .unwrap();
+        assert!(app.one_shot && app.one_shot_validator.is_some());
+        assert_eq!(
+            app.backend.backend_info().backend_type,
+            crate::models::BackendType::SelectFiles
+        );
+        // an env-selected backend gets the same conflict rules
+        let e = CliApp::with_overrides(CliConfig::default(), None, None, true, None).await;
+        assert!(e.is_err());
+    }
+
+    #[tokio::test]
+    #[serial_test::serial]
+    async fn config_selected_route_ignores_inherited_model_and_keeps_conflicts() {
+        let (_d, _g) = private_env(Some(
+            "default_model = \"select-files\"\nmodel_name = \"inherited-model\"\n",
+        ));
+        let app = CliApp::with_overrides(CliConfig::default(), None, None, false, None)
+            .await
+            .unwrap();
+        assert!(app.one_shot);
+        let info = app.backend.backend_info();
+        assert_eq!(info.model_name, "none (deterministic)");
+        for (force, adv, model) in [
+            (true, None, None),
+            (false, Some("claude".to_string()), None),
+            (false, None, Some("m".to_string())),
+        ] {
+            let r = CliApp::with_overrides(CliConfig::default(), None, model, force, adv).await;
+            assert!(
+                r.is_err(),
+                "config-selected backend must reject model flags"
+            );
+        }
+        // CARO_MODEL is inherited too
+        let _m = EnvGuard::set(&[("CARO_MODEL", "env-model".as_ref())]);
+        let app = CliApp::with_overrides(CliConfig::default(), None, None, false, None)
+            .await
+            .unwrap();
+        assert_eq!(
+            app.backend.backend_info().model_name,
+            "none (deterministic)"
+        );
+    }
+
+    #[tokio::test]
+    #[serial_test::serial]
+    async fn flag_beats_env_beats_config() {
+        // Other backend names become the mock under cfg(test): nothing real
+        // is built, so this cannot reach a model.
+        let (_d, _g) = private_env(Some("default_model = \"embedded\"\n"));
+        let _e = EnvGuard::set(&[("CARO_BACKEND", "select-files".as_ref())]);
+        let app = CliApp::with_overrides(CliConfig::default(), None, None, false, None)
+            .await
+            .unwrap();
+        assert!(app.one_shot, "env beats config");
+        drop(_e);
+        let _e = EnvGuard::set(&[("CARO_BACKEND", "embedded".as_ref())]);
+        let app = CliApp::with_overrides(
+            CliConfig::default(),
+            Some("select-files".into()),
+            None,
+            false,
+            None,
+        )
+        .await
+        .unwrap();
+        assert!(app.one_shot, "flag beats env");
+        let app = CliApp::with_overrides(CliConfig::default(), None, None, false, None)
+            .await
+            .unwrap();
+        assert!(
+            !app.one_shot,
+            "env embedded stays the normal route (mock here)"
+        );
+    }
+
     #[test]
     fn select_files_conflicts_reject_explicit_model_requests_only() {
         assert!(select_files_conflicts(false, None, None).is_ok());

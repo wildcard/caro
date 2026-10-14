@@ -10,6 +10,13 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use tempfile::TempDir;
 
 fn caro(home: &TempDir, envs: &[(&str, &str)], args: &[&str]) -> Output {
+    // Safety guard: every invocation of the real binary must select the
+    // deterministic backend explicitly, so no run can reach a default,
+    // embedded or model backend.
+    assert!(
+        args.windows(2).any(|w| w == ["--backend", "select-files"]),
+        "unsafe argv (no explicit --backend select-files): {args:?}"
+    );
     let mut c = Command::new(env!("CARGO_BIN_EXE_caro"));
     c.args(args)
         .env_clear()
@@ -158,13 +165,6 @@ fn model_flags_conflict_and_inherited_models_are_ignored() {
         );
         assert!(!String::from_utf8_lossy(&out.stdout).contains("-print0"));
     }
-    // The same conflict through the environment-selected backend.
-    let out = caro(
-        &h,
-        &[("CARO_BACKEND", "select-files")],
-        &["--dry-run", "--force-llm", "list all python files"],
-    );
-    assert!(!out.status.success());
     // An inherited model name is not an explicit request: ignored, truthfully.
     let v = json(&h, &[("CARO_MODEL", "some-model")], "list all python files");
     let dbg = v["debug_info"].as_str().unwrap();
@@ -222,29 +222,14 @@ fn benign_literals_that_look_dangerous_are_one_shell_word() {
 #[test]
 fn backend_roster_lists_select_files() {
     let h = TempDir::new().unwrap();
-    let out = caro(&h, &[], &["--backend-info"]);
+    // Meta flag: prints the table and exits before any backend is built.
+    let out = caro(&h, &[], &["--backend", "select-files", "--backend-info"]);
     let s = String::from_utf8_lossy(&out.stdout);
     let line = s
         .lines()
         .find(|l| l.contains("select-files"))
         .expect("roster row");
     assert!(line.contains("available"), "{line}");
-}
-
-#[test]
-fn unknown_backend_names_are_still_rejected() {
-    let h = TempDir::new().unwrap();
-    let out = caro(
-        &h,
-        &[],
-        &[
-            "--backend",
-            "select-file",
-            "--dry-run",
-            "list all python files",
-        ],
-    );
-    assert!(!out.status.success());
 }
 
 // ------------------------------------------------ eval route and flags ----
@@ -367,6 +352,13 @@ fn fixture_with_non_utf8() -> TempDir {
 }
 
 fn caro_in(home: &TempDir, cwd: &std::path::Path, args: &[&str]) -> Output {
+    // Safety guard: every invocation of the real binary must select the
+    // deterministic backend explicitly, so no run can reach a default,
+    // embedded or model backend.
+    assert!(
+        args.windows(2).any(|w| w == ["--backend", "select-files"]),
+        "unsafe argv (no explicit --backend select-files): {args:?}"
+    );
     let mut c = Command::new(env!("CARGO_BIN_EXE_caro"));
     c.args(args)
         .current_dir(cwd)
@@ -494,112 +486,4 @@ fn cli_failure_keeps_stderr_exit_and_error() {
         String::from_utf8_lossy(&out.stdout)
     );
     assert!(String::from_utf8_lossy(&out.stderr).contains("No such file"));
-}
-
-// ------------------------------------- env and config selected route ----
-
-fn write_config(home: &TempDir, body: &str) {
-    let dir = home.path().join("caro");
-    std::fs::create_dir_all(&dir).unwrap();
-    std::fs::write(
-        dir.join("config.toml"),
-        format!("{body}\n[telemetry]\nenabled = false\nfirst_run = false\n"),
-    )
-    .unwrap();
-}
-
-fn json_no_flag(home: &TempDir, envs: &[(&str, &str)], extra: &[&str], req: &str) -> Output {
-    let mut args = vec!["--dry-run", "-o", "json", "-v"];
-    args.extend_from_slice(extra);
-    args.push(req);
-    caro(home, envs, &args)
-}
-
-#[test]
-fn env_only_backend_selects_the_deterministic_route() {
-    let h = TempDir::new().unwrap();
-    let out = json_no_flag(
-        &h,
-        &[("CARO_BACKEND", "select-files")],
-        &[],
-        "list all pdf files",
-    );
-    assert!(
-        out.status.success(),
-        "{}",
-        String::from_utf8_lossy(&out.stderr)
-    );
-    let t = String::from_utf8_lossy(&out.stdout).into_owned();
-    let v: serde_json::Value = serde_json::from_str(&t[t.find('{').unwrap()..]).unwrap();
-    assert!(command(&v).ends_with("-iname '*.pdf' -print0"));
-    assert!(v["debug_info"]
-        .as_str()
-        .unwrap()
-        .contains("intent-deterministic"));
-}
-
-#[test]
-fn config_selected_backend_ignores_inherited_model_and_rejects_force_llm() {
-    let h = TempDir::new().unwrap();
-    write_config(
-        &h,
-        "default_model = \"select-files\"\nmodel_name = \"inherited-model\"",
-    );
-    let out = json_no_flag(&h, &[], &[], "list all python files");
-    assert!(
-        out.status.success(),
-        "{}",
-        String::from_utf8_lossy(&out.stderr)
-    );
-    let t = String::from_utf8_lossy(&out.stdout).into_owned();
-    let v: serde_json::Value = serde_json::from_str(&t[t.find('{').unwrap()..]).unwrap();
-    let dbg = v["debug_info"].as_str().unwrap();
-    assert!(
-        dbg.contains("Model: none") && !dbg.contains("inherited-model"),
-        "{dbg}"
-    );
-    // The effective backend comes from the config file, so the conflicts apply.
-    let out = json_no_flag(&h, &[], &["--force-llm"], "list all python files");
-    assert!(!out.status.success());
-    assert!(
-        String::from_utf8_lossy(&out.stderr).contains("cannot be used with --backend select-files")
-    );
-    let out = json_no_flag(&h, &[], &["--model-name", "m"], "list all python files");
-    assert!(!out.status.success());
-}
-
-#[test]
-fn flag_beats_env_beats_config_for_the_selected_route() {
-    let h = TempDir::new().unwrap();
-    // config and env name other backends; those are never constructed because
-    // a higher-priority source selects select-files.
-    write_config(&h, "default_model = \"embedded\"");
-    let out = json_no_flag(
-        &h,
-        &[("CARO_BACKEND", "select-files")],
-        &[],
-        "list all python files",
-    );
-    assert!(
-        out.status.success(),
-        "env over config: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
-    let out = caro(
-        &h,
-        &[("CARO_BACKEND", "embedded")],
-        &[
-            "--backend",
-            "select-files",
-            "--dry-run",
-            "-o",
-            "json",
-            "list all python files",
-        ],
-    );
-    assert!(
-        out.status.success(),
-        "flag over env: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
 }

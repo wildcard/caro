@@ -70,18 +70,18 @@ impl Default for SystemRunner {
     }
 }
 
+#[cfg(unix)]
 impl VersionRunner for SystemRunner {
     /// One fixed deadline covers spawn, execution and output collection.
     ///
-    /// stdout is drained on a thread while the child runs, so a verbose child
-    /// never blocks on a full pipe. The thread keeps at most
-    /// [`MAX_VERSION_BYTES`]; more output kills the child. If the child has
-    /// exited but a descendant still holds the pipe open, the deadline still
-    /// ends the wait (the reader thread is detached and ends when the pipe
-    /// closes; it owns nothing the verifier waits on).
+    /// No helper thread: stdout is a non-blocking pipe read from this loop,
+    /// so a verbose child never stalls on a full pipe and nothing waits for
+    /// EOF. The child leads its own process group. On timeout, overflow or a
+    /// pipe held open after the child exited, the whole group is killed and
+    /// the child reaped, then our read end is dropped. Nothing is left behind.
     fn run(&self, exe: &Path) -> Result<Vec<u8>, RunFailure> {
-        use std::sync::atomic::{AtomicBool, Ordering};
-        use std::sync::{mpsc, Arc};
+        use std::os::unix::io::AsRawFd;
+        use std::os::unix::process::CommandExt;
 
         let mut child = Command::new(exe)
             .arg("--version")
@@ -90,74 +90,95 @@ impl VersionRunner for SystemRunner {
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
+            .process_group(0)
             .spawn()
             .map_err(|e| RunFailure::Other(format!("spawn: {e}")))?;
         let deadline = Instant::now() + self.timeout;
-        let overflow = Arc::new(AtomicBool::new(false));
-        let (tx, rx) = mpsc::channel::<Vec<u8>>();
-        if let Some(mut so) = child.stdout.take() {
-            let overflow = overflow.clone();
-            std::thread::spawn(move || {
-                let mut kept = Vec::new();
-                let mut chunk = [0u8; 4096];
-                loop {
-                    match so.read(&mut chunk) {
-                        Ok(0) | Err(_) => break,
-                        Ok(n) => {
-                            if kept.len() + n > MAX_VERSION_BYTES as usize {
-                                overflow.store(true, Ordering::SeqCst);
-                                // keep draining so the child is not blocked
-                                // while the verifier kills it
-                                continue;
-                            }
-                            kept.extend_from_slice(&chunk[..n]);
-                        }
-                    }
-                }
-                let _ = tx.send(kept);
-            });
-        } else {
-            let _ = tx.send(Vec::new());
-        }
-        // Terminate and reap; never leave the child behind.
+
+        // Kill the whole group, then reap the child.
         fn stop(child: &mut std::process::Child) {
+            // SAFETY: kill(2) takes plain integers and has no memory effects.
+            // The child leads its group, so its pid is the pgid; ESRCH is fine.
+            unsafe {
+                libc::kill(-(child.id() as libc::pid_t), libc::SIGKILL);
+            }
             let _ = child.kill();
             let _ = child.wait();
         }
-        let status = loop {
-            if overflow.load(Ordering::SeqCst) {
-                stop(&mut child);
-                return Err(RunFailure::Other("output exceeds the size bound".into()));
-            }
-            match child.try_wait() {
-                Ok(Some(s)) => break s,
-                Ok(None) if Instant::now() >= deadline => {
-                    stop(&mut child);
-                    return Err(RunFailure::TimedOut);
-                }
-                Ok(None) => std::thread::sleep(Duration::from_millis(5)),
-                Err(e) => {
-                    stop(&mut child);
-                    return Err(RunFailure::Other(format!("wait: {e}")));
-                }
-            }
+
+        let Some(mut so) = child.stdout.take() else {
+            stop(&mut child);
+            return Err(RunFailure::Other("no stdout pipe".into()));
         };
-        let remaining = deadline.saturating_duration_since(Instant::now());
-        let out = match rx.recv_timeout(remaining) {
-            Ok(v) => v,
-            Err(_) => {
-                // Pipe still held open after the child exited: fail closed.
+        // SAFETY: fcntl on a descriptor we own, with plain integer arguments.
+        let nb_ok = unsafe {
+            let fd = so.as_raw_fd();
+            let fl = libc::fcntl(fd, libc::F_GETFL);
+            fl >= 0 && libc::fcntl(fd, libc::F_SETFL, fl | libc::O_NONBLOCK) == 0
+        };
+        if !nb_ok {
+            stop(&mut child);
+            return Err(RunFailure::Other(
+                "cannot make the pipe non-blocking".into(),
+            ));
+        }
+
+        let mut out: Vec<u8> = Vec::new();
+        let mut eof = false;
+        let mut status = None;
+        let mut chunk = [0u8; 4096];
+        loop {
+            // Drain whatever is readable now.
+            while !eof {
+                match so.read(&mut chunk) {
+                    Ok(0) => eof = true,
+                    Ok(n) => {
+                        if out.len() + n > MAX_VERSION_BYTES as usize {
+                            stop(&mut child);
+                            return Err(RunFailure::Other("output exceeds the size bound".into()));
+                        }
+                        out.extend_from_slice(&chunk[..n]);
+                    }
+                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
+                    Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+                    Err(e) => {
+                        stop(&mut child);
+                        return Err(RunFailure::Other(format!("read: {e}")));
+                    }
+                }
+            }
+            if status.is_none() {
+                match child.try_wait() {
+                    Ok(s) => status = s,
+                    Err(e) => {
+                        stop(&mut child);
+                        return Err(RunFailure::Other(format!("wait: {e}")));
+                    }
+                }
+            }
+            if let (Some(s), true) = (status, eof) {
+                // Child exited and the pipe closed: collected within the bound.
+                // Kill any straggler in the group (no-op when it is empty).
+                stop(&mut child);
+                if !s.success() {
+                    return Err(RunFailure::Other(format!("exit status {s}")));
+                }
+                return Ok(out);
+            }
+            if Instant::now() >= deadline {
+                // Still running, or exited with the pipe held open: fail closed.
                 stop(&mut child);
                 return Err(RunFailure::TimedOut);
             }
-        };
-        if overflow.load(Ordering::SeqCst) {
-            return Err(RunFailure::Other("output exceeds the size bound".into()));
+            std::thread::sleep(Duration::from_millis(5));
         }
-        if !status.success() {
-            return Err(RunFailure::Other(format!("exit status {status}")));
-        }
-        Ok(out)
+    }
+}
+
+#[cfg(not(unix))]
+impl VersionRunner for SystemRunner {
+    fn run(&self, _exe: &Path) -> Result<Vec<u8>, RunFailure> {
+        Err(RunFailure::Other("unsupported platform".into()))
     }
 }
 
@@ -334,9 +355,11 @@ mod tests {
             .trim()
             .to_string();
         // reaped: no zombie and no live process under that pid
+        // Our own child must be reaped: no /proc entry at all (a zombie
+        // would still have one).
         assert!(
             !Path::new(&format!("/proc/{pid}")).exists(),
-            "child {pid} still present"
+            "child {pid} not reaped"
         );
     }
 
@@ -346,6 +369,15 @@ mod tests {
         std::fs::write(&p, format!("#!/bin/sh\n{body}\n")).unwrap();
         std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
         p
+    }
+
+    /// Alive means present and not a zombie (a killed orphan can stay a
+    /// zombie until init reaps it; it no longer runs).
+    fn running(pid: &str) -> bool {
+        std::fs::read_to_string(format!("/proc/{pid}/stat"))
+            .ok()
+            .and_then(|s| s.rsplit_once(')').map(|(_, r)| r.trim_start().to_string()))
+            .is_some_and(|r| !r.starts_with('Z'))
     }
 
     #[test]
@@ -368,10 +400,13 @@ mod tests {
         let t = Instant::now();
         assert_eq!(r.run(&s), Err(RunFailure::TimedOut));
         assert!(t.elapsed() < Duration::from_secs(5), "{:?}", t.elapsed());
-        // clean up the synthetic sleeper (own pid from the fixture)
-        if let Ok(pid) = std::fs::read_to_string(&pidfile) {
-            let _ = Command::new("kill").arg(pid.trim()).status();
-        }
+        // The group kill removed the background sleeper too: no process leaks.
+        let pid = std::fs::read_to_string(&pidfile)
+            .unwrap()
+            .trim()
+            .to_string();
+        std::thread::sleep(Duration::from_millis(100));
+        assert!(!running(&pid), "synthetic sleeper {pid} survived");
     }
 
     #[test]
