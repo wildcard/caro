@@ -353,6 +353,14 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Next step:** none. Delete after 2026-10-19.
 
 
+### BW-050: CI never runs 23 of 46 integration test targets
+
+**Found:** 2026-10-07 (while driving #1536)
+**Issue:** #1537. CI runs only targets named by `cargo test --test <name>`; 23 targets in `tests/` are named nowhere, including 5 `*_contract` guards (e.g. `explain_ste_contract`, `clarification_gate_contract`).
+**Status:** open
+**Needs human?:** yes (CI gate). Options on #1537: run `cargo test --tests` in Unit Tests, or add a check that every target is named.
+**Next step:** maintainer picks an option on #1537.
+
 ### BW-051: unrendered website components and unread locale fields hold 156 emoji
 
 **Found:** 2026-10-11, emoji-icon inventory (`docs/brand/icons/definitions.json`, #1590)
