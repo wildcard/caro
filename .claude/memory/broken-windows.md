@@ -622,7 +622,7 @@ workspaces are BW-069.
 
 **Found:** 2026-10-14, broken-window sweep (register sync)
 **Issue:** #1657
-**Status:** claimed-by sweep/2026-10-15-BW-086 (#1675)
+**Status:** claimed-by integrator/20261014 (#1672, Closes #1657). Duplicate sweep PR #1675 was closed.
 **Needs human?:** no
 **Next step:** rewrite the three entries in `website/src/data/integrations.ts` for 1.5.0 behavior; use `--model-name` in the snippet.
 
