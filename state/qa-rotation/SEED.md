@@ -70,3 +70,16 @@ The 14:08 run on 2026-10-13 also used the old prompt. It read main's May copy, f
 - **Not taken:** its #1044 edits. The seed already lists #1044 as closed.
 
 With #1653, 35 of the 36 runs tested Slot C surface #10.
+
+## Added after seeding: #1674 (2026-10-15)
+
+The 14:08 run on 2026-10-15 also used the old prompt. It read main's May copy and opened PR #1674. It filed #1673 (P0), which is the CPU stub of #1269 (BW-006): the root cause of #1494 and the other closed duplicates. Its changes were folded in by hand, with the rules above:
+
+- **Session log:** its entry goes on top, with a note on what it could not see. One duration figure became "[duration omitted]".
+- **Its rows win:** the 2026-10-15 smoke row and surface 10 (FAIL). Surface 10 links #1269, because #1673 is its duplicate.
+- **Backlog:** #1673 gets a row marked as a duplicate of #1269. The #1408 row keeps its 2026-10-15 review text.
+- **Flakes:** FLAKE-001 and FLAKE-002 each get a "not triggered" line. The download finished, so `ai --once` reached the stub instead of hanging.
+- **Not taken:** its "Resolved (closed issues)" line for #1673, because #1673 is open.
+- **Also added:** surface 11 links #1671 (the `?` widget cannot take a request), filed by the maintainer session on 2026-10-15.
+
+With #1674, 36 of the 37 runs tested Slot C surface #10.
