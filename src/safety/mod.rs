@@ -34,7 +34,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-use crate::models::{RiskJudgment, RiskLevel, SafetyLevel, ShellType, SuggestedRouting};
+use crate::models::{
+    BackendType, RiskJudgment, RiskLevel, SafetyLevel, ShellType, SuggestedRouting,
+};
 
 pub use cve_patterns::{get_cve_compiled_patterns_for_shell, CVE_COMPILED};
 pub use patterns::{
@@ -261,6 +263,33 @@ pub struct SmartDecision {
     pub blocked: bool,
     /// Plain-text note explaining a re-route (None if the judge had no effect).
     pub note: Option<String>,
+}
+
+/// Whether a `--approval smart` judge on this backend may *relax* a static
+/// decision. A hosted API (Grok, OpenRouter, Claude) may only escalate: a
+/// remote model must not downgrade a command the static rules flagged,
+/// usually one it generated itself. This matches `caro guard --judge`
+/// (#1644). Local judges (Ollama, vLLM) keep the two-way blend.
+pub fn judge_may_relax(backend: BackendType) -> bool {
+    !matches!(
+        backend,
+        BackendType::Grok | BackendType::OpenRouter | BackendType::Claude
+    )
+}
+
+/// [`blend_smart_decision`] for the judge of `backend`. For a backend that
+/// may not relax ([`judge_may_relax`]), a verdict below the static risk is
+/// dropped, so the static decision stands; an equal or higher verdict blends
+/// as usual (escalation still works).
+pub fn blend_smart_decision_for(
+    backend: BackendType,
+    static_risk: RiskLevel,
+    judge: Option<&RiskJudgment>,
+    safety: SafetyLevel,
+    auto_confirm: bool,
+) -> SmartDecision {
+    let judge = judge.filter(|j| judge_may_relax(backend) || j.risk >= static_risk);
+    blend_smart_decision(static_risk, judge, safety, auto_confirm)
 }
 
 /// Blend a static risk decision with an optional LLM [`RiskJudgment`], bounded
@@ -1234,6 +1263,128 @@ mod smart_blend_tests {
         assert!(d.requires_confirmation);
         assert!(!d.blocked); // judge can gate but never hard-block
         assert!(d.note.is_some());
+    }
+
+    // ── Hosted judges (Grok, OpenRouter) may only escalate (#1644) ─────────
+
+    const HOSTED: [BackendType; 2] = [BackendType::Grok, BackendType::OpenRouter];
+    const LOCAL: [BackendType; 2] = [BackendType::Ollama, BackendType::VLlm];
+
+    #[test]
+    fn hosted_judges_may_not_relax_but_local_judges_may() {
+        for b in HOSTED {
+            assert!(!judge_may_relax(b), "{b:?}");
+        }
+        for b in LOCAL {
+            assert!(judge_may_relax(b), "{b:?}");
+        }
+    }
+
+    #[test]
+    fn hosted_low_risk_verdict_keeps_high_confirmation() {
+        for b in HOSTED {
+            for low in [RiskLevel::Safe, RiskLevel::Moderate] {
+                let j = judgment(low, 0.95);
+                let d = blend_smart_decision_for(
+                    b,
+                    RiskLevel::High,
+                    Some(&j),
+                    SafetyLevel::Moderate,
+                    false,
+                );
+                assert!(d.requires_confirmation, "{b:?} {low:?} relaxed High");
+                assert!(!d.blocked);
+                assert!(d.note.is_none(), "{b:?}: no relax note");
+                // At Strict, High stays blocked.
+                let s = blend_smart_decision_for(
+                    b,
+                    RiskLevel::High,
+                    Some(&j),
+                    SafetyLevel::Strict,
+                    false,
+                );
+                assert!(s.blocked, "{b:?} {low:?} unblocked High at Strict");
+            }
+        }
+    }
+
+    #[test]
+    fn hosted_judge_still_escalates() {
+        for b in HOSTED {
+            let j = judgment(RiskLevel::High, 0.9);
+            let d = blend_smart_decision_for(
+                b,
+                RiskLevel::Safe,
+                Some(&j),
+                SafetyLevel::Moderate,
+                false,
+            );
+            assert!(d.requires_confirmation, "{b:?}");
+            assert!(!d.blocked, "a judge never hard-blocks");
+            assert!(d.note.is_some());
+        }
+    }
+
+    #[test]
+    fn hosted_judge_never_relaxes_critical() {
+        for b in HOSTED {
+            let j = judgment(RiskLevel::Safe, 1.0);
+            let d = blend_smart_decision_for(
+                b,
+                RiskLevel::Critical,
+                Some(&j),
+                SafetyLevel::Moderate,
+                false,
+            );
+            assert_eq!(
+                d,
+                blend_smart_decision(RiskLevel::Critical, None, SafetyLevel::Moderate, false)
+            );
+            assert!(d.blocked);
+        }
+    }
+
+    /// Timeout, a missing key and an unparsable reply all reach the blend as
+    /// no verdict (`classify_risk` returns `None`); so does a low-confidence one.
+    #[test]
+    fn hosted_judge_without_a_usable_verdict_keeps_static() {
+        let weak = judgment(RiskLevel::Safe, SMART_JUDGE_MIN_CONFIDENCE - 0.01);
+        for b in HOSTED {
+            for static_risk in [RiskLevel::Safe, RiskLevel::Moderate, RiskLevel::High] {
+                let baseline =
+                    blend_smart_decision(static_risk, None, SafetyLevel::Moderate, false);
+                for verdict in [None, Some(&weak)] {
+                    let d = blend_smart_decision_for(
+                        b,
+                        static_risk,
+                        verdict,
+                        SafetyLevel::Moderate,
+                        false,
+                    );
+                    assert_eq!(d, baseline, "{b:?} {static_risk:?} {verdict:?}");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn local_judges_keep_relaxing_as_before() {
+        let j = judgment(RiskLevel::Safe, 0.9);
+        for b in LOCAL {
+            let d = blend_smart_decision_for(
+                b,
+                RiskLevel::High,
+                Some(&j),
+                SafetyLevel::Moderate,
+                false,
+            );
+            assert_eq!(
+                d,
+                blend_smart_decision(RiskLevel::High, Some(&j), SafetyLevel::Moderate, false),
+                "{b:?}"
+            );
+            assert!(!d.requires_confirmation);
+        }
     }
 
     #[test]

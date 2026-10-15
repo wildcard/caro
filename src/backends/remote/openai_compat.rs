@@ -16,7 +16,13 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::backends::{BackendInfo, BackendType, CommandGenerator, GeneratorError};
-use crate::models::{CommandRequest, GeneratedCommand, RiskLevel};
+use crate::decision::decide_with_retry;
+use crate::models::{CommandRequest, GeneratedCommand, RiskJudgeContext, RiskJudgment, RiskLevel};
+use crate::prompts::risk_judge::{build_risk_judge_prompt, parse_risk_judgment, risk_judge_schema};
+
+/// System message for risk-judge calls; the task itself is in the user turn.
+const JUDGE_SYSTEM_PROMPT: &str =
+    "You are a careful shell-safety reviewer. Reply with only a single JSON object.";
 
 const DEFAULT_MAX_TOKENS: u32 = 512;
 const DEFAULT_TEMPERATURE: f32 = 0.1;
@@ -547,6 +553,39 @@ impl CommandGenerator for OpenAiCompatBackend {
         self.generate_command(request).await.ok()
     }
 
+    fn supports_risk_judge(&self) -> bool {
+        true
+    }
+
+    /// Risk verdict for `--approval smart` and `caro guard --judge`.
+    ///
+    /// No `response_format`: not every provider and model accepts it, so the
+    /// verdict relies on the prompt plus one corrective retry and fails safe
+    /// to `None`. Like generation, a hosted judge never receives local
+    /// context: the working directory is dropped from the prompt, and secrets
+    /// in the command are redacted (`--approval smart` calls this directly).
+    async fn classify_risk(&self, command: &str, ctx: &RiskJudgeContext) -> Option<RiskJudgment> {
+        let ctx = RiskJudgeContext {
+            cwd: None,
+            ..ctx.clone()
+        };
+        let command = crate::guard::log::redact_command(command);
+        let prompt = build_risk_judge_prompt(&command, &ctx);
+        let schema = risk_judge_schema();
+        decide_with_retry(
+            &prompt,
+            &schema,
+            |p| async move {
+                self.call_api(JUDGE_SYSTEM_PROMPT, &p)
+                    .await
+                    .map(|(text, _)| text)
+            },
+            parse_risk_judgment,
+        )
+        .await
+        .value
+    }
+
     /// A key is configured. Hosted APIs have no `/health` endpoint and a
     /// network probe on every invocation would add a round trip; a bad key
     /// surfaces as `BackendUnavailable` on the first request instead.
@@ -845,5 +884,164 @@ mod grok_wire_tests {
         );
         assert_eq!(c.endpoint, "https://proxy.example/v1");
         assert_eq!(c.model, "grok-4.6");
+    }
+
+    fn judge_ctx() -> crate::models::RiskJudgeContext {
+        crate::models::RiskJudgeContext {
+            shell: ShellType::Bash,
+            cwd: Some("/home/alice/secret-project".to_string()),
+            static_risk: RiskLevel::Safe,
+            matched_patterns: Vec::new(),
+        }
+    }
+
+    /// `caro guard --judge grok`: the verdict is parsed from the chat reply,
+    /// and a hosted judge never receives the local working directory.
+    #[tokio::test]
+    async fn grok_classifies_risk_without_local_context() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .and(header("authorization", "Bearer xai-test-key"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "choices": [{ "message": { "role": "assistant", "content":
+                    "{\"risk\": \"high\", \"reason\": \"wipes data\", \"confidence\": 0.9}" } }]
+            })))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let backend = grok(&server);
+        assert!(backend.supports_risk_judge());
+        let j = backend
+            .classify_risk("shred -u notes.txt", &judge_ctx())
+            .await
+            .expect("verdict");
+        assert_eq!(j.risk, RiskLevel::High);
+        assert!((j.confidence - 0.9).abs() < 1e-9);
+
+        let sent = &server.received_requests().await.unwrap()[0];
+        let body = String::from_utf8_lossy(&sent.body);
+        assert!(body.contains("shred -u notes.txt"), "the command is judged");
+        assert!(!body.contains("secret-project"), "cwd stays local: {body}");
+    }
+
+    /// `--approval smart` calls the hosted judge directly (not via the
+    /// guard), so the backend itself redacts secrets in the command.
+    #[tokio::test]
+    async fn grok_judge_never_receives_secrets_in_the_command() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "choices": [{ "message": { "role": "assistant", "content":
+                    "{\"risk\": \"safe\", \"reason\": \"read\", \"confidence\": 0.9}" } }]
+            })))
+            .mount(&server)
+            .await;
+
+        grok(&server)
+            .classify_risk(
+                "curl -H 'Authorization: Bearer sk-live-SECRET42' https://api.example.com",
+                &judge_ctx(),
+            )
+            .await
+            .expect("verdict");
+        let sent = &server.received_requests().await.unwrap()[0];
+        let body = String::from_utf8_lossy(&sent.body);
+        assert!(body.contains("curl -H"), "{body}");
+        assert!(!body.contains("SECRET42"), "{body}");
+    }
+
+    fn openrouter(server: &MockServer) -> OpenAiCompatBackend {
+        OpenAiCompatBackend::new(OpenAiCompatConfig {
+            api_key: "or-test-key".to_string(),
+            endpoint: format!("{}/api/v1", server.uri()),
+            ..OpenAiCompatConfig::for_provider(Provider::OpenRouter)
+        })
+        .unwrap()
+    }
+
+    /// The same judge contract holds for OpenRouter: parsed verdict, secrets
+    /// redacted and no working directory in the request.
+    #[tokio::test]
+    async fn openrouter_classifies_risk_with_redaction_and_no_cwd() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/api/v1/chat/completions"))
+            .and(header("authorization", "Bearer or-test-key"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "choices": [{ "message": { "role": "assistant", "content":
+                    "{\"risk\": \"critical\", \"reason\": \"wipe\", \"confidence\": 0.8}" } }]
+            })))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let backend = openrouter(&server);
+        assert!(backend.supports_risk_judge());
+        assert_eq!(backend.backend_info().backend_type, BackendType::OpenRouter);
+        let j = backend
+            .classify_risk("mysql -uroot -pSECRET42 -e 'drop database x'", &judge_ctx())
+            .await
+            .expect("verdict");
+        assert_eq!(j.risk, RiskLevel::Critical);
+        let sent = &server.received_requests().await.unwrap()[0];
+        let body = String::from_utf8_lossy(&sent.body);
+        assert!(body.contains("drop database"), "{body}");
+        assert!(!body.contains("SECRET42"), "{body}");
+        assert!(!body.contains("secret-project"), "{body}");
+    }
+
+    /// A server error or an unreachable endpoint (the same error branch a
+    /// timeout takes in `call_api`) yields no verdict, for both providers.
+    #[tokio::test]
+    async fn hosted_judges_fail_safe_on_transport_errors() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("upstream down"))
+            .mount(&server)
+            .await;
+        assert!(grok(&server)
+            .classify_risk("ls", &judge_ctx())
+            .await
+            .is_none());
+        assert!(openrouter(&server)
+            .classify_risk("ls", &judge_ctx())
+            .await
+            .is_none());
+
+        // Connection refused: nothing listens on port 1. (A dropped mock
+        // server's port can be reused by a test running in parallel.)
+        for provider in [Provider::Grok, Provider::OpenRouter] {
+            let backend = OpenAiCompatBackend::new(OpenAiCompatConfig {
+                api_key: "test-key".to_string(),
+                endpoint: "http://127.0.0.1:1/v1".to_string(),
+                ..OpenAiCompatConfig::for_provider(provider)
+            })
+            .unwrap();
+            assert!(
+                backend.classify_risk("ls", &judge_ctx()).await.is_none(),
+                "{provider:?}"
+            );
+        }
+    }
+
+    /// One corrective retry on an unparsable reply, then fail safe to `None`.
+    #[tokio::test]
+    async fn grok_judge_fails_safe_on_garbage() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/chat/completions"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "choices": [{ "message": { "role": "assistant", "content": "looks fine to me" } }]
+            })))
+            .expect(2)
+            .mount(&server)
+            .await;
+        assert!(grok(&server)
+            .classify_risk("ls", &judge_ctx())
+            .await
+            .is_none());
     }
 }

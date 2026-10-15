@@ -136,8 +136,11 @@ The decision log holds one JSON line per shell decision.
 
 - `verdict` is what Caro decided. `emitted` is what reached the harness:
   `none` in shadow mode.
-- `source` is always `static` in this version. It exists so a later LLM judge
-  records its provenance, a lesson taken from Grok Build.
+- `source` is `static`, or with `--judge` (follow-up 3): `static+judge` when
+  the judge answered, and `static+judge_error` when it timed out, gave no
+  usable verdict, or could not be built. A judged record also carries
+  `judge_risk`, `judge_confidence`, the redacted `judge_reason`, or
+  `judge_error`. Provenance in the record is a lesson taken from Grok Build.
 - The field names are a forward-compatible subset of the jev Phase 2
   `caro decide` record.
 - Default path: `dirs::data_dir()/caro/guard/decisions.jsonl`. It sits outside
@@ -320,9 +323,16 @@ Tracked in #1512. The safety-core evasions are tracked on #1054.
    parser. Still open: an AST (ADR-007's yash-syntax route), per-segment
    allowlist matching, and find-aware parsing of `-exec … \;` clauses.
 2. A read-only fast-path allowlist for guard.
-3. An optional `--judge <backend>` that adds an LLM judge to guard, with strict
-   JSON output and escalation to `ask` on timeout or error. It reuses
-   `classify_risk` and `blend_smart_decision`.
+3. **Done:** `caro guard --judge <ollama|vllm|grok|openrouter>` (also
+   `$CARO_GUARD_JUDGE`), with `--judge-model` and `--judge-timeout-ms`
+   (default 2000). The judge is asked only when the static verdict is "no
+   opinion". It may raise that to `ask` when it rates the command High or
+   Critical with confidence at least 0.7 (`SMART_JUDGE_MIN_CONFIDENCE`). It
+   never denies and never relaxes. On timeout or error the static verdict
+   stands (ADR-020 decision 4, amended). The judge sees the redacted command;
+   a hosted judge (grok, openrouter) does not get the working directory. Its
+   own `reason` is logged, never sent back to the agent. Needs the
+   `remote-backends` feature.
 4. A PostToolUse outcome hook that feeds the calibration telemetry of jev
    Phase 1.
 5. MCP `validate_command` (#928) on the guard core.

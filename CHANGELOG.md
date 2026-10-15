@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`caro guard --judge` (experimental, spec 011 follow-up 3).** An opt-in
+  LLM judge (`ollama`, `vllm`, `grok` or `openrouter`, or
+  `$CARO_GUARD_JUDGE`) reviews the shell commands the static rules let
+  through. It can only escalate them to `ask`, and only when it rates a
+  command High or Critical with confidence 0.7 or higher. It never denies, never relaxes a static verdict, and is not called
+  for flagged commands. A timeout (`--judge-timeout-ms`, default 2000) or an
+  error keeps the static verdict, and the decision log records it as
+  `source: static+judge_error`. The judge sees the redacted command, and
+  hosted judges do not get the working directory. `caro guard report` adds a
+  "by source" line. `classify_risk` now also works for the `grok` and
+  `openrouter` backends. In `--approval smart` these hosted judges may only
+  escalate: they cannot relax a command the static rules flagged (local
+  `ollama`/`vllm` judges keep the two-way blend). Guarded by the `judge_*` tests in `src/guard/mod.rs`
+  and `ollama_judge_escalates_a_static_pass_to_ask` in `tests/e2e_guard.rs`,
+  and the `hosted_*` tests in `safety::smart_blend_tests`.
 - **Segment- and wrapper-aware safety validation (#1054).** The validator
   now scans each statement of a command line, each statement without its
   `sudo`/`env`/`timeout`/`nice`/`nohup`/`xargs`/`busybox` prefix, and each
