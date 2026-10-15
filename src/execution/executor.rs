@@ -33,13 +33,124 @@ pub enum ExecutorError {
 
     #[error("Invalid command: {0}")]
     InvalidCommand(String),
+
+    /// Caro got this signal while the command ran. The command's process
+    /// group got the same signal.
+    #[error("Command interrupted by signal {0}")]
+    Interrupted(i32),
+}
+
+/// How often a timed command's wait loop checks the deadline and signals.
+const POLL: Duration = Duration::from_millis(10);
+
+/// Catch SIGINT, SIGTERM and SIGHUP while a timed command runs, so caro can
+/// forward them to the command's process group (AX's runner does the same).
+#[cfg(unix)]
+mod signals {
+    use std::sync::atomic::{AtomicI32, Ordering};
+    use std::sync::Mutex;
+
+    pub use libc::SIGTERM;
+
+    const CAUGHT: [libc::c_int; 3] = [libc::SIGINT, libc::SIGTERM, libc::SIGHUP];
+
+    /// The last signal caught while a guard was installed, or 0. Only the
+    /// first guard clears it, so every command running while caro is
+    /// signalled sees the signal and stops; caro is shutting down.
+    static PENDING: AtomicI32 = AtomicI32::new(0);
+
+    /// Number of live guards, and for each signal in `CAUGHT` the handler we
+    /// replaced. A signal we left alone has no entry.
+    #[allow(clippy::type_complexity)]
+    static INSTALLED: Mutex<(usize, Vec<(libc::c_int, libc::sigaction)>)> =
+        Mutex::new((0, Vec::new()));
+
+    extern "C" fn record(sig: libc::c_int) {
+        // Only async-signal-safe work here: one atomic store.
+        PENDING.store(sig, Ordering::SeqCst);
+    }
+
+    /// The signal caught since the first live guard was installed.
+    pub fn pending() -> Option<i32> {
+        match PENDING.load(Ordering::SeqCst) {
+            0 => None,
+            sig => Some(sig),
+        }
+    }
+
+    /// Install `record` for `sig` and return the handler it replaced. A
+    /// signal caro inherited as ignored (`nohup`, a background job) stays
+    /// ignored: we neither catch it nor forward it.
+    fn catch(sig: libc::c_int) -> Option<(libc::c_int, libc::sigaction)> {
+        // SAFETY: sigaction structs are plain data, and `record` is
+        // async-signal-safe.
+        unsafe {
+            let mut old: libc::sigaction = std::mem::zeroed();
+            if libc::sigaction(sig, std::ptr::null(), &mut old) != 0
+                || old.sa_sigaction == libc::SIG_IGN
+            {
+                return None;
+            }
+            let mut action: libc::sigaction = std::mem::zeroed();
+            action.sa_sigaction = record as extern "C" fn(libc::c_int) as usize;
+            action.sa_flags = libc::SA_RESTART;
+            libc::sigemptyset(&mut action.sa_mask);
+            if libc::sigaction(sig, &action, &mut old) != 0 {
+                return None;
+            }
+            Some((sig, old))
+        }
+    }
+
+    /// Installs the handler while alive. Commands can run on several threads,
+    /// so the first guard installs it and the last one restores the old one.
+    pub struct Guard;
+
+    impl Guard {
+        pub fn install() -> Guard {
+            let mut installed = INSTALLED.lock().unwrap_or_else(|e| e.into_inner());
+            if installed.0 == 0 {
+                PENDING.store(0, Ordering::SeqCst);
+                installed.1 = CAUGHT.iter().filter_map(|&sig| catch(sig)).collect();
+            }
+            installed.0 += 1;
+            Guard
+        }
+    }
+
+    impl Drop for Guard {
+        fn drop(&mut self) {
+            let mut installed = INSTALLED.lock().unwrap_or_else(|e| e.into_inner());
+            installed.0 -= 1;
+            if installed.0 == 0 {
+                for (sig, old) in installed.1.drain(..) {
+                    // SAFETY: restores the handler that `install` replaced.
+                    unsafe { libc::sigaction(sig, &old, std::ptr::null_mut()) };
+                }
+            }
+        }
+    }
+}
+
+/// Without Unix signals there is nothing to forward.
+#[cfg(not(unix))]
+mod signals {
+    pub const SIGTERM: i32 = 15;
+
+    pub fn pending() -> Option<i32> {
+        None
+    }
 }
 
 /// Command executor for running shell commands
 pub struct CommandExecutor {
     shell_type: ShellType,
     timeout_ms: Option<u64>,
+    grace_ms: u64,
 }
+
+/// How long a timed-out command gets between SIGTERM and SIGKILL.
+pub const DEFAULT_GRACE_MS: u64 = 2000;
 
 impl CommandExecutor {
     /// Create a new command executor for the specified shell
@@ -47,12 +158,21 @@ impl CommandExecutor {
         Self {
             shell_type,
             timeout_ms: None,
+            grace_ms: DEFAULT_GRACE_MS,
         }
     }
 
-    /// Set execution timeout in milliseconds
+    /// Set execution timeout in milliseconds. When it elapses the command
+    /// gets SIGTERM, then SIGKILL after the grace period (Unix).
     pub fn with_timeout(mut self, timeout_ms: u64) -> Self {
         self.timeout_ms = Some(timeout_ms);
+        self
+    }
+
+    /// Set how long a timed-out command gets to exit after SIGTERM before it
+    /// is sent SIGKILL (Unix). Default: [`DEFAULT_GRACE_MS`].
+    pub fn with_grace_period(mut self, grace_ms: u64) -> Self {
+        self.grace_ms = grace_ms;
         self
     }
 
@@ -67,7 +187,7 @@ impl CommandExecutor {
         cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
 
         let output = match self.timeout_ms {
-            Some(timeout) => Self::output_with_deadline(cmd, timeout)?,
+            Some(timeout) => Self::output_with_deadline(cmd, timeout, self.grace_ms)?,
             None => cmd.output().map_err(|e| {
                 ExecutorError::SpawnError(format!("Failed to execute command: {}", e))
             })?,
@@ -78,9 +198,13 @@ impl CommandExecutor {
         Ok(self.process_output(output, execution_time_ms))
     }
 
-    /// Run the command, killing it (and its whole process group on Unix)
-    /// once `timeout_ms` elapses.
-    fn output_with_deadline(mut cmd: Command, timeout_ms: u64) -> Result<Output, ExecutorError> {
+    /// Run the command, stopping it (and its whole process group on Unix)
+    /// once `timeout_ms` elapses: SIGTERM first, SIGKILL after `grace_ms`.
+    fn output_with_deadline(
+        mut cmd: Command,
+        timeout_ms: u64,
+        grace_ms: u64,
+    ) -> Result<Output, ExecutorError> {
         // Put the shell in its own process group so a timeout also kills the
         // grandchildren it forks (e.g. `sleep` in `sleep 5; echo done`).
         #[cfg(unix)]
@@ -89,9 +213,17 @@ impl CommandExecutor {
         // on SIGTTIN and hang until the deadline), so give it no stdin.
         cmd.stdin(Stdio::null());
 
-        let mut child = cmd
-            .spawn()
-            .map_err(|e| ExecutorError::SpawnError(format!("Failed to execute command: {}", e)))?;
+        // The child is not in the terminal's foreground group, so a Ctrl-C
+        // reaches only caro. Catch it and pass it on to the child's group.
+        // Install the handler before the spawn, so a signal that comes
+        // during the spawn is not lost.
+        #[cfg(unix)]
+        let _signals = signals::Guard::install();
+
+        let mut child = cmd.spawn().map_err(|e| match signals::pending() {
+            Some(sig) => ExecutorError::Interrupted(sig),
+            None => ExecutorError::SpawnError(format!("Failed to execute command: {}", e)),
+        })?;
 
         // Drain pipes on threads so a chatty command can't block on a full pipe.
         let (tx, rx) = mpsc::channel();
@@ -100,14 +232,27 @@ impl CommandExecutor {
 
         let deadline = Instant::now() + Duration::from_millis(timeout_ms);
         let status = loop {
+            if let Some(sig) = signals::pending() {
+                Self::kill_tree(&mut child, sig, grace_ms, Self::shell_or_pipes(&rx));
+                return Err(ExecutorError::Interrupted(sig));
+            }
             match child.try_wait() {
                 Ok(Some(status)) => break status,
                 Ok(None) if Instant::now() >= deadline => {
-                    Self::kill_tree(&mut child);
+                    Self::kill_tree(
+                        &mut child,
+                        signals::SIGTERM,
+                        grace_ms,
+                        Self::shell_or_pipes(&rx),
+                    );
                     return Err(ExecutorError::Timeout(timeout_ms));
                 }
-                Ok(None) => thread::sleep(Duration::from_millis(10)),
-                Err(e) => return Err(ExecutorError::WaitError(e.to_string())),
+                Ok(None) => thread::sleep(POLL),
+                Err(e) => {
+                    // Don't leave the group running when the wait itself fails.
+                    Self::kill_tree(&mut child, signals::SIGTERM, 0, |_| false);
+                    return Err(ExecutorError::WaitError(e.to_string()));
+                }
             }
         };
 
@@ -115,14 +260,29 @@ impl CommandExecutor {
         // stdout/stderr open, so keep enforcing the deadline while draining.
         let (mut stdout, mut stderr) = (None, None);
         while stdout.is_none() || stderr.is_none() {
+            // The shell is already reaped, so the descendant holding the
+            // pipes is what gets the grace period. It is done once every
+            // pipe still open has closed.
+            let mut open = usize::from(stdout.is_none()) + usize::from(stderr.is_none());
+            let mut pipes_open = |_: &mut Child| {
+                while rx.try_recv().is_ok() {
+                    open = open.saturating_sub(1);
+                }
+                open > 0
+            };
+            if let Some(sig) = signals::pending() {
+                Self::kill_tree(&mut child, sig, grace_ms, &mut pipes_open);
+                return Err(ExecutorError::Interrupted(sig));
+            }
             let remaining = deadline.saturating_duration_since(Instant::now());
-            match rx.recv_timeout(remaining) {
+            match rx.recv_timeout(remaining.min(POLL)) {
                 Ok((true, buf)) => stdout = Some(buf),
                 Ok((false, buf)) => stderr = Some(buf),
-                Err(mpsc::RecvTimeoutError::Timeout) => {
-                    Self::kill_tree(&mut child);
+                Err(mpsc::RecvTimeoutError::Timeout) if remaining <= POLL => {
+                    Self::kill_tree(&mut child, signals::SIGTERM, grace_ms, &mut pipes_open);
                     return Err(ExecutorError::Timeout(timeout_ms));
                 }
+                Err(mpsc::RecvTimeoutError::Timeout) => {}
                 Err(mpsc::RecvTimeoutError::Disconnected) => {
                     // Each drain thread sends exactly once, so this means one
                     // died without delivering; don't report a truncated stream.
@@ -133,11 +293,32 @@ impl CommandExecutor {
             }
         }
 
+        // A signal that came after the command finished still stops the
+        // caller, so `caro run` does not start the next step.
+        if let Some(sig) = signals::pending() {
+            Self::kill_tree(&mut child, sig, grace_ms, |_| false);
+            return Err(ExecutorError::Interrupted(sig));
+        }
+
         Ok(Output {
             status,
             stdout: stdout.unwrap_or_default(),
             stderr: stderr.unwrap_or_default(),
         })
+    }
+
+    /// Whether the command is still going while the shell may be alive: the
+    /// shell itself, or any process still holding the pipes. In `a; b` the
+    /// shell dies on SIGTERM at once while `a` cleans up.
+    fn shell_or_pipes(rx: &mpsc::Receiver<(bool, Vec<u8>)>) -> impl FnMut(&mut Child) -> bool + '_ {
+        let mut open = 2;
+        move |c| {
+            let shell_running = matches!(c.try_wait(), Ok(None));
+            while open > 0 && rx.try_recv().is_ok() {
+                open -= 1;
+            }
+            shell_running || open > 0
+        }
     }
 
     /// Read `pipe` to EOF on a thread and send `(is_stdout, bytes)` on `tx`.
@@ -155,23 +336,68 @@ impl CommandExecutor {
         });
     }
 
-    /// SIGKILL the child's whole process group (Unix), then reap the child.
-    fn kill_tree(child: &mut Child) {
+    /// Stop the child's whole process group (Unix; elsewhere only the child),
+    /// then reap the child.
+    ///
+    /// On Unix the group gets `sig` first (SIGTERM on a timeout, or the
+    /// signal caro forwards), so a command can clean up (remove
+    /// a lock or temp file). Once the command exits, or `grace_ms` runs out,
+    /// the group gets SIGKILL for anything that ignored SIGTERM. Elsewhere
+    /// the child is killed at once.
+    ///
+    /// `running` says whether the command is still going: the shell, or any
+    /// process that still holds the stdout/stderr pipes. Zombies hold no
+    /// pipes, so this covers the shell's children without counting zombies.
+    /// A descendant that left the group (setsid) gets no signal at all. The wait
+    /// is never on the whole group: orphaned descendants become zombies that
+    /// still count as group members until PID 1 reaps them, and a container
+    /// without an init never does. So the grace period belongs to the command
+    /// we wait on: once it exits, any other group member that ignored SIGTERM
+    /// gets SIGKILL at once, as in AX's runner.
+    #[cfg_attr(not(unix), allow(unused_variables, unused_mut))]
+    fn kill_tree(
+        child: &mut Child,
+        sig: i32,
+        grace_ms: u64,
+        mut running: impl FnMut(&mut Child) -> bool,
+    ) {
         #[cfg(unix)]
         {
             // The child leads its own group (process_group(0)), so its pid is
-            // the pgid. ESRCH means the group already exited, which is fine.
+            // the pgid. A pgid is not reused while any member is alive. Once
+            // the shell is reaped and every member is gone, the id could in
+            // theory be reused before we signal it; that needs a pid wrap in
+            // the few milliseconds between checks, so we accept the risk.
             let pgid = child.id() as libc::pid_t;
-            // SAFETY: kill(2) takes plain integers and has no memory effects.
-            if unsafe { libc::kill(-pgid, libc::SIGKILL) } != 0 {
-                let err = std::io::Error::last_os_error();
-                if err.raw_os_error() != Some(libc::ESRCH) {
-                    eprintln!("caro: failed to kill process group {}: {}", pgid, err);
+            if Self::signal_group(pgid, sig) {
+                // A stopped member would sit on the signal until the grace
+                // runs out, so wake it up to handle it.
+                Self::signal_group(pgid, libc::SIGCONT);
+                let deadline = Instant::now() + Duration::from_millis(grace_ms);
+                while Instant::now() < deadline && running(child) {
+                    thread::sleep(POLL);
                 }
+                Self::signal_group(pgid, libc::SIGKILL);
             }
         }
         let _ = child.kill();
         let _ = child.wait();
+    }
+
+    /// Send `sig` to process group `pgid`. Returns false once the group is
+    /// gone (ESRCH); other errors are reported and treated as still alive.
+    #[cfg(unix)]
+    fn signal_group(pgid: libc::pid_t, sig: libc::c_int) -> bool {
+        // SAFETY: kill(2) takes plain integers and has no memory effects.
+        if unsafe { libc::kill(-pgid, sig) } == 0 {
+            return true;
+        }
+        let err = std::io::Error::last_os_error();
+        if err.raw_os_error() == Some(libc::ESRCH) {
+            return false;
+        }
+        eprintln!("caro: failed to signal process group {}: {}", pgid, err);
+        true
     }
 
     /// Create shell command based on platform and shell type
@@ -377,6 +603,82 @@ mod tests {
 
         assert!(exec_result.stdout.contains("got:"));
         assert!(start.elapsed().as_millis() < 2000);
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_timeout_sends_sigterm_before_sigkill() {
+        // A timed-out command gets SIGTERM first, so a TERM trap can clean up
+        // (remove a lock or temp file) before the process group goes away.
+        let dir = tempfile::tempdir().unwrap();
+        let marker = dir.path().join("cleaned");
+        let executor = CommandExecutor::new(ShellType::Bash).with_timeout(300);
+        let result = executor.execute(&format!(
+            "trap 'echo cleaned > {}; exit 0' TERM; sleep 5 & wait",
+            marker.display()
+        ));
+
+        assert!(matches!(result, Err(ExecutorError::Timeout(300))));
+        assert!(marker.exists(), "TERM trap did not run before the kill");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_timeout_while_draining_gives_descendant_grace() {
+        // The shell exits at once, but a background subshell keeps stdout
+        // open, so the timeout fires while draining. That subshell must still
+        // get its grace period to run its TERM trap.
+        let dir = tempfile::tempdir().unwrap();
+        let marker = dir.path().join("cleaned");
+        let executor = CommandExecutor::new(ShellType::Bash).with_timeout(300);
+        let result = executor.execute(&format!(
+            "(trap 'echo cleaned > {}; exit 0' TERM; sleep 5 >/dev/null 2>&1 & wait) &",
+            marker.display()
+        ));
+
+        assert!(matches!(result, Err(ExecutorError::Timeout(300))));
+        assert!(marker.exists(), "TERM trap did not run before the kill");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_timeout_gives_child_of_compound_command_grace() {
+        // In `a; b` bash forks `a` and dies on SIGTERM at once, since it has
+        // no TERM trap. The child doing slow cleanup must still get its grace
+        // period: the wait covers whatever holds the pipes, not the shell only.
+        let dir = tempfile::tempdir().unwrap();
+        let marker = dir.path().join("cleaned");
+        let executor = CommandExecutor::new(ShellType::Bash).with_timeout(300);
+        let result = executor.execute(&format!(
+            "bash -c 'trap \"sleep 0.3; echo cleaned > {}; exit 0\" TERM; sleep 5 & wait'; echo after",
+            marker.display()
+        ));
+
+        assert!(matches!(result, Err(ExecutorError::Timeout(300))));
+        assert!(marker.exists(), "the child got no time to clean up");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn test_timeout_sigkills_after_grace_when_term_ignored() {
+        // A command that ignores SIGTERM (its `sleep` inherits the ignored
+        // disposition) is still killed once the grace period runs out.
+        let executor = CommandExecutor::new(ShellType::Bash)
+            .with_timeout(300)
+            .with_grace_period(200);
+        let start = Instant::now();
+        let result = executor.execute("trap '' TERM; sleep 5");
+
+        assert!(matches!(result, Err(ExecutorError::Timeout(300))));
+        let elapsed = start.elapsed().as_millis();
+        assert!(
+            elapsed >= 500,
+            "did not wait out the grace period ({elapsed}ms)"
+        );
+        assert!(
+            elapsed < 2500,
+            "TERM-ignoring command was not killed ({elapsed}ms)"
+        );
     }
 
     #[test]
