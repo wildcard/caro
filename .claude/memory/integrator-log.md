@@ -5,6 +5,14 @@
 
 ---
 
+## 2026-10-14 (23:00 fire) — 1.5.0 published; website backend snippets fixed (#1657)
+
+- **Validated:** ✓ VERIFIED on published `caro 1.5.0` (crates.io 2026-10-13). `--backend ollama|vllm|exo|claude|openrouter|grok --dry-run` → `Configuration error: Backend '<x>' requires the 'remote-backends' feature` (exit 1, loud, matches `--backend-info` "not compiled"). `--model` → `unexpected argument` (correct flag `--model-name`). `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls -la` (known regression, #1645). `caro mcp`/`caro serve` absent.
+- **Shipped:** docs PR fixing the website `integrations.ts` claude/ollama/vllm/exo/openrouter entries + README ollama example (closes #1657). May conflict trivially with #1504 (other lines).
+- **Filed:** none (#1645, #1657, #1629, #1419 already cover findings; deduped).
+- **Discovered:** nothing new; web research found no October launches. Open integrator PRs pile up (#1153, #1348, #1492, #1504, #1624, #1658) — merge-review needed.
+- **Next pass should:** if #1504/#1658 merged, rebase; else topmost code row is #1081 (remote-backends in default build) or MCP server (#928).
+
 ## 2026-07-11 (23:00 PT fire, post-merge pass) — #1298 landed; verify + close-the-loop, no code PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.4.0` (crates.io, 2026-05-09 — still newest). Confirmed **PR #1298 MERGED** (2026-07-12 UTC, commit `2a76cf90`) and **issue #1115 CLOSED**. Re-ran the #1115 repro on the shipped binary: `caro --backend-info` still advertises `static` (available) + `claude` (configurable), yet `caro --backend claude --dry-run -p "list pdf files"` → `Error: Invalid argument: Unknown backend 'claude'` and `--backend static` → identical. So the P0 divergence #1298 fixed on `main` is **still live in the shipped artifact** — this is now purely a release-cadence gap, not a code gap. PASS data point: `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls *.pdf` ✓. New-roster gap: `caro --backend ai-horde` → `Unknown backend` (main exposes it via #1209; published 1.4.0 knows only embedded/ollama/exo/vllm). Inspected `main` source: `CLI_SERVABLE_BACKENDS` (`src/backends/mod.rs:35`) now the single source of truth for `validate_backend_name`/`print_backend_info`/`available_backends`/help; `create_backend` (`src/cli/mod.rs:295`) still has no `claude`/`openrouter` arm (wiring half deferred, per the in-code comment).
