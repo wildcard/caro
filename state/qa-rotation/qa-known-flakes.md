@@ -56,6 +56,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 - 2026-10-09: NOT reproduced — model downloaded successfully to `~/.cache/caro/models/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf` during session; FLAKE-001 not active this run
 - 2026-10-11: not triggered — `--dry-run` passed through the static-matcher fallback (`ls -la`). The 2026-10-11 run (#1604) marked FLAKE-001 resolved for `--dry-run`; prompts that need the LLM were not retested. Confirm on the next pass.
 - 2026-10-13: not triggered — `--dry-run` passed through the static-matcher fallback (`ls -la`). The run (#1653) logged its `caro ai --once` hang under #1408; that hang is FLAKE-002.
+- 2026-10-15: not triggered — `--dry-run` passed through the static-matcher fallback (`ls -la`), and the model download finished during Slot C (#1674).
 
 **Promotion threshold**: File regression issue if explicit download failure observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Status**: Promoted to regression (behavior change constitutes a regression even under 3-in-7-days threshold). Filed as #1440.  
@@ -77,6 +78,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 - 2026-10-10: `caro ai --once 'show me the current date'` — hung silently until 20s external timeout; stdin `/dev/null` made no difference (Slot C surface #10).
 - 2026-10-11: observed (confirmed this run, exit 124 after 15s timeout)
 - 2026-10-13: observed again (`caro ai --once "show disk usage"`: no stdout or stderr before the 5-second timeout; #1653). The timeout is shorter than the 60-second stall watchdog, so this run does not test the #1561 fix.
+- 2026-10-15: not triggered — the model download finished, so `caro ai --once` returned the CPU stub's "What exactly should be deleted?" clarification instead of hanging (#1674 filed it as #1673; root cause #1269).
 **Promotion threshold**: Not applicable — known root cause, tracked in open issues #1272 and #1408. File a separate regression issue only if behavior changes (e.g. starts producing an error message, or starts hanging on a different backend).  
 **Workaround**: Test `caro ai --once` only in an environment with a pre-downloaded model or Ollama available.
 ## Resolved flakes
