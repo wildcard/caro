@@ -65,7 +65,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ### BW-006: embedded CPU stub always returns `echo 'Please clarify your request'`
 
 **Found:** 2026-09-30 sweep dedup
-**Issue:** #1269 (13 duplicates, closed). Root cause: the stub keyword-matches "rm" in the system prompt (`src/backends/embedded/cpu.rs`).
+**Issue:** #1269 (14 duplicates, closed; latest #1673 on 2026-10-15). Root cause: the stub keyword-matches "rm" in the system prompt (`src/backends/embedded/cpu.rs`).
 **Status:** open
 **Needs human?:** yes. Product call: fail with a clear error on the CPU variant, or fall back to the static matcher. Epic #1460 / #1462 also touch this path.
 **Next step:** maintainer picks the behaviour.
@@ -122,7 +122,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep, CI run 36658876598
 **Issue:** #1341
-**Status:** open. The 2026-10-13 nightly (run 38336457787) has no prompt-overflow failures (BW-068 fixed). SmolLM and Qwen each fail 4 tests: 3 are `caro list files` (BW-029, #1550, draft #1651) and 1 is `e2e_multiple_commands_performance`, which asserts `< 60s`. It took 1911.492889208 s on SmolLM and 571.94813475 s on Qwen. TinyLlama was cancelled at GitHub's 360-minute job limit. Both run-time problems are #1654 (BW-083).
+**Status:** open. The 2026-10-13 nightly (run 38336457787) has no prompt-overflow failures (BW-068 fixed). SmolLM and Qwen each fail 4 tests: 3 are `caro list files` (BW-029, #1550, draft #1651) and 1 is `e2e_multiple_commands_performance`, which asserts `< 60s`. It took 1911.492889208 s on SmolLM and 571.94813475 s on Qwen. TinyLlama was cancelled at GitHub's 360-minute job limit. Both run-time problems are #1654 (BW-083). The 2026-10-15 nightly (run 38669323737, after #1660) finishes all three jobs inside the job limit. The perf test took 282.789383667 s on Qwen, 1841.566916541 s on SmolLM and 2256.054322916 s on TinyLlama. The 3 `list files` failures remain (#1550). TinyLlama also fails `e2e_yaml_output_format`: the model picked the tool `show`, which is not allowed.
 **Needs human?:** no (decided 2026-10-10: SmolLM uses the bundle.yml Q8_0 repo, StarCoder is dropped, CI runs on CPU only).
 **Next step:** after #1651 merges, the remaining red is #1654 (needs human).
 
@@ -622,7 +622,7 @@ workspaces are BW-069.
 
 **Found:** 2026-10-14, broken-window sweep (register sync)
 **Issue:** #1657
-**Status:** open
+**Status:** claimed-by sweep/2026-10-15-BW-086 (#1675)
 **Needs human?:** no
 **Next step:** rewrite the three entries in `website/src/data/integrations.ts` for 1.5.0 behavior; use `--model-name` in the snippet.
 
@@ -633,3 +633,11 @@ workspaces are BW-069.
 **Status:** open
 **Needs human?:** yes (dependency and audit-policy decision)
 **Next step:** owner picks the options in #1668: patch 0.23.x in the lockfile, then move or record the 0.21.x path.
+
+### BW-088: shell `?` keybinding cannot take a request: `caro ai --continue-session` exits "no prompt provided"
+
+**Found:** 2026-10-15, broken-window sweep (register sync)
+**Issue:** #1671
+**Status:** open
+**Needs human?:** no
+**Next step:** when stdin is a terminal and no prompt words are given, read one `caro> ` line from the terminal in `run_ai_once` (`src/main.rs`); widgets are in `src/ai/shell_init.rs`.
