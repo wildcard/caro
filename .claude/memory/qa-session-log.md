@@ -4,6 +4,34 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-15 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- build (`--features embedded-cpu`) → PASS (2m 36s)
+- `--version` → PASS: `caro 1.5.0 (867323b 2026-10-14)`
+- `--help` → PASS
+- `doctor` → PASS (advisory: no model, expected)
+- `-p 'list files in current directory' --dry-run` → PASS: `ls -la` (static matcher; no model download needed)
+- Note: `gh auth` token invalid in sandbox; GitHub MCP tools used instead.
+
+### Slot B — Recent diff
+54 PRs merged since 2026-05-07 (checked top 10 by recency). Smoke-tested #1614 (segment/wrapper-aware safety): dry-run of "delete everything under root recursively with sudo" returned the literal placeholder `sudo command` (not dangerous, but not a real command; not filed, revisit). Other PRs (#1660, #1659, #1534, #1656, #1633) are harness/CI/test-only; not exercised.
+
+### Slot C — `caro ai --once` (matrix #10)
+`caro ai --once "show disk usage"` and `"list files"` both fail: `Clarification needed: What exactly should be deleted?` (3/3). Control `-p` returns `df -h`.
+
+### Findings
+- [#1673](https://github.com/wildcard/caro/issues/1673) — ai: `--once` returns deletion clarification for every prompt (P0, regression of #1523/#1494). No open epic covers `ai`, so no epic comment posted.
+
+### Followups
+- Investigate `sudo command` placeholder output from #1614 area; consider filing P2 if reproduced.
+- Next Slot C: #11 `caro ai --continue-session` (likely same root cause as #1673).
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).

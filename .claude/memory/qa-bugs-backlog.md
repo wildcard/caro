@@ -49,3 +49,5 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 ## Resolved (closed issues)
 
 - **BUG-001**: Search highlight double-counting with global regex — Fixed 2026-01-02
+
+- [#1673](https://github.com/wildcard/caro/issues/1673) — ai: `--once` returns deletion clarification for every prompt (P0, filed 2026-10-15)
