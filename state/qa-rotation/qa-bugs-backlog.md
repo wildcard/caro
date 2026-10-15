@@ -31,7 +31,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1500](https://github.com/wildcard/caro/issues/1500) | P2 | embedded | CPU backend stub returns misleading "What exactly should be deleted?" for all queries | closed (duplicate) | 2026-10-02 |
 | [#1501](https://github.com/wildcard/caro/issues/1501) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 — drift recurred after #1044 | closed (duplicate) | 2026-10-02 |
 | [#1179](https://github.com/wildcard/caro/issues/1179) | P1 | ai | `caro ai --once` lacks static-matcher fallback — always requires model download | open | 2026-05-28 |
-| [#1408](https://github.com/wildcard/caro/issues/1408) | P1 | ai | `caro ai --once` provides zero user feedback during model initialization | open; fix PR #1415 pending | 2026-08-15 |
+| [#1408](https://github.com/wildcard/caro/issues/1408) | P1 | ai | `caro ai --once` provides zero user feedback during model initialization | open; #1415 adds one stderr line before backend setup, not a fix: the download wait stays silent (2026-10-15 review) | 2026-08-15 |
 | [#1540](https://github.com/wildcard/caro/issues/1540) | P2 | ai | caro ai --once hangs silently with no feedback when no backend is ready | closed (duplicate) | 2026-10-08 |
 | [#1541](https://github.com/wildcard/caro/issues/1541) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (recurrence of #1044) | closed (duplicate) | 2026-10-08 |
 | pending-2 | P2 | ai | `caro ai --once` hangs silently (no output, no timeout msg) when no model; `doctor` doesn't warn | duplicate of #1408 and #1179 (both open), see #1540 — do not file | 2026-10-10 |
