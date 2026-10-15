@@ -40,7 +40,7 @@ This skill helps users effectively leverage **Caro** (formerly Caro) - a Rust CL
 caro --backend claude "user's request here"
 ```
 
-The Claude backend uses **claude-haiku-4-5-20251101** for fast, cost-effective command generation. The API key is automatically provided by Claude Code.
+The Claude backend uses **claude-haiku-4-5-20251001** for fast, cost-effective command generation. The API key is automatically provided by Claude Code.
 
 ## When to Use This Skill
 
@@ -103,7 +103,7 @@ Generated command:
   find ~/Downloads -name "*.pdf" -size +10M -ls
 
 Safety Assessment: ✅ Safe (Green)
-Backend: Claude (claude-haiku-4-5-20251101)
+Backend: Claude (claude-haiku-4-5-20251001)
 Execute this command? (y/N)
 ```
 
@@ -225,7 +225,7 @@ Caro supports multiple inference backends. Help users choose:
 ### Claude Backend (Default for Claude Code)
 - **Best for**: Running directly within Claude Code or with Anthropic API access
 - **Advantages**: Fastest, most accurate, uses Claude Haiku 4.5 by default
-- **Model**: claude-haiku-4-5-20251101 (default)
+- **Model**: claude-haiku-4-5-20251001 (default)
 - **Setup**:
   ```toml
   # ~/.config/caro/config.toml
@@ -233,7 +233,7 @@ Caro supports multiple inference backends. Help users choose:
   primary = "claude"
 
   [backend.claude]
-  model_name = "claude-haiku-4-5-20251101"  # Fast and cost-effective
+  model_name = "claude-haiku-4-5-20251001"  # Fast and cost-effective
   # API key read from ANTHROPIC_API_KEY environment variable
   ```
 
@@ -288,7 +288,7 @@ Generated command:
   find . -name "*.py" -type f -mtime -7
 
 Safety Assessment: ✅ Safe (Green)
-Backend: Claude (claude-haiku-4-5-20251101)
+Backend: Claude (claude-haiku-4-5-20251001)
 - Read-only operation
 - POSIX-compliant syntax
 - Searches current directory and subdirectories
@@ -316,7 +316,7 @@ Generated command:
   find . -name "*.log" -type f -mtime +30 -delete
 
 Safety Assessment: 🟠 High (Orange)
-Backend: Claude (claude-haiku-4-5-20251101)
+Backend: Claude (claude-haiku-4-5-20251001)
 - Performs deletion (irreversible)
 - Recursive operation
 - Affects multiple files
@@ -348,7 +348,7 @@ Generated command:
   df -h
 
 Safety Assessment: ✅ Safe (Green)
-Backend: Claude (claude-haiku-4-5-20251101)
+Backend: Claude (claude-haiku-4-5-20251001)
 - Read-only operation
 - Standard system utility
 - No modifications
@@ -409,7 +409,7 @@ primary = "claude"  # claude (default in Claude Code), embedded, ollama, or vllm
 enable_fallback = true
 
 [backend.claude]
-model_name = "claude-haiku-4-5-20251101"  # Fast and cost-effective
+model_name = "claude-haiku-4-5-20251001"  # Fast and cost-effective
 # API key read from ANTHROPIC_API_KEY environment variable
 ```
 
