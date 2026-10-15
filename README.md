@@ -271,7 +271,7 @@ caro --verbose "search for Python files"
 caro "compress all images in current directory"
 
 # With specific backend
-caro --backend ollama "find large log files"
+caro --backend ollama "find large log files"   # needs a build with --features remote-backends
 
 # Force LLM inference (bypass cached patterns)
 caro --backend embedded --force-llm "list files"
