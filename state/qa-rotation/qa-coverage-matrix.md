@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-10-13
+**Last updated**: 2026-10-15
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -49,6 +49,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-10-10 | PASS | PASS (1.5.0) | PASS | PASS | PASS | static-matcher intercepts basic patterns; no model download needed. gh auth failed — no issue filing this pass |
 | 2026-10-11 | PASS | PASS (1.5.0) | PASS | PASS | PASS | --dry-run now PASS via static matcher; telemetry consent on fresh sandbox (expected) |
 | 2026-10-13 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher handled dry-run without model; telemetry prompt appeared (fresh container) |
+| 2026-10-15 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher answered dry-run; gh token invalid, MCP used |
 
 ---
 
@@ -67,8 +68,8 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-10-08 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-09-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-13 | FLAKE | #1272, #1408 (open) |
-| 11 | `caro ai --continue-session` shell widget | ai | never | — | Likely affected by same bug as #1449; test after fix |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-15 | FAIL | #1269 (CPU stub; #1673 is its duplicate), #1272, #1408 (open) |
+| 11 | `caro ai --continue-session` shell widget | ai | never | — | Likely affected by same bug as #1449; test after fix. The `?` widget cannot take a request (#1671) |
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
 | 14 | `caro config get/set/show/reset` | cli | 2026-10-10 | PARTIAL | — (get/set verified for safety + log_level keys in Slot B via fix(cli) #1497; show/reset not tested) |
@@ -147,6 +148,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1540](https://github.com/wildcard/caro/issues/1540) | ai --once silent hang when no backend ready | ai | 2026-10-08 | closed (duplicate) |
 | [#1541](https://github.com/wildcard/caro/issues/1541) | CLAUDE.md shows 1.4.0 instead of 1.5.0 | docs | 2026-10-08 | closed (duplicate) |
 | [#1603](https://github.com/wildcard/caro/issues/1603) | QA memory files stuck at bootstrap — 25+ update PRs unmerged | docs/ops | 2026-10-11 | open |
+| [#1673](https://github.com/wildcard/caro/issues/1673) | ai --once deletion clarification (CPU stub, duplicate of #1269) | ai | 2026-10-15 | open (duplicate of #1269) |
 
 ---
 
