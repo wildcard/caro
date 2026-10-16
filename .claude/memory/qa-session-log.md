@@ -4,6 +4,35 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-16 — Scheduled run (Slot A + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C. Slot B skipped (`gh` auth invalid; GitHub MCP used for filing only).
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` -> PASS (2m28s)
+- `caro --version` -> PASS: `caro 1.5.0 (867323b 2026-10-14)`
+- `caro --help` -> PASS
+- `caro doctor` -> PASS (no model, Ollama not installed; advisory only)
+- `caro -p 'list files in current directory' --dry-run` -> PASS: `ls -la` via static matcher (no model download needed)
+- Note: JSON/YAML output shows `executed: true` with `dry_run: true` on a dry run. Not filed; unclear if the field means "would execute". Revisit.
+
+### Slot C — `caro assess` (#12), plus `--output json/yaml` (#15, #16) and `caro ai` (#10)
+- `--output json` parses as valid JSON; `--output yaml` renders.
+- `caro assess` does not exist in 1.5.0 (`src/main.rs:445` disables it) but README documents it -> filed.
+- `caro ai --new-session "<prompt>"` -> FAIL: canned "What exactly should be deleted?". Already tracked (#1269 open; #1673 closed as duplicate). Root cause traced to `src/backends/embedded/cpu.rs:~63` stub; added to #1269.
+
+### Findings
+- [#1677](https://github.com/wildcard/caro/issues/1677) — docs: README documents `caro assess` but subcommand is disabled (P2)
+- Comment on [#1269](https://github.com/wildcard/caro/issues/1269) with root cause (no new issue)
+
+### Followups
+- Only the 2026-05-07 entry is on main; the 2026-10-15 run's log is not merged.
+- `gh` token invalid in this sandbox (GH_TOKEN). Routine used GitHub MCP tools instead.
+- Next Slot C: `caro suggest`, `caro config`, `completion`.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
