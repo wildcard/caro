@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-10-15 (23:00 fire) — validate 1.5.0 roster; no new PR (3 integrator PRs already queued)
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io; `caro --version` → `caro 1.5.0 ( crates.io)`). PASS: `ollama`/`vllm`/`exo`/`claude`/`openrouter`/`grok` each fail loudly with `Configuration error: ... requires the 'remote-backends' feature` (no silent fallback, unlike 1.4.0); `--backend static` → `Unknown backend` and is no longer advertised; `caro guard --mode enforce` denies `rm -rf /` and allows `ls -la`. FAIL (known): `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls -la` (1.4.0 gave `ls *.pdf`) — tracked as #1645 (P1). `caro --backend ollama --model ...` → `unexpected argument '--model'` (tracked in #1657).
+- **Shipped:** no new code PR. Open integrator PRs #1672 (#1657), #1658 (#1629), #1624 (#1490) already cover every doc gap found and all edit the same matrix/log lines; stacking another would only add conflicts. This entry is the audit-trail update (matrix rows re-dated, log) only.
+- **Filed:** none. Dedup-checked open `integration` issues: #1645, #1657, #1629, #1623, #1490, #1439, #1419, #1081 already cover tonight's findings.
+- **Discovered:** none new. Note #1419 (1.5.0 never tagged) appears stale: crates.io now serves 1.5.0, but `remote-backends` is still not compiled into it, so #1081 remains the live blocker for every non-embedded backend.
+- **Next pass should:** if #1672/#1658/#1624 have merged, take the topmost code row: #1081 item 1 (feature-gated roster split so `remote-backends` can become default or be documented per-build); otherwise hold and avoid new PRs until they land.
+
+---
+
 ## 2026-07-11 (23:00 PT fire, post-merge pass) — #1298 landed; verify + close-the-loop, no code PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.4.0` (crates.io, 2026-05-09 — still newest). Confirmed **PR #1298 MERGED** (2026-07-12 UTC, commit `2a76cf90`) and **issue #1115 CLOSED**. Re-ran the #1115 repro on the shipped binary: `caro --backend-info` still advertises `static` (available) + `claude` (configurable), yet `caro --backend claude --dry-run -p "list pdf files"` → `Error: Invalid argument: Unknown backend 'claude'` and `--backend static` → identical. So the P0 divergence #1298 fixed on `main` is **still live in the shipped artifact** — this is now purely a release-cadence gap, not a code gap. PASS data point: `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls *.pdf` ✓. New-roster gap: `caro --backend ai-horde` → `Unknown backend` (main exposes it via #1209; published 1.4.0 knows only embedded/ollama/exo/vllm). Inspected `main` source: `CLI_SERVABLE_BACKENDS` (`src/backends/mod.rs:35`) now the single source of truth for `validate_backend_name`/`print_backend_info`/`available_backends`/help; `create_backend` (`src/cli/mod.rs:295`) still has no `claude`/`openrouter` arm (wiring half deferred, per the in-code comment).
