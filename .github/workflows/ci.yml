@@ -151,6 +151,28 @@ jobs:
       env:
         RUST_BACKTRACE: 1
 
+    # #1081: the default build must report remote backends as not compiled and
+    # fail loudly; the remote-backends build (the opt-in `-remote` release
+    # asset) must compile them in. Unix-only test, so Linux and macOS run it in both
+    # shapes.
+    - name: Run backend feature contract (default and remote-backends builds)
+      if: runner.os != 'Windows' && !cancelled()
+      run: |
+        cargo test --test backend_features_contract --verbose
+        cargo test --test backend_features_contract --features remote-backends --verbose
+      env:
+        RUST_BACKTRACE: 1
+
+    # #1081: offline contract for the manual release-remote workflow. It runs
+    # that workflow's actual step blocks against fixtures and a stub `gh`: no
+    # build, no network, no upload. Unix-only, so Linux and macOS run it; the
+    # Windows path of the workflow is not exercised by any PR check.
+    - name: Run release-remote workflow contract (fixtures, offline)
+      if: runner.os != 'Windows' && !cancelled()
+      run: cargo test --test release_remote_contract --verbose
+      env:
+        RUST_BACKTRACE: 1
+
   # ============================================================================
   # Tier A: Knowledge Integration Tests (LanceDB backend)
   # ============================================================================

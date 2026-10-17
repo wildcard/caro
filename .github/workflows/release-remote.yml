@@ -1,0 +1,274 @@
+name: Release Remote (optional)
+
+# Opt-in build of the `-remote` binaries (#1081): the release tag's own source,
+# built with `--features remote-backends` and named
+# `caro-<version>-<platform>-remote` (`-remote.exe` on Windows) with a
+# `.sha256` file. The default binary, the crates.io package and
+# `[features] default` are unchanged.
+#
+# How to run it: Actions -> "Release Remote (optional)" -> "Use workflow from:
+# Tag vX.Y.Z" -> type the same tag in `tag`. Tags cut before this workflow
+# existed (v1.5.0 and older) do not contain it and cannot be built this way;
+# for those, build from source with `cargo install caro --features
+# remote-backends --locked`.
+#
+# Isolation from the stable release:
+# - Manual only (`workflow_dispatch`). No schedule, no `workflow_run`, no tag or
+#   pull-request trigger.
+# - A separate workflow. `release.yml`, `update-homebrew.yml` and
+#   `packages.yml` neither wait for it nor read its result, so a failure,
+#   timeout or cancellation here cannot hold back the stable release.
+# - Build-validation by default: with `publish` false, the run builds,
+#   smoke-tests and checksums every platform and keeps the files as workflow
+#   artifacts (7 days). It writes nothing to any release.
+# - Least privilege: the workflow has `contents: read`. Only the `publish` job
+#   has `contents: write`, and it is skipped unless `publish` is true.
+#
+# Source identity: each job checks out exactly one commit, the dispatched one
+# (no `ref:` anywhere, nothing taken from an input). The step right after the
+# checkout runs `release-remote.sh pin`, before any build, which requires the
+# run to have been started from a tag, the `tag` input to repeat that tag, the
+# checked-out commit to be the dispatched commit and the commit the tag points
+# to, and Cargo.toml to say the tag's version. The manifest records tag, commit
+# and checksum for the publish job to check again. The pin trusts the tag's
+# current target and assumes release tags are immutable: if a tag was moved after
+# its stable release, the `-remote` assets would come from different source.
+#
+# Publishing (`publish: true`) needs an existing published release for the tag.
+# It never creates, edits or deletes a release, never overwrites an asset, and
+# stops if any `-remote` asset for this version is already on the release.
+#
+# After an interrupted publish, `-remote` assets can stay on the release. Remove
+# them by hand before running again: the run stops while any are present.
+# The workflow uses no cache and no third-party action: release builds stay cold
+# and reproducible, and the workflow stays out of the cache-poisoning class that
+# CodeQL checks for. So each run is a cold release build; its time against the
+# 90-minute limit is unmeasured. The macOS jobs share the account's runners with
+# the stable release.
+#
+# All logic is in scripts/release-remote.sh. tests/release_remote_contract.rs
+# runs these step blocks against fixtures on Linux and macOS CI. What no CI
+# check covers is listed in CHANGELOG.md [Unreleased].
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The release tag (e.g., v1.6.0). Must equal the tag this workflow was started from.'
+        required: true
+        type: string
+      publish:
+        description: 'Upload the verified -remote assets to the existing release for this tag'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-remote-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            platform: linux-amd64
+            bin: caro
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            platform: linux-arm64
+            bin: caro
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            platform: macos-intel
+            bin: caro
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            platform: macos-silicon
+            bin: caro
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            platform: windows-amd64
+            bin: caro.exe
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Pin the source to the tagged commit
+        id: pin
+        shell: bash
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: scripts/release-remote.sh pin "$REF_TYPE" "$REF_NAME" "$SHA" "$INPUT_TAG" . >> "$GITHUB_OUTPUT"
+
+      # Before any build (#1652): CVE rules exist to be compiled in, and the build
+      # directory does not exist yet (a reused one could hold a build script from
+      # another checkout and silently compile an empty ruleset).
+      - name: Preflight (CVE rules present, build directory fresh)
+        id: preflight
+        shell: bash
+        run: scripts/release-remote.sh preflight data/cve_rules "${CARGO_TARGET_DIR:-target}"
+
+      # No cache and no third-party action on purpose: this job builds and runs
+      # code from a tag, so keep it cold and first-party only. rustup is
+      # preinstalled on the GitHub-hosted runners.
+      - name: Install Rust toolchain
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          rustup toolchain install stable --profile minimal --target "$TARGET"
+          rustup default stable
+
+      - name: Install cross (for cross-compilation)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: cargo install cross
+
+      - name: Build remote-backends release binary
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+          CARO_RELEASE: 1
+        run: |
+          if [ "$TARGET" = "aarch64-unknown-linux-gnu" ]; then
+            cross build --release --features remote-backends --target "$TARGET"
+          else
+            cargo build --release --features remote-backends --target "$TARGET"
+          fi
+
+      # The existing safety contract, run against this checkout with the feature
+      # set being shipped: it fails when the CVE ruleset compiled to zero rules.
+      # Native Linux leg only (it runs a test binary). Every leg also gets the
+      # artifact-level CVE check in the smoke step.
+      - name: CVE ruleset contract (safety_text_contract with remote-backends)
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        shell: bash
+        run: cargo test --test safety_text_contract --features remote-backends
+
+      - name: Prepare asset, checksum and manifest
+        id: prepare
+        shell: bash
+        env:
+          VERSION: ${{ steps.pin.outputs.version }}
+          TAG: ${{ steps.pin.outputs.tag }}
+          COMMIT: ${{ steps.pin.outputs.commit }}
+          PLATFORM: ${{ matrix.platform }}
+          TARGET: ${{ matrix.target }}
+          BIN: ${{ matrix.bin }}
+        run: scripts/release-remote.sh prepare "$VERSION" "$PLATFORM" "target/${TARGET}/release/${BIN}" dist "$TAG" "$COMMIT"
+
+      # Runs before anything can be uploaded. The cross-built linux-arm64 binary
+      # cannot run here and gets a static string check instead (marker strings and
+      # the compiled CVE rules' source URLs; it does not run the validator).
+      - name: Smoke-test the asset
+        id: smoke
+        shell: bash
+        env:
+          VERSION: ${{ steps.pin.outputs.version }}
+          PLATFORM: ${{ matrix.platform }}
+          TARGET: ${{ matrix.target }}
+        run: scripts/release-remote.sh smoke "dist/$(scripts/release-remote.sh name "$VERSION" "$PLATFORM")" "$TARGET"
+
+      - name: Verify binary and checksum pair
+        id: verify
+        shell: bash
+        env:
+          VERSION: ${{ steps.pin.outputs.version }}
+          PLATFORM: ${{ matrix.platform }}
+        run: scripts/release-remote.sh verify dist "$VERSION" "$PLATFORM"
+
+      - name: Keep the verified files as a workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-remote-${{ matrix.platform }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish (off by default)
+    needs: build
+    if: ${{ inputs.publish == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      # Same check as in the build jobs, now against the tag as it is at publish
+      # time: if the tag moved since the build, this fails before any upload.
+      - name: Pin the source to the tagged commit
+        id: pin
+        shell: bash
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: scripts/release-remote.sh pin "$REF_TYPE" "$REF_NAME" "$SHA" "$INPUT_TAG" . >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: release-remote-*
+          merge-multiple: true
+          path: dist
+
+      - name: Verify all five pairs and their identity
+        id: verify_all
+        shell: bash
+        env:
+          VERSION: ${{ steps.pin.outputs.version }}
+          TAG: ${{ steps.pin.outputs.tag }}
+          COMMIT: ${{ steps.pin.outputs.commit }}
+        run: |
+          scripts/release-remote.sh verify dist "$VERSION"
+          scripts/release-remote.sh identity dist "$TAG" "$COMMIT" "$VERSION"
+
+      - name: Require a published release with no -remote assets yet
+        id: before
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TAG: ${{ steps.pin.outputs.tag }}
+          VERSION: ${{ steps.pin.outputs.version }}
+        run: scripts/release-remote.sh release-assets "$TAG" | scripts/release-remote.sh release-state "$VERSION" --expect absent
+
+      - name: Upload (no overwrite)
+        id: upload
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ steps.pin.outputs.tag }}
+          VERSION: ${{ steps.pin.outputs.version }}
+        run: scripts/release-remote.sh upload dist "$TAG" "$VERSION"
+
+      - name: Confirm every pair is on the release
+        id: after
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TAG: ${{ steps.pin.outputs.tag }}
+          VERSION: ${{ steps.pin.outputs.version }}
+        run: scripts/release-remote.sh release-assets "$TAG" | scripts/release-remote.sh release-state "$VERSION" --expect complete

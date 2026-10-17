@@ -9,6 +9,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Opt-in `-remote` binaries from a separate, manual workflow** (#1081).
+  `.github/workflows/release-remote.yml` builds a release tag's own source with
+  `--features remote-backends` for the five release platforms and names the
+  binaries `caro-<version>-<platform>-remote` (`-remote.exe` on Windows), each
+  with a `.sha256` file. It runs only when started by hand, from the release
+  tag (Actions, "Use workflow from: Tag"), with the same tag typed in `tag`.
+  It checks out the dispatched commit only. Before any build it requires the
+  tag input to match the tag it was started from, the checked-out commit to be
+  the commit that tag points to, and Cargo.toml to carry the tag's version.
+  By default it builds, smoke-tests and checksums, and keeps the files as
+  workflow artifacts; it writes nothing to any release. Setting `publish`
+  uploads the verified files to the existing release for that tag. It never
+  overwrites an asset, never creates or deletes a release, and stops if the tag
+  moved since the build, a checksum does not match, a binary and its `.sha256`
+  do not come as a pair, or any `-remote` asset for this version is already on
+  the release. The stable Release workflow, the Homebrew workflow and the
+  package workflow are unchanged and do not wait for it. The default binary, the
+  crates.io package and `[features] default` are unchanged: they still report
+  those backends as `not compiled` and fail with a remedy.
+  The pin trusts the tag's current target and assumes release tags are
+  immutable.
+  **Only tags that contain this workflow can use it.** v1.5.0 and older do not,
+  so their `-remote` binaries are not available this way; for those, install
+  from source with `cargo install caro --features remote-backends --locked`.
+  Before each build it checks that `data/cve_rules` holds compilable rules and
+  that the build directory does not exist yet, so a build script cached from
+  another checkout cannot silently compile an empty CVE ruleset (#1652). The
+  smoke test runs the binary and requires all nine remote backends to be
+  listed and none to be `not compiled`. It also sends the CVE-2024-3094 trigger
+  to the binary's own validator (`caro guard`, which only validates and never
+  runs the command) and requires a deny verdict (exit 2) that cites the rule, a
+  benign command that passes, and every compiled rule's source URL to be in the
+  binary. The linux-amd64 leg also runs `safety_text_contract` with
+  `--features remote-backends`. linux-arm64 is cross-built and cannot
+  run on the runner, so it gets a static check that shows only that the
+  `remote-backends` feature is on (one marker string present, the default
+  build's message absent) and that the compiled rules' source URLs are in the
+  file; the validator is not run on that target. Neither check shows that a provider is reachable.
+  `tests/release_remote_contract.rs` runs the workflow's step blocks against
+  fixtures and a stub `gh`, offline, on Linux and macOS CI;
+  `tests/backend_features_contract.rs` checks both feature sets in debug
+  builds on Linux and macOS. No PR check builds a release-profile `-remote`
+  binary, runs the real `gh` upload, runs the Windows path, runs the
+  cross-built arm64 check on a real binary, or runs the x86_64 macOS binary
+  (it needs Rosetta 2 on the arm64 runner). The first manual run is the
+  evidence for those. The workflow uses no cache or third-party action, and its
+  build time against the 90-minute limit is unmeasured. After an interrupted
+  publish, remove the `-remote` assets from the release by hand before running
+  it again.
 - **Segment- and wrapper-aware safety validation (#1054).** The validator
   now scans each statement of a command line, each statement without its
   `sudo`/`env`/`timeout`/`nice`/`nohup`/`xargs`/`busybox` prefix, and each
