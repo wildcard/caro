@@ -325,8 +325,10 @@ caro guard test [--harness H] [--output text|json] "<command>"
 
 Runs `guard::evaluate` on the given command with the user's validator and
 prints risk, verdict, matched patterns, `floor_applied` and latency. JSON
-output is the `DecisionRecord` shape with `mode: "test"` and no log write.
-Exit codes follow generic enforce: 0 none, 2 deny, 3 ask.
+output is a `DecisionRecord` subset (`command` redacted, `risk`, `verdict`,
+`matched_patterns`, `floor_applied`, `reason`, `source`, `latency_us`,
+`caro_version`) and nothing is written to the log. Exit codes follow generic
+enforce: 0 none, 2 deny, 3 ask.
 
 ### P2.2 `caro guard setup` and verification (G3)
 
