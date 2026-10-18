@@ -609,3 +609,11 @@ workspaces are BW-069.
 **Status:** claimed-by sweep/2026-10-18-BW-089 (#1680)
 **Needs human?:** no (docs). Re-enabling the subcommand is a separate product call.
 **Next step:** mark the README "assess" section (`README.md` ~413-436) as not available in 1.5.0, or remove it; `src/main.rs:445` keeps the subcommand commented out.
+
+### BW-090: `Security Audit` red: zip 7.2.0 (via candle-core) hits RUSTSEC-2026-0367 to 0369
+
+**Found:** 2026-10-18, broken-window sweep (CI on #1680)
+**Issue:** #1681
+**Status:** open
+**Needs human?:** yes (audit-policy decision; no candle release requires zip 9 yet)
+**Next step:** owner picks an option in #1681: a reviewed `.cargo/audit.toml` entry now, or wait for a candle release that requires `zip >=9`.
