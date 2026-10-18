@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Hash-chained guard log and `caro guard audit` (spec 011 §P2.4).** Each
+  decision record now carries `prev_hash` and `hash` (SHA-256 of its canonical
+  JSON), written under an exclusive file lock so concurrent harness sessions
+  chain correctly. `caro guard audit verify` walks the chain and exits 1 at
+  the first break (edited record, deleted record, or torn line), naming the
+  line; `caro guard audit tail [-n N] [-f]` prints records; `caro guard audit
+  report` is the summary (`caro guard report` stays as an alias). Records
+  written before this change have no hash: they are counted as legacy and
+  the chain restarts after them. Regression guards:
+  `audit_verify_detects_a_one_byte_edit_and_tail_prints_records` in
+  `tests/e2e_guard.rs`, `one_changed_byte_breaks_the_chain_at_that_line` in
+  `src/guard/log.rs`.
 - **`caro guard` sees file tools (spec 011 §P2.3).** `Read`, `Write`,
   `Edit`, `MultiEdit`, `NotebookEdit`, `Grep` and `Glob` calls are checked
   against a built-in protected-path set (`~/.ssh/**`, `~/.gnupg/**`,
