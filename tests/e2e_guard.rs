@@ -664,3 +664,43 @@ fn glob_pattern_into_protected_dir_asks_and_broken_config_asks_for_file_tools() 
         "ask"
     );
 }
+
+#[test]
+fn oversized_write_payload_asks_instead_of_staying_silent() {
+    let home = TempDir::new().unwrap();
+    let log = home.path().join("decisions.jsonl");
+    let log_arg = log.to_str().unwrap();
+
+    // A Write whose payload exceeds the 4 MiB read limit: the destination
+    // cannot be parsed, so the guard must fail toward `ask`, not `NotShell`.
+    let mut payload = String::from(
+        r#"{"hook_event_name":"PreToolUse","tool_name":"Write","tool_input":{"file_path":"/home/u/.ssh/id_rsa","content":""#,
+    );
+    payload.push_str(&"a".repeat(4 * 1024 * 1024 + 1024));
+    payload.push_str(r#""}}"#);
+
+    let out = guard(&home, &["--mode", "enforce", "--log", log_arg], &payload);
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(
+        stdout_json(&out)["hookSpecificOutput"]["permissionDecision"],
+        "ask"
+    );
+    assert!(!out.stdout.windows(7).any(|w| w == b"\"allow\""));
+
+    let rec: Value = serde_json::from_str(
+        std::fs::read_to_string(&log)
+            .unwrap()
+            .lines()
+            .last()
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(rec["tool"], "Write");
+    assert_eq!(rec["verdict"], "ask");
+    assert!(rec.get("command").is_none());
+}
