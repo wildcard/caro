@@ -404,3 +404,29 @@ fn guard_setup_opencode_writes_embedded_plugin() {
     let text = std::fs::read_to_string(&plugin).unwrap();
     assert!(text.contains("tool.execute.before"));
 }
+
+#[test]
+fn guard_setup_verify_rejects_a_malformed_stored_command() {
+    let home = TempDir::new().unwrap();
+    let settings = home.path().join(".claude").join("settings.json");
+    std::fs::create_dir_all(settings.parent().unwrap()).unwrap();
+    std::fs::write(
+        &settings,
+        r#"{"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"caro guard --harness claude --mode broken"}]}]}}"#,
+    )
+    .unwrap();
+    let bin = Command::cargo_bin("caro").unwrap().get_program().to_owned();
+    let bin_dir = std::path::Path::new(&bin).parent().unwrap().to_owned();
+    let verify = Command::cargo_bin("caro")
+        .unwrap()
+        .args(["guard", "setup", "claude", "--verify"])
+        .env("HOME", home.path())
+        .env("XDG_CONFIG_HOME", home.path().join("config"))
+        .env("PATH", &bin_dir)
+        .output()
+        .unwrap();
+    let text = String::from_utf8_lossy(&verify.stdout);
+    assert_eq!(verify.status.code(), Some(1), "{text}");
+    assert!(text.contains("unknown mode `broken`"), "{text}");
+    assert!(text.contains("NOT VERIFIED"), "{text}");
+}
