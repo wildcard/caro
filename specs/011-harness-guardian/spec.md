@@ -337,16 +337,24 @@ caro guard setup <claude|codex|opencode> [--scope user|project]
                  [--mode shadow|enforce] [--dry-run] [--verify]
 ```
 
-- Writes the PreToolUse hook entry into `~/.claude/settings.json` (user, the
-  default, per ADR-020) or `.claude/settings.json` (project). The merge is
-  idempotent: existing hooks are kept, a caro entry is replaced, nothing else
-  changes. `--dry-run` prints the resulting JSON and writes nothing.
-- OpenCode: copies `integrations/opencode/caro-guard.ts` into
-  `~/.config/opencode/plugin/`.
-- `--verify`: confirms the hook entry exists, resolves `caro` on `$PATH`, and
-  runs one synthetic `rm -rf /` payload through it in enforce mode with
-  `--no-log`, expecting `deny`. Prints "adapter verified" (what the installer
-  checked) and never "host verified" (Caro cannot see the host ingest it).
+- Each harness has its own destination and format:
+  - `claude`: `hooks.PreToolUse` entry in `~/.claude/settings.json` (user,
+    the default, per ADR-020) or `.claude/settings.json` (project).
+  - `codex`: the same hook JSON shape in `~/.codex/hooks.json` or
+    `.codex/hooks.json` (ADR-020: Codex reads Claude-format hooks).
+  - `opencode`: `integrations/opencode/caro-guard.ts` copied into
+    `~/.config/opencode/plugin/` or `.opencode/plugin/`, with the selected
+    mode baked in as the plugin default (`CARO_GUARD_MODE` overrides).
+- The JSON merge is idempotent: other hooks and keys are kept; only caro's
+  own command is replaced, and an entry that also carries another tool's
+  command keeps that command. `--dry-run` prints the result and writes
+  nothing.
+- `--verify`: confirms the hook entry exists, validates the stored command
+  (`caro guard` plus known options), resolves `caro` on `$PATH`, and runs
+  that command's options with the mode forced to enforce on one synthetic
+  `rm -rf /` payload, expecting `deny`. Prints "adapter verified" (what the
+  installer checked) and never "host verified" (Caro cannot see the host
+  ingest it).
 - `caro doctor` gains a guard row with the same check.
 
 ### P2.3 File-tool coverage, shadow first (G1)
@@ -355,14 +363,24 @@ caro guard setup <claude|codex|opencode> [--scope user|project]
   twins) for `Read`, `Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `Grep`,
   `Glob`. `is_file_tool()` mirrors `is_shell()`.
 - `src/guard/paths.rs` holds a built-in protected-path set: `~/.ssh/**`,
-  `~/.aws/credentials`, `~/.gnupg/**`, `**/.env`, `**/.env.*`, `**/id_rsa*`,
-  `**/id_ed25519*`, `**/*.pem`, `~/.kube/config`, `~/.docker/config.json`,
-  `~/.netrc`, and caro's own `config.toml` and `decisions.jsonl`. Paths are
-  normalized lexically (tilde, `.`, `..`) before glob matching. No filesystem
-  access on the hot path.
-- Policy: Read/Grep/Glob of a protected path → `ask`; Write/Edit of a
-  protected path → `ask`; Write/Edit of caro's own decision log → `deny` (the
-  one path the guard owns). Anything else → `none`, no output, no log line.
+  `~/.aws/**`, `~/.gnupg/**`, `**/.env`, `**/.env.*`, `**/id_rsa`,
+  `**/id_ed25519`, `**/*.pem`, `~/.kube/config`, `~/.docker/config.json`,
+  `~/.netrc`, caro's real config directory (`dirs::config_dir()/caro/**`,
+  the same resolution `ConfigManager` uses) and `decisions.jsonl`. A
+  directory glob also protects the directory itself, so a search rooted in
+  `~/.ssh` is seen. Paths are normalized lexically (tilde, `.`, `..`, cwd)
+  before glob matching; one best-effort `canonicalize` of an existing path
+  is also checked, so a repository symlink to a protected file is seen. No
+  other filesystem access on the hot path.
+- `Glob`/`Grep` are checked by their root **and** their `pattern`: the
+  pattern as a path string and its literal prefix, joined onto the root.
+- Policy: the read tools (`Read`, `Grep`, `Glob`) on a protected path →
+  `ask`; the mutating tools (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`,
+  whose path is `notebook_path`) on a protected path → `ask`; any mutating
+  tool on caro's own decision log → `deny` (the one path the guard owns).
+  Anything else → `none`, no output, no log line. A config that fails to
+  load makes a file-tool call `ask`, like a shell call, so user globs are
+  never dropped silently.
 - `[[safety.protected_paths]]` in `config.toml` extends the set. Additive
   only, same validation discipline as custom patterns.
 - `DecisionRecord` gains `tool` and `path` (redacted). `report` groups by
@@ -375,13 +393,22 @@ caro guard setup <claude|codex|opencode> [--scope user|project]
 - `DecisionRecord` gains `prev_hash` and `hash`: SHA-256 (`sha2`, already a
   dependency) over the canonical JSON of the record without `hash`. The first
   record's `prev_hash` is the empty string.
-- `append()` reads the last line's `hash` before writing. Concurrent writers
-  can still race (the spec's torn-line caveat); a break caused by a race is
-  reported as a break, not hidden.
+- `append()` takes an exclusive file lock, reads the last record's `hash`
+  (growing its tail window until a whole record is in view), links and
+  hashes the new record, writes it, and records the new hash in a
+  `decisions.jsonl.head` sidecar.
 - `caro guard audit verify [--log PATH]` walks the chain and exits 1 at the
-  first break, naming the line. `caro guard audit tail [--follow] [--limit N]`
-  pretty-prints records. `caro guard report` stays as an alias of
-  `caro guard audit report` for one release.
+  first break, naming the line: content hash mismatch, broken link, a
+  hashless record after the chain started, a torn line, or a final hash that
+  differs from the sidecar (records removed from the end). Records before
+  the first chained one are legacy and skipped. `caro guard audit tail
+  [--follow] [--limit N]` pretty-prints records. `caro guard report` stays
+  as an alias of `caro guard audit report` for one release.
+- **What this does not claim.** The chain and the sidecar live in the same
+  writable directory. They detect partial tampering and truncation; an
+  attacker who can rewrite both files can recompute a valid chain. Caro
+  does not call this tamper-proof. A keyed MAC or an external anchor
+  (Rampart anchors every 100 records) is follow-up 10 below.
 - Rotation (follow-up 8) must carry the last hash into the new file.
 
 ### P2.5 PostToolUse leak scan, shadow only (G5)
@@ -437,3 +464,7 @@ Tracked in #1512. The safety-core evasions are tracked on #1054.
 8. Size-capped log rotation and a `[guard]` config section.
 9. Gate 1 interview questions on "how does your agent decide a command is
    safe today".
+10. Authenticated audit head: a keyed MAC over the chain head, or an
+    external anchor outside the data directory, so a rewrite of both the
+    log and its sidecar is detectable. Until then the docs say "detects
+    partial tampering", never "tamper-proof".
