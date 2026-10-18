@@ -78,14 +78,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** yes. It goes together with the BW-006 decision.
 **Next step:** fix after BW-006 is decided.
 
-### BW-010: CLI test runner falls back to ambiguous `cargo run` (multi-binary)
-
-**Found:** 2026-09-30 sweep dedup
-**Issue:** #1222 (dups #1252, #1413, closed); same root cause as #1164
-**Status:** fixed (#1522, merged 2026-10-09)
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-16.
-
 ### BW-011: `caro ai --once` has no static-matcher first pass
 
 **Found:** 2026-09-30 sweep dedup
@@ -110,14 +102,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** no
 **Next step:** add per-key reset.
 
-### BW-014: `--output json` reports `executed: true` under `--dry-run`
-
-**Found:** 2026-09-30 sweep dedup
-**Issue:** #1217 (dup #1417, closed)
-**Status:** fixed (#1532, merged 2026-10-10). Adds a `dry_run` field to the JSON. `executed` keeps its pinned meaning ("passed safety checks"); contract tests depend on it.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-17.
-
 ### BW-015: main CI `Extended Tests` (4 model jobs) red: HF Hub model download fails
 
 **Found:** 2026-09-30 sweep, CI run 36658876598
@@ -133,14 +117,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Status:** release done. `v1.5.0` is published and tagged at `d705666` (verified 2026-10-13). #1419 is still open.
 **Needs human?:** yes (release)
 **Next step:** the owner closes #1419 if nothing else is left. Delete this entry after 2026-10-20.
-
-### BW-017: `pr-merged.yml` `add-contributor` job fails on every merge
-
-**Found:** 2026-10-01 sweep
-**Issue:** #1491 (action `all-contributors/add-contributor` not found)
-**Status:** fixed (#1527, merged 2026-10-09). The job is removed: the action repo does not exist and the repo has no `.all-contributorsrc`.
-**Needs human?:** no (CI config). Pin a published action, or remove the job.
-**Next step:** none. Delete after 2026-10-16. Re-add a working all-contributors job only if the maintainer wants a contributors list.
 
 ### BW-018: Claude Code plugin marketplace.json shape / install one-liner likely stale
 
@@ -173,14 +149,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Status:** open
 **Needs human?:** yes (safety pattern / allowlist policy)
 **Next step:** maintainer decides whether user allowlists may bypass Critical patterns, then fix code or the contract test via `safety-pattern-developer`.
-
-### BW-022: `cargo test safety` (documented in CLAUDE.md) fails
-
-**Found:** 2026-10-03 sweep dedup
-**Issue:** #1162 (dup #1170)
-**Status:** fixed (#1548, merged 2026-10-10). The `evaluation` harness (`harness = false`) now accepts libtest's positional filter and skips itself when the filter does not match its name.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-17.
 
 ### BW-023: global flags before a subcommand swallow the subcommand
 
@@ -327,14 +295,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Status:** not reproducing; no root cause found. The job passed on the last 11 main push runs (2026-10-12 to 2026-10-13, latest run 38394590892; job 115286473160 ran 7/7 ChromaDB tests). Evidence posted on #1342.
 **Needs human?:** yes (decide whether to close #1342 without a root cause; it stays open until then)
 **Next step:** the owner decides on #1342. If the job fails again, add the log there.
-
-### BW-040: static matcher "Find Python files (simple)" swallows content searches
-
-**Found:** 2026-10-03 (while fixing "search for TODO in all python files")
-**Issue:** #1516. `search for <X> in python files` returns `find . -name "*.py" -type f` for any X other than TODO.
-**Status:** fixed (#1517, merged 2026-10-10: content-search handler in `StaticMatcher::content_search_command`)
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-17.
 
 ### BW-045: `caro run` runbook path and step path keep shell state differently
 
@@ -641,3 +601,11 @@ workspaces are BW-069.
 **Status:** open
 **Needs human?:** no
 **Next step:** when stdin is a terminal and no prompt words are given, read one `caro> ` line from the terminal in `run_ai_once` (`src/main.rs`); widgets are in `src/ai/shell_init.rs`.
+
+### BW-089: README documents `caro assess`, but the subcommand is disabled in 1.5.0
+
+**Found:** 2026-10-18, broken-window sweep (register sync)
+**Issue:** #1677
+**Status:** claimed-by sweep/2026-10-18-BW-089 (#1680)
+**Needs human?:** no (docs). Re-enabling the subcommand is a separate product call.
+**Next step:** mark the README "assess" section (`README.md` ~413-436) as not available in 1.5.0, or remove it; `src/main.rs:445` keeps the subcommand commented out.
