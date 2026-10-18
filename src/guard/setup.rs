@@ -146,6 +146,17 @@ fn is_caro_entry(entry: &Value) -> bool {
 /// Returns `true` when the document changed. Every other key and every other
 /// hook entry is left as it was.
 pub fn merge_hook(settings: &mut Value, target: SetupTarget, mode: GuardMode) -> bool {
+    merge_hook_event(settings, "PreToolUse", target, mode)
+}
+
+/// Insert or replace caro's entry under `hooks.<event>` (`PreToolUse` or
+/// `PostToolUse`, spec 011 §P2.5). Returns `true` when the document changed.
+pub fn merge_hook_event(
+    settings: &mut Value,
+    event: &str,
+    target: SetupTarget,
+    mode: GuardMode,
+) -> bool {
     if !settings.is_object() {
         *settings = json!({});
     }
@@ -160,7 +171,7 @@ pub fn merge_hook(settings: &mut Value, target: SetupTarget, mode: GuardMode) ->
     let pre = hooks
         .as_object_mut()
         .expect("object")
-        .entry("PreToolUse")
+        .entry(event)
         .or_insert_with(|| json!([]));
     if !pre.is_array() {
         *pre = json!([]);
@@ -213,12 +224,24 @@ fn read_json(path: &Path) -> Result<Value, String> {
     }
 }
 
-/// Install (or preview) the hook.
+/// Install (or preview) the PreToolUse hook.
 pub fn install(
     target: SetupTarget,
     scope: Scope,
     mode: GuardMode,
     dry_run: bool,
+) -> Result<SetupOutcome, String> {
+    install_with_post(target, scope, mode, dry_run, false)
+}
+
+/// Install (or preview) the hook; with `post`, also the PostToolUse
+/// leak-scan hook (spec 011 §P2.5). OpenCode has no post hook yet.
+pub fn install_with_post(
+    target: SetupTarget,
+    scope: Scope,
+    mode: GuardMode,
+    dry_run: bool,
+    post: bool,
 ) -> Result<SetupOutcome, String> {
     let path = hook_file(target, scope).ok_or("no home directory on this platform")?;
 
@@ -242,7 +265,10 @@ pub fn install(
     }
 
     let mut settings = read_json(&path)?;
-    let changed = merge_hook(&mut settings, target, mode);
+    let mut changed = merge_hook(&mut settings, target, mode);
+    if post {
+        changed |= merge_hook_event(&mut settings, "PostToolUse", target, mode);
+    }
     let rendered =
         serde_json::to_string_pretty(&settings).map_err(|e| format!("render: {e}"))? + "\n";
     if changed && !dry_run {
@@ -502,6 +528,25 @@ mod tests {
         assert_eq!(s["model"], "x");
         assert!(s["hooks"]["PreToolUse"].is_array());
         assert!(installed_command(&s).unwrap().contains("--harness codex"));
+    }
+
+    #[test]
+    fn post_hook_is_separate_and_idempotent() {
+        let mut s = json!({});
+        assert!(merge_hook_event(
+            &mut s,
+            "PostToolUse",
+            SetupTarget::Claude,
+            GuardMode::Shadow
+        ));
+        assert!(!merge_hook_event(
+            &mut s,
+            "PostToolUse",
+            SetupTarget::Claude,
+            GuardMode::Shadow
+        ));
+        assert!(s["hooks"].get("PreToolUse").is_none());
+        assert_eq!(s["hooks"]["PostToolUse"].as_array().unwrap().len(), 1);
     }
 
     #[test]

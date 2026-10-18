@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **PostToolUse secret-leak scan, shadow only (spec 011 §P2.5).** When a
+  harness sends a `PostToolUse` payload, `caro guard` scans the tool's output
+  for credential shapes (AWS access key ids, private-key blocks, GitHub,
+  Slack, OpenAI, Anthropic, Google and Stripe key prefixes, JWTs,
+  authorization headers, secret-named assignments) and records the match
+  **class** in the decision log (`event: "PostToolUse"`, `leak: <class>`)
+  with a one-line stderr note. The secret itself never reaches the log or
+  stderr, nothing is emitted to the harness in any mode (PostToolUse cannot
+  block), and clean output is not logged. `caro guard setup <harness>
+  --post` installs the PostToolUse hook; `caro guard report` shows an
+  `output leaks` count. Regression guards:
+  `post_tool_use_leak_is_logged_by_class_never_by_value` and
+  `clean_post_tool_use_output_is_silent_and_unlogged` in `tests/e2e_guard.rs`.
 - **Hash-chained guard log and `caro guard audit` (spec 011 §P2.4).** Each
   decision record now carries `prev_hash` and `hash` (SHA-256 of its canonical
   JSON), written under an exclusive file lock so concurrent harness sessions

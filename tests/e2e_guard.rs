@@ -609,3 +609,107 @@ fn audit_verify_detects_a_one_byte_edit_and_tail_prints_records() {
     let report = guard_cmd(&home, &["audit", "report", "--log", log_arg]);
     assert!(String::from_utf8_lossy(&report.stdout).contains("decisions: 3"));
 }
+
+// ---------------------------------------------------------------------------
+// spec 011 §P2.5: PostToolUse secret-leak scan (shadow only)
+// ---------------------------------------------------------------------------
+
+fn post_payload(response: &str) -> String {
+    serde_json::json!({
+        "hook_event_name": "PostToolUse",
+        "tool_name": "Bash",
+        "tool_input": { "command": "cat config" },
+        "tool_response": response,
+        "session_id": "e2e",
+    })
+    .to_string()
+}
+
+#[test]
+fn post_tool_use_leak_is_logged_by_class_never_by_value() {
+    let home = TempDir::new().unwrap();
+    let log = home.path().join("decisions.jsonl");
+    let log_arg = log.to_str().unwrap();
+    // Assembled at runtime so no credential-shaped literal lives in the test.
+    let fake_key = format!("AKIA{}", "EXAMPLEKEY123456");
+    let response = format!("AWS_ACCESS_KEY_ID={fake_key}\nregion=us-east-1\n");
+
+    for mode in ["shadow", "enforce"] {
+        let out = guard(
+            &home,
+            &["--mode", mode, "--log", log_arg],
+            &post_payload(&response),
+        );
+        assert_eq!(out.status.code(), Some(0));
+        assert!(
+            out.stdout.is_empty(),
+            "{mode}: a leak never reaches the harness"
+        );
+        let err = String::from_utf8_lossy(&out.stderr);
+        assert!(err.contains("tool output contains"), "{mode}: {err}");
+        assert!(err.contains("AWS access key id"), "{mode}: {err}");
+        assert!(
+            !err.contains(&fake_key),
+            "{mode}: stderr must not echo the secret"
+        );
+    }
+
+    let text = std::fs::read_to_string(&log).unwrap();
+    assert!(
+        !text.contains(&fake_key),
+        "the log must not hold the secret"
+    );
+    let rec: Value = serde_json::from_str(text.lines().next().unwrap()).unwrap();
+    assert_eq!(rec["event"], "PostToolUse");
+    assert_eq!(rec["verdict"], "none");
+    assert_eq!(rec["emitted"], "none");
+    let patterns = rec["matched_patterns"].as_array().unwrap();
+    assert!(
+        patterns.iter().any(|p| p == "leak: AWS access key id"),
+        "{patterns:?}"
+    );
+
+    let report = guard_cmd(&home, &["report", "--log", log_arg]);
+    assert!(String::from_utf8_lossy(&report.stdout).contains("output leaks: 2"));
+}
+
+#[test]
+fn clean_post_tool_use_output_is_silent_and_unlogged() {
+    let home = TempDir::new().unwrap();
+    let log = home.path().join("decisions.jsonl");
+    let out = guard(
+        &home,
+        &["--mode", "enforce", "--log", log.to_str().unwrap()],
+        &post_payload("total 48\ndrwxr-xr-x 12 user staff 384 Oct 18 .\nFinished `dev` profile\n"),
+    );
+    assert!(out.stdout.is_empty());
+    assert!(
+        out.stderr.is_empty(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(!log.exists());
+}
+
+#[test]
+fn guard_setup_post_installs_both_hooks() {
+    let home = TempDir::new().unwrap();
+    let out = guard_cmd(&home, &["setup", "claude", "--post"]);
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let settings = home.path().join(".claude").join("settings.json");
+    let v: Value = serde_json::from_str(&std::fs::read_to_string(&settings).unwrap()).unwrap();
+    assert_eq!(v["hooks"]["PreToolUse"].as_array().unwrap().len(), 1);
+    assert_eq!(v["hooks"]["PostToolUse"].as_array().unwrap().len(), 1);
+    assert_eq!(
+        v["hooks"]["PostToolUse"][0]["hooks"][0]["command"],
+        "caro guard --harness claude --mode shadow"
+    );
+    // Without --post, an existing PostToolUse entry is left alone.
+    let again = guard_cmd(&home, &["setup", "claude"]);
+    assert!(String::from_utf8_lossy(&again.stdout).contains("already up to date"));
+}
