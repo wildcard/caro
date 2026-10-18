@@ -408,32 +408,11 @@ allow_public = false
   set `allow_public = true`. See
   [ADR-015](docs/adr/ADR-015-distributed-llm-backends-hybrid-privacy.md).
 
-### System Assessment
+### System Assessment (not available in 1.5.0)
 
-Caro can assess your system's hardware capabilities and recommend optimal model configurations:
-
-```bash
-# Basic assessment
-caro assess
-
-# Export to JSON
-caro assess --export json --output assessment.json
-
-# Export to Markdown
-caro assess --export markdown --output assessment.md
-```
-
-The assessment command detects:
-- CPU architecture, cores, and model
-- Total and available memory (RAM)
-- GPU vendor, model, and VRAM (if available)
-- Recommended models and backends based on your hardware
-
-**Supported Platforms**: macOS, Linux, Windows
-
-**Backends**: MLX (Apple Silicon), CUDA (NVIDIA), CPU-only
-
-For more details, run `caro assess --help`.
+The `caro assess` subcommand is disabled in the current release. The code
+lives in `src/assessment/`, but the subcommand is not registered in the CLI
+(`src/main.rs`), so `caro assess` is read as a prompt instead.
 
 ## 🏗️ Architecture
 
