@@ -565,8 +565,11 @@ pub fn oversize(
         },
         ..Default::default()
     };
+    // A shell or a recognized file tool whose payload cannot be parsed
+    // fails toward `ask`: its command or destination was not inspected.
+    // Only a tool the guard never evaluates is `NotShell`.
     let outcome = match event.tool_name {
-        Some(_) if !event.is_shell() => Outcome::NotShell,
+        Some(_) if !event.is_shell() && !event.is_file_tool() => Outcome::NotShell,
         _ => Outcome::Error(format!(
             "hook payload exceeds {} MiB; not scanned",
             MAX_PAYLOAD_BYTES / (1024 * 1024)
@@ -808,15 +811,25 @@ mod tests {
     }
 
     #[test]
-    fn oversize_payload_asks_for_shell_but_not_for_writes() {
+    fn oversize_payload_asks_for_shell_and_file_tools_but_not_for_other_tools() {
         let shell = r#"{"tool_name":"Bash","tool_input":{"command":"echo aaaa"#;
         let (o, r, rec) = oversize(Harness::Claude, GuardMode::Enforce, shell, Instant::now());
         assert!(matches!(o, Outcome::Error(_)));
         assert!(r.stdout.unwrap().contains("\"ask\""));
         assert!(rec.is_some());
 
-        let write = r#"{"tool_name":"Write","tool_input":{"content":"aaaa"#;
-        let (o, r, _) = oversize(Harness::Claude, GuardMode::Enforce, write, Instant::now());
+        // A Write or Edit too large to parse hides its destination: ask.
+        for tool in ["Write", "Edit"] {
+            let file = format!(r#"{{"tool_name":"{tool}","tool_input":{{"content":"aaaa"#);
+            let (o, r, rec) = oversize(Harness::Claude, GuardMode::Enforce, &file, Instant::now());
+            assert!(matches!(o, Outcome::Error(_)), "{tool}");
+            assert!(r.stdout.unwrap().contains("\"ask\""), "{tool}");
+            assert_eq!(rec.as_ref().unwrap().tool.as_deref(), Some(tool));
+        }
+
+        // A tool the guard never evaluates stays silent.
+        let other = r#"{"tool_name":"WebFetch","tool_input":{"url":"aaaa"#;
+        let (o, r, _) = oversize(Harness::Claude, GuardMode::Enforce, other, Instant::now());
         assert_eq!(o, Outcome::NotShell);
         assert_eq!(r.stdout, None);
 
