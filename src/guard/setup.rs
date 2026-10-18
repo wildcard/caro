@@ -93,14 +93,36 @@ pub fn hook_file(target: SetupTarget, scope: Scope) -> Option<PathBuf> {
 
 /// The shell line the harness runs for each tool call.
 pub fn hook_command(target: SetupTarget, mode: GuardMode) -> String {
-    let mode = match mode {
+    format!(
+        "{CARO_HOOK_PREFIX} --harness {} --mode {}",
+        target.harness_name(),
+        mode_str(mode)
+    )
+}
+
+fn mode_str(mode: GuardMode) -> &'static str {
+    match mode {
         GuardMode::Shadow => "shadow",
         GuardMode::Enforce => "enforce",
-    };
-    format!(
-        "{CARO_HOOK_PREFIX} --harness {} --mode {mode}",
-        target.harness_name()
-    )
+    }
+}
+
+/// The plugin's default-mode line as shipped (shadow unless the env says
+/// enforce) and its enforce counterpart (enforce unless the env says shadow).
+const PLUGIN_DEFAULT_SHADOW: &str =
+    r#"const mode = process.env.CARO_GUARD_MODE === "enforce" ? "enforce" : "shadow""#;
+const PLUGIN_DEFAULT_ENFORCE: &str =
+    r#"const mode = process.env.CARO_GUARD_MODE === "shadow" ? "shadow" : "enforce""#;
+
+/// The OpenCode plugin with the selected mode baked in as its default.
+/// `CARO_GUARD_MODE` still overrides at run time.
+pub fn opencode_plugin(mode: GuardMode) -> String {
+    match mode {
+        GuardMode::Shadow => OPENCODE_PLUGIN.to_string(),
+        GuardMode::Enforce => {
+            OPENCODE_PLUGIN.replacen(PLUGIN_DEFAULT_SHADOW, PLUGIN_DEFAULT_ENFORCE, 1)
+        }
+    }
 }
 
 impl SetupTarget {
@@ -131,14 +153,7 @@ fn is_caro_entry(entry: &Value) -> bool {
     entry
         .get("hooks")
         .and_then(Value::as_array)
-        .map(|hooks| {
-            hooks.iter().any(|h| {
-                h.get("command")
-                    .and_then(Value::as_str)
-                    .map(|c| c.trim_start().starts_with(CARO_HOOK_PREFIX))
-                    .unwrap_or(false)
-            })
-        })
+        .map(|hooks| hooks.iter().any(is_caro_command))
         .unwrap_or(false)
 }
 
@@ -168,9 +183,28 @@ pub fn merge_hook(settings: &mut Value, target: SetupTarget, mode: GuardMode) ->
     let arr = pre.as_array_mut().expect("array");
     let wanted = hook_entry(target, mode);
     let before = arr.clone();
-    arr.retain(|e| !is_caro_entry(e));
+    // Remove only caro's own command(s); an entry that also carries another
+    // tool's command keeps that command. An entry left empty is dropped.
+    for entry in arr.iter_mut() {
+        if let Some(hooks) = entry.get_mut("hooks").and_then(Value::as_array_mut) {
+            hooks.retain(|h| !is_caro_command(h));
+        }
+    }
+    arr.retain(|e| {
+        e.get("hooks")
+            .and_then(Value::as_array)
+            .map(|h| !h.is_empty())
+            .unwrap_or(true)
+    });
     arr.push(wanted);
     *arr != before
+}
+
+fn is_caro_command(hook: &Value) -> bool {
+    hook.get("command")
+        .and_then(Value::as_str)
+        .map(|c| c.trim_start().starts_with(CARO_HOOK_PREFIX))
+        .unwrap_or(false)
 }
 
 /// The caro hook command found in a settings document, if any.
@@ -223,21 +257,23 @@ pub fn install(
     let path = hook_file(target, scope).ok_or("no home directory on this platform")?;
 
     if target == SetupTarget::Opencode {
+        let plugin = opencode_plugin(mode);
         let existing = std::fs::read_to_string(&path).ok();
-        let changed = existing.as_deref() != Some(OPENCODE_PLUGIN);
+        let changed = existing.as_deref() != Some(plugin.as_str());
         if changed && !dry_run {
-            write_atomic(&path, OPENCODE_PLUGIN)?;
+            write_atomic(&path, &plugin)?;
         }
         return Ok(SetupOutcome {
             target,
             scope,
             path,
-            command:
-                "caro guard --harness opencode (via plugin; set CARO_GUARD_MODE=enforce to enforce)"
-                    .into(),
+            command: format!(
+                "caro guard --harness opencode --mode {} (via plugin; CARO_GUARD_MODE overrides)",
+                mode_str(mode)
+            ),
             changed,
             dry_run,
-            rendered: OPENCODE_PLUGIN.to_string(),
+            rendered: plugin,
         });
     }
 
@@ -265,6 +301,11 @@ fn write_atomic(path: &Path, contents: &str) -> Result<(), String> {
     }
     let tmp = path.with_extension("caro-tmp");
     std::fs::write(&tmp, contents).map_err(|e| format!("{}: {e}", tmp.display()))?;
+    // `rename` replaces an existing file on Unix but not on Windows.
+    #[cfg(windows)]
+    if path.exists() {
+        std::fs::remove_file(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    }
     std::fs::rename(&tmp, path).map_err(|e| format!("{}: {e}", path.display()))
 }
 
@@ -370,9 +411,35 @@ pub fn verify(target: SetupTarget, scope: Scope) -> VerifyReport {
         },
     });
 
-    // 3. A synthetic catastrophic payload comes back `deny` in enforce mode.
-    if let Ok(bin) = bin {
-        checks.push(synthetic_check(&bin, target));
+    // 3. The installed command is one this caro understands.
+    let args = match (&installed, target) {
+        (Ok(cmd), SetupTarget::Claude | SetupTarget::Codex) => match parse_hook_command(cmd) {
+            Ok(args) => {
+                checks.push(Check {
+                    name: "hook command",
+                    ok: true,
+                    detail: format!("caro guard {}", args.join(" ")),
+                });
+                Some(args)
+            }
+            Err(e) => {
+                checks.push(Check {
+                    name: "hook command",
+                    ok: false,
+                    detail: e,
+                });
+                None
+            }
+        },
+        (Ok(_), SetupTarget::Opencode) => Some(vec!["--harness".into(), "opencode".into()]),
+        (Err(_), _) => None,
+    };
+
+    // 4. A synthetic catastrophic payload comes back `deny` when the
+    // installed command runs in enforce mode (the stored mode may be shadow,
+    // which emits nothing by design, so the mode is overridden here).
+    if let (Ok(bin), Some(args)) = (bin, args) {
+        checks.push(synthetic_check(&bin, target, &args));
     }
 
     VerifyReport {
@@ -383,7 +450,51 @@ pub fn verify(target: SetupTarget, scope: Scope) -> VerifyReport {
     }
 }
 
-fn synthetic_check(bin: &Path, target: SetupTarget) -> Check {
+/// Parse the stored hook command. It must be `caro guard` followed only by
+/// options this version knows; the result is the option list with `--mode`
+/// and `--log`/`--no-log` removed, so the verifier can supply its own.
+fn parse_hook_command(cmd: &str) -> Result<Vec<String>, String> {
+    let words = shell_words::split(cmd).map_err(|e| format!("cannot parse hook command: {e}"))?;
+    let mut it = words.into_iter();
+    match (it.next().as_deref(), it.next().as_deref()) {
+        (Some(first), Some("guard")) if first == "caro" || first.ends_with("/caro") => {}
+        _ => {
+            return Err(format!(
+                "installed hook is not a `caro guard` command: {cmd}"
+            ))
+        }
+    }
+    let mut kept = Vec::new();
+    let mut rest = it.peekable();
+    while let Some(w) = rest.next() {
+        match w.as_str() {
+            "--harness" => {
+                let v = rest
+                    .next()
+                    .ok_or("installed hook: --harness has no value")?;
+                if !["claude", "grok", "codex", "opencode", "generic"].contains(&v.as_str()) {
+                    return Err(format!("installed hook: unknown harness `{v}`"));
+                }
+                kept.push(w);
+                kept.push(v);
+            }
+            "--mode" => {
+                let v = rest.next().ok_or("installed hook: --mode has no value")?;
+                if v != "shadow" && v != "enforce" {
+                    return Err(format!("installed hook: unknown mode `{v}`"));
+                }
+            }
+            "--log" => {
+                rest.next().ok_or("installed hook: --log has no value")?;
+            }
+            "--no-log" => {}
+            other => return Err(format!("installed hook: unknown option `{other}`")),
+        }
+    }
+    Ok(kept)
+}
+
+fn synthetic_check(bin: &Path, target: SetupTarget, installed_args: &[String]) -> Check {
     use std::io::Write;
     let payload = match target {
         SetupTarget::Opencode => json!({"command": "rm -rf /"}).to_string(),
@@ -396,14 +507,9 @@ fn synthetic_check(bin: &Path, target: SetupTarget) -> Check {
         .to_string(),
     };
     let spawned = Command::new(bin)
-        .args([
-            "guard",
-            "--harness",
-            target.harness_name(),
-            "--mode",
-            "enforce",
-            "--no-log",
-        ])
+        .arg("guard")
+        .args(installed_args)
+        .args(["--mode", "enforce", "--no-log"])
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
@@ -493,6 +599,48 @@ mod tests {
             installed_command(&s).as_deref(),
             Some("caro guard --harness claude --mode enforce")
         );
+    }
+
+    #[test]
+    fn merge_keeps_sibling_commands_inside_a_mixed_entry() {
+        let mut s = json!({"hooks": {"PreToolUse": [
+            {"matcher": "Bash", "hooks": [
+                {"type": "command", "command": "caro guard --harness claude --mode shadow"},
+                {"type": "command", "command": "other-tool check"}
+            ]}
+        ]}});
+        assert!(merge_hook(&mut s, SetupTarget::Claude, GuardMode::Enforce));
+        let pre = s["hooks"]["PreToolUse"].as_array().unwrap();
+        assert_eq!(pre.len(), 2);
+        assert_eq!(pre[0]["hooks"].as_array().unwrap().len(), 1);
+        assert_eq!(pre[0]["hooks"][0]["command"], "other-tool check");
+        assert!(installed_command(&s).unwrap().contains("--mode enforce"));
+    }
+
+    #[test]
+    fn opencode_plugin_bakes_in_enforce_mode() {
+        let shadow = opencode_plugin(GuardMode::Shadow);
+        let enforce = opencode_plugin(GuardMode::Enforce);
+        assert!(shadow.contains(PLUGIN_DEFAULT_SHADOW));
+        assert!(enforce.contains(PLUGIN_DEFAULT_ENFORCE));
+        assert!(!enforce.contains(PLUGIN_DEFAULT_SHADOW));
+        assert_ne!(shadow, enforce);
+    }
+
+    #[test]
+    fn stored_hook_command_is_validated_before_verify_runs_it() {
+        assert_eq!(
+            parse_hook_command("caro guard --harness claude --mode shadow").unwrap(),
+            vec!["--harness", "claude"]
+        );
+        assert_eq!(
+            parse_hook_command("/usr/local/bin/caro guard --harness codex --mode enforce --log /x")
+                .unwrap(),
+            vec!["--harness", "codex"]
+        );
+        assert!(parse_hook_command("caro guard --harness claude --mode broken").is_err());
+        assert!(parse_hook_command("caro guard --evil").is_err());
+        assert!(parse_hook_command("caro doctor").is_err());
     }
 
     #[test]

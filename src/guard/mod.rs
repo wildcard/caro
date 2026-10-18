@@ -118,6 +118,8 @@ pub struct HookEvent {
     /// The path a file tool is about to use (`file_path`, `path`,
     /// `notebook_path`).
     pub file_path: Option<String>,
+    /// `Glob`/`Grep` `pattern`: the files a search enumerates.
+    pub search_pattern: Option<String>,
 }
 
 impl HookEvent {
@@ -147,6 +149,7 @@ impl HookEvent {
                 tool_use_id: field("tool_use_id", "toolUseId"),
                 truncated: false,
                 file_path: None,
+                search_pattern: None,
             });
         }
 
@@ -173,6 +176,7 @@ impl HookEvent {
                 .or_else(|| input_str("filePath"))
                 .or_else(|| input_str("notebook_path"))
                 .or_else(|| input_str("path")),
+            search_pattern: input_str("pattern"),
         })
     }
 
@@ -412,7 +416,7 @@ pub async fn run(
 ) -> (Outcome, Rendered, Option<log::DecisionRecord>) {
     run_with_paths(
         validator,
-        &paths::ProtectedPaths::builtin(),
+        Ok(&paths::ProtectedPaths::builtin()),
         harness,
         mode,
         raw,
@@ -431,6 +435,11 @@ pub fn evaluate_path(
     cwd: Option<&str>,
 ) -> Option<GuardDecision> {
     let d = protected.check(access, path, cwd)?;
+    Some(path_decision(access, d))
+}
+
+/// Turn a protected-path hit into a guard decision.
+fn path_decision(access: paths::FileAccess, d: paths::PathDecision) -> GuardDecision {
     let risk = match d.verdict {
         Verdict::Deny => RiskLevel::Critical,
         _ => RiskLevel::High,
@@ -439,20 +448,20 @@ pub fn evaluate_path(
         paths::FileAccess::Read => "reads",
         paths::FileAccess::Write => "writes",
     };
-    Some(GuardDecision {
+    GuardDecision {
         risk,
         matched_patterns: vec![format!("{what} {}", d.label)],
         floor_applied: false,
         verdict: d.verdict,
         reason: format!("caro guard: {} risk: {what} {}", risk_str(risk), d.label),
-    })
+    }
 }
 
 /// [`run`] with an explicit protected-path set (the hook path builds it from
 /// the user's `[safety] protected_paths`).
 pub async fn run_with_paths(
     validator: Result<&SafetyValidator, &str>,
-    protected: &paths::ProtectedPaths,
+    protected: Result<&paths::ProtectedPaths, &str>,
     harness: Harness,
     mode: GuardMode,
     raw: &str,
@@ -468,13 +477,37 @@ pub async fn run_with_paths(
                 .as_deref()
                 .and_then(paths::file_access)
                 .expect("is_file_tool checked");
-            let outcome = match ev.file_path.as_deref() {
-                // Grep/Glob without a path search the cwd: no opinion.
-                None | Some("") => Outcome::NotShell,
-                Some(p) => match evaluate_path(protected, access, p, ev.cwd.as_deref()) {
-                    Some(d) => Outcome::Decided(d),
-                    None => Outcome::NotShell,
-                },
+            let is_search = ev
+                .tool_name
+                .as_deref()
+                .map(|t| matches!(t.to_ascii_lowercase().as_str(), "glob" | "grep"))
+                .unwrap_or(false);
+            let outcome = match protected {
+                // The user's protected_paths could not be loaded: a file call
+                // must not silently lose that protection (shell calls already
+                // fail toward the human on the same error).
+                Err(e) => Outcome::Error(e.to_string()),
+                Ok(protected) => {
+                    let decision = if is_search {
+                        protected
+                            .check_search(
+                                access,
+                                ev.file_path.as_deref(),
+                                ev.search_pattern.as_deref(),
+                                ev.cwd.as_deref(),
+                            )
+                            .map(|d| path_decision(access, d))
+                    } else {
+                        match ev.file_path.as_deref() {
+                            None | Some("") => None,
+                            Some(p) => evaluate_path(protected, access, p, ev.cwd.as_deref()),
+                        }
+                    };
+                    match decision {
+                        Some(d) => Outcome::Decided(d),
+                        None => Outcome::NotShell,
+                    }
+                }
             };
             (outcome, ev)
         }
