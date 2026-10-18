@@ -404,3 +404,156 @@ fn guard_setup_opencode_writes_embedded_plugin() {
     let text = std::fs::read_to_string(&plugin).unwrap();
     assert!(text.contains("tool.execute.before"));
 }
+
+// ---------------------------------------------------------------------------
+// spec 011 §P2.3: file-tool coverage (protected paths)
+// ---------------------------------------------------------------------------
+
+fn file_payload(tool: &str, path: &str) -> String {
+    serde_json::json!({
+        "hook_event_name": "PreToolUse",
+        "tool_name": tool,
+        "tool_input": { "file_path": path },
+        "session_id": "e2e",
+        "cwd": "/repo",
+    })
+    .to_string()
+}
+
+#[test]
+fn enforce_asks_on_protected_path_read() {
+    let home = TempDir::new().unwrap();
+    let key = format!("{}/.ssh/id_rsa", home.path().display());
+    let out = guard(
+        &home,
+        &["--mode", "enforce", "--no-log"],
+        &file_payload("Read", &key),
+    );
+    assert_eq!(out.status.code(), Some(0));
+    let v = stdout_json(&out);
+    assert_eq!(v["hookSpecificOutput"]["permissionDecision"], "ask");
+    let reason = v["hookSpecificOutput"]["permissionDecisionReason"]
+        .as_str()
+        .unwrap();
+    assert!(reason.contains("SSH"), "{reason}");
+    assert!(
+        !reason.contains("id_rsa"),
+        "reason must not echo the path: {reason}"
+    );
+
+    // Relative dotenv resolved against cwd; Grep/Glob use `path`.
+    let dotenv = guard(
+        &home,
+        &["--mode", "enforce", "--no-log"],
+        &file_payload("Edit", "apps/web/.env.local"),
+    );
+    assert_eq!(
+        stdout_json(&dotenv)["hookSpecificOutput"]["permissionDecision"],
+        "ask"
+    );
+    let grep = guard(
+        &home,
+        &["--mode", "enforce", "--no-log"],
+        &serde_json::json!({"tool_name":"Grep","tool_input":{"pattern":"AKIA","path":format!("{}/.aws", home.path().display())}}).to_string(),
+    );
+    assert_eq!(
+        stdout_json(&grep)["hookSpecificOutput"]["permissionDecision"],
+        "ask"
+    );
+}
+
+#[test]
+fn routine_read_stays_silent_and_unlogged() {
+    let home = TempDir::new().unwrap();
+    let log = home.path().join("decisions.jsonl");
+    for (tool, path) in [
+        ("Read", "src/main.rs"),
+        ("Edit", "/repo/README.md"),
+        ("Write", "Cargo.toml"),
+        ("Grep", "/repo/src"),
+        ("Glob", "**/*.rs"),
+    ] {
+        let out = guard(
+            &home,
+            &["--mode", "enforce", "--log", log.to_str().unwrap()],
+            &file_payload(tool, path),
+        );
+        assert!(
+            out.stdout.is_empty(),
+            "{tool} {path}: {}",
+            String::from_utf8_lossy(&out.stdout)
+        );
+        assert_eq!(out.status.code(), Some(0));
+    }
+    assert!(!log.exists(), "routine file calls must not be logged");
+}
+
+#[test]
+fn writing_own_decision_log_is_denied_and_shadow_logs_tool_and_path() {
+    let home = TempDir::new().unwrap();
+    let log = home.path().join("decisions.jsonl");
+    let log_arg = log.to_str().unwrap();
+
+    let deny = guard(
+        &home,
+        &["--mode", "enforce", "--log", log_arg],
+        &file_payload("Write", log_arg),
+    );
+    assert_eq!(
+        stdout_json(&deny)["hookSpecificOutput"]["permissionDecision"],
+        "deny"
+    );
+
+    let key = format!("{}/.ssh/id_ed25519", home.path().display());
+    let shadow = guard(&home, &["--log", log_arg], &file_payload("Read", &key));
+    assert!(shadow.stdout.is_empty(), "shadow emits nothing");
+    assert!(String::from_utf8_lossy(&shadow.stderr).contains("would ask"));
+
+    let last = std::fs::read_to_string(&log).unwrap();
+    let rec: Value = serde_json::from_str(last.lines().last().unwrap()).unwrap();
+    assert_eq!(rec["tool"], "Read");
+    assert_eq!(rec["verdict"], "ask");
+    assert_eq!(rec["emitted"], "none");
+    assert!(rec["path"].as_str().unwrap().ends_with("id_ed25519"));
+    assert!(rec.get("command").is_none());
+
+    let report = Command::cargo_bin("caro")
+        .unwrap()
+        .args(["guard", "report", "--log", log_arg])
+        .output()
+        .unwrap();
+    let text = String::from_utf8_lossy(&report.stdout);
+    assert!(text.contains("by tool:"), "{text}");
+    assert!(text.contains("read 1"), "{text}");
+}
+
+#[test]
+fn user_protected_paths_are_additive() {
+    let home = TempDir::new().unwrap();
+    let cfg_dir = home.path().join("config").join("caro");
+    std::fs::create_dir_all(&cfg_dir).unwrap();
+    std::fs::write(
+        cfg_dir.join("config.toml"),
+        "safety_level = \"moderate\"\nlog_level = \"info\"\ncache_max_size_gb = 10\nlog_rotation_days = 7\n\n[safety]\nprotected_paths = [\"**/vault/**\"]\n",
+    )
+    .unwrap();
+    let user = guard(
+        &home,
+        &["--mode", "enforce", "--no-log"],
+        &file_payload("Read", "/srv/vault/token"),
+    );
+    assert_eq!(
+        stdout_json(&user)["hookSpecificOutput"]["permissionDecision"],
+        "ask"
+    );
+    let builtin = guard(
+        &home,
+        &["--mode", "enforce", "--no-log"],
+        &file_payload("Read", "/repo/.env"),
+    );
+    assert_eq!(
+        stdout_json(&builtin)["hookSpecificOutput"]["permissionDecision"],
+        "ask",
+        "built-ins stay when the user adds globs"
+    );
+}

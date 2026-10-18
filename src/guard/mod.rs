@@ -13,6 +13,7 @@
 //! the harness acts on.
 
 pub mod log;
+pub mod paths;
 pub mod setup;
 
 use std::time::Instant;
@@ -114,6 +115,9 @@ pub struct HookEvent {
     /// The harness truncated the tool input (Grok Build `toolInputTruncated`):
     /// the visible command is only a prefix of what will run.
     pub truncated: bool,
+    /// The path a file tool is about to use (`file_path`, `path`,
+    /// `notebook_path`).
+    pub file_path: Option<String>,
 }
 
 impl HookEvent {
@@ -142,6 +146,7 @@ impl HookEvent {
                 session_id: field("session_id", "sessionId"),
                 tool_use_id: field("tool_use_id", "toolUseId"),
                 truncated: false,
+                file_path: None,
             });
         }
 
@@ -164,6 +169,10 @@ impl HookEvent {
                 .or_else(|| v.get("toolInputTruncated"))
                 .and_then(Value::as_bool)
                 .unwrap_or(false),
+            file_path: input_str("file_path")
+                .or_else(|| input_str("filePath"))
+                .or_else(|| input_str("notebook_path"))
+                .or_else(|| input_str("path")),
         })
     }
 
@@ -174,6 +183,14 @@ impl HookEvent {
             regex::Regex::new(r#""(?:tool_name|toolName)"\s*:\s*"([^"]+)""#).expect("valid regex")
         });
         TOOL.captures(prefix).map(|c| c[1].to_string())
+    }
+
+    /// True when the tool call reads, searches or writes a file.
+    pub fn is_file_tool(&self) -> bool {
+        self.tool_name
+            .as_deref()
+            .map(|t| paths::file_access(t).is_some())
+            .unwrap_or(false)
     }
 
     /// True when the tool call runs a shell command.
@@ -393,10 +410,74 @@ pub async fn run(
     raw: &str,
     started: Instant,
 ) -> (Outcome, Rendered, Option<log::DecisionRecord>) {
+    run_with_paths(
+        validator,
+        &paths::ProtectedPaths::builtin(),
+        harness,
+        mode,
+        raw,
+        started,
+    )
+    .await
+}
+
+/// Decide a file-tool call against the protected-path set (spec 011 §P2.3).
+/// A protected path is reported as High (`ask`); caro's own decision log as
+/// Critical (`deny`). The reason names the label, never the path.
+pub fn evaluate_path(
+    protected: &paths::ProtectedPaths,
+    access: paths::FileAccess,
+    path: &str,
+    cwd: Option<&str>,
+) -> Option<GuardDecision> {
+    let d = protected.check(access, path, cwd)?;
+    let risk = match d.verdict {
+        Verdict::Deny => RiskLevel::Critical,
+        _ => RiskLevel::High,
+    };
+    let what = match access {
+        paths::FileAccess::Read => "reads",
+        paths::FileAccess::Write => "writes",
+    };
+    Some(GuardDecision {
+        risk,
+        matched_patterns: vec![format!("{what} {}", d.label)],
+        floor_applied: false,
+        verdict: d.verdict,
+        reason: format!("caro guard: {} risk: {what} {}", risk_str(risk), d.label),
+    })
+}
+
+/// [`run`] with an explicit protected-path set (the hook path builds it from
+/// the user's `[safety] protected_paths`).
+pub async fn run_with_paths(
+    validator: Result<&SafetyValidator, &str>,
+    protected: &paths::ProtectedPaths,
+    harness: Harness,
+    mode: GuardMode,
+    raw: &str,
+    started: Instant,
+) -> (Outcome, Rendered, Option<log::DecisionRecord>) {
     let event = HookEvent::parse(harness, raw);
 
     let (outcome, event) = match event {
         Err(e) => (Outcome::Error(e), HookEvent::default()),
+        Ok(ev) if ev.is_file_tool() => {
+            let access = ev
+                .tool_name
+                .as_deref()
+                .and_then(paths::file_access)
+                .expect("is_file_tool checked");
+            let outcome = match ev.file_path.as_deref() {
+                // Grep/Glob without a path search the cwd: no opinion.
+                None | Some("") => Outcome::NotShell,
+                Some(p) => match evaluate_path(protected, access, p, ev.cwd.as_deref()) {
+                    Some(d) => Outcome::Decided(d),
+                    None => Outcome::NotShell,
+                },
+            };
+            (outcome, ev)
+        }
         Ok(ev) if !ev.is_shell() => (Outcome::NotShell, ev),
         Ok(ev) if ev.truncated => (
             Outcome::Error("harness truncated the tool input; command not fully visible".into()),

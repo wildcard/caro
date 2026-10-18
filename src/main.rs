@@ -4374,6 +4374,21 @@ fn load_guard_validator() -> Result<caro::safety::SafetyValidator, String> {
         .map_err(|_| "safety rules: a configured pattern failed to build".to_string())
 }
 
+/// The protected-path set for file tools: built-ins plus the user's
+/// `[safety] protected_paths`. A config that fails to load keeps the
+/// built-ins (the shell path reports that failure separately).
+fn load_protected_paths(log: Option<&std::path::Path>) -> caro::guard::paths::ProtectedPaths {
+    let user: Vec<String> = caro::config::ConfigManager::new()
+        .ok()
+        .and_then(|cm| cm.load().ok())
+        .map(|uc| uc.safety.protected_paths)
+        .unwrap_or_default();
+    let own_log = log
+        .map(std::path::Path::to_path_buf)
+        .or_else(caro::guard::log::default_log_path);
+    caro::guard::paths::ProtectedPaths::new(&user, own_log)
+}
+
 /// `caro guard test "<command>"` (spec 011 §P2.1). Exit 0/2/3 like generic
 /// enforce. Nothing is written to the decision log.
 async fn handle_guard_test(
@@ -4563,6 +4578,7 @@ async fn handle_guard(
     // as defaults; a config that exists but cannot be loaded is an error, not
     // a silent fallback that would drop the user's own High/Critical rules.
     let validator = load_guard_validator();
+    let protected = load_protected_paths(log.as_deref());
 
     // Cap the read: an unbounded payload could stall the hook past the
     // harness timeout, which fails open.
@@ -4581,7 +4597,8 @@ async fn handle_guard(
         }
         Ok(_) => {
             let validator = validator.as_ref().map_err(String::as_str);
-            let (_, rendered, record) = guard::run(validator, harness, mode, &raw, started).await;
+            let (_, rendered, record) =
+                guard::run_with_paths(validator, &protected, harness, mode, &raw, started).await;
             (rendered, record)
         }
         Err(e) => (

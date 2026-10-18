@@ -73,6 +73,12 @@ Install and check it:
     caro guard setup claude --verify   # entry present, caro on $PATH, rm -rf / → deny
     caro guard test "rm -rf /"         # dry-run one command: exit 2 = deny, 3 = ask
 
+The hook also receives `Read`, `Write`, `Edit`, `Grep` and `Glob`. A call
+that touches a protected path (`~/.ssh/**`, `**/.env`, `**/*.pem`, …) goes
+to the human as `ask`; a write to caro's own decision log is denied; every
+other path gets no opinion. Add your own globs with
+`[safety] protected_paths = ["**/vault/**"]` in `config.toml`.
+
 A `PreToolUse` hook adapter. Claude Code, Grok Build, Codex CLI and OpenCode
 (through a plugin) send every shell command their agent is about to run to
 Caro. In **shadow** mode (the default) Caro records what it would have decided

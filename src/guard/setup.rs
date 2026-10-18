@@ -55,6 +55,10 @@ pub enum Scope {
     Project,
 }
 
+/// Tools the hook receives: the shell tool plus the file tools that the
+/// protected-path policy covers (spec 011 §P2.3).
+pub const HOOK_MATCHER: &str = "Bash|Read|Write|Edit|MultiEdit|NotebookEdit|Grep|Glob";
+
 /// Marker that identifies caro's own hook entry inside a hooks array.
 const CARO_HOOK_PREFIX: &str = "caro guard";
 
@@ -114,7 +118,7 @@ impl SetupTarget {
 /// One PreToolUse entry in the Claude hook format.
 pub fn hook_entry(target: SetupTarget, mode: GuardMode) -> Value {
     json!({
-        "matcher": "Bash",
+        "matcher": HOOK_MATCHER,
         "hooks": [{
             "type": "command",
             "command": hook_command(target, mode),
