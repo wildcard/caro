@@ -557,3 +557,58 @@ fn user_protected_paths_are_additive() {
         "built-ins stay when the user adds globs"
     );
 }
+
+#[test]
+fn guard_setup_verify_rejects_a_malformed_stored_command() {
+    let home = TempDir::new().unwrap();
+    let settings = home.path().join(".claude").join("settings.json");
+    std::fs::create_dir_all(settings.parent().unwrap()).unwrap();
+    std::fs::write(
+        &settings,
+        r#"{"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"caro guard --harness claude --mode broken"}]}]}}"#,
+    )
+    .unwrap();
+    let bin = Command::cargo_bin("caro").unwrap().get_program().to_owned();
+    let bin_dir = std::path::Path::new(&bin).parent().unwrap().to_owned();
+    let verify = Command::cargo_bin("caro")
+        .unwrap()
+        .args(["guard", "setup", "claude", "--verify"])
+        .env("HOME", home.path())
+        .env("XDG_CONFIG_HOME", home.path().join("config"))
+        .env("PATH", &bin_dir)
+        .output()
+        .unwrap();
+    let text = String::from_utf8_lossy(&verify.stdout);
+    assert_eq!(verify.status.code(), Some(1), "{text}");
+    assert!(text.contains("unknown mode `broken`"), "{text}");
+    assert!(text.contains("NOT VERIFIED"), "{text}");
+}
+
+#[test]
+fn glob_pattern_into_protected_dir_asks_and_broken_config_asks_for_file_tools() {
+    let home = TempDir::new().unwrap();
+    let glob = guard(
+        &home,
+        &["--mode", "enforce", "--no-log"],
+        &serde_json::json!({"tool_name":"Glob","tool_input":{"pattern":format!("{}/.ssh/**", home.path().display())}}).to_string(),
+    );
+    assert_eq!(
+        stdout_json(&glob)["hookSpecificOutput"]["permissionDecision"],
+        "ask"
+    );
+
+    // Malformed config: a file call must fail toward the human, not drop
+    // the user's protected_paths silently.
+    let cfg_dir = home.path().join("config").join("caro");
+    std::fs::create_dir_all(&cfg_dir).unwrap();
+    std::fs::write(cfg_dir.join("config.toml"), "[safety\nbroken").unwrap();
+    let out = guard(
+        &home,
+        &["--mode", "enforce", "--no-log"],
+        &file_payload("Read", "src/main.rs"),
+    );
+    assert_eq!(
+        stdout_json(&out)["hookSpecificOutput"]["permissionDecision"],
+        "ask"
+    );
+}

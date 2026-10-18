@@ -4377,16 +4377,26 @@ fn load_guard_validator() -> Result<caro::safety::SafetyValidator, String> {
 /// The protected-path set for file tools: built-ins plus the user's
 /// `[safety] protected_paths`. A config that fails to load keeps the
 /// built-ins (the shell path reports that failure separately).
-fn load_protected_paths(log: Option<&std::path::Path>) -> caro::guard::paths::ProtectedPaths {
-    let user: Vec<String> = caro::config::ConfigManager::new()
-        .ok()
-        .and_then(|cm| cm.load().ok())
-        .map(|uc| uc.safety.protected_paths)
-        .unwrap_or_default();
+fn load_protected_paths(
+    log: Option<&std::path::Path>,
+) -> Result<caro::guard::paths::ProtectedPaths, String> {
+    // Same generic error text as the validator: config diagnostics can quote
+    // a line that holds a token, and this text is logged.
+    let cm = caro::config::ConfigManager::new()
+        .map_err(|_| "config: could not locate the caro config directory".to_string())?;
+    let uc = cm.load().map_err(|_| {
+        format!(
+            "config: {} could not be loaded (run `caro config show` for details)",
+            cm.config_path().display()
+        )
+    })?;
     let own_log = log
         .map(std::path::Path::to_path_buf)
         .or_else(caro::guard::log::default_log_path);
-    caro::guard::paths::ProtectedPaths::new(&user, own_log)
+    Ok(caro::guard::paths::ProtectedPaths::new(
+        &uc.safety.protected_paths,
+        own_log,
+    ))
 }
 
 /// `caro guard test "<command>"` (spec 011 §P2.1). Exit 0/2/3 like generic
@@ -4597,8 +4607,15 @@ async fn handle_guard(
         }
         Ok(_) => {
             let validator = validator.as_ref().map_err(String::as_str);
-            let (_, rendered, record) =
-                guard::run_with_paths(validator, &protected, harness, mode, &raw, started).await;
+            let (_, rendered, record) = guard::run_with_paths(
+                validator,
+                protected.as_ref().map_err(String::as_str),
+                harness,
+                mode,
+                &raw,
+                started,
+            )
+            .await;
             (rendered, record)
         }
         Err(e) => (
