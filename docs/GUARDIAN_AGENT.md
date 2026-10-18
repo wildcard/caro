@@ -37,6 +37,18 @@ itself.
 
 Caro fills that gap.
 
+### Neighbours in the same slot
+
+[Rampart](https://github.com/peg/rampart) (Go, Apache-2.0) is the closest
+product to `caro guard`: a policy-and-approval layer that hooks Claude Code,
+Codex, Cursor, Cline, Copilot, OpenClaw and MCP servers, answers `allow` /
+`ask` / `deny` from YAML policy, and keeps a hash-chained audit log. It
+overlaps Caro on the hook, differs on philosophy (Rampart can `allow` and
+auto-approve; Caro never does), and covers file, fetch and MCP tools that
+Caro does not yet see. The gap analysis and the parity milestone are in
+[`docs/research/2026-10-18-rampart-lessons.md`](research/2026-10-18-rampart-lessons.md)
+and `ROADMAP.md` (v1.6.0).
+
 ## What Caro provides
 
 | Capability | How it works |
@@ -47,6 +59,7 @@ Caro fills that gap.
 | **Backend symmetry** | The `SafetyValidator` is backend-agnostic. An embedded model, Ollama, vLLM, or any future backend all pass through the same code path. |
 | **Structured output** | JSON and YAML output modes give guardian orchestrators a machine-readable signal to consume. |
 | **CVE rule pipeline** | Weekly automated sync with NVD + CISA KEV + GHSA for shell-invocation CVEs (CVSS >= 7.0). Rules compiled into the binary with zero runtime network calls. |
+| **Harness guardian (`caro guard`)** | PreToolUse hook adapter for Claude Code, Grok Build, Codex and OpenCode. Shadow by default, Critical → `deny`, High → `ask`, never `allow`. Redacted decision log and `caro guard report`. See [ADR-020](adr/ADR-020-guardian-hook-harness-adapters.md). |
 
 ## Integration patterns
 

@@ -310,6 +310,108 @@ The Grok backend is a provider addition to the existing core loop, like
    the configured model, and maps 401 to `BackendUnavailable`. This is verified
    with wiremock.
 
+## Phase 2: parity (added 2026-10-18)
+
+Source: [`docs/research/2026-10-18-rampart-lessons.md`](../../docs/research/2026-10-18-rampart-lessons.md).
+Roadmap: v1.6.0 Guardian parity. Each item is its own PR. Shadow stays the
+default, Caro still never emits `allow`, and every PR carries the
+feature-evidence trio (CI link, demo, named regression test).
+
+### P2.1 `caro guard test` (G2)
+
+```text
+caro guard test [--harness H] [--output text|json] "<command>"
+```
+
+Runs `guard::evaluate` on the given command with the user's validator and
+prints risk, verdict, matched patterns, `floor_applied` and latency. JSON
+output is the `DecisionRecord` shape with `mode: "test"` and no log write.
+Exit codes follow generic enforce: 0 none, 2 deny, 3 ask.
+
+### P2.2 `caro guard setup` and verification (G3)
+
+```text
+caro guard setup <claude|codex|opencode> [--scope user|project]
+                 [--mode shadow|enforce] [--dry-run] [--verify]
+```
+
+- Writes the PreToolUse hook entry into `~/.claude/settings.json` (user, the
+  default, per ADR-020) or `.claude/settings.json` (project). The merge is
+  idempotent: existing hooks are kept, a caro entry is replaced, nothing else
+  changes. `--dry-run` prints the resulting JSON and writes nothing.
+- OpenCode: copies `integrations/opencode/caro-guard.ts` into
+  `~/.config/opencode/plugin/`.
+- `--verify`: confirms the hook entry exists, resolves `caro` on `$PATH`, and
+  runs one synthetic `rm -rf /` payload through it in enforce mode with
+  `--no-log`, expecting `deny`. Prints "adapter verified" (what the installer
+  checked) and never "host verified" (Caro cannot see the host ingest it).
+- `caro doctor` gains a guard row with the same check.
+
+### P2.3 File-tool coverage, shadow first (G1)
+
+- `HookEvent` gains `tool_input.file_path` / `path` / `pattern` (and camelCase
+  twins) for `Read`, `Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `Grep`,
+  `Glob`. `is_file_tool()` mirrors `is_shell()`.
+- `src/guard/paths.rs` holds a built-in protected-path set: `~/.ssh/**`,
+  `~/.aws/credentials`, `~/.gnupg/**`, `**/.env`, `**/.env.*`, `**/id_rsa*`,
+  `**/id_ed25519*`, `**/*.pem`, `~/.kube/config`, `~/.docker/config.json`,
+  `~/.netrc`, and caro's own `config.toml` and `decisions.jsonl`. Paths are
+  normalized lexically (tilde, `.`, `..`) before glob matching. No filesystem
+  access on the hot path.
+- Policy: Read/Grep/Glob of a protected path → `ask`; Write/Edit of a
+  protected path → `ask`; Write/Edit of caro's own decision log → `deny` (the
+  one path the guard owns). Anything else → `none`, no output, no log line.
+- `[[safety.protected_paths]]` in `config.toml` extends the set. Additive
+  only, same validation discipline as custom patterns.
+- `DecisionRecord` gains `tool` and `path` (redacted). `report` groups by
+  tool.
+- Regression guards: `enforce_asks_on_protected_path_read` and
+  `routine_read_stays_silent_and_unlogged` in `tests/e2e_guard.rs`.
+
+### P2.4 Hash-chained log and `caro guard audit` (G4)
+
+- `DecisionRecord` gains `prev_hash` and `hash`: SHA-256 (`sha2`, already a
+  dependency) over the canonical JSON of the record without `hash`. The first
+  record's `prev_hash` is the empty string.
+- `append()` reads the last line's `hash` before writing. Concurrent writers
+  can still race (the spec's torn-line caveat); a break caused by a race is
+  reported as a break, not hidden.
+- `caro guard audit verify [--log PATH]` walks the chain and exits 1 at the
+  first break, naming the line. `caro guard audit tail [--follow] [--limit N]`
+  pretty-prints records. `caro guard report` stays as an alias of
+  `caro guard audit report` for one release.
+- Rotation (follow-up 8) must carry the last hash into the new file.
+
+### P2.5 PostToolUse leak scan, shadow only (G5)
+
+- `caro guard --event post` (or `hook_event_name == "PostToolUse"`) reads
+  `tool_response` text up to the 4 MiB cap and scans it with the
+  `COMMAND_SECRETS` shapes plus AWS access keys, PEM private-key headers, and
+  GitHub/Slack/OpenAI-style token prefixes.
+- A hit writes a `leak_detected` record with the match **class** only. The
+  secret never reaches the log or stderr.
+- Enforce is deferred: Claude Code cannot block on PostToolUse, and Codex
+  rejects `additionalContext`. The shadow log measures how often this fires
+  before any warning text is emitted.
+- `caro guard setup --post` installs the PostToolUse hook.
+
+### P2.6 Normalization views (G7)
+
+In the safety core, so caro-generated commands benefit too: a view with ANSI
+and control characters stripped; a view where a literal piped to
+`base64 -d`/`--decode` is decoded once (bounded size); a view with `$'…'` and
+`\x` escapes resolved. Patterns for fetch-and-execute through `<(curl …)`,
+`bash <<< "$(curl …)"` and heredoc-fed shells. TDD via
+`skill: safety-pattern-developer`; cases in
+`tests/safety_segment_evasion_contract.rs`; zero new false positives on
+`tests/evaluation/dataset.yaml`.
+
+### Not in Phase 2
+
+User-authored `deny`, path/domain policy DSL, profiles, community catalog,
+approval queue, dashboard, `wrap`/`preload`. These are the `guard-policy-dsl`
+and `caro-control-plane` research rows in `ROADMAP.md` and need Gate 1.
+
 ## Follow-ups (not in this spec's PR)
 
 Tracked in #1512. The safety-core evasions are tracked on #1054.
