@@ -67,6 +67,12 @@ policy.
 (Synopsis: `--harness` is one of `claude`, `grok`, `codex`, `opencode`,
 `generic`; `--mode` is `shadow` or `enforce`.)
 
+Install and check it:
+
+    caro guard setup claude            # writes ~/.claude/settings.json (shadow)
+    caro guard setup claude --verify   # entry present, caro on $PATH, rm -rf / → deny
+    caro guard test "rm -rf /"         # dry-run one command: exit 2 = deny, 3 = ask
+
 A `PreToolUse` hook adapter. Claude Code, Grok Build, Codex CLI and OpenCode
 (through a plugin) send every shell command their agent is about to run to
 Caro. In **shadow** mode (the default) Caro records what it would have decided
