@@ -35,7 +35,7 @@ static SHAPES: Lazy<Vec<Shape>> = Lazy::new(|| {
         shape("AWS access key id", r"\bAKIA[0-9A-Z]{16}\b"),
         shape(
             "private key block",
-            r"-----BEGIN (?:RSA |EC |DSA |OPENSSH |PGP |ENCRYPTED )?PRIVATE KEY-----",
+            r"-----BEGIN (?:(?:RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY|PGP PRIVATE KEY BLOCK)-----",
         ),
         shape("GitHub token", r"\bgh[pousr]_[A-Za-z0-9]{36,}\b"),
         shape(
@@ -43,11 +43,13 @@ static SHAPES: Lazy<Vec<Shape>> = Lazy::new(|| {
             r"\bgithub_pat_[A-Za-z0-9_]{60,}\b",
         ),
         shape("Slack token", r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b"),
+        // Anthropic keys share the `sk-` prefix; they are matched first and
+        // excluded from the OpenAI shape so one key counts once.
+        shape("Anthropic API key", r"\bsk-ant-[A-Za-z0-9_-]{32,}\b"),
         shape(
             "OpenAI-style API key",
             r"\bsk-(?:proj-)?[A-Za-z0-9_-]{32,}\b",
         ),
-        shape("Anthropic API key", r"\bsk-ant-[A-Za-z0-9_-]{32,}\b"),
         shape("Google API key", r"\bAIza[0-9A-Za-z_-]{35}\b"),
         shape(
             "Stripe secret key",
@@ -81,11 +83,16 @@ pub fn scan(text: &str) -> Vec<&'static str> {
     } else {
         text
     };
-    SHAPES
+    let mut hits: Vec<&'static str> = SHAPES
         .iter()
         .filter(|s| s.re.is_match(text))
         .map(|s| s.label)
-        .collect()
+        .collect();
+    // An Anthropic key also satisfies the broader `sk-` shape; count it once.
+    if hits.contains(&"Anthropic API key") {
+        hits.retain(|h| *h != "OpenAI-style API key");
+    }
+    hits
 }
 
 #[cfg(test)]
@@ -111,6 +118,18 @@ mod tests {
                 "label leaks text: {h}"
             );
         }
+    }
+
+    #[test]
+    fn pgp_block_header_and_key_prefix_disambiguation() {
+        let pgp = ["-----BEGIN PGP ", "PRIVATE KEY BLOCK-----"].concat();
+        assert_eq!(scan(&pgp), vec!["private key block"]);
+        let ant = format!("sk-ant-{}", "a".repeat(40));
+        assert_eq!(scan(&ant), vec!["Anthropic API key"], "counted once");
+        let oai = format!("sk-{}", "b".repeat(40));
+        assert_eq!(scan(&oai), vec!["OpenAI-style API key"]);
+        let proj = format!("sk-proj-{}", "c".repeat(40));
+        assert_eq!(scan(&proj), vec!["OpenAI-style API key"]);
     }
 
     #[test]

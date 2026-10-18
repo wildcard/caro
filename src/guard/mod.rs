@@ -123,6 +123,8 @@ pub struct HookEvent {
     pub event_name: Option<String>,
     /// PostToolUse only: the tool's output, flattened to text.
     pub tool_response: Option<String>,
+    /// `Glob`/`Grep` `pattern`: the files a search enumerates.
+    pub search_pattern: Option<String>,
 }
 
 impl HookEvent {
@@ -154,6 +156,7 @@ impl HookEvent {
                 file_path: None,
                 event_name: field("hook_event_name", "hookEventName"),
                 tool_response: None,
+                search_pattern: None,
             });
         }
 
@@ -188,6 +191,7 @@ impl HookEvent {
                     Value::String(s) => s.clone(),
                     other => other.to_string(),
                 }),
+            search_pattern: input_str("pattern"),
         })
     }
 
@@ -218,6 +222,15 @@ impl HookEvent {
             .as_deref()
             .map(|t| paths::file_access(t).is_some())
             .unwrap_or(false)
+    }
+
+    /// Best-effort event name from the start of a payload too large to parse.
+    pub fn sniff_event_name(prefix: &str) -> Option<String> {
+        static EVENT: once_cell::sync::Lazy<regex::Regex> = once_cell::sync::Lazy::new(|| {
+            regex::Regex::new(r#""(?:hook_event_name|hookEventName)"\s*:\s*"([^"]+)""#)
+                .expect("valid regex")
+        });
+        EVENT.captures(prefix).map(|c| c[1].to_string())
     }
 
     /// True when the tool call runs a shell command.
@@ -457,7 +470,7 @@ pub async fn run(
 ) -> (Outcome, Rendered, Option<log::DecisionRecord>) {
     run_with_paths(
         validator,
-        &paths::ProtectedPaths::builtin(),
+        Ok(&paths::ProtectedPaths::builtin()),
         harness,
         mode,
         raw,
@@ -476,6 +489,11 @@ pub fn evaluate_path(
     cwd: Option<&str>,
 ) -> Option<GuardDecision> {
     let d = protected.check(access, path, cwd)?;
+    Some(path_decision(access, d))
+}
+
+/// Turn a protected-path hit into a guard decision.
+fn path_decision(access: paths::FileAccess, d: paths::PathDecision) -> GuardDecision {
     let risk = match d.verdict {
         Verdict::Deny => RiskLevel::Critical,
         _ => RiskLevel::High,
@@ -484,20 +502,20 @@ pub fn evaluate_path(
         paths::FileAccess::Read => "reads",
         paths::FileAccess::Write => "writes",
     };
-    Some(GuardDecision {
+    GuardDecision {
         risk,
         matched_patterns: vec![format!("{what} {}", d.label)],
         floor_applied: false,
         verdict: d.verdict,
         reason: format!("caro guard: {} risk: {what} {}", risk_str(risk), d.label),
-    })
+    }
 }
 
 /// [`run`] with an explicit protected-path set (the hook path builds it from
 /// the user's `[safety] protected_paths`).
 pub async fn run_with_paths(
     validator: Result<&SafetyValidator, &str>,
-    protected: &paths::ProtectedPaths,
+    protected: Result<&paths::ProtectedPaths, &str>,
     harness: Harness,
     mode: GuardMode,
     raw: &str,
@@ -529,13 +547,37 @@ pub async fn run_with_paths(
                 .as_deref()
                 .and_then(paths::file_access)
                 .expect("is_file_tool checked");
-            let outcome = match ev.file_path.as_deref() {
-                // Grep/Glob without a path search the cwd: no opinion.
-                None | Some("") => Outcome::NotShell,
-                Some(p) => match evaluate_path(protected, access, p, ev.cwd.as_deref()) {
-                    Some(d) => Outcome::Decided(d),
-                    None => Outcome::NotShell,
-                },
+            let is_search = ev
+                .tool_name
+                .as_deref()
+                .map(|t| matches!(t.to_ascii_lowercase().as_str(), "glob" | "grep"))
+                .unwrap_or(false);
+            let outcome = match protected {
+                // The user's protected_paths could not be loaded: a file call
+                // must not silently lose that protection (shell calls already
+                // fail toward the human on the same error).
+                Err(e) => Outcome::Error(e.to_string()),
+                Ok(protected) => {
+                    let decision = if is_search {
+                        protected
+                            .check_search(
+                                access,
+                                ev.file_path.as_deref(),
+                                ev.search_pattern.as_deref(),
+                                ev.cwd.as_deref(),
+                            )
+                            .map(|d| path_decision(access, d))
+                    } else {
+                        match ev.file_path.as_deref() {
+                            None | Some("") => None,
+                            Some(p) => evaluate_path(protected, access, p, ev.cwd.as_deref()),
+                        }
+                    };
+                    match decision {
+                        Some(d) => Outcome::Decided(d),
+                        None => Outcome::NotShell,
+                    }
+                }
             };
             (outcome, ev)
         }
@@ -591,14 +633,28 @@ pub fn oversize(
             Harness::Generic | Harness::Opencode => Some("bash".into()),
             _ => HookEvent::sniff_tool_name(prefix),
         },
+        event_name: HookEvent::sniff_event_name(prefix),
         ..Default::default()
     };
-    let outcome = match event.tool_name {
-        Some(_) if !event.is_shell() => Outcome::NotShell,
-        _ => Outcome::Error(format!(
-            "hook payload exceeds {} MiB; not scanned",
-            MAX_PAYLOAD_BYTES / (1024 * 1024)
-        )),
+    let outcome = if event.is_post_tool_use() {
+        // A huge tool response: scan the prefix that was read (up to the
+        // scanner's own cap) rather than dropping it unseen. The payload is
+        // raw JSON here, so the response text is JSON-escaped, which the
+        // credential shapes still match.
+        let classes = leak::scan(prefix);
+        if classes.is_empty() {
+            Outcome::NotShell
+        } else {
+            Outcome::Leak(classes)
+        }
+    } else {
+        match event.tool_name {
+            Some(_) if !event.is_shell() => Outcome::NotShell,
+            _ => Outcome::Error(format!(
+                "hook payload exceeds {} MiB; not scanned",
+                MAX_PAYLOAD_BYTES / (1024 * 1024)
+            )),
+        }
     };
     let rendered = render(harness, mode, &outcome);
     let record = match &outcome {

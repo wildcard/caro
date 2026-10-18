@@ -79,9 +79,10 @@ to the human as `ask`; a write to caro's own decision log is denied; every
 other path gets no opinion. Add your own globs with
 `[safety] protected_paths = ["**/vault/**"]` in `config.toml`.
 
-The decision log is hash-chained. `caro guard audit verify` exits 1 and
-names the first edited, deleted or torn line; `caro guard audit tail -f`
-follows new decisions.
+The decision log is hash-chained with a `.head` sidecar. `caro guard audit
+verify` exits 1 and names the first edited, removed or torn line;
+`caro guard audit tail -f` follows new decisions. It detects partial
+tampering, not a full rewrite of both files.
 
 `caro guard setup claude --post` adds a PostToolUse hook. Tool output that
 contains a credential shape (an AWS key id, a private-key block, a token

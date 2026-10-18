@@ -132,11 +132,62 @@ impl ProtectedPaths {
             }
             push_glob(&mut globs, pat, "user protected path", home.as_deref());
         }
+        // Caro's real config directory (XDG / platform specific), not only a
+        // literal `.caro` folder: `~/.config/caro/**` on Linux.
+        if let Some(cfg) = dirs::config_dir() {
+            let pat = format!("{}/caro/**", cfg.to_string_lossy().trim_end_matches('/'));
+            push_glob(&mut globs, &pat, "caro config directory", home.as_deref());
+        }
+        // A relative `--log` is relative to the hook process's cwd, which is
+        // also the base the harness's relative paths resolve against.
+        let process_cwd = std::env::current_dir().ok();
         Self {
             globs,
-            own_log: own_log.map(|p| PathBuf::from(normalize(&p.to_string_lossy(), None, None))),
+            own_log: own_log.map(|p| {
+                PathBuf::from(normalize(
+                    &p.to_string_lossy(),
+                    None,
+                    process_cwd.as_deref(),
+                ))
+            }),
             home,
         }
+    }
+
+    /// Decide for a `Glob`/`Grep` call: the optional search root, then the
+    /// pattern joined onto it. The pattern is matched as a path string (so
+    /// `~/.ssh/**` as a pattern hits the `~/.ssh/**` protection) and by its
+    /// literal prefix (so `~/.ssh/id_*` hits it too).
+    pub fn check_search(
+        &self,
+        access: FileAccess,
+        root: Option<&str>,
+        pattern: Option<&str>,
+        cwd: Option<&str>,
+    ) -> Option<PathDecision> {
+        if let Some(r) = root.filter(|r| !r.is_empty()) {
+            if let Some(d) = self.check(access, r, cwd) {
+                return Some(d);
+            }
+        }
+        let pattern = pattern.filter(|p| !p.is_empty())?;
+        let base = root.filter(|r| !r.is_empty());
+        let joined = |p: &str| match base {
+            Some(b) if !p.starts_with('/') && !p.starts_with('~') => format!("{b}/{p}"),
+            _ => p.to_string(),
+        };
+        if let Some(d) = self.check(access, &joined(pattern), cwd) {
+            return Some(d);
+        }
+        let literal: String = pattern
+            .chars()
+            .take_while(|c| !matches!(c, '*' | '?' | '[' | '{'))
+            .collect();
+        let literal = literal.trim_end_matches('/');
+        if literal.is_empty() || literal == pattern {
+            return None;
+        }
+        self.check(access, &joined(literal), cwd)
     }
 
     /// Decide for one file-tool call. `cwd` resolves relative paths; `None`
@@ -148,6 +199,22 @@ impl ProtectedPaths {
         cwd: Option<&str>,
     ) -> Option<PathDecision> {
         let path = normalize(raw_path, self.home.as_deref(), cwd.map(Path::new));
+        // A symlink in the repo (`credentials -> ~/.aws/credentials`) hides the
+        // real target from a lexical match. One best-effort canonicalize of
+        // the existing path closes that alias; a missing path stays lexical.
+        if let Ok(real) = std::fs::canonicalize(&path) {
+            let real = real.to_string_lossy().into_owned();
+            if real != path {
+                if let Some(d) = self.check_normalized(access, &real) {
+                    return Some(d);
+                }
+            }
+        }
+        self.check_normalized(access, &path)
+    }
+
+    fn check_normalized(&self, access: FileAccess, path: &str) -> Option<PathDecision> {
+        let path = path.to_string();
         if access == FileAccess::Write {
             if let Some(own) = &self.own_log {
                 if Path::new(&path) == own.as_path() {
@@ -326,6 +393,65 @@ mod tests {
         assert!(set()
             .check(FileAccess::Read, "/data/caro/guard/decisions.jsonl", None)
             .is_none());
+    }
+
+    #[test]
+    fn glob_pattern_is_checked_not_only_the_root() {
+        let s = set();
+        assert!(s
+            .check_search(FileAccess::Read, None, Some("~/.ssh/**"), None)
+            .is_some());
+        assert!(s
+            .check_search(FileAccess::Read, None, Some("~/.ssh/id_*"), None)
+            .is_some());
+        assert!(s
+            .check_search(FileAccess::Read, Some("/repo"), Some("**/.env"), None)
+            .is_some());
+        assert!(s
+            .check_search(
+                FileAccess::Read,
+                Some(&format!("{}/.aws", home())),
+                Some("*"),
+                None
+            )
+            .is_some());
+        assert!(s
+            .check_search(FileAccess::Read, Some("/repo"), Some("**/*.rs"), None)
+            .is_none());
+        assert!(s
+            .check_search(FileAccess::Read, None, None, Some("/repo"))
+            .is_none());
+    }
+
+    #[test]
+    fn caro_config_dir_and_relative_log_are_protected() {
+        let cfg = dirs::config_dir().unwrap().join("caro").join("config.toml");
+        assert!(set()
+            .check(FileAccess::Read, &cfg.to_string_lossy(), None)
+            .is_some());
+        let rel = ProtectedPaths::new(&[], Some(PathBuf::from("decisions.jsonl")));
+        let cwd = std::env::current_dir().unwrap();
+        let d = rel
+            .check(
+                FileAccess::Write,
+                "decisions.jsonl",
+                Some(&cwd.to_string_lossy()),
+            )
+            .unwrap();
+        assert_eq!(d.verdict, Verdict::Deny);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn symlink_alias_to_a_protected_path_is_seen() {
+        let dir = tempfile::tempdir().unwrap();
+        let target = dir.path().join("secret.pem");
+        std::fs::write(&target, "x").unwrap();
+        let link = dir.path().join("harmless.txt");
+        std::os::unix::fs::symlink(&target, &link).unwrap();
+        assert!(set()
+            .check(FileAccess::Read, &link.to_string_lossy(), None)
+            .is_some());
     }
 
     #[test]
