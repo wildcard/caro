@@ -60,12 +60,26 @@ static PIPE_TO_SHELL: Lazy<Regex> = Lazy::new(|| {
     .expect("valid pipe regex")
 });
 
-/// Before the decode: an `eval`, a command substitution, or a shell `-c`
-/// whose argument the substitution feeds.
-static EXEC_PREFIX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r#"(?:\beval\b|\$\(|`|(?:ba|z|da|k)?sh\s+(?:-\S+\s+)*-c\s+["']?\s*\$\()[^|]*$"#)
-        .expect("valid exec-prefix regex")
+/// The context before a `$(` or backtick that makes the substitution's
+/// output run: command position (start of a segment), `eval`, a shell `-c`
+/// argument, or an assignment whose variable may run later. `echo "$(…)"`
+/// only prints the output and does not match.
+static SUBST_EXEC_CONTEXT: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(
+        r#"(?:^|[;&|(){}\n]|\beval|(?:\S*/)?(?:ba|z|da|k)?sh\s+(?:-\S+\s+)*-c|\b[A-Za-z_]\w*=)\s*["']?\s*$"#,
+    )
+    .expect("valid substitution-context regex")
 });
+
+/// Whether text ending right before a decode pipeline opens a command
+/// substitution whose output is executed.
+fn substitution_executes(before: &str) -> bool {
+    let t = before.trim_end();
+    let Some(ctx) = t.strip_suffix("$(").or_else(|| t.strip_suffix('`')) else {
+        return false;
+    };
+    SUBST_EXEC_CONTEXT.is_match(ctx)
+}
 
 /// The normalization views of `command`, without `command` itself and
 /// without duplicates.
@@ -101,7 +115,7 @@ fn unescape_ansi_c(command: &str) -> Option<String> {
     )
 }
 
-/// Bash `$'…'` escapes: `\n \t \r \a \e \\ \' \" \xHH \NNN`.
+/// Bash `$'…'` escapes: `\n \t \r \a \e \\ \' \" \xHH \NNN \uHHHH \UHHHHHHHH`.
 fn unescape_body(body: &str) -> String {
     let mut out = String::with_capacity(body.len());
     let mut chars = body.chars().peekable();
@@ -134,6 +148,27 @@ fn unescape_body(body: &str) -> String {
                     Ok(b) if !hex.is_empty() => out.push(b as char),
                     _ => {
                         out.push_str("\\x");
+                        out.push_str(&hex);
+                    }
+                }
+            }
+            Some(u @ ('u' | 'U')) => {
+                let width = if u == 'u' { 4 } else { 8 };
+                let mut hex = String::new();
+                while hex.len() < width {
+                    match chars.peek() {
+                        Some(h) if h.is_ascii_hexdigit() => {
+                            hex.push(*h);
+                            chars.next();
+                        }
+                        _ => break,
+                    }
+                }
+                match u32::from_str_radix(&hex, 16).ok().and_then(char::from_u32) {
+                    Some(c) if !hex.is_empty() => out.push(c),
+                    _ => {
+                        out.push('\\');
+                        out.push(u);
                         out.push_str(&hex);
                     }
                 }
@@ -171,7 +206,7 @@ fn decoded_payloads(command: &str) -> Vec<String> {
         let whole = caps.get(0).expect("match");
         let after = &command[whole.end()..];
         let before = &command[..whole.start()];
-        let executes = PIPE_TO_SHELL.is_match(after) || EXEC_PREFIX.is_match(before);
+        let executes = PIPE_TO_SHELL.is_match(after) || substitution_executes(before);
         if !executes {
             continue;
         }
@@ -214,6 +249,8 @@ mod tests {
         assert!(views("$'rm -rf /'").contains(&"rm -rf /".to_string()));
         assert!(views("$'\\x72m' -rf /").contains(&"rm -rf /".to_string()));
         assert!(views("$'\\162m' -rf /").contains(&"rm -rf /".to_string()));
+        assert!(views("$'\\u0072\\u006d' -rf /").contains(&"rm -rf /".to_string()));
+        assert!(views("$'\\U00000072m' -rf /").contains(&"rm -rf /".to_string()));
         assert!(views("bash -c $'rm -rf /'").contains(&"bash -c rm -rf /".to_string()));
         assert_eq!(unescape_body("a\\nb\\'c\\\\d"), "a\nb'c\\d");
         // A plain single-quoted string is not ANSI-C quoting.
@@ -229,6 +266,8 @@ mod tests {
             "eval \"$(echo cm0gLXJmIC8= | base64 -d)\"",
             "bash -c \"$(echo cm0gLXJmIC8= | base64 -d)\"",
             "x=$(printf cm0gLXJmIC8= | base64 -D); $x",
+            "$(echo cm0gLXJmIC8= | base64 -d)",
+            "ls; `echo cm0gLXJmIC8= | base64 -d`",
         ] {
             let v = views(cmd);
             assert!(v.contains(&"rm -rf /".to_string()), "{cmd}: {v:?}");
@@ -238,6 +277,9 @@ mod tests {
             "echo cm0gLXJmIC8= | base64 -d",
             "echo cm0gLXJmIC8= | base64 -d > out.txt",
             "echo aGk= | base64 -d | grep h",
+            // Substitution output that is only printed is data, not code.
+            "echo \"$(echo cm0gLXJmIC8= | base64 -d)\"",
+            "printf '%s' \"$(echo cm0gLXJmIC8= | base64 -d)\" > note.txt",
         ] {
             assert!(views(cmd).is_empty(), "{cmd}");
         }

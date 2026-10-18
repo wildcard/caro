@@ -274,7 +274,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             shell_specific: None,
         },
         DangerPattern {
-            pattern: r"\bsudo\s+(?:-\S+\s+)*(?:\S*/)?(?:ba|z|da|k)?sh\s+(?:-\S+\s+)*<\(\s*(?:curl|wget)\b"
+            pattern: r"\bsudo\s+(?:-[ugCDhpr]\s+\S+\s+|-\S+\s+)*(?:\S*/)?(?:ba|z|da|k)?sh\s+(?:-\S+\s+)*<\(\s*(?:curl|wget)\b"
                 .to_string(),
             risk_level: RiskLevel::Critical,
             description: "Execute fetched script as root through process substitution".to_string(),
