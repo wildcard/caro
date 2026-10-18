@@ -255,6 +255,31 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             description: "Download and execute remote script with root privileges".to_string(),
             shell_specific: None,
         },
+        // HIGH: fetched content reaches a shell without a pipe: process
+        // substitution (`bash <(curl …)`, `source <(wget …)`) or a here-string
+        // fed by a substitution (`sh <<< "$(curl …)"`). Rampart 1.9.4 closed
+        // the same routes (spec 011 §P2.6).
+        DangerPattern {
+            pattern: r"(?:^|[\s;&|(])(?:source|\.|(?:\S*/)?(?:ba|z|da|k)?sh)\s+(?:-\S+\s+)*<\(\s*(?:curl|wget)\b"
+                .to_string(),
+            risk_level: RiskLevel::High,
+            description: "Execute fetched script through process substitution".to_string(),
+            shell_specific: None,
+        },
+        DangerPattern {
+            pattern: r#"(?:\S*/)?(?:ba|z|da|k)?sh\s+(?:-\S+\s+)*<<<\s*["']?\$\((?:curl|wget)\b"#
+                .to_string(),
+            risk_level: RiskLevel::High,
+            description: "Execute fetched content through a here-string".to_string(),
+            shell_specific: None,
+        },
+        DangerPattern {
+            pattern: r"\bsudo\s+(?:-\S+\s+)*(?:\S*/)?(?:ba|z|da|k)?sh\s+(?:-\S+\s+)*<\(\s*(?:curl|wget)\b"
+                .to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "Execute fetched script as root through process substitution".to_string(),
+            shell_specific: None,
+        },
         // MODERATE: Package management
         DangerPattern {
             pattern: r"(apt|yum|dnf)\s+remove\s+.*--force".to_string(),
