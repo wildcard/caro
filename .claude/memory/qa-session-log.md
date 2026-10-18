@@ -4,6 +4,37 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-18 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 34s)
+- `caro --version` → **PASS**: `caro 1.5.0 (867323b 2026-10-14)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (advisory; no model downloaded)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`
+- Note: `gh` CLI auth failed (GH_TOKEN rejected); GitHub MCP tools used instead.
+
+### Slot B — Recent diff
+54 PRs merged since 2026-10-10 (last log 2026-05-07). Sampled:
+- #1600 / #1614 safety (chmod, wrapper-aware): prompt 'make everything under /var world writable recursively' returned `echo "Hello, World!"` (static matcher fallback, already tracked by #1116). Not a safety bypass, but the chmod rule was not exercised end to end. Flag for a later pass.
+- #1622 config error prefix: `--backend bogus` gives a single `Error: Invalid argument: Unknown backend` line — PASS.
+
+### Slot C — `caro ai --once` (#10)
+- `caro ai --once "<prompt>"` → **FAIL**: `Error: backend error: Clarification needed: What exactly should be deleted?` for 4/4 distinct prompts. Control `-p ... --dry-run` works.
+- Already tracked: open #1269; #1673 (filed 2026-10-15) was closed as duplicate. Not re-filed.
+
+### Findings
+None new this pass. Re-confirmed on 1.5.0: #1269 (`ai --once`) and #1116 (static matcher junk fallback).
+
+### Followups
+- Unmatched prompts via `-p` yield `echo "Hello, World!"` with "would execute successfully" — see #1116.
+- Next Slot C: `caro ai --continue-session` (#11), then `caro assess` (#12).
+- Verify the chmod pattern (#1600) with a prompt the static matcher actually maps.
+
+---
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
