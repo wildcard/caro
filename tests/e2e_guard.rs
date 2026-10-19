@@ -558,6 +558,58 @@ fn user_protected_paths_are_additive() {
     );
 }
 
+// ---------------------------------------------------------------------------
+// spec 011 §P2.4: hash-chained log and `caro guard audit`
+// ---------------------------------------------------------------------------
+
+#[test]
+fn audit_verify_detects_a_one_byte_edit_and_tail_prints_records() {
+    let home = TempDir::new().unwrap();
+    let log = home.path().join("decisions.jsonl");
+    let log_arg = log.to_str().unwrap();
+    for cmd in ["rm -rf /", "chmod -R 777 /etc", "ls"] {
+        guard(&home, &["--log", log_arg], &claude_payload(cmd));
+    }
+
+    let text = std::fs::read_to_string(&log).unwrap();
+    let first: Value = serde_json::from_str(text.lines().next().unwrap()).unwrap();
+    assert_eq!(
+        first["prev_hash"],
+        Value::Null,
+        "first record has no predecessor"
+    );
+    assert_eq!(first["hash"].as_str().unwrap().len(), 64);
+    let second: Value = serde_json::from_str(text.lines().nth(1).unwrap()).unwrap();
+    assert_eq!(second["prev_hash"], first["hash"]);
+
+    let ok = guard_cmd(&home, &["audit", "verify", "--log", log_arg]);
+    assert_eq!(
+        ok.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&ok.stdout)
+    );
+    assert!(String::from_utf8_lossy(&ok.stdout).contains("CHAIN INTACT"));
+
+    let tail = guard_cmd(&home, &["audit", "tail", "--log", log_arg, "-n", "2"]);
+    let tail_text = String::from_utf8_lossy(&tail.stdout);
+    assert_eq!(tail_text.lines().count(), 2, "{tail_text}");
+    assert!(tail_text.contains("chmod"), "{tail_text}");
+
+    // Flip one byte inside the second record's command.
+    let tampered = text.replacen("chmod -R 777", "chmod -R 700", 1);
+    assert_ne!(text, tampered);
+    std::fs::write(&log, tampered).unwrap();
+    let bad = guard_cmd(&home, &["audit", "verify", "--log", log_arg]);
+    assert_eq!(bad.status.code(), Some(1));
+    let out = String::from_utf8_lossy(&bad.stdout);
+    assert!(out.contains("CHAIN BROKEN at line 2"), "{out}");
+
+    // `report` still works under `audit`.
+    let report = guard_cmd(&home, &["audit", "report", "--log", log_arg]);
+    assert!(String::from_utf8_lossy(&report.stdout).contains("decisions: 3"));
+}
+
 #[test]
 fn guard_setup_verify_rejects_a_malformed_stored_command() {
     let home = TempDir::new().unwrap();
