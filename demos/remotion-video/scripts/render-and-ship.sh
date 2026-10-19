@@ -7,9 +7,9 @@
 # based on drift detection. The skill at .claude/skills/caro-demo-video/
 # documents when this is appropriate.
 #
-# Does NOT commit — the caller is responsible for staging + commit +
-# review, because the trust model varies (output-equivalent → ship;
-# semantic change → open PR for review).
+# Does NOT commit — the caller stages, commits and opens a PR for
+# review. Every trust bucket goes through a PR; the bucket only sets
+# how much the PR body must explain (see the skill's Trust Model).
 #
 # Usage:
 #   demos/remotion-video/scripts/render-and-ship.sh
@@ -96,5 +96,5 @@ echo "            demos/remotion-video/.baseline-manifest.json"
 echo "    git commit -m \"chore(demo): re-render caro-demo video\""
 echo ""
 echo "    If you also changed source files in demos/remotion-video/src/,"
-echo "    stage those too. If the scene text changed, open a PR for"
-echo "    human review (see .claude/skills/caro-demo-video/ Trust Model)."
+echo "    stage those too. Then open a PR for human review. Never push"
+echo "    to main (see .claude/skills/caro-demo-video/ Trust Model)."
