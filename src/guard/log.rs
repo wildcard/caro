@@ -84,6 +84,9 @@ pub struct DecisionRecord {
     /// before spec 011 §P2.3.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tool: Option<String>,
+    /// `PostToolUse` for a leak record (spec 011 §P2.5); absent otherwise.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub event: Option<String>,
     /// The file-tool path, redacted.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -145,6 +148,7 @@ impl DecisionRecord {
         emitted: Verdict,
         latency_us: u64,
     ) -> Self {
+        let is_leak = matches!(outcome, Outcome::Leak(_));
         let (risk, patterns, floor, verdict, error) = match outcome {
             Outcome::Decided(d) => (
                 Some(d.risk),
@@ -155,6 +159,14 @@ impl DecisionRecord {
             ),
             Outcome::Error(e) => (None, Vec::new(), false, Verdict::Ask, Some(e.clone())),
             Outcome::NotShell => (None, Vec::new(), false, Verdict::None, None),
+            // A leak record carries the class labels only, never the text.
+            Outcome::Leak(classes) => (
+                None,
+                classes.iter().map(|c| format!("leak: {c}")).collect(),
+                false,
+                Verdict::None,
+                None,
+            ),
         };
         Self {
             ts: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
@@ -164,9 +176,19 @@ impl DecisionRecord {
             tool_use_id: event.tool_use_id.clone(),
             cwd: event.cwd.clone(),
             tool: event.tool_name.clone(),
-            path: event.file_path.as_deref().map(redact_command),
-            command: event.command.as_deref().map(redact_command),
-            description: event.description.as_deref().map(redact_command),
+            event: is_leak.then(|| "PostToolUse".to_string()),
+            // A leak record carries no tool input at all: the command that
+            // printed the secret (`printf AKIA…`) can hold the secret too, and
+            // `redact_command` knows command shapes, not output shapes.
+            path: (!is_leak)
+                .then(|| event.file_path.as_deref().map(redact_command))
+                .flatten(),
+            command: (!is_leak)
+                .then(|| event.command.as_deref().map(redact_command))
+                .flatten(),
+            description: (!is_leak)
+                .then(|| event.description.as_deref().map(redact_command))
+                .flatten(),
             risk,
             matched_patterns: patterns,
             floor_applied: floor,
@@ -425,6 +447,23 @@ pub fn verify_log(log: &Path) -> std::io::Result<ChainCheck> {
 
 /// One line per record for `caro guard audit tail`.
 pub fn format_tail_line(rec: &DecisionRecord) -> String {
+    if rec.event.as_deref() == Some("PostToolUse") {
+        return format!(
+            "{}  leak  {:<8}  {:<8}  {:<6}  {}",
+            rec.ts,
+            "output",
+            format!("{:?}", rec.harness).to_lowercase(),
+            rec.tool
+                .as_deref()
+                .map(str::to_ascii_lowercase)
+                .unwrap_or_else(|| "bash".into()),
+            rec.matched_patterns
+                .iter()
+                .map(|p| p.trim_start_matches("leak: "))
+                .collect::<Vec<_>>()
+                .join(", "),
+        );
+    }
     format!(
         "{}  {:<4}  {:<8}  {:<8}  {:<6}  {}",
         rec.ts,
@@ -452,6 +491,8 @@ pub struct Report {
     pub by_harness: BTreeMap<String, usize>,
     /// Decisions per tool name (lowercase); `bash` for pre-P2.3 records.
     pub by_tool: BTreeMap<String, usize>,
+    /// PostToolUse records whose output matched a credential shape.
+    pub leaks: usize,
     pub top_patterns: Vec<(String, usize)>,
     pub p50_latency_us: Option<u64>,
     pub p95_latency_us: Option<u64>,
@@ -515,6 +556,9 @@ fn summarize_lines(lines: impl Iterator<Item = String>, limit: usize) -> Report 
                     .unwrap_or_else(|| "bash".into()),
             )
             .or_default() += 1;
+        if rec.event.as_deref() == Some("PostToolUse") {
+            report.leaks += 1;
+        }
         for p in &rec.matched_patterns {
             *patterns.entry(p.clone()).or_default() += 1;
         }
@@ -572,6 +616,9 @@ pub fn format_report(path: &Path, r: &Report) -> String {
     let _ = writeln!(s, "  by verdict: {}", join(&r.by_verdict));
     let _ = writeln!(s, "  by harness: {}", join(&r.by_harness));
     let _ = writeln!(s, "  by tool:    {}", join(&r.by_tool));
+    if r.leaks > 0 {
+        let _ = writeln!(s, "  output leaks: {} (see top patterns)", r.leaks);
+    }
     if let (Some(p50), Some(p95)) = (r.p50_latency_us, r.p95_latency_us) {
         let _ = writeln!(s, "  latency:    p50 {p50}µs · p95 {p95}µs");
     }

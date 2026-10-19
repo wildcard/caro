@@ -439,6 +439,11 @@ enum GuardAction {
         /// `caro` on $PATH, and a synthetic `rm -rf /` payload comes back deny.
         #[arg(long)]
         verify: bool,
+
+        /// Also install the PostToolUse hook that scans tool output for
+        /// leaked credentials (logged, never blocking).
+        #[arg(long)]
+        post: bool,
     },
 }
 
@@ -4680,6 +4685,7 @@ fn handle_guard_setup(
     mode: caro::guard::GuardMode,
     dry_run: bool,
     verify: bool,
+    post: bool,
 ) -> i32 {
     use caro::guard::setup;
     if verify {
@@ -4687,7 +4693,7 @@ fn handle_guard_setup(
         print!("{}", report.format());
         return if report.ok() { 0 } else { 1 };
     }
-    match setup::install(target, scope, mode, dry_run) {
+    match setup::install_with_post(target, scope, mode, dry_run, post) {
         Ok(outcome) => {
             if dry_run {
                 println!(
@@ -4776,9 +4782,10 @@ async fn handle_guard(
         mode,
         dry_run,
         verify,
+        post,
     }) = action
     {
-        return handle_guard_setup(target, scope, mode, dry_run, verify);
+        return handle_guard_setup(target, scope, mode, dry_run, verify, post);
     }
 
     if let Some(GuardAction::Test { command, output }) = action {
