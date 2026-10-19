@@ -44,7 +44,7 @@ jobs:
     name: Icons match their Kyaro frames
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Standard library only: no install step.
       - name: Check icons
@@ -57,7 +57,7 @@ jobs:
       # The snap tool turns generated candidates into grid-true icons.
       # It needs Pillow; the checks above do not.
       # The runner's system Python refuses pip installs (PEP 668).
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
@@ -70,9 +70,9 @@ jobs:
     name: Site uses the icon set correctly
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
