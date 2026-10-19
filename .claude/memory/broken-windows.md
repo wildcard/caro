@@ -590,7 +590,7 @@ workspaces are BW-069.
 
 **Found:** 2026-10-14, broken-window sweep (CI on #1667)
 **Issue:** #1668
-**Status:** open
+**Status:** claimed-by fix/1668-rustls-0-23-patch (#1669). Owner approved the audit.toml route on 2026-10-19.
 **Needs human?:** yes (dependency and audit-policy decision)
 **Next step:** owner picks the options in #1668: patch 0.23.x in the lockfile, then move or record the 0.21.x path.
 
@@ -614,6 +614,6 @@ workspaces are BW-069.
 
 **Found:** 2026-10-18, broken-window sweep (CI on #1680)
 **Issue:** #1681
-**Status:** open
+**Status:** claimed-by fix/1668-rustls-0-23-patch (#1669). Owner approved the audit.toml route on 2026-10-19.
 **Needs human?:** yes (audit-policy decision; no candle release requires zip 9 yet)
 **Next step:** owner picks an option in #1681: a reviewed `.cargo/audit.toml` entry now, or wait for a candle release that requires `zip >=9`.
