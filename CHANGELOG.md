@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Normalization views before the safety scanners (spec 011 §P2.6,
+  `src/safety/normalize.rs`).** The validator now also scans the command
+  with terminal control sequences stripped (`rm\x1b[0m -rf /`), with
+  ANSI-C quoting unescaped (`$'rm -rf /'`, `$'\x72m' -rf /`), and with a
+  base64 literal decoded when it feeds an exec sink
+  (`eval "$(echo cm0gLXJmIC8= | base64 -d)"`, `… | base64 -d | sh`), so
+  the decoded payload reaches the catastrophic floor. A literal that is
+  only decoded and printed is data and is not decoded. Three new patterns
+  cover fetched content that reaches a shell without a pipe:
+  `bash <(curl …)` and `source <(wget …)` (High), `sh <<< "$(curl …)"`
+  (High), `sudo bash <(curl …)` (Critical). This is in the safety core, so
+  caro-generated commands benefit too. Regression guards:
+  `control_sequences_do_not_hide_a_catastrophic_command`,
+  `ansi_c_quoting_is_unescaped_before_scanning`,
+  `decoded_base64_payload_reaches_the_floor`,
+  `fetch_and_execute_without_a_pipe_is_flagged` and the extended benign
+  list in `tests/safety_segment_evasion_contract.rs`.
 - **PostToolUse secret-leak scan, shadow only (spec 011 §P2.5).** When a
   harness sends a `PostToolUse` payload, `caro guard` scans the tool's output
   for credential shapes (AWS access key ids, private-key blocks, GitHub,
