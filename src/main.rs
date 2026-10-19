@@ -397,6 +397,48 @@ enum GuardAction {
         #[arg(long, default_value_t = 10)]
         limit: usize,
     },
+
+    /// Dry-run one command through the guard: risk, verdict, patterns.
+    /// Exit 0 = no opinion, 2 = deny, 3 = ask. Nothing is logged.
+    Test {
+        /// The shell command to evaluate (quote it).
+        #[arg(required = true, trailing_var_arg = true)]
+        command: Vec<String>,
+
+        /// Output format.
+        #[arg(long, value_enum, default_value = "text")]
+        output: GuardTestOutput,
+    },
+
+    /// Install the PreToolUse hook for a harness, or verify an installed one.
+    Setup {
+        /// Harness to install into.
+        #[arg(value_enum)]
+        target: caro::guard::setup::SetupTarget,
+
+        /// user (~/.claude/settings.json, default) or project (.claude/settings.json).
+        #[arg(long, value_enum, default_value = "user")]
+        scope: caro::guard::setup::Scope,
+
+        /// Mode written into the hook command. Default: shadow.
+        #[arg(long, value_enum, default_value = "shadow")]
+        mode: caro::guard::GuardMode,
+
+        /// Print the resulting hook file without writing it.
+        #[arg(long)]
+        dry_run: bool,
+
+        /// Check the installed hook instead of installing: entry present,
+        /// `caro` on $PATH, and a synthetic `rm -rf /` payload comes back deny.
+        #[arg(long)]
+        verify: bool,
+    },
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+enum GuardTestOutput {
+    Text,
+    Json,
 }
 
 /// Subcommands for caro
@@ -4315,6 +4357,139 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
 // Unit Tests
 // =============================================================================
 
+/// Build the guard's validator from the user's `[safety]` config. Error text
+/// stays generic: parser diagnostics can quote the offending config line,
+/// which may hold a token, and this text is logged.
+fn load_guard_validator() -> Result<caro::safety::SafetyValidator, String> {
+    let cm = caro::config::ConfigManager::new()
+        .map_err(|_| "config: could not locate the caro config directory".to_string())?;
+    let uc = cm.load().map_err(|_| {
+        format!(
+            "config: {} could not be loaded (run `caro config show` for details)",
+            cm.config_path().display()
+        )
+    })?;
+    let cfg = caro::safety::SafetyConfig::from_user_config(&uc, cm.config_path());
+    caro::safety::SafetyValidator::new(cfg)
+        .map_err(|_| "safety rules: a configured pattern failed to build".to_string())
+}
+
+/// `caro guard test "<command>"` (spec 011 §P2.1). Exit 0/2/3 like generic
+/// enforce. Nothing is written to the decision log.
+async fn handle_guard_test(
+    validator: Result<caro::safety::SafetyValidator, String>,
+    command: String,
+    output: GuardTestOutput,
+    started: std::time::Instant,
+) -> i32 {
+    use caro::guard::{self, Verdict};
+    let validator = match validator {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("caro guard test: {e}");
+            return 1;
+        }
+    };
+    let decision = match guard::evaluate(&validator, &command).await {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("caro guard test: validator error: {e}");
+            return 1;
+        }
+    };
+    let latency_us = started.elapsed().as_micros() as u64;
+    let verdict = match decision.verdict {
+        Verdict::None => "none",
+        Verdict::Ask => "ask",
+        Verdict::Deny => "deny",
+    };
+    let risk = format!("{:?}", decision.risk).to_lowercase();
+    match output {
+        GuardTestOutput::Json => {
+            let body = serde_json::json!({
+                "command": guard::log::redact_command(&command),
+                "risk": risk,
+                "verdict": verdict,
+                "matched_patterns": decision.matched_patterns,
+                "floor_applied": decision.floor_applied,
+                "reason": decision.reason,
+                "source": "static",
+                "latency_us": latency_us,
+                "caro_version": env!("CARGO_PKG_VERSION"),
+            });
+            println!("{body}");
+        }
+        GuardTestOutput::Text => {
+            println!("command:  {}", guard::log::redact_command(&command));
+            println!("risk:     {risk}");
+            println!("verdict:  {verdict}");
+            println!("floor:    {}", decision.floor_applied);
+            if decision.matched_patterns.is_empty() {
+                println!("patterns: (none)");
+            } else {
+                println!("patterns:");
+                for p in &decision.matched_patterns {
+                    println!("  - {p}");
+                }
+            }
+            println!("latency:  {latency_us} µs");
+        }
+    }
+    match decision.verdict {
+        Verdict::None => 0,
+        Verdict::Deny => 2,
+        Verdict::Ask => 3,
+    }
+}
+
+/// `caro guard setup <target>` (spec 011 §P2.2).
+fn handle_guard_setup(
+    target: caro::guard::setup::SetupTarget,
+    scope: caro::guard::setup::Scope,
+    mode: caro::guard::GuardMode,
+    dry_run: bool,
+    verify: bool,
+) -> i32 {
+    use caro::guard::setup;
+    if verify {
+        let report = setup::verify(target, scope);
+        print!("{}", report.format());
+        return if report.ok() { 0 } else { 1 };
+    }
+    match setup::install(target, scope, mode, dry_run) {
+        Ok(outcome) => {
+            if dry_run {
+                println!(
+                    "caro guard setup (dry run): would write {}",
+                    outcome.path.display()
+                );
+                print!("{}", outcome.rendered);
+            } else if outcome.changed {
+                println!("caro guard setup: wrote {}", outcome.path.display());
+                println!("  hook: {}", outcome.command);
+                println!(
+                    "  next: caro guard setup {} --verify",
+                    match target {
+                        setup::SetupTarget::Claude => "claude",
+                        setup::SetupTarget::Codex => "codex",
+                        setup::SetupTarget::Opencode => "opencode",
+                    }
+                );
+            } else {
+                println!(
+                    "caro guard setup: {} already up to date",
+                    outcome.path.display()
+                );
+            }
+            0
+        }
+        Err(e) => {
+            eprintln!("caro guard setup: {e}");
+            1
+        }
+    }
+}
+
 /// `caro guard` (spec 011 / ADR-020). Returns the process exit code.
 async fn handle_guard(
     action: Option<GuardAction>,
@@ -4360,6 +4535,21 @@ async fn handle_guard(
         };
     }
 
+    if let Some(GuardAction::Setup {
+        target,
+        scope,
+        mode,
+        dry_run,
+        verify,
+    }) = action
+    {
+        return handle_guard_setup(target, scope, mode, dry_run, verify);
+    }
+
+    if let Some(GuardAction::Test { command, output }) = action {
+        return handle_guard_test(load_guard_validator(), command.join(" "), output, started).await;
+    }
+
     let mode = mode.unwrap_or_else(|| match std::env::var("CARO_GUARD_MODE") {
         Ok(v) => v.parse().unwrap_or_else(|e: String| {
             eprintln!("caro guard: {e}; using shadow");
@@ -4372,21 +4562,7 @@ async fn handle_guard(
     // catastrophic floor cannot be allowlisted. A missing config file loads
     // as defaults; a config that exists but cannot be loaded is an error, not
     // a silent fallback that would drop the user's own High/Critical rules.
-    let validator: Result<caro::safety::SafetyValidator, String> = (|| {
-        // Error text stays generic: parser diagnostics can quote the offending
-        // config line, which may hold a token, and this text is logged.
-        let cm = caro::config::ConfigManager::new()
-            .map_err(|_| "config: could not locate the caro config directory".to_string())?;
-        let uc = cm.load().map_err(|_| {
-            format!(
-                "config: {} could not be loaded (run `caro config show` for details)",
-                cm.config_path().display()
-            )
-        })?;
-        let cfg = caro::safety::SafetyConfig::from_user_config(&uc, cm.config_path());
-        caro::safety::SafetyValidator::new(cfg)
-            .map_err(|_| "safety rules: a configured pattern failed to build".to_string())
-    })();
+    let validator = load_guard_validator();
 
     // Cap the read: an unbounded payload could stall the hook past the
     // harness timeout, which fails open.

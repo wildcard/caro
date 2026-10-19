@@ -1,8 +1,9 @@
 # Caro Development Roadmap
 
-**Last Updated**: October 13, 2026
+**Last Updated**: October 18, 2026
 
-> **Recent Update**: Integrated 104 PRs (#557-660) into roadmap with milestone assignments and tracking issues.
+> **Recent Update**: Seeded the **v1.6.0 Guardian parity** milestone from the
+> [Rampart research](docs/research/2026-10-18-rampart-lessons.md) (2026-10-18).
 
 ## Timeline Overview
 
@@ -48,6 +49,52 @@ gantt
 ---
 
 ## Release Milestones
+
+### 🛡️ v1.6.0 - Guardian Parity (`caro guard`)
+**Target**: November 2026
+**Status**: 0% Complete - **PLANNED**
+**Focus**: Close the gaps between `caro guard` (spec 011, ADR-020) and
+[Rampart](https://github.com/peg/rampart), the closest direct competitor
+found so far. Research and gap table:
+[`docs/research/2026-10-18-rampart-lessons.md`](docs/research/2026-10-18-rampart-lessons.md).
+Every item extends the existing experimental guard surface and keeps shadow
+mode as the default. Caro still never emits `allow`.
+
+#### Key Deliverables
+- **G2/G3 `caro guard test` and `caro guard setup`** — dry-run one command
+  through the guard (`test "<cmd>"`, exit 0/2/3); install the PreToolUse hook
+  idempotently into user- or project-scope `settings.json` for Claude Code,
+  Codex and OpenCode; `--verify` and a `caro doctor` row that run a synthetic
+  payload through the installed hook
+- **G1 File-tool coverage (shadow)** — `Read`/`Write`/`Edit`/`Grep`/`Glob` on
+  protected paths (`~/.ssh/**`, `**/.env`, `**/*.pem`, caro's own
+  `decisions.jsonl`, …) map to `ask`; user `[[safety.protected_paths]]` is
+  additive only
+- **G4 Tamper-evident decision log** — SHA-256 hash chain on
+  `decisions.jsonl`, `caro guard audit verify` and `caro guard audit tail
+  --follow`; `report` folds under `audit`
+- **G5 PostToolUse secret-leak scan (shadow)** — tool output scanned for
+  AWS keys, private keys and token shapes; the log records the match class,
+  never the secret
+- **G7 Normalization views** — base64-literal decode, ANSI/control strip,
+  `$'…'` unescape before the scanners; fetch-and-execute through heredocs,
+  here-strings and process substitution. TDD via `safety-pattern-developer`,
+  zero new false positives on the eval corpus
+- **G8 Adapters** — GitHub Copilot CLI
+  ([#1623](https://github.com/wildcard/caro/issues/1623)), Cursor and Cline
+  (research first), MCP `validate_command`
+  ([#928](https://github.com/wildcard/caro/issues/928))
+- **G11 OWASP Agentic coverage table** in `docs/GUARDIAN_AGENT.md`, with
+  honest "partial" rows, pinned by `tests/website_claims.rs`
+- **caro-eval** — `guard-hook-payloads` category and a re-run against 1.5.0
+
+**Success Criteria**:
+- `caro guard setup claude --verify` reports the hook installed and answering
+- Shadow logs from the first opted-in users show would-be `ask`/`deny` on file
+  tools without new false positives on routine reads (spec 011 kill criteria)
+- `caro guard audit verify` detects a one-byte edit
+
+---
 
 ### 🎉 v1.5.0 - Decision Layer & Release Reset
 **Released**: October 13, 2026 ✅
@@ -377,6 +424,8 @@ validation-discipline Gate 1 (user discovery); see
 | `dogma-rules` | Dogma rule engine (#126) | 0 / 20 | `unvalidated` | [audit](./docs/discovery/v2.0-validation-audit.md#dogma-rule-engine) |
 | `self-healing` | Self-healing features (#155) | 0 / 20 | `unvalidated` (high demoware-trap risk) | [audit](./docs/discovery/v2.0-validation-audit.md#self-healing-features) |
 | `voice-synthesis` | Voice synthesis (#160, #187) | 0 / 20 | `unvalidated` (highest a-priori risk) | [audit](./docs/discovery/v2.0-validation-audit.md#voice-synthesis) |
+| `guard-policy-dsl` | User-authored guard policy with `deny`, path/domain globs, sessions, rate limits and profiles (Rampart G6/G9; [research](./docs/research/2026-10-18-rampart-lessons.md#3-the-gap-table)) | 0 / 20 | `unvalidated` (a user `deny` bypasses the human; needs its own gate) | — |
+| `caro-control-plane` | `caro-control` repo: policy distribution/sync, approval queue, dashboard (ADR-001/002/003; Rampart `watch`, `pending`, community sync) | 0 / 20 | `unvalidated` (enterprise product line) | — |
 
 Items above graduate back into v2.0 (or a later milestone) only when
 their hypothesis row in
@@ -437,6 +486,7 @@ above.
 
 | Milestone | Due Date | Items (Issues + PRs) | Complete | Progress | Status |
 |-----------|----------|---------------------|----------|----------|---------|
+| **v1.6.0** | Nov 2026 | Guardian parity: `caro guard` test/setup, file tools, audit chain, leak scan, normalization | 0 | 0% | 🛡️ Planned |
 | **v1.5.0** | Oct 13, 2026 | Decision layer, calibration, security bump + release reset | 15 | 100% | ✅ **RELEASED** |
 | **v1.4.0** | May 9, 2026 | CaroML preview + safety hardening | 12 | 100% | ✅ **RELEASED** |
 | **v1.3.2** | May 9, 2026 | Static matcher coverage gaps | 7 | 100% | ✅ **RELEASED** |
