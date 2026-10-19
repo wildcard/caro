@@ -4,6 +4,46 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-19 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C. Last log entry was 2026-05-07, so Slot B sampled the newest merged PRs only.
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 29s)
+- `caro --version` → **PASS**: `caro 1.5.0 (07679f0 2026-10-19)`
+- `caro --help` → **PASS**: lists `guard`, `export`, `ai`, `shell-init`, CaroML verbs; no `assess`
+- `caro doctor` → **PASS**: advisory only; now also reports the guard hook state
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` (static matcher; no model download attempted, FLAKE-001 not seen)
+
+### Slot B — Recent diff
+
+- #1683 `caro guard test` / `guard setup --verify` → **PASS**: `rm -rf /` deny/critical, `chmod -R 777 /etc` ask/high, `ls -la` none/safe; `guard setup claude --dry-run` previews the hook
+- #1614 segment/wrapper-aware safety → **PASS**: `sh -c 'rm -rf /'`, `echo hi && rm -rf ~`, `sudo bash -c "mkfs.ext4 /dev/sda"` all deny/critical; `echo form information` stays safe
+- #1600 recursive world-writable chmod → **PASS** (see above)
+
+### Slot C — `caro ai --once` (matrix #10, #11)
+
+- `ai --once` with arg, stdin, `--new-session` and resumed session: 5 of 5 return `Error: backend error: Clarification needed: What exactly should be deleted?` (exit 1).
+- Empty stdin → `Error: no prompt provided` (correct).
+- Control `-p ... --dry-run` returns correct commands.
+- Root cause unchanged: `src/backends/embedded/cpu.rs:63-64` keyword stub matches `rm` in the system prompt.
+- `caro assess` is not a subcommand in 1.5.0; it is parsed as a prompt and prints the same bogus clarification. With stdin open and not a TTY it blocks on stdin.
+- Already tracked: open #1269 (P1); #1500, #1523 and #1673 closed as duplicates. No new issue filed; comment added to #1269.
+
+### Findings
+
+- None new. Re-confirmed [#1269](https://github.com/wildcard/caro/issues/1269) (P1, fourth report) and commented.
+
+### Followups
+
+- `caro ai --once` is broken on 1.5.0 Linux. Three duplicate issues were closed without a fix. Needs an owner decision.
+- Static matcher drops constraints: `find python files larger than 1MB` → `find . -name "*.py" -type f` (no size filter). Not filed; check for an existing issue before next pass.
+- Add the `caro assess` fallthrough (unknown word becomes a prompt) to a future Slot C pass.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
