@@ -13,6 +13,7 @@
 //! the harness acts on.
 
 pub mod log;
+pub mod setup;
 
 use std::time::Instant;
 

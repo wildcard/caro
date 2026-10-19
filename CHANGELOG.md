@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`caro guard test` and `caro guard setup` (spec 011 §P2.1, §P2.2).**
+  `caro guard test "<command>"` dry-runs one command through the guard and
+  prints risk, verdict, matched patterns and the floor flag (`--output json`
+  for scripts; exit 0 none / 2 deny / 3 ask; nothing is logged).
+  `caro guard setup <claude|codex|opencode>` installs the PreToolUse hook
+  idempotently into the user-scope (default) or `--scope project` hook
+  file, keeping every other hook and key; `--dry-run` previews, `--verify`
+  checks the entry, resolves `caro` on `$PATH`, sends a synthetic `rm -rf /`
+  payload and reports **ADAPTER VERIFIED** (never "host verified": caro
+  cannot observe the host ingesting the hook). `caro doctor` shows the
+  hook status. Regression guards: `guard_test_denies_critical_with_exit_2_and_json`
+  and `guard_setup_is_idempotent_keeps_other_hooks_and_verifies` in
+  `tests/e2e_guard.rs`. First parity item from the Rampart research
+  (`docs/research/2026-10-18-rampart-lessons.md`).
 - **Segment- and wrapper-aware safety validation (#1054).** The validator
   now scans each statement of a command line, each statement without its
   `sudo`/`env`/`timeout`/`nice`/`nohup`/`xargs`/`busybox` prefix, and each
