@@ -400,7 +400,7 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 
 **Found:** 2026-10-11, broken-window sweep
 **Issue:** #1602
-**Status:** claimed-by sweep/2026-10-19-BW-064 (#PR)
+**Status:** claimed-by sweep/2026-10-19-BW-064 (#1691)
 **Needs human?:** no
 **Next step:** Change the skill text to the branch + PR flow.
 
