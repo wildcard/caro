@@ -28,15 +28,6 @@ Rules (see `.claude/rules/good-boy-scout.md` → "Stay in your lane"):
 **Next step:** serve `search-index.json` statically and fetch it when the
 search overlay first opens (`website/src/components/OmniSearch.astro`).
 
-### BW-002: CLAUDE.md version/MSRV drift, filed 42× (canonical + 41 duplicates)
-
-**Found:** 2026-09-27, PR #1470 session
-**Issue:** canonical #1098 (oldest open); 41 duplicates closed 2026-10-03; dups #1520, #1541 closed 2026-10-09
-**Status:** fixed (#1478, merged 2026-10-11). `CLAUDE.md` points at `Cargo.toml` and repeats no version; #1098 closed.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-18.
-
-
 ### BW-003: stale harness references (caro-eval, current-tasks.md, AGENTS.md, .kittify, --skill)
 
 **Found:** 2026-09-24, google/ax harness survey
@@ -174,15 +165,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** no
 **Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
 
-### BW-026: `Validate Translations` red on main: 13 locales lack playbook.json and waitlist.json
-
-**Found:** 2026-10-02, PR #1507 session (also red on main push be07b22 and every i18n-touching PR)
-**Issue:** #1508
-**Status:** fixed (#1565, merged 2026-10-11). #1508 closed; #1544 closed as superseded.
-**Needs human?:** no (run `translate.yml` or copy the English files; or relax the validator for missing namespaces)
-**Next step:** none. Delete after 2026-10-18.
-
-
 ### BW-027: static safety floor rates reverse shells, credential exfiltration and `DROP DATABASE` as Safe
 
 **Found:** 2026-10-10, while stratifying the risk-gate gold subset (`docs/ml/risk-gold-subset.md`, "What the static floor got wrong")
@@ -190,14 +172,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Status:** open
 **Needs human?:** yes (safety patterns are a security-policy decision; not applied from a feature branch)
 **Next step:** `SafetyConfig::moderate()` returns `Safe` for `bash -i >& /dev/tcp/…`, `curl -F "key=@$HOME/.ssh/id_rsa" …`, `env | curl --data-binary @- …`, `sudo setenforce 0`, a uid-0 `useradd`, `mysql -e 'DROP DATABASE …'`, `redis-cli FLUSHALL`, `aws s3 rm --recursive`, `kubectl delete namespace`, `aws ec2 terminate-instances`, and `sudo truncate -s 0 /var/log/*.log`, while `rm -rf ./target` is `Critical`. The 121-row candidate file (`docs/ml/risk-gold-candidates.jsonl`) and its companion static-tier file (`docs/ml/risk-gold-static-tiers.jsonl`, joined on `id`) record each command and its static verdict; decide which gaps become patterns. BW-026 is reserved by #1507 (Validate Translations).
-
-### BW-028: the CLA check never records a signature, so every external PR stays red
-
-**Found:** 2026-10-10, preparing first responses to external PRs (harness-plan session)
-**Issue:** #1555
-**Status:** fixed (#1584, merged 2026-10-11)
-**Needs human?:** yes (a CI gate in `.github/workflows/cla.yml`, and part of the legal process)
-**Next step:** none; #1555 is closed. Delete after 2026-10-18.
 
 ### BW-029: an unquoted prompt that starts with "list" runs the `list` subcommand
 
@@ -228,17 +202,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-22)
 **Issue:** #1467
-**Status:** claimed-by sweep/2026-10-14-BW-031 (#1667)
+**Status:** fixed (#1667, merged 2026-10-19). #1467 closed.
 **Needs human?:** no
 **Next step:** build the header from `env!("CARGO_PKG_VERSION")` in `src/backends/remote/ai_horde.rs`.
-
-### BW-032: embedded model download hangs: `HfHubClient` has no HTTP timeout
-
-**Found:** 2026-10-09 sweep register sync (issue filed 2026-09-06)
-**Issue:** #1440
-**Status:** fixed (#1561, merged 2026-10-11). Each download attempt runs on its own runtime with a 60 s stall watchdog.
-**Needs human?:** no
-**Next step:** none; #1440 is closed. Delete after 2026-10-18.
 
 ### BW-033: Gemini CLI row in integrations status is stale (product shut down 2026-06-18)
 
@@ -304,15 +270,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** yes (product: which behavior is the contract)
 **Next step:** maintainer picks an option in #1557; recommended option 1 (subshell per step in the runbook).
 
-### BW-047: upgrade reqwest 0.11 → 0.12 to clear h2 RUSTSEC-2026-0258 (wiremock is already 0.6.4)
-
-**Found:** 2026-10-10 sweep register sync (issue filed 2026-09-24)
-**Issue:** #1472 (related: #1446, the vulnerability report)
-**Status:** fixed (#1488, merged 2026-10-01). #1472 closed 2026-10-12 with owner approval; the optional `chromadb` / `knowledge` h2 0.3 paths stay in the approved `.cargo/audit.toml` entry (review 2026-12-31).
-**Needs human?:** no (owner decided 2026-10-12: close #1472 as done)
-**Next step:** none. Delete after 2026-10-19.
-
-
 ### BW-051: unrendered website components and unread locale fields hold 156 emoji
 
 **Found:** 2026-10-11, emoji-icon inventory (`docs/brand/icons/definitions.json`, #1590)
@@ -349,15 +306,6 @@ builds after the merge are READY (`cmdai` is already red, #1562).
 **Status:** fixed (#1621, `c3169411`: sharp overridden to 0.35.5 in `changelog/`). #1610 closed 2026-10-13.
 **Needs human?:** no
 **Next step:** none. Delete after 2026-10-20.
-
-### BW-052: `Install` workflow red on every main push: setup.sh step exits 127
-
-**Found:** 2026-10-11, broken-window sweep (main health)
-**Issue:** #1340. The cleanup step deletes `~/.cargo/bin/caro` but not cargo's install record. `setup.sh` runs `cargo install caro`, which prints "already installed" and installs nothing.
-**Status:** fixed (#1605, merged 2026-10-11). Install runs on main are green since `ee69deea`.
-**Needs human?:** no (test-step fix; no gate changes)
-**Next step:** none. Delete after 2026-10-18.
-
 
 ### BW-053: an invalid `config.toml` is silently replaced with defaults
 
@@ -452,7 +400,7 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 
 **Found:** 2026-10-11, broken-window sweep
 **Issue:** #1602
-**Status:** open
+**Status:** claimed-by sweep/2026-10-19-BW-064 (#PR)
 **Needs human?:** no
 **Next step:** Change the skill text to the branch + PR flow.
 
@@ -590,7 +538,7 @@ workspaces are BW-069.
 
 **Found:** 2026-10-14, broken-window sweep (CI on #1667)
 **Issue:** #1668
-**Status:** claimed-by fix/1668-rustls-0-23-patch (#1669). Owner approved the audit.toml route on 2026-10-19.
+**Status:** fixed (#1669, merged 2026-10-19): rustls 0.23.46 plus reviewed `.cargo/audit.toml` entries for the rustls 0.21 IDs. #1668 closed.
 **Needs human?:** yes (dependency and audit-policy decision)
 **Next step:** owner picks the options in #1668: patch 0.23.x in the lockfile, then move or record the 0.21.x path.
 
@@ -606,7 +554,7 @@ workspaces are BW-069.
 
 **Found:** 2026-10-18, broken-window sweep (register sync)
 **Issue:** #1677
-**Status:** claimed-by sweep/2026-10-18-BW-089 (#1680)
+**Status:** fixed (#1680, merged 2026-10-19). #1677 closed.
 **Needs human?:** no (docs). Re-enabling the subcommand is a separate product call.
 **Next step:** mark the README "assess" section (`README.md` ~413-436) as not available in 1.5.0, or remove it; `src/main.rs:445` keeps the subcommand commented out.
 
@@ -614,6 +562,15 @@ workspaces are BW-069.
 
 **Found:** 2026-10-18, broken-window sweep (CI on #1680)
 **Issue:** #1681
-**Status:** claimed-by fix/1668-rustls-0-23-patch (#1669). Owner approved the audit.toml route on 2026-10-19.
+**Status:** fixed (#1669, merged 2026-10-19): reviewed `.cargo/audit.toml` entries for the zip IDs. #1681 closed.
 **Needs human?:** yes (audit-policy decision; no candle release requires zip 9 yet)
 **Next step:** owner picks an option in #1681: a reviewed `.cargo/audit.toml` entry now, or wait for a candle release that requires `zip >=9`.
+
+### BW-091: CI never runs 23 of 46 integration test targets
+
+**Found:** 2026-10-07; added to the register by the 2026-10-19 sweep
+**Issue:** #1537
+**Status:** open
+**Needs human?:** yes (CI gate: which workflow runs which targets)
+**Next step:** the owner picks how CI runs the unlisted `tests/` targets
+(the options are in #1537).
