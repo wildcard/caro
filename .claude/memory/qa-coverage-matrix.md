@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-10-20
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -13,6 +13,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
+| 2026-10-20 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Model available; dry-run gave `ls -la` |
 
 ---
 
@@ -23,7 +24,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | # | Surface | Domain | Last tested | Result | Linked issue(s) |
 |---|---------|--------|-------------|--------|-----------------|
 | 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-05-07 | PASS | — |
-| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-05-07 | FLAKE | — |
+| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-20 | PASS | — |
 | 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
@@ -46,13 +47,13 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 22 | CaroML: `caro experiment / adopt / why` | cli | never | — | — |
 | 23 | CaroML: `caro do` Carofile job runner | cli | never | — | — |
 | 24 | `caro skill install` (bundled skill management) | cli | never | — | — |
-| 25 | Website homepage caro.sh (curl + parse) | website | never | — | — |
+| 25 | Website homepage caro.sh (curl + parse) | website | 2026-10-20 | PASS | — |
 | 26 | Website docs pages (curl + parse) | docs | never | — | — |
 | 27 | Install script `scripts/install.sh` | install | never | — | — |
 | 28 | Homebrew tap formula | install | never | — | — |
 | 29 | `caro --safety strict/moderate/permissive` modes | safety | never | — | — |
 | 30 | `caro --verbose` timing output | cli | never | — | — |
-| 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | never | — | — |
+| 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | 2026-10-20 | PASS (es, fr only; es needed retry) | — |
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-05-07 | PASS | — |
 
 ---

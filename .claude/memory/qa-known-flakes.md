@@ -14,9 +14,17 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **Impact**: Slot A `--dry-run` smoke check cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:
 - 2026-05-07: observed once
+- 2026-10-20: did not recur (model available)
 
 **Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Workaround**: Run `caro -p "..." --dry-run` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama installed as fallback backend.
+
+### FLAKE-002: caro.sh first request fails with curl code 000
+
+**First observed**: 2026-10-20
+**Symptom**: first `curl https://caro.sh/es/` returned 000 in 0.15s; retries returned 200.
+**Occurrence log**:
+- 2026-10-20: observed once
 
 ---
 
