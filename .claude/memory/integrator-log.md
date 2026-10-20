@@ -17,6 +17,8 @@
 
 - **Next pass should:** (a) check whether the main checkout's stale dirty state (above) got resolved or needs a human look; (b) small quick-win candidate: [#1439](https://github.com/wildcard/caro/issues/1439) Gemini CLI row retirement — single-line docs change, PR #782 confirmed closed; (c) raise the `remote-backends`-as-default-feature question on #1081 as a product decision for the maintainer, since the wiring/error-quality half is now fully done; (d) re-validate `caro test`-subcommand roster (`src/main.rs:437`/`:2069`) against 1.5.0 — not checked tonight (budget).
 
+- **Post-ship addendum (second fire, same night):** chatgpt-codex-connector flagged a real P2 on PR #1689 after it opened — `grouped()` in `website/src/pages/integrations/index.astro` only buckets `working`/`in-progress`/`not-yet`, so moving Claude to `status: 'partial'` made it vanish from the rendered page instead of showing the corrected copy (Ollama/vLLM/Exo, also `partial`, were already silently dropped before this PR touched the file). Verified against the source, fixed in `8c1dcebf` (added a `partial` bucket, included it in the backends render order), replied to the review thread with the commit SHA per `pr-ai-triage-checklist.md`. Still counts as tonight's one PR — this is a fix pushed to the same branch, not a second PR.
+
 ---
 
 ## 2026-07-11 (23:00 PT fire, post-merge pass) — #1298 landed; verify + close-the-loop, no code PR
