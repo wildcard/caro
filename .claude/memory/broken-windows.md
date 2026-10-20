@@ -211,7 +211,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-10, nightly CI triage (harness-plan session)
 **Issue:** #1551
-**Status:** open
+**Status:** claimed-by sweep/2026-10-20-BW-030 (#PR)
 **Needs human?:** no
 **Next step:** `git rm --cached` the 8 paths listed in #1551 (all added by
 `9599ca7`). `.gitignore` already covers `.worktrees/`.
