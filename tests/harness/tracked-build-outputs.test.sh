@@ -90,6 +90,10 @@ fixture; git update-index --add --cacheinfo "160000,$(git rev-parse HEAD),.claud
 "$GUARD" >/dev/null 2>&1
 expect claude_worktree_gitlink_fails 1 $?
 
+fixture; git update-index --add --cacheinfo "160000,$(git rev-parse HEAD),.worktrees"
+"$GUARD" >/dev/null 2>&1
+expect worktree_root_gitlink_fails 1 $?
+
 fixture; mkdir -p docs/worktrees && echo d > docs/worktrees/howto.md
 git add docs/worktrees
 "$GUARD" >/dev/null 2>&1

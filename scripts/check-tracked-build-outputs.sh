@@ -23,7 +23,7 @@ if [ -n "$bad" ]; then
   echo "fix: git rm -r --cached <dir>  (keeps the files on disk), then add <dir> to .gitignore" >&2
   exit 1
 fi
-wt=$(printf '%s\n' "$paths" | grep -E '^(\.worktrees|\.claude/worktrees)/' || true)
+wt=$(printf '%s\n' "$paths" | grep -E '^(\.worktrees|\.claude/worktrees)(/|$)' || true)
 if [ -n "$wt" ]; then
   n=$(printf '%s\n' "$wt" | wc -l | tr -d ' ')
   echo "error: $n tracked local worktree path(s):" >&2
