@@ -578,6 +578,22 @@ workspaces are BW-069.
 **Needs human?:** no
 **Next step:** make the comment sticky (marker plus update in `.github/workflows/caro-demo-drift.yml`); compare against the merge base, not the last render.
 
+### BW-092: Security Audit red on main: RUSTSEC-2026-0381/0382/0383 (webpki crates)
+
+**Found:** 2026-10-21, broken-window sweep (main health; scheduled `ci.yml` runs on 2026-10-20 and 2026-10-21)
+**Issue:** #1699
+**Status:** claimed-by sweep/2026-10-21-BW-092 (#PR) for the patch updates (4 of 6 findings).
+**Needs human?:** no for the patch updates; yes for the 2 findings left on the optional rustls 0.21 path (`chromadb`, `knowledge`): audit-policy decision, same path as BW-087.
+**Next step:** after the patch PR merges, the owner picks an option in #1699 for RUSTSEC-2026-0381 and RUSTSEC-2026-0382.
+
+### BW-093: `caro guard test "<cmd>" --output json` reads the flag as part of the command
+
+**Found:** 2026-10-21, QA agent report
+**Issue:** #1697
+**Status:** open
+**Needs human?:** no
+**Next step:** make `<COMMAND>` stop before known flags (or take one quoted value) and add a flag-last case to `tests/e2e_guard.rs`. Check the open guard PRs (#1684 to #1687) for overlap first.
+
 ### BW-086: website `integrations.ts` Claude/Ollama entries and `--model` snippet are stale after v1.5.0
 
 **Found:** 2026-10-14, broken-window sweep (register sync)
