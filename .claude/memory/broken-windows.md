@@ -582,7 +582,7 @@ workspaces are BW-069.
 
 **Found:** 2026-10-21, broken-window sweep (main health; scheduled `ci.yml` runs on 2026-10-20 and 2026-10-21)
 **Issue:** #1699
-**Status:** claimed-by sweep/2026-10-21-BW-092 (#PR) for the patch updates (4 of 6 findings).
+**Status:** claimed-by sweep/2026-10-21-BW-092 (#1700) for the patch updates (4 of 6 findings).
 **Needs human?:** no for the patch updates; yes for the 2 findings left on the optional rustls 0.21 path (`chromadb`, `knowledge`): audit-policy decision, same path as BW-087.
 **Next step:** after the patch PR merges, the owner picks an option in #1699 for RUSTSEC-2026-0381 and RUSTSEC-2026-0382.
 
