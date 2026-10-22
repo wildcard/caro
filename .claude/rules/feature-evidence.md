@@ -79,6 +79,26 @@ A PR missing these gets the fixes pushed (Good Boy Scout) or, if the
 author context is gone, a `[agent]` comment naming exactly which of the
 three artifacts is missing.
 
+### Claims check (every PR: external, agent and owner)
+
+Do this before you thank, approve or merge a PR, and before you write
+"looks right":
+
+1. Read the full diff at the head commit, not only the title and description.
+2. Run `python3 scripts/pr_claims.py <number>`. It checks that each test the
+   description names exists at the head, that CI jobs ran on the head, and
+   which files a "Closes #N" issue names. Exit 1 means a claim has no evidence.
+3. If a fork PR's CI runs wait for approval, a maintainer approves them after
+   step 1. Agents cannot approve them.
+4. For "Closes #N", run #N's steps on `main` and on the PR head. Paste both
+   outputs in the review.
+5. Put the claims table in the review. Each ❌ goes back to the author as a
+   question.
+
+Incident: on 2026-10-11 an agent thanked #1415 for "this fix" from its
+description alone. The PR was one status line, its named test had been
+deleted, and no CI job had run on it. See the 2026-10-15 review on #1415.
+
 ## See also
 
 - `.claude/rules/validation-discipline.md` — gates *whether* to build;

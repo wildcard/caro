@@ -28,6 +28,9 @@ jobs:
       - name: Test Homebrew formula updates
         run: python3 -m unittest discover -s scripts/tests -p 'test_homebrew_formula.py'
 
+      - name: Test the PR claims check
+        run: python3 -m unittest discover -s scripts/tests -p 'test_pr_claims.py'
+
       - name: Lint the harness
         # The warning budget lives in scripts/harness-budget.json, so lowering
         # it never edits this workflow. It must equal the warning count: the PR
