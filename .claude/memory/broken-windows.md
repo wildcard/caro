@@ -101,14 +101,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Needs human?:** no (decided 2026-10-10: SmolLM uses the bundle.yml Q8_0 repo, StarCoder is dropped, CI runs on CPU only).
 **Next step:** after #1651 merges, the remaining red is #1654 (needs human).
 
-### BW-016: 1.5.0 declared in-repo but never tagged or published
-
-**Found:** 2026-09-30 sweep
-**Issue:** #1419
-**Status:** release done. `v1.5.0` is published and tagged at `d705666` (verified 2026-10-13). #1419 is still open.
-**Needs human?:** yes (release)
-**Next step:** the owner closes #1419 if nothing else is left. Delete this entry after 2026-10-20.
-
 ### BW-018: Claude Code plugin marketplace.json shape / install one-liner likely stale
 
 **Found:** 2026-10-01 sweep (nightly-discovery)
@@ -161,7 +153,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-06, CI on #1532 (`test_coreutils_detection` failed on ubuntu-24.04)
 **Issue:** #1533
-**Status:** open
+**Status:** claimed-by sweep/2026-10-22-BW-025 (#1706)
 **Needs human?:** no
 **Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
 
@@ -185,7 +177,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-10, nightly CI triage (harness-plan session)
 **Issue:** #1551
-**Status:** claimed-by sweep/2026-10-20-BW-030 (#1696)
+**Status:** fixed (#1696, merged 2026-10-22). #1551 closed.
 **Needs human?:** no
 **Next step:** `git rm --cached` the 8 paths listed in #1551 (all added by
 `9599ca7`). `.gitignore` already covers `.worktrees/`.
@@ -279,34 +271,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Next step:** remove `OmniMenu.astro`, `Waitlist.astro`,
 `landing/LPUseCases.astro` and the unread locale fields listed in #1591.
 
-### BW-068: llama.cpp "advancing context failed (error code 1)": prompt overflows n_ctx 2048
-
-**Found:** 2026-10-12, nightly verification of BW-015 (run 38195655733)
-**Issue:** #1612. The agent loop adds ~2.6 KB of context to the embedded system prompt. Real tokenizers count 1,955 (SmolLM) and 2,033 (TinyLlama) tokens on Linux; the macOS runner's context is larger and overflows 2048.
-**Status:** fixed (#1616 and #1618, merged 2026-10-12). The 2026-10-13 nightly has no prompt-overflow failures.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-19.
-
-### BW-069: stale nested lockfiles in npm workspaces (docs-site, landing, presentation, apps/devrel)
-
-**Found:** 2026-10-12 sweep register sync
-**Issue:** #1609 (related: #1610)
-**Status:** fixed (#1620)
-**Needs human?:** no
-**Next step:** merge #1620. It deletes the nested `package-lock.json` in
-`docs-site/`, `landing/`, `presentation/` and `apps/devrel/`; the PR body
-has the per-project evidence that each Vercel build reads the root lockfile.
-Then confirm the first `caro-docs`, `caro-slides` and `cmdai-saas` production
-builds after the merge are READY (`cmdai` is already red, #1562).
-
-### BW-070: five nested lockfiles still pin sharp 0.34.5 (three advisories)
-
-**Found:** 2026-10-12 sweep register sync
-**Issue:** #1610 (overlaps BW-069 for the four workspace lockfiles)
-**Status:** fixed (#1621, `c3169411`: sharp overridden to 0.35.5 in `changelog/`). #1610 closed 2026-10-13.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-20.
-
 ### BW-053: an invalid `config.toml` is silently replaced with defaults
 
 **Found:** 2026-10-11, broken-window sweep
@@ -347,14 +311,6 @@ builds after the merge are READY (`cmdai` is already red, #1562).
 **Needs human?:** yes (hook policy)
 **Next step:** Owner picks: allow merge commits, or narrow `SENSITIVE_RE`.
 
-### BW-058: caro.sh 307-redirects to www.caro.sh, but canonical/og/sitemap URLs say caro.sh
-
-**Found:** 2026-10-11, broken-window sweep
-**Issue:** #1586
-**Status:** fixed in the Vercel dashboard (option 1), no code change. #1586 closed 2026-10-12.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-19.
-
 ### BW-059: `/blog` index omits two published posts
 
 **Found:** 2026-10-11, broken-window sweep
@@ -363,14 +319,6 @@ builds after the merge are READY (`cmdai` is already red, #1562).
 **Needs human?:** no
 **Next step:** Add `claude-skill-launch` and `founders-playbook-adaptation`
 to the `posts` array in `website/src/pages/blog/index.astro`.
-
-### BW-060: landing page says caro blocks `chmod -R 777 /var/www`; the validator does not flag it
-
-**Found:** 2026-10-11, broken-window sweep
-**Issue:** #1592
-**Status:** fixed (#1600, merged 2026-10-12, `a5624c50`). #1592 closed when #1600 merged.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-19.
 
 ### BW-061: PR workflows never cancel superseded runs, so the macOS queue backs up
 
@@ -400,7 +348,7 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 
 **Found:** 2026-10-11, broken-window sweep
 **Issue:** #1602
-**Status:** claimed-by sweep/2026-10-19-BW-064 (#1691)
+**Status:** fixed (#1691, merged 2026-10-22). #1602 closed.
 **Needs human?:** no
 **Next step:** Change the skill text to the branch + PR flow.
 
@@ -411,32 +359,6 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Status:** open
 **Needs human?:** yes (owner merges or closes the PRs)
 **Next step:** Owner triages the open update PRs.
-
-### BW-071: `website/package-lock.json` was dead and stale
-
-**Found:** 2026-10-12, owner task (`claude/zealous-meitner-y29aw1`)
-**Issue:** none (owner asked for the fix directly)
-**Status:** fixed (#1608)
-**Needs human?:** no
-**Next step:** merge #1608. npm reads only the root lockfile for workspaces;
-`website/README.md` → "Workspace and lockfile" documents it. The other
-workspaces are BW-069.
-
-### BW-072: `update-homebrew.yml` writes the Linux ARM64 checksum into the Linux x86_64 block
-
-**Found:** 2026-10-13, v1.5.0 release follow-up (`claude/v1-5-0-notes-alignment`)
-**Issue:** #1636
-**Status:** fixed (#1638, `c4dac8d2` "isolate platform checksum updates"). #1636 closed 2026-10-13.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-20.
-
-### BW-074: `clippy --no-default-features --features embedded-cpu` fails on Apple Silicon (dead GPU-layer helpers)
-
-**Found:** 2026-10-13, broken-window sweep (register sync)
-**Issue:** #1626
-**Status:** fixed (#1656, merged 2026-10-14). The GPU-layer helpers are `allow(dead_code)` off the MLX build.
-**Needs human?:** no
-**Next step:** none; #1626 is closed. Delete after 2026-10-21.
 
 ### BW-075: static matcher Pattern 43 drops file-type and size qualifiers ("list pdf files" gives `ls -la`)
 
@@ -510,14 +432,6 @@ workspaces are BW-069.
 **Needs human?:** yes (CI test budget and job time limit)
 **Next step:** the owner picks the perf budget and a `timeout-minutes` for Extended Tests.
 
-### BW-084: 669 build-artifact files tracked under `tests/evaluation/target/`
-
-**Found:** 2026-10-13, broken-window sweep (a worktree checkout ran out of disk)
-**Issue:** #1655
-**Status:** fixed (#1659, merged 2026-10-14). Index-only removal of the 669 files; they stay on disk and in history. `scripts/check-tracked-build-outputs.sh` guards against a repeat.
-**Needs human?:** no
-**Next step:** none; #1655 is closed. Delete after 2026-10-21.
-
 ### BW-085: `caro-demo-drift` repeats its PR comment on every push and blames the PR for drift on `main`
 
 **Found:** 2026-10-14, broken-window sweep (register sync)
@@ -574,3 +488,19 @@ workspaces are BW-069.
 **Needs human?:** yes (CI gate: which workflow runs which targets)
 **Next step:** the owner picks how CI runs the unlisted `tests/` targets
 (the options are in #1537).
+
+### BW-094: uutils coreutils (Ubuntu 26.04, `ubuntu-latest` CI) detected as `UtilityType::Unknown`
+
+**Found:** 2026-10-22, CI on #1700 (`test_utility_type_detection` red on main and every PR)
+**Issue:** #1703. BW-092 (#1699) and BW-093 (#1697) are added by #1700, not yet on main.
+**Status:** claimed-by fix/uutils-coreutils-detection (#1704). #1704 and #1700 each need the other to go green; the owner picks which PR carries both.
+**Needs human?:** no (fix); yes for the carrier choice only
+**Next step:** owner picks the carrier, then merge.
+
+### BW-095: Static Sites Build red on main: Playwright has no Chromium for ubuntu26.04
+
+**Found:** 2026-10-22, main CI (same runner-image move as BW-094)
+**Issue:** #1701
+**Status:** open
+**Needs human?:** yes (CI runner choice)
+**Next step:** owner picks an option in #1701: pin `ubuntu-24.04`, skip the browser download, or upgrade Playwright.

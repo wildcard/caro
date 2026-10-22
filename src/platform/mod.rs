@@ -569,27 +569,43 @@ fn is_posix_compliant(os: &str) -> bool {
     )
 }
 
+/// Slow, loaded hosts (busy CI runners) can take well over 500 ms to start `ls`.
+const LS_VERSION_TIMEOUT: Duration = Duration::from_secs(2);
+
 async fn detect_gnu_coreutils() -> bool {
     // Try to run `ls --version` - GNU coreutils respond with version info
-    if let Ok(output) =
-        run_command_with_timeout("ls", &["--version"], Duration::from_millis(500)).await
-    {
-        output.to_lowercase().contains("gnu")
+    if let Ok(output) = run_command_with_timeout("ls", &["--version"], LS_VERSION_TIMEOUT).await {
+        is_gnu_compatible_ls_version(&output)
     } else {
         false
     }
 }
 
+/// True when `ls --version` output comes from GNU coreutils or from uutils
+/// coreutils (the GNU-compatible Rust rewrite, default on Ubuntu 26.04).
+fn is_gnu_compatible_ls_version(output: &str) -> bool {
+    let output = output.to_lowercase();
+    output.contains("gnu") || output.contains("uutils")
+}
+
 async fn detect_bsd_utils() -> bool {
     // BSD utils typically don't support --version
-    if (run_command_with_timeout("ls", &["--version"], Duration::from_millis(500)).await).is_ok() {
-        false // If --version works, it's likely GNU
+    let probe = run_command_with_timeout("ls", &["--version"], LS_VERSION_TIMEOUT).await;
+    if ls_version_probe_rules_out_bsd(&probe) {
+        false
     } else {
         // BSD utils will fail on --version, check if ls exists normally
         run_command_with_timeout("ls", &["-d", "."], Duration::from_millis(500))
             .await
             .is_ok()
     }
+}
+
+/// `ls --version` working means GNU-style tools. A timeout says nothing about
+/// the flavor, so it must not be read as BSD (#1533). Only a rejected flag
+/// leaves BSD possible.
+fn ls_version_probe_rules_out_bsd(probe: &Result<String, PlatformContextError>) -> bool {
+    matches!(probe, Ok(_) | Err(PlatformContextError::Timeout))
 }
 
 async fn detect_available_tools() -> HashMap<String, String> {
@@ -713,6 +729,21 @@ async fn run_command_with_timeout(
 mod tests {
     use super::*;
 
+    #[test]
+    fn test_ls_version_classifies_gnu_compatible_coreutils() {
+        // GNU coreutils (Ubuntu <= 25.04, Debian, Fedora).
+        assert!(is_gnu_compatible_ls_version(
+            "ls (GNU coreutils) 9.4\nCopyright (C) 2023 Free Software Foundation, Inc."
+        ));
+        // uutils coreutils, the default on Ubuntu 26.04 (and the
+        // ubuntu-latest CI image): GNU-compatible flags, no "GNU" in --version.
+        assert!(is_gnu_compatible_ls_version("ls (uutils coreutils) 0.2.2"));
+        assert!(!is_gnu_compatible_ls_version(
+            "BusyBox v1.36.1 (2023-11-07 18:53:09 UTC) multi-call binary."
+        ));
+        assert!(!is_gnu_compatible_ls_version(""));
+    }
+
     #[tokio::test]
     async fn test_detect_os() {
         let os = detect_os();
@@ -756,5 +787,21 @@ mod tests {
         assert_eq!(ctx.os(), "linux");
         assert_eq!(ctx.arch(), "x86_64");
         assert_eq!(ctx.shell(), "bash");
+    }
+
+    #[test]
+    fn test_ls_version_timeout_does_not_imply_bsd() {
+        // `ls --version` answered: GNU-style tools, so not BSD.
+        assert!(ls_version_probe_rules_out_bsd(&Ok(
+            "ls (GNU coreutils) 9.4".into()
+        )));
+        // Timed out on a loaded host: unknown, so not BSD either (#1533).
+        assert!(ls_version_probe_rules_out_bsd(&Err(
+            PlatformContextError::Timeout
+        )));
+        // Rejected the flag: BSD `ls` stays possible.
+        assert!(!ls_version_probe_rules_out_bsd(&Err(
+            PlatformContextError::CommandError("exit status: 1".into())
+        )));
     }
 }
