@@ -88,6 +88,7 @@ impl TelemetryStorage {
             super::EventType::CommandGeneration { .. } => "command_generation",
             super::EventType::SafetyValidation { .. } => "safety_validation",
             super::EventType::BackendError { .. } => "backend_error",
+            super::EventType::AdvisorInvoked { .. } => "advisor_invoked",
         };
 
         conn.execute(
@@ -301,6 +302,8 @@ mod tests {
                     duration_ms: 100,
                     success: true,
                     error_category: None,
+                    confidence: None,
+                    confidence_source: None,
                 },
             );
             storage.store_event(&event).await.unwrap();

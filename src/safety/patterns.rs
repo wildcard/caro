@@ -8,12 +8,50 @@ use crate::models::{RiskLevel, ShellType};
 
 use super::DangerPattern;
 
+/// Regex fragments shared by the #1054 patterns and the catastrophic floor.
+///
+/// Blanks between arguments of one statement: spaces, tabs and `\`-newline
+/// continuations. A bare newline ends the statement, so it is not a blank.
+pub(crate) const WS: &str = r"(?:[ \t]|\\\n)+";
+/// One argument token of the same statement (stops at a bare separator).
+pub(crate) const TOK: &str = r"[^\s;&|]+";
+/// One option token (`-v`, `--silent`).
+pub(crate) const OPT: &str = r"-[^\s;&|]*";
+/// A recursive flag for chmod/chown.
+pub(crate) const REC: &str = r"(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)";
+/// A world-writable mode: octal with a write bit in the last digit, or a
+/// symbolic mode that grants `w` to `o` or `a`.
+pub(crate) const WW_MODE: &str =
+    r"(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)";
+/// Root or home as a whole argument, optionally with `/*`. Root may be
+/// quoted. `~` expands only unquoted and `$HOME` only unquoted or in double
+/// quotes; `'$HOME'` and `"~"` are literal names.
+pub(crate) const ROOT_OR_HOME: &str = r#"(?:['"]?/+\*?['"]?|~/?\*?|"?\$\{?HOME\}?/?\*?"?)"#;
+/// The rest of a `find` call after the command word: optional `-H/-L/-P`,
+/// a root/home start path, then `-delete` or an `-exec rm` that removes the
+/// found path (`{}`), in the same statement (`\;` is allowed inside it).
+/// The blanks are [`WS`], spelled out because a `const` cannot `format!`.
+pub(crate) const FIND_ROOT_OR_HOME_DELETE: &str = r#"(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:[ \t]|\\\n)+(?:[^\s;&|]|\\;)+)*?(?:[ \t]|\\\n)+(?:-delete\b|-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#;
+/// The same, but only for a find with no filter: between the start path and
+/// the action only non-narrowing options may appear (`-xdev`, `-mindepth N`,
+/// `-name '*'`, ...). `-type f` keeps `-delete` catastrophic; `-type d` does
+/// not, because `-delete` removes only empty directories. With `-exec rm`,
+/// `-type d` stays catastrophic (`rm -rf` on every directory). This one is in
+/// the floor; a filtered find on root or home deletes only what matches and is
+/// High.
+pub(crate) const FIND_ROOT_OR_HOME_DELETE_ALL: &str = r#"(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:(?:[ \t]|\\\n)+(?:-xdev|-mount|-depth|-follow|-noleaf|-ignore_readdir_race|-mindepth(?:[ \t]|\\\n)+\d+|-i?name(?:[ \t]|\\\n)+['"]?\*['"]?|-type(?:[ \t]|\\\n)+f))*(?:[ \t]|\\\n)+-delete\b|(?:(?:[ \t]|\\\n)+(?:-xdev|-mount|-depth|-follow|-noleaf|-ignore_readdir_race|-mindepth(?:[ \t]|\\\n)+\d+|-i?name(?:[ \t]|\\\n)+['"]?\*['"]?|-type(?:[ \t]|\\\n)+[fd]))*(?:[ \t]|\\\n)+-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#;
+
 /// Built-in dangerous patterns loaded once at startup
 pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
     vec![
         // CRITICAL: Filesystem destruction
         DangerPattern {
-            pattern: r"rm\s+(-[rfRF]*\s+)*(/|~|\$HOME|/\*|~/\*|\*|\.\.?/?|\.\./\*|\.\*)"
+            // Accept any combination of short (`-rf`, `-fr`, `-r -f`) and GNU
+            // long (`--recursive`, `--force`, `--no-preserve-root`) flag tokens
+            // between `rm` and the target. The prior `(-[rfRF]*\s+)*` group only
+            // matched short flags, so `rm --recursive --force /` slipped past the
+            // Critical gate and could be re-enabled by a broad allowlist (#1246).
+            pattern: r"rm\s+(-{1,2}\S+\s+)*(/|~|\$HOME|/\*|~/\*|\*|\.\.?/?|\.\./\*|\.\*)"
                 .to_string(),
             risk_level: RiskLevel::Critical,
             description: "Recursive deletion of root, home, current, or parent directory"
@@ -89,6 +127,108 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
             description: "Recursive chmod on root directory".to_string(),
             shell_specific: None,
         },
+        // CRITICAL: recursive world-writable chmod on root or home (#1054).
+        // Both flag orders: `chmod -R 777 ~` and `chmod 777 -R /`. A mode is
+        // world-writable when its last octal digit has the write bit (2, 3,
+        // 6, 7), or a symbolic mode grants `w` to `o` or `a`.
+        DangerPattern {
+            pattern: format!(
+                r"\bchmod{WS}(?:{OPT}{WS})*?{REC}{WS}(?:{OPT}{WS})*?{WW_MODE}{WS}(?:{TOK}{WS})*?{ROOT_OR_HOME}(?:\s|$)"
+            ),
+            risk_level: RiskLevel::Critical,
+            description: "Recursive world-writable permission change on root or home".to_string(),
+            shell_specific: None,
+        },
+        DangerPattern {
+            pattern: format!(
+                r"\bchmod{WS}(?:{OPT}{WS})*?{WW_MODE}{WS}(?:{TOK}{WS})*?{REC}{WS}(?:{TOK}{WS})*?{ROOT_OR_HOME}(?:\s|$)"
+            ),
+            risk_level: RiskLevel::Critical,
+            description: "World-writable permission change applied recursively to root or home"
+                .to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: find-based recursive delete from root or home (#1054).
+        DangerPattern {
+            pattern: format!(r"\bfind{WS}{FIND_ROOT_OR_HOME_DELETE_ALL}"),
+            risk_level: RiskLevel::Critical,
+            description: "Recursive delete with find from root or home".to_string(),
+            shell_specific: None,
+        },
+        // HIGH: the same with a filter (`-name`, `-mtime`, ...). It deletes only
+        // what matches, so it asks, and a team may allowlist its own cleanup.
+        DangerPattern {
+            pattern: format!(r"\bfind{WS}{FIND_ROOT_OR_HOME_DELETE}"),
+            risk_level: RiskLevel::High,
+            description: "Filtered recursive delete with find from root or home".to_string(),
+            shell_specific: None,
+        },
+        // CRITICAL: decoded payload piped into a shell (#1054).
+        DangerPattern {
+            pattern: r"\bbase64\b[^|;&\n]*\s(?:-d|-D|--decode)\b[^|;&\n]*\|\s*(?:(?:sudo|doas|env|command|exec|nohup)\s+(?:-[ugCD]\s+\S+\s+|-\S+\s+|[A-Za-z_]\w*=\S*\s+)*)*(?:\S*/)?(?:ba|z|da|k|mk|fi)?sh\b"
+                .to_string(),
+            risk_level: RiskLevel::Critical,
+            description: "Decoded base64 payload piped into a shell".to_string(),
+            shell_specific: None,
+        },
+        // HIGH: eval of hidden input (#1054). A variable, or a substitution
+        // from the network or a decoder, runs code nobody reviewed.
+        DangerPattern {
+            pattern: r#"\beval\s+['"]?\$\{?[A-Za-z_]"#.to_string(),
+            risk_level: RiskLevel::High,
+            description: "eval of a variable runs hidden code".to_string(),
+            shell_specific: None,
+        },
+        DangerPattern {
+            pattern: r#"\beval\s+['"]?(?:\$\(|`)[^)`]*\b(?:curl|wget|base64|xxd|openssl|nc)\b"#
+                .to_string(),
+            risk_level: RiskLevel::High,
+            description: "eval of downloaded or decoded content".to_string(),
+            shell_specific: None,
+        },
+        // MODERATE: eval of any other substitution. Common in shell setup
+        // (`eval "$(ssh-agent -s)"`), so flagged but not raised to High.
+        DangerPattern {
+            pattern: r#"\beval\s+['"]?(?:\$\(|`)"#.to_string(),
+            risk_level: RiskLevel::Moderate,
+            description: "eval of command output".to_string(),
+            shell_specific: None,
+        },
+        // HIGH: interpreter one-liner deleting root, home or a system dir (#1054).
+        DangerPattern {
+            pattern: r#"\b(?:python[0-9.]*|perl|ruby)\s+(?:-\S+\s+)*?-[a-zA-Z]*[ce]\b[^\n]*?\b(?:rmtree|rm_rf|rm_r|remove_tree)\s*\(\s*['"](?:/|/(?:home|etc|usr|var|bin|sbin|lib|lib64|boot|opt|root|srv|Users|System|Library))/?['"]"#
+                .to_string(),
+            risk_level: RiskLevel::High,
+            description: "Interpreter one-liner deleting root, home or a system directory"
+                .to_string(),
+            shell_specific: None,
+        },
+        DangerPattern {
+            // Recursive chmod that gives "others" write access, on any path
+            // (caro#1592). A world-writable mode is an octal mode whose last
+            // digit has the write bit (2, 3, 6, 7), with or without GNU's `+`
+            // or `=` operator (`+777`), or a symbolic clause such as `o+w`,
+            // `a+rwx` or `o=rwx`. The mode is the first argument
+            // that is not an option. `-R` / `--recursive` may come among the
+            // options before it, or later in the same command. Spans use
+            // `[ \t]` and stop at `;`, `&`, `|` and newlines, so the match
+            // stays inside one command.
+            pattern: concat!(
+                r"\bchmod(?:[ \t]+-\S+)*[ \t]+(?:",
+                // a recursive flag among the options, then the mode
+                r"(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)(?:[ \t]+-\S+)*[ \t]+",
+                r"(?:[+=]?0?[0-7]{0,3}[2367]|[ugoa+=,rwxXst-]*[oa][ugoa]*[+=][rwxXst]*w[ugoa+=,rwxXst-]*)",
+                r"|",
+                // the mode, then a recursive flag later in the command
+                r"(?:[+=]?0?[0-7]{0,3}[2367]|[ugoa+=,rwxXst-]*[oa][ugoa]*[+=][rwxXst]*w[ugoa+=,rwxXst-]*)",
+                r"[ \t](?:[^;&|\n]*[ \t])?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)",
+                r")(?:\s|$)",
+            )
+            .to_string(),
+            risk_level: RiskLevel::High,
+            description: "Recursive chmod that makes files world-writable".to_string(),
+            shell_specific: None,
+        },
         // HIGH: Privilege escalation
         DangerPattern {
             pattern: r"sudo\s+su\s*$".to_string(),
@@ -99,7 +239,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r"sudo\s+.*chmod\s+u\+s".to_string(),
             risk_level: RiskLevel::High,
-            description: "Adding setuid bit with elevated privileges".to_string(),
+            description: "Add setuid bit with elevated privileges".to_string(),
             shell_specific: None,
         },
         // HIGH: Download and execute
@@ -197,13 +337,13 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r"rm\s+-r[f]*\s+[A-Z]:\\".to_string(),
             risk_level: RiskLevel::Critical,
-            description: "Recursive deletion of Windows drive root".to_string(),
+            description: "Recursive deletion of Windows drive root (Bash/WSL)".to_string(),
             shell_specific: Some(ShellType::Bash), // When running on WSL
         },
         DangerPattern {
             pattern: r"Remove-Item\s+-Recurse\s+-Force\s+[A-Z]:\\".to_string(),
             risk_level: RiskLevel::Critical,
-            description: "Recursive deletion of Windows drive root".to_string(),
+            description: "Recursive deletion of Windows drive root (PowerShell)".to_string(),
             shell_specific: Some(ShellType::PowerShell),
         },
         DangerPattern {
@@ -267,13 +407,13 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         },
         // HIGH: Python/Perl exec with dangerous commands
         DangerPattern {
-            pattern: r"python\s+-c\s+.*os\.system.*rm\s+-rf".to_string(),
+            pattern: r"python[0-9.]*\s+-c\s+.*os\.system.*rm\s+-rf".to_string(),
             risk_level: RiskLevel::Critical,
             description: "Python executing recursive deletion".to_string(),
             shell_specific: None,
         },
         DangerPattern {
-            pattern: r"(python|perl|ruby)\s+-[ec]\s+.*system\s*\(".to_string(),
+            pattern: r"(python[0-9.]*|perl|ruby)\s+-[ec]\s+.*system\s*\(".to_string(),
             risk_level: RiskLevel::High,
             description: "Script language executing shell commands".to_string(),
             shell_specific: None,
@@ -282,7 +422,7 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r"rm\s+[^-\s][^\s]*\.(txt|doc|pdf|xlsx|pptx|zip|tar|sql|bak)".to_string(),
             risk_level: RiskLevel::Moderate,
-            description: "Deleting important file types".to_string(),
+            description: "Delete important file types".to_string(),
             shell_specific: None,
         },
         // Fix Windows backslash pattern - works in Bash/PowerShell/WSL
@@ -296,26 +436,26 @@ pub static DANGEROUS_PATTERNS: Lazy<Vec<DangerPattern>> = Lazy::new(|| {
         DangerPattern {
             pattern: r"chmod\s+[+\-]x\s+".to_string(),
             risk_level: RiskLevel::Moderate,
-            description: "Making files executable".to_string(),
+            description: "Make files executable".to_string(),
             shell_specific: None,
         },
         DangerPattern {
             pattern: r"chmod\s+[0-7]{3,4}\s+".to_string(),
             risk_level: RiskLevel::Moderate,
-            description: "Changing file permissions".to_string(),
+            description: "Change file permissions".to_string(),
             shell_specific: None,
         },
         DangerPattern {
             pattern: r"chown\s+[^\s]+\s+".to_string(),
             risk_level: RiskLevel::Moderate,
-            description: "Changing file ownership".to_string(),
+            description: "Change file ownership".to_string(),
             shell_specific: None,
         },
         // MODERATE: Installing packages with user scope
         DangerPattern {
             pattern: r"pip\s+install\s+--user".to_string(),
             risk_level: RiskLevel::Moderate,
-            description: "Installing Python packages in user directory".to_string(),
+            description: "Install Python packages in user directory".to_string(),
             shell_specific: None,
         },
         // CRITICAL: Windows del command with dangerous flags
@@ -648,6 +788,63 @@ mod tests {
                 matches_high_or_critical(cmd),
                 "command {cmd:?} must match at least one High-or-Critical pattern \
                  (would be blocked by --safety strict)"
+            );
+        }
+    }
+
+    /// Regression test for caro#1592: a recursive chmod that makes a tree
+    /// world-writable is High risk on any path, not only on `/`. The
+    /// landing page's DevOps scenario shows `chmod -R 777 /var/www`.
+    #[test]
+    fn test_chmod_recursive_world_writable_is_high() {
+        let must_flag = [
+            "chmod -R 777 /var/www",           // the landing-page scenario
+            "sudo chmod -R 777 /var/www/html", // with sudo
+            "chmod -Rv 0777 ./uploads",        // relative path, 4-digit octal
+            "chmod --recursive 777 storage",   // GNU long flag
+            "chmod -R 777 folder/",            // /docs/safety lists this as High
+            "chmod 777 -R /srv/app",           // flag after the mode
+            "chmod -R 666 data",               // world-writable without execute
+            "chmod -R a+rwx /var/www",         // symbolic, all
+            "chmod -R o+w public",             // symbolic, others only
+            "chmod -R go+w shared",            // symbolic, group and others
+            "chmod -R u=rwx,o=rwx public",     // comma-separated clauses
+            "cd /srv && chmod -R 777 app",     // inside a command list
+            "chmod -v -R 777 app",             // another option first
+            "chmod -R -- 777 app",             // end-of-options marker
+            "chmod -R +777 uploads",           // GNU operator numeric mode
+            "chmod -R =777 uploads",           // GNU operator numeric mode
+            "chmod -R 2 shared",               // short octal: others write
+        ];
+        for cmd in must_flag {
+            assert!(
+                matches_high_or_critical(cmd),
+                "command {cmd:?} makes a tree world-writable and must be High or Critical"
+            );
+        }
+
+        // Not world-writable, or not recursive: the new pattern must not
+        // raise these. Relative paths keep the older root-path patterns out
+        // of the result.
+        let must_not_flag = [
+            "chmod -R 755 public",                      // the landing page's own suggestion
+            "chmod -R 775 shared",                      // group-writable only
+            "chmod -R 750 app",                         // no access for others
+            "chmod -R o-w public",                      // removes world write
+            "chmod -R u+w src",                         // owner only
+            "chmod -R g+w shared",                      // group only
+            "chmod 777 notes.txt",                      // not recursive (stays Moderate)
+            "chmod +x deploy.sh",                       // execute bit only
+            "chmod -R 755 a; ls 777",                   // `777` is in another command
+            "chmod -R 755 o+w",                         // `o+w` is a file name, not the mode
+            "chmod 777 notes.txt\nchmod -R 755 public", // two commands, two lines
+            "chmod -R 755 backup 777",                  // `777` is a file name
+            "chmod -R -002 public",                     // removes others' write
+        ];
+        for cmd in must_not_flag {
+            assert!(
+                !matches_high_or_critical(cmd),
+                "command {cmd:?} does not make a tree world-writable and must stay below High"
             );
         }
     }

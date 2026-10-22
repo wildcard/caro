@@ -886,3 +886,30 @@ async fn test_chmod_long_flag_4digit_octal_bypass() {
         result.risk_level
     );
 }
+
+#[tokio::test]
+async fn test_quote_escape_evasion_is_caught_base(/* caro-pr3f */) {
+    let v = SafetyValidator::new(SafetyConfig::strict()).unwrap();
+    // Root-wipe + system deletions that hide behind backslash/quotes must be
+    // blocked with NO allowlist (the base validator normalizes destructive stmts).
+    for danger in [
+        r"rm -rf \/", // -> rm -rf / (root wipe)
+        r"rm -rf \/etc",
+        "rm -rf \"/tmp\"/*/x", // quoted /tmp glob
+        "rm -\\rf \\/etc",     // obfuscated flag + escaped target
+    ] {
+        let r = v.validate_command(danger, ShellType::Bash).await.unwrap();
+        assert!(
+            !r.allowed,
+            "quote/escape-evaded danger must be blocked: {danger:?}"
+        );
+    }
+    // Benign quoted arguments to a NON-destructive command stay safe.
+    for safe in ["echo 'rm -rf /'", "printf \"%s\" 'rm -rf /'"] {
+        let r = v.validate_command(safe, ShellType::Bash).await.unwrap();
+        assert!(
+            r.allowed,
+            "benign quoted string must stay allowed: {safe:?}"
+        );
+    }
+}

@@ -2,11 +2,11 @@
   "navigation": {
     "brand": "🐕 Caro",
     "links": {
-      "features": "תכונות",
+      "features": "יכולות",
       "compare": "השוואה",
-      "play": "הפעלה",
+      "play": "משחק",
       "blog": "בלוג",
-      "getStarted": "התחלה",
+      "getStarted": "בוא נתחיל",
       "github": "GitHub"
     },
     "darkMode": {
@@ -25,24 +25,25 @@
     }
   },
   "footer": {
-    "builtWith": "נבנה באמצעות Rust 🦀 | קוד פתוח ב",
+    "builtWith": "נבנה עם Rust 🦀 | קוד פתוח ב-",
+    "brandTagline": "הרצת פקודות בטוחה, מקומית.",
     "github": "GitHub",
     "domain": {
       "name": "caro.sh",
-      "tagline": "חבר השל שלך הנאמן"
+      "tagline": "החבר הנאמן שלך ב-shell"
     },
     "links": {
       "license": "AGPL-3.0",
-      "credits": "קרדיטים והכרה",
-      "contributing": "תרומה",
-      "issues": "בעיות"
+      "credits": "קרדיטים ותודות",
+      "contributing": "תרומה לפרויקט",
+      "issues": "דיווח על תקלה"
     },
     "kyaro": {
       "title": "הכירו את קיארו בחיים האמיתיים (Kyarorain Kadosh)! 🐕🖤",
-      "followText": "עקבו אחרי ההרפתקאות שלה ב",
+      "followText": "עקבו אחרי ההרפתקאות שלה ב-",
       "instagram": "Instagram @kyaroblackheart"
     },
-    "inspiration": "השראה מקרוליין מהמשחק Portal—נאמנות המתורגמת לחברות דיגיטלית",
-    "elevatorCredit": "אפקט גלילה מאת"
+    "inspiration": "Caro בהשראת Caroline מ-Portal — נאמנות שהפכה לחברות דיגיטלית",
+    "elevatorCredit": "אפקט הגלילה מאת"
   }
 }

@@ -47,6 +47,8 @@ pub struct AiInvocation<'a> {
     /// Optional last command from shell hook ($HISTCMD, fc, etc.). Only forwarded
     /// when `ai_cfg.opening.send_last_command` is true.
     pub last_command_hint: Option<String>,
+    /// `[backends] allow_public`: the hybrid gateway skips sanitizing.
+    pub hybrid_allow_public: bool,
 }
 
 /// Result of a single AI turn.
@@ -131,7 +133,11 @@ pub async fn run_once(inv: AiInvocation<'_>) -> Result<AiOutcome> {
 
     store.upsert(&session)?;
 
-    let warns_offhost = super::privacy::may_leak_context_offhost(inv.ai_cfg, &inv.backend_name);
+    let warns_offhost = super::privacy::may_leak_context_offhost(
+        inv.ai_cfg,
+        &inv.backend_name,
+        inv.hybrid_allow_public,
+    );
 
     Ok(AiOutcome {
         session_id: session.id,
@@ -215,6 +221,7 @@ mod tests {
             backend_used: "fake".into(),
             generation_time_ms: 1,
             confidence_score: 0.9,
+            confidence_source: crate::models::ConfidenceSource::Measured,
         }
     }
 
@@ -240,6 +247,7 @@ mod tests {
             store_path: path.clone(),
             session_mode: SessionMode::ResumeOrNew,
             last_command_hint: None,
+            hybrid_allow_public: false,
         })
         .await
         .unwrap();
@@ -276,6 +284,7 @@ mod tests {
             store_path: path,
             session_mode: SessionMode::New,
             last_command_hint: None,
+            hybrid_allow_public: false,
         })
         .await
         .unwrap();

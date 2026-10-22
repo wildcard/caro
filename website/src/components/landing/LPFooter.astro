@@ -1,5 +1,5 @@
 ---
-import { type Locale } from '../../i18n/config';
+import { t, type Locale } from '../../i18n/config';
 
 interface Props {
   lang?: Locale;
@@ -13,7 +13,7 @@ const { lang = 'en' } = Astro.props;
     <div class="footer-main">
       <div class="footer-brand">
         <span class="brand-name">Caro</span>
-        <span class="brand-tagline">Safe shell commands, locally.</span>
+        <span class="brand-tagline">{t(lang, 'footer.brandTagline')}</span>
       </div>
       <div class="footer-links">
         <a href="https://github.com/wildcard/caro">GitHub</a>
@@ -65,7 +65,7 @@ const { lang = 'en' } = Astro.props;
   .brand-name {
     font-size: 24px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--highlight);
   }
 
   .brand-tagline {
@@ -86,7 +86,7 @@ const { lang = 'en' } = Astro.props;
   }
 
   .footer-links a:hover {
-    color: #ff8c42;
+    color: var(--highlight);
   }
 
   .footer-bottom {
@@ -104,19 +104,22 @@ const { lang = 'en' } = Astro.props;
     color: var(--color-footer-text-muted);
   }
 
+  /* Links inside the tribute sentence are underlined: colour alone does not
+     separate them from the surrounding text (WCAG 1.4.1). */
   .mascot-tribute a {
     color: var(--color-footer-text);
-    text-decoration: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
     transition: color 0.2s;
   }
 
   .mascot-tribute a:hover {
-    color: #ff8c42;
+    color: var(--highlight);
   }
 
   .story-link {
     margin-left: 8px;
-    color: #ff8c42 !important;
+    color: var(--highlight) !important;
   }
 
   .sponsor-link::before {
@@ -124,8 +127,9 @@ const { lang = 'en' } = Astro.props;
     color: #ea4aaa;
   }
 
+  /* Pink hover text is 2.4:1 on the light-mode console footer. */
   .sponsor-link:hover {
-    color: #ea4aaa !important;
+    color: var(--highlight) !important;
   }
 
   .footer-privacy-link {
@@ -135,7 +139,13 @@ const { lang = 'en' } = Astro.props;
   }
 
   .footer-privacy-link:hover {
-    color: #ff8c42;
+    color: var(--highlight);
+  }
+
+  /* Console surface: the global red focus ring is ~1.6:1 here. */
+  footer a:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
   }
 
   @media (max-width: 768px) {

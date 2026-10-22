@@ -513,15 +513,17 @@ export const HOLIDAYS: HolidayEvent[] = [
     description: 'Israeli Independence Day',
     dateRange: {
       type: 'calculated',
-      // 5 Iyar in Hebrew calendar
+      // Observed date of 5 Iyar: Fri/Sat shift to Thursday, Monday shifts
+      // to Tuesday. One day only — the day before is Yom HaZikaron
+      // (Memorial Day), which must never wear a celebration theme.
       dates: {
-        2024: { start: '2024-05-13', end: '2024-05-14' },
-        2025: { start: '2025-05-01', end: '2025-05-02' },
-        2026: { start: '2026-04-21', end: '2026-04-22' },
-        2027: { start: '2027-05-11', end: '2027-05-12' },
-        2028: { start: '2028-05-01', end: '2028-05-02' },
-        2029: { start: '2029-04-19', end: '2029-04-20' },
-        2030: { start: '2030-05-08', end: '2030-05-09' },
+        2024: { start: '2024-05-14', end: '2024-05-14' },
+        2025: { start: '2025-05-01', end: '2025-05-01' },
+        2026: { start: '2026-04-22', end: '2026-04-22' },
+        2027: { start: '2027-05-12', end: '2027-05-12' },
+        2028: { start: '2028-05-02', end: '2028-05-02' },
+        2029: { start: '2029-04-19', end: '2029-04-19' },
+        2030: { start: '2030-05-08', end: '2030-05-08' },
       },
     },
     visibility: 'locale-only',

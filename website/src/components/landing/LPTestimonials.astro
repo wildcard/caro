@@ -1,6 +1,10 @@
 ---
 // LPTestimonials.astro - Social proof section
-// Replace placeholder testimonials with real quotes from beta users
+// PLACEHOLDER CONTENT: these quotes and names are invented. No page may
+// render this component until they are replaced with real, consented quotes
+// (#1569). While this marker is here, placeholder-content.test.ts fails if
+// a file in src/pages, src/layouts or src/components imports this component
+// (run it with `npm run test` in website/).
 
 interface Testimonial {
   quote: string;
@@ -55,7 +59,7 @@ const testimonials: Testimonial[] = [
             "{testimonial.quote}"
           </blockquote>
           <div class="testimonial-author">
-            <div class="author-avatar">
+            <div class="author-avatar" aria-hidden="true">
               {testimonial.author.split(' ').map(n => n[0]).join('')}
             </div>
             <div class="author-info">
@@ -69,19 +73,19 @@ const testimonials: Testimonial[] = [
 
     <div class="social-proof-bar">
       <div class="proof-item">
-        <span class="proof-icon">⭐</span>
+        <span class="proof-icon" aria-hidden="true">❯</span>
         <span class="proof-text">Open Source on GitHub</span>
       </div>
       <div class="proof-item">
-        <span class="proof-icon">🛡️</span>
-        <span class="proof-text">MIT Licensed</span>
+        <span class="proof-icon" aria-hidden="true">■</span>
+        <span class="proof-text">AGPL-3.0 Licensed</span>
       </div>
       <div class="proof-item">
-        <span class="proof-icon">🔒</span>
+        <span class="proof-icon" aria-hidden="true">▸</span>
         <span class="proof-text">Zero Telemetry</span>
       </div>
       <div class="proof-item">
-        <span class="proof-icon">🚀</span>
+        <span class="proof-icon" aria-hidden="true">$</span>
         <span class="proof-text">Production Ready</span>
       </div>
     </div>
@@ -89,9 +93,12 @@ const testimonials: Testimonial[] = [
 </section>
 
 <style>
+  /* Per Claude Design's May 9 caro-l06 ruling: LPTestimonials sits on
+     stage-grey (--bg-stage), the light-but-distinct neutral that
+     separates it from the paper surfaces above and below. */
   .testimonials {
     padding: 100px 20px;
-    background: var(--bg);
+    background: var(--bg-stage);
   }
 
   .container {
@@ -110,10 +117,12 @@ const testimonials: Testimonial[] = [
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--accent-text);
     margin-bottom: 16px;
     padding: 8px 16px;
-    background: rgba(239, 51, 51, 0.1);
+    /* Raised pill: red text fails AA on red-tinted stage grey (3.4:1). */
+    background: var(--bg-raised);
+    border: 1px solid rgba(239, 51, 51, 0.35);
     border-radius: 100px;
   }
 
@@ -125,9 +134,10 @@ const testimonials: Testimonial[] = [
     line-height: 1.2;
   }
 
+  /* --fg-muted is 3.9:1 on --bg-stage; --fg clears AA there. */
   .section-subtitle {
     font-size: 1.125rem;
-    color: var(--fg-muted);
+    color: var(--fg);
     max-width: 500px;
     margin: 0 auto;
     line-height: 1.6;
@@ -140,8 +150,10 @@ const testimonials: Testimonial[] = [
     margin-bottom: 60px;
   }
 
+  /* Cards lift to --bg-raised (white in light mode) so they read as
+     elevated against the stage-grey section surface. */
   .testimonial-card {
-    background: var(--bg-stage);
+    background: var(--bg-raised);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: 32px;
@@ -161,7 +173,7 @@ const testimonials: Testimonial[] = [
     display: inline-block;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #15803d;
+    color: var(--status-safe-text);
     background: rgba(34, 197, 94, 0.15);
     padding: 6px 12px;
     border-radius: 100px;
@@ -190,13 +202,14 @@ const testimonials: Testimonial[] = [
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: var(--accent);
+    background: var(--accent-fill);
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--fg-inverse);
+    color: var(--on-accent);
   }
 
   .author-info {
@@ -222,7 +235,7 @@ const testimonials: Testimonial[] = [
     flex-wrap: wrap;
     gap: 32px;
     padding: 32px;
-    background: var(--bg-stage);
+    background: var(--bg-raised);
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
   }
@@ -235,8 +248,13 @@ const testimonials: Testimonial[] = [
     color: var(--fg);
   }
 
+  /* Terminal-glyph proof marks per v2.1 icon-system reframe (no emoji). */
   .proof-icon {
-    font-size: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
   }
 
   .proof-text {

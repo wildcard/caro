@@ -6,9 +6,9 @@
 //! other code touch.
 
 use caro::models::{RiskLevel, SafetyLevel, ShellType};
-use caro::safety::{SafetyConfig, SafetyValidator};
 #[cfg(feature = "cve-rules")]
 use caro::safety::CVE_COMPILED;
+use caro::safety::{SafetyConfig, SafetyValidator};
 
 /// The canonical xz-utils backdoor trigger — the pattern that motivated
 /// this whole pipeline. Covered by `data/cve_rules/CVE-2024-3094.yaml`.

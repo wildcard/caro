@@ -269,6 +269,15 @@ Request: {}
 
     /// Parse JSON response from model inference
     fn parse_command_response(&self, response: &str) -> Result<String, GeneratorError> {
+        // Typed clarification gate (#1462): a `QUESTION:` prefix or a
+        // `needs_clarification` JSON field is a decision, not a parse failure
+        // and not a command. Surface it; the retry loop fails fast on it.
+        if let Some(c) = crate::decision::clarification_from_raw(response) {
+            if c.should_ask() {
+                return Err(GeneratorError::from_clarification(&c));
+            }
+        }
+
         // Try structured JSON parsing first
         if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(response) {
             if let Some(cmd) = parsed.get("cmd").and_then(|v| v.as_str()) {
@@ -508,7 +517,8 @@ impl CommandGenerator for EmbeddedModelBackend {
             alternatives: vec![], // Embedded model generates single command
             backend_used: "embedded".to_string(),
             generation_time_ms: generation_time,
-            confidence_score: 0.85, // Default confidence for embedded model
+            confidence_score: 0.0, // Not measured (#1464): llama.cpp sampler exposes no log-probs yet
+            confidence_source: crate::models::ConfidenceSource::Unknown,
         })
     }
 
@@ -583,6 +593,29 @@ mod tests {
         assert!(prompt.contains("bash"));
         assert!(prompt.contains("JSON"));
         assert!(prompt.contains("cmd"));
+    }
+
+    #[test]
+    fn agent_sized_prompt_fits_the_context_window() {
+        // Regression guard for #1612. The agent loop puts about 2.6 KB of
+        // context (execution context, directory context, its own system
+        // prompt) into the request. Measured with the real tokenizers, the
+        // full prompt was 1,955 (SmolLM) and 2,033 (TinyLlama) tokens, so a
+        // 2048-token window overflowed. Assume 2 chars per token, which is
+        // more pessimistic than any of the three CI models.
+        let backend = EmbeddedModelBackend::new().unwrap();
+        let request =
+            CommandRequest::new("show date", ShellType::Bash).with_context("x".repeat(4000));
+
+        let prompt = backend.create_system_prompt(&request);
+        let estimated_tokens = prompt.len() / 2 + 32; // + chat template tokens
+        let needed = estimated_tokens + EmbeddedConfig::default().max_tokens;
+
+        assert!(
+            needed <= crate::backends::embedded::EMBEDDED_N_CTX as usize,
+            "prompt needs ~{needed} tokens, window is {}",
+            crate::backends::embedded::EMBEDDED_N_CTX
+        );
     }
 
     #[test]

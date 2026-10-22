@@ -69,6 +69,7 @@ export {
 
 // Preference Selectors
 export { DistroSelector, type DistroSelectorProps } from './DistroSelector';
+export { KavanaCompanion, type KavanaCompanionProps } from './KavanaCompanion/KavanaCompanion';
 
 // Design tokens are available via CSS import:
 // import '../ui/tokens.css';

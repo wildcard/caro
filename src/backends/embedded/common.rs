@@ -39,6 +39,13 @@ impl std::fmt::Display for ModelVariant {
     }
 }
 
+/// Context window (tokens) for each llama.cpp inference session.
+///
+/// The agent loop sends the embedded system prompt plus its own context and
+/// prompt, about 2,000 tokens for SmolLM and TinyLlama. A 2048-token window
+/// left no room, and llama.cpp failed with "advancing context failed" (#1612).
+pub const EMBEDDED_N_CTX: u32 = 4096;
+
 /// Default number of parse retries before giving up
 fn default_max_parse_retries() -> u32 {
     2
@@ -101,6 +108,36 @@ impl EmbeddedConfig {
         self.max_parse_retries = retries.min(5);
         self
     }
+}
+
+/// Default number of model layers to offload to the GPU (Metal): all of them.
+#[cfg_attr(
+    not(all(target_os = "macos", target_arch = "aarch64", feature = "embedded-mlx")),
+    allow(dead_code)
+)] // used only by mlx.rs's `embedded-mlx` load path (#1626)
+pub const DEFAULT_GPU_LAYERS: u32 = 99;
+
+/// GPU layers to offload, from the `CARO_GPU_LAYERS` env var.
+///
+/// `0` runs inference on the CPU only. CI sets it because the Metal backend
+/// in `llama_cpp` 0.3 aborts on some models on hosted macOS runners (#1341).
+/// An unset or unparsable value keeps [`DEFAULT_GPU_LAYERS`].
+#[cfg_attr(
+    not(all(target_os = "macos", target_arch = "aarch64", feature = "embedded-mlx")),
+    allow(dead_code)
+)] // used only by mlx.rs's `embedded-mlx` load path (#1626)
+pub fn gpu_layers() -> u32 {
+    gpu_layers_from(std::env::var("CARO_GPU_LAYERS").ok().as_deref())
+}
+
+#[cfg_attr(
+    not(all(target_os = "macos", target_arch = "aarch64", feature = "embedded-mlx")),
+    allow(dead_code)
+)] // used only by mlx.rs's `embedded-mlx` load path (#1626)
+fn gpu_layers_from(value: Option<&str>) -> u32 {
+    value
+        .and_then(|v| v.trim().parse().ok())
+        .unwrap_or(DEFAULT_GPU_LAYERS)
 }
 
 /// Internal trait for platform-specific inference backends (MLX, Candle)
@@ -186,5 +223,14 @@ mod tests {
         let json = r#"{"temperature": 0.1, "max_tokens": 100, "top_p": 0.9, "stop_tokens": []}"#;
         let config: EmbeddedConfig = serde_json::from_str(json).unwrap();
         assert_eq!(config.max_parse_retries, 2);
+    }
+
+    #[test]
+    fn test_gpu_layers_from_env_value() {
+        assert_eq!(gpu_layers_from(None), DEFAULT_GPU_LAYERS);
+        assert_eq!(gpu_layers_from(Some("0")), 0);
+        assert_eq!(gpu_layers_from(Some(" 12 ")), 12);
+        assert_eq!(gpu_layers_from(Some("all")), DEFAULT_GPU_LAYERS);
+        assert_eq!(gpu_layers_from(Some("")), DEFAULT_GPU_LAYERS);
     }
 }

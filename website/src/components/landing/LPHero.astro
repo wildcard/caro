@@ -1,12 +1,13 @@
 ---
 import { t, type Locale } from '../../i18n/config';
-import Glyph from '../../ui/Glyph/Glyph.astro';
 
 interface Props {
   lang?: Locale;
+  /** Anchor for the "See Demo" CTA. Must exist on the host page. */
+  demoHref?: string;
 }
 
-const { lang = 'en' } = Astro.props;
+const { lang = 'en', demoHref = '#scenarios' } = Astro.props;
 ---
 
 <div class="hero">
@@ -28,14 +29,16 @@ const { lang = 'en' } = Astro.props;
 
     <div class="cta-buttons">
       <a href="#download" class="cta-button primary">{t(lang, 'landing.hero.cta.primary')}</a>
-      <a href="#scenarios" class="cta-button secondary">{t(lang, 'landing.hero.cta.secondary')}</a>
+      <a href={demoHref} class="cta-button secondary">{t(lang, 'landing.hero.cta.secondary')}</a>
     </div>
 
+    <!-- Terminal glyphs: a 16 px pill is too small for a Kyaro sprite (see
+         docs/brand/ICONOGRAPHY.md). ▸ privacy, ■ safety, $ local, ❯ open source. -->
     <div class="trust-badges">
-<a href="/telemetry" class="badge badge-link"><span class="icon">🔒</span> {t(lang, 'landing.hero.trustBadges.zeroTelemetry')}</a>
-      <span class="badge"><Glyph name="shield" size={16} class="icon" /> {t(lang, 'landing.hero.trustBadges.validation')}</span>
-      <span class="badge"><Glyph name="lightning" size={16} class="icon" /> {t(lang, 'landing.hero.trustBadges.local')}</span>
-      <span class="badge"><span class="icon">📖</span> {t(lang, 'landing.hero.trustBadges.openSource')}</span>
+      <a href="/telemetry" class="badge badge-link"><span class="icon term-glyph" aria-hidden="true">▸</span> {t(lang, 'landing.hero.trustBadges.zeroTelemetry')}</a>
+      <span class="badge"><span class="icon term-glyph" aria-hidden="true">■</span> {t(lang, 'landing.hero.trustBadges.validation')}</span>
+      <span class="badge"><span class="icon term-glyph" aria-hidden="true">$</span> {t(lang, 'landing.hero.trustBadges.local')}</span>
+      <span class="badge"><span class="icon term-glyph" aria-hidden="true">❯</span> {t(lang, 'landing.hero.trustBadges.openSource')}</span>
     </div>
   </div>
 </div>
@@ -49,7 +52,7 @@ const { lang = 'en' } = Astro.props;
     align-items: center;
     text-align: center;
     padding: 80px 20px 60px;
-    background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    background: var(--bg);
   }
 
   .container {
@@ -60,7 +63,7 @@ const { lang = 'en' } = Astro.props;
     display: inline-block;
     background: rgba(239, 51, 51, 0.12);
     border: 1px solid rgba(239, 51, 51, 0.3);
-    color: var(--accent);
+    color: var(--accent-text);
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 14px;
@@ -70,7 +73,12 @@ const { lang = 'en' } = Astro.props;
     letter-spacing: 1px;
   }
 
+  /* Display face per Caro brand: Azeret Mono via --font-display.
+     The previous omission let the headline fall through to body sans-serif
+     in environments where the system stack resolved before Azeret Mono
+     loaded — visible regression flagged in caro-a85d. */
   .headline {
+    font-family: var(--font-display);
     font-size: 52px;
     font-weight: 700;
     line-height: 1.2;
@@ -79,7 +87,7 @@ const { lang = 'en' } = Astro.props;
   }
 
   .danger-cmd {
-    color: var(--accent);
+    color: var(--accent-text);
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
     font-size: 0.9em;
   }
@@ -139,29 +147,29 @@ const { lang = 'en' } = Astro.props;
   }
 
   .cta-button.primary {
-    background: var(--accent);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .cta-button.primary:hover {
-    background: var(--accent-hover);
+    background: var(--accent-fill-hover);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
   }
 
+  /* Follows the active occasion (its ink is tested ≥ 4.5:1 in both modes)
+     so the outline button never clashes with a recoloured primary. */
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid var(--accent);
-    color: var(--accent);
+    border: 2px solid var(--occasion-ink, var(--accent));
+    color: var(--occasion-ink, var(--accent-text));
   }
 
+  /* --bg-raised (white / grey-800) is one of the surfaces every occasion
+     ink is tested on, so hover stays AA and never tints red mid-occasion. */
   .cta-button.secondary:hover {
-    background: rgba(239, 51, 51, 0.1);
+    background: var(--bg-raised);
     transform: translateY(-2px);
-  }
-
-  :global(.dark) .cta-button.secondary:hover {
-    background: rgba(239, 51, 51, 0.15);
   }
 
   .trust-badges {
@@ -183,13 +191,22 @@ const { lang = 'en' } = Astro.props;
     font-size: 16px;
   }
 
+  .term-glyph {
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1;
+  }
+
   .badge-link {
     text-decoration: none;
     transition: color 0.2s;
   }
 
   .badge-link:hover {
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   .privacy-link {
@@ -200,7 +217,7 @@ const { lang = 'en' } = Astro.props;
   }
 
   .privacy-link:hover {
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   @media (max-width: 768px) {
@@ -218,11 +235,11 @@ const { lang = 'en' } = Astro.props;
   import { track } from '@vercel/analytics';
 
   // Track hero CTA clicks
-  document.querySelector('.hero .btn-primary')?.addEventListener('click', () => {
+  document.querySelector('.hero .cta-button.primary')?.addEventListener('click', () => {
     track('cta_click', { location: 'hero', action: 'get_started' });
   });
 
-  document.querySelector('.hero .btn-secondary')?.addEventListener('click', () => {
+  document.querySelector('.hero .cta-button.secondary')?.addEventListener('click', () => {
     track('cta_click', { location: 'hero', action: 'see_demo' });
   });
 </script>

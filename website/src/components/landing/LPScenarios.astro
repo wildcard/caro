@@ -1,5 +1,6 @@
 ---
 import { type Locale } from '../../i18n/config';
+import TermGlyph, { type Glyph } from '../../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -16,100 +17,100 @@ const roles = [
   {
     id: "devops",
     name: "DevOps Engineer",
-    icon: "🔧",
+    icon: "▸",
     scenarios: [
       {
         context: "3 AM incident: Database logs filling disk",
         dangerous: "rm -rf /var/log/*",
         problem: "Recursive delete could cascade across mounted volumes",
-        caroSays: "⚠️ High Risk: Recursive delete in system directory. Suggesting: find /var/log -name '*.log' -mtime +7 -delete"
+        caroSays: "High Risk: Recursive delete in system directory. Suggesting: find /var/log -name '*.log' -mtime +7 -delete"
       },
       {
         context: "Cleaning up Docker resources",
         dangerous: "docker system prune -a --volumes -f",
         problem: "Silently removes ALL volumes including named ones with data",
-        caroSays: "⚠️ Warning: This removes named volumes. Use --filter to exclude production data volumes."
+        caroSays: "Warning: This removes named volumes. Use --filter to exclude production data volumes."
       },
       {
         context: "Fixing file permissions after deployment",
         dangerous: "chmod -R 777 /var/www",
         problem: "World-writable files are a security vulnerability",
-        caroSays: "🛑 Blocked: chmod 777 creates security vulnerabilities. Suggesting: chmod -R 755 for directories, 644 for files."
+        caroSays: "High Risk: Recursive chmod 777 makes every file world-writable. Suggesting: chmod -R 755 for directories, 644 for files."
       }
     ]
   },
   {
     id: "sre",
     name: "SRE",
-    icon: "🛡️",
+    icon: "▸",
     scenarios: [
       {
         context: "Emergency: Need to restart all services",
         dangerous: "systemctl restart *",
         problem: "Could restart critical system services causing cascading failures",
-        caroSays: "⚠️ High Risk: Wildcard service restart. List specific services or use --show-transaction first."
+        caroSays: "High Risk: Wildcard service restart. List specific services or use --show-transaction first."
       },
       {
         context: "Disk space critical on production",
         dangerous: "find / -size +100M -delete",
         problem: "Could delete critical system files, binaries, or database files",
-        caroSays: "🛑 Blocked: Recursive delete from root. Suggesting: find /var/log -size +100M -mtime +30 -delete"
+        caroSays: "Blocked: Recursive delete from root. Suggesting: find /var/log -size +100M -mtime +30 -delete"
       },
       {
         context: "Rolling back a deployment",
         dangerous: "kubectl delete pods --all -n production",
         problem: "Deletes all pods simultaneously causing downtime",
-        caroSays: "⚠️ Warning: Mass pod deletion. Suggesting: kubectl rollout undo deployment/[name] for zero-downtime rollback."
+        caroSays: "Warning: Mass pod deletion. Suggesting: kubectl rollout undo deployment/[name] for zero-downtime rollback."
       }
     ]
   },
   {
     id: "backend",
     name: "Backend Developer",
-    icon: "💻",
+    icon: "▸",
     scenarios: [
       {
         context: "Cleaning up old database backups",
         dangerous: "rm -rf ~/backups/db*",
         problem: "Glob pattern could match more than intended",
-        caroSays: "⚠️ Caution: Glob pattern rm -rf. Showing matches first: ls ~/backups/db* (3 files). Proceed?"
+        caroSays: "Caution: Glob pattern rm -rf. Showing matches first: ls ~/backups/db* (3 files). Proceed?"
       },
       {
         context: "Killing a stuck process",
         dangerous: "pkill -9 -f java",
         problem: "Could kill all Java processes including critical services",
-        caroSays: "⚠️ Warning: Pattern matches 4 processes. Suggesting: kill -9 [specific-pid] or use pgrep -l first."
+        caroSays: "Warning: Pattern matches 4 processes. Suggesting: kill -9 [specific-pid] or use pgrep -l first."
       },
       {
         context: "Fixing git history",
         dangerous: "git push --force origin main",
         problem: "Rewrites shared history, breaks teammates' work",
-        caroSays: "🛑 Blocked: Force push to main. Suggesting: git push --force-with-lease or push to a feature branch."
+        caroSays: "Blocked: Force push to main. Suggesting: git push --force-with-lease or push to a feature branch."
       }
     ]
   },
   {
     id: "data",
     name: "Data Engineer",
-    icon: "📊",
+    icon: "▸",
     scenarios: [
       {
         context: "Cleaning up temporary data files",
         dangerous: "rm -rf /data/tmp/*",
         problem: "Could remove files still being processed",
-        caroSays: "⚠️ Warning: Active processes accessing these files. Suggesting: find /data/tmp -mtime +1 -delete"
+        caroSays: "Warning: Active processes accessing these files. Suggesting: find /data/tmp -mtime +1 -delete"
       },
       {
         context: "Dropping unused database tables",
         dangerous: "DROP TABLE users_backup;",
         problem: "No safety check, immediate irreversible action",
-        caroSays: "⚠️ High Risk: DROP without backup verification. Last backup: 7 days ago. Proceed with caution."
+        caroSays: "High Risk: DROP without backup verification. Last backup: 7 days ago. Proceed with caution."
       },
       {
         context: "Resetting Kafka offsets",
         dangerous: "kafka-consumer-groups --reset-offsets --to-earliest --all-topics --execute",
         problem: "Reprocesses ALL data, potentially causing duplicates",
-        caroSays: "⚠️ Warning: This will reprocess ~2.3TB of data. Suggesting: --to-datetime or --topic for specific reset."
+        caroSays: "Warning: This will reprocess ~2.3TB of data. Suggesting: --to-datetime or --topic for specific reset."
       }
     ]
   }
@@ -126,8 +127,11 @@ const roles = [
         <button
           class={`role-btn ${index === 0 ? 'active' : ''}`}
           data-role={role.id}
+          type="button"
+          aria-label={role.name}
+          aria-pressed={index === 0 ? "true" : "false"}
         >
-          <span class="role-icon">{role.icon}</span>
+          <span class="role-icon"><TermGlyph g={role.icon as Glyph} /></span>
           <span class="role-name">{role.name}</span>
         </button>
       ))}
@@ -149,12 +153,12 @@ const roles = [
                   <code class="dangerous-command">{scenario.dangerous}</code>
                 </div>
                 <div class="scenario-problem">
-                  <span class="problem-icon">⚠️</span>
+                  <span class="problem-icon"><TermGlyph g="■" /></span>
                   <span class="problem-text">{scenario.problem}</span>
                 </div>
                 <div class="caro-response">
                   <span class="caro-label">Caro:</span>
-                  <span class="caro-text">{scenario.caroSays}</span>
+                  <span class="caro-text"><TermGlyph g={scenario.caroSays.startsWith('Blocked') ? '✗' : '■'} /> {scenario.caroSays}</span>
                 </div>
               </div>
             </div>
@@ -220,11 +224,11 @@ const roles = [
   .role-btn.active {
     background: rgba(239, 51, 51, 0.08);
     border-color: var(--accent);
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   .role-icon {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .role-scenarios {
@@ -258,8 +262,8 @@ const roles = [
     flex-shrink: 0;
     width: 36px;
     height: 36px;
-    background: var(--accent);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -292,8 +296,8 @@ const roles = [
 
   .dangerous-command {
     display: inline-block;
-    background: rgba(239, 51, 51, 0.1);
-    color: var(--accent);
+    background: var(--color-bg);
+    color: var(--accent-text);
     padding: 8px 14px;
     border-radius: 6px;
     font-family: 'SF Mono', 'Monaco', monospace;
@@ -307,17 +311,20 @@ const roles = [
     gap: 8px;
     margin-bottom: 16px;
     padding: 12px;
-    background: rgba(245, 158, 11, 0.08);
+    background: rgba(252, 252, 98, 0.15);
     border-radius: 6px;
   }
 
+  /* Same size and line box as .problem-text, so the glyph sits on its first line. */
   .problem-icon {
     flex-shrink: 0;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   .problem-text {
     font-size: 14px;
-    color: var(--color-text-secondary);
+    color: var(--color-text);
     line-height: 1.5;
   }
 
@@ -325,12 +332,12 @@ const roles = [
     padding: 14px;
     background: rgba(34, 197, 94, 0.08);
     border-radius: 6px;
-    border-top: 3px solid #22c55e;
+    border-top: 3px solid var(--status-safe);
   }
 
   .caro-label {
     font-weight: 600;
-    color: var(--accent);
+    color: var(--status-safe-text);
     margin-right: 8px;
   }
 
@@ -354,7 +361,8 @@ const roles = [
       font-size: 13px;
     }
 
-    .role-name {
+    /* The name carries the meaning; every role shares the same glyph. */
+    .role-icon {
       display: none;
     }
 
@@ -369,6 +377,27 @@ const roles = [
       font-size: 14px;
     }
   }
+
+  .role-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .dangerous-command {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scenario-card,
+    .role-btn {
+      transition: none;
+    }
+
+    .scenario-card:hover {
+      transform: none;
+    }
+  }
 </style>
 
 <script>
@@ -381,8 +410,12 @@ const roles = [
         const roleId = btn.getAttribute('data-role');
 
         // Update button states
-        roleButtons.forEach(b => b.classList.remove('active'));
+        roleButtons.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
         btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
 
         // Update content visibility
         roleContents.forEach(content => {

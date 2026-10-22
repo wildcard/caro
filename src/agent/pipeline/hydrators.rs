@@ -90,7 +90,11 @@ impl SafetyHydrator {
 #[async_trait]
 impl Hydrator for SafetyHydrator {
     async fn hydrate(&self, c: &mut Candidate) {
-        match self.validator.validate_command(&c.command, self.shell).await {
+        match self
+            .validator
+            .validate_command(&c.command, self.shell)
+            .await
+        {
             Ok(result) => {
                 c.features.safety_confidence = result.confidence_score;
                 c.features.risk_level = Some(result.risk_level);

@@ -29,6 +29,9 @@ pub struct AgentLoop {
     _max_iterations: usize,
     timeout: Duration,
     confidence_threshold: f64,
+    /// Optional frontier advisor consulted only on low-confidence drafts
+    /// (the Fireworks "frontier advisor" pattern). `None` = local-only.
+    advisor: Option<Arc<dyn CommandGenerator>>,
     /// Knowledge index for learning from past commands (optional)
     #[cfg(feature = "knowledge")]
     knowledge_index: Option<Arc<KnowledgeIndex>>,
@@ -74,9 +77,21 @@ impl AgentLoop {
             _max_iterations: 2,
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
             confidence_threshold: 0.8,        // Default: refine if confidence < 80%
+            advisor: None,
             #[cfg(feature = "knowledge")]
             knowledge_index: None,
         }
+    }
+
+    /// Set a frontier advisor backend, consulted only on low-confidence drafts.
+    ///
+    /// The advisor is invoked sparsely (the Fireworks pattern): only when the
+    /// initial draft's confidence is below the threshold. Its output is
+    /// re-validated through the safety validator, and the local result is kept
+    /// if the advisor is unavailable, opts out, or produces an unsafe command.
+    pub fn with_advisor(mut self, advisor: Arc<dyn CommandGenerator>) -> Self {
+        self.advisor = Some(advisor);
+        self
     }
 
     /// Set the confidence threshold for triggering refinement
@@ -130,8 +145,20 @@ impl AgentLoop {
         let start = Instant::now();
         let result = self.generate_command_impl(prompt, start).await;
 
-        // Emit telemetry on error
-        if let Err(ref e) = result {
+        // Emit telemetry on error. A clarification request is a typed decision
+        // (ADR-017), not a failed generation: it is reported as a success with
+        // its own category so the failure rate is not biased by questions.
+        let backend_name = self.backend.backend_info().backend_type.to_string();
+        if let Err(GeneratorError::NeedsClarification { .. }) = result {
+            crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
+                backend: backend_name,
+                duration_ms: start.elapsed().as_millis() as u64,
+                success: true,
+                error_category: Some("needs_clarification".to_string()),
+                confidence: None,
+                confidence_source: None,
+            });
+        } else if let Err(ref e) = result {
             let error_category = match e {
                 GeneratorError::Timeout { .. } => "timeout",
                 GeneratorError::ParseError { .. } => "parse_error",
@@ -142,13 +169,16 @@ impl AgentLoop {
                 GeneratorError::Internal { .. } => "internal_error",
                 GeneratorError::Unsafe { .. } => "unsafe_command",
                 GeneratorError::ValidationFailed { .. } => "validation_failed",
+                GeneratorError::NeedsClarification { .. } => unreachable!("handled above"),
             };
 
             crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
-                backend: "embedded".to_string(),
+                backend: backend_name,
                 duration_ms: start.elapsed().as_millis() as u64,
                 success: false,
                 error_category: Some(error_category.to_string()),
+                confidence: None,
+                confidence_source: None,
             });
         }
 
@@ -228,15 +258,7 @@ impl AgentLoop {
                         command.command
                     );
 
-                    // Emit telemetry event for successful static match
-                    crate::telemetry::emit_event(
-                        crate::telemetry::events::EventType::CommandGeneration {
-                            backend: "static".to_string(),
-                            duration_ms: start.elapsed().as_millis() as u64,
-                            success: true,
-                            error_category: None,
-                        },
-                    );
+                    Self::emit_generation_success("static", &command, start);
 
                     return Ok(command);
                 }
@@ -320,7 +342,11 @@ impl AgentLoop {
         }
 
         // Check confidence score - trigger refinement if low
-        let low_confidence = initial.confidence_score < self.confidence_threshold;
+        // Only evidence-backed confidence may drive this gate (#1464): a
+        // backend that cannot measure reports `Unknown` and 0.0, which must
+        // not read as "very unsure".
+        let low_confidence =
+            initial.has_confidence() && initial.confidence_score < self.confidence_threshold;
 
         if low_confidence {
             info!(
@@ -334,10 +360,26 @@ impl AgentLoop {
 
         if !low_confidence && !needs_platform_fix {
             info!(
-                "Refinement not needed (confidence: {:.2}, no platform issues)",
-                initial.confidence_score
+                "Refinement not needed (confidence: {:.2} [{}], no platform issues)",
+                initial.confidence_score, initial.confidence_source
             );
+            let backend = self.backend.backend_info().backend_type.to_string();
+            Self::emit_generation_success(&backend, &initial, start);
             return Ok(initial);
+        }
+
+        // Iteration 2a: prefer a frontier advisor on low confidence, if
+        // configured. Sparse escalation — the advisor is consulted only when
+        // the local worker is uncertain; if it can't safely help we resume
+        // locally with the normal refinement below (fail-safe).
+        if low_confidence && self.advisor.is_some() {
+            if let Some(advised) = self.try_advisor(prompt, &initial).await {
+                info!(
+                    "Command generation complete via advisor in {:?}",
+                    start.elapsed()
+                );
+                return Ok(advised);
+            }
         }
 
         // Iteration 2: Refine with command context
@@ -370,21 +412,94 @@ impl AgentLoop {
                 .await;
         }
 
-        // Emit telemetry event for successful LLM generation
-        crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
-            backend: "embedded".to_string(),
-            duration_ms: start.elapsed().as_millis() as u64,
-            success: true,
-            error_category: None,
-        });
+        let backend = self.backend.backend_info().backend_type.to_string();
+        Self::emit_generation_success(&backend, &refined, start);
 
         Ok(refined)
     }
 
-    /// Generate initial command with platform context
-    async fn generate_initial(&self, prompt: &str) -> Result<GeneratedCommand, GeneratorError> {
-        let system_prompt = self.build_initial_prompt();
+    /// Telemetry for a successful LLM generation, with the command's
+    /// confidence provenance (#1464). Metadata only.
+    fn emit_generation_success(backend: &str, command: &GeneratedCommand, start: Instant) {
+        crate::telemetry::emit_event(crate::telemetry::events::EventType::CommandGeneration {
+            backend: backend.to_string(),
+            duration_ms: start.elapsed().as_millis() as u64,
+            success: true,
+            error_category: None,
+            confidence: command
+                .has_confidence()
+                .then_some(command.confidence_score as f32),
+            confidence_source: Some(command.confidence_source.to_string()),
+        });
+    }
 
+    /// Generate initial command with platform context
+    /// Consult the configured advisor on a low-confidence draft.
+    ///
+    /// Returns the advised command only if (a) an advisor is configured, (b) it
+    /// returns a suggestion, and (c) that suggestion passes safety
+    /// re-validation. Otherwise returns `None` and the caller falls back to
+    /// local refinement (fail-safe). Emits an `AdvisorInvoked` telemetry event
+    /// whenever the advisor actually produces a suggestion, so the
+    /// frequency↔cost lever is observable.
+    async fn try_advisor(
+        &self,
+        prompt: &str,
+        initial: &GeneratedCommand,
+    ) -> Option<GeneratedCommand> {
+        let advisor = self.advisor.as_ref()?;
+        let advisor_name = advisor.backend_info().model_name;
+        let request = CommandRequest::new(prompt, ShellType::Bash);
+
+        let start = Instant::now();
+        let advised = advisor.advise(initial, &request).await;
+        let duration_ms = start.elapsed().as_millis() as u64;
+
+        let advised = match advised {
+            Some(a) => a,
+            None => {
+                debug!("Advisor opted out / returned nothing; keeping local result");
+                return None;
+            }
+        };
+
+        // Bounded blend: the advisor must never downgrade safety. Re-validate
+        // its output through the same validator the local path uses.
+        let validation = self.validator.validate(&advised.command);
+        let accepted = validation.is_valid();
+
+        crate::telemetry::emit_event(crate::telemetry::events::EventType::AdvisorInvoked {
+            advisor: advisor_name,
+            accepted,
+            duration_ms,
+        });
+
+        if !accepted {
+            warn!(
+                "Advisor output failed safety re-validation ({}); keeping local result",
+                validation.error_message()
+            );
+            return None;
+        }
+
+        info!("Advisor improved low-confidence draft");
+
+        // Record the advisor's improvement as a correction for future learning.
+        #[cfg(feature = "knowledge")]
+        if advised.command != initial.command {
+            self.record_correction(
+                prompt,
+                &initial.command,
+                &advised.command,
+                Some("Improved by frontier advisor"),
+            )
+            .await;
+        }
+
+        Some(advised)
+    }
+
+    async fn generate_initial(&self, prompt: &str) -> Result<GeneratedCommand, GeneratorError> {
         // Serialize context to string
         let context_str = serde_json::to_string(&self.context).unwrap_or_else(|_| "{}".to_string());
 
@@ -405,9 +520,16 @@ impl AgentLoop {
             input: prompt.to_string(),
             shell: ShellType::Bash,
             safety_level: SafetyLevel::Moderate,
+            // Only the embedded backend reads `context`, and it brings its own
+            // system prompt. Sending a second full system prompt here pushed
+            // the prompt past the 2048-token window SmolLM and TinyLlama were
+            // trained on (#1612), so only the platform rules go along.
             context: Some(format!(
-                "{}{}{}\n\nSYSTEM_PROMPT:\n{}",
-                context_str, dir_context_str, knowledge_context_str, system_prompt
+                "{}{}{}\n\nPLATFORM NOTES:\n{}",
+                context_str,
+                dir_context_str,
+                knowledge_context_str,
+                self.context.get_platform_rules()
             )),
             backend_preference: None,
         };
@@ -508,35 +630,6 @@ impl AgentLoop {
         };
 
         self.backend.generate_command(&request).await
-    }
-
-    /// Build initial system prompt with platform context
-    fn build_initial_prompt(&self) -> String {
-        format!(
-            r#"You are a shell command generator for {OS}.
-
-**PLATFORM: {OS} - BSD COMMANDS**
-{platform_notes}
-
-CRITICAL RULES:
-1. Output ONLY valid JSON: {{"cmd": "command here"}}
-2. NEVER use GNU flags (--sort, --max-depth, etc.) on macOS
-3. Use BSD-compatible syntax (see platform notes above)
-4. Use relative paths (. or ~/) unless absolute path requested
-5. Escape quotes properly: use single quotes inside JSON string
-
-{context}
-
-RESPONSE FORMAT:
-{{
-  "cmd": "your command here"
-}}
-
-Generate a safe, platform-appropriate command."#,
-            OS = self.context.os,
-            platform_notes = self.get_os_specific_notes(),
-            context = self.context.get_prompt_context()
-        )
     }
 
     /// Build refinement prompt with command context
@@ -829,5 +922,306 @@ mod tests {
         let commands = AgentLoop::extract_commands(cmd);
         // xargs takes grep as an argument, so only find and xargs are top-level commands
         assert_eq!(commands, vec!["find", "xargs"]);
+    }
+
+    // ---- Frontier-advisor escalation (Phase 3) ----
+
+    use crate::backends::BackendInfo;
+    use crate::context::ExecutionContext;
+    use crate::models::{BackendType, RiskLevel};
+    use crate::prompts::CapabilityProfile;
+    use async_trait::async_trait;
+    use std::sync::atomic::{AtomicBool, Ordering};
+
+    fn mock_command(command: &str, confidence: f64) -> GeneratedCommand {
+        GeneratedCommand {
+            command: command.to_string(),
+            explanation: "mock".to_string(),
+            safety_level: RiskLevel::Safe,
+            estimated_impact: "none".to_string(),
+            alternatives: vec![],
+            backend_used: "mock".to_string(),
+            generation_time_ms: 1,
+            confidence_score: confidence,
+            confidence_source: crate::models::ConfidenceSource::Measured,
+        }
+    }
+
+    fn unsourced_command(command: &str) -> GeneratedCommand {
+        GeneratedCommand {
+            confidence_score: 0.0,
+            confidence_source: crate::models::ConfidenceSource::Unknown,
+            ..mock_command(command, 0.0)
+        }
+    }
+
+    /// Mock backend usable as both primary worker and advisor.
+    struct MockBackend {
+        /// Command returned by `generate_command` (initial + refine).
+        command: String,
+        /// Confidence for `generate_command` output.
+        confidence: f64,
+        /// What `advise` returns: Some(cmd) -> suggestion; None -> opt out.
+        advise_returns: Option<String>,
+        /// Set true whenever `advise` is invoked.
+        advise_called: Arc<AtomicBool>,
+    }
+
+    #[async_trait]
+    impl CommandGenerator for MockBackend {
+        async fn generate_command(
+            &self,
+            _request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            Ok(mock_command(&self.command, self.confidence))
+        }
+
+        async fn advise(
+            &self,
+            _draft: &GeneratedCommand,
+            _request: &CommandRequest,
+        ) -> Option<GeneratedCommand> {
+            self.advise_called.store(true, Ordering::SeqCst);
+            self.advise_returns.as_ref().map(|c| mock_command(c, 0.99))
+        }
+
+        async fn is_available(&self) -> bool {
+            true
+        }
+
+        fn backend_info(&self) -> BackendInfo {
+            BackendInfo {
+                backend_type: BackendType::Mock,
+                model_name: "mock-advisor".to_string(),
+                supports_streaming: false,
+                max_tokens: 100,
+                typical_latency_ms: 1,
+                memory_usage_mb: 0,
+                version: "test".to_string(),
+            }
+        }
+
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    /// Records the request it receives, then fails so the loop stops.
+    struct RequestRecorder(Arc<std::sync::Mutex<Option<CommandRequest>>>);
+
+    #[async_trait]
+    impl CommandGenerator for RequestRecorder {
+        async fn generate_command(
+            &self,
+            request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            *self.0.lock().unwrap() = Some(request.clone());
+            Err(GeneratorError::Internal {
+                message: "recorded".to_string(),
+            })
+        }
+
+        async fn is_available(&self) -> bool {
+            true
+        }
+
+        fn backend_info(&self) -> BackendInfo {
+            BackendInfo {
+                backend_type: BackendType::Mock,
+                model_name: "recorder".to_string(),
+                supports_streaming: false,
+                max_tokens: 100,
+                typical_latency_ms: 1,
+                memory_usage_mb: 0,
+                version: "test".to_string(),
+            }
+        }
+
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    /// Regression guard for #1612: the initial request carries the platform
+    /// notes, not a second full system prompt. The embedded backend adds its
+    /// own system prompt, and two of them overflowed a 2048-token window.
+    #[tokio::test]
+    async fn initial_request_context_has_no_second_system_prompt() {
+        let slot = Arc::new(std::sync::Mutex::new(None));
+        let agent = AgentLoop::new(
+            Arc::new(RequestRecorder(slot.clone())),
+            ExecutionContext::detect(),
+            CapabilityProfile::ubuntu(),
+        )
+        .with_static_matcher(false);
+
+        let _ = agent.generate_command("show date").await;
+
+        let request = slot.lock().unwrap().clone().expect("backend was called");
+        let context = request.context.expect("initial request has context");
+        assert!(!context.contains("SYSTEM_PROMPT"), "{context}");
+        assert!(!context.contains("CRITICAL RULES"), "{context}");
+        assert!(context.contains("PLATFORM NOTES"), "{context}");
+    }
+
+    fn agent_loop(primary: MockBackend, advisor: Option<Arc<MockBackend>>) -> AgentLoop {
+        let ctx = ExecutionContext::detect();
+        let profile = CapabilityProfile::ubuntu();
+        let mut l = AgentLoop::new(Arc::new(primary), ctx, profile).with_static_matcher(false);
+        if let Some(a) = advisor {
+            l = l.with_advisor(a);
+        }
+        l
+    }
+
+    fn advisor_backend(returns: Option<&str>, called: Arc<AtomicBool>) -> Arc<MockBackend> {
+        Arc::new(MockBackend {
+            command: "ls".to_string(),
+            confidence: 0.99,
+            advise_returns: returns.map(|s| s.to_string()),
+            advise_called: called,
+        })
+    }
+
+    /// Mock whose draft carries no confidence evidence at all (#1464).
+    struct UnsourcedBackend;
+
+    #[async_trait]
+    impl CommandGenerator for UnsourcedBackend {
+        async fn generate_command(
+            &self,
+            _request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            Ok(unsourced_command("ls"))
+        }
+        async fn is_available(&self) -> bool {
+            true
+        }
+        fn backend_info(&self) -> BackendInfo {
+            BackendInfo {
+                backend_type: BackendType::Mock,
+                model_name: "unsourced".to_string(),
+                supports_streaming: false,
+                max_tokens: 100,
+                typical_latency_ms: 1,
+                memory_usage_mb: 0,
+                version: "test".to_string(),
+            }
+        }
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn unknown_confidence_does_not_trigger_refinement() {
+        // A 0.0 score with `ConfidenceSource::Unknown` is "no evidence", not
+        // "very unsure": the advisor must stay idle and the draft must pass
+        // through unchanged.
+        let called = Arc::new(AtomicBool::new(false));
+        let advisor = advisor_backend(Some("ls -la"), called.clone());
+        let ctx = ExecutionContext::detect();
+        let profile = CapabilityProfile::ubuntu();
+        let agent = AgentLoop::new(Arc::new(UnsourcedBackend), ctx, profile)
+            .with_static_matcher(false)
+            .with_advisor(advisor);
+
+        let result = agent.generate_command("list files").await.unwrap();
+
+        assert!(
+            !called.load(Ordering::SeqCst),
+            "advisor must not run without evidence"
+        );
+        assert_eq!(result.command, "ls");
+        assert!(!result.has_confidence());
+    }
+
+    #[tokio::test]
+    async fn advisor_improves_low_confidence_draft() {
+        // Primary is uncertain (0.3 < 0.8 threshold); advisor offers a safe upgrade.
+        let primary = MockBackend {
+            command: "ls".to_string(),
+            confidence: 0.3,
+            advise_returns: None,
+            advise_called: Arc::new(AtomicBool::new(false)),
+        };
+        let called = Arc::new(AtomicBool::new(false));
+        let advisor = advisor_backend(Some("ls -la"), called.clone());
+
+        let result = agent_loop(primary, Some(advisor))
+            .generate_command("list all files")
+            .await
+            .unwrap();
+
+        assert!(called.load(Ordering::SeqCst), "advisor should be consulted");
+        assert_eq!(result.command, "ls -la", "advised command should win");
+    }
+
+    #[tokio::test]
+    async fn advisor_skipped_when_confident() {
+        // High confidence + simple command => no iteration 2, advisor untouched.
+        let primary = MockBackend {
+            command: "ls".to_string(),
+            confidence: 0.95,
+            advise_returns: None,
+            advise_called: Arc::new(AtomicBool::new(false)),
+        };
+        let called = Arc::new(AtomicBool::new(false));
+        let advisor = advisor_backend(Some("ls -la"), called.clone());
+
+        let result = agent_loop(primary, Some(advisor))
+            .generate_command("list files")
+            .await
+            .unwrap();
+
+        assert!(
+            !called.load(Ordering::SeqCst),
+            "advisor must NOT be consulted when confident"
+        );
+        assert_eq!(result.command, "ls");
+    }
+
+    #[tokio::test]
+    async fn advisor_opt_out_falls_back_to_local() {
+        // Advisor returns None (opted out / failed) => keep local result (fail-safe).
+        let primary = MockBackend {
+            command: "ls".to_string(),
+            confidence: 0.3,
+            advise_returns: None,
+            advise_called: Arc::new(AtomicBool::new(false)),
+        };
+        let called = Arc::new(AtomicBool::new(false));
+        let advisor = advisor_backend(None, called.clone());
+
+        let result = agent_loop(primary, Some(advisor))
+            .generate_command("list files")
+            .await
+            .unwrap();
+
+        assert!(called.load(Ordering::SeqCst), "advisor was consulted");
+        assert_eq!(result.command, "ls", "fail-safe: local result kept");
+    }
+
+    #[tokio::test]
+    async fn unsafe_advisor_output_is_rejected() {
+        // The advisor suggests a dangerous command; re-validation must reject it
+        // and keep the safe local result. This is the safety-critical invariant.
+        let primary = MockBackend {
+            command: "ls".to_string(),
+            confidence: 0.3,
+            advise_returns: None,
+            advise_called: Arc::new(AtomicBool::new(false)),
+        };
+        let called = Arc::new(AtomicBool::new(false));
+        let advisor = advisor_backend(Some("rm -rf /"), called.clone());
+
+        let result = agent_loop(primary, Some(advisor))
+            .generate_command("list files")
+            .await
+            .unwrap();
+
+        assert!(called.load(Ordering::SeqCst), "advisor was consulted");
+        assert_ne!(result.command, "rm -rf /", "unsafe advice must be rejected");
+        assert_eq!(result.command, "ls", "safe local result kept");
     }
 }

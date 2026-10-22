@@ -29,9 +29,9 @@ Have questions or want to discuss caro with other users? Join the community!
   - - **[Documentation](https://caro.sh)** - Check out our comprehensive docs
 ## 📋 Project Status
 
-**Current Version:** 1.4.0 (General Availability)
+**Current Version:** 1.5.0 (General Availability)
 
-This project is **generally available** with all core features implemented, tested, and working. The CLI achieves 93.1% pass rate on comprehensive test suite with zero false positives in safety validation.
+This project is **generally available** with all core features implemented, tested, and working. The CLI recorded a 94.8% Command Success Rate (CSR) on the 58-case beta suite in January 2026 (see [ROADMAP.md](ROADMAP.md)) with zero false positives in safety validation; per-backend accuracy and calibration numbers from the evaluation harness are published at [caro.sh/evals](https://caro.sh/evals).
 
 > **Note:** The project was originally named `cmdai` but has been renamed to `caro`. See [Naming History](docs/NAMING_HISTORY.md) for details.
 
@@ -44,7 +44,8 @@ This project is **generally available** with all core features implemented, test
 - 🤖 **Agentic context loop** - Iterative refinement with platform detection
 - 🌍 **Platform-aware generation** - Detects OS, architecture, available commands
 - 📍 **Execution context detection** - CWD, shell type, system constraints
-- 🌐 Remote backend support (Ollama, vLLM) with automatic fallback
+- 🌐 Remote backend support (Ollama, vLLM, Exo, Mesh-LLM, AI-Horde) with automatic fallback
+- 🔐 Privacy-preserving **hybrid** backend: sanitize PII locally, enhance remotely
 - 🛡️ Safety validation with 52 pre-compiled dangerous command patterns
 - ⚙️ Configuration management with TOML support
 - 💬 Interactive user confirmation flows with color-coded risk levels
@@ -250,7 +251,7 @@ caro --verbose "search for Python files"
 | Option | Description | Status |
 |--------|-------------|--------|
 | `-s, --shell <SHELL>` | Target shell (bash, zsh, fish, sh, powershell, cmd) | ✅ Implemented |
-| `-b, --backend <BACKEND>` | Inference backend (embedded, ollama, exo, vllm) | ✅ Implemented |
+| `-b, --backend <BACKEND>` | Inference backend (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid) | ✅ Implemented |
 | `-m, --model-name <NAME>` | Model name for the backend (e.g., codellama:7b) | ✅ Implemented |
 | `--safety <LEVEL>` | Safety level (strict, moderate, permissive) | ✅ Implemented |
 | `-o, --output <FORMAT>` | Output format (json, yaml, plain) | ✅ Implemented |
@@ -367,7 +368,7 @@ caro config reset
 **Available config keys:**
 | Key | Values | Description |
 |-----|--------|-------------|
-| `backend` | `embedded`, `ollama`, `exo`, `vllm` | Inference backend |
+| `backend` | `embedded`, `ollama`, `exo`, `vllm`, `mesh`, `ai-horde`, `hybrid` | Inference backend |
 | `model-name` | Any valid model name | Model for the backend (e.g., `codellama:7b`) |
 | `shell` | `bash`, `zsh`, `fish`, `sh`, `powershell`, `cmd` | Default target shell |
 | `safety` | `strict`, `moderate`, `permissive` | Safety validation level |
@@ -376,32 +377,42 @@ caro config reset
 
 **Priority order:** CLI flags (`--backend`, `--model-name`) > Environment variables > Config file > Auto-detect
 
-### System Assessment
+#### Remote & distributed backends (`[backends]`)
 
-Caro can assess your system's hardware capabilities and recommend optimal model configurations:
+Remote endpoint URLs and keys are configurable, so you can point Caro at a
+non-default port or a self-hosted service without recompiling:
 
-```bash
-# Basic assessment
-caro assess
-
-# Export to JSON
-caro assess --export json --output assessment.json
-
-# Export to Markdown
-caro assess --export markdown --output assessment.md
+```toml
+[backends]
+# Mesh-LLM: pool GPUs across your own machines (OpenAI-compatible, :9337)
+mesh_url = "http://localhost:9337"
+# AI-Horde: free crowdsourced cluster (anonymous key works out of the box)
+ai_horde_url = "https://aihorde.net/api"
+ai_horde_key = "0000000000"
+# Hybrid gateway: which remote enhancer to wrap (mesh | ai-horde)
+hybrid_remote = "mesh"
+# Send prompts verbatim to a (trusted) remote instead of sanitizing PII first.
+# Leave false to keep the privacy guarantee on public networks.
+allow_public = false
 ```
 
-The assessment command detects:
-- CPU architecture, cores, and model
-- Total and available memory (RAM)
-- GPU vendor, model, and VRAM (if available)
-- Recommended models and backends based on your hardware
+- **`mesh`** — [Mesh-LLM](https://github.com/Mesh-LLM/mesh-llm) pools GPU/RAM
+  across machines you own, behind one OpenAI-compatible API. Best when a model
+  is too big for one box but you want it private.
+- **`ai-horde`** — [AI-Horde](https://github.com/Haidra-Org/AI-Horde) is a free
+  volunteer cluster needing no GPU and no API key. Explicit opt-in only.
+- **`hybrid`** *(recommended for remote use)* — runs a local sanitizer that
+  redacts PII (paths, usernames, IPs, emails) into reversible placeholders
+  before sending to the remote enhancer, then restores real values in the
+  returned command locally. The network never sees your private data unless you
+  set `allow_public = true`. See
+  [ADR-015](docs/adr/ADR-015-distributed-llm-backends-hybrid-privacy.md).
 
-**Supported Platforms**: macOS, Linux, Windows
+### System Assessment (not available in 1.5.0)
 
-**Backends**: MLX (Apple Silicon), CUDA (NVIDIA), CPU-only
-
-For more details, run `caro assess --help`.
+The `caro assess` subcommand is disabled in the current release. The code
+lives in `src/assessment/`, but the subcommand is not registered in the CLI
+(`src/main.rs`), so `caro assess` is read as a prompt instead.
 
 ## 🏗️ Architecture
 

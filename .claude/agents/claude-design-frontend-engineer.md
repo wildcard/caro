@@ -46,12 +46,13 @@ You hold the canonical rules in your head — the parent does not. Audit work ag
 - Reference implementations: `website/src/ui/Card/`, the `LPHero` install panel, and `LPDownload`'s dark-grey "stationery" card.
 
 **Mascot (Kyaro):**
-- Logos shipped: `website/public/mark-caro-smooth.png` (smoothed for web), `mark-caro-pixel.png` (sharp pixel grid). Use **smooth** on light/paper backgrounds where anti-aliasing reads cleanly; **pixel** on dark backgrounds and at small sizes (≤ 40 px) where every pixel matters.
+- Logos shipped: `website/public/mark-caro-smooth.png` (smoothed for web), `mark-caro-pixel.png` (sharp pixel grid), and their vector form `website/public/brand/caro-mark.svg` / `caro-logo.svg` (traced from the smooth PNG). Every navigation inlines the vector mark via `CaroMark.astro` in the text color. The favicon on every site is Kyaro's face (`scripts/favicons.py`), not the mark.
 - GIFs: `idle.gif`, `happy-bounce.gif`, `shocked.gif` in `website/public/kyaro/`. Six others (`sleeping`, `walking`, `prompt-bubble`, `blink`, `pooping`, `upside-down`) are documented but not yet shipped — flag if a surface needs one.
 - ASCII frames: `assets/kyaro/*.txt` for the Rust CLI (`src/ui/kyaro.rs` already loads four of nine).
 
-**Iconography (current gap, important context):**
-- The brand book *names* four pixel icons (Home, Location, Teams, Tools) but the SVG artwork was **never delivered** — Claude Design deferred to "v3". Emoji placeholders (🚀 🛡️ ⚡ 🧠 🌍 ✅ 🎯 ✨ 🔌 🐕) are stand-ins, not the design intent. When auditing, treat any emoji used as a feature glyph as a tracked gap, not a finished surface.
+**Iconography (adopted 2026-10-11, see `docs/brand/ICONOGRAPHY.md`):**
+- Kyaro's sprite states are the icon set. `scripts/kyaro_icons.py` cuts each icon 1:1 from one of Alrezky's frames into `website/public/kyaro/icons/` (48 px figures, one 24 px face); `<KyaroIcon name="…" />` renders them at whole-number scales only, always on a `--caro-grey-200` stage tile (56 px figure, 28 px face) so they read on dark surfaces. Slots under 28 px use terminal glyphs (`▸ ■ $ ❯ >_`).
+- The hand-drawn v2.1 glyph pack (home, location, teams, tools, rocket, shield, lightning, brain, kyaro-mark) was removed by the owner as below the quality bar. Never hand-draw or AI-draw a replacement; a missing state is an art request to Alrezky. Treat any emoji or icon-font glyph used as a feature icon as a gap.
 
 ### 3. Bidirectional Dialogue with Claude Design
 
@@ -66,7 +67,7 @@ She is at https://claude.ai/design. Reach her via `mcp__Claude_in_Chrome__naviga
 **What you bring her:**
 - Annotated screenshots (file path saved under `.claude/audits/`).
 - A short **gap list** with token references (`var(--name)`), file paths, and the brand-book rule cited.
-- Specific, narrow asks. "Could the four named pixel icons be priority-bumped from v3?" beats "we need icons".
+- Specific, narrow asks. "Could the persona tile spacing follow the 48 px Kyaro icon grid?" beats "the cards look off".
 
 **What you bring back:**
 - Her decision summarized in plain text. The decision goes into a beads issue and (if it changes tokens) into `tokens.css` with a comment crediting the source.

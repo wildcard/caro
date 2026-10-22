@@ -9,17 +9,89 @@
  * Imported by Layout.astro (and any component that needs tokens directly).
  * Do NOT redefine these tokens elsewhere — that creates two-source drift.
  *
- * NOTE on Figtree: the persona spec calls for self-hosted Figtree under
- * `website/public/fonts/`. Those files have not yet been bundled, so the
- * `--font-display` / `--font-body` stacks fall through to system fonts.
- * Tracked as a follow-up: bundle Figtree locally before removing the
- * system-font fallback.
+ * FONTS: Figtree (body/UI) is self-hosted from `website/public/fonts/` via the
+ * @font-face block below. Azeret Mono (display/code) is still CDN-loaded — no
+ * local files are bundled for it yet. Both are bound to elements in the BASE
+ * TYPOGRAPHY section at the bottom of this file; a font token that nothing
+ * consumes renders as the fallback while still paying the download cost.
  */
 
-/* Azeret Mono — display / monospace face. Loaded from Google Fonts; the
-   system-font chain falls through gracefully if the CDN is unreachable.
-   Self-hosting is tracked as a follow-up. */
+/* Azeret Mono (display / mono) — still CDN-loaded; no local files bundled yet. */
 @import url('https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;500;600;700;800&display=swap');
+
+/* Figtree (body / UI) — self-hosted from public/fonts/. Serving locally means
+   body copy renders correctly offline and without a Google Fonts round-trip.
+   `font-display: swap` keeps first paint fast. */
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-MediumItalic.ttf') format('truetype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/Figtree-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   /* ============================================
@@ -32,7 +104,8 @@
   --caro-grey-900: #2b2b2b;
   --caro-grey-800: #3a3a3a;
   --caro-grey-700: #4f4f4f; /* PRIMARY — retro console grey */
-  --caro-grey-500: #7a7a7a;
+  --caro-grey-600: #636363; /* muted TEXT on paper — 5.3:1 on beige-100, 6.0:1 on white */
+  --caro-grey-500: #7a7a7a; /* borders / decorative only: 3.8:1 on paper fails AA as text */
   --caro-grey-400: #a0a0a0; /* eyebrow / FOUNDER label grey */
   --caro-grey-300: #c9c7c1;
   --caro-grey-200: #d1cfc9; /* business-card back */
@@ -69,40 +142,48 @@
   --color-success-dark: #16a34a;
   --color-warning: #f59e0b;
   --color-warning-dark: #d97706;
-  --color-error: #ef4444;
-  --color-error-dark: #dc2626;
+  /* --color-error shifted from #ef4444 (Tailwind red-500) to #dc2626
+     (red-600) so it is visually distinct from --accent (#ef3333, brand
+     signal red). Without this 1-step shift, error UI is indistinguishable
+     from a primary action — a long-standing token collision. */
+  --color-error: #dc2626;
+  --color-error-dark: #b91c1c;
   --color-info: #3b82f6;
   --color-info-dark: #2563eb;
 
   /* ============================================
      BACKGROUNDS
      ============================================ */
-  --color-bg: #ffffff;
-  --color-bg-secondary: #f8f9fa;
-  --color-bg-tertiary: #fff8f0;
-  --color-bg-hover: rgba(255, 140, 66, 0.08);
+  --color-bg: var(--bg);              /* paper beige, not white */
+  --color-bg-secondary: var(--bg-subtle);
+  --color-bg-tertiary: var(--bg-raised);
+  --color-bg-hover: rgba(239, 51, 51, 0.08);
 
   /* ============================================
      TEXT COLORS
      ============================================ */
-  --color-text: #2c3e50;
-  --color-text-secondary: #7f8c8d;
-  --color-text-tertiary: #34495e;
-  --color-text-on-primary: #ffffff;
+  --color-text: var(--fg);
+  --color-text-secondary: var(--fg-muted);
+  --color-text-tertiary: var(--fg-strong);
+  --color-text-on-primary: var(--on-accent);
 
   /* ============================================
      BORDERS
      ============================================ */
-  --color-border: #e0e0e0;
-  --color-border-hover: #ff8c42;
+  --color-border: var(--border);
+  --color-border-hover: var(--accent);
 
   /* ============================================
      LINKS
-     Use brand colors for links, with darker hover state
+     Brand-aligned link family — resolves to signal red via --accent.
+     Legacy orange (`#ff8c42`) was deprecated in v2; remapping the alias
+     here propagates the new red to every consumer (Layout, LandingPage,
+     support, credits, etc.) without touching their call sites.
      ============================================ */
-  --color-link: #ff8c42;
-  --color-link-hover: #ff6b35;
-  --color-link-visited: #ff8c42;
+  /* Link TEXT uses --accent-text (5.3:1 on paper); bare --accent is 3.6:1. */
+  --color-link: var(--accent-text);
+  --color-link-hover: #a81c1c;
+  --color-link-visited: var(--accent-text);
 
   /* ============================================
      CARO SEMANTIC TOKENS — brand-aligned aliases for new components
@@ -118,13 +199,33 @@
 
   --fg:            var(--caro-grey-700);
   --fg-strong:     var(--caro-grey-900);
-  --fg-muted:      var(--caro-grey-500);
-  --fg-subtle:     var(--caro-grey-400);    /* eyebrow / meta labels */
+  /* Muted and subtle copy must still clear WCAG AA (4.5:1) on paper, white
+     and beige-50. grey-500/400 do not (3.8:1 / 2.4:1), so text tokens use
+     grey-600; hierarchy comes from size, weight and tracking, not from
+     fading the ink below the AA line. */
+  --fg-muted:      var(--caro-grey-600);
+  --fg-subtle:     var(--caro-grey-600);    /* eyebrow / meta labels */
   --fg-inverse:    var(--caro-beige-100);
 
   --accent:        var(--caro-red-500);
   --accent-hover:  var(--caro-red-600);
   --accent-press:  var(--caro-red-700);
+  /* Accessible red for TEXT. Signal red (#ef3333) is only ~3.6:1 on paper
+     and ~2:1 on grey — below WCAG AA for normal-size text. Use --accent for
+     fills/borders/icons; use --accent-text wherever red is the foreground of
+     readable copy (links, labels, inline code). #c02020 → 6.1:1 on paper. */
+  --accent-text:   var(--caro-red-700);
+  /* Accessible red for FILLS that carry white text (buttons, CTAs, pills).
+     White on signal red #ef3333 is 4.05:1 — just under AA for 14–16px
+     labels. #d42a2a keeps the signal-red hue and reads 5.0:1 with white.
+     Identical in both color modes so a CTA looks the same everywhere. */
+  --accent-fill:       #d42a2a;
+  --accent-fill-hover: var(--caro-red-700);
+  --on-accent:         var(--caro-white);
+  /* NOTE: red as small body text on a DARK panel cannot meet WCAG AA — on the
+     spec's #4f4f4f surface every red tops out below 3:1 (a compliant red would
+     be a washed-out pink). The brand's accent-on-dark is --highlight (yellow),
+     which clears ~7:1 on grey-700; dark-panel accents use that, not a red. */
   --highlight:     var(--caro-yellow-400);
 
   --border:        var(--caro-grey-300);
@@ -132,6 +233,7 @@
 
   /* Status / command-risk levels (mirrored in the Rust CLI palette) */
   --status-safe:     #3fa34d;
+  --status-safe-text: #1f6b2c;   /* green as TEXT: 5.8:1 on paper (#3fa34d is 2.8:1) */
   --status-warn:     var(--caro-yellow-400);
   --status-danger:   var(--caro-red-500);
   --status-critical: var(--caro-red-700);
@@ -140,6 +242,7 @@
   --term-bg:     var(--caro-grey-700);
   --term-fg:     var(--caro-beige-100);
   --term-prompt: var(--caro-yellow-400);
+  --term-safe:   #8ee6a0;   /* safe/OK green on the console: 5.4:1 on grey-700 */
   --term-dim:    var(--caro-grey-400);
 
   /* ============================================
@@ -209,7 +312,7 @@
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
   --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
-  --shadow-primary: 0 8px 20px rgba(255, 140, 66, 0.3);
+  --shadow-primary: 0 8px 20px rgba(239, 51, 51, 0.3);
   --shadow-support: 0 8px 20px rgba(234, 74, 170, 0.3);
 
   /* ============================================
@@ -258,15 +361,15 @@
      These are overridden by the DistroPreferences component
      based on the user's selected OS/distro
      ============================================ */
-  --distro-accent: #ff8c42;
+  --distro-accent: var(--accent);
   --distro-secondary: #ea4aaa;
-  --distro-terminal-bg: #1e1e2e;
-  --distro-terminal-text: #cdd6f4;
+  --distro-terminal-bg: var(--term-bg);
+  --distro-terminal-text: var(--term-fg);
 
   /* Muted variants */
-  --color-surface: #ffffff;
-  --color-surface-secondary: #f8f9fa;
-  --color-text-muted: #6b7280;
+  --color-surface: var(--bg-raised);
+  --color-surface-secondary: var(--bg-subtle);
+  --color-text-muted: var(--fg-muted);
   --color-info-light: #e0f2fe;
 }
 
@@ -274,21 +377,24 @@
    DARK MODE OVERRIDES
    ============================================ */
 .dark {
-  --color-bg: #1a1a1a;
-  --color-bg-secondary: #2d2d2d;
-  --color-bg-tertiary: #252525;
-  --color-bg-hover: rgba(255, 140, 66, 0.12);
+  /* Dark surfaces are retro-console grey, never near-black. --bg-inverse is
+     NOT redeclared here: it is the "console" surface (terminals, the
+     Moments/Waitlist stages, code blocks) and stays grey-700 with beige ink
+     in both modes. Flipping it to beige made every terminal-styled panel
+     render light text on paper in dark mode (1.04:1).
+     --color-bg(-secondary/-tertiary), --color-text(-secondary/-tertiary) and
+     --color-border are NOT redeclared here either: their :root values route
+     through semantic tokens that flip below. The layouts also declared them,
+     so a second dark value here made the result depend on stylesheet order. */
+  --color-bg-hover: rgba(239, 51, 51, 0.12);
 
-  --color-text: #e0e0e0;
-  --color-text-secondary: #a0a0a0;
-  --color-text-tertiary: #c0c0c0;
-
-  --color-border: #3a3a3a;
-
-  /* Lighter link colors for dark mode contrast */
-  --color-link: #ffa76c;
-  --color-link-hover: #ff8c42;
-  --color-link-visited: #ffa76c;
+  /* Links stay brand red in dark mode via the lightened --accent-text
+     (5.8:1 on the page). Text on the grey-700 console surface is a
+     different case: red cannot reach AA there, so those panels use
+     --highlight (yellow) for their links. */
+  --color-link: var(--accent-text);
+  --color-link-hover: #ffa3a3;
+  --color-link-visited: var(--accent-text);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
@@ -296,14 +402,14 @@
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.4);
 
   /* Dark mode surface variants */
-  --color-surface: #1e1e2e;
-  --color-surface-dark: #1e1e2e;
-  --color-surface-secondary: #16161e;
-  --color-surface-secondary-dark: #16161e;
-  --color-border-dark: #3a3a4a;
-  --color-text-dark: #f5f5f5;
-  --color-text-muted: #9ca3af;
-  --color-text-muted-dark: #9ca3af;
+  --color-surface: var(--caro-grey-800);
+  --color-surface-dark: var(--caro-grey-800);
+  --color-surface-secondary: var(--caro-grey-900);
+  --color-surface-secondary-dark: var(--caro-grey-900);
+  --color-border-dark: var(--caro-grey-500);
+  --color-text-dark: var(--caro-beige-50);
+  --color-text-muted: var(--caro-grey-300);
+  --color-text-muted-dark: var(--caro-grey-300);
 
   /* ============================================
      CARO SEMANTIC TOKENS — dark-mode parity
@@ -314,18 +420,20 @@
   --bg:            var(--caro-grey-900);    /* dark-paper background */
   --bg-subtle:     var(--caro-grey-950);
   --bg-raised:     var(--caro-grey-800);    /* cards on dark paper */
-  --bg-inverse:    var(--caro-beige-100);   /* paper panel on dark page */
   --bg-stage:      var(--caro-grey-800);
 
   --fg:            var(--caro-beige-100);   /* primary copy */
   --fg-strong:     var(--caro-white);
-  --fg-muted:      var(--caro-grey-400);
-  --fg-subtle:     var(--caro-grey-500);    /* eyebrow / meta labels */
-  --fg-inverse:    var(--caro-grey-900);    /* dark text on paper panels */
+  --fg-muted:      #b0aea8;                 /* 6.4:1 on page, 5.1:1 on raised cards */
+  --fg-subtle:     #b0aea8;                 /* eyebrow / meta labels */
 
   --accent:        #ff6464;                 /* lighter brand red for dark-mode contrast */
   --accent-hover:  var(--caro-red-500);
   --accent-press:  var(--caro-red-600);
+  /* In dark mode the whole page is dark, so red text needs a lighter red.
+     #ff6464 is 4.9:1 on the page but 3.9:1 on raised cards; #ff8080 clears
+     AA on both (5.8:1 / 4.7:1). */
+  --accent-text:   #ff8080;
   --highlight:     var(--caro-yellow-400);
 
   --border:        var(--caro-grey-800);
@@ -333,6 +441,7 @@
 
   /* Status colours: keep semantic meaning but lift luminance for contrast */
   --status-safe:     #7cd389;
+  --status-safe-text: #7cd389;
   --status-warn:     var(--caro-yellow-400);
   --status-danger:   #ff6464;
   --status-critical: var(--caro-red-500);
@@ -341,6 +450,32 @@
 /* ============================================
    UTILITY CLASSES
    ============================================ */
+
+/* Skip link: first focusable element on every page (WCAG 2.4.1). Hidden
+   until keyboard focus, then pinned top-left above the sticky nav. */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -100px;
+  z-index: 10001;
+  padding: 10px 16px;
+  background: var(--accent-fill);
+  color: var(--on-accent);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 12px;
+  outline: 3px solid var(--fg-strong);
+  outline-offset: 2px;
+}
+
+/* The skip target receives programmatic focus; no ring on the whole region. */
+#main-content:focus {
+  outline: none;
+}
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -362,4 +497,20 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ============================================
+   BASE TYPOGRAPHY — bind the brand faces to elements
+
+   Defining --font-display is not enough: until something consumes it, every
+   heading falls back to the body face and Azeret Mono is downloaded but
+   never painted. These base rules are intentionally low-specificity so any
+   component can still override them.
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+code, pre, kbd, samp {
+  font-family: var(--font-mono);
 }

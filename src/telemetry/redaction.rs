@@ -269,6 +269,8 @@ mod tests {
                 duration_ms: 1500,
                 success: true,
                 error_category: None,
+                confidence: None,
+                confidence_source: None,
             },
         );
 

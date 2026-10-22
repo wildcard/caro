@@ -1,5 +1,17 @@
 # Mission and Values
 
+## Where We Are
+
+Caro is at **late MVP → early Launch** on the
+[founder-arc stage map](./playbook/STAGE_MAP.md). The product loop ships
+(94.8% Command Success Rate), distribution ships (crates.io, Homebrew,
+npm, NuGet, install script), the public surface ships (caro.sh, docs,
+15-locale i18n). The next stage gate is **retention**, not features —
+we will not claim product-market fit until we publish a defended D7
+retention curve. The dual-track community/enterprise commercial model
+is documented in [`COMPANY.md`](./COMPANY.md) and
+[ADR-001](./docs/adr/ADR-001-enterprise-community-architecture.md).
+
 ## The Problem We Solve
 
 Developers know what they want to do. They often don't remember exactly how to express it in shell syntax.

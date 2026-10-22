@@ -95,7 +95,10 @@ mod tests {
     #[tokio::test]
     async fn safety_filter_passes_safe() {
         let f = SafetyFilter;
-        assert!(f.filter(&cand_with_risk(Some(RiskLevel::Safe))).await.is_none());
+        assert!(f
+            .filter(&cand_with_risk(Some(RiskLevel::Safe)))
+            .await
+            .is_none());
     }
 
     #[tokio::test]
@@ -149,7 +152,10 @@ mod tests {
         let f = ValidationFilter;
         // Default: validation_passed = false, validation_error = None
         let reason = f.filter(&Candidate::new("x", "t")).await;
-        assert!(reason.is_some(), "should reject when validation not hydrated");
+        assert!(
+            reason.is_some(),
+            "should reject when validation not hydrated"
+        );
         assert!(reason.unwrap().contains("not hydrated"));
     }
 }

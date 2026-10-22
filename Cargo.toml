@@ -1,8 +1,10 @@
 [package]
 name = "caro"
-version = "1.4.0"
+version = "1.5.0"
 edition = "2021"
 rust-version = "1.85"
+# Two [[bin]] targets: plain `cargo run` (README, tests' fallback) must pick caro (#1222, #1164).
+default-run = "caro"
 description = "Convert natural language to shell commands using local LLMs"
 license = "AGPL-3.0"
 authors = ["Wildcard <kobi@caro.sh>", "Claude Code <noreply@anthropic.com>"]
@@ -20,6 +22,12 @@ include = [
     "LICENSE",
     "README.crates.io.md",
     "CHANGELOG.md",
+    "assets/kyaro/README.md",
+    "assets/kyaro/001-idle/idle_ASCII/Idle_1.txt",
+    "assets/kyaro/008-shocked/shocked_ASCII/Shocked1.txt",
+    "assets/kyaro/006-happy bounce/happy bounce_ASCII/HappyBounce1.txt",
+    "assets/kyaro/003-sleeping/sleeping_ASCII/Sleeping01.txt",
+    "data/cve_rules/CVE-*.yaml",
 ]
 
 # Binary targets
@@ -46,7 +54,7 @@ config = "0.15"
 schemars = { version = "0.8", features = ["chrono"] }
 
 # HTTP client for remote backends and Hugging Face Hub downloads
-reqwest = { version = "0.11", features = ["stream", "json", "rustls-tls"], default-features = false }
+reqwest = { version = "0.12", features = ["stream", "json", "rustls-tls"], default-features = false }
 
 # Error handling and logging
 anyhow = "1"
@@ -66,7 +74,7 @@ dirs = "6"
 which = "8.0"
 os_info = "3.14"
 sysinfo = "0.33"
-home = "=0.5.12"  # Pin to avoid edition2024 requirement in 0.5.11+
+home = "=0.5.9"  # Pin: 0.5.11+ needs edition2024, 0.5.12 needs rustc 1.88 > MSRV 1.85
 time-core = "=0.1.7"  # Pin to avoid MSRV incompatibility in 0.1.8+
 
 # Model integration (Hugging Face Hub)
@@ -79,6 +87,8 @@ chrono = { version = "0.4", features = ["serde"] }
 # Regex for safety validation
 regex = "1"
 once_cell = "1.21"
+# POSIX shell tokenization for quote/escape-normalizing the safety scan
+shell-words = "1.1"
 
 # CVE rule ruleset deserialization (see src/dogma/)
 # Pinned to 1.x because bincode 3.0.0 is an intentional compile_error! prank
@@ -104,7 +114,7 @@ futures = "0.3"
 # Knowledge index (local vector database)
 lancedb = { version = "0.23", optional = true }
 fastembed = { version = "5", optional = true }
-arrow-array = { version = "58.1", optional = true }
+arrow-array = { version = "56.2", optional = true }  # must match arrow-schema + lancedb's arrow 56
 arrow-schema = { version = "56.2", optional = true }
 chromadb = { version = "2.3", optional = true }
 
@@ -117,6 +127,11 @@ rustyline = "14"
 # Pure-Rust transitive deps (cedar-policy, regorus, ed25519-dalek, sha2).
 # License: MIT — compatible absorption into caro's AGPL-3.0.
 agentmesh = { version = "3.6", optional = true }
+
+# Process-group signalling for CommandExecutor timeouts (already a
+# transitive dependency; declared directly for `libc::kill`).
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
 
 # Embedded model inference - MLX for Apple Silicon via llama.cpp
 [target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
@@ -152,11 +167,11 @@ regex = "1.12"
 tempfile = "3.27"
 serial_test = "3"
 proptest = "1"
-criterion = { version = "=0.8.2", features = ["html_reports"] }  # Pin: 0.8+ requires rustc 1.86, above MSRV 1.85
+criterion = { version = "=0.7.0", features = ["html_reports"] }  # Pin: 0.8+ requires rustc 1.86, above MSRV 1.85 (0.7.0 = rustc 1.80)
 futures = "0.3"
 serde_yaml = "0.9"
 env_logger = "0.11"
-wiremock = "0.5"
+wiremock = "=0.6.4"  # 0.6.5 uses let-chains (rustc 1.88+); keep MSRV 1.85
 
 [[bench]]
 name = "cache"

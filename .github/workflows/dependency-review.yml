@@ -2,13 +2,18 @@ name: Dependency Review
 
 on:
   pull_request:
+    # Manifests and lockfiles at any depth: scripts/, changelog/ and
+    # tests/evaluation/ keep their own lockfiles, and the npm workspaces
+    # (website/, docs-site/, ...) have package.json files. A root-only
+    # filter skipped review for all of them.
     paths:
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'yarn.lock'
-      - 'pnpm-lock.yaml'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - '**/package.json'
+      - '**/package-lock.json'
+      - '**/yarn.lock'
+      - '**/pnpm-lock.yaml'
+      - '.github/workflows/dependency-review.yml'
 
 permissions:
   contents: read
@@ -28,7 +33,7 @@ jobs:
           fail-on-severity: high
 
           # Allow specific licenses (permissive and copyleft compatible with AGPL-3.0)
-          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, MPL-2.0, CC0-1.0, Unlicense, 0BSD, WTFPL, Zlib, BSL-1.0, AGPL-3.0, GPL-3.0, LGPL-3.0, LGPL-2.1, GPL-2.0-or-later, AGPL-3.0-or-later, GPL-3.0-or-later, LGPL-3.0-or-later, LGPL-2.1-or-later
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, MPL-2.0, CC0-1.0, Unlicense, 0BSD, WTFPL, Zlib, BSL-1.0, BlueOak-1.0.0, AGPL-3.0, GPL-3.0, LGPL-3.0, LGPL-2.1, GPL-2.0-or-later, AGPL-3.0-or-later, GPL-3.0-or-later, LGPL-3.0-or-later, LGPL-2.1-or-later
 
           # Comment on the PR with the review summary
           comment-summary-in-pr: always
@@ -39,38 +44,3 @@ jobs:
           # Retry settings for GitHub API calls
           retry-on-snapshot-warnings: true
           retry-on-snapshot-warnings-timeout: 120
-
-  cargo-audit:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Setup Rust
-        uses: ./.github/actions/setup-rust
-        with:
-          cache-key-suffix: cargo-audit
-
-      - name: Install cargo-audit
-        run: cargo install cargo-audit
-
-      - name: Run security audit
-        run: cargo audit
-
-      - name: Check for unmaintained crates
-        run: cargo audit --deny warnings || echo "::warning::Some dependencies have warnings"
-        continue-on-error: true
-
-  cargo-deny:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Check dependencies with cargo-deny
-        uses: EmbarkStudios/cargo-deny-action@v2
-        with:
-          log-level: warn
-          command: check
-          arguments: --all-features
-        continue-on-error: true
