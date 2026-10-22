@@ -9,9 +9,11 @@ Rule: .claude/rules/feature-evidence.md, "Claims check".
 
 What it checks, at the PR's head commit:
   1. Each test the description names exists (fetched with
-     `git fetch origin pull/<n>/head`, then `git grep`).
+     `git fetch origin pull/<n>/head`, then `git grep`). Names come from
+     `cargo test` commands in code, test output lines and regression-guard lines.
   2. A description that says it adds tests comes with a diff that adds tests.
-  3. CI jobs ran on the head commit (a fork PR's runs can wait for approval).
+  3. CI ran on the head commit and every run passed (a fork PR's runs can wait
+     for approval; a run that has not finished is not evidence yet).
   4. Each "Closes #N" issue is open, and the diff touches the files it names.
   5. The size of the description next to the size of the diff (information).
 
@@ -30,13 +32,20 @@ OK, MISSING, WAIT, INFO = "✅", "❌", "⚠️", "ℹ️"
 BOT_BLOCK = re.compile(r"<!--\s*This is an auto-generated description by cubic\.\s*-->.*?"
                        r"<!--\s*End of auto-generated description by cubic\.\s*-->", re.S)
 LINKED = re.compile(r"(?i)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s*:?\s+#(\d+)")
-CARGO_TEST = re.compile(r"cargo\s+test\b([^`\n]*)")
+CODE_SPAN = re.compile(r"`([^`\n]+)`")
+CARGO_TEST = re.compile(r"\bcargo[ \t]+test\b(.*)")
+# A token that ends the cargo command: a pipe, a list operator, a redirect, a comment or an arrow to its output.
+COMMAND_END = re.compile(r"^(?:\||&|;|#|>|\d>|->|→|=>)")
 TEST_OUTPUT = re.compile(r"^\s*test\s+([A-Za-z_][\w:]*)\s+\.\.\.\s+(?:ok|FAILED|ignored)\b", re.M)
 GUARD_LINE = re.compile(r"(?i)regression[- ]guard|guarded by|regression test")
 BACKTICKED = re.compile(r"`([A-Za-z_][\w:]*|tests/[\w./-]+\.rs)`")
-ADDS_TESTS = re.compile(r"(?i)\b(?:add(?:ed|s|ing)?|new|extend(?:ed|s|ing)?)\b[^.\n]{0,60}?\b(?:tests?|coverage|suite)\b")
+# "test" in a compound such as "test-hook" or "test-only" is not a claim to add tests (#1211).
+ADDS_TESTS = re.compile(r"(?i)\b(?:add(?:ed|s|ing)?|new|extend(?:ed|s|ing)?)\b[^.\n]{0,60}?\b(?:tests?|coverage|suite)\b(?!-)")
 CITED_PATH = re.compile(r"\b((?:src|tests|scripts|website|docs|bin|\.github)/[\w./-]*\w\.[A-Za-z]{1,5})\b")
-TEST_LINE = re.compile(r"^\+.*(?:#\[(?:tokio::)?test\]|\bfn test_\w*|\bdef test_\w*|\b(?:it|test)\(\s*['\"])")
+TEST_LINE = re.compile(r"^\+.*(?:#\[(?:\w+::)?test\b|\bfn test_\w*|\bdef test_\w*|\b(?:it|test)\(\s*['\"`])")
+# Shell test files have no test declaration, so any code line added to one counts.
+SHELL_TEST = re.compile(r"\.test\.sh$")
+PASSED = {"success", "skipped", "neutral"}
 # cargo test options that take a value.
 VALUE_FLAGS = {"--features", "-F", "-p", "--package", "--bin", "--example", "--bench",
                "--target", "--target-dir", "--manifest-path", "-j", "--jobs", "--color",
@@ -76,10 +85,12 @@ def fetch_head(number):
 
 
 def git_has(commit, name):
-    """True when `name` (a test name or a tests/*.rs path) exists at `commit`."""
+    """True when `name` (a test name, a filter such as `guard::`, or a tests/*.rs target) exists at `commit`."""
     if name.startswith("tests/"):
-        return run(["git", "cat-file", "-e", f"{commit}:{name}"]).returncode == 0
-    word = name.split("::")[-1]
+        # `--test evaluation` builds tests/evaluation.rs or tests/evaluation/main.rs.
+        return any(run(["git", "cat-file", "-e", f"{commit}:{path}"]).returncode == 0
+                   for path in (name, name[: -len(".rs")] + "/main.rs"))
+    word = name.rstrip(":").split("::")[-1]
     return run(["git", "grep", "-q", "-w", "-e", word, commit, "--", "*.rs", "*.py", "*.ts",
                 "*.js", "*.sh"]).returncode == 0
 
@@ -88,22 +99,46 @@ def strip_bot_text(body):
     return BOT_BLOCK.sub("", body or "")
 
 
+def split_code(body):
+    """(prose, code): the description without its code, and its inline code spans and fenced lines."""
+    prose, code, fenced = [], [], False
+    for line in body.splitlines():
+        if line.lstrip().startswith(("```", "~~~")):
+            fenced = not fenced
+        elif fenced:
+            code.append(line)
+        else:
+            code.extend(CODE_SPAN.findall(line))
+            prose.append(CODE_SPAN.sub("", line))
+    return "\n".join(prose), code
+
+
 def linked_issues(body):
-    return sorted({int(n) for n in LINKED.findall(body)})
+    """Issues that "Closes #N" links. Like GitHub, a keyword in code (quoted output) does not count."""
+    return sorted({int(n) for n in LINKED.findall(split_code(body)[0])})
 
 
 def named_tests(body):
-    """Test names and test targets that the description says exist or pass."""
+    """Test names and test targets that the description says exist or pass.
+
+    Only `cargo test` commands in code count: in prose, the words after
+    "cargo test" are not test names.
+    """
     names = set()
-    for args in CARGO_TEST.findall(body):
-        tokens = args.split()
+    for snippet in split_code(body)[1]:
+        match = CARGO_TEST.search(snippet)
+        tokens = []
+        for tok in match.group(1).split() if match else []:
+            if tok == "--" or COMMAND_END.match(tok):
+                break
+            tokens.append(tok.strip("'\",;"))
+            if tok.endswith(";"):
+                break
         i = 0
         while i < len(tokens):
-            tok = tokens[i].strip("`'\",;")
-            if tok == "--":
-                break
+            tok = tokens[i]
             if tok == "--test" and i + 1 < len(tokens):
-                names.add("tests/" + tokens[i + 1].strip("`'\",;") + ".rs")
+                names.add("tests/" + tokens[i + 1] + ".rs")
                 i += 2
                 continue
             if tok in VALUE_FLAGS:
@@ -130,30 +165,36 @@ def claims_added_tests(body):
 
 
 def diff_adds_tests(files):
+    """True when the diff declares a test, or adds code to a shell test file.
+
+    Other lines under tests/ (a fixture, a comment, a helper) are not tests.
+    """
     for f in files:
-        name = f.get("filename", "")
-        if f.get("additions", 0) and (name.startswith("tests/") or re.search(
-                r"(^|/)test_[^/]+\.py$|_test\.\w+$|\.test\.[jt]sx?$", name)):
+        added = [line for line in (f.get("patch") or "").splitlines() if line.startswith("+")]
+        if any(TEST_LINE.match(line) for line in added):
             return True
-        if any(TEST_LINE.match(line) for line in (f.get("patch") or "").splitlines()):
+        if SHELL_TEST.search(f.get("filename", "")) and any(
+                line[1:].strip() and not line[1:].lstrip().startswith("#") for line in added):
             return True
     return False
 
 
 def ci_summary(repo, head):
-    """(runs, runs waiting for approval, jobs that ran, failed run names) for the head.
+    """(runs, runs waiting for approval, runs not finished, jobs that ran, runs that did not pass) for the head.
 
     Only `pull_request` and `push` runs test the code. `pull_request_target`
     runs (CLA, labels, release notes) run base-branch workflows, so they do
-    not count: on #1415 they were the only jobs that ever ran.
+    not count: on #1415 they were the only jobs that ever ran. A queued or
+    running run is not evidence yet, and a cancelled or timed-out run did not pass.
     """
     runs = [r for r in gh_json(f"/repos/{repo}/actions/runs?head_sha={head}&per_page=100")["workflow_runs"]
             if r.get("event") in ("pull_request", "push")]
     waiting = [r for r in runs if r.get("conclusion") == "action_required" or r.get("status") == "action_required"]
-    jobs = sum(gh_json(f"/repos/{repo}/actions/runs/{r['id']}/jobs?per_page=1")["total_count"]
-               for r in runs if r not in waiting)
-    failed = sorted({r["name"] for r in runs if r.get("conclusion") == "failure"})
-    return len(runs), len(waiting), jobs, failed
+    rest = [r for r in runs if r not in waiting]
+    jobs = sum(gh_json(f"/repos/{repo}/actions/runs/{r['id']}/jobs?per_page=1")["total_count"] for r in rest)
+    running = sum(1 for r in rest if r.get("status") != "completed")
+    failed = sorted({r["name"] for r in rest if r.get("status") == "completed" and r.get("conclusion") not in PASSED})
+    return len(runs), len(waiting), running, jobs, failed
 
 
 def cell(text, limit=90):
@@ -204,16 +245,21 @@ def check(repo, number):
         rows.append((f"Says: {said}", "the diff adds test code" if adds else "the diff adds no test code",
                      OK if adds else MISSING))
 
-    runs, waiting, jobs, failed = ci_summary(repo, head)
-    if waiting:
+    runs, waiting, running, jobs, failed = ci_summary(repo, head)
+    if failed or running or (jobs == 0 and not waiting):
+        evidence = f"{runs} workflow runs, {jobs} jobs ran on the head"
+        if failed:
+            evidence += f"; did not pass: {', '.join(failed)}"
+        if running:
+            evidence += f"; {running} not finished (run this check again when they finish)"
+        if waiting:
+            evidence += f"; {waiting} wait for a maintainer to approve them"
+        rows.append(("CI", evidence, MISSING))
+    elif waiting:
         rows.append(("CI", f"{waiting} of {runs} workflow runs wait for a maintainer to approve them; "
                            f"{jobs} jobs ran", WAIT))
-    elif jobs == 0:
-        rows.append(("CI", f"{runs} workflow runs, 0 jobs ran on the head", MISSING))
-    elif failed:
-        rows.append(("CI", f"{jobs} jobs ran; failed: {', '.join(failed)}", MISSING))
     else:
-        rows.append(("CI", f"{jobs} jobs ran on the head, none failed", OK))
+        rows.append(("CI", f"{jobs} jobs ran on the head; all {runs} workflow runs passed", OK))
 
     rows.append(("Size", f"description {len(body):,} chars; diff +{pr.get('additions', 0)}/"
                          f"-{pr.get('deletions', 0)} in {len(files)} file{'' if len(files) == 1 else 's'}", INFO))

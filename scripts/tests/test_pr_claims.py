@@ -9,6 +9,9 @@ thanked it for "this fix" from the description alone.
 
 import importlib.util
 import io
+import os
+import subprocess
+import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
@@ -117,7 +120,8 @@ class ClaimsCheckTests(unittest.TestCase):
         self.assertRegex(report, r"Closes #1408 \| #1408 is open; the diff touches 1 of the 1 files it names \| ✅")
         self.assertRegex(report, r"Names test ai_once_initialization_message_is_stable \| not found at the head \| ❌")
         self.assertRegex(report, r"Says: - Added a focused regression test.*\| the diff adds no test code \| ❌")
-        self.assertRegex(report, r"\| CI \| 3 workflow runs, 0 jobs ran on the head \| ❌")
+        self.assertRegex(report, r"\| CI \| 3 workflow runs, 0 jobs ran on the head; "
+                                 r"did not pass: CI, Codespell, Cross-Platform CI \| ❌")
         self.assertNotIn("cubic_invented_name", report)
 
     def test_good_pr_passes_and_fork_runs_waiting_for_approval_are_flagged_not_failed(self):
@@ -132,6 +136,24 @@ class ClaimsCheckTests(unittest.TestCase):
         self.assertEqual(missing, 0, report)
         self.assertIn("Names test tests/config_cli_keys.rs | found at the head | ✅", report)
         self.assertRegex(report, r"\| CI \| 9 of 9 workflow runs wait for a maintainer to approve them; 0 jobs ran \| ⚠️")
+
+    def test_ci_that_has_not_finished_or_did_not_pass_is_missing_evidence(self):
+        def ci_row(*runs):
+            self.stub(1, HEAD_1296, "", [], [{"id": i, "name": f"wf{i}", "event": "pull_request", **r}
+                                             for i, r in enumerate(runs)], existing=set(), jobs=2)
+            report, missing = pr_claims.check("o/r", 1)
+            return next(line for line in report.splitlines() if line.startswith("| 1 | CI |")), missing
+
+        passed = {"status": "completed", "conclusion": "success"}
+        row, missing = ci_row(passed, {"status": "completed", "conclusion": "skipped"})
+        self.assertEqual((row, missing), ("| 1 | CI | 4 jobs ran on the head; all 2 workflow runs passed | ✅ |", 0))
+        row, missing = ci_row(passed, {"status": "in_progress", "conclusion": None})
+        self.assertIn("1 not finished (run this check again when they finish) | ❌", row)
+        self.assertEqual(missing, 1)
+        row, missing = ci_row(passed, {"status": "completed", "conclusion": "cancelled"},
+                              {"status": "completed", "conclusion": "timed_out"})
+        self.assertIn("did not pass: wf1, wf2 | ❌", row)
+        self.assertEqual(missing, 1)
 
     def test_a_stale_local_fetch_is_an_error_not_a_report(self):
         self.stub(1296, HEAD_1296, BODY_1296, [], [], existing=set())
@@ -155,25 +177,80 @@ class ClaimsCheckTests(unittest.TestCase):
 class ParserTests(unittest.TestCase):
     def test_named_tests_reads_cargo_lines_test_output_and_guard_lines(self):
         body = ("Run `cargo test --features embedded-cpu,remote-backends --lib backends::remote::claude`.\n"
-                "Run cargo test -p caro --test explain_ste_contract -- --nocapture extra_after_dashes\n"
+                "```bash\n"
+                "cargo test -p caro --test explain_ste_contract -- --nocapture extra_after_dashes\n"
+                "cargo test --test evaluation 2>&1 | grep -A 5 \"Pareto View\"\n"
+                "cargo test --lib guard::   # 32 passed\n"
+                "cargo test safety; echo done\n"
+                "cargo test --test e2e_cli; echo \"exit=$?\"\n"
+                "cargo test --lib → 687 passed; 0 failed\n"
+                "```\n"
                 "test cli::tests::test_default_shell_is_posix_on_unix ... ok\n"
                 "Guarded by `tests/e2e_guard.rs` and `guard_setup_is_idempotent`; see `README`.\n")
         self.assertEqual(pr_claims.named_tests(body), [
-            "backends::remote::claude", "cli::tests::test_default_shell_is_posix_on_unix",
-            "guard_setup_is_idempotent", "tests/e2e_guard.rs", "tests/explain_ste_contract.rs"])
+            "backends::remote::claude", "cli::tests::test_default_shell_is_posix_on_unix", "guard::",
+            "guard_setup_is_idempotent", "safety", "tests/e2e_cli.rs", "tests/e2e_guard.rs", "tests/evaluation.rs",
+            "tests/explain_ste_contract.rs"])
+
+    def test_cargo_test_in_prose_names_no_tests(self):
+        # #1638's description: every word after "cargo test" used to become a test name.
+        self.assertEqual(pr_claims.named_tests(
+            "Required cargo test was run; 722 library tests passed. The unrestricted run passed.\n"
+            "The full local `cargo test` has 33 failures.\n"), [])
+
+    def test_git_has_finds_filters_and_test_targets_with_a_main_rs(self):
+        with tempfile.TemporaryDirectory() as repo:
+            files = {"src/lib.rs": "mod guard;\n", "src/guard.rs": "#[test]\nfn guard_blocks_rm() {}\n",
+                     "tests/evaluation/main.rs": "fn main() {}\n", "tests/e2e_cli.rs": "\n"}
+            for path, text in files.items():
+                os.makedirs(os.path.dirname(os.path.join(repo, path)), exist_ok=True)
+                Path(repo, path).write_text(text)
+            git = ["git", "-C", repo, "-c", "user.name=t", "-c", "user.email=t@example.invalid",
+                   "-c", "commit.gpgsign=false"]
+            for cmd in (["init", "-q"], ["add", "-A"], ["commit", "-qm", "fixture"]):
+                subprocess.run(git + cmd, check=True)
+            cwd = os.getcwd()
+            os.chdir(repo)
+            try:
+                found = {name: pr_claims.git_has("HEAD", name) for name in (
+                    "guard::", "guard::guard_blocks_rm", "tests/evaluation.rs", "tests/e2e_cli.rs",
+                    "tests/missing.rs", "missing_name")}
+            finally:
+                os.chdir(cwd)
+        self.assertEqual(found, {"guard::": True, "guard::guard_blocks_rm": True, "tests/evaluation.rs": True,
+                                 "tests/e2e_cli.rs": True, "tests/missing.rs": False, "missing_name": False})
 
     def test_unticked_checkboxes_are_not_claims(self):
         self.assertIsNone(pr_claims.claims_added_tests("- [ ] I have added tests that prove my fix\n"))
         self.assertTrue(pr_claims.claims_added_tests("- [x] I have added tests that prove my fix\n"))
 
+    def test_a_compound_with_test_is_not_a_claim_to_add_tests(self):
+        # #1211's description, which added no test.
+        self.assertIsNone(pr_claims.claims_added_tests(
+            "Injecting a stub would require a new prod test-hook constructor on `CliApp`.\n"))
+        self.assertTrue(pr_claims.claims_added_tests("Adds an end-to-end test for the hook.\n"))
+
     def test_removed_tests_do_not_count_as_added(self):
         removed = "@@ -1,5 +1,0 @@\n-    #[test]\n-    fn ai_once_initialization_message_is_stable() {"
         self.assertFalse(pr_claims.diff_adds_tests([{"filename": "src/main.rs", "additions": 0, "patch": removed}]))
-        self.assertTrue(pr_claims.diff_adds_tests([{"filename": "tests/new_case.rs", "additions": 4}]))
-        self.assertTrue(pr_claims.diff_adds_tests([{"filename": "web/x.test.ts", "additions": 2}]))
+
+    def test_only_added_test_declarations_count_as_added_tests(self):
+        def adds(filename, patch):
+            return pr_claims.diff_adds_tests([{"filename": filename, "additions": 1, "patch": patch}])
+
+        self.assertTrue(adds("tests/new_case.rs", "@@ -0,0 +1,2 @@\n+#[tokio::test(flavor = \"multi_thread\")]\n+async fn x() {"))
+        self.assertTrue(adds("web/x.test.ts", "@@ -1 +1,2 @@\n+  it(`works`, () => {"))
+        self.assertTrue(adds("tests/harness/x.test.sh", "@@ -1 +1,2 @@\n+expect new_case_passes 0 $?"))
+        # Lines under tests/ that declare no test: a fixture, a helper, a comment.
+        self.assertFalse(adds("tests/fixtures/case.json", "@@ -0,0 +1 @@\n+{\"test\": 1}"))
+        self.assertFalse(adds("tests/common/mod.rs", "@@ -1 +1,2 @@\n+// helper\n+pub fn setup() {}"))
+        self.assertFalse(adds("tests/harness/x.test.sh", "@@ -1 +1,2 @@\n+# a comment\n+"))
+        self.assertFalse(pr_claims.diff_adds_tests([{"filename": "tests/new_case.rs", "additions": 400}]))
 
     def test_linked_issues_and_bot_text(self):
         self.assertEqual(pr_claims.linked_issues("Closes #1408. Fixes: #12, resolves #12"), [12, 1408])
+        # #1702 quotes this script's output; quoted code links nothing.
+        self.assertEqual(pr_claims.linked_issues("```text\n| 1 | Closes #1408 | ✅ |\n```\nSee `Fixes #7`.\n"), [])
         self.assertNotIn("bot", pr_claims.strip_bot_text(
             "mine\n<!-- This is an auto-generated description by cubic. -->bot<!-- End of auto-generated description by cubic. -->"))
 

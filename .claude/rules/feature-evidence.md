@@ -86,8 +86,9 @@ Do this before you thank, approve or merge a PR, and before you write
 
 1. Read the full diff at the head commit, not only the title and description.
 2. Run `python3 scripts/pr_claims.py <number>`. It checks that each test the
-   description names exists at the head, that CI jobs ran on the head, and
-   which files a "Closes #N" issue names. Exit 1 means a claim has no evidence.
+   description names exists at the head, that CI ran and passed on the head,
+   and which files a "Closes #N" issue names. Exit 1 means a claim has no
+   evidence. While CI runs, exit 1 means "run the check again later".
 3. If a fork PR's CI runs wait for approval, a maintainer approves them after
    step 1. Agents cannot approve them.
 4. For "Closes #N", run #N's steps on `main` and on the PR head. Paste both
