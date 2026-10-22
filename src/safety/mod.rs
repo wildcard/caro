@@ -28,6 +28,7 @@
 
 pub mod cve_patterns;
 mod patterns;
+mod segments;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -479,6 +480,15 @@ impl SafetyValidator {
         // recursive flag somewhere before the drive-root target; other tokens
         // (including earlier targets) may sit between them.
         r#"(?:^|[;&|\n]\s*|(?:sudo|doas)(?:\s+\S+)*\s+)rm\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*-\S*r\S*\s+(?:(?:[^\s;&|"'\\]|\\(?s:.)|"(?:[^"\\]|\\(?s:.))*"|'[^']*')+\s+)*['"]?[A-Za-z]:[\\/]"#,
+        // ── Recursive world-writable chmod / find-delete on root or home ─────
+        // (#1054). Same bodies as the built-ins in `patterns.rs` (fragments
+        // TOK/REC/WW_MODE/ROOT_OR_HOME/FIND_ROOT_OR_HOME_DELETE_ALL), anchored
+        // at the start of a statement view, so text that only mentions the
+        // command (a commit message, a heredoc) stays out of the floor.
+        // `floor_fragments_match_builtins` keeps the two copies in sync.
+        r#"^[\s({]*chmod(?:[ \t]|\\\n)+(?:-[^\s;&|]*(?:[ \t]|\\\n)+)*?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)(?:[ \t]|\\\n)+(?:-[^\s;&|]*(?:[ \t]|\\\n)+)*?(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)(?:[ \t]|\\\n)+(?:[^\s;&|]+(?:[ \t]|\\\n)+)*?(?:['"]?/+\*?['"]?|~/?\*?|"?\$\{?HOME\}?/?\*?"?)(?:\s|$)"#,
+        r#"^[\s({]*chmod(?:[ \t]|\\\n)+(?:-[^\s;&|]*(?:[ \t]|\\\n)+)*?(?:0?[0-7]?[0-7][0-7][2367]|[ugoa]*[ao][ugoa]*[+=][rwxXst]*w[rwxXst]*)(?:[ \t]|\\\n)+(?:[^\s;&|]+(?:[ \t]|\\\n)+)*?(?:-[a-zA-Z]*R[a-zA-Z]*|--recursive)(?:[ \t]|\\\n)+(?:[^\s;&|]+(?:[ \t]|\\\n)+)*?(?:['"]?/+\*?['"]?|~/?\*?|"?\$\{?HOME\}?/?\*?"?)(?:\s|$)"#,
+        r#"^[\s({]*find(?:[ \t]|\\\n)+(?:-[HLP](?:[ \t]|\\\n)+)*(?:['"]?/+['"]?|~/?|"?\$\{?HOME\}?/?"?)(?:(?:(?:[ \t]|\\\n)+(?:-xdev|-mount|-depth|-follow|-noleaf|-ignore_readdir_race|-mindepth(?:[ \t]|\\\n)+\d+|-i?name(?:[ \t]|\\\n)+['"]?\*['"]?|-type(?:[ \t]|\\\n)+f))*(?:[ \t]|\\\n)+-delete\b|(?:(?:[ \t]|\\\n)+(?:-xdev|-mount|-depth|-follow|-noleaf|-ignore_readdir_race|-mindepth(?:[ \t]|\\\n)+\d+|-i?name(?:[ \t]|\\\n)+['"]?\*['"]?|-type(?:[ \t]|\\\n)+[fd]))*(?:[ \t]|\\\n)+-exec(?:dir)?(?:[ \t]|\\\n)+(?:sudo(?:[ \t]|\\\n)+)?rm\b[^;&|\n]*?\{\})"#,
         // ── Explicit root-protection bypass — always catastrophic ────────────
         r"--no-preserve-root",
         // ── Whole-disk / device destruction ──────────────────────────────────
@@ -560,7 +570,7 @@ impl SafetyValidator {
     /// a catastrophe slips through. Quoting (`rm -rf "$HOME"`, `rm -rf "/"`) is a
     /// real evasion vector here, so we must match through quotes — exactly what
     /// the context heuristic would wrongly suppress.
-    fn targets_catastrophic_location(command: &str) -> bool {
+    pub(crate) fn targets_catastrophic_location(command: &str) -> bool {
         Self::catastrophic_regexes()
             .iter()
             .any(|re| re.is_match(command))
@@ -605,6 +615,26 @@ impl SafetyValidator {
         (joined != command).then_some(joined)
     }
 
+    /// The strings the pattern scanners check for `command`: the command
+    /// itself, its statements and wrapper payloads (POSIX shells only), and
+    /// the shell-unescaped form of each destructive statement.
+    fn scan_targets(command: &str, shell: ShellType) -> Vec<String> {
+        let mut targets = vec![command.to_string()];
+        if !shell.is_windows() {
+            targets.extend(segments::scan_views(command));
+        }
+        let unescaped: Vec<String> = targets
+            .iter()
+            .filter_map(|t| Self::destructive_unescaped(t, shell))
+            .collect();
+        for u in unescaped {
+            if !targets.contains(&u) {
+                targets.push(u);
+            }
+        }
+        targets
+    }
+
     fn is_dangerous_in_context(command: &str, pattern_regex: &regex::Regex) -> bool {
         if !pattern_regex.is_match(command) {
             return false;
@@ -629,6 +659,16 @@ impl SafetyValidator {
         }
 
         false
+    }
+
+    /// Whether the catastrophic floor fires for `command`. It scans the same
+    /// targets as `validate_command` ([`Self::scan_targets`]): the raw
+    /// command, its statements and wrapper payloads, and their unescaped
+    /// forms.
+    pub(crate) fn floor_applies(command: &str, shell: ShellType) -> bool {
+        Self::scan_targets(command, shell)
+            .iter()
+            .any(|t| Self::targets_catastrophic_location(t))
     }
 
     /// Validate a single command for safety
@@ -667,10 +707,12 @@ impl SafetyValidator {
         // (`rm -rf \/` → `/` = root wipe); scanning the unescaped form closes that
         // whole quote/escape-evasion class. `None` for benign commands, so their
         // quoted arguments are never re-exposed. See caro-pr3f.
-        let unescaped = Self::destructive_unescaped(command, shell);
-        let scan_targets: Vec<&str> = std::iter::once(command)
-            .chain(unescaped.as_deref())
-            .collect();
+        //
+        // Also scan each statement and each exec-wrapper payload
+        // (`git status; chmod -R 777 ~`, `bash -c 'rm -rf /'`), so a command
+        // cannot hide behind a separator or a wrapper. See `segments` (#1054).
+        let owned_targets = Self::scan_targets(command, shell);
+        let scan_targets: Vec<&str> = owned_targets.iter().map(String::as_str).collect();
 
         // The Critical-bypass guard is intentionally blunt: the broad
         // recursive-delete pattern (`rm -rf /…`) matches both the catastrophic
@@ -811,10 +853,7 @@ impl SafetyValidator {
                     if lower.contains("recursive") {
                         keywords.push("recursive");
                     }
-                    if lower.contains("privilege")
-                        || lower.contains("root")
-                        || lower.contains("sudo")
-                    {
+                    if names_privilege_change(&lower) {
                         keywords.push("privilege escalation");
                     }
                     if lower.contains("network") || lower.contains("backdoor") {
@@ -830,8 +869,15 @@ impl SafetyValidator {
             let risk_types = if risk_keywords.is_empty() {
                 String::new()
             } else {
-                let unique: std::collections::HashSet<_> = risk_keywords.into_iter().collect();
-                format!(" ({})", unique.into_iter().collect::<Vec<_>>().join(", "))
+                // Keep first-seen order so the same command always prints
+                // the same text (a HashSet changed the order between runs).
+                let mut unique: Vec<&str> = Vec::new();
+                for keyword in risk_keywords {
+                    if !unique.contains(&keyword) {
+                        unique.push(keyword);
+                    }
+                }
+                format!(" ({})", unique.join(", "))
             };
 
             format!(
@@ -1083,6 +1129,41 @@ pub enum ValidationError {
 }
 
 // Types are already public, no re-export needed
+
+/// Words that name the filesystem root or a drive root. In these phrases
+/// "root" is a path, not the root user, so it changes no privilege.
+///
+/// Each phrase names a path, so root-user wording such as "password of root
+/// user" keeps the label. "root dir" also covers "root directory".
+const FILESYSTEM_ROOT_PHRASES: &[&str] = &[
+    "drive root",
+    "root dir",
+    "root folder",
+    "root partition",
+    "root filesystem",
+    "root protection",
+    "deletion of root",
+    "deletion from root",
+];
+
+/// True when a lowercase pattern description names a privilege change.
+///
+/// "root" counts unless it is part of a filesystem-root phrase, so custom
+/// descriptions such as "run as root" keep the label. A world-writable
+/// path counts because any user can then replace its files.
+fn names_privilege_change(lower: &str) -> bool {
+    if ["privilege", "sudo", "world-writable"]
+        .iter()
+        .any(|w| lower.contains(w))
+    {
+        return true;
+    }
+    let mut rest = lower.to_string();
+    for phrase in FILESYSTEM_ROOT_PHRASES {
+        rest = rest.replace(phrase, " ");
+    }
+    rest.contains("root")
+}
 
 #[cfg(test)]
 mod smart_blend_tests {
@@ -1366,6 +1447,123 @@ mod allowlist_catastrophic_tests {
         }
     }
 
+    /// The #1054 floor entries are expanded copies of the `patterns.rs`
+    /// fragments. Rebuild them from the fragments and compare, so an edit to
+    /// one copy cannot silently drift from the other.
+    #[test]
+    fn floor_fragments_match_builtins() {
+        use super::patterns::{
+            FIND_ROOT_OR_HOME_DELETE, FIND_ROOT_OR_HOME_DELETE_ALL, OPT, REC, ROOT_OR_HOME, TOK,
+            WS, WW_MODE,
+        };
+        // Start of a statement view. `floor_applies` scans every statement
+        // with its prefix wrappers stripped, so `;`, `&&` and `sudo` need no
+        // branch here, and text inside quotes never starts a view.
+        let head = r"^[\s({]*";
+        let expected = [
+            format!(
+                r"{head}chmod{WS}(?:{OPT}{WS})*?{REC}{WS}(?:{OPT}{WS})*?{WW_MODE}{WS}(?:{TOK}{WS})*?{ROOT_OR_HOME}(?:\s|$)"
+            ),
+            format!(
+                r"{head}chmod{WS}(?:{OPT}{WS})*?{WW_MODE}{WS}(?:{TOK}{WS})*?{REC}{WS}(?:{TOK}{WS})*?{ROOT_OR_HOME}(?:\s|$)"
+            ),
+            format!(r"{head}find{WS}{FIND_ROOT_OR_HOME_DELETE_ALL}"),
+        ];
+        // The find fragment spells `WS` out (a `const` cannot `format!`).
+        for f in [FIND_ROOT_OR_HOME_DELETE, FIND_ROOT_OR_HOME_DELETE_ALL] {
+            assert!(f.contains(WS), "a find fragment no longer uses WS");
+        }
+        for e in &expected {
+            assert!(
+                SafetyValidator::CATASTROPHIC_PATTERNS.contains(&e.as_str()),
+                "floor is missing the expanded #1054 pattern:\n{e}"
+            );
+        }
+    }
+
+    #[test]
+    fn segment_evasions_hit_the_floor() {
+        // The floor is checked per statement view (`floor_applies`), so a
+        // separator, `sudo` or a wrapper in front of the command still counts.
+        for cmd in [
+            "chmod -R 777 ~",
+            "chmod 777 -R /",
+            "git status; chmod -R 777 $HOME",
+            "sudo -u root chmod -R 777 /",
+            "find / -delete",
+            "sudo find ~ -type f -delete",
+            "find ~ -mindepth 1 -delete",
+            "find / -xdev -type f -delete",
+            "find / -name '*' -exec rm -rf {} +",
+            // `rm -rf` on every directory removes everything under it.
+            "find / -type d -exec rm -rf {} +",
+            "chmod -R 777 \"$HOME\"",
+            "chmod -R \\\n777 ~",
+            "(find / -delete)",
+        ] {
+            assert!(
+                SafetyValidator::floor_applies(cmd, ShellType::Bash),
+                "floor must treat {cmd:?} as catastrophic"
+            );
+        }
+        for cmd in [
+            "git log --grep='chmod -R 777 ~'",
+            "find / -name x; rm -rf build",
+            // `-exec rm` that does not consume the find result (`{}`).
+            "find / -maxdepth 0 -exec rm /tmp/cache \\;",
+            "find /tmp/app -delete",
+            "chmod -R 755 ~",
+            "chmod -R /tmp 777 /",
+            // `chmod -R 777 '$HOME'` (a literal `$HOME` folder) is not listed:
+            // the floor also scans the quote-stripped form that
+            // `destructive_unescaped` builds to catch `rm -rf "/"`, so it is
+            // on the floor. That error is on the strict side.
+            "find '~' -delete",
+            "chmod -R\n777 ~",
+            // A bare `;` ends the find statement; only `\;` stays inside it.
+            "find / ; echo -delete",
+            // A filtered find deletes only what matches: High, not the floor,
+            // so a team can allowlist its own cleanup.
+            "find ~ -name .DS_Store -delete",
+            "find / -name '*.pyc' -delete 2>/dev/null",
+            "find \"$HOME\" -type d -name node_modules -prune -exec rm -rf {} +",
+            "find ~ -name '*.orig' -exec rm {} \\;",
+            "find / -xdev -type f -name '*.tmp' -mtime +7 -delete",
+            "find / -name x -exec rm -rf {} \\;",
+            // `-delete` removes a directory only when it is empty, and a
+            // symlink without its target: not catastrophic (cubic finding on #1614).
+            "find ~ -type d -delete",
+            "find / -type l -delete",
+            // Text that only mentions a command is not a statement.
+            "git commit -m \"Block sudo chmod -R 777 / and sudo find / -delete\"",
+            "git commit -m \"$(cat <<'EOF'\nfeat: x\n\nchmod -R 777 ~ is now Critical\nEOF\n)\"",
+            "gh pr create --body \"$(cat <<'EOF'\nfind ~ -name x -delete is now blocked\nEOF\n)\"",
+        ] {
+            assert!(
+                !SafetyValidator::floor_applies(cmd, ShellType::Bash),
+                "floor must not treat {cmd:?} as catastrophic"
+            );
+        }
+    }
+
+    /// `floor_applied` in the guard log must see the same views as
+    /// `validate_command`, or a denied wrapper reports `false`.
+    #[test]
+    fn floor_applies_sees_wrapper_payloads() {
+        assert!(SafetyValidator::floor_applies(
+            "bash -c 'rm -rf /'",
+            ShellType::Bash
+        ));
+        assert!(SafetyValidator::floor_applies(
+            "git status; chmod -R 777 ~",
+            ShellType::Bash
+        ));
+        assert!(!SafetyValidator::floor_applies(
+            "bash -c 'ls -la'",
+            ShellType::Bash
+        ));
+    }
+
     #[test]
     fn floor_regexes_all_compile() {
         // No silent regex drop: the floor must compile exactly the number of
@@ -1489,5 +1687,56 @@ mod allowlist_catastrophic_tests {
                 "permissive allowlist must never re-enable catastrophe: {cmd:?}"
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod privilege_label_tests {
+    use super::names_privilege_change;
+
+    #[test]
+    fn filesystem_root_phrases_are_not_privilege_changes() {
+        for d in [
+            "recursive deletion of root, home, current, or parent directory",
+            "force recursive deletion from root",
+            "bypass root protection and delete everything",
+            "recursive chmod on root directory",
+            "recursive deletion of windows drive root (powershell)",
+            "windows delete on c drive root",
+            "recursive chmod on the root dir",
+            "clear the root folder",
+            "wipe root partition",
+        ] {
+            assert!(!names_privilege_change(d), "{d}");
+        }
+    }
+
+    #[test]
+    fn root_privilege_wording_keeps_the_label() {
+        // Review finding: custom descriptions use many root-privilege
+        // phrases, not only "root user".
+        for d in [
+            "switch to root user without specific command",
+            "run as root",
+            "gain root access",
+            "open a root shell",
+            "download and execute remote script with root privileges",
+            "permission change making root world-writable (recursive or direct)",
+            "delete files with elevated privileges",
+            "sudo without a password",
+            // Review finding: "of root" / "from root" must not strip
+            // root-user wording.
+            "reset password of root user",
+            "login from root's account",
+        ] {
+            assert!(names_privilege_change(d), "{d}");
+        }
+    }
+
+    #[test]
+    fn root_privilege_next_to_a_filesystem_root_keeps_the_label() {
+        assert!(names_privilege_change(
+            "run as root and delete the root directory"
+        ));
     }
 }

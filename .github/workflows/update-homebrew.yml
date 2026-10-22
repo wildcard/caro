@@ -119,21 +119,11 @@ jobs:
 
           echo "Updating formula to version $VERSION"
 
-          # Update version
-          sed -i "s/version \".*\"/version \"$VERSION\"/" "$FORMULA_PATH"
-
-          # Update SHA256 values (handling both placeholders and existing hashes)
-          # macOS Silicon
-          sed -i "/macos-silicon/,/sha256/{s/sha256 \"[A-Za-z0-9_]*\"/sha256 \"${{ steps.checksums.outputs.MACOS_SILICON_SHA256 }}\"/}" "$FORMULA_PATH"
-
-          # macOS Intel
-          sed -i "/macos-intel/,/sha256/{s/sha256 \"[A-Za-z0-9_]*\"/sha256 \"${{ steps.checksums.outputs.MACOS_INTEL_SHA256 }}\"/}" "$FORMULA_PATH"
-
-          # Linux AMD64
-          sed -i "/linux-amd64/,/sha256/{s/sha256 \"[A-Za-z0-9_]*\"/sha256 \"${{ steps.checksums.outputs.LINUX_AMD64_SHA256 }}\"/}" "$FORMULA_PATH"
-
-          # Linux ARM64
-          sed -i "/linux-arm64/,/sha256/{s/sha256 \"[A-Za-z0-9_]*\"/sha256 \"${{ steps.checksums.outputs.LINUX_ARM64_SHA256 }}\"/}" "$FORMULA_PATH"
+          python3 scripts/render-homebrew-formula.py "$FORMULA_PATH" "$VERSION" \
+            "${{ steps.checksums.outputs.MACOS_SILICON_SHA256 }}" \
+            "${{ steps.checksums.outputs.MACOS_INTEL_SHA256 }}" \
+            "${{ steps.checksums.outputs.LINUX_AMD64_SHA256 }}" \
+            "${{ steps.checksums.outputs.LINUX_ARM64_SHA256 }}"
 
           echo "Formula updated. Changes:"
           git diff "$FORMULA_PATH"

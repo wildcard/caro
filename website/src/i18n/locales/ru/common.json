@@ -46,7 +46,11 @@
         "glossary": "Глоссарий",
         "terminalTerms": "Терминал и Unix термины",
         "github": "GitHub",
-        "sourceCode": "Исходный код"
+        "sourceCode": "Исходный код",
+        "useCases": "Use Cases",
+        "byRoleSummary": "By role: SRE, DevOps, security",
+        "docs": "Docs",
+        "installAndReference": "Install, configure, reference"
       },
       "mobile": {
         "allComparisons": "Все сравнения",

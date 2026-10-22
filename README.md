@@ -31,7 +31,7 @@ Have questions or want to discuss caro with other users? Join the community!
 
 **Current Version:** 1.5.0 (General Availability)
 
-This project is **generally available** with all core features implemented, tested, and working. The CLI achieves 93.1% pass rate on comprehensive test suite with zero false positives in safety validation.
+This project is **generally available** with all core features implemented, tested, and working. The CLI recorded a 94.8% Command Success Rate (CSR) on the 58-case beta suite in January 2026 (see [ROADMAP.md](ROADMAP.md)) with zero false positives in safety validation; per-backend accuracy and calibration numbers from the evaluation harness are published at [caro.sh/evals](https://caro.sh/evals).
 
 > **Note:** The project was originally named `cmdai` but has been renamed to `caro`. See [Naming History](docs/NAMING_HISTORY.md) for details.
 
@@ -408,32 +408,11 @@ allow_public = false
   set `allow_public = true`. See
   [ADR-015](docs/adr/ADR-015-distributed-llm-backends-hybrid-privacy.md).
 
-### System Assessment
+### System Assessment (not available in 1.5.0)
 
-Caro can assess your system's hardware capabilities and recommend optimal model configurations:
-
-```bash
-# Basic assessment
-caro assess
-
-# Export to JSON
-caro assess --export json --output assessment.json
-
-# Export to Markdown
-caro assess --export markdown --output assessment.md
-```
-
-The assessment command detects:
-- CPU architecture, cores, and model
-- Total and available memory (RAM)
-- GPU vendor, model, and VRAM (if available)
-- Recommended models and backends based on your hardware
-
-**Supported Platforms**: macOS, Linux, Windows
-
-**Backends**: MLX (Apple Silicon), CUDA (NVIDIA), CPU-only
-
-For more details, run `caro assess --help`.
+The `caro assess` subcommand is disabled in the current release. The code
+lives in `src/assessment/`, but the subcommand is not registered in the CLI
+(`src/main.rs`), so `caro assess` is read as a prompt instead.
 
 ## 🏗️ Architecture
 

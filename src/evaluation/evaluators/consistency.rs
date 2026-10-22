@@ -77,6 +77,8 @@ impl ConsistencyEvaluator {
                 confidence: None,
                 confidence_source: None,
                 decision_failed: None,
+                local_risk: None,
+                reference_risk: None,
             });
         }
 
@@ -183,6 +185,8 @@ impl ConsistencyEvaluator {
             confidence: None,
             confidence_source: None,
             decision_failed: None,
+            local_risk: None,
+            reference_risk: None,
         })
     }
 
@@ -294,6 +298,8 @@ impl Evaluator for ConsistencyEvaluator {
             confidence: result.confidence,
             confidence_source: result.confidence_source,
             decision_failed: result.decision_failed,
+            local_risk: result.local_risk.clone(),
+            reference_risk: result.reference_risk.clone(),
         })
     }
 }

@@ -84,7 +84,7 @@ const paths = [
 <style>
   .paths {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 30px;
     margin-top: 50px;
   }
@@ -97,16 +97,17 @@ const paths = [
     transition: transform 0.3s, box-shadow 0.3s, background 0.3s ease, border-color 0.3s ease;
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
 
   .path-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.15);
-    border-color: #ff8c42;
+    box-shadow: 0 10px 30px rgba(239, 51, 51, 0.15);
+    border-color: var(--accent);
   }
 
   :global(.dark) .path-card:hover {
-    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.25);
+    box-shadow: 0 10px 30px rgba(239, 51, 51, 0.25);
   }
 
   .path-icon {
@@ -135,7 +136,8 @@ const paths = [
     padding: 4px 10px;
     border-radius: 4px;
     background: rgba(33, 150, 243, 0.1);
-    color: #2196f3;
+    border: 1px solid rgba(33, 150, 243, 0.45);
+    color: var(--fg-strong);
     white-space: nowrap;
   }
 
@@ -169,8 +171,8 @@ const paths = [
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     font-size: 12px;
     font-weight: bold;
     flex-shrink: 0;
@@ -180,14 +182,16 @@ const paths = [
     color: var(--color-text-tertiary);
     font-size: 14px;
     line-height: 1.5;
+    min-width: 0;
+    overflow-wrap: anywhere;
     transition: color 0.3s ease;
   }
 
   .cta-button {
     display: inline-block;
     padding: 12px 24px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     text-decoration: none;
     border-radius: 8px;
     font-weight: 600;
@@ -197,13 +201,27 @@ const paths = [
   }
 
   .cta-button:hover {
+    background: var(--accent-fill-hover);
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 4px 12px rgba(239, 51, 51, 0.3);
   }
+
+  .cta-button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .path-card:hover,
+    .cta-button:hover {
+      transform: none;
+    }
+  }
+
 
   @media (max-width: 768px) {
     .paths {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 </style>

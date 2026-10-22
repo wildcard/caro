@@ -37,6 +37,18 @@ itself.
 
 Caro fills that gap.
 
+### Neighbours in the same slot
+
+[Rampart](https://github.com/peg/rampart) (Go, Apache-2.0) is the closest
+product to `caro guard`: a policy-and-approval layer that hooks Claude Code,
+Codex, Cursor, Cline, Copilot, OpenClaw and MCP servers, answers `allow` /
+`ask` / `deny` from YAML policy, and keeps a hash-chained audit log. It
+overlaps Caro on the hook, differs on philosophy (Rampart can `allow` and
+auto-approve; Caro never does), and covers file, fetch and MCP tools that
+Caro does not yet see. The gap analysis and the parity milestone are in
+[`docs/research/2026-10-18-rampart-lessons.md`](research/2026-10-18-rampart-lessons.md)
+and `ROADMAP.md` (v1.6.0).
+
 ## What Caro provides
 
 | Capability | How it works |
@@ -47,6 +59,7 @@ Caro fills that gap.
 | **Backend symmetry** | The `SafetyValidator` is backend-agnostic. An embedded model, Ollama, vLLM, or any future backend all pass through the same code path. |
 | **Structured output** | JSON and YAML output modes give guardian orchestrators a machine-readable signal to consume. |
 | **CVE rule pipeline** | Weekly automated sync with NVD + CISA KEV + GHSA for shell-invocation CVEs (CVSS >= 7.0). Rules compiled into the binary with zero runtime network calls. |
+| **Harness guardian (`caro guard`)** | PreToolUse hook adapter for Claude Code, Grok Build, Codex and OpenCode. Shadow by default, Critical → `deny`, High → `ask`, never `allow`. Redacted decision log and `caro guard report`. See [ADR-020](adr/ADR-020-guardian-hook-harness-adapters.md). |
 
 ## Integration patterns
 
@@ -60,7 +73,29 @@ The JSON output includes the generated command, risk level, and safety
 verdict. A guardian orchestrator can parse this and apply its own approval
 policy.
 
-### 2. MCP server (in progress)
+### 2. Harness guardian hook (experimental)
+
+    caro guard --harness claude --mode shadow
+
+(Synopsis: `--harness` is one of `claude`, `grok`, `codex`, `opencode`,
+`generic`; `--mode` is `shadow` or `enforce`.)
+
+Install and check it:
+
+    caro guard setup claude            # writes ~/.claude/settings.json (shadow)
+    caro guard setup claude --verify   # entry present, caro on $PATH, rm -rf / → deny
+    caro guard test "rm -rf /"         # dry-run one command: exit 2 = deny, 3 = ask
+
+A `PreToolUse` hook adapter. Claude Code, Grok Build, Codex CLI and OpenCode
+(through a plugin) send every shell command their agent is about to run to
+Caro. In **shadow** mode (the default) Caro records what it would have decided
+(see `caro guard report`). In **enforce** mode, Critical commands are denied,
+and High-risk ones go to the human in Claude Code, Grok Build and Codex;
+OpenCode plugins cannot prompt, so there they are blocked with an
+explanation. Caro never auto-approves. See
+[ADR-020](adr/ADR-020-guardian-hook-harness-adapters.md).
+
+### 3. MCP server (not started, #928)
 
     caro mcp serve
 
@@ -68,7 +103,7 @@ Exposes `generate_command`, `validate_command`, and `explain_safety` over the
 Model Context Protocol. Any MCP-aware agent framework (LangChain, CrewAI,
 Semantic Kernel, Google ADK) can call Caro as a tool.
 
-### 3. OpenAI-compatible endpoint (in progress)
+### 4. OpenAI-compatible endpoint (not started, #929)
 
     caro serve --openai
 

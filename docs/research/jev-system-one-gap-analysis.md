@@ -131,7 +131,10 @@ backend switch dressed as a decision.
    advisor path (ADR-015) as the reference labeller for gate decisions, store
    disagreements, and feed accepted pairs into `docs/ml/sft-data-pipeline.md`.
    Plot accuracy vs `p95_execution_time_ms` vs `cost_per_passed_task` per
-   backend in the weekly demo report. A tiny local classifier for the Noul
+   backend in the weekly demo report. *Shipped in #1466* (reference
+   labeller, `risk_agreement`, ECE baseline gate, Pareto table,
+   `decision_label_pairs`); the classifier itself waits on that data.
+   A tiny local classifier for the Noul
    gates is a later experiment and should be gated on this data, not on
    enthusiasm.
 
@@ -159,6 +162,17 @@ backend switch dressed as a decision.
   stay discrete and only the parser accept both?
 - The three eval harnesses should converge before calibration becomes a
   release gate; which one survives is out of scope here.
+
+## Status
+
+| Phase | Scope | Where it landed |
+| --- | --- | --- |
+| 1 | `caro::decision`, Brier/ECE/p50/p95 in the harness, measured confidence for LLM backends (#1461–#1464) | PR #1459, merged |
+| 2 | Constrained decoding on Ollama/vLLM with one corrective retry (#1465) | PR #1459, merged |
+| 3 | Consensus risk labels, Pareto view in the weekly demo report, ECE release gate (#1466) | PR #1489, merged |
+| 3 | `caro.sh/evals` page rendered from `website/src/data/evals.ts`, verified by the website-claims suite | this change |
+| 4 | Gate model (ADR-019) | not started; waits on Phase 3 consensus data |
+| 5 | Product surfaces | waits on Gate 1 transcripts |
 
 ## See also
 

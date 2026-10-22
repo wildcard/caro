@@ -154,7 +154,7 @@ apps/devrel/
 
 ### Prerequisites
 
-- **Node.js** 18+ (v22.21.1 recommended)
+- **Node.js** 20.9+ (next 16 requires it; v22.21.1 recommended)
 - **npm** 10+
 - **Caro CLI** (optional, for local agent integration)
 
@@ -173,6 +173,10 @@ npm run dev
 # Open in browser
 # Visit: http://localhost:3000
 ```
+
+This directory is an npm workspace. `npm install` here reads and writes the
+root `package-lock.json`, so do not commit a lockfile in this directory. See
+[Workspace and lockfile](../../website/README.md#workspace-and-lockfile).
 
 ### Available Scripts
 

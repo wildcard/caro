@@ -39,6 +39,14 @@ pub struct CommandResult {
     /// Whether the risk judge (`classify_risk`) returned no verdict when
     /// the harness asked for one (#1465). `None` when the judge did not run.
     pub decision_failed: Option<bool>,
+
+    /// The backend's own risk verdict for the generated command, when the
+    /// harness ran its judge (#1466).
+    pub local_risk: Option<crate::models::RiskJudgment>,
+
+    /// The reference labeller's verdict for the same command, when one was
+    /// configured (#1466). A model label, not ground truth.
+    pub reference_risk: Option<crate::models::RiskJudgment>,
 }
 
 impl CommandResult {
@@ -53,6 +61,8 @@ impl CommandResult {
             confidence: None,
             confidence_source: Some(crate::models::ConfidenceSource::Unknown),
             decision_failed: None,
+            local_risk: None,
+            reference_risk: None,
         }
     }
 
@@ -67,6 +77,8 @@ impl CommandResult {
             confidence: None,
             confidence_source: None,
             decision_failed: None,
+            local_risk: None,
+            reference_risk: None,
         }
     }
 
@@ -81,6 +93,8 @@ impl CommandResult {
             confidence: None,
             confidence_source: None,
             decision_failed: None,
+            local_risk: None,
+            reference_risk: None,
         }
     }
 }

@@ -88,6 +88,7 @@ pub mod minimal;
 pub mod profiles;
 pub mod risk_judge;
 pub mod smollm_prompt;
+pub mod ste;
 pub mod validation;
 
 /// Selects which system-prompt variant the embedded backend uses.

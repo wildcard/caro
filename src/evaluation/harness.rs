@@ -10,8 +10,10 @@ use std::time::{Duration, Instant};
 use tokio::time::timeout;
 
 use crate::backends::{CommandGenerator, GeneratorError};
+use crate::evaluation::baseline::DEFAULT_ECE_REGRESSION_THRESHOLD;
 use crate::evaluation::calibration::{
-    decision_failure_count, source_counts, CalibrationRollup, LatencyPercentiles,
+    decision_failure_count, risk_agreement, risk_gate_calibration, source_counts,
+    CalibrationRollup, LatencyPercentiles,
 };
 use crate::evaluation::errors::Result;
 use crate::evaluation::{
@@ -96,6 +98,10 @@ pub struct HarnessConfig {
     /// generated command and count verdicts that fail to parse (#1465).
     /// Off by default: it doubles the calls per test and CI has no judge.
     pub judge_risk: bool,
+
+    /// ECE rise over the baseline that counts as a regression (#1466),
+    /// applied by [`BaselineStore::compare_with_ece`](crate::evaluation::BaselineStore::compare_with_ece).
+    pub ece_regression_threshold: f32,
 }
 
 impl Default for HarnessConfig {
@@ -106,6 +112,7 @@ impl Default for HarnessConfig {
             regression_threshold: 0.95, // 95% pass rate
             max_concurrency: 10,
             judge_risk: false,
+            ece_regression_threshold: DEFAULT_ECE_REGRESSION_THRESHOLD,
         }
     }
 }
@@ -133,6 +140,9 @@ pub struct EvaluationHarness {
     backends: Vec<(String, Arc<dyn CommandGenerator>)>,
     evaluators: HashMap<TestCategory, Arc<dyn Evaluator>>,
     config: HarnessConfig,
+    /// Reference labeller for risk verdicts (#1466): asked about every
+    /// generated command so local verdicts can be scored for agreement.
+    reference_judge: Option<Arc<dyn CommandGenerator>>,
 }
 
 impl EvaluationHarness {
@@ -171,6 +181,7 @@ impl EvaluationHarness {
             backends: Vec::new(),
             evaluators,
             config,
+            reference_judge: None,
         })
     }
 
@@ -184,6 +195,15 @@ impl EvaluationHarness {
         self.backends.push((name, backend));
     }
 
+    /// Set the reference labeller (#1466): a backend with a risk judge whose
+    /// verdicts are stored as `reference_risk` on every result. Setting it
+    /// also turns on the local judge pass (as `judge_risk` does), since
+    /// agreement needs both verdicts. Its labels are a model's opinion, not
+    /// ground truth.
+    pub fn set_reference_judge(&mut self, judge: Arc<dyn CommandGenerator>) {
+        self.reference_judge = Some(judge);
+    }
+
     /// Runs evaluation on all registered backends
     ///
     /// # Returns
@@ -194,6 +214,19 @@ impl EvaluationHarness {
     ///
     /// Returns error if evaluation cannot complete
     pub async fn run(&self) -> Result<BenchmarkReport> {
+        self.run_with_results().await.map(|(report, _)| report)
+    }
+
+    /// Runs the full evaluation and also returns every per-result record the
+    /// report was aggregated from, in the order they were produced.
+    ///
+    /// The report is a summary; the per-result records carry the fields that
+    /// summary drops (the generated command, the local and reference risk
+    /// verdicts, the confidence and its source). The consensus-label export
+    /// for the gate classifier (`sft_export::decision_label_pairs`, ADR-018)
+    /// needs those, so callers that write training data use this entry point
+    /// and `run` stays the summary-only path.
+    pub async fn run_with_results(&self) -> Result<(BenchmarkReport, Vec<EvaluationResult>)> {
         let start_time = Instant::now();
 
         // Filter available backends
@@ -210,9 +243,9 @@ impl EvaluationHarness {
 
         // Aggregate results
         let execution_time_ms = start_time.elapsed().as_millis() as u64;
-        let report = self.aggregate_results(all_results, execution_time_ms)?;
+        let report = self.aggregate_results(&all_results, execution_time_ms)?;
 
-        Ok(report)
+        Ok((report, all_results))
     }
 
     /// Runs evaluation for a specific category only
@@ -322,6 +355,7 @@ impl EvaluationHarness {
         let cost = CostRollup::of(all_results.iter(), passed);
         let calibration = CalibrationRollup::of(all_results.iter());
         let latency = LatencyPercentiles::of(all_results.iter());
+        let (agreement, disagreements) = risk_agreement(all_results.iter());
 
         Ok(BackendResult {
             backend_name: backend_name.to_string(),
@@ -348,6 +382,9 @@ impl EvaluationHarness {
             p95_execution_time_ms: latency.p95_ms,
             confidence_sources: source_counts(all_results.iter()),
             decision_parse_failures: decision_failure_count(all_results.iter()),
+            risk_agreement: agreement,
+            risk_disagreements: disagreements,
+            risk_gate: risk_gate_calibration(all_results.iter()),
         })
     }
 
@@ -395,7 +432,8 @@ impl EvaluationHarness {
                     })?
                     .clone();
                 let timeout_ms = self.config.backend_timeout_ms;
-                let judge_risk = self.config.judge_risk;
+                let reference_judge = self.reference_judge.clone();
+                let judge_risk = self.config.judge_risk || reference_judge.is_some();
                 let permit = limiter
                     .clone()
                     .acquire_owned()
@@ -425,11 +463,17 @@ impl EvaluationHarness {
                                 confidence: None,
                                 confidence_source: None,
                                 decision_failed: None,
+                                local_risk: None,
+                                reference_risk: None,
                             }
                         }
                     };
                     if judge_risk {
                         Self::judge_command_for_test(&mut command_result, &backend, timeout_ms)
+                            .await;
+                    }
+                    if let Some(judge) = &reference_judge {
+                        Self::reference_label_for_test(&mut command_result, judge, timeout_ms)
                             .await;
                     }
 
@@ -522,6 +566,8 @@ impl EvaluationHarness {
                     confidence: None,
                     confidence_source: None,
                     decision_failed: None,
+                    local_risk: None,
+                    reference_risk: None,
                 };
             }
         };
@@ -543,12 +589,22 @@ impl EvaluationHarness {
                 confidence: None,
                 confidence_source: None,
                 decision_failed: None,
+                local_risk: None,
+                reference_risk: None,
             },
         };
-        if self.config.judge_risk {
+        if self.config.judge_risk || self.reference_judge.is_some() {
             Self::judge_command_for_test(
                 &mut command_result,
                 &backend,
+                self.config.backend_timeout_ms,
+            )
+            .await;
+        }
+        if let Some(judge) = &self.reference_judge {
+            Self::reference_label_for_test(
+                &mut command_result,
+                judge,
                 self.config.backend_timeout_ms,
             )
             .await;
@@ -575,6 +631,8 @@ impl EvaluationHarness {
                 confidence: command_result.confidence,
                 confidence_source: command_result.confidence_source,
                 decision_failed: None,
+                local_risk: None,
+                reference_risk: None,
             },
         }
     }
@@ -609,6 +667,35 @@ impl EvaluationHarness {
         )
         .await;
         result.decision_failed = Some(!matches!(verdict, Ok(Some(_))));
+        result.local_risk = verdict.ok().flatten();
+    }
+
+    /// Reference labelling (#1466): ask the configured reference judge for
+    /// its verdict on the generated command, under the same per-call budget.
+    async fn reference_label_for_test(
+        result: &mut CommandResult,
+        judge: &Arc<dyn CommandGenerator>,
+        timeout_ms: u64,
+    ) {
+        let Some(command) = result.command.as_deref() else {
+            return;
+        };
+        if !judge.supports_risk_judge() {
+            return;
+        }
+        let ctx = RiskJudgeContext {
+            shell: ShellType::Bash,
+            cwd: None,
+            static_risk: crate::models::RiskLevel::Safe,
+            matched_patterns: vec![],
+        };
+        result.reference_risk = timeout(
+            Duration::from_millis(timeout_ms),
+            judge.classify_risk(command, &ctx),
+        )
+        .await
+        .ok()
+        .flatten();
     }
 
     /// Generates a command for a test case using a backend
@@ -639,6 +726,8 @@ impl EvaluationHarness {
                     confidence,
                     confidence_source: Some(generated.confidence_source),
                     decision_failed: None,
+                    local_risk: None,
+                    reference_risk: None,
                 }
             }
             Err(e) => {
@@ -656,6 +745,8 @@ impl EvaluationHarness {
                     confidence: None,
                     confidence_source: None,
                     decision_failed: None,
+                    local_risk: None,
+                    reference_risk: None,
                 }
             }
         }
@@ -664,7 +755,7 @@ impl EvaluationHarness {
     /// Aggregates evaluation results into a benchmark report
     fn aggregate_results(
         &self,
-        results: Vec<EvaluationResult>,
+        results: &[EvaluationResult],
         execution_time_ms: u64,
     ) -> Result<BenchmarkReport> {
         // Calculate overall metrics
@@ -756,6 +847,7 @@ impl EvaluationHarness {
             let cost = CostRollup::of(backend_tests.iter().copied(), passed);
             let calibration = CalibrationRollup::of(backend_tests.iter().copied());
             let latency = LatencyPercentiles::of(backend_tests.iter().copied());
+            let (agreement, disagreements) = risk_agreement(backend_tests.iter().copied());
 
             backend_results.insert(
                 backend_name.clone(),
@@ -788,6 +880,9 @@ impl EvaluationHarness {
                     p95_execution_time_ms: latency.p95_ms,
                     confidence_sources: source_counts(backend_tests.iter().copied()),
                     decision_parse_failures: decision_failure_count(backend_tests.iter().copied()),
+                    risk_agreement: agreement,
+                    risk_disagreements: disagreements,
+                    risk_gate: risk_gate_calibration(backend_tests.iter().copied()),
                 },
             );
         }
@@ -989,6 +1084,28 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_run_with_results_returns_every_result() {
+        // Regression guard for the consensus-label export (ADR-018): the
+        // per-result records must cover exactly what the report summarises,
+        // or the JSONL written from them silently drops cases.
+        let dataset = create_simple_dataset();
+        let mut harness = EvaluationHarness::new(dataset, HarnessConfig::default()).unwrap();
+        harness.add_backend(
+            "mock-backend".to_string(),
+            Arc::new(MockBackend::new("mock")),
+        );
+
+        let (report, results) = harness.run_with_results().await.unwrap();
+
+        assert_eq!(results.len(), report.total_tests);
+        assert_eq!(
+            results.iter().filter(|r| r.passed).count(),
+            report.total_passed
+        );
+        assert!(results.iter().all(|r| r.backend_name == "mock-backend"));
+    }
+
+    #[tokio::test]
     async fn test_harness_with_multiple_backends() {
         let dataset = create_simple_dataset();
         let config = HarnessConfig::default();
@@ -1076,6 +1193,75 @@ mod tests {
 
         assert_eq!(report.total_tests, 2); // 2 tests × 1 available backend
         assert_eq!(report.backend_results.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn reference_labels_score_agreement_per_backend() {
+        let dataset = create_simple_dataset();
+        // No `judge_risk`: a reference judge implies the local pass.
+        let config = HarnessConfig::default();
+        let verdict = |risk| crate::models::RiskJudgment {
+            risk,
+            reason: "mock".to_string(),
+            confidence: 0.9,
+        };
+
+        let mut harness = EvaluationHarness::new(dataset, config).unwrap();
+        harness.set_reference_judge(Arc::new(MockBackend::with_judge(
+            "reference",
+            Some(verdict(crate::models::RiskLevel::Safe)),
+        )));
+        harness.add_backend(
+            "agrees".to_string(),
+            Arc::new(MockBackend::with_judge(
+                "agrees",
+                Some(verdict(crate::models::RiskLevel::Safe)),
+            )),
+        );
+        harness.add_backend(
+            "disagrees".to_string(),
+            Arc::new(MockBackend::with_judge(
+                "disagrees",
+                Some(verdict(crate::models::RiskLevel::High)),
+            )),
+        );
+        harness.add_backend(
+            "no_judge".to_string(),
+            Arc::new(MockBackend::new("no_judge")),
+        );
+
+        let report = harness.run().await.unwrap();
+        let agreement = |name: &str| {
+            let r = &report.backend_results[name];
+            (r.risk_agreement, r.risk_disagreements)
+        };
+        assert_eq!(agreement("agrees"), (Some(1.0), 0));
+        assert_eq!(agreement("disagrees"), (Some(0.0), 2));
+        assert_eq!(
+            agreement("no_judge"),
+            (None, 0),
+            "reference alone is not agreement"
+        );
+
+        // Risk-gate baseline (#1510): confidence 0.9 scored against agreement.
+        let gate = |name: &str| report.backend_results[name].risk_gate;
+        let agrees = gate("agrees").expect("both verdicts present");
+        assert_eq!((agrees.n, agrees.coverage), (2, 1.0));
+        assert!(
+            (agrees.brier - 0.01).abs() < 1e-6,
+            "0.9 confident, always right"
+        );
+        let disagrees = gate("disagrees").expect("both verdicts present");
+        assert!(
+            (disagrees.brier - 0.81).abs() < 1e-6,
+            "0.9 confident, always wrong"
+        );
+        assert!((disagrees.ece - 0.9).abs() < 1e-6);
+        assert_eq!(
+            gate("no_judge"),
+            None,
+            "no local verdict, no gate to calibrate"
+        );
     }
 
     #[tokio::test]
