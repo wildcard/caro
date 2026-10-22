@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-10-21
+**Last updated**: 2026-10-22
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -55,6 +55,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-10-19 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher answered; no model download attempted |
 | 2026-10-20 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Model available; dry-run gave `ls -la` |
 | 2026-10-21 | PASS | PASS (1.5.0) | PASS | PASS | PASS | gh token invalid; MCP used |
+| 2026-10-22 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher answered; no download needed |
 
 ---
 
@@ -65,7 +66,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | # | Surface | Domain | Last tested | Result | Linked issue(s) |
 |---|---------|--------|-------------|--------|-----------------|
 | 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-10-11 | PASS | — |
-| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-20 | PASS | — |
+| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-22 | PASS | — |
 | 3 | Telemetry consent persistence across invocations | cli | 2026-10-11 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
@@ -73,7 +74,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-10-08 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-09-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-21 | FAIL | #1269 (CPU stub; #1673 is its duplicate), #1272, #1408 (open) |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-22 | FAIL | #1269 (CPU stub; #1673 is its duplicate), #1272, #1408 (open) |
 | 11 | `caro ai --continue-session` shell widget | ai | 2026-10-19 | FAIL | #1269 (CPU stub, as surface 10, when a prompt is passed). With no prompt, the `?` widget cannot take a request (#1671) |
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection. The README claimed it until #1680 fixed #1677 on 2026-10-19) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
@@ -99,7 +100,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 33 | `caro ai` decision gates (clarification, Jev gap, constrained decoding) (#1459) | ai | never | — | — |
 | 34 | Executor timeout / guard hooks / loop budget enforcement (#1470) | cli | never | — | — |
 | 35 | `caro export` platform runbook writer (new in v1.5.0) | cli | never | — | — |
-| 36 | `caro guard test / setup` (spec 011, new after v1.5.0) | safety | 2026-10-21 | PARTIAL (test ok, setup not run) | [#1697](https://github.com/wildcard/caro/issues/1697) |
+| 36 | `caro guard test / setup` (spec 011, new after v1.5.0) | safety | 2026-10-22 | PARTIAL (test ok, setup not run) | [#1697](https://github.com/wildcard/caro/issues/1697) |
 
 ---
 
@@ -154,7 +155,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1540](https://github.com/wildcard/caro/issues/1540) | ai --once silent hang when no backend ready | ai | 2026-10-08 | closed (duplicate) |
 | [#1541](https://github.com/wildcard/caro/issues/1541) | CLAUDE.md shows 1.4.0 instead of 1.5.0 | docs | 2026-10-08 | closed (duplicate) |
 | [#1603](https://github.com/wildcard/caro/issues/1603) | QA memory files stuck at bootstrap — 25+ update PRs unmerged | docs/ops | 2026-10-11 | open |
-| [#1673](https://github.com/wildcard/caro/issues/1673) | ai --once deletion clarification (CPU stub, duplicate of #1269) | ai | 2026-10-15 | open (duplicate of #1269) |
+| [#1673](https://github.com/wildcard/caro/issues/1673) | ai --once deletion clarification (CPU stub, duplicate of #1269) | ai | 2026-10-15 | closed (duplicate of #1269, 2026-10-15) |
 | [#1677](https://github.com/wildcard/caro/issues/1677) | README `caro assess` section vs disabled subcommand | docs | 2026-10-16 | closed (fixed by #1680) |
 | [#1697](https://github.com/wildcard/caro/issues/1697) | `caro guard test` swallows a trailing `--output json` | cli | 2026-10-21 | open |
 
