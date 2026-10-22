@@ -219,7 +219,7 @@ enum ConfigCommands {
     /// Set a configuration value
     Set {
         /// Configuration key (backend, model-name, shell, safety, telemetry.enabled,
-        /// log_level, cache_max_size, log_rotation)
+        /// telemetry.first_run, log_level, cache_max_size, log_rotation)
         key: String,
         /// Value to set
         value: String,
@@ -227,7 +227,7 @@ enum ConfigCommands {
     /// Get a configuration value
     Get {
         /// Configuration key (backend, model-name, shell, safety, telemetry.enabled,
-        /// log_level, cache_max_size, log_rotation)
+        /// telemetry.first_run, log_level, cache_max_size, log_rotation)
         key: String,
     },
     /// Show all configuration
@@ -2160,7 +2160,7 @@ fn build_knowledge_backend_config(
 /// listed in the unknown-key error. The match arms also accept dash/underscore
 /// aliases; `tests/config_cli_keys.rs` exercises each key and alias.
 const CONFIG_KEYS: &str =
-    "backend, model-name, shell, safety, telemetry.enabled, log_level, cache_max_size, log_rotation";
+    "backend, model-name, shell, safety, telemetry.enabled, telemetry.first_run, log_level, cache_max_size, log_rotation";
 
 /// Handle configuration subcommands
 fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
@@ -2219,6 +2219,16 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                     // An explicit choice counts as consent; don't re-prompt over it.
                     config.telemetry.first_run = false;
                     println!("{} Set telemetry.enabled to '{}'", "✓".green(), enabled);
+                }
+                "telemetry.first_run" | "telemetry_first_run" => {
+                    let first_run: bool = value.to_lowercase().parse().map_err(|_| {
+                        format!(
+                            "Invalid telemetry.first_run value '{}': use true or false",
+                            value
+                        )
+                    })?;
+                    config.telemetry.first_run = first_run;
+                    println!("{} Set telemetry.first_run to '{}'", "✓".green(), first_run);
                 }
                 "log_level" | "log-level" => {
                     let level: caro::models::LogLevel = value.parse()?;
@@ -2305,6 +2315,13 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                         config.telemetry.enabled
                     );
                 }
+                "telemetry.first_run" | "telemetry_first_run" => {
+                    println!(
+                        "{}: {}",
+                        "telemetry.first_run".bold(),
+                        config.telemetry.first_run
+                    );
+                }
                 "log_level" | "log-level" => {
                     println!("{}: {:?}", "log_level".bold(), config.log_level);
                 }
@@ -2375,6 +2392,11 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 } else {
                     "disabled"
                 }
+            );
+            println!(
+                "  {}: {}",
+                "telemetry.first_run".cyan(),
+                config.telemetry.first_run
             );
             println!();
             println!(
