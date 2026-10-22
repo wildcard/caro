@@ -138,6 +138,10 @@ pub struct SafetySection {
     pub custom_patterns: Vec<DangerPattern>,
     #[serde(default)]
     pub allowlist_patterns: Vec<String>,
+    /// Extra protected-path globs for `caro guard` file tools (spec 011
+    /// §P2.3). Additive on top of the built-in set; `~` is expanded.
+    #[serde(default)]
+    pub protected_paths: Vec<String>,
 }
 
 /// Sibling `patterns.toml` schema. The top-level array uses `[[pattern]]`
