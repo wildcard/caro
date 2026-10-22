@@ -17,6 +17,32 @@ pub struct DiagnosticReport {
     pub network_status: NetworkStatus,
     pub cache_status: CacheStatus,
     pub backend_status: BackendStatus,
+    pub guard_status: GuardStatus,
+}
+
+/// `caro guard` hook installation status (spec 011 §P2.2).
+#[derive(Debug)]
+pub struct GuardStatus {
+    /// `~/.claude/settings.json`, or `None` when the platform has no home dir.
+    pub settings_path: Option<PathBuf>,
+    /// The caro hook command found under `hooks.PreToolUse`, if any.
+    pub installed_command: Option<String>,
+}
+
+impl GuardStatus {
+    fn check() -> Self {
+        use crate::guard::setup::{hook_file, installed_command, Scope, SetupTarget};
+        let settings_path = hook_file(SetupTarget::Claude, Scope::User);
+        let installed_command = settings_path
+            .as_ref()
+            .and_then(|p| std::fs::read_to_string(p).ok())
+            .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
+            .and_then(|v| installed_command(&v));
+        Self {
+            settings_path,
+            installed_command,
+        }
+    }
 }
 
 /// System information (OS, architecture, shell)
@@ -63,12 +89,14 @@ impl DiagnosticReport {
         let network_status = NetworkStatus::check().await;
         let cache_status = CacheStatus::check()?;
         let backend_status = BackendStatus::check().await;
+        let guard_status = GuardStatus::check();
 
         Ok(Self {
             system_info,
             network_status,
             cache_status,
             backend_status,
+            guard_status,
         })
     }
 
@@ -126,6 +154,25 @@ impl DiagnosticReport {
         } else {
             println!("  {} No model downloaded yet", "ℹ".blue());
             println!("    Models will be downloaded automatically on first use");
+        }
+        println!();
+
+        // Guard hook (spec 011 §P2.2)
+        println!("{}", "Guard hook (Claude Code, user scope):".bold());
+        match (
+            &self.guard_status.settings_path,
+            &self.guard_status.installed_command,
+        ) {
+            (Some(path), Some(cmd)) => {
+                println!("  {} installed in {}", "✓".green(), path.display());
+                println!("    hook: {}", cmd);
+                println!("    verify: caro guard setup claude --verify");
+            }
+            (Some(path), None) => {
+                println!("  {} not installed ({})", "ℹ".blue(), path.display());
+                println!("    install: caro guard setup claude");
+            }
+            (None, _) => println!("  {} no home directory on this platform", "⚠".yellow()),
         }
         println!();
 

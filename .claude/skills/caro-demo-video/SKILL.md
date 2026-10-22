@@ -262,7 +262,7 @@ The re-rendered MP4 is a public-facing marketing asset. Two paths:
 
 | Drift type | Examples | Required action |
 |---|---|---|
-| **Output-equivalent** | tokens.css color literal renames (e.g. variable rename, same hex value); whitespace-only changes in LPDemo.astro; install.sh comment edits | Agent re-renders and ships directly. Visual diff against the prior poster.png must be within ±5% pixel delta. |
+| **Output-equivalent** | tokens.css color literal renames (e.g. variable rename, same hex value); whitespace-only changes in LPDemo.astro; install.sh comment edits | Agent re-renders, opens a PR and requests review. Visual diff against the prior poster.png must be within ±5% pixel delta. |
 | **Cosmetic but visible** | Hex color value changes; LPDemo chrome restyle; new pattern count claim ("52+" → "60+") | Agent renders, opens a PR with the new MP4 + poster, requests human review. |
 | **Semantic** | Scene 2 query strings drift; block message changes; install command changes | Agent renders, opens a PR with side-by-side commentary (old vs new strings), requests human review. **Do not auto-ship.** |
 
@@ -271,7 +271,9 @@ The agent decides which bucket applies by reading the
 working tree. If a query string in `test-cases.yaml` changed, that's
 semantic → PR. If only a hex value changed in `tokens.css`, that's
 cosmetic-but-visible → PR. If nothing semantic changed and the render
-is byte-identical, the agent may push directly to main.
+is byte-identical, it is still a PR: say so in the PR body so review is
+quick. Agents never push to `main` or merge their own PR
+(`.claude/rules/git-workflow.md`).
 
 ## Claiming a Maintenance Task
 
@@ -290,9 +292,8 @@ section should:
    refreshes the baseline manifest, so subsequent drift checks anchor
    to this render.
 4. **Ship per trust bucket**:
-   - *Output-equivalent*: commit + merge directly.
-   - *Cosmetic / Semantic*: open a PR with the rendered MP4 + poster +
-     refreshed manifest, request human review.
+   - Every bucket: open or update one PR with the rendered MP4 + poster +
+     refreshed manifest, and request human review. Do not merge it.
 5. **Close the beads task** with `bd close <id> --reason="re-rendered
    <reason>; commit <sha>"`.
 
