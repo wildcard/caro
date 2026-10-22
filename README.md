@@ -270,7 +270,7 @@ caro --verbose "search for Python files"
 # Simple command generation
 caro "compress all images in current directory"
 
-# With specific backend
+# With specific backend (needs: cargo install caro --features remote-backends)
 caro --backend ollama "find large log files"
 
 # Force LLM inference (bypass cached patterns)
