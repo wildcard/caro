@@ -4,6 +4,41 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-22 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1705 into this state on 2026-10-22. The run read main's May copy, so its "184 PRs merged" since 2026-05-07 and its choice of surface 10 as "never tested" do not see the runs below. Its Slot B `caro guard test` checks update surface 36 here.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (0766bf8 2026-10-21)`
+- `caro --help` → **PASS**: new `guard` and `export` subcommands listed; `assess` no longer listed (matches #1680)
+- `caro doctor` → **PASS**: advisory only (no model, no Ollama; expected in sandbox)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` via static matcher, no model download needed
+
+### Slot B — Recent diff
+Last run 2026-05-07; 184 PRs merged since. Sampled the most relevant:
+- #1614 (segment/wrapper-aware safety): `-p 'delete everything in root directory recursively'` blocked as adversarial → PASS
+- #1683 (`caro guard test`): `rm -rf /` → deny rc=2; `echo hi && sudo rm -rf /` → deny rc=2 (wrapper-aware); `ls -la` → none rc=0 → PASS
+- #1680 (assess removed from README): `assess` absent from `--help` → consistent
+
+### Slot C — `caro ai --once` (matrix #10, oldest never-tested, lowest #)
+- `caro ai --once "list files in current directory"` → **FAIL**: `Error: backend error: Clarification needed: What exactly should be deleted?`, rc=1. Reproduces with `--new-session` and with a different prompt (`show disk usage`).
+- Cause: `src/backends/embedded/cpu.rs:56-70` is still a placeholder; `prompt.contains("rm")` matches the system prompt text, so every call returns the deletion clarification.
+- Already tracked: open #1269 (product decision, register BW-006); closed duplicates #1673, #1523, #1494, #1500. No new issue filed.
+
+### Findings
+None this pass (known issue #1269 reconfirmed on 1.5.0 at 0766bf8).
+
+### Followups
+- FLAKE-001 (model download) not observed: dry-run was served by the static matcher.
+- #1269 has now produced 6 duplicate reports; consider a decision on it (stub removal or honest "no model" error).
+- Next Slot C candidates: #11 `caro ai --continue-session`, #13 `caro suggest`, #14 `caro config`.
+
+---
+
 ## 2026-10-21 — Scheduled run (Slot A + Slot B + Slot C)
 
 > Folded from #1698 into this state on 2026-10-22. The run read main's May copy, so its counts since 2026-05-07 and its surface and flake numbers do not see the runs below. It filed #1697. Its `caro guard` surface is surface 36 here, because the seed already uses 33.
