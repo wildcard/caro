@@ -85,6 +85,26 @@ ignore = [
     "RUSTSEC-2026-0346",
     "RUSTSEC-2026-0349",
 
+    # RUSTSEC-2026-0381: webpki-roots — bundled roots trust distrusted emSign intermediates.
+    # RUSTSEC-2026-0382: rustls-webpki — certificate verification may accept
+    #                    distrusted intermediates.
+    # Fixed in webpki-roots >= 1.0.10 and rustls-webpki >= 0.103.16; those paths
+    # are patched in Cargo.lock (#1700). These entries cover only the same LEGACY
+    # rustls 0.21 path as RUSTSEC-2026-0346/0349 above, behind optional features:
+    #   - `chromadb`: chromadb 2.3.0 -> minreq -> webpki-roots 0.25.4 and
+    #     rustls-webpki 0.101.7
+    #   - `knowledge`: lancedb 0.23 -> ... -> rustls 0.21.12 -> rustls-webpki 0.101.7
+    # The default build (`cargo install caro`) does not link either version.
+    # Caveat: RUSTSEC-2026-0382 also matches rustls-webpki 0.103.x below 0.103.16
+    # and RUSTSEC-2026-0381 matches webpki-roots 1.0.x below 1.0.10; keep
+    # Cargo.lock on the fixed versions.
+    # Revert: when chromadb and lancedb drop rustls 0.21 (same condition as above),
+    # or when the knowledge/chromadb features are removed.
+    # Review by: 2026-12-31.
+    # Tracked: https://github.com/wildcard/caro/issues/1699
+    "RUSTSEC-2026-0381",
+    "RUSTSEC-2026-0382",
+
     # -------------------------------------------------------------------------
     # TRANSITIVE — time crate (MSRV-pinned)
     # -------------------------------------------------------------------------
