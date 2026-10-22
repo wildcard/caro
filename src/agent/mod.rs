@@ -11,7 +11,6 @@ use crate::prompts::{CapabilityProfile, CommandValidator, ValidationResult};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::process::Command;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, info, warn};
@@ -32,6 +31,14 @@ pub struct AgentLoop {
     /// Optional frontier advisor consulted only on low-confidence drafts
     /// (the Fireworks "frontier advisor" pattern). `None` = local-only.
     advisor: Option<Arc<dyn CommandGenerator>>,
+    /// Runner that collects `--version`/`--help` text for programs named in a
+    /// generated command. `None` (the default, and the only value the CLI uses)
+    /// means generation never executes any program: a generated command is data
+    /// until the safety validator and the user have approved it.
+    probe: Option<Arc<dyn CommandProbe>>,
+    /// Generation-only mode: even an installed probe is never called. The CLI
+    /// installs no probe, so it does not need to set this.
+    dry_run: bool,
     /// Knowledge index for learning from past commands (optional)
     #[cfg(feature = "knowledge")]
     knowledge_index: Option<Arc<KnowledgeIndex>>,
@@ -43,6 +50,53 @@ pub struct CommandInfo {
     pub name: String,
     pub version: Option<String>,
     pub help_text: Option<String>,
+}
+
+/// Collects version/help text for a program name found in a generated command.
+///
+/// This is an execution boundary. The agent loop only calls a probe that a
+/// caller installed with [`AgentLoop::with_command_probe`], never in dry-run
+/// mode, and never with a name that is not a plain program name.
+pub trait CommandProbe: Send + Sync {
+    fn probe(&self, command: &str) -> CommandInfo;
+}
+
+/// Runs `<command> --version` and `<command> --help`. Executes the named
+/// program, so it must never be installed on a path that handles model output
+/// before approval. Not used by the CLI.
+pub struct SystemCommandProbe;
+
+impl CommandProbe for SystemCommandProbe {
+    fn probe(&self, command: &str) -> CommandInfo {
+        let version = std::process::Command::new(command)
+            .arg("--version")
+            .output()
+            .ok()
+            .and_then(|out| String::from_utf8(out.stdout).ok())
+            .map(|s| s.lines().next().unwrap_or("").to_string());
+        let help_text = std::process::Command::new(command)
+            .arg("--help")
+            .output()
+            .ok()
+            .and_then(|out| String::from_utf8(out.stdout).ok())
+            .map(|s| s.lines().take(20).collect::<Vec<_>>().join("\n"));
+        CommandInfo {
+            name: command.to_string(),
+            version,
+            help_text,
+        }
+    }
+}
+
+/// A plain program name: letters, digits, `-`, `_`, `.` and `+`, at most 64
+/// characters, no path separator, quote, space or shell character.
+fn is_plain_program_name(name: &str) -> bool {
+    !name.is_empty()
+        && name.len() <= 64
+        && !name.starts_with('-')
+        && name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | '+'))
 }
 
 /// Response from backend with confidence score
@@ -78,9 +132,28 @@ impl AgentLoop {
             timeout: Duration::from_secs(15), // Allow enough time for 2 iterations
             confidence_threshold: 0.8,        // Default: refine if confidence < 80%
             advisor: None,
+            probe: None,
+            dry_run: false,
             #[cfg(feature = "knowledge")]
             knowledge_index: None,
         }
+    }
+
+    /// Opt in to collecting `--version`/`--help` text through `probe`.
+    ///
+    /// Nothing in the CLI calls this. A probe executes the program a *model*
+    /// named, before the safety validator has seen the command, so it is only
+    /// for callers that sandbox the runner. It is skipped entirely in dry-run
+    /// mode and for names that are not plain program names.
+    pub fn with_command_probe(mut self, probe: Arc<dyn CommandProbe>) -> Self {
+        self.probe = Some(probe);
+        self
+    }
+
+    /// Generation-only mode: no installed probe is ever called.
+    pub fn with_dry_run(mut self, dry_run: bool) -> Self {
+        self.dry_run = dry_run;
+        self
     }
 
     /// Set a frontier advisor backend, consulted only on low-confidence drafts.
@@ -866,42 +939,28 @@ DO NOT include explanations, comments, or multiple commands - just ONE valid com
         commands.into_iter().collect()
     }
 
-    /// Get context information for commands
+    /// Get context information for commands.
+    ///
+    /// Returns an empty map, and calls nothing, unless a probe was installed
+    /// with [`AgentLoop::with_command_probe`] and the loop is not in dry-run
+    /// mode. `extract_commands` is not quote-aware, so the names it returns are
+    /// model-controlled text, not trustworthy program names: only plain names
+    /// reach the probe.
     async fn get_command_context(&self, commands: &[String]) -> HashMap<String, CommandInfo> {
         let mut context = HashMap::new();
-
-        for cmd in commands {
-            if let Ok(info) = Self::get_command_info(cmd).await {
-                context.insert(cmd.clone(), info);
-            }
+        let Some(probe) = self.probe.as_ref() else {
+            return context;
+        };
+        if self.dry_run {
+            return context;
         }
-
+        for cmd in commands {
+            if !is_plain_program_name(cmd) {
+                continue;
+            }
+            context.insert(cmd.clone(), probe.probe(cmd));
+        }
         context
-    }
-
-    /// Get information about a specific command
-    async fn get_command_info(command: &str) -> Result<CommandInfo> {
-        // Get version
-        let version = Command::new(command)
-            .arg("--version")
-            .output()
-            .ok()
-            .and_then(|out| String::from_utf8(out.stdout).ok())
-            .map(|s| s.lines().next().unwrap_or("").to_string());
-
-        // Get help text (first 20 lines)
-        let help_text = Command::new(command)
-            .arg("--help")
-            .output()
-            .ok()
-            .and_then(|out| String::from_utf8(out.stdout).ok())
-            .map(|s| s.lines().take(20).collect::<Vec<_>>().join("\n"));
-
-        Ok(CommandInfo {
-            name: command.to_string(),
-            version,
-            help_text,
-        })
     }
 }
 
@@ -1223,5 +1282,125 @@ mod tests {
         assert!(called.load(Ordering::SeqCst), "advisor was consulted");
         assert_ne!(result.command, "rm -rf /", "unsafe advice must be rejected");
         assert_eq!(result.command, "ls", "safe local result kept");
+    }
+
+    // ---- Probe boundary: generation never executes model-named programs ----
+
+    /// Records every name handed to it. Executes nothing.
+    #[derive(Default)]
+    struct CountingProbe {
+        calls: std::sync::Mutex<Vec<String>>,
+    }
+
+    impl CommandProbe for CountingProbe {
+        fn probe(&self, command: &str) -> CommandInfo {
+            self.calls.lock().unwrap().push(command.to_string());
+            CommandInfo {
+                name: command.to_string(),
+                version: None,
+                help_text: None,
+            }
+        }
+    }
+
+    impl CountingProbe {
+        fn recorded(&self) -> Vec<String> {
+            self.calls.lock().unwrap().clone()
+        }
+    }
+
+    /// Ordinary complex command: triggers refinement (`sed`, `awk`, 3 stages).
+    const ORDINARY: &str = "cat app.log | sed 's/a/b/' | awk '{print $1}' | sort";
+    /// `extract_commands` is not quote-aware: it splits inside the quotes and
+    /// reports `payload-bin` as a command name. That list is model-controlled
+    /// text and must never feed execution.
+    const QUOTED: &str = "echo 'x; payload-bin --flag' | sed 's/x/y/'";
+    /// A path-shaped name hidden in quotes.
+    const QUOTED_PATH: &str = "echo \"a; /tmp/payload\" | awk '{print $1}'";
+
+    fn probe_loop(command: &str, probe: Option<Arc<CountingProbe>>, dry_run: bool) -> AgentLoop {
+        let primary = MockBackend {
+            command: command.to_string(),
+            confidence: 0.3,
+            advise_returns: None,
+            advise_called: Arc::new(AtomicBool::new(false)),
+        };
+        let mut l = agent_loop(primary, None).with_dry_run(dry_run);
+        if let Some(p) = probe {
+            l = l.with_command_probe(p);
+        }
+        l
+    }
+
+    #[test]
+    fn extract_commands_is_not_quote_aware() {
+        // Documents why the names must not be trusted.
+        assert!(AgentLoop::extract_commands(QUOTED).contains(&"payload-bin".to_string()));
+    }
+
+    #[tokio::test]
+    async fn no_probe_installed_means_no_probe_call() {
+        // The CLI builds its loop this way: there is nothing to call.
+        for cmd in [ORDINARY, QUOTED, QUOTED_PATH] {
+            let agent = probe_loop(cmd, None, false);
+            assert!(agent.probe.is_none());
+            let names = AgentLoop::extract_commands(cmd);
+            assert!(agent.get_command_context(&names).await.is_empty());
+            agent.generate_command("show it").await.unwrap();
+        }
+    }
+
+    #[tokio::test]
+    async fn dry_run_never_calls_an_installed_probe() {
+        for cmd in [ORDINARY, QUOTED, QUOTED_PATH] {
+            let probe = Arc::new(CountingProbe::default());
+            let agent = probe_loop(cmd, Some(probe.clone()), true);
+            agent.generate_command("show it").await.unwrap();
+            let names = AgentLoop::extract_commands(cmd);
+            assert!(agent.get_command_context(&names).await.is_empty());
+            assert_eq!(probe.recorded(), Vec::<String>::new(), "dry-run, {cmd}");
+        }
+    }
+
+    #[tokio::test]
+    async fn opt_in_probe_only_sees_plain_names() {
+        // Control: the seam is live when a caller opts in outside dry-run, so the
+        // zero counts above mean something. Path-shaped names never reach it.
+        let probe = Arc::new(CountingProbe::default());
+        let agent = probe_loop(QUOTED_PATH, Some(probe.clone()), false);
+        agent.generate_command("show it").await.unwrap();
+        assert!(
+            probe.recorded().iter().all(|n| !n.contains('/')),
+            "{:?}",
+            probe.recorded()
+        );
+
+        let probe = Arc::new(CountingProbe::default());
+        let agent = probe_loop(ORDINARY, Some(probe.clone()), false);
+        agent.generate_command("show it").await.unwrap();
+        let seen = probe.recorded();
+        assert!(seen.contains(&"cat".to_string()), "{seen:?}");
+        assert!(seen.iter().all(|n| is_plain_program_name(n)), "{seen:?}");
+    }
+
+    #[test]
+    fn plain_program_name_rules() {
+        for ok in ["ls", "g++", "python3.12", "rg", "my_tool-2"] {
+            assert!(is_plain_program_name(ok), "{ok}");
+        }
+        for bad in [
+            "", "-rf", "/bin/ls", "./x", "a b", "a'b", "a;b", "$(x)", "`x`", "a\\b",
+        ] {
+            assert!(!is_plain_program_name(bad), "{bad}");
+        }
+        assert!(!is_plain_program_name(&"a".repeat(65)));
+    }
+
+    #[test]
+    fn cli_never_installs_a_command_probe() {
+        for src in [include_str!("../cli/mod.rs"), include_str!("../main.rs")] {
+            assert!(!src.contains("with_command_probe"));
+            assert!(!src.contains("SystemCommandProbe"));
+        }
     }
 }
