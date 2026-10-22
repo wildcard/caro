@@ -50,6 +50,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tiers, and marked provisional in `docs/ml/risk-gold-subset.md` pending human
   review. Counts: safe 50, moderate 22, high 34, critical 15, 2 uncertain.
 
+### Fixed
+
+- **`caro -p` no longer waits on an open stdin**
+  ([#1043](https://github.com/wildcard/caro/pull/1043), by @kukoshock). When the
+  prompt comes from `-p` or from prompt words, caro skips reading stdin, so a
+  pipe that stays open (a CI step, a subprocess call, some Windows terminals) no
+  longer blocks the command. `caro ai --once` got the same check in #1503.
+  Guarded by `test_stdin_skipped_when_prompt_flag_present`,
+  `test_stdin_skipped_when_trailing_args_present` and
+  `test_stdin_skipped_when_both_sources_present`.
+- **Windows: no POSIX commands from the static matcher, and a detected default
+  shell** ([#1043](https://github.com/wildcard/caro/pull/1043)). Native
+  PowerShell and cmd.exe hosts get a `Windows` capability profile, so the static
+  matcher steps aside instead of returning `ls -la` or `grep -r`. Git Bash, MSYS2
+  and Cygwin keep the POSIX patterns. The default shell comes from detection,
+  not a fixed Bash. On Windows the embedded backend is still the CPU stub
+  ([#1269](https://github.com/wildcard/caro/issues/1269)), so the fallback does
+  not yet write a PowerShell command. Guarded by
+  `test_static_matcher_skipped_on_windows`,
+  `test_static_matcher_still_runs_on_hybrid`,
+  `test_default_shell_is_posix_on_unix` and, on Windows,
+  `test_default_shell_is_windows_native_on_windows`.
+
+### Internal
+
+- **Windows runtime smoke test** ([#1043](https://github.com/wildcard/caro/pull/1043)):
+  `.github/scripts/windows-smoke.ps1` runs the built `caro.exe` in CI and in the
+  release build. It fails on a stdin hang, on POSIX output for
+  `--shell powershell`, and on a Bash shell label.
+
 ## [1.5.0] - 2026-10-13
 
 > **Release-reset note**: An earlier `chore(release): v1.5.0`
