@@ -95,3 +95,16 @@ Five runs used the old prompt. Each read main's May copy and opened a PR (2026-1
 - **Not taken:** surface 12 stays excluded from Slot C; the runs re-tested a disabled command three times because the May copy listed it as "never".
 
 Four of these five runs tested surface 10 again, because the May copy still lists it as "never".
+
+## Added after seeding: #1705 (2026-10-22)
+
+The 2026-10-22 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-10-22; surfaces 2 (PASS) and 10 (FAIL, the CPU stub of #1269) get the new date. Surface 10 keeps the seed's links.
+- **From Slot B:** its `caro guard test` checks (deny with exit 2, also after `&&`; allow with exit 0) give surface 36 the new date. It did not run `caro guard setup`, so the result stays PARTIAL.
+- **Backlog:** no new issues. #1269 is re-confirmed and keeps P1.
+- **Corrected:** #1673 was closed as a duplicate of #1269 on 2026-10-15, but the matrix and the backlog still said "open". The run's log had it right.
+- **Flakes:** FLAKE-001 and FLAKE-002 were not triggered.
+
+Like almost every run since May, it tested surface 10, because the May copy still lists it as "never".
