@@ -530,9 +530,9 @@ workspaces are BW-069.
 
 **Found:** 2026-10-21, broken-window sweep (main health; scheduled `ci.yml` runs on 2026-10-20 and 2026-10-21)
 **Issue:** #1699
-**Status:** claimed-by sweep/2026-10-21-BW-092 (#1700) for the patch updates (4 of 6 findings).
-**Needs human?:** no for the patch updates; yes for the 2 findings left on the optional rustls 0.21 path (`chromadb`, `knowledge`): audit-policy decision, same path as BW-087.
-**Next step:** after the patch PR merges, the owner picks an option in #1699 for RUSTSEC-2026-0381 and RUSTSEC-2026-0382.
+**Status:** claimed-by sweep/2026-10-21-BW-092 (#1700): patch updates plus reviewed `.cargo/audit.toml` entries for the 2 legacy-path findings (owner-approved 2026-10-22).
+**Needs human?:** no (owner decided 2026-10-22: audit.toml entries, and CDLA-Permissive-2.0 allowed in dependency-review).
+**Next step:** merge #1700; revisit the entries by 2026-12-31 (same revert condition as BW-087).
 
 ### BW-093: `caro guard test "<cmd>" --output json` reads the flag as part of the command
 
