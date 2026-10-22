@@ -2,10 +2,14 @@ name: Slash Command Router
 
 # Inspired by warpdotdev/oz-for-oss's `/oz-verify` pattern.
 # Listens on issue and PR comments for `/caro <command> [args]` and dispatches
-# to per-command handlers. Initially supports help/echo/version as a routing
-# scaffold; future PRs wire up handlers for /caro review, /caro qa,
-# /caro spec, /caro tune-prompt, /caro release-acceptance — each maps to an
-# existing skill in .claude/skills/ or agent in .claude/agents/.
+# to per-command handlers.
+#
+# The command whitelist AND the help table are sourced from
+# `.github/caro/config.yml::slash_router.commands` -- add a command there
+# once (with status: available|planned and an optional handler) and it
+# takes effect on both parsing and the help reply. Fallback to a small
+# hard-coded set if the config file is missing so the router degrades
+# gracefully.
 
 on:
   issue_comment:
@@ -30,6 +34,7 @@ jobs:
       command: ${{ steps.parse.outputs.command }}
       args: ${{ steps.parse.outputs.args }}
       is_pr: ${{ steps.parse.outputs.is_pr }}
+      commands_json: ${{ steps.commands.outputs.json }}
     steps:
       - name: Add 'eyes' reaction (acknowledgement)
         uses: actions/github-script@v9
@@ -42,13 +47,43 @@ jobs:
               content: 'eyes'
             });
 
+      - name: Checkout for config.yml access
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            .github/caro/config.yml
+          sparse-checkout-cone-mode: false
+
+      - name: Load command table from config.yml (with fallback)
+        id: commands
+        run: |
+          # Emit a compact JSON of the slash_router.commands table so
+          # downstream github-script steps can consume it without pulling
+          # in a YAML parser. Fall back to the minimum built-in set if
+          # config.yml is missing (fresh clone, deleted key, etc.).
+          if [ -f .github/caro/config.yml ] && command -v yq >/dev/null 2>&1; then
+            json=$(yq -o=json -I=0 '.slash_router.commands // {}' .github/caro/config.yml 2>/dev/null || echo '{}')
+          else
+            json='{}'
+          fi
+          if [ "$json" = '{}' ] || [ -z "$json" ]; then
+            # Fallback: the three commands that were part of the router
+            # scaffold before Pattern 5 landed.
+            json='{"help":{"status":"available"},"echo":{"status":"available"},"version":{"status":"available"}}'
+          fi
+          echo "json=$json" >> "$GITHUB_OUTPUT"
+          echo "Loaded command table:"
+          echo "$json" | python3 -m json.tool
+
       - name: Parse command and args
         id: parse
         env:
           BODY: ${{ github.event.comment.body }}
+          COMMANDS_JSON: ${{ steps.commands.outputs.json }}
         run: |
-          # Strip leading "/caro " (or just "/caro"); take first token as command,
-          # remainder as args. Defaults command to "help" when no token.
+          # Strip leading "/caro " (or just "/caro"); take first token as
+          # command, remainder as args. Defaults command to "help" when
+          # no token.
           line="${BODY#/caro}"
           line="${line# }"
           command="${line%% *}"
@@ -59,12 +94,24 @@ jobs:
             args="${line#"$command"}"
             args="${args# }"
           fi
-          # Whitelist allowed commands -- unknown commands fall through to help
-          # with an "unknown command" hint.
-          case "$command" in
-            help|echo|version) ;;
-            *) args="$command $args"; command="help-unknown" ;;
-          esac
+          # Check the config-loaded whitelist. A command is "available"
+          # when its slash_router.commands.<cmd>.status == "available".
+          # Anything else falls through to help-unknown (with the
+          # attempted command name preserved in args).
+          is_available=$(printf '%s' "$COMMANDS_JSON" | python3 -c "
+          import json, sys, os
+          cmd = os.environ.get('COMMAND', '')
+          try:
+              d = json.load(sys.stdin)
+              entry = d.get(cmd, {})
+              print('yes' if entry.get('status') == 'available' else 'no')
+          except Exception:
+              print('no')
+          " COMMAND="$command")
+          if [ "$is_available" != "yes" ]; then
+            args="$command $args"
+            command="help-unknown"
+          fi
           echo "command=$command" >> "$GITHUB_OUTPUT"
           # Multi-line-safe arg passing
           {
@@ -72,7 +119,8 @@ jobs:
             echo "$args"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
-          # Detect PR vs issue (issue_comment fires for both; PRs have pull_request key)
+          # Detect PR vs issue (issue_comment fires for both; PRs have
+          # pull_request key)
           if [ -n "${{ github.event.issue.pull_request.url }}" ]; then
             echo "is_pr=true" >> "$GITHUB_OUTPUT"
           else
@@ -89,25 +137,52 @@ jobs:
         uses: actions/github-script@v9
         env:
           UNKNOWN_HINT: ${{ needs.parse.outputs.command == 'help-unknown' && needs.parse.outputs.args || '' }}
+          COMMANDS_JSON: ${{ needs.parse.outputs.commands_json }}
         with:
           script: |
             const unknown = process.env.UNKNOWN_HINT.trim();
+            let commands;
+            try {
+              commands = JSON.parse(process.env.COMMANDS_JSON || '{}');
+            } catch (e) {
+              commands = {};
+            }
+            // Descriptions live alongside the router because config.yml is
+            // structural, not user-facing. Order matches the sequence in
+            // config.yml; anything the config lists that we don't have a
+            // description for still renders with just its status.
+            const descriptions = {
+              help: 'Show this help text',
+              echo: 'Echo `<text>` back as a comment',
+              version: 'Show caro version from Cargo.toml',
+              review: 'Run a multi-agent code review',
+              qa: 'Run QA investigation against this PR',
+              spec: 'Generate a spec from the linked issue',
+              'tune-prompt': 'Run prompt-tuner against test failures',
+              'release-acceptance': 'Audit release readiness'
+            };
+            const statusEmoji = { available: '✅ available', planned: '🛠 planned' };
+            const argPlaceholder = {
+              echo: '<text>',
+              spec: '',
+              'tune-prompt': '',
+              'release-acceptance': ''
+            };
+            const rows = Object.entries(commands).map(([name, entry]) => {
+              const desc = descriptions[name] || '';
+              const args = argPlaceholder[name] === undefined ? '' : ` ${argPlaceholder[name]}`.trimEnd();
+              const status = statusEmoji[entry.status] || entry.status || '?';
+              return `| \`/caro ${name}${args}\` | ${desc} | ${status} |`;
+            });
             const prefix = unknown
               ? `Unknown command: \`/caro ${unknown.split(' ')[0]}\`. Available commands:\n\n`
               : `Available **/caro** commands:\n\n`;
             const body = prefix + [
               '| Command | Description | Status |',
               '|---|---|---|',
-              '| `/caro help` | Show this help text | ✅ available |',
-              '| `/caro echo <text>` | Echo `<text>` back as a comment | ✅ available |',
-              '| `/caro version` | Show caro version from Cargo.toml | ✅ available |',
-              '| `/caro review` | Run a multi-agent code review | 🛠 planned |',
-              '| `/caro qa` | Run QA investigation against this PR | 🛠 planned |',
-              '| `/caro spec` | Generate a spec from the linked issue | 🛠 planned |',
-              '| `/caro tune-prompt` | Run prompt-tuner against test failures | 🛠 planned |',
-              '| `/caro release-acceptance` | Audit release readiness | 🛠 planned |',
+              ...rows,
               '',
-              '_Inspired by [oz-for-oss](https://github.com/warpdotdev/oz-for-oss)._'
+              '_Inspired by [oz-for-oss](https://github.com/warpdotdev/oz-for-oss). Table sourced from `.github/caro/config.yml`._'
             ].join('\n');
             await github.rest.issues.createComment({
               owner: context.repo.owner,
