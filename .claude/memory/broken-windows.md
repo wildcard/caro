@@ -153,7 +153,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-06, CI on #1532 (`test_coreutils_detection` failed on ubuntu-24.04)
 **Issue:** #1533
-**Status:** claimed-by sweep/2026-10-22-BW-025 (#PRNUM)
+**Status:** claimed-by sweep/2026-10-22-BW-025 (#1706)
 **Needs human?:** no
 **Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
 
