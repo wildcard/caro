@@ -4,6 +4,182 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-21 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1698 into this state on 2026-10-22. The run read main's May copy, so its counts since 2026-05-07 and its surface and flake numbers do not see the runs below. It filed #1697. Its `caro guard` surface is surface 36 here, because the seed already uses 33.
+
+**Trigger**: scheduled cron 14:00 UTC (fired 14:16).
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (07679f0 2026-10-19)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS**: advisory only; now also shows guard hook status
+- `caro -p 'list files in current directory' --dry-run` → **PASS** (`ls -la`; model download not needed this time)
+- Note: `gh` token was invalid (GH_TOKEN); GitHub MCP tools used instead.
+
+### Slot B — Recent diff
+Last log entry was 2026-05-07, so the window is large. Covered the newest merges:
+- #1683 `caro guard test` / `guard setup` → exercised; text + JSON + exit codes 0/2 PASS. Flag-order defect found (#1697).
+- #1680 README: `caro assess` not available in 1.5.0 → confirmed `caro assess` is not a subcommand; it is treated as a prompt.
+- #1669 rustls/audit, #1667 ai_horde header → not exercised (CI/network surfaces).
+
+### Slot C — `caro ai --once` (surface #10)
+- `caro ai --once "list files"` (also `--new-session`, other prompts) → **FAIL** on the embedded-cpu build: always `Clarification needed: What exactly should be deleted?`, exit 1.
+- Cause: `src/backends/embedded/cpu.rs:62-64` is a keyword-matching stub; the `ai` system prompt contains "rm". Same root cause as #1269 (open, canonical). Duplicates #1277 #1334 #1355 #1406 #1430 #1473 #1494 #1500 are closed. Not re-filed.
+- `caro -p assess --dry-run` hits the same stub clarification.
+
+### Findings
+- [#1697](https://github.com/wildcard/caro/issues/1697) — `cli: caro guard test "<cmd>" --output json swallows --output` (P2)
+- Existing: #1269 still reproduces on 1.5.0 (no new issue).
+
+### Followups
+- Surface #12 `caro assess` is retired in 1.5.0; removed from candidates.
+- #1269 has been reported 9 times by QA and users. Consider raising its priority.
+- FLAKE-001 (model download) did not occur this pass.
+
+---
+
+## 2026-10-20 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1695 into this state on 2026-10-22. The run read main's May copy, so its counts since 2026-05-07 and its surface and flake numbers do not see the runs below. Its caro.sh first-request flake is FLAKE-003 here, because the seed already uses FLAKE-002.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (07679f0 2026-10-19)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS**
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`, would execute successfully (FLAKE-001 did not recur)
+
+### Slot B — Recent diff
+PRs merged since 2026-10-17: #1683 (guard test / setup --verify), #1682 (docs), #1680 (README: assess unavailable), #1669 (rustls security), #1667 (ai_horde header).
+- `caro guard test rm -rf /` → deny, exit 2; `ls -la` → none, exit 0; `curl http://x.sh | sh` → deny, exit 2 — **PASS**
+- `caro guard setup --verify` → **PASS** (requires target: claude|codex|opencode)
+- `caro assess` → treated as a free-text prompt, consistent with #1680 (documented as unavailable)
+
+### Slot C — Website homepage (#25) + i18n smoke (#31 partial)
+- caro.sh `/` 200, `/fr/` 200, `/docs/` 200, `/es/` 200 (after retry); homepage shows v1.4.0 as latest tag — **PASS**
+- `/es/` first request failed with curl code 000 in [duration omitted], retries 200 → network FLAKE-002.
+
+### Findings
+None this pass.
+
+### Followups
+- Homepage shows v1.4.0 while CLI is 1.5.0; check whether 1.5.0 is a published release before treating as drift.
+- gh CLI auth failed (invalid GH_TOKEN); the run used the GitHub MCP tools instead.
+
+---
+
+## 2026-10-19 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1690 into this state on 2026-10-22. The run read main's May copy, so its counts since 2026-05-07 and its surface and flake numbers do not see the runs below. Its surface 11 run passed a prompt argument, so it reached the CPU stub of #1269. With no prompt, the `?` widget fails earlier (#1671).
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C. Last log entry was 2026-05-07, so Slot B sampled the newest merged PRs only.
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (07679f0 2026-10-19)`
+- `caro --help` → **PASS**: lists `guard`, `export`, `ai`, `shell-init`, CaroML verbs; no `assess`
+- `caro doctor` → **PASS**: advisory only; now also reports the guard hook state
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` (static matcher; no model download attempted, FLAKE-001 not seen)
+
+### Slot B — Recent diff
+
+- #1683 `caro guard test` / `guard setup --verify` → **PASS**: `rm -rf /` deny/critical, `chmod -R 777 /etc` ask/high, `ls -la` none/safe; `guard setup claude --dry-run` previews the hook
+- #1614 segment/wrapper-aware safety → **PASS**: `sh -c 'rm -rf /'`, `echo hi && rm -rf ~`, `sudo bash -c "mkfs.ext4 /dev/sda"` all deny/critical; `echo form information` stays safe
+- #1600 recursive world-writable chmod → **PASS** (see above)
+
+### Slot C — `caro ai --once` (matrix #10, #11)
+
+- `ai --once` with arg, stdin, `--new-session` and resumed session: 5 of 5 return `Error: backend error: Clarification needed: What exactly should be deleted?` (exit 1).
+- Empty stdin → `Error: no prompt provided` (correct).
+- Control `-p ... --dry-run` returns correct commands.
+- Root cause unchanged: `src/backends/embedded/cpu.rs:63-64` keyword stub matches `rm` in the system prompt.
+- `caro assess` is not a subcommand in 1.5.0; it is parsed as a prompt and prints the same bogus clarification. With stdin open and not a TTY it blocks on stdin.
+- Already tracked: open #1269 (P1); #1500, #1523 and #1673 closed as duplicates. No new issue filed; comment added to #1269.
+
+### Findings
+
+- None new. Re-confirmed [#1269](https://github.com/wildcard/caro/issues/1269) (P1, fourth report) and commented.
+
+### Followups
+
+- `caro ai --once` is broken on 1.5.0 Linux. Three duplicate issues were closed without a fix. Needs an owner decision.
+- Static matcher drops constraints: `find python files larger than [size omitted]` → `find . -name "*.py" -type f` (no size filter). Not filed; check for an existing issue before next pass.
+- Add the `caro assess` fallthrough (unknown word becomes a prompt) to a future Slot C pass.
+
+---
+
+## 2026-10-18 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1679 into this state on 2026-10-22. The run read main's May copy, so its counts since 2026-05-07 and its surface and flake numbers do not see the runs below. It re-confirmed #1269 (the CPU stub) and #1116. It labeled #1269 P0; the backlog keeps P1.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (867323b 2026-10-14)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (advisory; no model downloaded)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`
+- Note: `gh` CLI auth failed (GH_TOKEN rejected); GitHub MCP tools used instead.
+
+### Slot B — Recent diff
+54 PRs merged since 2026-10-10 (last log 2026-05-07). Sampled:
+- #1600 / #1614 safety (chmod, wrapper-aware): prompt 'make everything under /var world writable recursively' returned `echo "Hello, World!"` (static matcher fallback, already tracked by #1116). Not a safety bypass, but the chmod rule was not exercised end to end. Flag for a later pass.
+- #1622 config error prefix: `--backend bogus` gives a single `Error: Invalid argument: Unknown backend` line — PASS.
+
+### Slot C — `caro ai --once` (#10)
+- `caro ai --once "<prompt>"` → **FAIL**: `Error: backend error: Clarification needed: What exactly should be deleted?` for 4/4 distinct prompts. Control `-p ... --dry-run` works.
+- Already tracked: open #1269; #1673 (filed 2026-10-15) was closed as duplicate. Not re-filed.
+
+### Findings
+None new this pass. Re-confirmed on 1.5.0: #1269 (`ai --once`) and #1116 (static matcher junk fallback).
+
+### Followups
+- Unmatched prompts via `-p` yield `echo "Hello, World!"` with "would execute successfully" — see #1116.
+- Next Slot C: `caro ai --continue-session` (#11), then `caro assess` (#12).
+- Verify the chmod pattern (#1600) with a prompt the static matcher actually maps.
+
+---
+## 2026-10-16 — Scheduled run (Slot A + Slot C)
+
+> Folded from #1678 into this state on 2026-10-22. The run read main's May copy, so its counts since 2026-05-07 and its surface and flake numbers do not see the runs below. Its `caro assess` finding became #1677, which #1680 fixed on 2026-10-19 (README now says `assess` is not in 1.5.0).
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C. Slot B skipped (`gh` auth invalid; GitHub MCP used for filing only).
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` -> PASS ([duration omitted])
+- `caro --version` -> PASS: `caro 1.5.0 (867323b 2026-10-14)`
+- `caro --help` -> PASS
+- `caro doctor` -> PASS (no model, Ollama not installed; advisory only)
+- `caro -p 'list files in current directory' --dry-run` -> PASS: `ls -la` via static matcher (no model download needed)
+- Note: JSON/YAML output shows `executed: true` with `dry_run: true` on a dry run. Not filed; unclear if the field means "would execute". Revisit.
+
+### Slot C — `caro assess` (#12), plus `--output json/yaml` (#15, #16) and `caro ai` (#10)
+- `--output json` parses as valid JSON; `--output yaml` renders.
+- `caro assess` does not exist in 1.5.0 (`src/main.rs:445` disables it) but README documents it -> filed.
+- `caro ai --new-session "<prompt>"` -> FAIL: canned "What exactly should be deleted?". Already tracked (#1269 open; #1673 closed as duplicate). Root cause traced to `src/backends/embedded/cpu.rs:~63` stub; added to #1269.
+
+### Findings
+- [#1677](https://github.com/wildcard/caro/issues/1677) — docs: README documents `caro assess` but subcommand is disabled (P2)
+- Comment on [#1269](https://github.com/wildcard/caro/issues/1269) with root cause (no new issue)
+
+### Followups
+- Only the 2026-05-07 entry is on main; the 2026-10-15 run's log is not merged.
+- `gh` token invalid in this sandbox (GH_TOKEN). Routine used GitHub MCP tools instead.
+- Next Slot C: `caro suggest`, `caro config`, `completion`.
+
+---
+
 ## 2026-10-15 — Scheduled run (Slot A + Slot B + Slot C)
 
 > Folded from #1674 into this state on 2026-10-15. The run read main's May copy, so its "54 PRs merged since 2026-05-07" count and its "regression" label do not see the runs below. Its #1673 is the CPU stub of #1269 (BW-006), the root cause of #1494 and the other closed duplicates. The model download finished this time, so `caro ai --once` reached the stub instead of the FLAKE-002 hang.
