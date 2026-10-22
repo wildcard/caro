@@ -59,6 +59,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 - 2026-10-15: not triggered — `--dry-run` passed through the static-matcher fallback (`ls -la`), and the model download finished during Slot C (#1674).
 - 2026-10-20: not triggered — the model was available, and `--dry-run` gave `ls -la` (#1695).
 - 2026-10-21: not triggered — `--dry-run` succeeded (#1698).
+- 2026-10-22: not triggered — the static matcher served `--dry-run`, so no download ran (#1705).
 
 **Promotion threshold**: File regression issue if explicit download failure observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Status**: Promoted to regression (behavior change constitutes a regression even under 3-in-7-days threshold). Filed as #1440.  
@@ -82,6 +83,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 - 2026-10-13: observed again (`caro ai --once "show disk usage"`: no stdout or stderr before the 5-second timeout; #1653). The timeout is shorter than the 60-second stall watchdog, so this run does not test the #1561 fix.
 - 2026-10-15: not triggered — the model download finished, so `caro ai --once` returned the CPU stub's "What exactly should be deleted?" clarification instead of hanging (#1674 filed it as #1673; root cause #1269).
 - 2026-10-16, 10-18, 10-19 and 10-21: not triggered — the download finished, so `caro ai --once` reached the CPU stub of #1269 (#1678, #1679, #1690, #1698).
+- 2026-10-22: not triggered — `caro ai --once` returned the CPU stub's clarification of #1269 at once, without a hang (#1705).
 **Promotion threshold**: Not applicable — known root cause, tracked in open issues #1272 and #1408. File a separate regression issue only if behavior changes (e.g. starts producing an error message, or starts hanging on a different backend).  
 **Workaround**: Test `caro ai --once` only in an environment with a pre-downloaded model or Ollama available.
 ---
