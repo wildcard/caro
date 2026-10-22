@@ -83,3 +83,15 @@ The 14:08 run on 2026-10-15 also used the old prompt. It read main's May copy an
 - **Also added:** surface 11 links #1671 (the `?` widget cannot take a request), filed by the maintainer session on 2026-10-15.
 
 With #1674, 36 of the 37 runs tested Slot C surface #10.
+
+## Added after seeding: #1678, #1679, #1690, #1695, #1698 (2026-10-16 to 2026-10-21)
+
+Five runs used the old prompt. Each read main's May copy and opened a PR (2026-10-17 has none). They were folded on 2026-10-22, oldest first, with the rules above:
+
+- **Session log:** each entry goes on top with a note on what the run could not see. Build durations, one test-query size and one curl time became "[duration omitted]" or "[size omitted]".
+- **Their rows win, matched by surface name:** smoke rows for all five dates; surfaces 2, 10, 15, 25 and 31 get newer dates; surfaces 11 (FAIL, the CPU stub of #1269) and 16 (PASS) are tested for the first time.
+- **Renumbered:** `caro guard test / setup` is surface 36, because the seed already uses 33. The caro.sh first-request flake is FLAKE-003, because the seed already uses FLAKE-002.
+- **Backlog:** #1677 (closed, fixed by #1680), #1697 (open) and #1116 (re-confirmed). #1269 keeps P1, not the P0 one run wrote. The #1408 row keeps its 2026-10-15 review text.
+- **Not taken:** surface 12 stays excluded from Slot C; the runs re-tested a disabled command three times because the May copy listed it as "never".
+
+Four of these five runs tested surface 10 again, because the May copy still lists it as "never".
