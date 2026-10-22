@@ -7,7 +7,16 @@ interface Props {
 
 const { lang = 'en' } = Astro.props;
 
-// Comparison table data structured for growth-hacking SEO and conversion
+// Comparison table data structured for growth-hacking SEO and conversion.
+// The competitor values changed in the 2026-10-11 refresh were checked against
+// vendor docs; values not changed then were carried over unverified (see
+// docs/research/2026-10-11-competitive-landscape-refresh.md section 6).
+// 'partial' means opt-in, configurable or incomplete (e.g. user-written rules,
+// a local model only through a public tunnel). 'unknown' means the vendor's
+// docs do not say; never turn a missing source into 'no'.
+// Criteria: existingTerminal = the product's AI is usable from the user's own
+// terminal emulator; multiBackend = the user can choose among model providers
+// or a custom endpoint (localInference covers local models).
 const competitors = [
   { id: 'caro', nameKey: 'caro', highlight: true },
   { id: 'copilot-cli', nameKey: 'copilotCli' },
@@ -16,7 +25,7 @@ const competitors = [
   { id: 'opencode', nameKey: 'opencode' },
 ];
 
-type FeatureValue = 'yes' | 'no' | 'partial' | string;
+type FeatureValue = 'yes' | 'no' | 'partial' | 'unknown' | string;
 
 interface ComparisonRow {
   featureKey: string;
@@ -33,20 +42,22 @@ const comparisonData: { categoryKey: string; icon: string; rows: ComparisonRow[]
     categoryKey: 'privacyData',
     icon: '▸',
     rows: [
-      { featureKey: 'worksOffline', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
-      { featureKey: 'privacyFirst', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
-      { featureKey: 'airGapped', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
-      { featureKey: 'openSource', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
+      { featureKey: 'worksOffline', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
+      { featureKey: 'privacyFirst', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
+      { featureKey: 'airGapped', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
+      { featureKey: 'openSource', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'partial', 'kiro': 'no', 'opencode': 'yes' } },
     ]
   },
   {
     categoryKey: 'safetyControl',
     icon: '■',
     rows: [
-      { featureKey: 'ruleBasedSafety', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
-      { featureKey: 'explicitConfirmation', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
+      { featureKey: 'ruleBasedSafety', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
+      { featureKey: 'explicitConfirmation', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'no' } },
+      // blocksDangerous 'no': each vendor documents its default as asking
+      // (Copilot, Kiro, Warp) or allowing (OpenCode bash), not blocking.
       { featureKey: 'blocksDangerous', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
-      { featureKey: 'riskLevel', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
+      { featureKey: 'riskLevel', values: { 'caro': 'yes', 'copilot-cli': 'unknown', 'warp': 'unknown', 'kiro': 'unknown', 'opencode': 'unknown' } },
     ]
   },
   {
@@ -54,19 +65,22 @@ const comparisonData: { categoryKey: string; icon: string; rows: ComparisonRow[]
     icon: '>_',
     rows: [
       { featureKey: 'posixFirst', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
-      { featureKey: 'crossPlatform', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'macOS/Linux', 'kiro': 'yes', 'opencode': 'yes' } },
-      { featureKey: 'existingTerminal', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'no', 'kiro': 'yes', 'opencode': 'yes' } },
-      { featureKey: 'platformAware', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'partial', 'opencode': 'partial' } },
+      // The label says macOS/Linux/BSD. Neither Caro nor Warp ships a BSD build
+      // (Caro release.yml: Linux, macOS, Windows). BSD support for Copilot CLI,
+      // Kiro CLI and OpenCode has no primary source, so those cells are unknown.
+      { featureKey: 'crossPlatform', values: { 'caro': 'partial', 'copilot-cli': 'unknown', 'warp': 'partial', 'kiro': 'unknown', 'opencode': 'unknown' } },
+      { featureKey: 'existingTerminal', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'yes', 'kiro': 'yes', 'opencode': 'yes' } },
+      { featureKey: 'platformAware', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'unknown', 'kiro': 'partial', 'opencode': 'partial' } },
     ]
   },
   {
     categoryKey: 'modelBackend',
     icon: '❯',
     rows: [
-      { featureKey: 'localInference', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'partial' } },
-      { featureKey: 'multiBackend', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
-      { featureKey: 'appleSilicon', values: { 'caro': 'partial', 'copilot-cli': 'no', 'warp': 'partial', 'kiro': 'no', 'opencode': 'no' } },
-      { featureKey: 'selfHostable', values: { 'caro': 'yes', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'yes' } },
+      { featureKey: 'localInference', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'no', 'opencode': 'partial' } },
+      { featureKey: 'multiBackend', values: { 'caro': 'yes', 'copilot-cli': 'yes', 'warp': 'yes', 'kiro': 'partial', 'opencode': 'yes' } },
+      { featureKey: 'appleSilicon', values: { 'caro': 'partial', 'copilot-cli': 'no', 'warp': 'no', 'kiro': 'no', 'opencode': 'no' } },
+      { featureKey: 'selfHostable', values: { 'caro': 'yes', 'copilot-cli': 'partial', 'warp': 'partial', 'kiro': 'no', 'opencode': 'yes' } },
     ]
   },
 ];
@@ -82,6 +96,8 @@ function getCellDisplay(value: FeatureValue): { icon: string; class: string; lab
       return { icon: '◐', class: 'cell-partial', labelKey: 'partial', isCustom: false };
     case 'planned':
       return { icon: '◎', class: 'cell-planned', labelKey: 'planned', isCustom: false };
+    case 'unknown':
+      return { icon: '?', class: 'cell-unknown', labelKey: 'unknown', isCustom: false };
     default:
       return { icon: '', class: 'cell-text', labelKey: '', isCustom: true, customLabel: value };
   }
@@ -196,6 +212,7 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
       <span class="legend-item"><span class="legend-icon cell-partial" aria-hidden="true">◐</span> {t(lang, 'landing.comparison.legend.partial')}</span>
       <span class="legend-item"><span class="legend-icon cell-no" aria-hidden="true">✗</span> {t(lang, 'landing.comparison.legend.notSupported')}</span>
       <span class="legend-item"><span class="legend-icon cell-planned" aria-hidden="true">◎</span> {t(lang, 'landing.comparison.legend.planned')}</span>
+      <span class="legend-item"><span class="legend-icon cell-unknown" aria-hidden="true">?</span> {t(lang, 'landing.comparison.legend.notDocumented')}</span>
     </div>
   </div>
 </section>
@@ -434,7 +451,9 @@ const compareHref = lang === 'en' ? '/compare' : `/${lang}/compare`;
   }
 
   .cell-partial .cell-icon,
-  .legend-icon.cell-partial {
+  .legend-icon.cell-partial,
+  .cell-unknown .cell-icon,
+  .legend-icon.cell-unknown {
     color: var(--fg);
   }
 

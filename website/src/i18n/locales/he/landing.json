@@ -128,7 +128,7 @@
       "competitors": {
         "caro": "Caro",
         "copilotCli": "GitHub Copilot CLI",
-        "warp": "Warp AI",
+        "warp": "Warp",
         "kiro": "Kiro CLI",
         "opencode": "OpenCode"
       },
@@ -231,13 +231,15 @@
         "fullSupport": "תמיכה מלאה",
         "partial": "חלקי / ניתן להגדרה",
         "notSupported": "לא נתמך",
-        "planned": "מתוכנן"
+        "planned": "מתוכנן",
+        "notDocumented": "לא מתועד על ידי הספק"
       },
       "values": {
         "yes": "כן",
         "no": "לא",
         "partial": "חלקי",
-        "planned": "מתוכנן"
+        "planned": "מתוכנן",
+        "unknown": "לא מתועד"
       }
     },
     "scenarios": {},
