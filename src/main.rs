@@ -3,6 +3,7 @@ use caro::backends::{CommandGenerator, StaticMatcher};
 use caro::cli::{CliApp, CliError, IntoCliArgs};
 use caro::config::ConfigManager;
 use caro::eval::{CategoryResults, EvalResults, EvalSuite, IndividualResult};
+use caro::execution::ExecutorError;
 use caro::models::{CommandRequest, ShellType};
 use caro::prompts::CapabilityProfile;
 use caro::setup::{needs_setup, SetupWizard};
@@ -672,6 +673,15 @@ enum Commands {
         /// Print the plan and exit without executing.
         #[arg(long)]
         dry_run: bool,
+
+        /// Per-step deadline in seconds (each step, not the whole task). On
+        /// expiry the step gets SIGTERM, then SIGKILL after 2 s, and caro
+        /// exits 124. Unix only.
+        ///
+        /// A timed step runs in its own process group, so caro forwards
+        /// Ctrl-C (SIGINT), SIGTERM and SIGHUP to it and exits 128 + signal.
+        #[arg(long, value_name = "SECONDS", value_parser = clap::value_parser!(u64).range(1..))]
+        timeout: Option<u64>,
     },
 
     /// Write the per-platform `.<platform>.sh` runbook from the active
@@ -747,6 +757,15 @@ enum Commands {
         /// Print the resolved dispatch plan and exit.
         #[arg(long)]
         dry_run: bool,
+
+        /// Per-step deadline in seconds (each step, not the whole task). On
+        /// expiry the step gets SIGTERM, then SIGKILL after 2 s, and caro
+        /// exits 124. Unix only.
+        ///
+        /// A timed step runs in its own process group, so caro forwards
+        /// Ctrl-C (SIGINT), SIGTERM and SIGHUP to it and exits 128 + signal.
+        #[arg(long, value_name = "SECONDS", value_parser = clap::value_parser!(u64).range(1..))]
+        timeout: Option<u64>,
     },
 
     /// Render a CaroML task as Markdown documentation.
@@ -1523,6 +1542,8 @@ enum RunbookStatus {
     Clean,
     Drift,
     NoStamp,
+    /// The runbook is clean, but `--timeout` needs per-step execution.
+    TimedSteps,
 }
 
 fn runbook_status_for_active(
@@ -1554,9 +1575,11 @@ fn run_caroml_run(
     platform_override: Option<&str>,
     yes: bool,
     dry_run: bool,
+    timeout_secs: Option<u64>,
 ) -> Result<(), String> {
     use caro::caroml::{discovery, lock::Lock, platform as caro_platform, runner};
     use std::io::{self, Write};
+    let timeout_ms = step_timeout_ms(timeout_secs)?;
 
     let task_path = discovery::resolve_task_path(name)
         .ok_or_else(|| format!("could not find task `{}`", name))?;
@@ -1585,7 +1608,12 @@ fn run_caroml_run(
     // user would `bash`). Falls back to step-by-step otherwise.
     use caro::caroml::runbook;
     let runbook_path = runbook::runbook_path(&task_path, &target_platform);
-    let runbook_status = runbook_status_for_active(&lock, &target_platform, &runbook_path);
+    let mut runbook_status = runbook_status_for_active(&lock, &target_platform, &runbook_path);
+    // A runbook is one `bash` call, so a timeout there would cover the whole
+    // task. `--timeout` is per step, so run step by step from the lock.
+    if timeout_ms.is_some() && runbook_status == RunbookStatus::Clean {
+        runbook_status = RunbookStatus::TimedSteps;
+    }
 
     println!("{}", runner::render_plan(&plan));
     match &runbook_status {
@@ -1597,6 +1625,9 @@ fn run_caroml_run(
                 "(runbook clean — will run `bash {}`)",
                 runbook_path.display()
             )
+        }
+        RunbookStatus::TimedSteps => {
+            println!("(--timeout is per step: will execute step-by-step from the lock)")
         }
         RunbookStatus::Drift => {
             eprintln!(
@@ -1646,7 +1677,7 @@ fn run_caroml_run(
             }),
             Err(e) => Err(e),
         },
-        _ => runner::execute_plan(&plan),
+        _ => runner::execute_plan(&plan, timeout_ms),
     };
     let elapsed_ms = started.elapsed().as_millis() as u64;
 
@@ -1662,6 +1693,16 @@ fn run_caroml_run(
             *exit_code,
             Some(format!("step on line {}: {}", line, intent)),
             stderr.clone(),
+        ),
+        Err(runner::RunError::Executor(ExecutorError::Interrupted(sig))) => (
+            128 + sig,
+            Some(format!("interrupted by signal {}", sig)),
+            String::new(),
+        ),
+        Err(runner::RunError::Executor(ExecutorError::Timeout(ms))) => (
+            EXIT_TIMED_OUT,
+            Some(format!("step timed out after {} ms", ms)),
+            String::new(),
         ),
         Err(other) => (255, Some(format!("{}", other)), String::new()),
     };
@@ -1684,6 +1725,11 @@ fn run_caroml_run(
         eprintln!("warning: could not write run journal: {}", e);
     }
 
+    match &result {
+        Err(runner::RunError::Executor(ExecutorError::Interrupted(sig))) => exit_interrupted(*sig),
+        Err(runner::RunError::Executor(ExecutorError::Timeout(ms))) => exit_timed_out(*ms),
+        _ => {}
+    }
     let results = result.map_err(|e| e.to_string())?;
     println!(
         "All {} steps completed in {} ms.",
@@ -1878,8 +1924,9 @@ fn run_caroml_skill(command: &SkillSubcommand) -> Result<(), String> {
 }
 
 /// `caro do <name>` — Carofile JOB / external-alias / native-alias / fallback.
-fn run_caroml_do(name: &str, dry_run: bool) -> Result<(), String> {
-    use caro::caroml::{carofile, discovery, jobs, platform as caro_platform};
+fn run_caroml_do(name: &str, dry_run: bool, timeout_secs: Option<u64>) -> Result<(), String> {
+    use caro::caroml::{carofile, discovery, jobs, platform as caro_platform, runner::RunError};
+    let timeout_ms = step_timeout_ms(timeout_secs)?;
 
     // Try to load the Carofile (optional).
     let carofile_path = discovery::find_carofile();
@@ -1904,20 +1951,66 @@ fn run_caroml_do(name: &str, dry_run: bool) -> Result<(), String> {
     }
 
     let platform = caro_platform::current().to_string();
-    let results = jobs::dispatch(name, carofile.as_ref(), |alias_or_name, task_path_opt| {
-        // Native task or bare-task: load the lock and execute it.
-        let task_path = match task_path_opt {
-            Some(p) => p.to_path_buf(),
-            None => discovery::resolve_task_path(alias_or_name).ok_or_else(|| {
-                jobs::DoError::Other(format!("could not find task `{}`", alias_or_name))
-            })?,
-        };
-        jobs::run_native_task(&task_path, &platform)
-    })
-    .map_err(|e| e.to_string())?;
+    let results = jobs::dispatch(
+        name,
+        carofile.as_ref(),
+        timeout_ms,
+        |alias_or_name, task_path_opt| {
+            // Native task or bare-task: load the lock and execute it.
+            let task_path = match task_path_opt {
+                Some(p) => p.to_path_buf(),
+                None => discovery::resolve_task_path(alias_or_name).ok_or_else(|| {
+                    jobs::DoError::Other(format!("could not find task `{}`", alias_or_name))
+                })?,
+            };
+            jobs::run_native_task(&task_path, &platform, timeout_ms)
+        },
+    )
+    .map_err(|e| match e {
+        jobs::DoError::Executor(ExecutorError::Interrupted(sig))
+        | jobs::DoError::StepRun(RunError::Executor(ExecutorError::Interrupted(sig))) => {
+            exit_interrupted(sig)
+        }
+        jobs::DoError::Executor(ExecutorError::Timeout(ms))
+        | jobs::DoError::StepRun(RunError::Executor(ExecutorError::Timeout(ms))) => {
+            exit_timed_out(ms)
+        }
+        other => other.to_string(),
+    })?;
 
     println!("Completed {} step(s) in caro do {}.", results.len(), name);
     Ok(())
+}
+
+/// Convert `--timeout <SECONDS>` to milliseconds. Refused off Unix: there a
+/// timeout kills only the shell, and the step's own processes keep running.
+fn step_timeout_ms(timeout_secs: Option<u64>) -> Result<Option<u64>, String> {
+    match timeout_secs {
+        Some(_) if !cfg!(unix) => Err(
+            "--timeout is supported only on Unix: on this platform caro cannot stop a step's child processes"
+                .to_string(),
+        ),
+        secs => Ok(secs.map(|s| s.saturating_mul(1000))),
+    }
+}
+
+/// Exit status when a `--timeout` step runs out of time, as GNU `timeout`.
+const EXIT_TIMED_OUT: i32 = 124;
+
+/// Exit like GNU `timeout` when a step ran past its `--timeout` deadline.
+fn exit_timed_out(ms: u64) -> ! {
+    eprintln!("caro: a step timed out after {} ms and was stopped", ms);
+    process::exit(EXIT_TIMED_OUT);
+}
+
+/// Exit the way a shell reports a command stopped by `sig`: status 128 + sig.
+/// The step's process group already got the signal.
+fn exit_interrupted(sig: i32) -> ! {
+    eprintln!(
+        "caro: interrupted by signal {}; stopped the running step",
+        sig
+    );
+    process::exit(128 + sig);
 }
 
 /// `caro why <name>` — explain the RegenEvaluator decision.
@@ -3343,7 +3436,8 @@ async fn main() {
             yes,
             ref platform,
             dry_run,
-        }) => match run_caroml_run(name, platform.as_deref(), yes, dry_run) {
+            timeout,
+        }) => match run_caroml_run(name, platform.as_deref(), yes, dry_run, timeout) {
             Ok(()) => process::exit(0),
             Err(e) => {
                 eprintln!("Error: {}", e);
@@ -3405,7 +3499,11 @@ async fn main() {
                 process::exit(1);
             }
         },
-        Some(Commands::Do { ref name, dry_run }) => match run_caroml_do(name, dry_run) {
+        Some(Commands::Do {
+            ref name,
+            dry_run,
+            timeout,
+        }) => match run_caroml_do(name, dry_run, timeout) {
             Ok(()) => process::exit(0),
             Err(e) => {
                 eprintln!("Error: {}", e);

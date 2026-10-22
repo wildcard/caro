@@ -62,14 +62,18 @@ grandchildren that keep the pipes open.
 Regression guard: `execution::executor::tests::test_timeout_kills_hung_command`.
 
 Follow-ups:
-- Wire a default timeout into `caro run` / `caro do` steps (`caroml/runner.rs`,
-  `caroml/jobs.rs`). Today no production caller sets one. **Blocked on signal
-  forwarding.** A timed command runs in its own process group, so a Ctrl-C would
-  kill `caro` but leave the step running. AX's runner forwards the signal to the
-  group (`syscall.Kill(-pid, SIGTERM)`, `runner/runner.go`), and we need the same
-  before a default timeout can ship.
-- Use SIGTERM, then a grace period, then SIGKILL (AX's shutdown order) instead of
-  an immediate SIGKILL, so commands can clean up.
+- ✅ Signal forwarding. A timed command runs in its own process group, so a
+  Ctrl-C used to kill `caro` and leave the step running. Like AX's runner
+  (`syscall.Kill(-pid, SIGTERM)`, `runner/runner.go`), the executor now catches
+  SIGINT, SIGTERM and SIGHUP and sends them to the group. `caro run` and
+  `caro do` take an opt-in `--timeout <SECONDS>`, and exit 128 + signal.
+  Regression guard: `execution_contract::signal_forwarding`.
+- ✅ Use SIGTERM, then a grace period, then SIGKILL (AX's shutdown order) instead of
+  an immediate SIGKILL, so commands can clean up. Done in #1545
+  (`DEFAULT_GRACE_MS`, `with_grace_period`).
+- Open: pick a default step timeout. This needs a decision about how long a
+  step may run, not code. (Stdin is not the blocker: untimed steps get no
+  stdin either, because `Command::output()` does not pass it on.)
 - Either wire `AgentLoop._max_iterations` or delete it. A declared but unused
   budget is worse than none.
 
@@ -178,8 +182,8 @@ trail and the governance spike together, without new infrastructure.
 | Pri | Item | Touches |
 |---|---|---|
 | P0 | ✅ Real timeout enforcement (this PR) | `src/execution/executor.rs` |
-| P1 | SIGINT forwarding to the process group, then a default step timeout in `caro run` / `caro do` | `src/execution/executor.rs`, `src/caroml/runner.rs`, `jobs.rs` |
-| P1 | SIGTERM, grace period, then SIGKILL | `src/execution/executor.rs` |
+| P1 | ✅ SIGINT forwarding to the process group, plus an opt-in `--timeout` on `caro run` / `caro do`. A default value is still open. | `src/execution/executor.rs`, `src/caroml/runner.rs`, `jobs.rs` |
+| P1 | ✅ SIGTERM, grace period, then SIGKILL (`DEFAULT_GRACE_MS` 2 s, `with_grace_period`) | `src/execution/executor.rs` |
 | P1 | Wire or remove `AgentLoop._max_iterations` | `src/agent/mod.rs` |
 | P1 | ADR: CaroML version header (next free number) | `docs/adr/`, `src/caroml/parser.rs` |
 | P1 | Runner contract doc + contract test | `docs/caroml/`, `tests/` |
@@ -203,9 +207,9 @@ because our own harness has the same kind.
 - **Supervise the process group, not just the process.** The runner starts
   the command with `Setpgid: true`. On shutdown it sends SIGTERM to `-pid`,
   waits 10s, then SIGKILLs the group (`runner/runner.go`). This PR copies
-  the process-group supervision into `CommandExecutor`, but not the shutdown
-  sequence: on timeout it sends SIGKILL immediately. Adding SIGTERM and a
-  grace period is a P1 follow-up.
+  the process-group supervision into `CommandExecutor`. #1545 adds the
+  shutdown sequence: on timeout the group gets SIGTERM, a 2 s grace period,
+  then SIGKILL.
 - **Stay inspectable after the command exits.** The runner remains PID 1 and
   keeps its metadata server up once the agent finishes, so you can still look
   at what happened. For our harness, a routine should leave its worktree and

@@ -18,7 +18,7 @@
 use crate::caroml::carofile::{Carofile, UseDecl, UseTarget};
 use crate::caroml::lock::Lock;
 use crate::caroml::runner::{self, RunError};
-use crate::execution::{CommandExecutor, ExecutionResult, ExecutorError};
+use crate::execution::{ExecutionResult, ExecutorError};
 use crate::models::ShellType;
 use std::path::Path;
 use thiserror::Error;
@@ -123,10 +123,12 @@ fn render_inline(r: &Resolution) -> String {
 /// Dispatch one resolved alias. For a Job, recursively iterates its runs.
 /// For external commands, executes via `CommandExecutor`. For native
 /// aliases / bare tasks, calls `task_runner` (caller-supplied — keeps this
-/// module free of CLI / I/O choice).
+/// module free of CLI / I/O choice). `timeout_ms` applies to external
+/// commands; `task_runner` applies it to native tasks.
 pub fn dispatch<F>(
     name: &str,
     carofile: Option<&Carofile>,
+    timeout_ms: Option<u64>,
     mut task_runner: F,
 ) -> Result<Vec<ExecutionResult>, DoError>
 where
@@ -144,17 +146,18 @@ where
                             name: alias.clone(),
                         },
                     };
-                let mut step_results = dispatch_resolution(&nested, &mut task_runner)?;
+                let mut step_results = dispatch_resolution(&nested, timeout_ms, &mut task_runner)?;
                 all_results.append(&mut step_results);
             }
             Ok(all_results)
         }
-        other => dispatch_resolution(&other, &mut task_runner),
+        other => dispatch_resolution(&other, timeout_ms, &mut task_runner),
     }
 }
 
 fn dispatch_resolution<F>(
     resolution: &Resolution,
+    timeout_ms: Option<u64>,
     task_runner: &mut F,
 ) -> Result<Vec<ExecutionResult>, DoError>
 where
@@ -165,7 +168,7 @@ where
             alias: name.clone(),
         }),
         Resolution::ExternalAlias { command, .. } => {
-            let exec = CommandExecutor::new(ShellType::Bash);
+            let exec = runner::executor_for(ShellType::Bash, timeout_ms);
             let result = exec.execute(command)?;
             if result.exit_code != 0 {
                 return Err(DoError::Other(format!(
@@ -182,11 +185,15 @@ where
 
 /// Convenience runner used by `caro do <bare-task>`: load the task's lock
 /// and execute it on `platform`. The lock must already exist.
-pub fn run_native_task(task_path: &Path, platform: &str) -> Result<Vec<ExecutionResult>, DoError> {
+pub fn run_native_task(
+    task_path: &Path,
+    platform: &str,
+    timeout_ms: Option<u64>,
+) -> Result<Vec<ExecutionResult>, DoError> {
     let lock_path = task_path.with_extension("caro.lock");
     let lock = Lock::read_path(&lock_path).map_err(|e| DoError::Other(e.to_string()))?;
     let plan = runner::plan_run(&lock, platform).map_err(DoError::StepRun)?;
-    runner::execute_plan(&plan).map_err(DoError::StepRun)
+    runner::execute_plan(&plan, timeout_ms).map_err(DoError::StepRun)
 }
 
 // ---------------------------------------------------------------------------

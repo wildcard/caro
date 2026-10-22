@@ -75,8 +75,12 @@ pub fn plan_run(lock: &Lock, platform: &str) -> Result<RunPlan, RunError> {
 
 /// Execute the plan step-by-step via `CommandExecutor`. Returns the per-step
 /// results in order. On the first non-zero exit, returns `Err(StepFailed)`.
-pub fn execute_plan(plan: &RunPlan) -> Result<Vec<ExecutionResult>, RunError> {
-    let executor = CommandExecutor::new(shell_for(&plan.platform));
+/// With `timeout_ms`, each step is stopped at that deadline.
+pub fn execute_plan(
+    plan: &RunPlan,
+    timeout_ms: Option<u64>,
+) -> Result<Vec<ExecutionResult>, RunError> {
+    let executor = executor_for(shell_for(&plan.platform), timeout_ms);
     let mut results = Vec::with_capacity(plan.steps.len());
     for step in &plan.steps {
         let result = executor.execute(&step.command)?;
@@ -122,6 +126,16 @@ pub fn render_plan(plan: &RunPlan) -> String {
         ));
     }
     s
+}
+
+/// A timed executor runs each command in its own process group with no
+/// stdin, and forwards Ctrl-C to that group.
+pub(crate) fn executor_for(shell: ShellType, timeout_ms: Option<u64>) -> CommandExecutor {
+    let executor = CommandExecutor::new(shell);
+    match timeout_ms {
+        Some(ms) => executor.with_timeout(ms),
+        None => executor,
+    }
 }
 
 fn shell_for(platform: &str) -> ShellType {
@@ -233,7 +247,7 @@ mod tests {
         // deterministic and dependency-free.
         let lock = lock_with_steps(&["true", "true", "true"], "linux");
         let plan = plan_run(&lock, "linux").unwrap();
-        let results = execute_plan(&plan).unwrap();
+        let results = execute_plan(&plan, None).unwrap();
         assert_eq!(results.len(), 3);
         for r in results {
             assert_eq!(r.exit_code, 0);
@@ -244,7 +258,7 @@ mod tests {
     fn execute_plan_stops_on_first_non_zero_exit() {
         let lock = lock_with_steps(&["true", "false", "true"], "linux");
         let plan = plan_run(&lock, "linux").unwrap();
-        match execute_plan(&plan) {
+        match execute_plan(&plan, None) {
             Err(RunError::StepFailed { exit_code, .. }) => {
                 assert_ne!(exit_code, 0);
             }
