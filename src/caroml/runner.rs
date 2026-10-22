@@ -251,4 +251,131 @@ mod tests {
             other => panic!("expected StepFailed, got {:?}", other),
         }
     }
+
+    // ---- Runner contract (docs/caroml/runner-contract.md) ----
+    // Each test pins one promise from the contract. Change the doc and the
+    // test together.
+
+    /// Single-quote a path for the shell, so spaces in TMPDIR are safe.
+    fn sh_quote(path: &std::path::Path) -> String {
+        format!("'{}'", path.display().to_string().replace('\'', r"'\''"))
+    }
+
+    fn plan_of(commands: &[&str]) -> RunPlan {
+        RunPlan {
+            platform: "linux".to_string(),
+            steps: commands
+                .iter()
+                .enumerate()
+                .map(|(i, c)| PlanStep {
+                    line: i + 1,
+                    intent: format!("step {}", i + 1),
+                    command: c.to_string(),
+                    risk_level: "Safe".to_string(),
+                    generation_id: format!("g{}", i + 1),
+                })
+                .collect(),
+        }
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn contract_steps_run_in_order_and_return_results_in_order() {
+        // Each step checks that exactly the earlier steps already ran, then
+        // records itself. A reordered or overlapping run fails a step.
+        let dir = tempfile::tempdir().unwrap();
+        let log = dir.path().join("log");
+        let step = |expected: &str, me: &str| {
+            format!(
+                "test \"$(cat {log} 2>/dev/null | tr '\\n' ' ')\" = \"{expected}\" && echo {me} >> {log} && echo {me}",
+                log = sh_quote(&log)
+            )
+        };
+        let steps = [
+            step("", "one"),
+            step("one ", "two"),
+            step("one two ", "three"),
+        ];
+        let refs: Vec<&str> = steps.iter().map(String::as_str).collect();
+        let results = execute_plan(&plan_of(&refs)).unwrap();
+        let out: Vec<_> = results
+            .iter()
+            .map(|r| r.stdout.trim().to_string())
+            .collect();
+        assert_eq!(out, ["one", "two", "three"]);
+    }
+
+    #[test]
+    #[cfg(unix)]
+    // Shares the lock with tests that change the process-wide cwd.
+    #[serial_test::serial]
+    fn contract_each_step_gets_a_fresh_shell() {
+        // Shell variables, exports and `cd` do not carry into the next step.
+        let results = execute_plan(&plan_of(&[
+            "export CARO_CONTRACT_X=1; cd /",
+            "echo \"x=${CARO_CONTRACT_X:-unset} cwd=$(pwd -P)\"",
+        ]))
+        .unwrap();
+        let cwd = std::env::current_dir().unwrap().canonicalize().unwrap();
+        assert_eq!(
+            results[1].stdout.trim(),
+            format!("x=unset cwd={}", cwd.display())
+        );
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn contract_stops_on_first_failure_and_reports_it() {
+        let dir = tempfile::tempdir().unwrap();
+        let marker = dir.path().join("ran");
+        let third = format!("touch {}", sh_quote(&marker));
+        let err = execute_plan(&plan_of(&["true", "echo boom >&2; exit 7", &third])).unwrap_err();
+        match err {
+            RunError::StepFailed {
+                line,
+                intent,
+                exit_code,
+                stderr,
+            } => {
+                assert_eq!((line, intent.as_str(), exit_code), (2, "step 2", 7));
+                assert_eq!(stderr.trim(), "boom");
+            }
+            other => panic!("expected StepFailed, got {other:?}"),
+        }
+        assert!(!marker.exists(), "a step after the failure ran");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn contract_steps_get_no_stdin() {
+        // A step must not see caro's stdin. To test that even where the test
+        // process's own stdin is already empty (CI), re-run this test as a
+        // child with readable stdin, and check that the step sees EOF.
+        const PROBE: &str = "CARO_RUNNER_STDIN_PROBE";
+        if std::env::var_os(PROBE).is_some() {
+            let results =
+                execute_plan(&plan_of(&["read line; echo \"got=[$line] rc=$?\""])).unwrap();
+            let out = results[0].stdout.trim();
+            println!("{out}");
+            // Also check here, so this branch never passes silently.
+            assert_eq!(out, "got=[] rc=1", "step read caro's stdin");
+            return;
+        }
+        use std::io::Write;
+        use std::process::{Command, Stdio};
+        let mut child = Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "caroml::runner::tests::contract_steps_get_no_stdin",
+                "--nocapture",
+            ])
+            .env(PROBE, "1")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        child.stdin.take().unwrap().write_all(b"secret\n").unwrap();
+        let out = String::from_utf8(child.wait_with_output().unwrap().stdout).unwrap();
+        assert!(out.contains("got=[] rc=1"), "step read caro's stdin: {out}");
+    }
 }
