@@ -4,6 +4,47 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-23 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1709 into this state on 2026-10-23. The run read main's May copy, so its Slot B window since 2026-05-07 and its list of "never tested" Slot C candidates do not see the runs below. Its surface #14 is surface 14 here too.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (0766bf8 2026-10-21)`
+- `caro --help` → **PASS**: all subcommands listed (adds `guard`, `export`, `integration`)
+- `caro doctor` → **PASS**: advisory only (no model, no Ollama; expected in sandbox)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` (FLAKE-001 did not recur; no model download needed)
+
+### Slot B — Recent diff
+
+Last log entry was 2026-05-07, so the window is ~5 months. Only the newest merged PRs were sampled: #1696 (untrack `.worktrees` gitlinks), #1691 (harness docs), #1643 (ML gold-subset data). None touch shipped CLI surfaces. Nothing flagged. Older window not audited.
+
+### Slot C — `caro config get/set/show/reset` (#14)
+
+- `show`: PASS, lists all keys and config path.
+- `set`/`get` round trip for safety, log_level, cache_max_size, log_rotation, shell, telemetry.enabled: PASS.
+- Invalid values (`safety bogus`, `log_level nope`): PASS, error and value unchanged.
+- Unknown key: PASS, exit 1 with list of valid keys.
+- `reset`: PASS, defaults restored.
+- Minor, not filed: the `safety bogus` error repeats "Invalid safety level 'bogus'" twice in one line.
+
+### Findings
+
+None this pass.
+
+### Followups
+
+- `gh` CLI token was invalid in this sandbox; the GitHub MCP tools were used for PR/issue work instead.
+- #1044 (CLAUDE.md version banner) status not rechecked this pass.
+- Memory files were 5 months stale; coverage matrix rows for 2026-05-07 were not retested.
+- Next Slot C candidates (all never tested): #10 `caro ai --once`, #12 `caro assess`, #15 `--output json`.
+
+---
+
 ## 2026-10-22 — Scheduled run (Slot A + Slot B + Slot C)
 
 > Folded from #1705 into this state on 2026-10-22. The run read main's May copy, so its "184 PRs merged" since 2026-05-07 and its choice of surface 10 as "never tested" do not see the runs below. Its Slot B `caro guard test` checks update surface 36 here.
