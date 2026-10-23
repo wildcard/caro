@@ -81,7 +81,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1213 (dup #1422, closed)
-**Status:** claimed-by sweep/2026-10-23-BW-012 (#PR)
+**Status:** claimed-by sweep/2026-10-23-BW-012 (#1710)
 **Needs human?:** no
 **Next step:** fix the message (the sweep fix names only trailing text and stdin).
 
