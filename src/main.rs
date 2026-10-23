@@ -1179,7 +1179,11 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     };
     let resolved = resolve_prompt(cli.prompt.clone(), stdin_text, trailing);
     if resolved.text.trim().is_empty() {
-        return Err("no prompt provided (pass text, pipe stdin, or use -p)".into());
+        // `caro ai` has no -p flag; name only the inputs it accepts (#1213).
+        return Err(
+            "no prompt provided (pass text, e.g. `caro ai --once \"list files\"`, or pipe it on stdin)"
+                .into(),
+        );
     }
 
     // Load config — defaults are fine for a first-time user.
