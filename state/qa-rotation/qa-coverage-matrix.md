@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-10-22
+**Last updated**: 2026-10-23
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -56,6 +56,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-10-20 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Model available; dry-run gave `ls -la` |
 | 2026-10-21 | PASS | PASS (1.5.0) | PASS | PASS | PASS | gh token invalid; MCP used |
 | 2026-10-22 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher answered; no download needed |
+| 2026-10-23 | PASS | PASS (1.5.0) | PASS | PASS | PASS | `ls -la`; no model download needed |
 
 ---
 
@@ -78,7 +79,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 11 | `caro ai --continue-session` shell widget | ai | 2026-10-19 | FAIL | #1269 (CPU stub, as surface 10, when a prompt is passed). With no prompt, the `?` widget cannot take a request (#1671) |
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection. The README claimed it until #1680 fixed #1677 on 2026-10-19) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
-| 14 | `caro config get/set/show/reset` | cli | 2026-10-10 | PARTIAL | — (get/set verified for safety + log_level keys in Slot B via fix(cli) #1497; show/reset not tested) |
+| 14 | `caro config get/set/show/reset` | cli | 2026-10-23 | PASS | — (minor, not filed: the `safety bogus` error repeats its message) |
 | 15 | `caro --output json` format correctness | cli | 2026-10-16 | PASS | — (--dry-run --output json shows dry_run:true field; Slot B via fix(cli) #1532) |
 | 16 | `caro --output yaml` format correctness | cli | 2026-10-16 | PASS | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
