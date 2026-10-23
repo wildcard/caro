@@ -3,7 +3,20 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-10-03 — PR #1513 (`claude/nifty-brown-mtjkpu`) adds the experimental `caro guard` PreToolUse hook (Claude Code / Grok Build / Codex / OpenCode) and wires `grok`, `claude` and `openrouter` into `--backend`. Non-`remote-backends` builds get the existing loud "requires remote-backends" error for those names, the same as `mesh`/`vllm`, so the #1298 divergence stays closed.
+> **Last updated:** 2026-10-22 — ✓ VERIFIED current published binary is
+> still `caro 1.5.0` (crates.io). Re-ran the backend-info / `--model` /
+> `--backend claude` checks from [#1657](https://github.com/wildcard/caro/issues/1657):
+> unchanged from the 2026-10-19 evidence in [PR #1689](https://github.com/wildcard/caro/pull/1689).
+> Found 5 open PRs (#1504, #1658, #1672, #1676, #1689) independently
+> fixing the same `integrations.ts`/README drift across 3 weeks of
+> nightly fires — none had merged. Closed #1504, #1672, #1676 as
+> superseded by #1689 (still `CLEAN`, closes #1657). Left #1689 and
+> #1658 (different scope: `caro-shell` skill, closes #1629) open —
+> both `CLEAN` and ready to merge. Added playbook step 6a (check for an
+> existing open PR before opening a new one) so this doesn't recur. No
+> new code PR tonight. See the 2026-10-22 log entry.
+>
+> **Previous:** 2026-10-03 — PR #1513 (`claude/nifty-brown-mtjkpu`) adds the experimental `caro guard` PreToolUse hook (Claude Code / Grok Build / Codex / OpenCode) and wires `grok`, `claude` and `openrouter` into `--backend`. Non-`remote-backends` builds get the existing loud "requires remote-backends" error for those names, the same as `mesh`/`vllm`, so the #1298 divergence stays closed.
 >
 > **Previous:** 2026-07-11 (post-merge pass) — **PR #1298 is MERGED** (2026-07-12 UTC) and **issue #1115 is CLOSED**: the acute half of the backend-roster divergence is resolved on `main` (`--backend-info` / `available_backends()` / `--backend` help all iterate the single source of truth `backends::CLI_SERVABLE_BACKENDS`, shared with `validate_backend_name`). No code PR tonight — the fix already exists on `main`, and re-touching the roster would regress it (see below). Instead: re-validated the **still-published `caro 1.4.0`** (crates.io, 2026-05-09) and confirmed the #1115 P0 is **live in the shipped artifact** — `--backend-info` advertises `static`+`claude`, `--backend claude`/`--backend static` → `Unknown backend`. This is now purely a **release-cadence gap**: `main` exposes 7 CLI-servable backends (adds `mesh`/`ai-horde`/`hybrid` from #1209), the shipped binary knows 4. Posted a post-#1298 status update to **#1081** (the surviving tracking home now that #1115 is closed) covering the remaining wiring-half + release gap. **The wiring half (claude/openrouter arms in `create_backend`) is NOT trivial**: `CLI_SERVABLE_BACKENDS` is not feature-gated, so adding those names without a `#[cfg(feature="remote-backends")]` split would re-open the divergence for default builds. See log.
 
