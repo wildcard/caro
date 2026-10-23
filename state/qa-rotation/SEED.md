@@ -108,3 +108,14 @@ The 2026-10-22 run used the old prompt and read main's May copy. It was folded o
 - **Flakes:** FLAKE-001 and FLAKE-002 were not triggered.
 
 Like almost every run since May, it tested surface 10, because the May copy still lists it as "never".
+
+## Added after seeding: #1709 (2026-10-23)
+
+The 2026-10-23 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-10-23, and surface 14 (`caro config get/set/show/reset`) moves from PARTIAL to PASS. The seed's note that show and reset were untested is replaced, and the run's unfiled cosmetic note (the `safety bogus` error repeats its message) is kept.
+- **Backlog:** no change. The run filed no issues, and #1044, which it cites, is already closed in the seed.
+- **Flakes:** FLAKE-001 was not triggered.
+
+This run picked surface 14 instead of surface 10, because the May copy lists both as "never".
