@@ -80,9 +80,35 @@ Mark each row PASS / FAIL in the matrix with the date and a one-line evidence st
 
 Always dedup: `gh issue list --label integration --state all --search "<keywords>"` + check closed.
 
+### 6a. Check for an existing open PR before writing a new one
+
+Before branching, run:
+
+```bash
+gh pr list --state open --search "<topic keywords>" --json number,title,headRefName,files,mergeable,mergeStateStatus
+```
+
+If an open PR already touches the files you are about to edit:
+
+- **It is `CLEAN`/mergeable and still accurate** (re-verify its evidence
+  against tonight's published-binary check) → do nothing to it. Note it
+  in the log as "ready to merge" and pick the next queue row instead.
+  Do not open a second PR for the same gap.
+- **It is stale, superseded, or `UNSTABLE`** → close it with a `[agent]`
+  comment naming the PR that replaces it (or naming that the gap no
+  longer exists), per the dedup discipline above. Then proceed.
+- **Several open PRs touch the same lines** → this has happened before
+  (2026-10-22: five nightly passes each reopened a fix for the same
+  `integrations.ts`/README drift because this check didn't exist).
+  Consolidate to one before shipping anything new.
+
+This agent has no merge authority — a `CLEAN` PR sitting unmerged is
+expected, not a bug to fix by duplicating it. Surface a merge backlog
+under `**Needs user input:**` instead of reopening the same fix.
+
 ### 7. Ship the night's PR
 
-Pick the topmost unblocked row from the **Priority queue** (in `integrations-status.md`). One PR, scoped tight.
+Pick the topmost unblocked row from the **Priority queue** (in `integrations-status.md`). One PR, scoped tight. Skip this step entirely if 6a found an existing PR already covering tonight's gap.
 
 - Branch: feature branch per `dev-process.md`
 - Commits: conventional, `Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>`
