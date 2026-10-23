@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-10-23
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -13,6 +13,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
+| 2026-10-23 | PASS | PASS (1.5.0) | PASS | PASS | PASS | `ls -la`; no model download needed |
 
 ---
 
@@ -35,7 +36,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
-| 14 | `caro config get/set/show/reset` | cli | never | — | — |
+| 14 | `caro config get/set/show/reset` | cli | 2026-10-23 | PASS | — |
 | 15 | `caro --output json` format correctness | cli | never | — | — |
 | 16 | `caro --output yaml` format correctness | cli | never | — | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
