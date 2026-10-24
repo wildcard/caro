@@ -2162,6 +2162,31 @@ fn build_knowledge_backend_config(
 const CONFIG_KEYS: &str =
     "backend, model-name, shell, safety, telemetry.enabled, log_level, cache_max_size, log_rotation";
 
+/// Validate a `caro config set backend <name>` value against the same
+/// roster `--backend` accepts (`backends::CLI_SERVABLE_BACKENDS`), so this
+/// command never rejects a name the CLI itself would route to. Returns the
+/// lowercased, validated name. See #1115 / #1081 for the roster-drift this
+/// closes.
+fn validate_config_backend_name(value: &str) -> Result<String, String> {
+    let value_lower = value.to_lowercase();
+    if caro::backends::CLI_SERVABLE_BACKENDS
+        .iter()
+        .any(|(name, _)| *name == value_lower)
+    {
+        Ok(value_lower)
+    } else {
+        let valid_backends: Vec<&str> = caro::backends::CLI_SERVABLE_BACKENDS
+            .iter()
+            .map(|(name, _)| *name)
+            .collect();
+        Err(format!(
+            "Invalid backend '{}'. Valid options: {}",
+            value,
+            valid_backends.join(", ")
+        ))
+    }
+}
+
 /// Handle configuration subcommands
 fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
     use colored::Colorize;
@@ -2177,16 +2202,8 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
 
             match key.to_lowercase().as_str() {
                 "backend" => {
-                    // Validate backend name
-                    let valid_backends = ["embedded", "ollama", "exo", "vllm"];
-                    if !valid_backends.contains(&value.to_lowercase().as_str()) {
-                        return Err(format!(
-                            "Invalid backend '{}'. Valid options: {}",
-                            value,
-                            valid_backends.join(", ")
-                        ));
-                    }
-                    config.default_model = Some(value.to_lowercase());
+                    let backend_name = validate_config_backend_name(&value)?;
+                    config.default_model = Some(backend_name);
                     println!(
                         "{} Set default backend to '{}'",
                         "✓".green(),
@@ -4614,6 +4631,36 @@ async fn handle_guard(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // `caro config set backend` roster parity (#1115 / #1081)
+
+    #[test]
+    fn test_config_backend_accepts_full_cli_servable_roster() {
+        // Every name `--backend` can route to must also be accepted by
+        // `caro config set backend <name>` — this was NOT true before this
+        // fix: the config validator hardcoded a 4-name roster while
+        // CLI_SERVABLE_BACKENDS had grown to 10 (claude/openrouter/grok/
+        // mesh/ai-horde/hybrid were all silently rejected).
+        for (name, _) in caro::backends::CLI_SERVABLE_BACKENDS {
+            assert!(
+                validate_config_backend_name(name).is_ok(),
+                "'{}' is CLI-servable but config validator rejected it",
+                name
+            );
+        }
+    }
+
+    #[test]
+    fn test_config_backend_rejects_unknown_name() {
+        let err = validate_config_backend_name("not-a-real-backend").unwrap_err();
+        assert!(err.contains("Invalid backend"));
+        assert!(err.contains("claude"), "error should list valid options");
+    }
+
+    #[test]
+    fn test_config_backend_lowercases_and_trims_case() {
+        assert_eq!(validate_config_backend_name("CLAUDE").unwrap(), "claude");
+    }
 
     // WP03: Prompt Source Resolution Tests
 
