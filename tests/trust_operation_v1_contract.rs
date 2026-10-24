@@ -2500,6 +2500,38 @@ fn independently_resolve_content(obs: &Value) -> Result<Option<Vec<u8>>, ()> {
     Ok(Some(bytes))
 }
 
+/// Independently resolve a PLAN-level `artifact_ref` (`before_artifact_ref`
+/// / `expected_staged_artifact_ref`, both schema-required, never
+/// nullable, unlike an evidence observation's `artifact_ref`) against
+/// real bytes read from its OWN `fixture_path`, cross-checked against
+/// the plan's own paired hash field (`before_hash` / `expected_staged_hash`).
+/// Per the #1715 round-10 review's point 1: this is the step that was
+/// missing entirely -- prior rounds only ever compared the plan's
+/// DECLARED `artifact_ref` fields against each other or against
+/// already-resolved EVIDENCE bytes, never against real bytes read from
+/// the plan's own path. Called from the shared checker BEFORE either
+/// the no-op or mutation branch, so a swapped `fixture_path` (pointing
+/// at different, real, existing bytes) or a tampered `sha256`/
+/// `size_bytes` field is caught regardless of which branch would
+/// otherwise run.
+fn resolve_plan_artifact_ref(artifact_ref: &Value, expected_hash: &str) -> Result<Vec<u8>, ()> {
+    let Some(path) = artifact_ref["fixture_path"].as_str() else {
+        return Err(());
+    };
+    let bytes = read_artifact(path);
+    let real_hash = sha256_hex(&bytes);
+    if real_hash != expected_hash {
+        return Err(());
+    }
+    if artifact_ref["sha256"].as_str() != Some(expected_hash) {
+        return Err(());
+    }
+    if artifact_ref["size_bytes"].as_u64() != Some(bytes.len() as u64) {
+        return Err(());
+    }
+    Ok(bytes)
+}
+
 /// Per the #1715 round-7 review's point 1 ("omits ... destination/context
 /// ... checks"): an observation claiming a different destination or
 /// context than the plan it's bound to is a STALE observation (from a
@@ -2834,6 +2866,33 @@ fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> Case
         }
     }
 
+    // Gate 4.5: resolve EVERY plan-level artifact_ref (`before_artifact_ref`,
+    // `expected_staged_artifact_ref`) independently against real bytes on
+    // disk, cross-checked against the plan's own paired hash field --
+    // BEFORE either the no-op or the mutation branch below ever trusts
+    // them. Per the #1715 round-10 review's point 1: round 9's checks
+    // only ever compared the PLAN's declared `artifact_ref` fields
+    // against each other (`before_artifact_ref.sha256 == before_hash`)
+    // or against the EVIDENCE's own already-resolved bytes -- never
+    // against real bytes read from the PLAN's own `fixture_path`. That
+    // meant: the no-op branch never looked at `before_artifact_ref` at
+    // all (so a tampered `size_bytes` there still verified
+    // already_satisfied); the mutation branch never actually opened
+    // `before_artifact_ref.fixture_path` (so swapping it to a
+    // DIFFERENT, real fixture file -- while leaving the declared
+    // sha256/size_bytes fields untouched -- still verified removed,
+    // since nothing ever re-read that path); and
+    // `expected_staged_artifact_ref` was never checked at all, by
+    // either branch.
+    let plan_before_hash = plan["before_hash"].as_str().unwrap_or("");
+    if resolve_plan_artifact_ref(&plan["before_artifact_ref"], plan_before_hash).is_err() {
+        return CaseVerdict::new("failed", "unknown");
+    }
+    let plan_staged_hash = plan["expected_staged_hash"].as_str().unwrap_or("");
+    if resolve_plan_artifact_ref(&plan["expected_staged_artifact_ref"], plan_staged_hash).is_err() {
+        return CaseVerdict::new("failed", "unknown");
+    }
+
     // Gate 5: the no-op path.
     if plan_is_noop(plan) {
         // Per the #1715 round-9 review's point 3 ("No-op rejects nonempty
@@ -2916,14 +2975,9 @@ fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> Case
     // declared hash was already independently confirmed against its own
     // real bytes above, but that says nothing about whether those bytes
     // are the ones the PLAN itself claims to be operating on. Bind them.
-    if sha256_hex(&before_bytes) != plan["before_hash"].as_str().unwrap_or("") {
-        return CaseVerdict::new("failed", "unknown");
-    }
-    // Bind the plan's own before_artifact_ref hash/size fields to the
-    // same before_hash/bytes, rather than trusting them unchecked.
-    if plan["before_artifact_ref"]["sha256"].as_str() != plan["before_hash"].as_str()
-        || plan["before_artifact_ref"]["size_bytes"].as_u64() != Some(before_bytes.len() as u64)
-    {
+    // (`plan.before_artifact_ref` itself was already independently
+    // resolved against real bytes on disk in gate 4.5, above.)
+    if sha256_hex(&before_bytes) != plan_before_hash {
         return CaseVerdict::new("failed", "unknown");
     }
 
@@ -4332,6 +4386,177 @@ fn validate_fixture_case_rejects_competing_snapshots_that_differ_only_in_metadat
     let verdict = validate_fixture_case(&plan, &evidence, &report);
     assert_eq!(verdict.state, "unverified", "two backup observations agreeing on hash and status but disagreeing on source are still competing, inconsistent claims");
     assert_ne!(verdict.effect, "removed");
+}
+
+// ===========================================================================
+// Round-10 adversarial tests, per the #1715 round-10 review's point 1:
+// plan-level artifact_ref resolution (`resolve_plan_artifact_ref`),
+// exercised for BOTH the no-op and mutation branches, with wrong hash,
+// wrong size, and a swapped path to DIFFERENT EXISTING bytes.
+// ===========================================================================
+
+/// The review's exact no-op example: `before_artifact_ref.size_bytes`
+/// tampered from 741 to 1 (leaving `sha256`/`fixture_path` untouched).
+/// Round 9's checks never read `before_artifact_ref.fixture_path` at all
+/// in the no-op branch, so this still verified `already_satisfied`.
+#[test]
+fn validate_fixture_case_rejects_a_noop_plan_before_artifact_ref_with_a_wrong_declared_size() {
+    let mut plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
+    let evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
+    assert_eq!(plan["before_artifact_ref"]["size_bytes"], 741);
+    plan["before_artifact_ref"]["size_bytes"] = serde_json::json!(1);
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "a no-op plan's before_artifact_ref.size_bytes disagreeing with the real bytes on disk must fail, caught before the no-op branch ever runs");
+    assert_ne!(verdict.effect, "already_satisfied");
+}
+
+/// The no-op counterpart with a wrong `sha256` instead of `size_bytes`.
+#[test]
+fn validate_fixture_case_rejects_a_noop_plan_before_artifact_ref_with_a_wrong_declared_hash() {
+    let mut plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
+    let evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
+    plan["before_artifact_ref"]["sha256"] = Value::String("ab".repeat(32));
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "a no-op plan's before_artifact_ref.sha256 disagreeing with the real bytes on disk must fail");
+    assert_ne!(verdict.effect, "already_satisfied");
+}
+
+/// The no-op counterpart with `before_artifact_ref.fixture_path`
+/// swapped to a DIFFERENT, real, existing fixture file (leaving the
+/// declared `sha256`/`size_bytes` fields untouched, so an internal-
+/// consistency-only check would miss this entirely).
+#[test]
+fn validate_fixture_case_rejects_a_noop_plan_before_artifact_ref_pointed_at_different_real_bytes() {
+    let mut plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
+    let evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
+    let swapped_path = "tests/fixtures/trust_operation_v1/artifacts/before_two_targets.pem.fixture";
+    assert_ne!(
+        plan["before_artifact_ref"]["fixture_path"], swapped_path,
+        "sanity: this must actually be a different path"
+    );
+    plan["before_artifact_ref"]["fixture_path"] = Value::String(swapped_path.to_string());
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "a before_artifact_ref.fixture_path swapped to different, real, existing bytes must fail -- the declared sha256/size_bytes fields being internally self-consistent is not enough, the path must actually resolve to bytes matching before_hash");
+    assert_ne!(verdict.effect, "already_satisfied");
+}
+
+/// The review's exact mutation example: `before_artifact_ref.fixture_path`
+/// changed to a DIFFERENT, real, existing fixture
+/// (`before_targets_absent.pem.fixture`), with every other declared
+/// value (`sha256`, `size_bytes`, `before_hash` itself) left unchanged.
+/// Round 9's mutation-path check only ever compared
+/// `before_artifact_ref.sha256`/`size_bytes` against `before_hash` and
+/// the EVIDENCE's own resolved bytes -- it never opened the plan's own
+/// `fixture_path` at all, so this still verified `removed`.
+#[test]
+fn validate_fixture_case_rejects_a_mutation_plan_before_artifact_ref_pointed_at_different_real_bytes(
+) {
+    let mut plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let swapped_path =
+        "tests/fixtures/trust_operation_v1/artifacts/before_targets_absent.pem.fixture";
+    assert_ne!(
+        plan["before_artifact_ref"]["fixture_path"], swapped_path,
+        "sanity: this must actually be a different path"
+    );
+    // Leave sha256/size_bytes/before_hash exactly as declared -- the
+    // ONLY tamper is the path itself pointing somewhere else real.
+    plan["before_artifact_ref"]["fixture_path"] = Value::String(swapped_path.to_string());
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "a mutation plan's before_artifact_ref.fixture_path swapped to a different, real, existing fixture must fail, even though the declared sha256/size_bytes/before_hash fields are all left internally consistent with each other");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// The mutation-path counterpart for `expected_staged_artifact_ref`,
+/// which round 9 never checked at all: tamper only `size_bytes`.
+#[test]
+fn validate_fixture_case_rejects_a_mutation_plan_expected_staged_artifact_ref_with_a_wrong_declared_size(
+) {
+    let mut plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    assert_eq!(plan["expected_staged_artifact_ref"]["size_bytes"], 741);
+    plan["expected_staged_artifact_ref"]["size_bytes"] = serde_json::json!(1);
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "expected_staged_artifact_ref.size_bytes disagreeing with the real bytes on disk must fail -- round 9 never checked this field at all");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Same field, tampered via `sha256` instead of `size_bytes`.
+#[test]
+fn validate_fixture_case_rejects_a_mutation_plan_expected_staged_artifact_ref_with_a_wrong_declared_hash(
+) {
+    let mut plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    plan["expected_staged_artifact_ref"]["sha256"] = Value::String("cd".repeat(32));
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(
+        verdict.state, "failed",
+        "expected_staged_artifact_ref.sha256 disagreeing with the real bytes on disk must fail"
+    );
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// And `expected_staged_artifact_ref.fixture_path` swapped to different,
+/// real, existing bytes (the before-removal, two-target fixture).
+#[test]
+fn validate_fixture_case_rejects_a_mutation_plan_expected_staged_artifact_ref_pointed_at_different_real_bytes(
+) {
+    let mut plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let swapped_path = "tests/fixtures/trust_operation_v1/artifacts/before_two_targets.pem.fixture";
+    assert_ne!(
+        plan["expected_staged_artifact_ref"]["fixture_path"], swapped_path,
+        "sanity: this must actually be a different path"
+    );
+    plan["expected_staged_artifact_ref"]["fixture_path"] = Value::String(swapped_path.to_string());
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "expected_staged_artifact_ref.fixture_path swapped to different, real, existing bytes must fail");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Preserved outcome: tampering nothing at all still verifies, for both
+/// branches -- proving the new gate 4.5 is not itself over-strict on the
+/// genuine happy paths.
+#[test]
+fn validate_fixture_case_still_verifies_the_untampered_happy_paths_after_the_plan_artifact_ref_gate(
+) {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "verified");
+    assert_eq!(verdict.effect, "removed");
+
+    let noop_plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
+    let noop_evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let noop_report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
+    let noop_verdict = validate_fixture_case(&noop_plan, &noop_evidence, &noop_report);
+    assert_eq!(noop_verdict.state, "verified");
+    assert_eq!(noop_verdict.effect, "already_satisfied");
 }
 
 /// Happy-path sanity check: the untampered `verified_removal` and

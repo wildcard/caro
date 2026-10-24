@@ -1,7 +1,7 @@
 # Trust-Operation Contract (v1, checkpoint 1 — proposed, not yet accepted)
 
 **Status**: Checkpoint 1 of issue [#1714](https://github.com/wildcard/caro/issues/1714),
-**proposed, not yet accepted.** Eight rounds of independent review on
+**proposed, not yet accepted.** Nine rounds of independent review on
 [PR #1715](https://github.com/wildcard/caro/pull/1715) have found and fixed
 static-contract defects (round 2: 6 classes; round 3: 7 classes, including
 a real CI license-policy failure; round 4: 5 classes, including two real
@@ -15,10 +15,13 @@ adding evidence-to-report propagation, correcting the missing-vs-
 contradictory taxonomy further, and reverting round 7's own wrong fixture
 fix; round 9: 3 classes, correcting round 8's own OVER-correction on null
 snapshot bindings, forcing effect=unknown on any mutation-step failure,
-and binding `artifact_ref`'s own hash/size fields). This document states,
-plainly, what changed and why. It never uses the word "frozen" to
-describe the overall contract's acceptance state — only this PR's own
-content, pending the next review pass, which decides acceptance.
+and binding `artifact_ref`'s own hash/size fields; round 10: 1 class,
+independently resolving the PLAN's own `before_artifact_ref`/
+`expected_staged_artifact_ref` against real bytes on disk, for both
+branches, before either trusts them). This document states, plainly,
+what changed and why. It never uses the word "frozen" to describe the
+overall contract's acceptance state — only this PR's own content,
+pending the next review pass, which decides acceptance.
 
 **No behavioral code implements this yet.** Nothing here changes
 `CliResult`, the safety validator, the executor, or any CLI output. A later
@@ -33,11 +36,53 @@ and `::no_jsonschema_crate_dependency_exists`):
 |---|---|
 | `manifest.json` rows | **33** (T001–T033) |
 | Schema files (`manifest`, `plan`, `evidence`, `report`) | **4** |
-| Contract tests in `tests/trust_operation_v1_contract.rs` | **108** |
+| Contract tests in `tests/trust_operation_v1_contract.rs` | **116** |
 | New Cargo dev-dependencies | **1** (`x509-parser`, `default-features = false` — round 2 also added `jsonschema`; round 3 removed it, see below, so `x509-parser` is the only one actually shipping; both are dev-only, never linked into the `caro` binary) |
 | New Python dev-tool dependencies | **1** (`jsonschema`, via `pip install`; not a Cargo dependency, outside `dependency-review.yml`'s scope — see round 4 below) |
 
-### What changed in round 9 (this revision)
+### What changed in round 10 (this revision)
+
+Round 9's own fixes left one residual artifact-binding gap:
+
+1. **The shared checker never independently resolved the PLAN's own
+   `before_artifact_ref`/`expected_staged_artifact_ref` against real
+   bytes read from THEIR OWN `fixture_path`.** Round 9's checks only
+   ever compared the plan's declared `artifact_ref` fields against each
+   other (`before_artifact_ref.sha256 == before_hash`) or against
+   already-resolved EVIDENCE bytes -- never against real bytes read
+   from the plan's own path. Concretely: the no-op branch never
+   consulted `before_artifact_ref` at all, so a tampered
+   `size_bytes`/`sha256` there still verified `already_satisfied`; the
+   mutation branch's checks were internal-consistency-only, so swapping
+   `before_artifact_ref.fixture_path` to a DIFFERENT, real, existing
+   fixture file (leaving `sha256`/`size_bytes`/`before_hash` all
+   untouched and mutually consistent with EACH OTHER) still verified
+   `removed`; and `expected_staged_artifact_ref` was never checked by
+   either branch, at all. Fixed with a new `resolve_plan_artifact_ref`
+   helper -- reads the real bytes at the artifact_ref's own
+   `fixture_path`, independently rehashes them, and cross-checks both
+   the declared `sha256` and `size_bytes` fields against those real
+   bytes -- called as a new gate (4.5) BEFORE either the no-op or
+   mutation branch runs, so both `before_artifact_ref` and
+   `expected_staged_artifact_ref` are resolved unconditionally, for
+   every case, regardless of which branch would otherwise apply. The
+   round-9 per-field checks inside the mutation branch (which only ever
+   compared declared fields to each other) are now redundant and
+   removed, leaving one shared, real-bytes-backed check.
+
+9 new tests cover both the no-op and mutation paths for all three
+tamper shapes the review named (wrong hash, wrong size, path swapped to
+different existing bytes), plus a sanity test proving the new gate
+doesn't become stricter than the frozen happy paths.
+
+Preserved per the review's closing instruction: everything from rounds
+7-9 not named above (unified entry point, R20, range/fingerprint/count
+binding, bidirectional report consistency, the null-binding
+classification fix, the mutation-failure effect fix, the real
+x509-parser, strict base64 padding, Windows/macOS 116/116 passing
+locally, Python schema conformance).
+
+### What changed in round 9
 
 Round 8's own fixes were found to have 3 further classes of defect:
 
