@@ -32,7 +32,7 @@ search overlay first opens (`website/src/components/OmniSearch.astro`).
 
 **Found:** 2026-09-24, google/ax harness survey
 **Issue:** #1479
-**Status:** claimed-by sweep/2026-10-24-BW-003 (#PR) for the `caro-eval` and `AGENTS.md` rows. The `current-tasks.md` row is already gone from `CLAUDE.md`.
+**Status:** claimed-by sweep/2026-10-24-BW-003 (#1716) for the `caro-eval` and `AGENTS.md` rows. The `current-tasks.md` row is already gone from `CLAUDE.md`.
 **Needs human?:** no for the doc rows. The `claude --skill` row edits `.github/workflows/modulization.yml`, which is human-only (`.claude/automation/config/policy.yaml` refuse-list).
 **Next step:** after the sweep PR: `.kittify` helpers in `bin/sk-*` (the Tier 1 git rule names them),
 `claude --skill` in modulization.yml (human review), and hardcoded `/Users/kobik-private`
