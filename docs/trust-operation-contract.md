@@ -1,7 +1,7 @@
 # Trust-Operation Contract (v1, checkpoint 1 — proposed, not yet accepted)
 
 **Status**: Checkpoint 1 of issue [#1714](https://github.com/wildcard/caro/issues/1714),
-**proposed, not yet accepted.** Seven rounds of independent review on
+**proposed, not yet accepted.** Eight rounds of independent review on
 [PR #1715](https://github.com/wildcard/caro/pull/1715) have found and fixed
 static-contract defects (round 2: 6 classes; round 3: 7 classes, including
 a real CI license-policy failure; round 4: 5 classes, including two real
@@ -13,10 +13,12 @@ into one function every test now routes through; round 8: 4 classes,
 binding the range-transformation check to real certificate boundaries,
 adding evidence-to-report propagation, correcting the missing-vs-
 contradictory taxonomy further, and reverting round 7's own wrong fixture
-fix). This document states, plainly, what changed and why. It never uses
-the word "frozen" to describe the overall contract's acceptance state —
-only this PR's own content, pending the next review pass, which decides
-acceptance.
+fix; round 9: 3 classes, correcting round 8's own OVER-correction on null
+snapshot bindings, forcing effect=unknown on any mutation-step failure,
+and binding `artifact_ref`'s own hash/size fields). This document states,
+plainly, what changed and why. It never uses the word "frozen" to
+describe the overall contract's acceptance state — only this PR's own
+content, pending the next review pass, which decides acceptance.
 
 **No behavioral code implements this yet.** Nothing here changes
 `CliResult`, the safety validator, the executor, or any CLI output. A later
@@ -31,11 +33,70 @@ and `::no_jsonschema_crate_dependency_exists`):
 |---|---|
 | `manifest.json` rows | **33** (T001–T033) |
 | Schema files (`manifest`, `plan`, `evidence`, `report`) | **4** |
-| Contract tests in `tests/trust_operation_v1_contract.rs` | **103** |
+| Contract tests in `tests/trust_operation_v1_contract.rs` | **108** |
 | New Cargo dev-dependencies | **1** (`x509-parser`, `default-features = false` — round 2 also added `jsonschema`; round 3 removed it, see below, so `x509-parser` is the only one actually shipping; both are dev-only, never linked into the `caro` binary) |
 | New Python dev-tool dependencies | **1** (`jsonschema`, via `pip install`; not a Cargo dependency, outside `dependency-review.yml`'s scope — see round 4 below) |
 
-### What changed in round 8 (this revision)
+### What changed in round 9 (this revision)
+
+Round 8's own fixes were found to have 3 further classes of defect:
+
+1. **Round 8 itself OVER-corrected on null snapshot bindings.** Round 8
+   added a test asserting a null `consumes_before_snapshot_id` -- when a
+   real `before` observation genuinely exists -- is a contradiction
+   (`failed`). That was WRONG: existence of a real snapshot does not
+   prove WHICH snapshot `install` actually consumed. A null claim is a
+   MISSING claim, not a demonstrated contradiction naming a specific
+   wrong snapshot. Gate 11 now checks `is_null()` on install's own claim
+   FIRST and separately, returning `unverified`; only a NON-NULL but
+   WRONG id (naming a real-looking id that isn't the actual observation's
+   own) still returns `failed`. The round-8 test is corrected (renamed,
+   inverted assertion) and a new companion test proves the non-null-wrong
+   case still fails.
+2. **Any mutation-step failure must force `effect=unknown`, not just
+   `install`'s own failure.** Round 8's effect computation only ever
+   consulted `install["step_status"]` -- a truthfully reported
+   `backup`/`stage`/`filter` failure (evidence AND report agreeing,
+   satisfying the round-8 propagation rule) with a completed `install`
+   and an independently verified `final` state still produced
+   `effect=removed`. Fixed: `backup`/`stage`/`filter`'s own step_status
+   is now checked too; any one of them in the failing family forces
+   `effect=unknown` regardless of what `install`/`final` look like on
+   their own. `cleanup` is deliberately excluded from this check -- a
+   cleanup-only failure may still retain `effect=removed` (R12/R13's
+   existing decoupling) -- but the cleanup propagation check now also
+   explicitly requires `workflow_outcome=failed` in code (previously
+   relying only on R12 at the schema level, which the round-8 code
+   comment described imprecisely as "not forcing execution/workflow,"
+   conflating `execution.state` -- correctly not forced -- with
+   `workflow_outcome` -- which R12 does force).
+3. **The content resolver validated `content_hash` but ignored
+   `artifact_ref.sha256`/`size_bytes`.** `independently_resolve_content`
+   rehashed the real bytes and compared against the observation's own
+   `content_hash`, but never checked whether `artifact_ref`'s own
+   declared `sha256`/`size_bytes` fields agreed with those same real
+   bytes -- an internally inconsistent evidence bundle (right
+   `content_hash`, wrong `artifact_ref` fields) passed undetected. Fixed
+   in the one shared helper, so both the mutation path and the no-op path
+   get the fix automatically. Separately: a no-op plan's range entry
+   claiming `count: 0` while still declaring a non-empty `byte_ranges`
+   array is internally inconsistent (simultaneously claiming "nothing to
+   remove" and "here are bytes to remove"); `plan_is_noop` alone can't
+   catch this (it only looks at `count`), so a new consistency check
+   runs inside the no-op gate itself before trusting the no-op
+   classification.
+
+5 new/corrected tests cover all three points, exercised entirely through
+the one shared `validate_fixture_case` entry point (no bypass path).
+
+Preserved per the review's closing instruction: everything from rounds
+7-8 not named above (the unified entry point, R20's tightening, the real
+x509-parser, strict base64 padding, the range/fingerprint/count binding,
+bidirectional report consistency, Windows/macOS 108/108 passing locally,
+Python schema conformance). The pre-existing Ubuntu utility-detection
+failure remains separate.
+
+### What changed in round 8
 
 Round 7's fully-consolidated `validate_fixture_case` and R20 were found
 to have 4 further classes of defect:

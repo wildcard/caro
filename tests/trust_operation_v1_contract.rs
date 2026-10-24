@@ -2470,15 +2470,31 @@ fn declared_fingerprint_multiset(fingerprints: &Value) -> std::collections::BTre
 /// equal some OTHER declared value can never pass by matching the wrong
 /// thing -- it is checked against the REAL bytes, not against another
 /// field.
+/// Per the #1715 round-9 review's point 3 ("Content resolver validates
+/// content_hash but IGNORES artifact_ref.sha256 and size_bytes"): an
+/// `artifact_ref` with its own `sha256`/`size_bytes` fields that disagree
+/// with the real bytes (even though the OBSERVATION's own `content_hash`
+/// happens to match those real bytes) is an internally inconsistent
+/// evidence bundle -- the artifact reference itself is a declared claim
+/// about the bytes, independently checked here, not merely a path to
+/// fetch them from.
 fn independently_resolve_content(obs: &Value) -> Result<Option<Vec<u8>>, ()> {
     let Some(declared_hash) = obs["content_hash"].as_str() else {
         return Ok(None);
     };
-    let Some(path) = obs["artifact_ref"]["fixture_path"].as_str() else {
+    let artifact_ref = &obs["artifact_ref"];
+    let Some(path) = artifact_ref["fixture_path"].as_str() else {
         return Err(());
     };
     let bytes = read_artifact(path);
-    if sha256_hex(&bytes) != declared_hash {
+    let real_hash = sha256_hex(&bytes);
+    if real_hash != declared_hash {
+        return Err(());
+    }
+    if artifact_ref["sha256"].as_str() != Some(declared_hash) {
+        return Err(());
+    }
+    if artifact_ref["size_bytes"].as_u64() != Some(bytes.len() as u64) {
         return Err(());
     }
     Ok(Some(bytes))
@@ -2687,14 +2703,23 @@ fn report_steps_consistent_with_evidence(evidence: &Value, report: &Value) -> bo
         }
     }
     // Direction B for cleanup: a real evidence cleanup failure must be
-    // VISIBLE in the report's cleanup.state, but (deliberately, unlike
-    // the mutation steps above) does not force execution/workflow to
-    // failed -- cleanup failing never erases an independently verified
-    // mutation outcome.
+    // VISIBLE in the report's cleanup.state AND force
+    // cleanup.workflow_outcome=failed (R12) -- but (deliberately, unlike
+    // the mutation steps above) does NOT force execution.state to
+    // failed, and does not by itself erase an independently verified
+    // mutation outcome (see `validate_fixture_case`'s own
+    // `any_mutation_step_failed` check, which cleanup is excluded from).
+    // "Workflow failed" here means the report's workflow_outcome field,
+    // never the mutation's own effect.
     if let Some(obs) = cleanup_obs {
         let obs_status = obs["step_status"].as_str().unwrap_or("");
-        if FAILING_STEP_STATUSES.contains(&obs_status) && report["cleanup"]["state"] != "failed" {
-            return false;
+        if FAILING_STEP_STATUSES.contains(&obs_status) {
+            if report["cleanup"]["state"] != "failed" {
+                return false;
+            }
+            if report["cleanup"]["workflow_outcome"] != "failed" {
+                return false;
+            }
         }
     }
     true
@@ -2811,6 +2836,33 @@ fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> Case
 
     // Gate 5: the no-op path.
     if plan_is_noop(plan) {
+        // Per the #1715 round-9 review's point 3 ("No-op rejects nonempty
+        // removal ranges with ZERO approved counts"): `plan_is_noop`
+        // classifies a plan as no-op purely from `count == 0` on every
+        // range entry, but says nothing about whether that entry's own
+        // `byte_ranges` array is also empty. A range entry claiming
+        // count=0 while still declaring one or more non-empty
+        // `byte_ranges` is internally inconsistent -- a plan cannot
+        // simultaneously claim "nothing to remove" and "here are bytes to
+        // remove" for the same target.
+        let ranges_internally_consistent = plan["approved_removal_ranges"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|r| {
+                r["byte_ranges"]
+                    .as_array()
+                    .map(|br| br.len() as u64)
+                    .unwrap_or(0)
+                    == r["count"].as_u64().unwrap_or(0)
+            });
+        if !ranges_internally_consistent {
+            return finalize_against_report(
+                CaseVerdict::new("failed", "unknown"),
+                evidence,
+                report,
+            );
+        }
         let verdict = match find_observation(evidence, "before") {
             None => CaseVerdict::new("unverified", "unknown"),
             Some(before) => match independently_resolve_content(before) {
@@ -2999,9 +3051,22 @@ fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> Case
         // information, not a demonstrated contradiction.
         return CaseVerdict::new("unverified", "unknown");
     }
-    if install["consumes_before_snapshot_id"] != before_snapshot_id
-        || install["consumes_staging_snapshot_id"] != stage_snapshot_id
-    {
+    // Per the #1715 round-9 review's point 1 ("Null consumed before/
+    // staging snapshot IDs must be UNVERIFIED/UNKNOWN even when a
+    // snapshot exists. Existence does not prove which snapshot install
+    // consumed."): install's OWN claim being null is a MISSING claim --
+    // we don't know which snapshot (if any) it actually consumed, which
+    // is different from install NAMING a specific, wrong snapshot (a
+    // demonstrated contradiction). The round-8 code conflated these by
+    // comparing null directly against the real id and treating the
+    // resulting inequality as a contradiction (`failed`); null must be
+    // checked FIRST and separately, as `unverified`.
+    let install_before_claim = &install["consumes_before_snapshot_id"];
+    let install_stage_claim = &install["consumes_staging_snapshot_id"];
+    if install_before_claim.is_null() || install_stage_claim.is_null() {
+        return CaseVerdict::new("unverified", "unknown");
+    }
+    if *install_before_claim != before_snapshot_id || *install_stage_claim != stage_snapshot_id {
         return CaseVerdict::new("failed", "unknown");
     }
     let before_seq = before_obs["capture_sequence"].as_i64().unwrap_or(-1);
@@ -3013,7 +3078,23 @@ fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> Case
         return CaseVerdict::new("failed", "unknown");
     }
 
-    let mutation_verdict = if install["step_status"] == "completed" {
+    // Per the #1715 round-9 review's point 2 ("ANY MUTATION-STEP FAILURE
+    // must retain effect UNKNOWN"): round 8 only ever consulted
+    // `install["step_status"]` when deciding the effect -- a truthfully
+    // reported `backup`/`stage`/`filter` failure, even with a completed
+    // install and an independently verified final state, still produced
+    // effect=removed, because nothing here ever looked at those steps'
+    // own `step_status`. `cleanup` is deliberately excluded: a
+    // cleanup-only failure may still retain effect=removed (R12/R13's
+    // existing decoupling), it just forces `workflow_outcome=failed` at
+    // the report level (enforced by R12 and by
+    // `report_steps_consistent_with_evidence`'s cleanup propagation).
+    let any_mutation_step_failed = ["backup", "stage", "filter"].iter().any(|step| {
+        find_observation(evidence, step)
+            .map(|o| FAILING_STEP_STATUSES.contains(&o["step_status"].as_str().unwrap_or("")))
+            .unwrap_or(false)
+    });
+    let mutation_verdict = if install["step_status"] == "completed" && !any_mutation_step_failed {
         CaseVerdict::new("verified", "removed")
     } else {
         CaseVerdict::new("verified", "unknown")
@@ -3995,12 +4076,149 @@ fn validate_fixture_case_preserves_verified_removed_when_cleanup_fails_but_is_ho
     assert_eq!(verdict.effect, "removed");
 }
 
-/// A NULL `consumes_before_snapshot_id` when a real `before` observation
-/// genuinely exists must FAIL (a demonstrated contradiction against an
-/// existing snapshot), not unverified -- there IS a real snapshot to
-/// bind to, and install's own claim is null.
+/// The round-9 review's headline point-2 scenario: `stage` is
+/// TRUTHFULLY reported as failed (both evidence and report agree --
+/// `execution.state=failed`, `workflow_outcome=failed`, matching
+/// `report_steps_consistent_with_evidence`'s own propagation rule), yet
+/// `install` still shows completed and the `final` bytes are
+/// independently confirmed correct. Round 8 never consulted
+/// backup/stage/filter's own `step_status` when computing the effect --
+/// only `install`'s -- so this still produced effect=removed. Any
+/// mutation-step failure (here, `stage`) must force effect=unknown,
+/// regardless of what install/final look like on their own.
 #[test]
-fn validate_fixture_case_rejects_a_null_install_binding_against_an_existing_before_snapshot() {
+fn validate_fixture_case_retains_unknown_effect_when_a_truthfully_reported_stage_failure_precedes_a_completed_install(
+) {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let mut report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let stage_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "stage")
+        .unwrap();
+    // The bytes/hash are untouched (still independently correct) -- only
+    // the step's own status is marked failed, e.g. a transient error
+    // that was logged even though the write landed.
+    stage_obs["step_status"] = Value::String("failed".to_string());
+    report["execution"]["steps"]["stage"]["status"] = Value::String("failed".to_string());
+    report["execution"]["state"] = Value::String("failed".to_string());
+    // R11 requires a non-null failure_mode whenever execution.state=failed.
+    report["execution"]["failure_mode"] = Value::String("step_failed".to_string());
+    report["cleanup"]["workflow_outcome"] = Value::String("failed".to_string());
+    // R1 requires execution.state=completed whenever postcondition.effect=
+    // removed; keep the REPORT's own postcondition internally consistent
+    // (schema-valid) with the truthful failure it now reports. This is
+    // the report's own claim, not `validate_fixture_case`'s independently
+    // computed verdict -- the whole point of this test is that the
+    // Rust-computed verdict (asserted below) must say effect=unknown
+    // regardless of what either document separately claims.
+    report["postcondition"]["effect"] = Value::String("unknown".to_string());
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(
+        verdict.state, "verified",
+        "the final bytes are still independently confirmed correct, so the case itself is still verified"
+    );
+    assert_eq!(
+        verdict.effect, "unknown",
+        "a truthfully reported stage failure must force effect=unknown even though install completed and the final bytes check out -- a failed mutation step before install means we don't actually know removal is what produced this state"
+    );
+}
+
+/// Point 3's second half: a no-op plan whose `approved_removal_ranges`
+/// entry claims `count: 0` (making the plan classify as no-op) while
+/// still declaring a NON-EMPTY `byte_ranges` array for that same entry
+/// is internally inconsistent -- it cannot simultaneously claim "nothing
+/// to remove" and "here are bytes to remove."
+#[test]
+fn validate_fixture_case_rejects_a_noop_plan_whose_zero_count_range_still_declares_nonempty_byte_ranges(
+) {
+    let mut plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
+    let evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
+    assert!(
+        plan_is_noop(&plan),
+        "sanity: the untouched plan is a genuine no-op"
+    );
+    assert_eq!(plan["approved_removal_ranges"][0]["count"], 0);
+    assert_eq!(
+        plan["approved_removal_ranges"][0]["byte_ranges"]
+            .as_array()
+            .unwrap()
+            .len(),
+        0
+    );
+    plan["approved_removal_ranges"][0]["byte_ranges"] =
+        serde_json::json!([{"start": 0, "end": 10}]);
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "a range entry claiming count=0 while still declaring a non-empty byte_ranges array is internally inconsistent and must fail, not pass through as a genuine no-op");
+    assert_ne!(verdict.effect, "already_satisfied");
+}
+
+/// Point 3's first half: the `artifact_ref.sha256`/`size_bytes` fields
+/// must themselves be independently checked against the real bytes, not
+/// merely the observation's own `content_hash`. Tamper only
+/// `artifact_ref.sha256` on the `backup` observation (leaving
+/// `content_hash` itself correct) and confirm this is still caught.
+#[test]
+fn validate_fixture_case_rejects_an_artifact_ref_sha256_that_disagrees_with_the_real_bytes() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let backup_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "backup")
+        .unwrap();
+    let real_hash = backup_obs["content_hash"].as_str().unwrap().to_string();
+    backup_obs["artifact_ref"]["sha256"] = Value::String("ef".repeat(32));
+    assert_ne!(
+        backup_obs["content_hash"],
+        backup_obs["artifact_ref"]["sha256"]
+    );
+    assert_eq!(backup_obs["content_hash"], real_hash);
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "artifact_ref.sha256 disagreeing with the real bytes/content_hash must fail, even though content_hash itself still matches the real bytes");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Same point, for `artifact_ref.size_bytes` on the `final` observation.
+#[test]
+fn validate_fixture_case_rejects_an_artifact_ref_size_bytes_that_disagrees_with_the_real_bytes() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let final_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "final")
+        .unwrap();
+    final_obs["artifact_ref"]["size_bytes"] = serde_json::json!(1);
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "artifact_ref.size_bytes disagreeing with the real bytes must fail, even though content_hash itself still matches");
+    assert_ne!(verdict.effect, "removed");
+}
+
+#[test]
+fn validate_fixture_case_treats_a_null_install_binding_as_unverified_even_with_an_existing_before_snapshot(
+) {
+    // Per the #1715 round-9 review's point 1: this is the OPPOSITE
+    // classification from round 8's own (wrong) test of this same
+    // scenario. Round 8 argued a null consumes_before_snapshot_id was a
+    // "contradiction" because a real before observation existed to
+    // compare against -- but existence of a real snapshot does not
+    // prove WHICH snapshot install actually consumed. A null claim is
+    // simply a missing claim: unverified, not failed.
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
@@ -4014,7 +4232,31 @@ fn validate_fixture_case_rejects_a_null_install_binding_against_an_existing_befo
     install_obs["consumes_before_snapshot_id"] = Value::Null;
 
     let verdict = validate_fixture_case(&plan, &evidence, &report);
-    assert_eq!(verdict.state, "failed", "a null consumes_before_snapshot_id, when a real before observation with a real id genuinely exists, is a contradiction, not a missing-information case");
+    assert_eq!(verdict.state, "unverified", "a null consumes_before_snapshot_id is a MISSING claim, not a demonstrated contradiction, even when a real before observation genuinely exists -- existence alone doesn't prove which snapshot install consumed");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// The companion positive case for point 1: a NON-NULL but WRONG
+/// `consumes_staging_snapshot_id` (naming a specific, real-looking id
+/// that is not the actual stage observation's own id) IS a demonstrated
+/// contradiction -- failed, not unverified.
+#[test]
+fn validate_fixture_case_rejects_a_non_null_wrong_staging_snapshot_id() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let install_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "install")
+        .unwrap();
+    assert_eq!(install_obs["consumes_staging_snapshot_id"], "stage-1");
+    install_obs["consumes_staging_snapshot_id"] = Value::String("stage-substituted".to_string());
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "a non-null but wrong consumes_staging_snapshot_id is a demonstrated contradiction against the real stage observation's own id");
     assert_ne!(verdict.effect, "removed");
 }
 

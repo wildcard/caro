@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; seven
+- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; eight
   rounds of independent-review fixes so far (#1715).** Proposes the
   support boundary, schemas, and reason codes for verifying a trust-store
   mutation (e.g. the Apple eMudhra CA advisory remediation) actually
@@ -207,8 +207,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `authorization_denied_with_provenance.json`'s `execution.state`
     reverts to `unobserved` (R20 itself is unweakened). 10 new
     adversarial tests.
+  - Round 9 fixed 3 further defects, all in round 8's own work. Round 8
+    itself over-corrected: it classified a null
+    `consumes_before_snapshot_id` as `failed` even when a real before
+    observation existed, but existence doesn't prove WHICH snapshot
+    install consumed -- a null claim is missing information, not a
+    demonstrated contradiction. Fixed to `unverified`; only a non-null
+    but WRONG id now fails. The effect computation only ever consulted
+    `install`'s own step_status, so a truthfully reported
+    backup/stage/filter failure with a completed install and verified
+    final bytes still produced effect=removed; fixed so any
+    mutation-step failure (not cleanup, which stays decoupled per
+    R12/R13) forces effect=unknown. The content resolver validated
+    `content_hash` but never checked `artifact_ref.sha256`/`size_bytes`
+    against the real bytes, so an internally inconsistent artifact
+    reference passed undetected in both the mutation and no-op paths;
+    fixed in the one shared helper. A no-op plan's range entry claiming
+    count=0 while still declaring non-empty byte_ranges is also now
+    rejected. 5 new/corrected tests, all through the one shared checker.
   - Actual current shape (mechanically checked, not asserted by hand):
-    **33** manifest rows, **4** schema files, **103** contract tests,
+    **33** manifest rows, **4** schema files, **108** contract tests,
     **1** new Cargo dev-dependency (`x509-parser`, test-only, never
     shipped in the `caro` binary), **1** new Python dev-tool dependency
     (`jsonschema`, CI-only, outside `dependency-review.yml`'s scope).
