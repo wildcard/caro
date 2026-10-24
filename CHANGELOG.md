@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; six
+- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; seven
   rounds of independent-review fixes so far (#1715).** Proposes the
   support boundary, schemas, and reason codes for verifying a trust-store
   mutation (e.g. the Apple eMudhra CA advisory remediation) actually
@@ -176,8 +176,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `authorization_denied_with_provenance.json` (which genuinely does
     establish non-attempt) and adding a new unobserved-negative fixture
     plus test.
+  - Round 8 fixed 4 further defect classes. Range transformation applied
+    byte ranges using only declared start/end offsets, never binding
+    them to real certificate fingerprints, occurrence counts, or
+    boundaries -- relabeling a target fingerprint to an unrelated value
+    and recomputing the scope-binding digest over the tampered plan
+    still verified removal. Replaced with
+    `bind_and_apply_approved_removal_ranges`, which independently
+    re-parses the before bytes, binds `plan.target_fingerprints` to the
+    real multiset, binds each range's declared count to the real
+    occurrence count, and binds each byte range to the actual DER
+    fingerprint at that offset; `before_bytes` is also now bound
+    directly to `plan.before_hash` and `before_artifact_ref`'s own
+    hash/size fields. Report/evidence consistency was one-way: a known
+    evidence failure in a mutation step could be hidden behind a report
+    claiming unobserved/none while execution/workflow claimed completed.
+    Made bidirectional -- a known failure must now propagate into the
+    report, while a failed cleanup becomes visible without forcing
+    execution/workflow to failed (preserving an independently verified
+    mutation outcome). The same-step conflict check now also rejects
+    observations differing only in metadata/source. Classification
+    gained two more missing-vs-contradictory fixes: a null consumed
+    snapshot id against a real existing snapshot is FAILED (confirmed,
+    regression-tested); `parse_outcome=not_applicable` and a null
+    `certificate_fingerprints` declaration are now UNVERIFIED, not
+    FAILED (both mean "no information," not "demonstrated
+    contradiction"). Finally, round 7's own fixture fix was itself
+    wrong and is reverted: a `supplied_claim` authorization denial does
+    not prove execution never occurred, so
+    `authorization_denied_with_provenance.json`'s `execution.state`
+    reverts to `unobserved` (R20 itself is unweakened). 10 new
+    adversarial tests.
   - Actual current shape (mechanically checked, not asserted by hand):
-    **33** manifest rows, **4** schema files, **93** contract tests,
+    **33** manifest rows, **4** schema files, **103** contract tests,
     **1** new Cargo dev-dependency (`x509-parser`, test-only, never
     shipped in the `caro` binary), **1** new Python dev-tool dependency
     (`jsonschema`, CI-only, outside `dependency-review.yml`'s scope).

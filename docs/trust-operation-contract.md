@@ -1,7 +1,7 @@
 # Trust-Operation Contract (v1, checkpoint 1 — proposed, not yet accepted)
 
 **Status**: Checkpoint 1 of issue [#1714](https://github.com/wildcard/caro/issues/1714),
-**proposed, not yet accepted.** Six rounds of independent review on
+**proposed, not yet accepted.** Seven rounds of independent review on
 [PR #1715](https://github.com/wildcard/caro/pull/1715) have found and fixed
 static-contract defects (round 2: 6 classes; round 3: 7 classes, including
 a real CI license-policy failure; round 4: 5 classes, including two real
@@ -9,10 +9,14 @@ bugs in this PR's own cross-checks; round 5: 4 classes plus a small fix,
 including a real Windows CI failure; round 6: 3 classes, including
 replacing the hand-written X.509 heuristic with a real conformant parser;
 round 7: 2 classes, consolidating the test-only fixture-integrity path
-into one function every test now routes through). This document states,
-plainly, what changed and why. It never uses the word "frozen" to
-describe the overall contract's acceptance state — only this PR's own
-content, pending the next review pass, which decides acceptance.
+into one function every test now routes through; round 8: 4 classes,
+binding the range-transformation check to real certificate boundaries,
+adding evidence-to-report propagation, correcting the missing-vs-
+contradictory taxonomy further, and reverting round 7's own wrong fixture
+fix). This document states, plainly, what changed and why. It never uses
+the word "frozen" to describe the overall contract's acceptance state —
+only this PR's own content, pending the next review pass, which decides
+acceptance.
 
 **No behavioral code implements this yet.** Nothing here changes
 `CliResult`, the safety validator, the executor, or any CLI output. A later
@@ -27,11 +31,93 @@ and `::no_jsonschema_crate_dependency_exists`):
 |---|---|
 | `manifest.json` rows | **33** (T001–T033) |
 | Schema files (`manifest`, `plan`, `evidence`, `report`) | **4** |
-| Contract tests in `tests/trust_operation_v1_contract.rs` | **93** |
+| Contract tests in `tests/trust_operation_v1_contract.rs` | **103** |
 | New Cargo dev-dependencies | **1** (`x509-parser`, `default-features = false` — round 2 also added `jsonschema`; round 3 removed it, see below, so `x509-parser` is the only one actually shipping; both are dev-only, never linked into the `caro` binary) |
 | New Python dev-tool dependencies | **1** (`jsonschema`, via `pip install`; not a Cargo dependency, outside `dependency-review.yml`'s scope — see round 4 below) |
 
-### What changed in round 7 (this revision)
+### What changed in round 8 (this revision)
+
+Round 7's fully-consolidated `validate_fixture_case` and R20 were found
+to have 4 further classes of defect:
+
+1. **Range transformation applied byte ranges without binding them to
+   real certificate fingerprints, occurrence counts, or boundaries.**
+   `apply_approved_removal_ranges` used ONLY the declared `start`/`end`
+   offsets to slice `before_bytes` -- it never checked that a
+   `byte_ranges` entry actually lands on a real, independently-parsed
+   certificate boundary, that the DER there actually hashes to the
+   entry's own declared `target_sha256`, that the declared `count`
+   matches the real occurrence count, or that `plan.target_fingerprints`
+   (the declared FULL multiset) matches the real before bytes at all.
+   Concretely: relabeling `approved_removal_ranges[i].target_sha256` to
+   an unrelated value and recomputing the scope-binding digest over the
+   tampered plan still verified removal, because nothing cross-checked
+   the label against the real bytes at that position. Replaced with
+   `bind_and_apply_approved_removal_ranges`, which independently re-parses
+   the before bytes (full X.509 parsing, not just base64), binds
+   `plan.target_fingerprints` to that real multiset exactly, binds each
+   range's declared `count` to both its own `byte_ranges.len()` and the
+   real occurrence count, and binds each `byte_ranges` entry's
+   `target_sha256` to the ACTUAL DER fingerprint at that byte offset.
+   Separately, `before_bytes` is now also bound directly to
+   `plan.before_hash` (not merely to the evidence observation's own
+   declared `content_hash`), and `plan.before_artifact_ref`'s own
+   `sha256`/`size_bytes` fields are bound to the same real bytes.
+2. **Report-to-evidence consistency was one-way.** The round-7 check
+   only verified a report never claims MORE than the evidence backs; it
+   never checked the reverse -- evidence showing a real mutation-step
+   failure could be hidden behind a report claiming `unobserved`/
+   `source: none` while `execution.state`/`cleanup.workflow_outcome`
+   claimed completed. `report_steps_consistent_with_evidence` is now
+   bidirectional: a known evidence failure in `backup`/`stage`/`filter`/
+   `install` MUST propagate into the report (acknowledged status, AND
+   `execution.state=failed`, AND `workflow_outcome=failed`). `cleanup`
+   gets the same propagation WITHOUT forcing execution/workflow to
+   failed -- a failed cleanup must become visible in `cleanup.state`
+   without erasing an otherwise independently verified mutation outcome
+   (the same decoupling R12/R13 already establish). Separately, the
+   same-step conflict check (gate 3) now also rejects competing
+   observations that differ only in `metadata` or `source`, not just
+   hash/status.
+3. **Missing-vs-contradictory classification had two more gaps.** A
+   `null` `consumes_before_snapshot_id`/`consumes_staging_snapshot_id`
+   when a REAL before/stage observation genuinely exists is a
+   contradiction (FAILED) -- there IS something to bind to, and
+   install's own claim is null; this already worked correctly, now with
+   an explicit regression test. `final.parse_outcome=not_applicable`
+   was being treated the same as `malformed` (FAILED); corrected to
+   UNVERIFIED -- `not_applicable` means no parse was ever attempted
+   (missing information), while `malformed`/`truncated`/
+   `unconsumed_blocks` mean a parse WAS attempted and genuinely failed.
+   A `null` `certificate_fingerprints` declaration was being converted
+   to an asserted EMPTY multiset and compared (and usually failed)
+   against the real, non-empty bytes; corrected to UNVERIFIED -- null
+   means no declared count was ever supplied, not "zero, asserted."
+4. **Round 7's own fixture fix was wrong, and is reverted.** Round 7
+   changed `authorization_denied_with_provenance.json`'s
+   `execution.state` from `unobserved` to `not_attempted`, reasoning
+   that a denied authorization "genuinely establishes" non-execution.
+   That reasoning does not hold: the denial's `provenance` is
+   `supplied_claim` -- a CLAIM about authorization, not an actual Caro
+   observation of non-execution. A supplied claim can be wrong, stale,
+   or bypassed; only a DISTINCT, actually-observed non-execution signal
+   would establish genuine `not_attempted`. Reverted `execution.state`
+   back to `unobserved` and `cleanup.workflow_outcome` to `unverified`
+   (R20 is NOT weakened -- it still correctly rejects
+   `unobserved`+`not_attempted`; this fixture simply no longer claims
+   `not_attempted` at all). 10 new round-8 adversarial tests cover all
+   four points, including the exact relabel-and-recompute-digest attack
+   and a test proving an honestly-reported cleanup failure does NOT
+   erase an independently verified `removed` mutation outcome.
+
+Preserved per the review's closing instruction: the unified
+`validate_fixture_case` entry point and R20's tightening (both from
+round 7, confirmed repaired and left in place), Windows/macOS 103/103
+passing locally, and Python schema conformance (re-run clean against
+every round-8 change). The pre-existing Ubuntu utility-detection failure
+remains separate and unattributed to this contract.
+
+### What changed in round 7
 
 Round 6's `validate_case`/`validate_full_case` split, and R20, were found
 to have 2 further classes of defect:
@@ -93,17 +179,18 @@ to have 2 further classes of defect:
 2. **R20 (round 6) explicitly allowed `execution.state=unobserved` paired
    with `workflow_outcome=not_attempted`.** Tightened to require
    `execution.state` be EXACTLY `not_attempted` (ESTABLISHED, not merely
-   "no information"). This required fixing one real fixture:
-   `authorization_denied_with_provenance.json` had `execution.state:
-   "unobserved"` even though a denied authorization genuinely DOES
-   establish that execution never happened — corrected to `not_attempted`
-   (matching the convention every genuine dry-run/no-op fixture already
-   uses: `observation_source: "none"` is legal for a `not_attempted`
-   claim in this schema's existing design, it's only the vaguer
-   `unobserved` state that R20 now excludes). A new negative fixture,
+   "no information"). Round 7's own fixture fix for this was WRONG and
+   is corrected again in round 8 (see round 8's point 4 below):
+   `authorization_denied_with_provenance.json`'s `execution.state` is
+   `"unobserved"`, not `"not_attempted"`, because a *supplied_claim*
+   denial of authorization does not itself prove execution never
+   occurred -- it is a claim about authorization, not an actual Caro
+   observation of non-execution. A new negative fixture,
    `workflow_not_attempted_with_unobserved_execution.json`, and a
    dedicated test keep the `unobserved` gap from reopening; the retained
-   dry-run test now also covers `already_satisfied_no_op.json`.
+   dry-run test also covers `already_satisfied_no_op.json` (a GENUINE
+   no-op, independently confirmed by DER re-parsing, not merely a
+   supplied claim).
 
 Preserved per the review's closing instruction: the real `x509-parser`
 with full consumption, strict base64 padding-bit rejection, the

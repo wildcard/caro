@@ -2497,19 +2497,82 @@ fn observation_binding_matches_plan(obs: &Value, plan: &Value) -> bool {
 /// Independently apply `plan.approved_removal_ranges`' declared byte
 /// ranges to `before_bytes` (delete each range, in sorted order) and
 /// return the remainder. Returns `None` on any malformed/overlapping/
-/// out-of-bounds range -- a malformed plan must fail the case, not panic.
-/// Per the #1715 round-7 review's point 1 ("omits ... range transformation
-/// ... checks"): this ties `before` to `stage` through the plan's OWN
-/// declared transformation, not merely by independently checking each in
-/// isolation against its own expected hash.
-fn apply_approved_removal_ranges(before_bytes: &[u8], plan: &Value) -> Option<Vec<u8>> {
+/// out-of-bounds range, OR on any binding failure between the plan's
+/// DECLARED fingerprints/counts/ranges and the REAL, independently
+/// re-parsed before bytes -- a malformed or dishonest plan must fail the
+/// case, never panic and never silently apply unverified ranges.
+///
+/// Per the #1715 round-7 review's point 1 ("omits ... range
+/// transformation ... checks"), this ties `before` to `stage` through
+/// the plan's OWN declared transformation. Per the #1715 round-8
+/// review's point 1 ("It applies ranges without binding declared
+/// certificate fingerprint, occurrence count, or actual certificate
+/// boundaries ... changing the approved fingerprint to an unrelated
+/// value ... still verifies removal"): round 7's version used ONLY the
+/// declared `start`/`end` byte offsets to slice `before_bytes` -- it
+/// never checked that a `byte_ranges` entry's position actually
+/// corresponds to a real, independently-parsed certificate boundary, or
+/// that the DER there actually hashes to the entry's own declared
+/// `target_sha256`, or that the declared `count` matches either the
+/// number of `byte_ranges` entries OR the real occurrence count in the
+/// before bytes, or that `plan.target_fingerprints` (the plan's
+/// declared FULL multiset) matches the independently re-parsed FULL
+/// multiset of the real before bytes at all. A plan could therefore
+/// relabel `approved_removal_ranges[i].target_sha256` to an unrelated
+/// value, recompute the scope-binding digest over the (now-tampered)
+/// plan, and still pass -- because nothing ever cross-checked the label
+/// against the real bytes at that position. All of that binding now
+/// happens here, before any byte is ever removed.
+fn bind_and_apply_approved_removal_ranges(before_bytes: &[u8], plan: &Value) -> Option<Vec<u8>> {
+    // Full, independently-parsed multiset of the REAL before bytes --
+    // every block must be a complete, valid X.509 structure (not merely
+    // base64-decodable), and the plan's own declared `target_fingerprints`
+    // must match this multiset EXACTLY, not just contain a subset.
+    let blocks = find_pem_blocks_strict(before_bytes).ok()?;
+    let mut block_at: std::collections::BTreeMap<(usize, usize), String> =
+        std::collections::BTreeMap::new();
+    let mut independent_counts: std::collections::BTreeMap<String, u64> =
+        std::collections::BTreeMap::new();
+    for b in &blocks {
+        if !looks_like_complete_x509_der(&b.der) {
+            return None;
+        }
+        let fp = sha256_hex(&b.der);
+        block_at.insert(b.range, fp.clone());
+        *independent_counts.entry(fp).or_insert(0) += 1;
+    }
+    let declared_target_counts = declared_fingerprint_multiset(&plan["target_fingerprints"]);
+    if declared_target_counts != independent_counts {
+        return None;
+    }
+
     let mut ranges: Vec<(usize, usize)> = Vec::new();
     for range in plan["approved_removal_ranges"].as_array()? {
-        for br in range["byte_ranges"].as_array()? {
+        let target_sha = range["target_sha256"].as_str()?;
+        let declared_count = range["count"].as_u64()?;
+        let byte_ranges = range["byte_ranges"].as_array()?;
+        // The declared count must match BOTH the number of byte_ranges
+        // entries AND the REAL occurrence count of this fingerprint in
+        // the before bytes.
+        if byte_ranges.len() as u64 != declared_count {
+            return None;
+        }
+        if independent_counts.get(target_sha).copied().unwrap_or(0) != declared_count {
+            return None;
+        }
+        for br in byte_ranges {
             let start = br["start"].as_u64()? as usize;
             let end = br["end"].as_u64()? as usize;
             if start > end || end > before_bytes.len() {
                 return None;
+            }
+            // The declared byte_range must land on an ACTUAL,
+            // independently-parsed certificate boundary, and the DER
+            // there must actually hash to the declared target_sha256 --
+            // not merely "some bytes at this offset."
+            match block_at.get(&(start, end)) {
+                Some(real_fp) if real_fp == target_sha => {}
+                _ => return None,
             }
             ranges.push((start, end));
         }
@@ -2528,36 +2591,70 @@ fn apply_approved_removal_ranges(before_bytes: &[u8], plan: &Value) -> Option<Ve
     Some(kept)
 }
 
+/// A step_status in the failing family -- shared by both directions of
+/// `report_steps_consistent_with_evidence` below.
+const FAILING_STEP_STATUSES: &[&str] = &["failed", "timed_out", "signaled", "spawn_failed"];
+
 /// Per the #1715 round-6 review's point 1 ("positive report claims filter
-/// completed without filter evidence") and round-7's point 1 ("Report
-/// checks omit cleanup/source agreement"): for every execution step the
-/// REPORT claims with a sourced (`observation_source != "none"`) status,
-/// there must be a matching evidence observation for that step with the
-/// SAME `step_status` AND the SAME `source` -- a report cannot claim more
-/// than the evidence bundle actually backs, and cannot misattribute WHO
-/// backed it either. `cleanup` is checked too, via its own
-/// `state`<->`step_status` vocabulary mapping (the report's `cleanup.state`
-/// enum -- `unobserved`/`not_attempted`/`succeeded`/`failed` -- differs
-/// from an observation's `step_status` enum, so `succeeded` maps to
-/// `completed` and `failed` maps to any failing-family status).
+/// completed without filter evidence"), round-7's point 1 ("Report
+/// checks omit cleanup/source agreement"), and round-8's point 2
+/// ("Evidence-to-report propagation, not only report-to-evidence
+/// claims"): this is now BIDIRECTIONAL.
+///
+/// Direction A (report -> evidence, rounds 6/7): for every execution
+/// step the REPORT claims with a sourced (`observation_source != "none"`)
+/// status, there must be a matching evidence observation for that step
+/// with the SAME `step_status` AND the SAME `source` -- a report cannot
+/// claim more than the evidence bundle actually backs, and cannot
+/// misattribute WHO backed it either.
+///
+/// Direction B (evidence -> report, round 8): if the EVIDENCE itself
+/// shows a mutation step (`backup`/`stage`/`filter`/`install`) in the
+/// failing family, the REPORT cannot hide that behind
+/// `unobserved`/`observation_source: "none"` while claiming
+/// `execution.state`/`cleanup.workflow_outcome` completed -- a known
+/// mutation failure MUST propagate upward into the report, not merely
+/// never be contradicted by it. `cleanup` gets the same evidence->report
+/// propagation, but deliberately does NOT force `execution.state`/
+/// `workflow_outcome` to `failed` -- a failed cleanup step must become
+/// VISIBLE in `cleanup.state` without erasing an otherwise independently
+/// verified final mutation state (the same decoupling R12/R13 and the
+/// `cleanup_failure_preserves_verified_state.json` fixture already
+/// establish at the schema level).
 fn report_steps_consistent_with_evidence(evidence: &Value, report: &Value) -> bool {
     for step in ["backup", "stage", "filter", "install"] {
         let step_report = &report["execution"]["steps"][step];
-        if step_report.is_null() {
-            continue;
+        let report_source = step_report["observation_source"].as_str().unwrap_or("none");
+        let report_status = step_report["status"].as_str().unwrap_or("");
+        let evidence_obs = find_observation(evidence, step);
+
+        // Direction A: the report claims more than the evidence backs.
+        if !step_report.is_null() && report_source != "none" {
+            match evidence_obs {
+                None => return false,
+                Some(obs) => {
+                    if obs["step_status"].as_str().unwrap_or("") != report_status {
+                        return false;
+                    }
+                    if obs["source"].as_str().unwrap_or("") != report_source {
+                        return false;
+                    }
+                }
+            }
         }
-        let source = step_report["observation_source"].as_str().unwrap_or("none");
-        if source == "none" {
-            continue;
-        }
-        let claimed_status = step_report["status"].as_str().unwrap_or("");
-        match find_observation(evidence, step) {
-            None => return false,
-            Some(obs) => {
-                if obs["step_status"].as_str().unwrap_or("") != claimed_status {
+
+        // Direction B: the evidence shows a real mutation-step failure
+        // the report hides or contradicts.
+        if let Some(obs) = evidence_obs {
+            let obs_status = obs["step_status"].as_str().unwrap_or("");
+            if FAILING_STEP_STATUSES.contains(&obs_status) {
+                if !FAILING_STEP_STATUSES.contains(&report_status) {
+                    return false; // report doesn't acknowledge the known failure
+                }
+                if report["execution"]["state"] != "failed" {
                     return false;
                 }
-                if obs["source"].as_str().unwrap_or("") != source {
+                if report["cleanup"]["workflow_outcome"] != "failed" {
                     return false;
                 }
             }
@@ -2567,8 +2664,10 @@ fn report_steps_consistent_with_evidence(evidence: &Value, report: &Value) -> bo
     let cleanup_source = report["cleanup"]["observation_source"]
         .as_str()
         .unwrap_or("none");
+    let cleanup_obs = find_observation(evidence, "cleanup");
+    // Direction A for cleanup.
     if cleanup_source != "none" {
-        match find_observation(evidence, "cleanup") {
+        match cleanup_obs {
             None => return false,
             Some(obs) => {
                 if obs["source"].as_str().unwrap_or("") != cleanup_source {
@@ -2577,10 +2676,7 @@ fn report_steps_consistent_with_evidence(evidence: &Value, report: &Value) -> bo
                 let obs_status = obs["step_status"].as_str().unwrap_or("");
                 let agrees = match report["cleanup"]["state"].as_str().unwrap_or("") {
                     "succeeded" => obs_status == "completed",
-                    "failed" => matches!(
-                        obs_status,
-                        "failed" | "timed_out" | "signaled" | "spawn_failed"
-                    ),
+                    "failed" => FAILING_STEP_STATUSES.contains(&obs_status),
                     "not_attempted" => obs_status == "not_attempted",
                     _ => false,
                 };
@@ -2588,6 +2684,17 @@ fn report_steps_consistent_with_evidence(evidence: &Value, report: &Value) -> bo
                     return false;
                 }
             }
+        }
+    }
+    // Direction B for cleanup: a real evidence cleanup failure must be
+    // VISIBLE in the report's cleanup.state, but (deliberately, unlike
+    // the mutation steps above) does not force execution/workflow to
+    // failed -- cleanup failing never erases an independently verified
+    // mutation outcome.
+    if let Some(obs) = cleanup_obs {
+        let obs_status = obs["step_status"].as_str().unwrap_or("");
+        if FAILING_STEP_STATUSES.contains(&obs_status) && report["cleanup"]["state"] != "failed" {
+            return false;
         }
     }
     true
@@ -2667,6 +2774,12 @@ fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> Case
     }
 
     // Gate 3: same-step conflicts, even across differing snapshot ids.
+    // Per the #1715 round-8 review's point 2 ("Reject competing snapshots
+    // differing in metadata/provenance as well as hash/status"): two
+    // observations for the same step that agree on hash and status but
+    // disagree on WHO backed them (`source`) or WHAT metadata they
+    // carry are still competing, inconsistent claims about the same
+    // step.
     for step in [
         "before", "backup", "stage", "filter", "install", "final", "cleanup",
     ] {
@@ -2676,6 +2789,8 @@ fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> Case
             let conflicting = obs.iter().any(|o| {
                 o["content_hash"] != first["content_hash"]
                     || o["step_status"] != first["step_status"]
+                    || o["metadata"] != first["metadata"]
+                    || o["source"] != first["source"]
             });
             if conflicting {
                 return CaseVerdict::new("unverified", "unknown");
@@ -2744,6 +2859,21 @@ fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> Case
         Ok(None) => return CaseVerdict::new("unverified", "unknown"),
         Ok(Some(bytes)) => bytes,
     };
+    // Per the #1715 round-8 review's point 1 ("Before bytes are not
+    // compared with plan.before_hash"): the evidence observation's OWN
+    // declared hash was already independently confirmed against its own
+    // real bytes above, but that says nothing about whether those bytes
+    // are the ones the PLAN itself claims to be operating on. Bind them.
+    if sha256_hex(&before_bytes) != plan["before_hash"].as_str().unwrap_or("") {
+        return CaseVerdict::new("failed", "unknown");
+    }
+    // Bind the plan's own before_artifact_ref hash/size fields to the
+    // same before_hash/bytes, rather than trusting them unchecked.
+    if plan["before_artifact_ref"]["sha256"].as_str() != plan["before_hash"].as_str()
+        || plan["before_artifact_ref"]["size_bytes"].as_u64() != Some(before_bytes.len() as u64)
+    {
+        return CaseVerdict::new("failed", "unknown");
+    }
 
     // Gate 7: backup, when the plan requires one.
     if plan["backup_policy"]["required"] == true {
@@ -2789,8 +2919,10 @@ fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> Case
 
     // Gate 9: range transformation -- applying the plan's OWN declared
     // byte ranges to the independently-rehashed `before` bytes must
-    // actually PRODUCE the independently-rehashed `stage` bytes.
-    match apply_approved_removal_ranges(&before_bytes, plan) {
+    // actually PRODUCE the independently-rehashed `stage` bytes, with
+    // every declared fingerprint/count/boundary bound to the real bytes
+    // (see `bind_and_apply_approved_removal_ranges`).
+    match bind_and_apply_approved_removal_ranges(&before_bytes, plan) {
         None => return CaseVerdict::new("failed", "unknown"),
         Some(transformed) => {
             if transformed != stage_bytes {
@@ -2813,8 +2945,15 @@ fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> Case
     if sha256_hex(&final_bytes) != plan["expected_staged_hash"].as_str().unwrap_or("") {
         return CaseVerdict::new("failed", "unknown");
     }
+    // Per the #1715 round-8 review's point 3 ("Explicitly classify
+    // not_applicable parse outcomes ... as UNAVAILABLE versus
+    // contradictory"): `not_applicable` means parsing was never
+    // attempted/doesn't apply here -- that's MISSING information, not a
+    // demonstrated contradiction. Only malformed/truncated/
+    // unconsumed_blocks mean a parse WAS attempted and genuinely failed.
     match final_obs["parse_outcome"].as_str() {
         Some("ok") => {}
+        Some("not_applicable") => return CaseVerdict::new("unverified", "unknown"),
         _ => return CaseVerdict::new("failed", "unknown"),
     }
     // Per the round-7 review's point 1 ("Missing final metadata/hash is
@@ -2827,6 +2966,15 @@ fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> Case
     }
     if !metadata_matches_expected(&final_obs["metadata"], &plan["expected_metadata"]) {
         return CaseVerdict::new("failed", "unknown");
+    }
+    // Per the round-8 review's point 3 ("null fingerprint declarations
+    // ... UNAVAILABLE versus ... an asserted empty multiset"): a null
+    // `certificate_fingerprints` means no declared count was ever
+    // supplied -- that must be unverified, not silently treated as "an
+    // asserted multiset of zero certificates" and compared (and likely
+    // failed) against the real, non-empty bytes.
+    if final_obs["certificate_fingerprints"].is_null() {
+        return CaseVerdict::new("unverified", "unknown");
     }
     let declared_counts = declared_fingerprint_multiset(&final_obs["certificate_fingerprints"]);
     match independent_fingerprint_multiset(&final_bytes) {
@@ -3686,7 +3834,265 @@ fn validate_fixture_case_catches_a_report_claiming_cleanup_succeeded_when_eviden
     assert_ne!(verdict.effect, "removed");
 }
 
-/// Happy-path sanity: the untampered `verified_removal` and
+// ===========================================================================
+// Round-8 adversarial tests, per the #1715 round-8 review's points 1-3.
+// Each test tampers exactly one thing from the known-good
+// `verified_removal`/`already_satisfied_no_op` triads and asserts the
+// EXACT classification the review demands.
+// ===========================================================================
+
+/// The round-8 review's headline attack: relabel one
+/// `approved_removal_ranges[i].target_sha256` to an UNRELATED value
+/// (something that is not the real DER fingerprint at that byte range),
+/// then RECOMPUTE the report's `scope_binding_digest` over the
+/// (now-tampered) plan so the scoped-digest gate (12) also passes. Round
+/// 7's `apply_approved_removal_ranges` used only the declared
+/// `start`/`end` offsets to slice bytes -- it never checked the label
+/// against the real bytes at that position -- so this attack used to
+/// still verify removal. `bind_and_apply_approved_removal_ranges` now
+/// checks the real DER at that byte range against the declared
+/// `target_sha256`, so this must FAIL.
+#[test]
+fn validate_fixture_case_rejects_a_relabeled_target_fingerprint_even_with_a_recomputed_digest() {
+    let mut plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let mut report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+
+    let unrelated_fingerprint = "ab".repeat(32);
+    assert_ne!(
+        plan["approved_removal_ranges"][0]["target_sha256"], unrelated_fingerprint,
+        "sanity: this must actually be a different value"
+    );
+    plan["approved_removal_ranges"][0]["target_sha256"] = Value::String(unrelated_fingerprint);
+    // Recompute the digest over the TAMPERED plan, exactly as the review
+    // describes -- so gate 12 (scoped digest) passes on its own terms,
+    // and only gate 9's fingerprint binding can catch this.
+    let recomputed_digest = compute_scope_binding_digest_v1(&plan);
+    report["authorization"]["scope_binding_digest"] = Value::String(recomputed_digest);
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "relabeling a target fingerprint to an unrelated value must fail even with a correctly recomputed scope-binding digest -- the byte range must bind to the REAL DER at that offset, not just to whatever label the plan claims");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// `plan.target_fingerprints` (the plan's declared FULL multiset of the
+/// before artifact) must match an independent re-parse of the REAL
+/// before bytes, not just be internally consistent with
+/// `approved_removal_ranges`. Tampering an unrelated-target's declared
+/// occurrence count must fail the whole range-transformation gate.
+#[test]
+fn validate_fixture_case_rejects_a_plan_whose_declared_target_fingerprints_disagree_with_the_real_before_bytes(
+) {
+    let mut plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+
+    // The third target_fingerprints entry (not part of the approved
+    // removal at all) declares occurrence_count=1; falsely claim 5.
+    plan["target_fingerprints"][2]["occurrence_count"] = serde_json::json!(5);
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "plan.target_fingerprints must match an independent re-parse of the real before bytes exactly, not merely be self-consistent with the approved ranges");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Before bytes must be bound to `plan.before_hash` directly, not merely
+/// to the evidence observation's OWN declared `content_hash` (which can
+/// be independently correct against ITS OWN artifact while still
+/// disagreeing with what the PLAN claims the before state was).
+#[test]
+fn validate_fixture_case_rejects_a_plan_before_hash_that_disagrees_with_the_real_before_bytes() {
+    let mut plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    plan["before_hash"] = Value::String("cd".repeat(32));
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "a plan.before_hash that disagrees with the real (independently rehashed) before bytes must fail, even though the evidence observation's own content_hash is internally correct");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// The plan's own `before_artifact_ref` hash/size fields must themselves
+/// be bound to `before_hash`/the real bytes, not merely declared.
+#[test]
+fn validate_fixture_case_rejects_a_plan_before_artifact_ref_with_a_wrong_declared_size() {
+    let mut plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    plan["before_artifact_ref"]["size_bytes"] = serde_json::json!(1);
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(
+        verdict.state, "failed",
+        "a before_artifact_ref whose declared size doesn't match the real before bytes must fail"
+    );
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Evidence-to-report propagation: the EVIDENCE shows `stage` genuinely
+/// failed, but the REPORT hides this behind `unobserved`/`source: none`
+/// while claiming `execution.state=completed` and
+/// `cleanup.workflow_outcome=completed`. A known mutation failure MUST
+/// propagate into the report -- this can no longer be hidden.
+#[test]
+fn validate_fixture_case_catches_a_known_stage_failure_hidden_behind_an_unobserved_report_claim() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let mut report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let stage_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "stage")
+        .unwrap();
+    stage_obs["step_status"] = Value::String("failed".to_string());
+    // The report hides this known failure.
+    report["execution"]["steps"]["stage"]["status"] = Value::String("unobserved".to_string());
+    report["execution"]["steps"]["stage"]["observation_source"] = Value::String("none".to_string());
+    assert_eq!(report["execution"]["state"], "completed");
+    assert_eq!(report["cleanup"]["workflow_outcome"], "completed");
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "unverified", "a report that hides a known evidence-recorded stage failure behind an unobserved claim, while still claiming execution/workflow completed, must be demoted to unverified");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Cleanup failures must remain VISIBLE (propagate into the report)
+/// without erasing an otherwise independently verified final mutation
+/// state: when the evidence shows cleanup genuinely failed AND the
+/// report correctly acknowledges it (`cleanup.state=failed`,
+/// `workflow_outcome=failed`, per R12), the mutation's own
+/// verified/removed outcome must be PRESERVED, not erased, because
+/// cleanup failing says nothing about whether the mutation itself
+/// succeeded.
+#[test]
+fn validate_fixture_case_preserves_verified_removed_when_cleanup_fails_but_is_honestly_reported() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let mut report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let cleanup_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "cleanup")
+        .unwrap();
+    cleanup_obs["step_status"] = Value::String("failed".to_string());
+    report["cleanup"]["state"] = Value::String("failed".to_string());
+    report["cleanup"]["workflow_outcome"] = Value::String("failed".to_string());
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "verified", "an honestly-reported cleanup failure must not erase the mutation's own independently verified state");
+    assert_eq!(verdict.effect, "removed");
+}
+
+/// A NULL `consumes_before_snapshot_id` when a real `before` observation
+/// genuinely exists must FAIL (a demonstrated contradiction against an
+/// existing snapshot), not unverified -- there IS a real snapshot to
+/// bind to, and install's own claim is null.
+#[test]
+fn validate_fixture_case_rejects_a_null_install_binding_against_an_existing_before_snapshot() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let install_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "install")
+        .unwrap();
+    install_obs["consumes_before_snapshot_id"] = Value::Null;
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "a null consumes_before_snapshot_id, when a real before observation with a real id genuinely exists, is a contradiction, not a missing-information case");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// `final.parse_outcome=not_applicable` means parsing was never
+/// attempted or doesn't apply -- MISSING information, never a
+/// demonstrated contradiction. Must be unverified, not failed (unlike
+/// `malformed`/`truncated`/`unconsumed_blocks`, which DO mean a parse
+/// was attempted and genuinely failed).
+#[test]
+fn validate_fixture_case_treats_a_not_applicable_final_parse_outcome_as_unverified_not_failed() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let final_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "final")
+        .unwrap();
+    final_obs["parse_outcome"] = Value::String("not_applicable".to_string());
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "unverified", "parse_outcome=not_applicable means no parse information is available, which is missing information, not a contradiction");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// A `null` `certificate_fingerprints` declaration means no declared
+/// count was ever supplied -- UNAVAILABLE, not an asserted empty
+/// multiset to be compared (and fail) against the real, non-empty bytes.
+#[test]
+fn validate_fixture_case_treats_a_null_final_fingerprint_declaration_as_unverified_not_failed() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let final_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "final")
+        .unwrap();
+    final_obs["certificate_fingerprints"] = Value::Null;
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "unverified", "a null certificate_fingerprints declaration is missing information, not an asserted empty multiset to fail against the real bytes");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Competing snapshots differing only in `metadata`/`source` (not hash or
+/// status) for the same step must still be rejected as a conflict.
+#[test]
+fn validate_fixture_case_rejects_competing_snapshots_that_differ_only_in_metadata_or_source() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let backup_obs = observations
+        .iter()
+        .find(|o| o["step"] == "backup")
+        .unwrap()
+        .clone();
+    let mut competing_backup = backup_obs.clone();
+    // Same content_hash and step_status as the original -- only the
+    // claimed source differs (a genuinely different claim about WHO
+    // backed this step, not just a relabeling).
+    competing_backup["step_snapshot_id"] = Value::String("backup-2-different-id".to_string());
+    competing_backup["source"] = Value::String("supplied".to_string());
+    observations.push(competing_backup);
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "unverified", "two backup observations agreeing on hash and status but disagreeing on source are still competing, inconsistent claims");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Happy-path sanity check: the untampered `verified_removal` and
 /// `already_satisfied_no_op` triads must still agree with their frozen
 /// report fixtures through THE single, fully-wired path -- schema +
 /// bindings + destination/context + range transformation + rehashing +

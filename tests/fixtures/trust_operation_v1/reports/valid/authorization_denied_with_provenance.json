@@ -18,7 +18,7 @@
     "provenance": "none"
   },
   "execution": {
-    "state": "not_attempted",
+    "state": "unobserved",
     "failure_mode": null,
     "whole_shell_status": "unobserved",
     "observation_source": "none",
@@ -50,6 +50,6 @@
   "cleanup": {
     "state": "unobserved",
     "observation_source": "none",
-    "workflow_outcome": "not_attempted"
+    "workflow_outcome": "unverified"
   }
 }
