@@ -1,15 +1,17 @@
 # Trust-Operation Contract (v1, checkpoint 1 — proposed, not yet accepted)
 
 **Status**: Checkpoint 1 of issue [#1714](https://github.com/wildcard/caro/issues/1714),
-**proposed, not yet accepted.** Four rounds of independent review on
+**proposed, not yet accepted.** Five rounds of independent review on
 [PR #1715](https://github.com/wildcard/caro/pull/1715) have found and fixed
 static-contract defects (round 2: 6 classes; round 3: 7 classes, including
 a real CI license-policy failure; round 4: 5 classes, including two real
 bugs in this PR's own cross-checks; round 5: 4 classes plus a small fix,
-including a real Windows CI failure). This document states, plainly, what
-changed and why. It never uses the word "frozen" to describe the overall
-contract's acceptance state — only this PR's own content, pending the next
-review pass, which decides acceptance.
+including a real Windows CI failure; round 6: 3 classes, including
+replacing the hand-written X.509 heuristic with a real conformant parser).
+This document states, plainly, what changed and why. It never uses the
+word "frozen" to describe the overall contract's acceptance state — only
+this PR's own content, pending the next review pass, which decides
+acceptance.
 
 **No behavioral code implements this yet.** Nothing here changes
 `CliResult`, the safety validator, the executor, or any CLI output. A later
@@ -24,11 +26,95 @@ and `::no_jsonschema_crate_dependency_exists`):
 |---|---|
 | `manifest.json` rows | **33** (T001–T033) |
 | Schema files (`manifest`, `plan`, `evidence`, `report`) | **4** |
-| Contract tests in `tests/trust_operation_v1_contract.rs` | **72** |
-| New Cargo dependencies | **0** (round 2 added `jsonschema` as a dev-dependency; round 3 removed it — see below — so the net count is zero) |
+| Contract tests in `tests/trust_operation_v1_contract.rs` | **86** |
+| New Cargo dev-dependencies | **1** (`x509-parser`, `default-features = false` — round 2 also added `jsonschema`; round 3 removed it, see below, so `x509-parser` is the only one actually shipping; both are dev-only, never linked into the `caro` binary) |
 | New Python dev-tool dependencies | **1** (`jsonschema`, via `pip install`; not a Cargo dependency, outside `dependency-review.yml`'s scope — see round 4 below) |
 
-### What changed in round 5 (this revision)
+### What changed in round 6 (this revision)
+
+Round 5's fixes were themselves found to have 3 further classes of defect:
+
+1. **The fixture-case validator still had five real gaps.** `validate_case`'s
+   final-metadata check was written as `if !metadata.is_null() &&
+   !metadata_matches_expected(..)`, which SKIPPED the check entirely when
+   metadata was null instead of failing it — the exact opposite of
+   correct, since `metadata_matches_expected` already returns `false` for
+   null on its own. Fixed by removing the redundant-and-wrong guard.
+   `final.parse_outcome` was never checked at all, so a final observation
+   admitting `malformed` still verified; now checked. The `stage`
+   observation (the bytes install is claimed to have actually installed)
+   was never independently checked against `plan.expected_staged_hash` at
+   all; now checked, with a dedicated missing/mismatched-stage test each.
+   The final observation's declared `certificate_fingerprints` were never
+   cross-checked against an independent re-parse of the real final
+   artifact bytes; now checked via a shared
+   `independent_fingerprint_multiset` helper. The install step's
+   `consumes_before_snapshot_id`/`consumes_staging_snapshot_id` were
+   required to be PRESENT by the schema but never checked for EXACT
+   equality against the real `before`/`stage` observation ids in
+   `validate_case` itself; now checked. Separately, the no-op path's
+   `find_pem_blocks_strict(..).unwrap_or_default()` silently converted a
+   genuine parse failure into "zero certificates found" — exactly
+   backwards, since a malformed before artifact must never read as
+   already-satisfied; fixed to fail the case on a parse error. Finally, a
+   new `validate_full_case(plan, evidence, report)` — the single path ALL
+   positive/adversarial paired triads now route through — adds a report
+   `report_steps_consistent_with_evidence` cross-check and caught a real
+   bug in `verified_removal.json` itself: its report claimed `filter`
+   completed (sourced) while its evidence bundle had NO `filter`
+   observation at all. Fixed by adding the missing `filter` observation
+   to the evidence fixture (reflecting that a transformation step
+   logically did happen) rather than weakening the report's claim. 9 new
+   adversarial tests plus 2 happy-path sanity tests for the fuller path.
+2. **X.509 checking was still child-tag/count heuristics.** Round 5's
+   "deepened" check (≥6 non-empty `tbsCertificate` children, ≥1 INTEGER,
+   ≥4 SEQUENCE) is satisfied by the review's counterexample DER (`30 1c 30
+   12 02 01 01 30 01 00 30 01 00 30 01 00 30 01 00 02 01 01 30 03 06 01 2a
+   03 01 00`) despite its "fields" being empty placeholder SEQUENCEs, not
+   real `issuer`/`validity`/`subject`/`subjectPublicKeyInfo`. Replaced the
+   entire hand-written DER-TLV-walking approach with `x509-parser` (a
+   real, independently conformant DER/ASN.1 certificate parser,
+   `default-features = false` so no chain/trust/expiry/signature
+   validation is enabled — pure syntax parsing only), requiring full byte
+   consumption (`rem.is_empty()`). A new test reconstructs the round-5
+   heuristic inline to PROVE it would have accepted the counterexample,
+   then proves the real parser rejects it. Separately: base64 unused
+   padding bits (RFC 4648 §3.5) are a distinct strictness concern from DER
+   BIT STRING unused bits — `base64_decode_strict` now rejects non-zero
+   unused trailing bits in the final sextet, with a dedicated unit test
+   exercising the encoding layer alone (no DER/PEM involved). And the
+   comment/whitespace preservation test only ever searched the ORIGINAL
+   (untouched) file for substrings, so it could never catch a removal
+   that corrupts surrounding bytes; added a new test that actually applies
+   a removal (cert A's exact byte range) to the commented bundle and
+   compares the result byte-for-byte against an independently authored
+   (hand-constructed, never run through this contract's own code)
+   expected artifact,
+   `commented_whitespace_bundle_after_removing_cert_a.pem.fixture`.
+3. **`stage_status_unknown_but_observed.json` had execution.state=started
+   (with `backup` already completed) paired with
+   `cleanup.workflow_outcome=not_attempted`** — `not_attempted` is a claim
+   that nothing happened at all, which directly contradicts a `started`
+   execution. Fixed the fixture (`workflow_outcome` → `unverified`) and
+   added report-schema **R20**: `workflow_outcome=not_attempted` now
+   requires `execution.state` to NOT be `started`/`completed`/`failed`
+   (both `unobserved`, no information, and `not_attempted`, positively
+   known, remain legal). A new negative-regression fixture
+   (`workflow_not_attempted_with_started_execution.json`, the frozen
+   before-the-fix content) and a dedicated test keep the bug from
+   silently returning; a second test confirms the three genuine dry-run
+   report fixtures retain their legitimate `not_attempted`/`not_attempted`
+   pairing under R20.
+
+Preserved per the review's closing instruction: no Cargo dependency
+*policy* change (the dependency-review allowlist itself is untouched;
+`x509-parser` is a normal pass, not an exception), the exact DER
+fingerprint domain, manifest bytes, and the "proposed, not yet accepted"
+status language throughout. The round-5 Windows/macOS fix, Python
+conformance, backup-omission/failure-aggregation fixes, and byte
+preservation are explicitly RESOLVED and not reopened this round.
+
+### What changed in round 5
 
 Round 4's fixes were themselves found to have 4 further classes of defect,
 plus one small fix:

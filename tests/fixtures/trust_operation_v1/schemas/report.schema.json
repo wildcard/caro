@@ -388,6 +388,17 @@
         { "not": { "properties": { "execution": { "properties": { "steps": { "properties": { "install": { "properties": { "status": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } }, "required": ["status"] } }, "required": ["install"] } }, "required": ["steps"] } }, "required": ["execution"] } },
         { "properties": { "execution": { "properties": { "state": { "const": "failed" } }, "required": ["state"] }, "cleanup": { "properties": { "workflow_outcome": { "const": "failed" } }, "required": ["workflow_outcome"] } }, "required": ["execution", "cleanup"] }
       ]
+    },
+    {
+      "$comment": "R20 (new per #1715 round-6 review point 3, 'enforce workflow not_attempted requires ESTABLISHED execution not_attempted'): workflow_outcome=not_attempted is a claim that nothing happened. It must never coexist with execution.state=started/completed/failed -- those all mean something DID happen, so claiming not_attempted would contradict the execution record itself. unobserved (no information at all) and not_attempted (positively known) are both still permitted here -- R20 catches the contradiction this review flagged (stage_status_unknown_but_observed previously paired execution.state=started, with backup already completed, against workflow_outcome=not_attempted), not the separate question of whether unobserved should ever have been used instead of not_attempted.",
+      "if": {
+        "properties": { "cleanup": { "properties": { "workflow_outcome": { "const": "not_attempted" } }, "required": ["workflow_outcome"] } },
+        "required": ["cleanup"]
+      },
+      "then": {
+        "properties": { "execution": { "properties": { "state": { "not": { "enum": ["started", "completed", "failed"] } } }, "required": ["state"] } },
+        "required": ["execution"]
+      }
     }
   ],
   "definitions": {

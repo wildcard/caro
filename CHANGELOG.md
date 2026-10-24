@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; four
+- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; five
   rounds of independent-review fixes so far (#1715).** Proposes the
   support boundary, schemas, and reason codes for verifying a trust-store
   mutation (e.g. the Apple eMudhra CA advisory remediation) actually
@@ -110,9 +110,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     them. Preserved: the independently-passing Python schema validator
     (re-run clean against every round-5 change), zero Cargo dependency
     changes, and the "proposed, not yet accepted" status language.
+  - Round 6 fixed 3 further defect classes. The fixture-case validator
+    still had five real gaps: a null final metadata silently SKIPPED the
+    equality check instead of failing it; `final.parse_outcome` was never
+    checked; the `stage` observation was never independently verified
+    against `expected_staged_hash` at all; the final observation's
+    declared `certificate_fingerprints` were never cross-checked against
+    an independent re-parse of the real bytes; and install's snapshot
+    bindings were required present by schema but never checked for exact
+    equality in the validator itself. The no-op path's
+    `unwrap_or_default()` on a parse failure silently became "zero
+    certificates found," the opposite of correct. A new
+    `validate_full_case(plan, evidence, report)` — the one path ALL
+    paired triads now route through — added a report/evidence
+    consistency check that caught a real bug in `verified_removal.json`:
+    its report claimed `filter` completed with no matching evidence
+    observation at all; fixed by adding the missing evidence observation.
+    9 new adversarial tests plus 2 fuller happy-path checks. X.509
+    checking was still child-tag/count heuristics, satisfied by the
+    review's counterexample DER despite its fields being empty
+    placeholders; replaced entirely with `x509-parser` (a real,
+    independently conformant DER/ASN.1 parser, dev-dependency,
+    `default-features = false` so no chain/trust/expiry/signature
+    validation — pure syntax parsing, full-consumption-required), whose
+    own transitive deps are plain `MIT OR Apache-2.0` and clear
+    `dependency-review.yml`'s allowlist without exception (unlike
+    `jsonschema`). Base64 unused padding bits (RFC 4648 §3.5) are now
+    rejected as a separate strictness concern from DER BIT STRING unused
+    bits. A removal test now applies an actual byte-range removal to the
+    commented/whitespace bundle and compares byte-for-byte against an
+    independently authored expected artifact, not just substring
+    searches on the untouched original. `stage_status_unknown_but_observed.json`
+    paired `execution.state=started` with `cleanup.workflow_outcome=not_attempted`
+    (a contradiction: "nothing happened" against a started execution);
+    fixed the fixture and added report-schema R20 plus a negative
+    regression fixture and a genuine-dry-run retention test.
   - Actual current shape (mechanically checked, not asserted by hand):
-    **33** manifest rows, **4** schema files, **72** contract tests,
-    **0** new Cargo dependencies, **1** new Python dev-tool dependency
+    **33** manifest rows, **4** schema files, **86** contract tests,
+    **1** new Cargo dev-dependency (`x509-parser`, test-only, never
+    shipped in the `caro` binary), **1** new Python dev-tool dependency
     (`jsonschema`, CI-only, outside `dependency-review.yml`'s scope).
 - **`caro guard test` and `caro guard setup` (spec 011 §P2.1, §P2.2).**
   `caro guard test "<command>"` dry-runs one command through the guard and
