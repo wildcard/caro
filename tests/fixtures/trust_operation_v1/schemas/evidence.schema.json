@@ -2,15 +2,21 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://caro.sh/schemas/trust_operation_v1/evidence.schema.json",
   "title": "TrustOperationEvidenceBundleV1",
-  "description": "The supplied evidence a plan (plan.schema.json) is checked against to produce a report (report.schema.json). Frozen per issue #1714 checkpoint 1. v1 authenticates no external collector: it checks internal consistency against declared provenance only, and says so.",
+  "description": "The supplied evidence a plan (plan.schema.json) is checked against to produce a report (report.schema.json). Frozen per issue #1714, checkpoint 1 revision 2. v1 authenticates no external collector: it checks internal consistency against declared provenance only, and says so. The definitions.context_identity block here MUST stay byte-identical to the same-named definition in plan.schema.json (tests/trust_operation_v1_contract.rs asserts this).",
   "type": "object",
-  "required": ["schema_version", "operation_id", "observations"],
+  "required": ["schema_version", "operation_id", "evidence_id", "observations"],
   "additionalProperties": false,
   "properties": {
     "schema_version": { "const": 1 },
     "operation_id": {
       "type": "string",
-      "description": "Must match the bound plan's operation_id; a mismatch is invalid_evidence."
+      "minLength": 1,
+      "description": "Must match the bound plan's operation_id; a mismatch is invalid_evidence, checked by the fixture-level contract test."
+    },
+    "evidence_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Must match the bound plan's evidence_id (plan.schema.json). This is the explicit counterpart the #1715 review found missing: a plan names an evidence_id, and the evidence bundle now names the same id back."
     },
     "observations": {
       "type": "array",
@@ -19,14 +25,70 @@
     }
   },
   "definitions": {
+    "context_identity": {
+      "type": "object",
+      "required": ["cwd_supplied", "cwd"],
+      "additionalProperties": false,
+      "properties": {
+        "cwd_supplied": { "type": "boolean" },
+        "cwd": { "type": ["string", "null"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "cwd_supplied": { "const": false } }, "required": ["cwd_supplied"] },
+          "then": { "properties": { "cwd": { "type": "null" } }, "required": ["cwd"] }
+        },
+        {
+          "if": { "properties": { "cwd_supplied": { "const": true } }, "required": ["cwd_supplied"] },
+          "then": { "properties": { "cwd": { "type": "string", "minLength": 1 } }, "required": ["cwd"] }
+        }
+      ]
+    },
+    "artifact_ref": {
+      "description": "Bounded, offline-only reference to actual raw bytes. Exactly one of fixture_path or inline_base64 must be set. NEVER a URL, host path outside the fixtures tree, or any form of network/live-store resolution.",
+      "type": "object",
+      "required": ["sha256", "size_bytes", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "size_bytes": { "type": "integer", "minimum": 0 },
+        "source": { "type": "string", "enum": ["fixture_file", "inline_base64"] },
+        "fixture_path": {
+          "type": "string",
+          "pattern": "^tests/fixtures/trust_operation_v1/artifacts/[A-Za-z0-9_.-]+$"
+        },
+        "inline_base64": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "source": { "const": "fixture_file" } }, "required": ["source"] },
+          "then": { "required": ["fixture_path"] }
+        },
+        {
+          "if": { "properties": { "source": { "const": "inline_base64" } }, "required": ["source"] },
+          "then": { "required": ["inline_base64"] }
+        }
+      ]
+    },
+    "fingerprint_count": {
+      "type": "object",
+      "required": ["sha256", "occurrence_count"],
+      "additionalProperties": false,
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "occurrence_count": { "type": "integer", "minimum": 0 }
+      }
+    },
     "observation": {
       "type": "object",
       "required": [
         "source",
-        "snapshot_identity",
+        "step",
+        "step_status",
+        "step_snapshot_id",
         "capture_sequence",
         "capture_time",
-        "destination_binding",
+        "normalized_destination_binding",
         "context_binding",
         "parse_outcome"
       ],
@@ -35,7 +97,7 @@
         "source": {
           "type": "string",
           "enum": ["fixture", "supplied", "caro_observed"],
-          "description": "v1 ships no live collector; ordinary non-fixture runs never produce a caro_observed observation for file content. caro_observed is reserved for Caro's own existing process-result observation (e.g. exit status), not for a verified filesystem read."
+          "description": "v1 ships no live collector; ordinary non-fixture runs never produce a caro_observed observation for file content. caro_observed is reserved for Caro's own existing process-result observation (exit status of a step), never for a verified filesystem read — enforced below: caro_observed forbids content_hash, artifact_ref, and certificate_fingerprints."
         },
         "step": {
           "type": "string",
@@ -43,11 +105,13 @@
         },
         "step_status": {
           "type": "string",
-          "enum": ["not_attempted", "started", "failed", "completed"]
+          "enum": ["not_attempted", "started", "failed", "completed", "timed_out", "signaled", "spawn_failed"],
+          "description": "Required on every observation (previously optional; the #1715 review flagged this). A content-only observation (e.g. step=before) uses completed to mean 'this read was captured', not that a mutation occurred."
         },
-        "snapshot_identity": {
+        "step_snapshot_id": {
           "type": "string",
-          "description": "Identifier binding this observation to a specific captured snapshot, used to detect stale or substituted evidence."
+          "minLength": 1,
+          "description": "Identifier scoped to (step, step_snapshot_id): two observations with the same step and a different step_snapshot_id are competing/stale claims about that step, not two facets of the same snapshot. Used to detect a substituted or stale before/backup/staging/final snapshot. Renamed from the prior ambiguous 'snapshot_identity' field (#1715 review)."
         },
         "capture_sequence": {
           "type": "integer",
@@ -58,33 +122,30 @@
           "type": ["string", "null"],
           "description": "RFC3339 timestamp if supplied. A timestamp alone never proves freshness."
         },
-        "destination_binding": {
+        "normalized_destination_binding": {
           "type": "string",
-          "description": "Normalized destination this observation claims to describe. Must match the plan's normalized_destination or the observation is unbound."
+          "description": "Must be byte-for-byte equal to the bound plan's normalized_destination for this observation to be considered bound to that plan; otherwise it is unbound (stale_observation)."
         },
         "context_binding": {
-          "type": "string",
-          "description": "Context identity (cwd) this observation claims. Must match the plan's context_identity or the observation is unbound."
+          "$ref": "#/definitions/context_identity",
+          "description": "Must be structurally (deep-)equal to the bound plan's context_identity for this observation to be considered bound to that plan."
         },
         "content_hash": {
           "type": ["string", "null"],
-          "description": "SHA-256 of the observed raw bytes at this step, when content was captured."
+          "pattern": "^([0-9a-f]{64})?$",
+          "description": "SHA-256 of the observed raw bytes at this step, when content was captured. Must be null when source=caro_observed (see allOf below)."
+        },
+        "artifact_ref": {
+          "description": "The actual raw bytes this observation's content_hash was computed from, bounded and offline-only (see definitions.artifact_ref). Required whenever content_hash is non-null, so every content claim resolves to real bytes the contract test can re-hash and compare, not just an asserted digest.",
+          "anyOf": [{ "$ref": "#/definitions/artifact_ref" }, { "type": "null" }]
         },
         "parse_outcome": {
           "type": "string",
           "enum": ["not_applicable", "ok", "malformed", "truncated", "unconsumed_blocks"]
         },
         "certificate_fingerprints": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["sha256", "occurrence_count"],
-            "additionalProperties": false,
-            "properties": {
-              "sha256": { "type": "string" },
-              "occurrence_count": { "type": "integer", "minimum": 0 }
-            }
-          }
+          "type": ["array", "null"],
+          "items": { "$ref": "#/definitions/fingerprint_count" }
         },
         "metadata": {
           "type": ["object", "null"],
@@ -97,7 +158,7 @@
         },
         "authorization_claim": {
           "type": ["object", "null"],
-          "description": "A supplied claim of approval. Data only; never itself an executor authorization token. See report.authorization provenance rules.",
+          "description": "A supplied claim of approval. Data only; never itself an executor authorization token. See report.authorization provenance rules (R6/R7 in report.schema.json): this can only ever surface as provenance=supplied_claim, never confirmed_scoped.",
           "additionalProperties": false,
           "properties": {
             "state": { "type": "string", "enum": ["required", "denied", "approved"] },
@@ -106,14 +167,46 @@
         },
         "host_permission_claim": {
           "type": ["object", "null"],
-          "description": "A supplied claim about host authorization. Never promoted to report.host_permission.state=granted with provenance other than supplied_claim.",
+          "description": "A supplied claim about host authorization. Never promoted to report.host_permission.state=granted with provenance other than supplied_claim or fixture.",
           "additionalProperties": false,
           "properties": {
             "state": { "type": "string", "enum": ["denied", "granted"] },
             "provenance": { "const": "supplied_claim" }
           }
         }
-      }
+      },
+      "allOf": [
+        {
+          "$comment": "caro_observed is restricted to process/step-status observations, never to a content claim. Fixes the #1715 review finding: 'external source claims caro_observed'.",
+          "if": { "properties": { "source": { "const": "caro_observed" } }, "required": ["source"] },
+          "then": {
+            "properties": {
+              "content_hash": { "type": "null" },
+              "artifact_ref": { "type": "null" },
+              "certificate_fingerprints": { "type": "null" }
+            },
+            "required": ["content_hash", "artifact_ref", "certificate_fingerprints"]
+          }
+        },
+        {
+          "$comment": "A non-null content_hash must resolve to real bytes, not a bare asserted digest.",
+          "if": { "properties": { "content_hash": { "type": "string" } }, "required": ["content_hash"] },
+          "then": { "required": ["artifact_ref"], "not": { "properties": { "artifact_ref": { "type": "null" } }, "required": ["artifact_ref"] } }
+        },
+        {
+          "$comment": "A backup-step observation that claims a readable backup must carry its metadata; empty/absent metadata on a backup claim is the #1715 review's 'metadata is empty' finding.",
+          "if": {
+            "properties": {
+              "step": { "const": "backup" },
+              "step_status": { "const": "completed" }
+            },
+            "required": ["step", "step_status"]
+          },
+          "then": {
+            "not": { "properties": { "metadata": { "type": "null" } }, "required": ["metadata"] }
+          }
+        }
+      ]
     }
   }
 }

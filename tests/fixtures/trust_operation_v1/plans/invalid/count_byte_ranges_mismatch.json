@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "manifest_version": "1.0.0",
+  "profile": "macos-bsd-cert-pem-v1",
+  "operation_id": "op-count-byte-range-mismatch",
+  "evidence_id": "op-count-byte-range-mismatch-evidence",
+  "command_digest": "769b011c648403a6a1c97708482b6e555b79adfcb190f02d0c7b89113b5f9f46",
+  "normalized_destination": "/etc/ssl/cert.pem",
+  "context_identity": {
+    "cwd_supplied": true,
+    "cwd": "/etc/ssl"
+  },
+  "before_hash": "c4c3628a5e23d2fee277d7fb277de0430e319f962276116753dbf723dbf318f7",
+  "before_artifact_ref": {
+    "sha256": "c4c3628a5e23d2fee277d7fb277de0430e319f962276116753dbf723dbf318f7",
+    "size_bytes": 736,
+    "source": "fixture_file",
+    "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/before_two_targets.pem.fixture"
+  },
+  "target_fingerprints": [
+    {
+      "sha256": "bd0a4e39de84f95017e4409cd5e19c4d0107ba8bbeb55fdfb99ec681eb5145bc",
+      "occurrence_count": 2
+    },
+    {
+      "sha256": "8472e2b22802308bcb18255e5abcfa63b6c21c701a9b8147b99c533b77484954",
+      "occurrence_count": 1
+    },
+    {
+      "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+      "occurrence_count": 1
+    }
+  ],
+  "approved_removal_ranges": [
+    {
+      "target_sha256": "bd0a4e39de84f95017e4409cd5e19c4d0107ba8bbeb55fdfb99ec681eb5145bc",
+      "count": 2,
+      "byte_ranges": [
+        {
+          "start": 0,
+          "end": 184
+        }
+      ]
+    },
+    {
+      "target_sha256": "8472e2b22802308bcb18255e5abcfa63b6c21c701a9b8147b99c533b77484954",
+      "count": 1,
+      "byte_ranges": [
+        {
+          "start": 184,
+          "end": 368
+        }
+      ]
+    }
+  ],
+  "approved_transformation": "remove_approved_certificates_only",
+  "expected_staged_hash": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+  "expected_staged_artifact_ref": {
+    "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+    "size_bytes": 184,
+    "source": "fixture_file",
+    "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/staged_targets_removed.pem.fixture"
+  },
+  "backup_policy": {
+    "required": true,
+    "must_match_before_hash": true,
+    "must_be_readable": true,
+    "overwrite_existing": false,
+    "expected_hash": "c4c3628a5e23d2fee277d7fb277de0430e319f962276116753dbf723dbf318f7"
+  },
+  "expected_metadata": {
+    "owner": "root",
+    "group": "wheel",
+    "mode": "0644"
+  }
+}

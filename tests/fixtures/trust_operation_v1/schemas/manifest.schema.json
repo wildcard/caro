@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://caro.sh/schemas/trust_operation_v1/manifest.schema.json",
+  "title": "TrustOperationManifestV1",
+  "description": "Metaschema for tests/fixtures/trust_operation_v1/manifest.json itself. Added per the #1715 review's point 6 ('add a manifest schema, metaschema validation'). A row claiming transformation_understanding=supported MUST carry a plan_ref pointing at a real plan fixture under tests/fixtures/trust_operation_v1/plans/valid/ (cross-file existence and consistency is checked by tests/trust_operation_v1_contract.rs, not by this schema alone).",
+  "type": "object",
+  "required": ["schema_version", "manifest_version", "description", "profiles", "shells", "config_bounds", "rows"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "manifest_version": { "type": "string" },
+    "description": { "type": "string" },
+    "profiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "target", "declared_aliases", "expected_owner", "expected_group", "expected_mode"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "target": { "type": "string" },
+          "declared_aliases": { "type": "array", "items": { "type": "string" } },
+          "expected_owner": { "type": "string" },
+          "expected_group": { "type": "string" },
+          "expected_mode": { "type": "string", "pattern": "^0[0-7]{3}$" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "shells": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "config_bounds": {
+      "description": "The exact, already-configured limits a row MUST reference instead of inventing its own (the #1715 review's point 6 finding: the old T030 invented '4096' against unconfigured 1000/5000/10000). These mirror src/safety/mod.rs SafetyConfig::{strict,moderate,permissive}.max_command_length and src/safety/segments.rs::MAX_DEPTH, read directly at the time this manifest was frozen.",
+      "type": "object",
+      "required": ["max_command_length_strict", "max_command_length_moderate", "max_command_length_permissive", "max_wrapper_depth"],
+      "additionalProperties": false,
+      "properties": {
+        "max_command_length_strict": { "const": 1000 },
+        "max_command_length_moderate": { "const": 5000 },
+        "max_command_length_permissive": { "const": 10000 },
+        "max_wrapper_depth": { "const": 3 },
+        "_source": { "type": "string" }
+      }
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/row" }
+    }
+  },
+  "definitions": {
+    "row": {
+      "type": "object",
+      "required": [
+        "id",
+        "description",
+        "shell",
+        "profile",
+        "context_supplied_cwd",
+        "mutation_detection",
+        "transformation_understanding",
+        "requires_scoped_human_confirmation",
+        "plan_ref",
+        "unsupported_reason"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "pattern": "^T[0-9]{3}$" },
+        "description": { "type": "string", "minLength": 1 },
+        "shell": { "type": "string" },
+        "profile": { "type": "string" },
+        "input": { "type": "string" },
+        "input_construction": {
+          "description": "Used instead of a literal 'input' string when the exact bytes are deterministically constructed (e.g. padding a base row to an exact configured length boundary) rather than hand-typed, so the construction rule itself is reviewable.",
+          "type": "object"
+        },
+        "context_supplied_cwd": { "type": "boolean" },
+        "supplied_cwd": { "type": "string" },
+        "mutation_detection": { "type": "string", "enum": ["identified", "possible", "not_detected"] },
+        "transformation_understanding": { "type": "string", "enum": ["supported", "unsupported", "unknown"] },
+        "requires_scoped_human_confirmation": { "type": "boolean" },
+        "plan_ref": {
+          "description": "Null unless transformation_understanding=supported, in which case it must name a real plan fixture path under tests/fixtures/trust_operation_v1/plans/valid/.",
+          "type": ["string", "null"],
+          "pattern": "^(tests/fixtures/trust_operation_v1/plans/valid/[A-Za-z0-9_./-]+\\.json)?$"
+        },
+        "unsupported_reason": { "type": ["string", "null"] },
+        "verdict_floor_note": {
+          "type": "string",
+          "description": "For a row whose mutation_detection/transformation_understanding is not_detected/unsupported due to an out-of-scope shell or form (e.g. T025's fish shell): documents that the EXISTING safety validator's own pattern-based risk assessment is unrelated to this contract and is never downgraded by a trust-operation not_detected/unsupported result. Fail-closed is preserved at the safety-validator layer regardless of what this contract can or cannot assess."
+        },
+        "context_provenance": {
+          "type": "string",
+          "enum": ["supplied_fixture", "unobserved"],
+          "description": "For a row that depends on context outside the command text (e.g. T022's symlink mapping): supplied_fixture means the mapping is injected ONLY for this test fixture; unobserved means a real run would have no such mapping and must not invent one."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "transformation_understanding": { "const": "supported" } }, "required": ["transformation_understanding"] },
+          "then": { "properties": { "plan_ref": { "type": "string", "minLength": 1 } }, "required": ["plan_ref"] }
+        },
+        {
+          "if": { "properties": { "transformation_understanding": { "not": { "const": "supported" } } }, "required": ["transformation_understanding"] },
+          "then": { "properties": { "plan_ref": { "type": "null" } }, "required": ["plan_ref"] }
+        },
+        {
+          "$comment": "The mode/entrypoint table's non-relaxable confirmation requirement, pinned at the manifest level: identified/possible mutations always require scoped human confirmation; not_detected never does (there is nothing identified to confirm).",
+          "if": {
+            "properties": { "mutation_detection": { "enum": ["identified", "possible"] } },
+            "required": ["mutation_detection"]
+          },
+          "then": {
+            "properties": { "requires_scoped_human_confirmation": { "const": true } },
+            "required": ["requires_scoped_human_confirmation"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "mutation_detection": { "const": "not_detected" } },
+            "required": ["mutation_detection"]
+          },
+          "then": {
+            "properties": { "requires_scoped_human_confirmation": { "const": false } },
+            "required": ["requires_scoped_human_confirmation"]
+          }
+        }
+      ]
+    }
+  }
+}

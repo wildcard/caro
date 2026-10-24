@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://caro.sh/schemas/trust_operation_v1/report.schema.json",
   "title": "TrustOperationReportV1",
-  "description": "Normative shape of CliResult.trust_operation. Frozen per issue #1714 checkpoint 1 (contract-only, no behavioral implementation). schema_version is always 1 for this version; unknown versions must be rejected by the (future) deserializer, never silently accepted.",
+  "description": "Normative shape of CliResult.trust_operation. Frozen per issue #1714, checkpoint 1 revision 2 (contract-only, no behavioral implementation). schema_version is always 1 for this version; unknown versions must be rejected by the (future) deserializer, never silently accepted. The allOf conditionals below are load-bearing: they are what makes a forbidden combination (e.g. confirmed_scoped with supplied_claim, or granted host permission with no provenance) fail validation, not just read oddly in prose.",
   "type": "object",
   "required": [
     "schema_version",
@@ -23,6 +23,228 @@
     "postcondition": { "$ref": "#/definitions/postcondition" },
     "cleanup": { "$ref": "#/definitions/cleanup" }
   },
+  "allOf": [
+    {
+      "$comment": "R1: a removed effect requires full verification against supplied evidence AND a completed execution. Supplied internal-looking labels alone can never produce this combination.",
+      "if": {
+        "properties": { "postcondition": { "properties": { "effect": { "const": "removed" } }, "required": ["effect"] } },
+        "required": ["postcondition"]
+      },
+      "then": {
+        "properties": {
+          "postcondition": {
+            "properties": {
+              "state": { "const": "verified" },
+              "verification_basis": { "const": "supplied_evidence" }
+            },
+            "required": ["state", "verification_basis"]
+          },
+          "execution": {
+            "properties": { "state": { "const": "completed" } },
+            "required": ["state"]
+          }
+        },
+        "required": ["postcondition", "execution"]
+      }
+    },
+    {
+      "$comment": "R2: already_satisfied means no mutation was attempted. It can never coexist with an execution that actually ran.",
+      "if": {
+        "properties": { "postcondition": { "properties": { "effect": { "const": "already_satisfied" } }, "required": ["effect"] } },
+        "required": ["postcondition"]
+      },
+      "then": {
+        "properties": {
+          "execution": { "properties": { "state": { "const": "not_attempted" } }, "required": ["state"] }
+        },
+        "required": ["execution"]
+      }
+    },
+    {
+      "$comment": "R3: verified always carries its basis explicitly; there is no other way to be verified in v1.",
+      "if": {
+        "properties": { "postcondition": { "properties": { "state": { "const": "verified" } }, "required": ["state"] } },
+        "required": ["postcondition"]
+      },
+      "then": {
+        "properties": {
+          "postcondition": { "properties": { "verification_basis": { "const": "supplied_evidence" } }, "required": ["verification_basis"] }
+        },
+        "required": ["postcondition"]
+      }
+    },
+    {
+      "$comment": "R4: not_applicable postcondition only makes sense when nothing executed (dry-run / generate / explain).",
+      "if": {
+        "properties": { "postcondition": { "properties": { "state": { "const": "not_applicable" } }, "required": ["state"] } },
+        "required": ["postcondition"]
+      },
+      "then": {
+        "properties": {
+          "execution": { "properties": { "state": { "const": "not_attempted" } }, "required": ["state"] }
+        },
+        "required": ["execution"]
+      }
+    },
+    {
+      "$comment": "R5: nothing that was never attempted can be reported as a verification failure.",
+      "if": {
+        "properties": { "execution": { "properties": { "state": { "const": "not_attempted" } }, "required": ["state"] } },
+        "required": ["execution"]
+      },
+      "then": {
+        "not": {
+          "properties": { "postcondition": { "properties": { "state": { "const": "failed" } }, "required": ["state"] } },
+          "required": ["postcondition"]
+        }
+      }
+    },
+    {
+      "$comment": "R6 (authorization, half 1): confirmed_scoped exists ONLY for Caro's own observed interactive decision, bound to a real digest. A supplied_claim, or a missing digest, can never reach confirmed_scoped. This is the fix for the #1715 review finding: confirmed_scoped + supplied_claim, and confirmed_scoped + missing digest, were previously representable.",
+      "if": {
+        "properties": { "authorization": { "properties": { "state": { "const": "confirmed_scoped" } }, "required": ["state"] } },
+        "required": ["authorization"]
+      },
+      "then": {
+        "properties": {
+          "authorization": {
+            "properties": {
+              "provenance": { "const": "caro_interactive" },
+              "scope_binding_digest": { "type": "string", "minLength": 1 }
+            },
+            "required": ["provenance", "scope_binding_digest"]
+          }
+        },
+        "required": ["authorization"]
+      }
+    },
+    {
+      "$comment": "R7 (authorization, half 2): the digest field exists only to carry that binding, so anything short of confirmed_scoped must leave it null, never a stray or stale digest.",
+      "if": {
+        "not": {
+          "properties": { "authorization": { "properties": { "state": { "const": "confirmed_scoped" } }, "required": ["state"] } },
+          "required": ["authorization"]
+        }
+      },
+      "then": {
+        "properties": {
+          "authorization": {
+            "properties": { "scope_binding_digest": { "type": "null" } },
+            "required": ["scope_binding_digest"]
+          }
+        },
+        "required": ["authorization"]
+      }
+    },
+    {
+      "$comment": "R8 (host_permission, half 1): granted/denied are real claims about host behavior and must carry a real provenance. Fixes the #1715 finding: granted + provenance=none was previously representable.",
+      "if": {
+        "properties": {
+          "host_permission": {
+            "properties": { "state": { "enum": ["granted", "denied"] } },
+            "required": ["state"]
+          }
+        },
+        "required": ["host_permission"]
+      },
+      "then": {
+        "properties": {
+          "host_permission": {
+            "properties": { "provenance": { "enum": ["fixture", "supplied_claim"] } },
+            "required": ["provenance"]
+          }
+        },
+        "required": ["host_permission"]
+      }
+    },
+    {
+      "$comment": "R9 (host_permission, half 2): unobserved means exactly that, so provenance must be none, never a stray fixture/supplied_claim tag on an otherwise-unobserved state.",
+      "if": {
+        "properties": { "host_permission": { "properties": { "state": { "const": "unobserved" } }, "required": ["state"] } },
+        "required": ["host_permission"]
+      },
+      "then": {
+        "properties": {
+          "host_permission": { "properties": { "provenance": { "const": "none" } }, "required": ["provenance"] }
+        },
+        "required": ["host_permission"]
+      }
+    },
+    {
+      "$comment": "R10: execution.state=completed requires the install step itself to have completed. A whole-shell exit code alone (execution.whole_shell_status=exit_zero with every step unobserved) can never produce this.",
+      "if": {
+        "properties": { "execution": { "properties": { "state": { "const": "completed" } }, "required": ["state"] } },
+        "required": ["execution"]
+      },
+      "then": {
+        "properties": {
+          "execution": {
+            "properties": {
+              "steps": {
+                "properties": { "install": { "properties": { "status": { "const": "completed" } }, "required": ["status"] } },
+                "required": ["install"]
+              }
+            },
+            "required": ["steps"]
+          }
+        },
+        "required": ["execution"]
+      }
+    },
+    {
+      "$comment": "R11: execution.state=failed requires at least one concrete step-level failure signal, never just an inferred label.",
+      "if": {
+        "properties": { "execution": { "properties": { "state": { "const": "failed" } }, "required": ["state"] } },
+        "required": ["execution"]
+      },
+      "then": {
+        "properties": {
+          "execution": {
+            "properties": {
+              "failure_mode": { "not": { "const": null } },
+              "steps": {
+                "properties": {
+                  "backup": { "$ref": "#/definitions/non_failing_step_status_or_failed" },
+                  "stage": { "$ref": "#/definitions/non_failing_step_status_or_failed" },
+                  "filter": { "$ref": "#/definitions/non_failing_step_status_or_failed" },
+                  "install": { "$ref": "#/definitions/non_failing_step_status_or_failed" }
+                }
+              }
+            },
+            "required": ["failure_mode"]
+          }
+        },
+        "required": ["execution"]
+      }
+    },
+    {
+      "$comment": "R12 (cleanup, half 1): a failed cleanup step can never be summarized as a completed workflow.",
+      "if": {
+        "properties": { "cleanup": { "properties": { "state": { "const": "failed" } }, "required": ["state"] } },
+        "required": ["cleanup"]
+      },
+      "then": {
+        "properties": {
+          "cleanup": { "properties": { "workflow_outcome": { "not": { "const": "completed" } } }, "required": ["workflow_outcome"] }
+        },
+        "required": ["cleanup"]
+      }
+    },
+    {
+      "$comment": "R13 (cleanup, half 2): workflow_outcome=completed is the strongest claim in the report, so it requires BOTH the execution and the cleanup step to have actually completed/succeeded, not just the enclosing shell exiting 0.",
+      "if": {
+        "properties": { "cleanup": { "properties": { "workflow_outcome": { "const": "completed" } }, "required": ["workflow_outcome"] } },
+        "required": ["cleanup"]
+      },
+      "then": {
+        "properties": {
+          "cleanup": { "properties": { "state": { "const": "succeeded" } }, "required": ["state"] },
+          "execution": { "properties": { "state": { "const": "completed" } }, "required": ["state"] }
+        },
+        "required": ["cleanup", "execution"]
+      }
+    }
+  ],
   "definitions": {
     "reason_code": {
       "type": "string",
@@ -49,6 +271,25 @@
         "already_satisfied"
       ]
     },
+    "non_failing_step_status_or_failed": {
+      "$comment": "Used only inside an anyOf-style sibling check; intentionally permissive by itself (the real constraint is R11's failure_mode requirement). Kept as a named definition so a future reviewed change can tighten per-step coupling without touching the allOf block structure.",
+      "type": "object"
+    },
+    "step_status": {
+      "type": "object",
+      "required": ["status", "observation_source"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["not_attempted", "started", "failed", "completed", "timed_out", "signaled", "spawn_failed"]
+        },
+        "observation_source": {
+          "type": "string",
+          "enum": ["none", "fixture", "supplied", "caro_observed"]
+        }
+      }
+    },
     "assessment": {
       "type": "object",
       "required": [
@@ -68,7 +309,8 @@
         },
         "transformation_understanding": {
           "type": "string",
-          "enum": ["supported", "unsupported", "unknown"]
+          "enum": ["supported", "unsupported", "unknown"],
+          "description": "supported requires a bound plan (plan.schema.json) whose approved_transformation and byte-level ranges actually resolved against real evidence; command-text recognition alone (mutation_detection=identified with no bound plan) is unknown, never supported. See manifest.json rows and docs/trust-operation-contract.md."
         },
         "manifest_version": { "type": "string" },
         "profile": { "type": "string" },
@@ -81,13 +323,13 @@
     },
     "authorization": {
       "type": "object",
-      "required": ["state", "provenance"],
+      "required": ["state", "provenance", "scope_binding_digest"],
       "additionalProperties": false,
       "properties": {
         "state": {
           "type": "string",
           "enum": ["unobserved", "required", "denied", "confirmed_scoped"],
-          "description": "Only Caro's own observed interactive decision may produce confirmed_scoped. A supplied_claim provenance can never reach confirmed_scoped (see cross-field rule below)."
+          "description": "Only Caro's own observed interactive decision may produce confirmed_scoped (enforced by allOf rules R6/R7, not by this description alone)."
         },
         "provenance": {
           "type": "string",
@@ -95,7 +337,7 @@
         },
         "scope_binding_digest": {
           "type": ["string", "null"],
-          "description": "Present only when state=confirmed_scoped and provenance=caro_interactive."
+          "description": "Required key, always present. Non-null string iff state=confirmed_scoped (R6); null in every other state (R7)."
         }
       }
     },
@@ -108,46 +350,44 @@
         "provenance": {
           "type": "string",
           "enum": ["none", "fixture", "supplied_claim"],
-          "description": "v1 ships no live host-permission collector: ordinary (non-fixture) runs stay state=unobserved, provenance=none."
-        }
-      }
-    },
-    "execution_step": {
-      "type": "object",
-      "required": ["step", "status", "observation_source"],
-      "additionalProperties": false,
-      "properties": {
-        "step": {
-          "type": "string",
-          "enum": ["backup", "stage", "filter", "install", "cleanup"]
-        },
-        "status": {
-          "type": "string",
-          "enum": ["not_attempted", "started", "failed", "completed"]
-        },
-        "observation_source": {
-          "type": "string",
-          "enum": ["fixture", "supplied", "caro_observed"]
+          "description": "v1 ships no live host-permission collector: ordinary (non-fixture) runs stay state=unobserved, provenance=none (R9). granted/denied require fixture or supplied_claim (R8); provenance=none can never coexist with granted/denied."
         }
       }
     },
     "execution": {
       "type": "object",
-      "required": ["state", "observation_source", "steps"],
+      "required": ["state", "failure_mode", "whole_shell_status", "observation_source", "steps"],
       "additionalProperties": false,
       "properties": {
         "state": {
           "type": "string",
           "enum": ["unobserved", "not_attempted", "started", "failed", "completed"],
-          "description": "Whole-shell exit status alone must not produce 'completed' here; it must be labeled as whole-shell-status-derived when that is the only evidence (see postcondition.verification_basis)."
+          "description": "Never derived from whole_shell_status alone; R10/R11 require step-level evidence for both completed and failed."
+        },
+        "failure_mode": {
+          "type": ["string", "null"],
+          "enum": [null, "spawn_failed", "timeout", "signal", "step_failed", "shell_status_only_unverifiable"],
+          "description": "Non-null iff state=failed (R11). shell_status_only_unverifiable names the exact case this contract exists to prevent: a nonzero/zero whole-shell exit with no step-level observation to explain it."
+        },
+        "whole_shell_status": {
+          "type": "string",
+          "enum": ["unobserved", "exit_zero", "exit_nonzero"],
+          "description": "The raw, legacy-style whole-shell-process signal, reported separately and explicitly labeled as such. Never itself sufficient to set state=completed or state=failed (see R10/R11); this is what prevents a masked failed-install-then-successful-cleanup shell exit from being read as execution success."
         },
         "observation_source": {
           "type": "string",
           "enum": ["none", "fixture", "supplied", "caro_observed"]
         },
         "steps": {
-          "type": "array",
-          "items": { "$ref": "#/definitions/execution_step" }
+          "type": "object",
+          "required": ["backup", "stage", "filter", "install"],
+          "additionalProperties": false,
+          "properties": {
+            "backup": { "$ref": "#/definitions/step_status" },
+            "stage": { "$ref": "#/definitions/step_status" },
+            "filter": { "$ref": "#/definitions/step_status" },
+            "install": { "$ref": "#/definitions/step_status" }
+          }
         }
       }
     },
@@ -163,11 +403,12 @@
         "verification_basis": {
           "type": "string",
           "enum": ["none", "supplied_evidence"],
-          "description": "'verified' with basis=supplied_evidence must be presented as verified against supplied evidence, never as verified on this host."
+          "description": "'verified' with basis=supplied_evidence must be presented as verified against supplied evidence, never as verified on this host (R3)."
         },
         "effect": {
           "type": "string",
-          "enum": ["unknown", "removed", "already_satisfied"]
+          "enum": ["unknown", "removed", "already_satisfied"],
+          "description": "removed requires state=verified, basis=supplied_evidence, AND execution.state=completed (R1). A failed-but-later-verified install (verified_final_state_preserves_execution_failure) reports effect=unknown, never removed, because the failure means the removal cannot be attributed to this run."
         },
         "reason_codes": {
           "type": "array",
@@ -177,17 +418,21 @@
     },
     "cleanup": {
       "type": "object",
-      "required": ["state", "workflow_outcome"],
+      "required": ["state", "observation_source", "workflow_outcome"],
       "additionalProperties": false,
       "properties": {
         "state": {
           "type": "string",
           "enum": ["unobserved", "not_attempted", "succeeded", "failed"]
         },
+        "observation_source": {
+          "type": "string",
+          "enum": ["none", "fixture", "supplied", "caro_observed"]
+        },
         "workflow_outcome": {
           "type": "string",
           "enum": ["not_attempted", "unverified", "failed", "completed"],
-          "description": "Summarizes the supplied workflow only. Must never overwrite the legacy shell exit_code field on CliResult."
+          "description": "Summarizes the supplied workflow only. Must never overwrite the legacy shell exit_code field on CliResult. completed requires execution.state=completed AND cleanup.state=succeeded (R13); failed cleanup can never report completed (R12)."
         }
       }
     }

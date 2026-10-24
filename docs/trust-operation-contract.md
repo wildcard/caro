@@ -1,12 +1,35 @@
-# Trust-Operation Contract (v1, checkpoint 1 — frozen, not implemented)
+# Trust-Operation Contract (v1, checkpoint 1, revision 2 — frozen, not implemented)
 
 **Status**: Checkpoint 1 of issue
-[#1714](https://github.com/wildcard/caro/issues/1714). This document, the
-manifest, and the schemas it links are the frozen support boundary and
-report contract. **No behavioral code implements this yet.** Nothing here
-changes `CliResult`, the safety validator, the executor, or any CLI output.
-A later PR adds behavior against this frozen contract; this PR exists so
-that PR has a reviewed target instead of an undefined one.
+[#1714](https://github.com/wildcard/caro/issues/1714), revision 2 after the
+independent review on [PR #1715](https://github.com/wildcard/caro/pull/1715).
+This document, the manifest, and the schemas it links are the frozen support
+boundary and report contract. **No behavioral code implements this yet.**
+Nothing here changes `CliResult`, the safety validator, the executor, or any
+CLI output. A later PR adds behavior against this frozen contract; this PR
+exists so that PR has a reviewed target instead of an undefined one.
+
+### What changed in revision 2
+
+The first draft of this contract was rejected on independent review for six
+classes of static defect: forbidden report states were representable
+(`confirmed_scoped` with a `supplied_claim` or a missing digest; `granted`
+host permission with no provenance; `verified` postcondition with no basis;
+`workflow_outcome=completed` after a failed cleanup); the evidence/plan
+schemas carried claimed hashes with no real bytes behind them; plan↔evidence
+bindings were inconsistent (no shared `evidence_id`, no canonical
+context-equality rule, optional step status); whole-shell status could not
+be told apart from step-level status; the manifest confused *detecting* a
+mutation with *understanding* its transformation (append rows wrongly
+claimed `supported`; two identical `cp` commands got different verdicts
+based only on a filename); and the manifest invented a `4096`-byte bound
+instead of citing the project's actually-configured limits. All six are
+fixed in this revision — see the `$comment` fields inline in the schemas,
+the `revision 2` notes in `manifest.json`, and the new fixture-backed tests
+in `tests/trust_operation_v1_contract.rs` (34 tests, up from 11, now using a
+real JSON Schema validator — `jsonschema`, dev-dependency only,
+`default-features = false`, so no network/TLS code is pulled in — instead of
+checking only that the right words appear in prose).
 
 ## Why this exists
 
@@ -29,13 +52,28 @@ schema (`tests/fixtures/trust_operation_v1/schemas/report.schema.json`):
 5. **Postcondition** — is the resulting file state what was approved?
 6. **Cleanup** — did the cleanup step itself succeed, separately from 1–5?
 
+`execution` itself carries three distinct signals, never collapsed into
+one: `state` (the granular claim), `whole_shell_status` (the raw,
+legacy-style exit-code signal, reported but never itself sufficient to set
+`state`), and `steps` (a required object with `backup`/`stage`/`filter`/
+`install` keys, each carrying its own `status` and `observation_source`).
+`execution.state=completed` requires `steps.install.status=completed`;
+`execution.state=failed` requires a non-null `failure_mode`. This is what
+makes "the enclosing shell exited 0" structurally unable to stand in for
+"the install step completed" — the exact gap the Apple-advisory pipeline
+(`stage; install; cleanup; exit 0`) can otherwise hide. See
+`report.schema.json` rules R10/R11 and the
+`shell_exit_zero_alone_claims_completed.json` negative fixture.
 ## Links
 
 - Manifest (frozen support boundary): `tests/fixtures/trust_operation_v1/manifest.json`
+- Manifest metaschema: `tests/fixtures/trust_operation_v1/schemas/manifest.schema.json`
 - Plan schema: `tests/fixtures/trust_operation_v1/schemas/plan.schema.json`
 - Evidence schema: `tests/fixtures/trust_operation_v1/schemas/evidence.schema.json`
 - Report schema: `tests/fixtures/trust_operation_v1/schemas/report.schema.json`
-- Contract self-check: `tests/trust_operation_v1_contract.rs`
+- Synthetic byte-level artifacts (NOT real certificates): `tests/fixtures/trust_operation_v1/artifacts/`
+- Plan / evidence / report instance fixtures (valid + invalid): `tests/fixtures/trust_operation_v1/{plans,evidence,reports}/{valid,invalid}/`
+- Contract self-check (real schema validation + byte-level + cross-document checks): `tests/trust_operation_v1_contract.rs`
 - Source issue: [#1714](https://github.com/wildcard/caro/issues/1714)
 - Coordinate, don't duplicate: [#1684](https://github.com/wildcard/caro/pull/1684)
   (protected-path policy for file tools — different surface, the PreToolUse
@@ -123,30 +161,73 @@ Summary (see the manifest for the literal rows):
   PowerShell, or any other dialect.
 - **Supported syntax**: literal quoted/unquoted words; `install` with
   enumerated BSD `-m/-o/-g` short forms; `cp` with enumerated `-f`/`-p`
-  short forms; `tee -a`; `>`/`>>` redirection; bare/absolute executable
-  paths; `sudo`/`command`/`env` prefixes; literal `sh -c '…'` payloads.
+  short forms; `>`/`>>` redirection; bare/absolute executable paths;
+  `sudo`/`command`/`env` prefixes; literal `sh -c '…'` payloads.
   Long-option equivalents (`--mode=`, `--owner=`, `--group=`) are not
-  enumerated and fall to `possible`/`unsupported_syntax`.
+  enumerated and fall to `possible`/`unsupported_syntax`. **`tee -a` and
+  `>>` (append) are `unsupported_transform`, not supported** (see
+  "Detection vs. understanding" below) — this reverses revision 1, which
+  incorrectly marked them `supported`.
 - **Path handling**: lexical normalization of repeated separators, `.`,
   and `..`; a relative destination requires an explicitly supplied cwd. No
   shell evaluation or filesystem probing resolves a destination.
 - **Explicitly unsupported** (not a gap — a frozen boundary; see manifest
-  rows T020–T030): alias expansion, function expansion, live symlink
+  rows T020–T032): alias expansion, function expansion, live symlink
   resolution, variable substitution, command substitution, dynamic
   destinations, unsupported shells, unenumerated option forms,
   unsupported profiles, unsupported transformation kinds, missing cwd,
-  over-limit input.
+  over-limit input (`T030`, padded to `config_bounds.max_command_length_strict + 1`
+  = 1001 bytes — the project's actually-configured strict limit from
+  `src/safety/mod.rs`, not an invented number), and wrapper nesting past
+  the configured bound (`T032`, nested one level past
+  `config_bounds.max_wrapper_depth` = 3, from `src/safety/segments.rs::MAX_DEPTH`).
+  `tests/trust_operation_v1_contract.rs::source_safety_config_still_matches_the_pinned_config_bounds`
+  fails if either source constant ever drifts from these pinned values.
 - **`possible` vs `not_detected`**: `possible` requires observable evidence
   — a recognized write-shaped operation with a protected-target token, or
   supplied context mapping an opaque destination to the protected target,
   with incomplete supported resolution. An arbitrary opaque alias with no
   such evidence is `not_detected`, not `possible` — Caro does not claim to
   have inspected every alias.
-- **Detection vs. understanding**: detecting a destination is separate
-  from understanding a compound script's transformation. Read-only
-  inspection, hashing, and copying a bundle out for review are benign
+- **Detection vs. understanding, and why `plan_ref` exists.**
+  `mutation_detection` (identified/possible/not_detected) is about
+  recognizing a write-shaped operation against the protected target from
+  command text alone. `transformation_understanding` (supported/unknown/
+  unsupported) is a stronger claim — that Caro knows *what the bytes will
+  become* — and **can only be `supported` when the manifest row carries a
+  `plan_ref`** pointing at a real, byte-bound plan fixture under
+  `tests/fixtures/trust_operation_v1/plans/valid/` (enforced by
+  `manifest.schema.json`'s `plan_ref` conditional, not just by convention).
+  Plain command-text recognition (`mutation_detection=identified`, no bound
+  plan) is `unknown`, never `supported` — this is why T001, T003, and
+  T006–T014 report `unknown` rather than the `supported` revision 1
+  claimed. T002, T028, and T031 are the same `cp -f` shape with three
+  different filenames: T002 carries a `plan_ref` and is `supported`; T028
+  and T031 carry none and are both `unknown`, proving the filename itself
+  never drives the verdict (see
+  `tests/trust_operation_v1_contract.rs::filename_alone_never_changes_the_verdict_for_an_unbound_cp_form`).
+  An append (`tee -a`, `>>`) is a categorically different transformation
+  kind than `remove_approved_certificates_only` — it can only add bytes —
+  so it is `unsupported_transform` regardless of any plan. Read-only
+  inspection, hashing, and copying a bundle out for review remain benign
   controls (manifest rows T017–T019), not replacements for the mutation
   check.
+- **Context provenance in fixtures that need out-of-band mappings**
+  (T016, T020–T022): these carry `context_provenance: "supplied_fixture"`
+  to make explicit that the mapping (an alias body, a function body, a
+  symlink target) is injected ONLY so the fixture can exercise the
+  `not_detected`/`unsupported` path deterministically. A real run has no
+  such mapping — v1 ships no live alias/function/symlink resolver — and
+  must not invent one; this is documented per-row rather than left
+  ambiguous.
+- **Conservative fallback preserves the existing safety verdict**
+  (T020, T021, T025): a row whose shell or form puts it outside this
+  contract's declared coverage carries a `verdict_floor_note` stating
+  explicitly that `src/safety/`'s own pattern-based risk assessment of the
+  literal command text is independent of, and never downgraded by, a
+  trust-operation `not_detected`/`unsupported` result. Being unable to
+  assess a *transformation* never means falling open on the existing
+  *safety* verdict.
 
 ## Acceptance-test identifiers (frozen names, not yet implemented)
 

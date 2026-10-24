@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "operation_id": "op-verified-removal",
+  "evidence_id": "op-verified-removal-evidence",
+  "observations": [
+    {
+      "source": "fixture",
+      "step": "before",
+      "step_status": "completed",
+      "step_snapshot_id": "before-1",
+      "capture_sequence": 0,
+      "capture_time": "2026-10-24T09:00:00Z",
+      "normalized_destination_binding": "/etc/ssl/cert.pem",
+      "context_binding": {
+        "cwd_supplied": true,
+        "cwd": "/etc/ssl"
+      },
+      "content_hash": "c4c3628a5e23d2fee277d7fb277de0430e319f962276116753dbf723dbf318f7",
+      "artifact_ref": {
+        "sha256": "c4c3628a5e23d2fee277d7fb277de0430e319f962276116753dbf723dbf318f7",
+        "size_bytes": 736,
+        "source": "fixture_file",
+        "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/before_two_targets.pem.fixture"
+      },
+      "parse_outcome": "ok",
+      "certificate_fingerprints": [
+        {
+          "sha256": "bd0a4e39de84f95017e4409cd5e19c4d0107ba8bbeb55fdfb99ec681eb5145bc",
+          "occurrence_count": 2
+        },
+        {
+          "sha256": "8472e2b22802308bcb18255e5abcfa63b6c21c701a9b8147b99c533b77484954",
+          "occurrence_count": 1
+        },
+        {
+          "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+          "occurrence_count": 1
+        }
+      ],
+      "metadata": null,
+      "authorization_claim": null,
+      "host_permission_claim": null
+    },
+    {
+      "source": "fixture",
+      "step": "backup",
+      "step_status": "completed",
+      "step_snapshot_id": "backup-1",
+      "capture_sequence": 1,
+      "capture_time": "2026-10-24T09:00:00Z",
+      "normalized_destination_binding": "/etc/ssl/cert.pem",
+      "context_binding": {
+        "cwd_supplied": true,
+        "cwd": "/etc/ssl"
+      },
+      "content_hash": "c4c3628a5e23d2fee277d7fb277de0430e319f962276116753dbf723dbf318f7",
+      "artifact_ref": {
+        "sha256": "c4c3628a5e23d2fee277d7fb277de0430e319f962276116753dbf723dbf318f7",
+        "size_bytes": 736,
+        "source": "fixture_file",
+        "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/backup_matches_before.pem.fixture"
+      },
+      "parse_outcome": "ok",
+      "certificate_fingerprints": null,
+      "metadata": {
+        "owner": "root",
+        "group": "wheel",
+        "mode": "0644"
+      },
+      "authorization_claim": null,
+      "host_permission_claim": null
+    },
+    {
+      "source": "fixture",
+      "step": "stage",
+      "step_status": "completed",
+      "step_snapshot_id": "stage-1",
+      "capture_sequence": 2,
+      "capture_time": "2026-10-24T09:00:00Z",
+      "normalized_destination_binding": "/etc/ssl/cert.pem",
+      "context_binding": {
+        "cwd_supplied": true,
+        "cwd": "/etc/ssl"
+      },
+      "content_hash": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+      "artifact_ref": {
+        "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+        "size_bytes": 184,
+        "source": "fixture_file",
+        "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/staged_targets_removed.pem.fixture"
+      },
+      "parse_outcome": "ok",
+      "certificate_fingerprints": [
+        {
+          "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+          "occurrence_count": 1
+        }
+      ],
+      "metadata": null,
+      "authorization_claim": null,
+      "host_permission_claim": null
+    },
+    {
+      "source": "caro_observed",
+      "step": "install",
+      "step_status": "completed",
+      "step_snapshot_id": "install-1",
+      "capture_sequence": 3,
+      "capture_time": "2026-10-24T09:00:00Z",
+      "normalized_destination_binding": "/etc/ssl/cert.pem",
+      "context_binding": {
+        "cwd_supplied": true,
+        "cwd": "/etc/ssl"
+      },
+      "content_hash": null,
+      "artifact_ref": null,
+      "parse_outcome": "not_applicable",
+      "certificate_fingerprints": null,
+      "metadata": null,
+      "authorization_claim": null,
+      "host_permission_claim": null
+    },
+    {
+      "source": "fixture",
+      "step": "final",
+      "step_status": "completed",
+      "step_snapshot_id": "final-1",
+      "capture_sequence": 4,
+      "capture_time": "2026-10-24T09:00:00Z",
+      "normalized_destination_binding": "/etc/ssl/cert.pem",
+      "context_binding": {
+        "cwd_supplied": true,
+        "cwd": "/etc/ssl"
+      },
+      "content_hash": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+      "artifact_ref": {
+        "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+        "size_bytes": 184,
+        "source": "fixture_file",
+        "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/final_targets_removed.pem.fixture"
+      },
+      "parse_outcome": "ok",
+      "certificate_fingerprints": [
+        {
+          "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+          "occurrence_count": 1
+        }
+      ],
+      "metadata": {
+        "owner": "root",
+        "group": "wheel",
+        "mode": "0644"
+      },
+      "authorization_claim": null,
+      "host_permission_claim": null
+    },
+    {
+      "source": "caro_observed",
+      "step": "cleanup",
+      "step_status": "completed",
+      "step_snapshot_id": "cleanup-1",
+      "capture_sequence": 5,
+      "capture_time": "2026-10-24T09:00:00Z",
+      "normalized_destination_binding": "/etc/ssl/cert.pem",
+      "context_binding": {
+        "cwd_supplied": true,
+        "cwd": "/etc/ssl"
+      },
+      "content_hash": null,
+      "artifact_ref": null,
+      "parse_outcome": "not_applicable",
+      "certificate_fingerprints": null,
+      "metadata": null,
+      "authorization_claim": null,
+      "host_permission_claim": null
+    }
+  ]
+}

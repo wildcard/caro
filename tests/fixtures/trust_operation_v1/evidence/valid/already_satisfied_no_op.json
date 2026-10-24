@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "operation_id": "op-already-satisfied",
+  "evidence_id": "op-already-satisfied-evidence",
+  "observations": [
+    {
+      "source": "fixture",
+      "step": "before",
+      "step_status": "completed",
+      "step_snapshot_id": "before-1",
+      "capture_sequence": 0,
+      "capture_time": "2026-10-24T09:00:00Z",
+      "normalized_destination_binding": "/etc/ssl/cert.pem",
+      "context_binding": {
+        "cwd_supplied": true,
+        "cwd": "/etc/ssl"
+      },
+      "content_hash": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+      "artifact_ref": {
+        "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+        "size_bytes": 184,
+        "source": "fixture_file",
+        "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/before_targets_absent.pem.fixture"
+      },
+      "parse_outcome": "ok",
+      "certificate_fingerprints": [
+        {
+          "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+          "occurrence_count": 1
+        }
+      ],
+      "metadata": null,
+      "authorization_claim": null,
+      "host_permission_claim": null
+    },
+    {
+      "source": "caro_observed",
+      "step": "install",
+      "step_status": "not_attempted",
+      "step_snapshot_id": "install-1",
+      "capture_sequence": 1,
+      "capture_time": "2026-10-24T09:00:00Z",
+      "normalized_destination_binding": "/etc/ssl/cert.pem",
+      "context_binding": {
+        "cwd_supplied": true,
+        "cwd": "/etc/ssl"
+      },
+      "content_hash": null,
+      "artifact_ref": null,
+      "parse_outcome": "not_applicable",
+      "certificate_fingerprints": null,
+      "metadata": null,
+      "authorization_claim": null,
+      "host_permission_claim": null
+    }
+  ]
+}
