@@ -1,0 +1,195 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://caro.sh/schemas/trust_operation_v1/report.schema.json",
+  "title": "TrustOperationReportV1",
+  "description": "Normative shape of CliResult.trust_operation. Frozen per issue #1714 checkpoint 1 (contract-only, no behavioral implementation). schema_version is always 1 for this version; unknown versions must be rejected by the (future) deserializer, never silently accepted.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "assessment",
+    "authorization",
+    "host_permission",
+    "execution",
+    "postcondition",
+    "cleanup"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "assessment": { "$ref": "#/definitions/assessment" },
+    "authorization": { "$ref": "#/definitions/authorization" },
+    "host_permission": { "$ref": "#/definitions/host_permission" },
+    "execution": { "$ref": "#/definitions/execution" },
+    "postcondition": { "$ref": "#/definitions/postcondition" },
+    "cleanup": { "$ref": "#/definitions/cleanup" }
+  },
+  "definitions": {
+    "reason_code": {
+      "type": "string",
+      "enum": [
+        "invalid_evidence",
+        "missing_observation",
+        "stale_observation",
+        "inconsistent_evidence",
+        "bundle_parse_failed",
+        "backup_mismatch",
+        "staging_mismatch",
+        "final_content_mismatch",
+        "metadata_mismatch",
+        "unsupported_syntax",
+        "unsupported_profile",
+        "unsupported_transform",
+        "missing_context",
+        "authorization_required",
+        "authorization_denied",
+        "permission_unobserved",
+        "execution_unobserved",
+        "install_failed",
+        "cleanup_failed",
+        "already_satisfied"
+      ]
+    },
+    "assessment": {
+      "type": "object",
+      "required": [
+        "mutation_detection",
+        "transformation_understanding",
+        "manifest_version",
+        "profile",
+        "target",
+        "reason_codes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "mutation_detection": {
+          "type": "string",
+          "enum": ["identified", "possible", "not_detected"],
+          "description": "not_detected means only: not detected within declared coverage. It is never a safety guarantee outside the manifest."
+        },
+        "transformation_understanding": {
+          "type": "string",
+          "enum": ["supported", "unsupported", "unknown"]
+        },
+        "manifest_version": { "type": "string" },
+        "profile": { "type": "string" },
+        "target": { "type": "string" },
+        "reason_codes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/reason_code" }
+        }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "required": ["state", "provenance"],
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["unobserved", "required", "denied", "confirmed_scoped"],
+          "description": "Only Caro's own observed interactive decision may produce confirmed_scoped. A supplied_claim provenance can never reach confirmed_scoped (see cross-field rule below)."
+        },
+        "provenance": {
+          "type": "string",
+          "enum": ["none", "caro_interactive", "supplied_claim"]
+        },
+        "scope_binding_digest": {
+          "type": ["string", "null"],
+          "description": "Present only when state=confirmed_scoped and provenance=caro_interactive."
+        }
+      }
+    },
+    "host_permission": {
+      "type": "object",
+      "required": ["state", "provenance"],
+      "additionalProperties": false,
+      "properties": {
+        "state": { "type": "string", "enum": ["unobserved", "denied", "granted"] },
+        "provenance": {
+          "type": "string",
+          "enum": ["none", "fixture", "supplied_claim"],
+          "description": "v1 ships no live host-permission collector: ordinary (non-fixture) runs stay state=unobserved, provenance=none."
+        }
+      }
+    },
+    "execution_step": {
+      "type": "object",
+      "required": ["step", "status", "observation_source"],
+      "additionalProperties": false,
+      "properties": {
+        "step": {
+          "type": "string",
+          "enum": ["backup", "stage", "filter", "install", "cleanup"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["not_attempted", "started", "failed", "completed"]
+        },
+        "observation_source": {
+          "type": "string",
+          "enum": ["fixture", "supplied", "caro_observed"]
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": ["state", "observation_source", "steps"],
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["unobserved", "not_attempted", "started", "failed", "completed"],
+          "description": "Whole-shell exit status alone must not produce 'completed' here; it must be labeled as whole-shell-status-derived when that is the only evidence (see postcondition.verification_basis)."
+        },
+        "observation_source": {
+          "type": "string",
+          "enum": ["none", "fixture", "supplied", "caro_observed"]
+        },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/execution_step" }
+        }
+      }
+    },
+    "postcondition": {
+      "type": "object",
+      "required": ["state", "verification_basis", "effect", "reason_codes"],
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["not_applicable", "unverified", "failed", "verified"]
+        },
+        "verification_basis": {
+          "type": "string",
+          "enum": ["none", "supplied_evidence"],
+          "description": "'verified' with basis=supplied_evidence must be presented as verified against supplied evidence, never as verified on this host."
+        },
+        "effect": {
+          "type": "string",
+          "enum": ["unknown", "removed", "already_satisfied"]
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/reason_code" }
+        }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "required": ["state", "workflow_outcome"],
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["unobserved", "not_attempted", "succeeded", "failed"]
+        },
+        "workflow_outcome": {
+          "type": "string",
+          "enum": ["not_attempted", "unverified", "failed", "completed"],
+          "description": "Summarizes the supplied workflow only. Must never overwrite the legacy shell exit_code field on CliResult."
+        }
+      }
+    }
+  }
+}

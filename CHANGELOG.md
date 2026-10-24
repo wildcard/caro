@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Trust-operation contract v1, checkpoint 1 (#1714).** Froze the
+  support boundary, schemas, and reason codes for verifying a trust-store
+  mutation (e.g. the Apple eMudhra CA advisory remediation) actually
+  reached the intended state, instead of trusting a whole-shell exit 0.
+  `tests/fixtures/trust_operation_v1/manifest.json` pins the supported
+  shell/syntax/profile matrix; `tests/fixtures/trust_operation_v1/schemas/`
+  freezes the plan/evidence/report JSON schemas and the twenty-code reason
+  enum; `docs/trust-operation-contract.md` is the normative mode/entrypoint
+  and evidence/outcome tables plus the frozen acceptance-test identifier
+  list. **Contract-only: no detector, gate, or verifier behavior is
+  implemented yet**, `CliResult` is unchanged, and no real trust store is
+  touched. Regression guard: `tests/trust_operation_v1_contract.rs` (11
+  tests) checks the manifest/schemas/docs stay internally consistent.
+  Behavioral implementation is a follow-up PR against this frozen
+  contract, pending the independent safety review this checkpoint's PR
+  requests.
 - **`caro guard test` and `caro guard setup` (spec 011 §P2.1, §P2.2).**
   `caro guard test "<command>"` dry-runs one command through the guard and
   prints risk, verdict, matched patterns and the floor flag (`--output json`

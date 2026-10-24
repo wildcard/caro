@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://caro.sh/schemas/trust_operation_v1/evidence.schema.json",
+  "title": "TrustOperationEvidenceBundleV1",
+  "description": "The supplied evidence a plan (plan.schema.json) is checked against to produce a report (report.schema.json). Frozen per issue #1714 checkpoint 1. v1 authenticates no external collector: it checks internal consistency against declared provenance only, and says so.",
+  "type": "object",
+  "required": ["schema_version", "operation_id", "observations"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "operation_id": {
+      "type": "string",
+      "description": "Must match the bound plan's operation_id; a mismatch is invalid_evidence."
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/observation" }
+    }
+  },
+  "definitions": {
+    "observation": {
+      "type": "object",
+      "required": [
+        "source",
+        "snapshot_identity",
+        "capture_sequence",
+        "capture_time",
+        "destination_binding",
+        "context_binding",
+        "parse_outcome"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": ["fixture", "supplied", "caro_observed"],
+          "description": "v1 ships no live collector; ordinary non-fixture runs never produce a caro_observed observation for file content. caro_observed is reserved for Caro's own existing process-result observation (e.g. exit status), not for a verified filesystem read."
+        },
+        "step": {
+          "type": "string",
+          "enum": ["before", "backup", "stage", "filter", "install", "final", "cleanup"]
+        },
+        "step_status": {
+          "type": "string",
+          "enum": ["not_attempted", "started", "failed", "completed"]
+        },
+        "snapshot_identity": {
+          "type": "string",
+          "description": "Identifier binding this observation to a specific captured snapshot, used to detect stale or substituted evidence."
+        },
+        "capture_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonic sequence number within this evidence bundle. Used for ordering only; not itself proof of freshness."
+        },
+        "capture_time": {
+          "type": ["string", "null"],
+          "description": "RFC3339 timestamp if supplied. A timestamp alone never proves freshness."
+        },
+        "destination_binding": {
+          "type": "string",
+          "description": "Normalized destination this observation claims to describe. Must match the plan's normalized_destination or the observation is unbound."
+        },
+        "context_binding": {
+          "type": "string",
+          "description": "Context identity (cwd) this observation claims. Must match the plan's context_identity or the observation is unbound."
+        },
+        "content_hash": {
+          "type": ["string", "null"],
+          "description": "SHA-256 of the observed raw bytes at this step, when content was captured."
+        },
+        "parse_outcome": {
+          "type": "string",
+          "enum": ["not_applicable", "ok", "malformed", "truncated", "unconsumed_blocks"]
+        },
+        "certificate_fingerprints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["sha256", "occurrence_count"],
+            "additionalProperties": false,
+            "properties": {
+              "sha256": { "type": "string" },
+              "occurrence_count": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "metadata": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "owner": { "type": "string" },
+            "group": { "type": "string" },
+            "mode": { "type": "string", "pattern": "^0[0-7]{3}$" }
+          }
+        },
+        "authorization_claim": {
+          "type": ["object", "null"],
+          "description": "A supplied claim of approval. Data only; never itself an executor authorization token. See report.authorization provenance rules.",
+          "additionalProperties": false,
+          "properties": {
+            "state": { "type": "string", "enum": ["required", "denied", "approved"] },
+            "provenance": { "const": "supplied_claim" }
+          }
+        },
+        "host_permission_claim": {
+          "type": ["object", "null"],
+          "description": "A supplied claim about host authorization. Never promoted to report.host_permission.state=granted with provenance other than supplied_claim.",
+          "additionalProperties": false,
+          "properties": {
+            "state": { "type": "string", "enum": ["denied", "granted"] },
+            "provenance": { "const": "supplied_claim" }
+          }
+        }
+      }
+    }
+  }
+}

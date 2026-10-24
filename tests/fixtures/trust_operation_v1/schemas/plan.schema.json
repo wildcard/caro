@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://caro.sh/schemas/trust_operation_v1/plan.schema.json",
+  "title": "TrustOperationPlanV1",
+  "description": "The bound plan a trust-operation evidence bundle is checked against. Frozen per issue #1714 checkpoint 1. Supplied scope/approval information in a plan can never itself authorize execution (see .claude/rules and docs/trust-operation-contract.md).",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "manifest_version",
+    "profile",
+    "operation_id",
+    "evidence_id",
+    "command_digest",
+    "normalized_destination",
+    "context_identity",
+    "before_hash",
+    "target_fingerprints",
+    "approved_removal_ranges",
+    "approved_transformation",
+    "expected_staged_hash",
+    "backup_policy",
+    "expected_metadata"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "manifest_version": {
+      "type": "string",
+      "description": "Version of tests/fixtures/trust_operation_v1/manifest.json this plan was bound against."
+    },
+    "profile": {
+      "type": "string",
+      "description": "Named platform/target profile, e.g. macos-bsd-cert-pem-v1."
+    },
+    "operation_id": { "type": "string" },
+    "evidence_id": { "type": "string" },
+    "command_digest": {
+      "type": "string",
+      "description": "SHA-256 of the exact command bytes this plan binds to. A changed command invalidates the plan."
+    },
+    "normalized_destination": {
+      "type": "string",
+      "description": "Lexically normalized destination path (tilde/./.. resolved against a supplied cwd). No filesystem probing."
+    },
+    "context_identity": {
+      "type": "object",
+      "required": ["cwd_supplied", "cwd"],
+      "additionalProperties": false,
+      "properties": {
+        "cwd_supplied": { "type": "boolean" },
+        "cwd": { "type": ["string", "null"] }
+      }
+    },
+    "before_hash": {
+      "type": "string",
+      "description": "SHA-256 of the raw before-mutation bytes."
+    },
+    "target_fingerprints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sha256", "occurrence_count"],
+        "additionalProperties": false,
+        "properties": {
+          "sha256": { "type": "string" },
+          "occurrence_count": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "approved_removal_ranges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target_sha256", "count"],
+        "additionalProperties": false,
+        "properties": {
+          "target_sha256": { "type": "string" },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Exact approved occurrence count to remove for this fingerprint. after == before - approved, never more."
+          }
+        }
+      }
+    },
+    "approved_transformation": {
+      "type": "string",
+      "enum": ["remove_approved_certificates_only"],
+      "description": "v1 supports exactly one transformation kind; this is a closed enum until a reviewed manifest change adds another."
+    },
+    "expected_staged_hash": { "type": "string" },
+    "backup_policy": {
+      "type": "object",
+      "required": ["required", "must_match_before_hash", "overwrite_existing"],
+      "additionalProperties": false,
+      "properties": {
+        "required": { "type": "boolean" },
+        "must_match_before_hash": { "type": "boolean" },
+        "overwrite_existing": {
+          "const": false,
+          "description": "An existing different backup is never overwritten."
+        },
+        "expected_hash": { "type": ["string", "null"] }
+      }
+    },
+    "expected_metadata": {
+      "type": "object",
+      "required": ["owner", "group", "mode"],
+      "additionalProperties": false,
+      "properties": {
+        "owner": { "type": "string" },
+        "group": { "type": "string" },
+        "mode": { "type": "string", "pattern": "^0[0-7]{3}$" }
+      }
+    }
+  }
+}
