@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; five
+- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; six
   rounds of independent-review fixes so far (#1715).** Proposes the
   support boundary, schemas, and reason codes for verifying a trust-store
   mutation (e.g. the Apple eMudhra CA advisory remediation) actually
@@ -145,8 +145,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     (a contradiction: "nothing happened" against a started execution);
     fixed the fixture and added report-schema R20 plus a negative
     regression fixture and a genuine-dry-run retention test.
+  - Round 7 fixed 2 further defects. The shared test-only fixture-
+    integrity path existed but wasn't actually used everywhere: round 6's
+    `validate_full_case` wrapped a narrower `validate_case`, but almost
+    every adversarial test called `validate_case` directly, bypassing the
+    wrapper's schema/report gates. That split is gone -- a single
+    `validate_fixture_case(plan, evidence, report)` is now the only entry
+    point, used by every test. It also closed five real gaps: a FALSE
+    POSITIVE (removing the `before` observation while nulling
+    `install.consumes_before_snapshot_id` used to "verify" via a vacuous
+    null-equals-null default; `before` is now a required,
+    independently-resolved observation checked before any binding
+    comparison); content hashes are now independently rehashed from real
+    artifact bytes, not merely compared to other declared fields;
+    `independent_fingerprint_multiset` now calls the real X.509 parser on
+    every block, so an invalid-DER block can no longer silently contribute
+    a fingerprint count; destination/context binding, range
+    transformation (applying the plan's own byte ranges to the real
+    before bytes must actually produce the real stage bytes), freshness
+    (install captured strictly after what it consumes), and the
+    scoped-approval digest are now all wired into the one path; and the
+    report-consistency check now covers `cleanup` and requires the
+    report's claimed source match the evidence's own source, not just its
+    status. Classification was corrected throughout: missing/null fields
+    now derive `unverified`, never `failed` (round 6's own
+    overcorrection on final metadata). 18 new tests, each asserting the
+    exact classification. Separately, R20 explicitly allowed
+    `execution.state=unobserved` paired with `workflow_outcome=
+    not_attempted`; tightened to require EXACTLY `not_attempted`, fixing
+    `authorization_denied_with_provenance.json` (which genuinely does
+    establish non-attempt) and adding a new unobserved-negative fixture
+    plus test.
   - Actual current shape (mechanically checked, not asserted by hand):
-    **33** manifest rows, **4** schema files, **86** contract tests,
+    **33** manifest rows, **4** schema files, **93** contract tests,
     **1** new Cargo dev-dependency (`x509-parser`, test-only, never
     shipped in the `caro` binary), **1** new Python dev-tool dependency
     (`jsonschema`, CI-only, outside `dependency-review.yml`'s scope).

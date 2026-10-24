@@ -18,7 +18,7 @@
     "provenance": "none"
   },
   "execution": {
-    "state": "unobserved",
+    "state": "not_attempted",
     "failure_mode": null,
     "whole_shell_status": "unobserved",
     "observation_source": "none",

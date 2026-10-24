@@ -2248,11 +2248,34 @@ fn workflow_not_attempted_with_a_started_execution_is_schema_invalid() {
     );
 }
 
-/// Retained dry-run state verification for R20: dry-run reports
-/// legitimately pair `execution.state: "not_attempted"` with
+/// Negative regression for R20, tightened per the #1715 round-7 review's
+/// point 2 ("R20 explicitly allows execution unobserved with workflow
+/// not_attempted. Require execution EXACTLY not_attempted; add unobserved
+/// negative"): a report claiming `cleanup.workflow_outcome: "not_attempted"`
+/// while `execution.state` is `"unobserved"` (no information at all, NOT
+/// positively established) must also be rejected -- round 6's R20 only
+/// excluded started/completed/failed, leaving this gap open.
+#[test]
+fn workflow_not_attempted_with_an_unobserved_execution_is_schema_invalid() {
+    let schema = load_json(REPORT_SCHEMA);
+    let validator = minischema::Validator::new(&schema);
+    let report = load_json(&format!(
+        "{FX}/reports/invalid/workflow_not_attempted_with_unobserved_execution.json"
+    ));
+    assert_eq!(report["execution"]["state"], "unobserved");
+    assert_eq!(report["cleanup"]["workflow_outcome"], "not_attempted");
+    assert!(
+        !validator.is_valid(&report),
+        "R20 must reject workflow_outcome=not_attempted when execution.state is only unobserved (no information), not ESTABLISHED not_attempted"
+    );
+}
+
+/// Retained dry-run state verification for R20: dry-run (and no-op)
+/// reports legitimately pair `execution.state: "not_attempted"` with
 /// `cleanup.workflow_outcome: "not_attempted"` (nothing ran, by design --
-/// a dry run never executes). R20 must NOT break this legitimate case
-/// while fixing the `started`+`not_attempted` contradiction above.
+/// a dry run or already-satisfied no-op never executes). R20 must NOT
+/// break this legitimate case while fixing the started/unobserved
+/// contradictions above.
 #[test]
 fn dry_run_reports_retain_their_legitimate_not_attempted_pairing_under_r20() {
     let schema = load_json(REPORT_SCHEMA);
@@ -2261,11 +2284,12 @@ fn dry_run_reports_retain_their_legitimate_not_attempted_pairing_under_r20() {
         "dry_run_independently_failed_verification.json",
         "dry_run_supplied_state_verified.json",
         "dry_run_unverified.json",
+        "already_satisfied_no_op.json",
     ] {
         let report = load_json(&format!("{FX}/reports/valid/{name}"));
         assert_eq!(
             report["execution"]["state"], "not_attempted",
-            "{name}: sanity, this fixture must actually be a dry-run (execution never started)"
+            "{name}: sanity, this fixture must actually be a dry-run/no-op (execution never started)"
         );
         assert_eq!(
             report["cleanup"]["workflow_outcome"], "not_attempted",
@@ -2273,7 +2297,7 @@ fn dry_run_reports_retain_their_legitimate_not_attempted_pairing_under_r20() {
         );
         assert!(
             validator.is_valid(&report),
-            "{name}: R20 must not reject the legitimate not_attempted/not_attempted pairing for a genuine dry run"
+            "{name}: R20 must not reject the legitimate not_attempted/not_attempted pairing for a genuine dry run or no-op"
         );
     }
 }
@@ -2390,18 +2414,28 @@ impl CaseVerdict {
 
 /// Independently re-derive the DER fingerprint multiset of a fixture file's
 /// bytes (sha256 of each PEM block's decoded DER, grouped by count). Shared
-/// by the plan-level target-fingerprint check and `validate_case`'s final-
-/// observation count check below, per the #1715 round-6 review's point 1
-/// ("evidence counts ... incompletely checked"): a parse failure is a
-/// hard `None`, never silently treated as "zero certificates found" --
-/// that silent-empty conversion is exactly the no-op bug the same review
-/// flagged.
+/// by the plan-level target-fingerprint check and `validate_fixture_case`'s
+/// count checks, per the #1715 round-6 review's point 1 ("evidence counts
+/// ... incompletely checked"): a parse failure is a hard `None`, never
+/// silently treated as "zero certificates found" -- that silent-empty
+/// conversion is exactly the no-op bug that review flagged.
+///
+/// Per the #1715 round-7 review's point 1 ("`independent_fingerprint_multiset`
+/// never calls the new X.509 parser: invalid-DER no-op can become already
+/// satisfied"): this now ALSO requires every block to be a complete, valid
+/// X.509 structure per `looks_like_complete_x509_der`, not merely a block
+/// whose base64 body decodes to SOME bytes. A block that decodes cleanly
+/// from base64 but isn't a real certificate is a parse failure (`None`),
+/// not a certificate with some other fingerprint.
 fn independent_fingerprint_multiset(
     bytes: &[u8],
 ) -> Option<std::collections::BTreeMap<String, u64>> {
     let blocks = find_pem_blocks_strict(bytes).ok()?;
     let mut counts = std::collections::BTreeMap::new();
     for b in &blocks {
+        if !looks_like_complete_x509_der(&b.der) {
+            return None;
+        }
         *counts.entry(sha256_hex(&b.der)).or_insert(0) += 1;
     }
     Some(counts)
@@ -2423,186 +2457,89 @@ fn declared_fingerprint_multiset(fingerprints: &Value) -> std::collections::BTre
         .unwrap_or_default()
 }
 
-/// Fuller fixture-level case validator, per the #1715 round-5 and round-6
-/// reviews. Round 5: `derive_postcondition` (above) only compared final-
-/// vs-expected hash equality, so changing `verified_removal`'s final
-/// `metadata.mode` to `0000` still derived to verified/removed; same-step
-/// conflicts are rejected even when their `step_snapshot_id`s differ;
-/// backup binding (content hash, metadata, observed readability) is
-/// checked when the plan requires one; a no-op plan gets an INDEPENDENT
-/// re-parse of the before artifact's real DER fingerprints.
-///
-/// Round 6 closed five further gaps the above still had: (1) final
-/// `metadata: null` used to skip the equality check entirely (the `!x.is_null()
-/// &&` guard short-circuited past `metadata_matches_expected`, which
-/// already returns `false` for null on its own -- the guard was not just
-/// redundant, it was actively wrong); (2) `final.parse_outcome` was never
-/// checked, so a final observation flagged `malformed` by its own evidence
-/// still verified; (3) the no-op path's `find_pem_blocks_strict(..).unwrap_or_default()`
-/// silently turned a genuine parse failure into "zero certificates found",
-/// which is the opposite of "don't trust a plan's no-op claim" -- a
-/// malformed before artifact must never read as already-satisfied; (4) the
-/// `stage` observation (the bytes install is claimed to have actually
-/// installed) was never independently checked against
-/// `plan.expected_staged_hash` at all; (5) the final observation's declared
-/// `certificate_fingerprints` were never cross-checked against an
-/// independent re-parse of the final artifact's actual bytes, and the
-/// install step's `consumes_before_snapshot_id`/`consumes_staging_snapshot_id`
-/// were never checked for exact equality against the evidence bundle's own
-/// `before`/`stage` observation ids (only existence was implied, not
-/// checked here). Still deliberately bounded -- this is fixture
-/// validation, not production verifier development.
-fn validate_case(plan: &Value, evidence: &Value) -> CaseVerdict {
-    for step in [
-        "before", "backup", "stage", "filter", "install", "final", "cleanup",
-    ] {
-        let obs = find_all_observations_for_step(evidence, step);
-        if obs.len() > 1 {
-            let first = obs[0];
-            let conflicting = obs.iter().any(|o| {
-                o["content_hash"] != first["content_hash"]
-                    || o["step_status"] != first["step_status"]
-            });
-            if conflicting {
-                return CaseVerdict::new("unverified", "unknown");
+/// Independently resolve an observation's content claim: `Ok(None)` when
+/// `content_hash` is null (no content claim at all -- MISSING, not
+/// contradictory); `Err(())` when `content_hash` is present but either no
+/// real bytes back it (`artifact_ref` missing) or the REAL bytes at that
+/// path do not hash to the declared value (a declared-but-wrong digest --
+/// a genuine contradiction, never silently trusted); `Ok(Some(bytes))`
+/// when the declared hash is independently confirmed against real bytes.
+/// Per the #1715 round-7 review's point 1 ("omits existing artifact
+/// hashing"): every content-bearing gate in `validate_fixture_case` below
+/// routes through this, so a tampered `content_hash` that happens to
+/// equal some OTHER declared value can never pass by matching the wrong
+/// thing -- it is checked against the REAL bytes, not against another
+/// field.
+fn independently_resolve_content(obs: &Value) -> Result<Option<Vec<u8>>, ()> {
+    let Some(declared_hash) = obs["content_hash"].as_str() else {
+        return Ok(None);
+    };
+    let Some(path) = obs["artifact_ref"]["fixture_path"].as_str() else {
+        return Err(());
+    };
+    let bytes = read_artifact(path);
+    if sha256_hex(&bytes) != declared_hash {
+        return Err(());
+    }
+    Ok(Some(bytes))
+}
+
+/// Per the #1715 round-7 review's point 1 ("omits ... destination/context
+/// ... checks"): an observation claiming a different destination or
+/// context than the plan it's bound to is a STALE observation (from a
+/// different operation entirely), not a missing one -- a contradiction,
+/// not an absence.
+fn observation_binding_matches_plan(obs: &Value, plan: &Value) -> bool {
+    obs["normalized_destination_binding"] == plan["normalized_destination"]
+        && obs["context_binding"] == plan["context_identity"]
+}
+
+/// Independently apply `plan.approved_removal_ranges`' declared byte
+/// ranges to `before_bytes` (delete each range, in sorted order) and
+/// return the remainder. Returns `None` on any malformed/overlapping/
+/// out-of-bounds range -- a malformed plan must fail the case, not panic.
+/// Per the #1715 round-7 review's point 1 ("omits ... range transformation
+/// ... checks"): this ties `before` to `stage` through the plan's OWN
+/// declared transformation, not merely by independently checking each in
+/// isolation against its own expected hash.
+fn apply_approved_removal_ranges(before_bytes: &[u8], plan: &Value) -> Option<Vec<u8>> {
+    let mut ranges: Vec<(usize, usize)> = Vec::new();
+    for range in plan["approved_removal_ranges"].as_array()? {
+        for br in range["byte_ranges"].as_array()? {
+            let start = br["start"].as_u64()? as usize;
+            let end = br["end"].as_u64()? as usize;
+            if start > end || end > before_bytes.len() {
+                return None;
             }
+            ranges.push((start, end));
         }
     }
-
-    if plan_is_noop(plan) {
-        return match find_observation(evidence, "before") {
-            None => CaseVerdict::new("unverified", "unknown"),
-            Some(before) => {
-                if before["content_hash"] != plan["before_hash"] {
-                    return CaseVerdict::new("failed", "unknown");
-                }
-                let before_bytes =
-                    read_artifact(before["artifact_ref"]["fixture_path"].as_str().unwrap());
-                // A parse failure must FAIL the case, never silently read as
-                // "no certificates present, so the no-op claim holds."
-                let Some(present_counts) = independent_fingerprint_multiset(&before_bytes) else {
-                    return CaseVerdict::new("failed", "unknown");
-                };
-                let present: BTreeSet<String> = present_counts.into_keys().collect();
-                let plan_contradicted = plan["approved_removal_ranges"]
-                    .as_array()
-                    .unwrap()
-                    .iter()
-                    .any(|r| present.contains(r["target_sha256"].as_str().unwrap()));
-                if plan_contradicted {
-                    CaseVerdict::new("failed", "unknown")
-                } else {
-                    CaseVerdict::new("verified", "already_satisfied")
-                }
-            }
-        };
-    }
-
-    if plan["backup_policy"]["required"] == true {
-        match find_observation(evidence, "backup") {
-            None => return CaseVerdict::new("unverified", "unknown"),
-            Some(backup) => {
-                if backup["content_hash"] != plan["before_hash"] {
-                    return CaseVerdict::new("failed", "unknown");
-                }
-                if !metadata_matches_expected(&backup["metadata"], &plan["expected_metadata"]) {
-                    return CaseVerdict::new("failed", "unknown");
-                }
-                if backup["backup_readability"] != "readable" {
-                    return CaseVerdict::new("failed", "unknown");
-                }
-            }
+    ranges.sort_by_key(|(start, _)| *start);
+    let mut cursor = 0usize;
+    let mut kept = Vec::new();
+    for (start, end) in &ranges {
+        if *start < cursor {
+            return None; // overlapping or unsorted
         }
+        kept.extend_from_slice(&before_bytes[cursor..*start]);
+        cursor = *end;
     }
-
-    // The bytes install is claimed to have actually installed must
-    // independently match the plan's expected staged hash -- a wrong or
-    // substituted staging snapshot must not be papered over just because
-    // the (separately captured) final observation happens to be right.
-    match find_observation(evidence, "stage") {
-        None => return CaseVerdict::new("unverified", "unknown"),
-        Some(stage) => {
-            if stage["content_hash"] != plan["expected_staged_hash"] {
-                return CaseVerdict::new("failed", "unknown");
-            }
-        }
-    }
-
-    match find_observation(evidence, "final") {
-        None => CaseVerdict::new("unverified", "unknown"),
-        Some(final_obs) => {
-            if final_obs["content_hash"] != plan["expected_staged_hash"] {
-                return CaseVerdict::new("failed", "unknown");
-            }
-            // A final observation that admits its own parse was not clean
-            // (malformed/truncated/unconsumed_blocks) must never verify,
-            // regardless of what its content_hash says.
-            if final_obs["parse_outcome"] != "ok" {
-                return CaseVerdict::new("failed", "unknown");
-            }
-            // metadata_matches_expected already returns false for a null
-            // `metadata` on its own; no additional "skip if null" guard
-            // belongs here (that guard was the round-6 review's point 1
-            // headline bug: it let a null final metadata skip the check
-            // entirely instead of failing it).
-            if !metadata_matches_expected(&final_obs["metadata"], &plan["expected_metadata"]) {
-                return CaseVerdict::new("failed", "unknown");
-            }
-            // Independently re-parse the final artifact's actual bytes and
-            // compare the real DER fingerprint multiset against what the
-            // observation declares -- a declared-but-wrong
-            // certificate_fingerprints count must not pass just because
-            // content_hash alone matched.
-            let final_bytes = match final_obs["artifact_ref"]["fixture_path"].as_str() {
-                Some(p) => read_artifact(p),
-                None => return CaseVerdict::new("unverified", "unknown"),
-            };
-            let Some(independent_counts) = independent_fingerprint_multiset(&final_bytes) else {
-                return CaseVerdict::new("failed", "unknown");
-            };
-            let declared_counts =
-                declared_fingerprint_multiset(&final_obs["certificate_fingerprints"]);
-            if independent_counts != declared_counts {
-                return CaseVerdict::new("failed", "unknown");
-            }
-
-            match find_observation(evidence, "install") {
-                None => CaseVerdict::new("unverified", "unknown"),
-                Some(install) => {
-                    // The install step must name which before/staging
-                    // snapshot it actually consumed, and that name must
-                    // match the ACTUAL before/stage observation's own id in
-                    // this bundle -- not merely be present (schema already
-                    // requires presence; this checks it is not a dangling
-                    // or substituted reference).
-                    let before_id = find_observation(evidence, "before")
-                        .map(|o| o["step_snapshot_id"].clone())
-                        .unwrap_or(Value::Null);
-                    let stage_id = find_observation(evidence, "stage")
-                        .map(|o| o["step_snapshot_id"].clone())
-                        .unwrap_or(Value::Null);
-                    if install["consumes_before_snapshot_id"] != before_id
-                        || install["consumes_staging_snapshot_id"] != stage_id
-                    {
-                        return CaseVerdict::new("failed", "unknown");
-                    }
-                    if install["step_status"] == "completed" {
-                        CaseVerdict::new("verified", "removed")
-                    } else {
-                        CaseVerdict::new("verified", "unknown")
-                    }
-                }
-            }
-        }
-    }
+    kept.extend_from_slice(&before_bytes[cursor..]);
+    Some(kept)
 }
 
 /// Per the #1715 round-6 review's point 1 ("positive report claims filter
-/// completed without filter evidence"): for every execution step the
+/// completed without filter evidence") and round-7's point 1 ("Report
+/// checks omit cleanup/source agreement"): for every execution step the
 /// REPORT claims with a sourced (`observation_source != "none"`) status,
 /// there must be a matching evidence observation for that step with the
-/// SAME `step_status` -- a report cannot claim more than the evidence
-/// bundle actually backs.
+/// SAME `step_status` AND the SAME `source` -- a report cannot claim more
+/// than the evidence bundle actually backs, and cannot misattribute WHO
+/// backed it either. `cleanup` is checked too, via its own
+/// `state`<->`step_status` vocabulary mapping (the report's `cleanup.state`
+/// enum -- `unobserved`/`not_attempted`/`succeeded`/`failed` -- differs
+/// from an observation's `step_status` enum, so `succeeded` maps to
+/// `completed` and `failed` maps to any failing-family status).
 fn report_steps_consistent_with_evidence(evidence: &Value, report: &Value) -> bool {
     for step in ["backup", "stage", "filter", "install"] {
         let step_report = &report["execution"]["steps"][step];
@@ -2620,25 +2557,98 @@ fn report_steps_consistent_with_evidence(evidence: &Value, report: &Value) -> bo
                 if obs["step_status"].as_str().unwrap_or("") != claimed_status {
                     return false;
                 }
+                if obs["source"].as_str().unwrap_or("") != source {
+                    return false;
+                }
+            }
+        }
+    }
+
+    let cleanup_source = report["cleanup"]["observation_source"]
+        .as_str()
+        .unwrap_or("none");
+    if cleanup_source != "none" {
+        match find_observation(evidence, "cleanup") {
+            None => return false,
+            Some(obs) => {
+                if obs["source"].as_str().unwrap_or("") != cleanup_source {
+                    return false;
+                }
+                let obs_status = obs["step_status"].as_str().unwrap_or("");
+                let agrees = match report["cleanup"]["state"].as_str().unwrap_or("") {
+                    "succeeded" => obs_status == "completed",
+                    "failed" => matches!(
+                        obs_status,
+                        "failed" | "timed_out" | "signaled" | "spawn_failed"
+                    ),
+                    "not_attempted" => obs_status == "not_attempted",
+                    _ => false,
+                };
+                if !agrees {
+                    return false;
+                }
             }
         }
     }
     true
 }
 
-/// The single path ALL positive and adversarial paired `(plan, evidence,
-/// report)` triads route through, per the #1715 round-6 review's point 1
-/// ("Route ALL positive/adversarial paired cases through one path
-/// validating schema, bindings, raw artifacts, actual parsed counts,
-/// required stage/final/backup metadata and reported step evidence").
-/// Gates, in order: (1) all three documents are schema-valid (via the same
-/// `minischema::Validator` the rest of this suite uses -- a schema-invalid
-/// fixture never reaches semantic validation); (2) plan and evidence are
-/// bound to the same operation; (3) the report never claims more than the
-/// evidence backs (`report_steps_consistent_with_evidence`); (4) the full
-/// `validate_case` semantic check above. TEST-ONLY, not production
-/// verifier behavior.
-fn validate_full_case(plan: &Value, evidence: &Value, report: &Value) -> CaseVerdict {
+/// A `verified` semantic verdict is only as trustworthy as the report that
+/// will actually ship it: if the paired report claims more than the
+/// evidence backs for any step (`report_steps_consistent_with_evidence`),
+/// the case cannot be asserted `verified` -- demote to `unverified`. A
+/// non-`verified` verdict passes through unchanged: the semantic gates
+/// already found a concrete problem, and the report can't make that
+/// worse or better.
+fn finalize_against_report(verdict: CaseVerdict, evidence: &Value, report: &Value) -> CaseVerdict {
+    if verdict.state == "verified" && !report_steps_consistent_with_evidence(evidence, report) {
+        return CaseVerdict::new("unverified", "unknown");
+    }
+    verdict
+}
+
+/// THE single test-only fixture-integrity path, per the #1715 round-7
+/// review's point 1 ("Complete AND ACTUALLY USE the shared test-only
+/// fixture-integrity path ... Consolidate checks into ONE entry point and
+/// route EVERY positive/adversarial paired case through it"). Round 6's
+/// split between a narrower `validate_case` (plan+evidence only) and a
+/// wrapping `validate_full_case` (plan+evidence+report) meant almost every
+/// adversarial test called the narrower function directly, bypassing the
+/// report/schema gates entirely -- THAT SPLIT NO LONGER EXISTS. Every test
+/// in this suite that exercises a plan/evidence/report triad calls this
+/// one function; there is no bypass path left.
+///
+/// Classification discipline (the round-7 review's closing instruction):
+/// a field that is MISSING (null, or its observation doesn't exist at all,
+/// or a real id it must bind to is itself null) can only ever derive
+/// `unverified` -- we don't have the information needed to make a claim
+/// either way. A field that IS PRESENT and CONTRADICTS what the plan/
+/// schema/real-bytes require derives `failed`. Only a fully consistent
+/// chain of PRESENT, independently re-verified evidence can derive
+/// `verified`.
+///
+/// Gates, in order: (1) schema validity of all three documents; (2)
+/// plan<->evidence operation binding; (3) same-step conflicts, even across
+/// differing snapshot ids; (4) destination/context binding for every
+/// observation present; (5) the no-op path (independent before-artifact
+/// re-parse, including full X.509 parsing of every block, never just
+/// base64 decoding); (6) a REQUIRED, independently-resolved `before`
+/// observation for the mutating path (closes the round-7 review's named
+/// false positive: a missing `before` paired with a null
+/// `consumes_before_snapshot_id` can no longer "vacuously match", because
+/// gate 6 returns `unverified` before gate 11 ever compares them); (7)
+/// backup (when required); (8) stage, independently rehashed; (9) range
+/// transformation -- applying the plan's OWN declared byte ranges to the
+/// independently-rehashed `before` bytes must actually PRODUCE the
+/// independently-rehashed `stage` bytes; (10) final (rehashed, parsed,
+/// metadata, independently re-derived certificate counts); (11) install,
+/// with NON-NULL exact-match snapshot bindings and freshness (install
+/// must be captured strictly after what it claims to consume); (12) the
+/// scoped-approval digest, when authorization claims `confirmed_scoped`;
+/// (13) the report-consistency demotion. Still deliberately bounded --
+/// this is fixture validation, not production verifier development.
+fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> CaseVerdict {
+    // Gate 1: schema validity of every document, not just evidence.
     let plan_schema = load_json(PLAN_SCHEMA);
     let evidence_schema = load_json(EVIDENCE_SCHEMA);
     let report_schema = load_json(REPORT_SCHEMA);
@@ -2648,15 +2658,235 @@ fn validate_full_case(plan: &Value, evidence: &Value, report: &Value) -> CaseVer
     {
         return CaseVerdict::new("unverified", "unknown");
     }
+
+    // Gate 2: plan<->evidence operation binding.
     if plan["operation_id"] != evidence["operation_id"]
         || plan["evidence_id"] != evidence["evidence_id"]
     {
         return CaseVerdict::new("failed", "unknown");
     }
-    if !report_steps_consistent_with_evidence(evidence, report) {
+
+    // Gate 3: same-step conflicts, even across differing snapshot ids.
+    for step in [
+        "before", "backup", "stage", "filter", "install", "final", "cleanup",
+    ] {
+        let obs = find_all_observations_for_step(evidence, step);
+        if obs.len() > 1 {
+            let first = obs[0];
+            let conflicting = obs.iter().any(|o| {
+                o["content_hash"] != first["content_hash"]
+                    || o["step_status"] != first["step_status"]
+            });
+            if conflicting {
+                return CaseVerdict::new("unverified", "unknown");
+            }
+        }
+    }
+
+    // Gate 4: destination/context binding for every observation present.
+    for step in [
+        "before", "backup", "stage", "filter", "install", "final", "cleanup",
+    ] {
+        if let Some(obs) = find_observation(evidence, step) {
+            if !observation_binding_matches_plan(obs, plan) {
+                return CaseVerdict::new("failed", "unknown"); // stale_observation
+            }
+        }
+    }
+
+    // Gate 5: the no-op path.
+    if plan_is_noop(plan) {
+        let verdict = match find_observation(evidence, "before") {
+            None => CaseVerdict::new("unverified", "unknown"),
+            Some(before) => match independently_resolve_content(before) {
+                Err(()) => CaseVerdict::new("failed", "unknown"),
+                Ok(None) => CaseVerdict::new("unverified", "unknown"),
+                Ok(Some(before_bytes)) => {
+                    if sha256_hex(&before_bytes) != plan["before_hash"].as_str().unwrap_or("") {
+                        CaseVerdict::new("failed", "unknown")
+                    } else {
+                        match independent_fingerprint_multiset(&before_bytes) {
+                            None => CaseVerdict::new("failed", "unknown"),
+                            Some(present_counts) => {
+                                let present: BTreeSet<String> =
+                                    present_counts.into_keys().collect();
+                                let plan_contradicted = plan["approved_removal_ranges"]
+                                    .as_array()
+                                    .unwrap()
+                                    .iter()
+                                    .any(|r| {
+                                        present.contains(r["target_sha256"].as_str().unwrap())
+                                    });
+                                if plan_contradicted {
+                                    CaseVerdict::new("failed", "unknown")
+                                } else {
+                                    CaseVerdict::new("verified", "already_satisfied")
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+        };
+        return finalize_against_report(verdict, evidence, report);
+    }
+
+    // Gate 6: a REQUIRED, independently-resolved `before` observation.
+    // This is the fix for the round-7 review's named false positive: with
+    // `before` required here, a missing `before` observation can never
+    // reach gate 11's binding comparison in the first place.
+    let before_obs = match find_observation(evidence, "before") {
+        None => return CaseVerdict::new("unverified", "unknown"),
+        Some(b) => b,
+    };
+    let before_bytes = match independently_resolve_content(before_obs) {
+        Err(()) => return CaseVerdict::new("failed", "unknown"),
+        Ok(None) => return CaseVerdict::new("unverified", "unknown"),
+        Ok(Some(bytes)) => bytes,
+    };
+
+    // Gate 7: backup, when the plan requires one.
+    if plan["backup_policy"]["required"] == true {
+        match find_observation(evidence, "backup") {
+            None => return CaseVerdict::new("unverified", "unknown"),
+            Some(backup) => match independently_resolve_content(backup) {
+                Err(()) => return CaseVerdict::new("failed", "unknown"),
+                Ok(None) => return CaseVerdict::new("unverified", "unknown"),
+                Ok(Some(bytes)) => {
+                    if sha256_hex(&bytes) != plan["before_hash"].as_str().unwrap_or("") {
+                        return CaseVerdict::new("failed", "unknown");
+                    }
+                    if backup["metadata"].is_null() {
+                        return CaseVerdict::new("unverified", "unknown");
+                    }
+                    if !metadata_matches_expected(&backup["metadata"], &plan["expected_metadata"]) {
+                        return CaseVerdict::new("failed", "unknown");
+                    }
+                    match backup["backup_readability"].as_str() {
+                        Some("readable") => {}
+                        Some("unreadable") => return CaseVerdict::new("failed", "unknown"),
+                        _ => return CaseVerdict::new("unverified", "unknown"), // null/unobserved
+                    }
+                }
+            },
+        }
+    }
+
+    // Gate 8: stage, independently rehashed.
+    let (stage_bytes, stage_obs) = match find_observation(evidence, "stage") {
+        None => return CaseVerdict::new("unverified", "unknown"),
+        Some(stage) => match independently_resolve_content(stage) {
+            Err(()) => return CaseVerdict::new("failed", "unknown"),
+            Ok(None) => return CaseVerdict::new("unverified", "unknown"),
+            Ok(Some(bytes)) => {
+                if sha256_hex(&bytes) != plan["expected_staged_hash"].as_str().unwrap_or("") {
+                    return CaseVerdict::new("failed", "unknown");
+                }
+                (bytes, stage)
+            }
+        },
+    };
+
+    // Gate 9: range transformation -- applying the plan's OWN declared
+    // byte ranges to the independently-rehashed `before` bytes must
+    // actually PRODUCE the independently-rehashed `stage` bytes.
+    match apply_approved_removal_ranges(&before_bytes, plan) {
+        None => return CaseVerdict::new("failed", "unknown"),
+        Some(transformed) => {
+            if transformed != stage_bytes {
+                return CaseVerdict::new("failed", "unknown");
+            }
+        }
+    }
+
+    // Gate 10: final -- rehashed, parsed, metadata, independently
+    // re-derived certificate counts.
+    let final_obs = match find_observation(evidence, "final") {
+        None => return CaseVerdict::new("unverified", "unknown"),
+        Some(f) => f,
+    };
+    let final_bytes = match independently_resolve_content(final_obs) {
+        Err(()) => return CaseVerdict::new("failed", "unknown"),
+        Ok(None) => return CaseVerdict::new("unverified", "unknown"),
+        Ok(Some(bytes)) => bytes,
+    };
+    if sha256_hex(&final_bytes) != plan["expected_staged_hash"].as_str().unwrap_or("") {
+        return CaseVerdict::new("failed", "unknown");
+    }
+    match final_obs["parse_outcome"].as_str() {
+        Some("ok") => {}
+        _ => return CaseVerdict::new("failed", "unknown"),
+    }
+    // Per the round-7 review's point 1 ("Missing final metadata/hash is
+    // incorrectly FAILED rather than UNVERIFIED"): metadata that is simply
+    // absent (null) is MISSING information, not a contradiction --
+    // unverified, not failed. Only metadata that IS present and wrong
+    // fails.
+    if final_obs["metadata"].is_null() {
         return CaseVerdict::new("unverified", "unknown");
     }
-    validate_case(plan, evidence)
+    if !metadata_matches_expected(&final_obs["metadata"], &plan["expected_metadata"]) {
+        return CaseVerdict::new("failed", "unknown");
+    }
+    let declared_counts = declared_fingerprint_multiset(&final_obs["certificate_fingerprints"]);
+    match independent_fingerprint_multiset(&final_bytes) {
+        None => return CaseVerdict::new("failed", "unknown"),
+        Some(independent_counts) => {
+            if independent_counts != declared_counts {
+                return CaseVerdict::new("failed", "unknown");
+            }
+        }
+    }
+
+    // Gate 11: install, with NON-NULL exact-match snapshot bindings and
+    // freshness.
+    let install = match find_observation(evidence, "install") {
+        None => return CaseVerdict::new("unverified", "unknown"),
+        Some(i) => i,
+    };
+    let before_snapshot_id = before_obs["step_snapshot_id"].clone();
+    let stage_snapshot_id = stage_obs["step_snapshot_id"].clone();
+    if !before_snapshot_id.is_string() || !stage_snapshot_id.is_string() {
+        // A malformed bundle with no real id to bind against -- missing
+        // information, not a demonstrated contradiction.
+        return CaseVerdict::new("unverified", "unknown");
+    }
+    if install["consumes_before_snapshot_id"] != before_snapshot_id
+        || install["consumes_staging_snapshot_id"] != stage_snapshot_id
+    {
+        return CaseVerdict::new("failed", "unknown");
+    }
+    let before_seq = before_obs["capture_sequence"].as_i64().unwrap_or(-1);
+    let stage_seq = stage_obs["capture_sequence"].as_i64().unwrap_or(-1);
+    let install_seq = install["capture_sequence"].as_i64().unwrap_or(-1);
+    if install_seq <= before_seq || install_seq <= stage_seq {
+        // install claims to have consumed a snapshot captured AFTER
+        // install itself -- a stale/impossible ordering.
+        return CaseVerdict::new("failed", "unknown");
+    }
+
+    let mutation_verdict = if install["step_status"] == "completed" {
+        CaseVerdict::new("verified", "removed")
+    } else {
+        CaseVerdict::new("verified", "unknown")
+    };
+
+    // Gate 12: the scoped-approval digest, when authorization claims
+    // confirmed_scoped (a report-level claim, independently recomputed
+    // from the plan via the SAME versioned preimage
+    // `confirmed_scoped_digest_must_match_the_versioned_preimage` checks
+    // in isolation -- here it is wired into the one path, not left as a
+    // separate, easy-to-bypass test).
+    if report["authorization"]["state"] == "confirmed_scoped" {
+        let expected_digest = compute_scope_binding_digest_v1(plan);
+        if report["authorization"]["scope_binding_digest"].as_str()
+            != Some(expected_digest.as_str())
+        {
+            return CaseVerdict::new("failed", "unknown");
+        }
+    }
+
+    finalize_against_report(mutation_verdict, evidence, report)
 }
 
 fn plan_is_noop(plan: &Value) -> bool {
@@ -2813,23 +3043,27 @@ fn a_stale_before_observation_derives_the_noop_case_to_failed_not_already_satisf
 }
 
 // ===========================================================================
-// validate_case adversarial tests, per the #1715 round-5 review's point 1:
-// "Validate the complete paired fixture case ... Unsupported/incomplete
-// cases must not grant verified/removed." Each test below starts from a
-// known-good fixture pair and tampers exactly one thing, asserting
-// validate_case rejects (never verified/removed) the broken case.
+// validate_fixture_case adversarial tests, per the #1715 round-5/6/7
+// reviews: "Validate the complete paired fixture case ... Consolidate
+// checks into ONE entry point and route EVERY positive/adversarial paired
+// case through it." Every test below calls `validate_fixture_case` with a
+// (plan, evidence, report) triad -- there is no narrower function left to
+// bypass. Each test starts from a known-good triad and tampers exactly
+// one thing, asserting the EXACT classification the round-7 review
+// requires: missing information => unverified; present-and-contradictory
+// information => failed; only a fully consistent chain => verified.
 // ===========================================================================
 
-/// The review's own headline example for point 1: changing the final
-/// observation's metadata.mode to "0000" (while leaving content_hash
-/// untouched, so derive_postcondition's narrower hash-only check would
-/// still say "verified") must not be granted verified/removed.
+/// The review's own headline example for round 5's point 1: changing the
+/// final observation's metadata.mode to "0000" (present, but wrong) must
+/// FAIL -- this is a contradiction, not a missing field.
 #[test]
-fn validate_case_rejects_changed_final_metadata_even_when_final_hash_matches() {
+fn validate_fixture_case_rejects_changed_final_metadata_even_when_final_hash_matches() {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     let final_obs = observations
         .iter_mut()
@@ -2841,19 +3075,24 @@ fn validate_case_rejects_changed_final_metadata_even_when_final_hash_matches() {
     );
     final_obs["metadata"]["mode"] = Value::String("0000".to_string());
 
-    let verdict = validate_case(&plan, &evidence);
-    assert_ne!(verdict.state, "verified", "a final observation with tampered metadata must not be verified just because its content_hash still matches");
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(
+        verdict.state, "failed",
+        "present-but-wrong final metadata is a contradiction, not a missing field"
+    );
     assert_ne!(verdict.effect, "removed");
 }
 
-/// A backup observation whose content_hash does not match plan.before_hash
-/// (a wrong/substituted backup) must not let the case verify.
+/// A backup observation whose content_hash does not match the REAL bytes
+/// at its own artifact_ref (independently rehashed, not merely compared
+/// to another declared field) must FAIL.
 #[test]
-fn validate_case_rejects_a_wrong_backup_content_hash() {
+fn validate_fixture_case_rejects_a_wrong_backup_content_hash() {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     let backup_obs = observations
         .iter_mut()
@@ -2861,22 +3100,23 @@ fn validate_case_rejects_a_wrong_backup_content_hash() {
         .unwrap();
     backup_obs["content_hash"] = Value::String("cd".repeat(32));
 
-    let verdict = validate_case(&plan, &evidence);
-    assert_ne!(
-        verdict.state, "verified",
-        "a backup whose content_hash doesn't match before_hash must not let the case verify"
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(
+        verdict.state, "failed",
+        "a backup content_hash that doesn't match the real rehashed bytes is a contradiction"
     );
     assert_ne!(verdict.effect, "removed");
 }
 
 /// A backup observation with mismatched metadata (right bytes, wrong
-/// owner/group/mode) must also not let the case verify.
+/// owner/group/mode) must FAIL.
 #[test]
-fn validate_case_rejects_a_backup_with_mismatched_metadata() {
+fn validate_fixture_case_rejects_a_backup_with_mismatched_metadata() {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     let backup_obs = observations
         .iter_mut()
@@ -2884,43 +3124,47 @@ fn validate_case_rejects_a_backup_with_mismatched_metadata() {
         .unwrap();
     backup_obs["metadata"]["owner"] = Value::String("nobody".to_string());
 
-    let verdict = validate_case(&plan, &evidence);
-    assert_ne!(
-        verdict.state, "verified",
-        "a backup with mismatched metadata must not let the case verify"
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(
+        verdict.state, "failed",
+        "present-but-wrong backup metadata is a contradiction"
     );
     assert_ne!(verdict.effect, "removed");
 }
 
 /// Missing bindings: the final bytes match, but there is no install
-/// observation at all (no step evidence that the staged bytes were ever
-/// installed). This must be unverified, not verified -- a matching final
-/// snapshot alone proves nothing about whether install happened.
+/// observation at all. This is MISSING information => unverified, never
+/// verified -- a matching final snapshot alone proves nothing about
+/// whether install happened.
 #[test]
-fn validate_case_treats_a_missing_install_observation_as_unverified_not_verified() {
+fn validate_fixture_case_treats_a_missing_install_observation_as_unverified() {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     observations.retain(|o| o["step"] != "install");
 
-    let verdict = validate_case(&plan, &evidence);
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
     assert_eq!(verdict.state, "unverified", "a matching final snapshot with no install observation at all must be unverified, not verified");
     assert_ne!(verdict.effect, "removed");
 }
 
 /// Conflicting same-step snapshots: two "stage" observations with
 /// DIFFERENT step_snapshot_ids but different content -- competing claims
-/// about the same step -- must be rejected even though the IDs differ
-/// (the review's explicit requirement: "Reject conflicting same-step
-/// snapshots even when IDs differ").
+/// about the same step -- must be rejected (unverified: we don't know
+/// which claim is real) even though the IDs differ (the review's explicit
+/// requirement: "Reject conflicting same-step snapshots even when IDs
+/// differ").
 #[test]
-fn validate_case_rejects_conflicting_same_step_observations_even_with_different_snapshot_ids() {
+fn validate_fixture_case_rejects_conflicting_same_step_observations_even_with_different_snapshot_ids(
+) {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     let stage_obs = observations
         .iter()
@@ -2932,22 +3176,29 @@ fn validate_case_rejects_conflicting_same_step_observations_even_with_different_
     conflicting_stage["content_hash"] = Value::String("ef".repeat(32));
     observations.push(conflicting_stage);
 
-    let verdict = validate_case(&plan, &evidence);
-    assert_ne!(verdict.state, "verified", "two conflicting stage observations with different step_snapshot_ids must still be rejected as a conflict");
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "unverified", "two conflicting stage observations with different step_snapshot_ids must still be rejected as a conflict");
     assert_ne!(verdict.effect, "removed");
 }
 
 /// Failed execution with matching final bytes: the final observation's
 /// bytes match plan.expected_staged_hash, but the install step itself is
-/// recorded as failed. The case may still "verify" that the final bytes
-/// are correct, but the effect must never be reported as removed -- a
-/// failed install step means we don't actually know install happened.
+/// recorded as failed, AND its report still claims install completed.
+/// The evidence-only semantic gates would say verified/unknown (final
+/// bytes line up, install exists), but the report now contradicts the
+/// evidence -- `finalize_against_report` must demote this to unverified,
+/// and the effect must never be reported as removed either way.
 #[test]
-fn validate_case_never_reports_removed_when_the_install_step_itself_failed() {
+fn validate_fixture_case_never_reports_removed_when_the_install_step_itself_failed() {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    assert_eq!(
+        report["execution"]["steps"]["install"]["status"], "completed",
+        "sanity: the untouched report claims install completed"
+    );
     let observations = evidence["observations"].as_array_mut().unwrap();
     let install_obs = observations
         .iter_mut()
@@ -2955,18 +3206,21 @@ fn validate_case_never_reports_removed_when_the_install_step_itself_failed() {
         .unwrap();
     install_obs["step_status"] = Value::String("failed".to_string());
 
-    let verdict = validate_case(&plan, &evidence);
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "unverified", "a report claiming install completed while the evidence now shows failed is an inconsistency, demoted to unverified by finalize_against_report");
     assert_ne!(verdict.effect, "removed", "a failed install step must never be reported as effect=removed even when the final bytes happen to match");
 }
 
 /// No-op with targets present: the plan claims no-op (count=0 for every
 /// approved target), and the declared before_hash/evidence agree with
 /// each other -- but the ACTUAL bytes at that hash still contain one of
-/// the approved-removal targets. validate_case independently re-parses
-/// the before artifact's real DER fingerprints rather than trusting the
-/// plan's claim, so this must derive to failed, not already_satisfied.
+/// the approved-removal targets. `validate_fixture_case` independently
+/// re-parses the before artifact's real DER fingerprints rather than
+/// trusting the plan's claim, so this must derive to failed, not
+/// already_satisfied.
 #[test]
-fn validate_case_rejects_a_noop_plan_whose_actual_before_bytes_still_contain_an_approved_target() {
+fn validate_fixture_case_rejects_a_noop_plan_whose_actual_before_bytes_still_contain_an_approved_target(
+) {
     let mut plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
     let contradicting_path =
         "tests/fixtures/trust_operation_v1/artifacts/before_two_targets.pem.fixture";
@@ -2990,6 +3244,7 @@ fn validate_case_rejects_a_noop_plan_whose_actual_before_bytes_still_contain_an_
     });
 
     let mut evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     let before_obs = observations
         .iter_mut()
@@ -3003,53 +3258,25 @@ fn validate_case_rejects_a_noop_plan_whose_actual_before_bytes_still_contain_an_
         "fixture_path": contradicting_path,
     });
 
-    let verdict = validate_case(&plan, &evidence);
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
     assert_eq!(verdict.state, "failed", "a no-op plan whose actual before bytes still contain an approved-removal target must derive to failed, not already_satisfied, even though the declared before_hash matches");
     assert_ne!(verdict.effect, "already_satisfied");
 }
 
-/// Happy-path sanity check: validate_case must still agree with
-/// derive_postcondition (and the frozen report fixture) on the untampered
-/// verified_removal and already_satisfied_no_op cases. This guards against
-/// the fuller validator becoming stricter than the frozen contract itself.
+/// A final observation with `metadata: null` is MISSING information, not
+/// a contradiction -- it must be unverified, never failed. Fixes the
+/// round-6 `validate_case`'s own overcorrection (round 5 skipped the
+/// check entirely on null; round 6 fixed that but landed on `failed`
+/// instead of `unverified`, which the round-7 review named explicitly:
+/// "Missing final metadata/hash is incorrectly FAILED rather than
+/// UNVERIFIED").
 #[test]
-fn validate_case_agrees_with_the_frozen_report_fixtures_on_the_untampered_happy_paths() {
-    let plan = load_json(&format!(
-        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
-    ));
-    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
-    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
-    let verdict = validate_case(&plan, &evidence);
-    assert_eq!(verdict.state, report["postcondition"]["state"]);
-    assert_eq!(verdict.effect, report["postcondition"]["effect"]);
-
-    let noop_plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
-    let noop_evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
-    let noop_report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
-    let noop_verdict = validate_case(&noop_plan, &noop_evidence);
-    assert_eq!(noop_verdict.state, noop_report["postcondition"]["state"]);
-    assert_eq!(noop_verdict.effect, noop_report["postcondition"]["effect"]);
-}
-
-// ===========================================================================
-// validate_full_case / validate_case round-6 adversarial tests, per the
-// #1715 round-6 review's point 1. Each test tampers exactly one thing from
-// the known-good `verified_removal`/`already_satisfied_no_op` triads and
-// asserts the broken case is never granted verified/removed (or, for the
-// no-op path, never already_satisfied).
-// ===========================================================================
-
-/// The review's own headline example: a final observation with
-/// `metadata: null` must FAIL, not silently skip the metadata check (the
-/// round-5 `validate_case` had `if !final_obs["metadata"].is_null() &&
-/// !metadata_matches_expected(..)`, which short-circuited past the check
-/// entirely when metadata was null -- the exact opposite of correct).
-#[test]
-fn validate_case_rejects_a_null_final_metadata_instead_of_skipping_the_check() {
+fn validate_fixture_case_treats_a_null_final_metadata_as_unverified_not_failed() {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     let final_obs = observations
         .iter_mut()
@@ -3057,25 +3284,25 @@ fn validate_case_rejects_a_null_final_metadata_instead_of_skipping_the_check() {
         .unwrap();
     final_obs["metadata"] = Value::Null;
 
-    let verdict = validate_case(&plan, &evidence);
-    assert_ne!(
-        verdict.state, "verified",
-        "a null final metadata must FAIL the case, not skip the metadata check and still verify"
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(
+        verdict.state, "unverified",
+        "a null (missing) final metadata must be unverified, not failed -- we simply don't have the information, we haven't demonstrated a contradiction"
     );
     assert_ne!(verdict.effect, "removed");
 }
 
 /// A final observation whose own `parse_outcome` admits the parse was not
-/// clean (`malformed`) must never verify, even when its `content_hash`
-/// still happens to equal `plan.expected_staged_hash` (e.g. a hash
-/// collision, or more realistically a bookkeeping bug that computed the
-/// hash from different bytes than it actually parsed).
+/// clean (`malformed`) is present-and-contradictory information -- it
+/// must FAIL, even when its `content_hash` still happens to equal
+/// `plan.expected_staged_hash`.
 #[test]
-fn validate_case_rejects_a_final_observation_with_malformed_parse_outcome() {
+fn validate_fixture_case_rejects_a_final_observation_with_malformed_parse_outcome() {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     let final_obs = observations
         .iter_mut()
@@ -3083,25 +3310,25 @@ fn validate_case_rejects_a_final_observation_with_malformed_parse_outcome() {
         .unwrap();
     final_obs["parse_outcome"] = Value::String("malformed".to_string());
 
-    let verdict = validate_case(&plan, &evidence);
-    assert_ne!(
-        verdict.state, "verified",
-        "final.parse_outcome=malformed must never verify"
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(
+        verdict.state, "failed",
+        "final.parse_outcome=malformed is a contradiction, never a verify"
     );
     assert_ne!(verdict.effect, "removed");
 }
 
 /// The `stage` observation (the bytes install is claimed to have actually
-/// installed) was never independently checked at all in round 5. A stage
-/// observation whose content_hash does NOT match plan.expected_staged_hash
-/// -- a wrong or substituted staging snapshot -- must not let the case
-/// verify, even though backup and final are both still fine on their own.
+/// installed) is independently rehashed. A stage observation whose
+/// content_hash does NOT match the REAL rehashed bytes must FAIL, even
+/// though backup and final are both still fine on their own.
 #[test]
-fn validate_case_rejects_a_wrong_stage_content_hash() {
+fn validate_fixture_case_rejects_a_wrong_stage_content_hash() {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     let stage_obs = observations
         .iter_mut()
@@ -3109,42 +3336,43 @@ fn validate_case_rejects_a_wrong_stage_content_hash() {
         .unwrap();
     stage_obs["content_hash"] = Value::String("12".repeat(32));
 
-    let verdict = validate_case(&plan, &evidence);
-    assert_ne!(
-        verdict.state, "verified",
-        "a stage observation that doesn't match expected_staged_hash must not let the case verify"
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(
+        verdict.state, "failed",
+        "a stage content_hash that doesn't match the real rehashed bytes is a contradiction"
     );
     assert_ne!(verdict.effect, "removed");
 }
 
-/// A missing stage observation entirely must be unverified, not verified
-/// -- round 5 never looked for a stage observation at all, so removing it
-/// changed nothing any test checked.
+/// A missing stage observation entirely is MISSING information: it must
+/// be unverified.
 #[test]
-fn validate_case_treats_a_missing_stage_observation_as_unverified() {
+fn validate_fixture_case_treats_a_missing_stage_observation_as_unverified() {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     observations.retain(|o| o["step"] != "stage");
 
-    let verdict = validate_case(&plan, &evidence);
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
     assert_eq!(verdict.state, "unverified");
     assert_ne!(verdict.effect, "removed");
 }
 
 /// The final observation's declared `certificate_fingerprints` must match
 /// an INDEPENDENT re-parse of the final artifact's actual bytes -- a
-/// declared count that disagrees with the real bytes (e.g. claiming an
-/// extra occurrence that was never actually removed) must fail, even
+/// declared count that disagrees with the real bytes must FAIL, even
 /// though content_hash and metadata are both still correct.
 #[test]
-fn validate_case_rejects_final_certificate_fingerprints_that_disagree_with_the_real_bytes() {
+fn validate_fixture_case_rejects_final_certificate_fingerprints_that_disagree_with_the_real_bytes()
+{
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     let final_obs = observations
         .iter_mut()
@@ -3154,22 +3382,22 @@ fn validate_case_rejects_final_certificate_fingerprints_that_disagree_with_the_r
     // fingerprint; falsely declare 2.
     final_obs["certificate_fingerprints"][0]["occurrence_count"] = serde_json::json!(2);
 
-    let verdict = validate_case(&plan, &evidence);
-    assert_ne!(verdict.state, "verified", "a declared certificate_fingerprints count that disagrees with an independent re-parse of the real bytes must not verify");
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "a declared certificate_fingerprints count that disagrees with an independent re-parse of the real bytes is a contradiction");
     assert_ne!(verdict.effect, "removed");
 }
 
 /// The install step's `consumes_before_snapshot_id`/`consumes_staging_snapshot_id`
 /// must match the ACTUAL `before`/`stage` observation ids in this bundle,
-/// not merely be present. A dangling/substituted reference (naming a
-/// snapshot id that isn't the real `before` observation's own id) must
-/// fail, even though every other field lines up.
+/// not merely be present. A dangling/substituted reference must FAIL.
 #[test]
-fn validate_case_rejects_an_install_binding_that_does_not_match_the_real_before_snapshot_id() {
+fn validate_fixture_case_rejects_an_install_binding_that_does_not_match_the_real_before_snapshot_id(
+) {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     let install_obs = observations
         .iter_mut()
@@ -3178,17 +3406,167 @@ fn validate_case_rejects_an_install_binding_that_does_not_match_the_real_before_
     assert_eq!(install_obs["consumes_before_snapshot_id"], "before-1");
     install_obs["consumes_before_snapshot_id"] = Value::String("before-substituted".to_string());
 
-    let verdict = validate_case(&plan, &evidence);
-    assert_ne!(verdict.state, "verified", "an install binding naming a before snapshot id that doesn't match the real before observation must not verify");
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "an install binding naming a before snapshot id that doesn't match the real before observation is a contradiction");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// The round-7 review's named FALSE POSITIVE: remove the `before`
+/// observation entirely AND set `install.consumes_before_snapshot_id` to
+/// `null` -- under the round-6 code, a missing before observation made
+/// `before_id` default to `Value::Null` via `.unwrap_or(Value::Null)`, so
+/// `null == null` "matched" vacuously and the case still verified. Gate 6
+/// now REQUIRES a real `before` observation for the mutating path before
+/// gate 11's binding comparison is ever reached, so this can no longer
+/// happen: the case is unverified (missing `before`) long before any
+/// binding comparison runs.
+#[test]
+fn validate_fixture_case_requires_a_real_before_observation_rather_than_a_vacuous_null_equals_null_match(
+) {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    observations.retain(|o| o["step"] != "before");
+    let install_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "install")
+        .unwrap();
+    install_obs["consumes_before_snapshot_id"] = Value::Null;
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "unverified", "a missing before observation must be unverified -- it must NEVER be papered over by a null-consumes-id vacuously matching a null default");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// An observation whose `normalized_destination_binding`/`context_binding`
+/// does not match the plan it's bound to is a STALE observation (from a
+/// different operation) -- a contradiction, so this must FAIL.
+#[test]
+fn validate_fixture_case_rejects_a_before_observation_with_a_mismatched_destination_binding() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let before_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "before")
+        .unwrap();
+    before_obs["normalized_destination_binding"] =
+        Value::String("/etc/ssl/some-other-cert.pem".to_string());
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(
+        verdict.state, "failed",
+        "a before observation bound to a different destination than the plan is a stale observation, a contradiction"
+    );
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Range transformation: independently applying the plan's OWN declared
+/// `approved_removal_ranges` to the real `before` bytes must actually
+/// PRODUCE the real `stage` bytes. Here the plan only declares ONE of the
+/// two real target ranges while `stage`/`expected_staged_hash` still claim
+/// the fuller (both-targets-removed) result -- applying only the
+/// declared range to the real before bytes yields something that does
+/// NOT match the real stage bytes, so this must FAIL even though stage's
+/// own content_hash still matches `expected_staged_hash` (both were
+/// edited together) and backup/final are untouched.
+#[test]
+fn validate_fixture_case_rejects_a_plan_whose_declared_ranges_do_not_actually_produce_the_staged_bytes(
+) {
+    let mut plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+
+    // Keep only the FIRST target's ranges (removing cert_A's two
+    // occurrences), dropping the second target's range (cert_B's single
+    // occurrence) entirely -- so applying these (fewer) ranges to the real
+    // before bytes leaves cert_B still present, which does NOT match the
+    // real staged bytes (which have both targets removed).
+    let ranges = plan["approved_removal_ranges"].as_array().unwrap().clone();
+    assert_eq!(
+        ranges.len(),
+        2,
+        "sanity: the untouched plan declares ranges for both targets"
+    );
+    plan["approved_removal_ranges"] = serde_json::json!([ranges[0].clone()]);
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "applying only the (incompletely) declared ranges to the real before bytes must not produce the real staged bytes -- a genuine transformation mismatch");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Freshness: an install observation whose own `capture_sequence` is NOT
+/// strictly after the `stage` observation it claims to have consumed is a
+/// stale/impossible ordering -- a contradiction, so this must FAIL.
+#[test]
+fn validate_fixture_case_rejects_an_install_that_claims_to_consume_a_snapshot_captured_after_itself(
+) {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let stage_seq = observations.iter().find(|o| o["step"] == "stage").unwrap()["capture_sequence"]
+        .as_i64()
+        .unwrap();
+    let install_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "install")
+        .unwrap();
+    install_obs["capture_sequence"] = serde_json::json!(stage_seq); // not strictly after stage
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "failed", "an install captured at the SAME sequence as (or before) the stage snapshot it claims to consume is a stale/impossible ordering");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Scoped-approval digest: `verified_removal.json`'s report genuinely
+/// claims `authorization.state=confirmed_scoped` with a real, matching
+/// digest already (not a synthetic addition for this test). Swapping in
+/// the frozen `scope_binding_digest_does_not_match_preimage.json` negative
+/// fixture's report (same plan/evidence, only a wrong digest) must FAIL
+/// via the one shared path, not merely via the standalone digest test.
+#[test]
+fn validate_fixture_case_rejects_a_confirmed_scoped_report_whose_digest_does_not_match_the_plan() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let good_report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    assert_eq!(
+        good_report["authorization"]["state"], "confirmed_scoped",
+        "sanity: the happy-path report genuinely uses confirmed_scoped"
+    );
+
+    let bad_report = load_json(&format!(
+        "{FX}/reports/invalid/scope_binding_digest_does_not_match_preimage.json"
+    ));
+    assert_eq!(bad_report["authorization"]["state"], "confirmed_scoped");
+    assert_ne!(
+        bad_report["authorization"]["scope_binding_digest"],
+        good_report["authorization"]["scope_binding_digest"],
+        "sanity: the negative fixture must actually carry a different digest"
+    );
+
+    let verdict = validate_fixture_case(&plan, &evidence, &bad_report);
+    assert_eq!(verdict.state, "failed", "a confirmed_scoped report whose digest doesn't match the recomputed v1 preimage over the plan is a contradiction");
     assert_ne!(verdict.effect, "removed");
 }
 
 /// The no-op path's independent re-parse must FAIL the case on a genuine
 /// parse error, never silently treat "couldn't parse" as "zero
-/// certificates found, so the no-op claim holds." Round 5's
-/// `.unwrap_or_default()` did exactly the wrong thing here.
+/// certificates found, so the no-op claim holds."
 #[test]
-fn validate_case_fails_a_noop_case_whose_before_artifact_fails_to_parse_rather_than_treating_it_as_already_satisfied(
+fn validate_fixture_case_fails_a_noop_case_whose_before_artifact_fails_to_parse_rather_than_treating_it_as_already_satisfied(
 ) {
     let mut plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
     let malformed_path =
@@ -3208,6 +3586,7 @@ fn validate_case_fails_a_noop_case_whose_before_artifact_fails_to_parse_rather_t
     });
 
     let mut evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
     let observations = evidence["observations"].as_array_mut().unwrap();
     let before_obs = observations
         .iter_mut()
@@ -3221,21 +3600,19 @@ fn validate_case_fails_a_noop_case_whose_before_artifact_fails_to_parse_rather_t
         "fixture_path": malformed_path,
     });
 
-    let verdict = validate_case(&plan, &evidence);
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
     assert_eq!(verdict.state, "failed", "a no-op case whose before artifact fails to parse must FAIL, never silently read as already_satisfied just because 'zero certificates were found'");
     assert_ne!(verdict.effect, "already_satisfied");
 }
 
-/// `validate_full_case` closes the one remaining gap `validate_case` alone
-/// cannot see: a REPORT claiming a step completed with no matching
-/// evidence at all. `verified_removal.json`'s report claims `filter`
-/// completed (sourced from `fixture`) -- stripping the evidence bundle's
-/// `filter` observation (added this round specifically so the untampered
-/// pair is internally consistent) must make `validate_full_case` return
-/// `unverified`, even though bare `validate_case` (which never looks at
-/// the report) would still say `verified`/`removed`.
+/// `validate_fixture_case` catches a REPORT claiming a step completed
+/// with no matching evidence at all. `verified_removal.json`'s report
+/// claims `filter` completed (sourced from `fixture`) -- stripping the
+/// evidence bundle's `filter` observation must demote the case to
+/// `unverified` via `finalize_against_report`, even though every
+/// evidence-only semantic gate on its own would still say verified/removed.
 #[test]
-fn validate_full_case_catches_a_report_claiming_a_step_completed_with_no_matching_evidence() {
+fn validate_fixture_case_catches_a_report_claiming_a_step_completed_with_no_matching_evidence() {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
@@ -3255,41 +3632,82 @@ fn validate_full_case_catches_a_report_claiming_a_step_completed_with_no_matchin
     assert!(had_filter, "sanity: the untampered fixture must have a filter observation for this test to actually remove something");
     observations.retain(|o| o["step"] != "filter");
 
-    // Bare validate_case never looks at the report, so it is blind to this
-    // specific gap -- demonstrate that explicitly, then show
-    // validate_full_case catches it.
-    let bare_verdict = validate_case(&plan, &evidence);
-    assert_eq!(
-        bare_verdict.state, "verified",
-        "sanity: validate_case alone, which never reads the report, must still say verified here -- that blindness is exactly why validate_full_case exists"
-    );
-
-    let full_verdict = validate_full_case(&plan, &evidence, &report);
-    assert_eq!(full_verdict.state, "unverified", "validate_full_case must catch a report claiming filter completed with no matching evidence observation");
-    assert_ne!(full_verdict.effect, "removed");
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "unverified", "a report claiming filter completed with no matching evidence observation must be demoted to unverified");
+    assert_ne!(verdict.effect, "removed");
 }
 
-/// Happy-path sanity for `validate_full_case` itself: the untampered
-/// `verified_removal` and `already_satisfied_no_op` triads (now including
-/// the filter observation added this round) must still agree with their
-/// frozen report fixtures through the FULL path (schema + bindings +
-/// report-consistency + validate_case), not just through bare
-/// `validate_case`.
+/// Report/evidence source misattribution: the evidence's `filter`
+/// observation's own `source` is `fixture`, but the report claims
+/// `observation_source=caro_observed` for that same step -- same status,
+/// different claimed authority. Per the round-7 review's "Report checks
+/// omit cleanup/source agreement," this must also be caught, not just a
+/// `step_status` mismatch.
 #[test]
-fn validate_full_case_agrees_with_the_frozen_report_fixtures_on_the_untampered_happy_paths() {
+fn validate_fixture_case_catches_a_report_misattributing_which_source_backs_a_step() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let mut report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    assert_eq!(
+        report["execution"]["steps"]["filter"]["observation_source"],
+        "fixture"
+    );
+    report["execution"]["steps"]["filter"]["observation_source"] =
+        Value::String("caro_observed".to_string());
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "unverified", "a report claiming a different observation_source than the evidence actually carries for that step must be demoted to unverified");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Cleanup agreement: the report claims `cleanup.state=succeeded`, but the
+/// paired evidence's own `cleanup` observation shows `step_status=failed`
+/// -- the cleanup half of `report_steps_consistent_with_evidence`,
+/// exercised here via the one shared path.
+#[test]
+fn validate_fixture_case_catches_a_report_claiming_cleanup_succeeded_when_evidence_shows_failed() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    assert_eq!(report["cleanup"]["state"], "succeeded");
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let cleanup_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "cleanup")
+        .unwrap();
+    cleanup_obs["step_status"] = Value::String("failed".to_string());
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "unverified", "a report claiming cleanup succeeded while the evidence shows a failed cleanup step must be demoted to unverified");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Happy-path sanity: the untampered `verified_removal` and
+/// `already_satisfied_no_op` triads must still agree with their frozen
+/// report fixtures through THE single, fully-wired path -- schema +
+/// bindings + destination/context + range transformation + rehashing +
+/// full X.509 parsing + report-consistency, all of it. This guards
+/// against the fuller validator becoming stricter than the frozen
+/// contract itself.
+#[test]
+fn validate_fixture_case_agrees_with_the_frozen_report_fixtures_on_the_untampered_happy_paths() {
     let plan = load_json(&format!(
         "{FX}/plans/valid/mutating_removal_with_backup_required.json"
     ));
     let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
     let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
-    let verdict = validate_full_case(&plan, &evidence, &report);
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
     assert_eq!(verdict.state, report["postcondition"]["state"]);
     assert_eq!(verdict.effect, report["postcondition"]["effect"]);
 
     let noop_plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
     let noop_evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
     let noop_report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
-    let noop_verdict = validate_full_case(&noop_plan, &noop_evidence, &noop_report);
+    let noop_verdict = validate_fixture_case(&noop_plan, &noop_evidence, &noop_report);
     assert_eq!(noop_verdict.state, noop_report["postcondition"]["state"]);
     assert_eq!(noop_verdict.effect, noop_report["postcondition"]["effect"]);
 }

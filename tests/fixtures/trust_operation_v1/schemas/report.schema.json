@@ -390,13 +390,13 @@
       ]
     },
     {
-      "$comment": "R20 (new per #1715 round-6 review point 3, 'enforce workflow not_attempted requires ESTABLISHED execution not_attempted'): workflow_outcome=not_attempted is a claim that nothing happened. It must never coexist with execution.state=started/completed/failed -- those all mean something DID happen, so claiming not_attempted would contradict the execution record itself. unobserved (no information at all) and not_attempted (positively known) are both still permitted here -- R20 catches the contradiction this review flagged (stage_status_unknown_but_observed previously paired execution.state=started, with backup already completed, against workflow_outcome=not_attempted), not the separate question of whether unobserved should ever have been used instead of not_attempted.",
+      "$comment": "R20 (new per #1715 round-6 review point 3, 'enforce workflow not_attempted requires ESTABLISHED execution not_attempted'; tightened per round-7 review point 2, 'R20 explicitly allows execution unobserved with workflow not_attempted. Require execution EXACTLY not_attempted'): workflow_outcome=not_attempted is a POSITIVE claim that nothing happened. It must require execution.state to be EXACTLY not_attempted -- ESTABLISHED, not merely unobserved (no information at all). unobserved means we don't know what happened; not_attempted means we positively know nothing did. Claiming the workflow was definitely not attempted while the execution record itself only says 'no information' is exactly the same category of contradiction as pairing it with started/completed/failed -- in all four non-not_attempted cases, the workflow claim outruns what the execution record actually establishes.",
       "if": {
         "properties": { "cleanup": { "properties": { "workflow_outcome": { "const": "not_attempted" } }, "required": ["workflow_outcome"] } },
         "required": ["cleanup"]
       },
       "then": {
-        "properties": { "execution": { "properties": { "state": { "not": { "enum": ["started", "completed", "failed"] } } }, "required": ["state"] } },
+        "properties": { "execution": { "properties": { "state": { "const": "not_attempted" } }, "required": ["state"] } },
         "required": ["execution"]
       }
     }

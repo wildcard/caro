@@ -1,17 +1,18 @@
 # Trust-Operation Contract (v1, checkpoint 1 — proposed, not yet accepted)
 
 **Status**: Checkpoint 1 of issue [#1714](https://github.com/wildcard/caro/issues/1714),
-**proposed, not yet accepted.** Five rounds of independent review on
+**proposed, not yet accepted.** Six rounds of independent review on
 [PR #1715](https://github.com/wildcard/caro/pull/1715) have found and fixed
 static-contract defects (round 2: 6 classes; round 3: 7 classes, including
 a real CI license-policy failure; round 4: 5 classes, including two real
 bugs in this PR's own cross-checks; round 5: 4 classes plus a small fix,
 including a real Windows CI failure; round 6: 3 classes, including
-replacing the hand-written X.509 heuristic with a real conformant parser).
-This document states, plainly, what changed and why. It never uses the
-word "frozen" to describe the overall contract's acceptance state — only
-this PR's own content, pending the next review pass, which decides
-acceptance.
+replacing the hand-written X.509 heuristic with a real conformant parser;
+round 7: 2 classes, consolidating the test-only fixture-integrity path
+into one function every test now routes through). This document states,
+plainly, what changed and why. It never uses the word "frozen" to
+describe the overall contract's acceptance state — only this PR's own
+content, pending the next review pass, which decides acceptance.
 
 **No behavioral code implements this yet.** Nothing here changes
 `CliResult`, the safety validator, the executor, or any CLI output. A later
@@ -26,11 +27,96 @@ and `::no_jsonschema_crate_dependency_exists`):
 |---|---|
 | `manifest.json` rows | **33** (T001–T033) |
 | Schema files (`manifest`, `plan`, `evidence`, `report`) | **4** |
-| Contract tests in `tests/trust_operation_v1_contract.rs` | **86** |
+| Contract tests in `tests/trust_operation_v1_contract.rs` | **93** |
 | New Cargo dev-dependencies | **1** (`x509-parser`, `default-features = false` — round 2 also added `jsonschema`; round 3 removed it, see below, so `x509-parser` is the only one actually shipping; both are dev-only, never linked into the `caro` binary) |
 | New Python dev-tool dependencies | **1** (`jsonschema`, via `pip install`; not a Cargo dependency, outside `dependency-review.yml`'s scope — see round 4 below) |
 
-### What changed in round 6 (this revision)
+### What changed in round 7 (this revision)
+
+Round 6's `validate_case`/`validate_full_case` split, and R20, were found
+to have 2 further classes of defect:
+
+1. **The shared test-only fixture-integrity path existed but wasn't
+   actually used everywhere, and had real gaps of its own.** Round 6's
+   `validate_full_case` wrapped a narrower `validate_case`, but almost
+   every adversarial test called `validate_case` directly — the wrapping
+   function had only 3 call sites. That split is now gone entirely: a
+   single `validate_fixture_case(plan, evidence, report)` is the ONLY
+   entry point, and every test in the suite that exercises a triad calls
+   it. Along the way, five concrete gaps were closed: (a) a FALSE
+   POSITIVE the review named explicitly — removing the `before`
+   observation while setting `install.consumes_before_snapshot_id = null`
+   used to "verify," because a missing before id defaulted to
+   `Value::Null` and compared equal to the tampered field's own null;
+   `before` is now a REQUIRED, independently-resolved observation on the
+   mutating path, checked before any binding comparison runs, so a
+   missing `before` can never reach that comparison at all; (b) content
+   hashes were previously compared only to OTHER declared fields (e.g.
+   `backup.content_hash != plan.before_hash`), never independently
+   rehashed from the real artifact bytes — a new
+   `independently_resolve_content` helper reads the real bytes at
+   `artifact_ref.fixture_path` and rehashes them for every content-bearing
+   observation (before/backup/stage/final), so a tampered `content_hash`
+   that happens to equal some OTHER wrong value can no longer pass; (c)
+   `independent_fingerprint_multiset` grouped PEM blocks by their DER
+   sha256 without ever calling the new X.509 parser on them, so a block
+   that decoded cleanly from base64 but was NOT a real certificate could
+   still contribute a fingerprint count — fixed to call
+   `looks_like_complete_x509_der` per block, failing the whole re-parse on
+   any invalid block; (d) `validate_case` never checked destination/
+   context binding, range transformation (that applying the plan's OWN
+   declared byte ranges to the real `before` bytes actually produces the
+   real `stage` bytes), freshness (install's own `capture_sequence`
+   strictly after what it claims to consume), or the scoped-approval
+   digest (when authorization claims `confirmed_scoped`) — all four are
+   now wired into the one path, with the digest check exercised for real
+   against `verified_removal.json`'s own genuine `confirmed_scoped`
+   claim, not a synthetic addition; (e) the report-consistency check
+   (`report_steps_consistent_with_evidence`) only checked
+   `backup`/`stage`/`filter`/`install` step STATUS equality, never
+   `cleanup` and never WHICH source backed a claim — extended to check
+   `cleanup` (via its own `succeeded`/`failed`/`not_attempted` vocabulary
+   mapped onto the observation `step_status` enum) and to require the
+   report's `observation_source` match the evidence observation's own
+   `source` field, not just its status. Classification was also corrected
+   per the review's closing instruction: a final observation with `null`
+   metadata is MISSING information (`unverified`), not a demonstrated
+   contradiction (`failed`, round 6's own overcorrection) — the taxonomy
+   is now applied consistently throughout: missing/null fields derive
+   `unverified`; present-but-wrong fields derive `failed`. 18
+   `validate_fixture_case_*` tests exercise this, each with an EXACT
+   classification assertion (`assert_eq!` on state, not a weaker
+   `assert_ne!(.., "verified")`), including the false-positive fix, the
+   destination-binding check, the range-transformation check, the
+   freshness check, the scoped-digest check, and the extended
+   cleanup/source report check.
+2. **R20 (round 6) explicitly allowed `execution.state=unobserved` paired
+   with `workflow_outcome=not_attempted`.** Tightened to require
+   `execution.state` be EXACTLY `not_attempted` (ESTABLISHED, not merely
+   "no information"). This required fixing one real fixture:
+   `authorization_denied_with_provenance.json` had `execution.state:
+   "unobserved"` even though a denied authorization genuinely DOES
+   establish that execution never happened — corrected to `not_attempted`
+   (matching the convention every genuine dry-run/no-op fixture already
+   uses: `observation_source: "none"` is legal for a `not_attempted`
+   claim in this schema's existing design, it's only the vaguer
+   `unobserved` state that R20 now excludes). A new negative fixture,
+   `workflow_not_attempted_with_unobserved_execution.json`, and a
+   dedicated test keep the `unobserved` gap from reopening; the retained
+   dry-run test now also covers `already_satisfied_no_op.json`.
+
+Preserved per the review's closing instruction: the real `x509-parser`
+with full consumption, strict base64 padding-bit rejection, the
+independent retained-comment artifact comparison, 93/93 passing locally
+(Windows/macOS CI confirmation from round 5/6 not reopened), and Python
+schema conformance (re-run clean against every round-7 change). This
+document does NOT claim `cargo-deny` has verified the new dependency --
+that job's own pre-existing, unrelated failure (deprecated config keys)
+is a separate, already-known issue, not something this PR's changes
+caused or can speak to; the license check here is `cargo metadata`
+against `dependency-review.yml`'s allowlist directly (see round 6 above).
+
+### What changed in round 6
 
 Round 5's fixes were themselves found to have 3 further classes of defect:
 
