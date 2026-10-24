@@ -148,8 +148,34 @@ jobs:
         cargo test --test config_contract --verbose
         cargo test --test execution_contract --verbose
         cargo test --test agent_tools_contract --verbose
+        cargo test --test trust_operation_v1_contract --verbose
       env:
         RUST_BACKTRACE: 1
+
+  # ============================================================================
+  # Tier A: Trust-Operation Contract Schema Conformance (#1714 / #1715)
+  # ============================================================================
+  # tests/trust_operation_v1_contract.rs validates fixtures with a
+  # hand-written, dependency-free draft-07-subset evaluator (no Rust
+  # $ref-capable JSON Schema crate clears this repo's dependency-review.yml
+  # license allowlist -- see that test file's module doc comment). This job
+  # is the independent check that closes the gap a hand-written evaluator
+  # can leave: it meta-validates all four schemas, and every fixture, with
+  # the real `jsonschema` PyPI package (a Python dev-tool dependency, not a
+  # Rust/Cargo dependency, so it is outside dependency-review.yml's scope).
+
+  trust-operation-schema-conformance:
+    name: Trust-Operation Contract Schema Conformance
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install jsonschema (Python dev-tool, not a Cargo dependency)
+      run: pip install jsonschema
+
+    - name: Meta-validate schemas and fixtures against the real jsonschema package
+      run: python3 scripts/validate_trust_operation_schemas.py
 
   # ============================================================================
   # Tier A: Knowledge Integration Tests (LanceDB backend)

@@ -9,15 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Trust-operation contract v1, checkpoint 1 (#1714), two rounds of
-  independent-review fixes (#1715).** Froze the support boundary, schemas,
-  and reason codes for verifying a trust-store mutation (e.g. the Apple
-  eMudhra CA advisory remediation) actually reached the intended state,
-  instead of trusting a whole-shell exit 0. **Still contract-only: no
-  detector, gate, or verifier behavior is implemented**, `CliResult` is
-  unchanged, and no real trust store is touched. Not claimed as "frozen"
-  or "accepted" — that is for the next independent review pass, not this
-  changelog entry.
+- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; three
+  rounds of independent-review fixes so far (#1715).** Proposes the
+  support boundary, schemas, and reason codes for verifying a trust-store
+  mutation (e.g. the Apple eMudhra CA advisory remediation) actually
+  reached the intended state, instead of trusting a whole-shell exit 0.
+  **Still contract-only: no detector, gate, or verifier behavior is
+  implemented**, `CliResult` is unchanged, and no real trust store is
+  touched. Not claimed as accepted — that is for the next independent
+  review pass, not this changelog entry.
   - Round 2 fixed 6 defects: forbidden report states representable only in
     prose (now real `allOf`/`if`/`then` conditionals); plan/evidence
     schemas with no real bytes behind their claimed hashes; loose
@@ -49,9 +49,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `tests/trust_operation_v1_contract.rs` now implements its own minimal
     draft-07-subset evaluator (`serde_json` + `regex`, both pre-existing
     dependencies, zero new ones).
+  - Round 4 fixed 5 further defects: the hand-written `minischema`
+    evaluator used by the Rust test (no `$ref`-capable JSON Schema crate
+    clears this repo's license allowlist) previously only cloned schema
+    JSON with no checking, so `"type": 42` or an unsupported keyword
+    would silently compile; it now preflights every schema (3
+    `#[should_panic]` conformance tests) and a new
+    `scripts/validate_trust_operation_schemas.py` meta-validates all four
+    schemas and every fixture with the real `jsonschema` PyPI package (a
+    Python dev-tool dependency, outside `dependency-review.yml`'s scope),
+    wired into its own CI job. Report-schema step statuses could not
+    distinguish "no information" from a positive "known not attempted"
+    claim; split into `unobserved`/`not_attempted` with matching rules
+    (failed execution forces a failed workflow outcome; a completed
+    execution forbids any failing step directly; cleanup and denied
+    authorization both need real provenance; a not-attempted execution
+    forbids started/completed steps). The DER/PEM checks accepted an
+    empty `30 00` SEQUENCE, trailing bytes past a declared length,
+    malformed base64 padding, and a valid certificate followed by an
+    unmatched `BEGIN`; replaced with a strict base64 decoder, a PEM parser
+    that must consume the entire file, and a real (shallow) X.509
+    structural walk requiring exact TLV tiling, backed by four new
+    adversarial artifacts. The headline fix: nothing previously compared
+    an evidence bundle's `final` observation to the plan's
+    `expected_staged_hash`, so swapping it to mismatched bytes left every
+    existing test green; a new test-only `derive_postcondition`
+    cross-check (explicitly not product behavior) now catches exactly
+    that tamper, plus a missing-`final` case, a stale-`before` case on the
+    no-op plan, independently-verified zero-target-occurrence on the
+    no-op artifact, unique `(step, snapshot_id)` pairs, and backup/evidence
+    metadata that can no longer be `{}` (present but empty).
   - Actual current shape (mechanically checked, not asserted by hand):
-    **33** manifest rows, **4** schema files, **47** contract tests,
-    **0** new Cargo dependencies.
+    **33** manifest rows, **4** schema files, **60** contract tests,
+    **0** new Cargo dependencies, **1** new Python dev-tool dependency
+    (`jsonschema`, CI-only, outside `dependency-review.yml`'s scope).
 - **`caro guard test` and `caro guard setup` (spec 011 §P2.1, §P2.2).**
   `caro guard test "<command>"` dry-runs one command through the guard and
   prints risk, verdict, matched patterns and the floor flag (`--output json`

@@ -138,13 +138,20 @@
           "items": { "$ref": "#/definitions/fingerprint_count" }
         },
         "metadata": {
-          "type": ["object", "null"],
-          "additionalProperties": false,
-          "properties": {
-            "owner": { "type": "string" },
-            "group": { "type": "string" },
-            "mode": { "type": "string", "pattern": "^0[0-7]{3}$" }
-          }
+          "description": "Null, or a COMPLETE metadata triple. Fixes the #1715 round-4 review's point 4 finding that this object had no `required`, so `{}` (metadata present but empty) satisfied the 'metadata must not be null' allOf rule below without actually carrying owner/group/mode.",
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["owner", "group", "mode"],
+              "additionalProperties": false,
+              "properties": {
+                "owner": { "type": "string", "minLength": 1 },
+                "group": { "type": "string", "minLength": 1 },
+                "mode": { "type": "string", "pattern": "^0[0-7]{3}$" }
+              }
+            }
+          ]
         },
         "backup_readability": {
           "type": ["string", "null"],

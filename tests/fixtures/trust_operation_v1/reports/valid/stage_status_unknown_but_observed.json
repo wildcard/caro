@@ -32,11 +32,11 @@
         "observation_source": "caro_observed"
       },
       "filter": {
-        "status": "not_attempted",
+        "status": "unobserved",
         "observation_source": "none"
       },
       "install": {
-        "status": "not_attempted",
+        "status": "unobserved",
         "observation_source": "none"
       }
     }

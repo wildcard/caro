@@ -1,17 +1,19 @@
-# Trust-Operation Contract (v1, checkpoint 1 — frozen, not implemented, pending independent acceptance)
+# Trust-Operation Contract (v1, checkpoint 1 — proposed, not yet accepted)
 
-**Status**: Checkpoint 1 of issue [#1714](https://github.com/wildcard/caro/issues/1714).
-Two rounds of independent review on [PR #1715](https://github.com/wildcard/caro/pull/1715)
-have found and fixed static-contract defects (round 2: 6 classes; round 3:
-7 classes, including a real CI license-policy failure). **This document
-does NOT claim the contract is "frozen" or "all fixed" — that claim belongs
-to the independent reviewer, not to this PR.** It states, plainly, what
-changed and why, and leaves acceptance to the next review pass.
+**Status**: Checkpoint 1 of issue [#1714](https://github.com/wildcard/caro/issues/1714),
+**proposed, not yet accepted.** Three rounds of independent review on
+[PR #1715](https://github.com/wildcard/caro/pull/1715) have found and fixed
+static-contract defects (round 2: 6 classes; round 3: 7 classes, including
+a real CI license-policy failure; round 4: 5 classes, including two real
+bugs in this PR's own cross-checks). This document states, plainly, what
+changed and why. It never uses the word "frozen" to describe the overall
+contract's acceptance state — only this PR's own content, pending the next
+review pass, which decides acceptance.
 
 **No behavioral code implements this yet.** Nothing here changes
 `CliResult`, the safety validator, the executor, or any CLI output. A later
-PR adds behavior against this frozen contract; this PR exists so that PR
-has a reviewed target instead of an undefined one.
+PR adds behavior against this proposed contract, once accepted; this PR
+exists so that PR has a reviewed target instead of an undefined one.
 
 **Actual current shape, mechanically checked** (not asserted by hand — see
 `tests/trust_operation_v1_contract.rs::manifest_has_33_rows_and_four_schema_files_as_actually_shipped`
@@ -21,10 +23,84 @@ and `::no_jsonschema_crate_dependency_exists`):
 |---|---|
 | `manifest.json` rows | **33** (T001–T033) |
 | Schema files (`manifest`, `plan`, `evidence`, `report`) | **4** |
-| Contract tests in `tests/trust_operation_v1_contract.rs` | **47** |
+| Contract tests in `tests/trust_operation_v1_contract.rs` | **60** |
 | New Cargo dependencies | **0** (round 2 added `jsonschema` as a dev-dependency; round 3 removed it — see below — so the net count is zero) |
+| New Python dev-tool dependencies | **1** (`jsonschema`, via `pip install`; not a Cargo dependency, outside `dependency-review.yml`'s scope — see round 4 below) |
 
-### What changed in round 3 (this revision)
+### What changed in round 4 (this revision)
+
+Round 3's fixes were themselves found to have 5 further classes of defect:
+
+1. **The custom `minischema` evaluator silently accepted invalid schemas.**
+   `Validator::new` only cloned the input JSON with no checking at all, so
+   a schema with `"type": 42` or an unsupported keyword like `maxLength`
+   would compile and then validate everything as trivially valid. Fixed
+   two ways: (a) added a `preflight` pass to `Validator::new` that
+   recursively rejects any keyword outside an explicit allow-list (the
+   keywords `eval` actually interprets, plus named harmless annotations
+   like `$comment`) and any malformed value for a keyword it does support
+   — three `#[should_panic]` tests prove this; (b) added
+   `scripts/validate_trust_operation_schemas.py`, which meta-validates all
+   four schema files and every fixture with the REAL `jsonschema` PyPI
+   package (a Python dev-tool dependency, outside
+   `dependency-review.yml`'s scope, which only watches Cargo/npm
+   manifests) as an independent ground truth, including 3 conformance
+   vectors proving that real validator rejects malformed schema forms.
+   Wired into CI as its own job.
+2. **Report-schema step semantics couldn't express "no information."**
+   `not_attempted` was being used for both "we have no information" and
+   "we positively know this didn't happen" — now split into `unobserved`
+   (no info, `observation_source` must be `none`) and `not_attempted` (a
+   sourced, positive claim). Added rules: failed execution forces
+   `workflow_outcome=failed` (R15); `execution.state=completed` forbids
+   any failing-family step directly, not only via `workflow_outcome` (R16);
+   cleanup's `observation_source` is now coupled to its state the same way
+   steps are (R17); `execution.state=not_attempted` forbids any step
+   claiming `started`/`completed` (R18); and `authorization.state=denied`
+   now requires a real provenance (R7b), mirroring `host_permission`.
+3. **DER checks accepted garbage.** The shallow one-level length check
+   accepted an empty `30 00` SEQUENCE, ignored trailing bytes past a
+   declared length, and the base64 decoder tolerated malformed padding;
+   a PEM scanner that hit an unmatched trailing `BEGIN` silently stopped
+   instead of erroring. Replaced with: a strict base64 decoder that
+   rejects bad padding/length/characters; a PEM parser that must consume
+   the ENTIRE file with nothing left over (`find_pem_blocks_strict`,
+   returns `Result`, not `Vec`); and a real (if shallow) X.509 structural
+   parser (`looks_like_complete_x509_der`) that walks the DER as nested
+   TLVs requiring an EXACT tiling (`Certificate ::= SEQUENCE { SEQUENCE,
+   SEQUENCE, BIT STRING }`, consuming every byte at every level) rather
+   than a one-level length check. Four new adversarial artifacts prove
+   each case independently rejected.
+4. **The pieces were never cross-checked against each other.** The
+   headline bug: swapping `verified_removal`'s evidence `final`
+   observation to point at `final_content_mismatch.pem.fixture`'s bytes
+   changed nothing any test checked, because nothing ever compared the
+   `final` observation's content to `plan.expected_staged_hash`. Added a
+   bounded, TEST-ONLY `derive_postcondition(plan, evidence)` reference
+   cross-check (explicitly NOT a preview of product behavior — see its
+   doc comment) and a battery of tests built on it: the exact swap above
+   now flips the derived verdict to `failed`; a missing `final`
+   observation derives to `unverified`; a stale `before` observation on
+   the no-op plan derives to `failed`, never `already_satisfied`. Also
+   fixed: backup/evidence `metadata` previously accepted `{}` (present
+   but empty) as satisfying "metadata is not null" — now requires all
+   three fields; added independent (DER-based, not plan-trusting)
+   verification that the no-op plan's before artifact genuinely contains
+   zero target occurrences; added a uniqueness check for
+   `(step, step_snapshot_id)` pairs within a bundle; added an
+   `evidence/invalid/wrong_schema_version.json` fixture.
+5. **CI wiring and stray wording.** `trust_operation_v1_contract` is now
+   in the `unit-tests` job's "Run contract tests" step, alongside the
+   other named contract tests, across all three OS runners. A separate
+   `trust-operation-schema-conformance` CI job runs
+   `scripts/validate_trust_operation_schemas.py`. This document's title
+   and opening no longer mix "frozen" (acceptance) with "pending
+   acceptance" in the same breath — see the top of this document.
+   Pre-existing, unrelated CI flakiness (an Ubuntu utility-detection
+   issue, other untriaged failures, website/docs-site build failures) is
+   explicitly NOT attributed to this contract's changes.
+
+### What changed in round 3
 
 Round 2's fix for round 1 introduced, or left unfixed, seven further
 defects an independent review found:

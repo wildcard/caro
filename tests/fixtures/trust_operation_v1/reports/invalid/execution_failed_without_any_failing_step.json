@@ -50,8 +50,8 @@
     ]
   },
   "cleanup": {
-    "state": "unobserved",
-    "observation_source": "none",
-    "workflow_outcome": "not_attempted"
+    "state": "succeeded",
+    "observation_source": "caro_observed",
+    "workflow_outcome": "failed"
   }
 }

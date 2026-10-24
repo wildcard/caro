@@ -54,8 +54,164 @@ mod minischema {
         schema: Value,
     }
 
+    /// Keywords `eval` actually interprets.
+    const EVALUATED_KEYWORDS: &[&str] = &[
+        "$ref",
+        "type",
+        "const",
+        "enum",
+        "pattern",
+        "minLength",
+        "minimum",
+        "exclusiveMinimum",
+        "required",
+        "properties",
+        "additionalProperties",
+        "items",
+        "minItems",
+        "contains",
+        "allOf",
+        "anyOf",
+        "not",
+        "if",
+        "then",
+        "else",
+    ];
+    /// Keywords that carry no validation semantics for this evaluator --
+    /// explicitly allow-listed per the #1715 round-4 review's point 1
+    /// ("explicitly allow harmless annotations"), rather than silently
+    /// tolerating anything unrecognized by omission.
+    const HARMLESS_ANNOTATION_KEYWORDS: &[&str] = &[
+        "$schema",
+        "$id",
+        "title",
+        "description",
+        "$comment",
+        "$see",
+        "definitions",
+    ];
+
+    /// Recursively preflight a schema document BEFORE it is ever used to
+    /// validate an instance. Fixes the #1715 round-4 review's point 1
+    /// finding that `Validator::new` previously only cloned the JSON with
+    /// no checking at all, so a schema with an unsupported keyword, or a
+    /// malformed value for a keyword this evaluator DOES support (e.g.
+    /// `"type": 42` or `"maxLength": 0` -- `maxLength` isn't even
+    /// evaluated, so silently accepting it as a no-op would be exactly
+    /// the bug the review flagged), would be silently accepted and then
+    /// validate every instance as trivially valid. This function panics
+    /// (fails loud, at schema-compile time, matching the "preflight and
+    /// reject" instruction) rather than returning a soft error, since a
+    /// malformed schema in this repository's own frozen fixtures is a
+    /// programming error in the contract itself, not recoverable input.
+    fn preflight(schema: &Value, path: &str) {
+        match schema {
+            Value::Object(obj) => {
+                for (key, value) in obj {
+                    let sub_path = format!("{path}.{key}");
+                    if HARMLESS_ANNOTATION_KEYWORDS.contains(&key.as_str()) {
+                        if key == "definitions" {
+                            if let Value::Object(defs) = value {
+                                for (def_name, def_schema) in defs {
+                                    preflight(def_schema, &format!("{sub_path}.{def_name}"));
+                                }
+                            } else {
+                                panic!("{sub_path}: definitions must be an object, got {value}");
+                            }
+                        }
+                        continue;
+                    }
+                    if !EVALUATED_KEYWORDS.contains(&key.as_str()) {
+                        panic!("{sub_path}: unsupported keyword {key:?} -- minischema only understands {EVALUATED_KEYWORDS:?} plus the harmless annotations {HARMLESS_ANNOTATION_KEYWORDS:?}. Add real support before using this keyword, or use the independent jsonschema-backed check in scripts/validate_trust_operation_schemas.py if this is intentional.");
+                    }
+                    match key.as_str() {
+                        "type" => match value {
+                            Value::String(s) => {
+                                const VALID: &[&str] = &["object", "array", "string", "integer", "number", "boolean", "null"];
+                                if !VALID.contains(&s.as_str()) {
+                                    panic!("{sub_path}: type {s:?} is not a recognized JSON Schema type");
+                                }
+                            }
+                            Value::Array(arr) => {
+                                for v in arr {
+                                    preflight(&serde_json::json!({ "type": v }), &sub_path);
+                                }
+                            }
+                            other => panic!("{sub_path}: type must be a string or array of strings, got {other}"),
+                        },
+                        "required" => match value {
+                            Value::Array(arr) => {
+                                for v in arr {
+                                    if !v.is_string() {
+                                        panic!("{sub_path}: required must be an array of strings, found {v}");
+                                    }
+                                }
+                            }
+                            other => panic!("{sub_path}: required must be an array, got {other}"),
+                        },
+                        "properties" => match value {
+                            Value::Object(props) => {
+                                for (k, v) in props {
+                                    preflight(v, &format!("{sub_path}.{k}"));
+                                }
+                            }
+                            other => panic!("{sub_path}: properties must be an object, got {other}"),
+                        },
+                        "additionalProperties" => {
+                            if !value.is_boolean() {
+                                panic!("{sub_path}: additionalProperties must be a boolean in this subset, got {value}");
+                            }
+                        }
+                        "pattern" => {
+                            let Some(s) = value.as_str() else {
+                                panic!("{sub_path}: pattern must be a string, got {value}");
+                            };
+                            if Regex::new(s).is_err() {
+                                panic!("{sub_path}: pattern {s:?} is not a valid regular expression");
+                            }
+                        }
+                        "minLength" | "minItems" => {
+                            if !value.is_u64() {
+                                panic!("{sub_path}: {key} must be a non-negative integer, got {value}");
+                            }
+                        }
+                        "minimum" | "exclusiveMinimum" => {
+                            if value.as_f64().is_none() {
+                                panic!("{sub_path}: {key} must be a number, got {value}");
+                            }
+                        }
+                        "items" | "contains" | "not" | "if" | "then" | "else" => preflight(value, &sub_path),
+                        "allOf" | "anyOf" => match value {
+                            Value::Array(arr) => {
+                                for (i, v) in arr.iter().enumerate() {
+                                    preflight(v, &format!("{sub_path}[{i}]"));
+                                }
+                            }
+                            other => panic!("{sub_path}: {key} must be an array of schemas, got {other}"),
+                        },
+                        "enum" => {
+                            if !value.is_array() {
+                                panic!("{sub_path}: enum must be an array, got {value}");
+                            }
+                        }
+                        "$ref" => {
+                            if !value.is_string() {
+                                panic!("{sub_path}: $ref must be a string, got {value}");
+                            }
+                        }
+                        "const" => {} // any JSON value is a legal const
+                        _ => unreachable!("keyword {key:?} is in EVALUATED_KEYWORDS but has no preflight arm"),
+                    }
+                }
+            }
+            Value::Bool(_) => {} // `true`/`false` as a schema (e.g. inside anyOf) is valid draft-07
+            other => panic!("{path}: a (sub)schema must be an object or boolean, got {other}"),
+        }
+    }
+
     impl Validator {
         pub fn new(schema: &Value) -> Validator {
+            preflight(schema, "$");
             Validator {
                 schema: schema.clone(),
             }
@@ -295,33 +451,49 @@ fn hex_encode(bytes: impl AsRef<[u8]>) -> String {
     bytes.as_ref().iter().map(|b| format!("{b:02x}")).collect()
 }
 
-/// Minimal RFC 4648 standard-alphabet base64 decoder (no external crate).
-/// PEM uses standard base64 with `=` padding; this is all we need to turn a
-/// certificate's base64 body back into DER bytes.
-fn base64_decode(input: &str) -> Vec<u8> {
+/// Strict RFC 4648 standard-alphabet base64 decoder (no external crate).
+/// Unlike a permissive decoder, this REJECTS: a non-multiple-of-4 length
+/// (after stripping whitespace only), `=` padding anywhere but the final
+/// 1-2 characters, more than 2 padding characters, and any byte outside the
+/// standard alphabet. Fixes the #1715 round-4 review's point 3 finding that
+/// the prior decoder silently tolerated malformed padding instead of
+/// rejecting it (see `artifacts/malformed_base64_padding.pem.fixture`).
+fn base64_decode_strict(input: &str) -> Option<Vec<u8>> {
     const ALPHABET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut table = [255u8; 256];
     for (i, &c) in ALPHABET.iter().enumerate() {
         table[c as usize] = i as u8;
     }
-    let clean: Vec<u8> = input
-        .bytes()
-        .filter(|b| !b.is_ascii_whitespace() && *b != b'=')
-        .collect();
-    let mut out = Vec::with_capacity(clean.len() * 3 / 4 + 3);
+    let clean: Vec<u8> = input.bytes().filter(|b| !b.is_ascii_whitespace()).collect();
+    if clean.is_empty() || clean.len() % 4 != 0 {
+        return None;
+    }
+    let pad_count = clean.iter().rev().take_while(|&&b| b == b'=').count();
+    if pad_count > 2 {
+        return None;
+    }
+    let data_len = clean.len() - pad_count;
+    for (i, &b) in clean.iter().enumerate() {
+        if b == b'=' {
+            if i < data_len {
+                return None; // '=' appearing before the trailing pad region
+            }
+        } else if table[b as usize] == 255 {
+            return None; // byte outside the standard alphabet
+        }
+    }
+    let mut out = Vec::with_capacity(data_len * 3 / 4 + 3);
     let mut buf: u32 = 0;
     let mut bits = 0u32;
-    for b in clean {
-        let v = table[b as usize];
-        assert_ne!(v, 255, "invalid base64 byte {b:?}");
-        buf = (buf << 6) | v as u32;
+    for &b in &clean[..data_len] {
+        buf = (buf << 6) | table[b as usize] as u32;
         bits += 6;
         if bits >= 8 {
             bits -= 8;
             out.push(((buf >> bits) & 0xFF) as u8);
         }
     }
-    out
+    Some(out)
 }
 
 /// A parsed `-----BEGIN CERTIFICATE----- ... -----END CERTIFICATE-----` block.
@@ -333,20 +505,32 @@ struct PemBlock {
     der: Vec<u8>,
 }
 
-/// Independently parse every PEM block in `data`. Does not trust anything
-/// declared in a plan/evidence/manifest fixture: this re-derives the block
-/// boundaries and DER bytes straight from the raw file content.
-fn find_pem_blocks(data: &[u8]) -> Vec<PemBlock> {
-    let text =
-        std::str::from_utf8(data).expect("artifact must be UTF-8 for this contract's fixtures");
+/// Independently parse EVERY byte of `data` as a sequence of PEM certificate
+/// blocks. Does not trust anything declared in a plan/evidence/manifest
+/// fixture. Unlike a permissive scanner, this REJECTS (per the #1715
+/// round-4 review's point 3): any non-whitespace content that is not part
+/// of a complete, well-formed BEGIN...END block (a trailing unmatched
+/// BEGIN, stray bytes between blocks, stray bytes after the last block),
+/// and a body that fails strict base64 decoding. The whole file must be
+/// exactly tiled by complete blocks with nothing left over.
+fn find_pem_blocks_strict(data: &[u8]) -> Result<Vec<PemBlock>, String> {
+    let text = std::str::from_utf8(data).map_err(|e| format!("not valid UTF-8: {e}"))?;
     const BEGIN: &str = "-----BEGIN CERTIFICATE-----";
     const END: &str = "-----END CERTIFICATE-----";
     let mut out = Vec::new();
     let mut pos = 0usize;
-    while let Some(b_rel) = text[pos..].find(BEGIN) {
-        let b = pos + b_rel;
-        let Some(e_rel) = text[b..].find(END) else {
+    while pos < text.len() {
+        if text[pos..].trim().is_empty() {
             break;
+        }
+        if !text[pos..].starts_with(BEGIN) {
+            return Err(format!(
+                "unexpected content at byte offset {pos}, outside any complete PEM block"
+            ));
+        }
+        let b = pos;
+        let Some(e_rel) = text[b..].find(END) else {
+            return Err(format!("BEGIN CERTIFICATE at byte offset {b} has no matching END (unmatched/truncated block)"));
         };
         let mut end = b + e_rel + END.len();
         if text.as_bytes().get(end) == Some(&b'\n') {
@@ -355,41 +539,92 @@ fn find_pem_blocks(data: &[u8]) -> Vec<PemBlock> {
         let body_start = b + BEGIN.len();
         let body_end = b + e_rel;
         let body = &text[body_start..body_end];
-        let der = base64_decode(body);
+        let der = base64_decode_strict(body)
+            .ok_or_else(|| format!("block at byte offset {b} has malformed base64 (bad padding, bad length, or an invalid character)"))?;
         out.push(PemBlock {
             range: (b, end),
             der,
         });
         pos = end;
     }
-    out
+    Ok(out)
 }
 
-/// Shallow DER sanity check: a real DER-encoded certificate is a SEQUENCE
-/// (tag 0x30) whose length octets describe (approximately) the remaining
-/// bytes. This is NOT an ASN.1/X.509 parser -- it does not look inside the
-/// SEQUENCE -- but it is enough to tell a real certificate's DER envelope
-/// apart from arbitrary non-DER bytes stuffed into a PEM-shaped wrapper
-/// (see artifacts/invalid_der.pem.fixture).
-fn looks_like_valid_der_sequence(der: &[u8]) -> bool {
-    if der.len() < 2 || der[0] != 0x30 {
-        return false;
+/// Read one DER TLV header at the start of `buf`: returns (tag, content
+/// length, header length), or `None` if the header itself is malformed or
+/// claims a length that would run past `buf`.
+fn read_der_tlv_header(buf: &[u8]) -> Option<(u8, usize, usize)> {
+    if buf.len() < 2 {
+        return None;
     }
-    let len_byte = der[1];
+    let tag = buf[0];
+    let len_byte = buf[1];
     if len_byte < 0x80 {
-        // short form: length is len_byte, content follows immediately.
-        2 + len_byte as usize <= der.len()
+        Some((tag, len_byte as usize, 2))
     } else {
-        let num_len_bytes = (len_byte & 0x7F) as usize;
-        if num_len_bytes == 0 || num_len_bytes > 4 || der.len() < 2 + num_len_bytes {
-            return false;
+        let n = (len_byte & 0x7F) as usize;
+        if n == 0 || n > 4 || buf.len() < 2 + n {
+            return None;
         }
         let mut length: usize = 0;
-        for &b in &der[2..2 + num_len_bytes] {
+        for &b in &buf[2..2 + n] {
             length = (length << 8) | b as usize;
         }
-        2 + num_len_bytes + length <= der.len()
+        Some((tag, length, 2 + n))
     }
+}
+
+/// Parse `buf` as a sequence of sibling DER TLVs that EXACTLY tile it: every
+/// byte is consumed by exactly one TLV, with no gap and no trailing bytes.
+/// Returns `None` on any malformed header, a declared length that overruns
+/// the buffer, or leftover/trailing bytes after the last TLV. This is the
+/// fix for the #1715 round-4 review's point 3 findings that the prior
+/// one-level check accepted an empty `30 00` SEQUENCE and ignored trailing
+/// garbage after a declared length.
+fn parse_der_tlv_sequence_exact(buf: &[u8]) -> Option<Vec<(u8, &[u8])>> {
+    let mut out = Vec::new();
+    let mut pos = 0usize;
+    while pos < buf.len() {
+        let (tag, length, header_len) = read_der_tlv_header(&buf[pos..])?;
+        let content_start = pos + header_len;
+        let content_end = content_start + length;
+        if content_end > buf.len() {
+            return None;
+        }
+        out.push((tag, &buf[content_start..content_end]));
+        pos = content_end;
+    }
+    if pos != buf.len() {
+        return None;
+    }
+    Some(out)
+}
+
+/// Independently parse `der` as a COMPLETE X.509 `Certificate` structure
+/// (RFC 5280 `Certificate ::= SEQUENCE { tbsCertificate, signatureAlgorithm,
+/// signatureValue }`): exactly one top-level SEQUENCE consuming every byte
+/// of `der`, whose content is exactly three sibling TLVs tagged SEQUENCE
+/// (0x30), SEQUENCE (0x30), BIT STRING (0x03), consuming every byte of the
+/// outer content. This is NOT a full ASN.1/X.509 parser (it does not look
+/// inside `tbsCertificate`, validate dates, extensions, or signatures, and
+/// performs no chain validation) -- but it is a real, shallow structural
+/// parse rather than a one-level length check, and it rejects: an empty
+/// `30 00` SEQUENCE, trailing bytes after a valid SEQUENCE's declared
+/// length, and non-DER payloads, per the #1715 round-4 review's point 3.
+fn looks_like_complete_x509_der(der: &[u8]) -> bool {
+    let top = match parse_der_tlv_sequence_exact(der) {
+        Some(v) if v.len() == 1 => v,
+        _ => return false,
+    };
+    let (top_tag, top_content) = top[0];
+    if top_tag != 0x30 {
+        return false;
+    }
+    let children = match parse_der_tlv_sequence_exact(top_content) {
+        Some(v) => v,
+        None => return false,
+    };
+    children.len() == 3 && children[0].0 == 0x30 && children[1].0 == 0x30 && children[2].0 == 0x03
 }
 
 fn list_json_files(dir: &str) -> Vec<String> {
@@ -491,6 +726,34 @@ fn all_four_schemas_parse_as_json_and_construct_a_validator_without_panicking() 
     for path in [MANIFEST_SCHEMA, PLAN_SCHEMA, EVIDENCE_SCHEMA, REPORT_SCHEMA] {
         let _ = compiled(path);
     }
+}
+
+/// Direct demonstration of the #1715 round-4 review's point 1 scenario:
+/// `Validator::new` previously only cloned the JSON, so a schema with
+/// `"type": 42` would silently compile and then accept every instance.
+/// The preflight check added in response now rejects it at compile time.
+#[test]
+#[should_panic(expected = "type must be a string or array of strings")]
+fn validator_new_rejects_a_schema_with_a_non_string_type_value() {
+    let bad = serde_json::json!({ "type": 42 });
+    let _ = minischema::Validator::new(&bad);
+}
+
+#[test]
+#[should_panic(expected = "unsupported keyword")]
+fn validator_new_rejects_an_unsupported_keyword_like_maxlength() {
+    // maxLength is a real draft-07 keyword this evaluator does not
+    // implement; silently ignoring it (as the round-3 evaluator did) would
+    // let a schema claim a length bound that is never actually checked.
+    let bad = serde_json::json!({ "type": "string", "maxLength": 0 });
+    let _ = minischema::Validator::new(&bad);
+}
+
+#[test]
+#[should_panic(expected = "is not a recognized JSON Schema type")]
+fn validator_new_rejects_an_unrecognized_type_string() {
+    let bad = serde_json::json!({ "type": "not-a-real-json-schema-type" });
+    let _ = minischema::Validator::new(&bad);
 }
 
 // ===========================================================================
@@ -1267,7 +1530,8 @@ fn target_fingerprints_are_der_fingerprints_independently_rederived_from_real_by
         .as_str()
         .unwrap();
     let before_bytes = read_artifact(before_path);
-    let blocks = find_pem_blocks(&before_bytes);
+    let blocks = find_pem_blocks_strict(&before_bytes)
+        .expect("before_two_targets.pem.fixture must parse completely");
     assert_eq!(
         blocks.len(),
         4,
@@ -1276,8 +1540,8 @@ fn target_fingerprints_are_der_fingerprints_independently_rederived_from_real_by
 
     for b in &blocks {
         assert!(
-            looks_like_valid_der_sequence(&b.der),
-            "block at {:?} does not decode to a valid DER SEQUENCE envelope",
+            looks_like_complete_x509_der(&b.der),
+            "block at {:?} does not decode to a complete X.509 structure",
             b.range
         );
     }
@@ -1327,7 +1591,8 @@ fn byte_ranges_actually_slice_out_bytes_matching_target_sha256_and_apply_to_exac
             .as_str()
             .unwrap(),
     );
-    let independent_blocks = find_pem_blocks(&before_bytes);
+    let independent_blocks = find_pem_blocks_strict(&before_bytes)
+        .expect("before_two_targets.pem.fixture must parse completely");
     let independent_ranges: BTreeSet<(usize, usize)> =
         independent_blocks.iter().map(|b| b.range).collect();
 
@@ -1351,8 +1616,8 @@ fn byte_ranges_actually_slice_out_bytes_matching_target_sha256_and_apply_to_exac
             .find(|b| b.range == (*start, *end))
             .unwrap();
         assert!(
-            looks_like_valid_der_sequence(&block.der),
-            "block at ({start},{end}) is not valid DER"
+            looks_like_complete_x509_der(&block.der),
+            "block at ({start},{end}) is not a complete X.509 structure"
         );
         assert_eq!(
             &sha256_hex(&block.der),
@@ -1400,12 +1665,73 @@ fn byte_ranges_actually_slice_out_bytes_matching_target_sha256_and_apply_to_exac
 #[test]
 fn invalid_der_artifact_independently_fails_the_der_envelope_check() {
     let bytes = read_artifact(&format!("{FX}/artifacts/invalid_der.pem.fixture"));
-    let blocks = find_pem_blocks(&bytes);
+    let blocks = find_pem_blocks_strict(&bytes)
+        .expect("a well-formed PEM envelope with a non-DER body still parses as a block");
     assert_eq!(blocks.len(), 1);
     assert!(
-        !looks_like_valid_der_sequence(&blocks[0].der),
-        "invalid_der.pem.fixture must NOT decode to a valid DER SEQUENCE"
+        !looks_like_complete_x509_der(&blocks[0].der),
+        "invalid_der.pem.fixture must NOT decode to a complete X.509 structure"
     );
+}
+
+/// Point 3 of the #1715 round-4 review, each adversarial case named
+/// explicitly: an empty `30 00` SEQUENCE, trailing bytes after a valid
+/// SEQUENCE's declared length, malformed base64 padding, and a valid
+/// certificate followed by an unmatched BEGIN. Each must be independently
+/// rejected -- some at the PEM-parse stage, some at the DER-structure
+/// stage, but all rejected.
+#[test]
+fn der_and_pem_adversarial_cases_are_each_independently_rejected() {
+    // empty SEQUENCE (30 00): well-formed PEM envelope, valid base64, but
+    // the decoded DER is an empty SEQUENCE -- parses as a block, fails the
+    // "exactly 3 children" X.509 structure check.
+    let bytes = read_artifact(&format!("{FX}/artifacts/empty_der_sequence.pem.fixture"));
+    let blocks = find_pem_blocks_strict(&bytes)
+        .expect("a well-formed PEM envelope around an empty DER SEQUENCE still parses as a block");
+    assert_eq!(blocks.len(), 1);
+    assert_eq!(
+        blocks[0].der,
+        vec![0x30, 0x00],
+        "sanity: the decoded DER must actually be the empty SEQUENCE"
+    );
+    assert!(
+        !looks_like_complete_x509_der(&blocks[0].der),
+        "an empty 30 00 SEQUENCE must NOT be accepted as a complete X.509 structure"
+    );
+
+    // trailing bytes after a valid SEQUENCE's declared length: well-formed
+    // PEM envelope, valid base64, decodes to a real certificate's DER plus
+    // 4 extra junk bytes the outer length does not account for.
+    let bytes = read_artifact(&format!("{FX}/artifacts/der_trailing_bytes.pem.fixture"));
+    let blocks = find_pem_blocks_strict(&bytes).expect(
+        "a well-formed PEM envelope around DER-plus-trailing-bytes still parses as a block",
+    );
+    assert_eq!(blocks.len(), 1);
+    assert!(
+        !looks_like_complete_x509_der(&blocks[0].der),
+        "DER with trailing bytes past the declared SEQUENCE length must be rejected"
+    );
+
+    // malformed base64 padding: well-formed PEM envelope, but the body's
+    // base64 is not a multiple of 4 characters and carries no valid
+    // padding -- this must fail at the PEM/base64-decode stage itself.
+    let bytes = read_artifact(&format!(
+        "{FX}/artifacts/malformed_base64_padding.pem.fixture"
+    ));
+    let result = find_pem_blocks_strict(&bytes);
+    assert!(
+        result.is_err(),
+        "malformed base64 padding must be rejected, not silently decoded to the wrong bytes"
+    );
+
+    // a valid certificate followed by an unmatched BEGIN: the first block
+    // is completely well-formed, but trailing content starts a new BEGIN
+    // with no matching END -- this must fail the "consume ALL bytes" check.
+    let bytes = read_artifact(&format!(
+        "{FX}/artifacts/trailing_unmatched_begin.pem.fixture"
+    ));
+    let result = find_pem_blocks_strict(&bytes);
+    assert!(result.is_err(), "a trailing unmatched BEGIN after a valid certificate must be rejected, not silently dropped");
 }
 
 #[test]
@@ -1414,8 +1740,10 @@ fn reordered_bundle_has_the_same_fingerprint_multiset_but_different_byte_ranges(
     // byte_ranges, even when the multiset is identical."
     let before = read_artifact(&format!("{FX}/artifacts/before_two_targets.pem.fixture"));
     let reordered = read_artifact(&format!("{FX}/artifacts/reordered_two_targets.pem.fixture"));
-    let before_blocks = find_pem_blocks(&before);
-    let reordered_blocks = find_pem_blocks(&reordered);
+    let before_blocks = find_pem_blocks_strict(&before)
+        .expect("before_two_targets.pem.fixture must parse completely");
+    let reordered_blocks = find_pem_blocks_strict(&reordered)
+        .expect("reordered_two_targets.pem.fixture must parse completely");
 
     let fp = |blocks: &[PemBlock]| -> BTreeSet<String> {
         blocks.iter().map(|b| sha256_hex(&b.der)).collect()
@@ -1465,8 +1793,8 @@ fn malformed_truncated_artifact_has_no_end_marker_and_its_body_does_not_decode_t
     assert!(text.contains("-----BEGIN CERTIFICATE-----"));
     assert!(!text.contains("-----END CERTIFICATE-----"));
     assert!(
-        find_pem_blocks(text.as_bytes()).is_empty(),
-        "a block with no END marker must not be parsed as a complete block at all"
+        find_pem_blocks_strict(text.as_bytes()).is_err(),
+        "a block with no END marker must be rejected, not silently dropped"
     );
 }
 
@@ -1648,8 +1976,8 @@ fn authorization_confirmed_scoped_still_restricted_to_caro_interactive_in_schema
         .as_array()
         .expect("report schema must have allOf rules");
     assert!(
-        all_of.len() >= 13,
-        "expected at least 13 allOf conditionals (R1..R13+), found {}",
+        all_of.len() >= 18,
+        "expected at least 18 allOf conditionals (R1..R18 and their sub-rules), found {}",
         all_of.len()
     );
 }
@@ -1660,4 +1988,247 @@ fn no_jsonschema_crate_dependency_exists() {
     // it must stay removed rather than silently creeping back in.
     let cargo_toml = fs::read_to_string("Cargo.toml").unwrap();
     assert!(!cargo_toml.contains("jsonschema"), "Cargo.toml must not reintroduce the jsonschema crate (license policy conflict, see module doc above)");
+}
+
+// ===========================================================================
+// Fixture-level case validator (plan + evidence -> derived verdict), per the
+// #1715 round-4 review's point 4. This is a small, TEST-ONLY reference
+// cross-check, not a preview of product behavior: it exists solely to prove
+// that tampering with an evidence fixture while leaving its paired report
+// fixture untouched is actually caught by this test suite. The review's
+// exact example: swapping verified_removal's "final" observation to
+// final_content_mismatch's bytes previously changed NOTHING any test
+// checked, because nothing ever compared the final observation to the
+// plan's expected_staged_hash.
+// ===========================================================================
+
+fn find_observation<'a>(evidence: &'a Value, step: &str) -> Option<&'a Value> {
+    evidence["observations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|o| o["step"] == step)
+}
+
+fn plan_is_noop(plan: &Value) -> bool {
+    plan["approved_removal_ranges"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .all(|r| r["count"].as_u64().unwrap() == 0)
+}
+
+/// Derive (postcondition.state, verification_basis, effect) from a bound
+/// (plan, evidence) pair, independently of whatever a report fixture
+/// claims. Deliberately narrow: it implements exactly the before/final
+/// byte-binding checks named in the review, not the full normative outcome
+/// table (building that would be the actual behavioral implementation this
+/// checkpoint is not allowed to ship).
+fn derive_postcondition(plan: &Value, evidence: &Value) -> (String, String, String) {
+    if plan_is_noop(plan) {
+        return match find_observation(evidence, "before") {
+            Some(before) if before["content_hash"] == plan["before_hash"] => (
+                "verified".to_string(),
+                "supplied_evidence".to_string(),
+                "already_satisfied".to_string(),
+            ),
+            Some(_) => (
+                "failed".to_string(),
+                "supplied_evidence".to_string(),
+                "unknown".to_string(),
+            ),
+            None => (
+                "unverified".to_string(),
+                "none".to_string(),
+                "unknown".to_string(),
+            ),
+        };
+    }
+    match find_observation(evidence, "final") {
+        None => (
+            "unverified".to_string(),
+            "none".to_string(),
+            "unknown".to_string(),
+        ),
+        Some(final_obs) => {
+            if final_obs["content_hash"] == plan["expected_staged_hash"] {
+                (
+                    "verified".to_string(),
+                    "supplied_evidence".to_string(),
+                    "removed".to_string(),
+                )
+            } else {
+                (
+                    "failed".to_string(),
+                    "supplied_evidence".to_string(),
+                    "unknown".to_string(),
+                )
+            }
+        }
+    }
+}
+
+#[test]
+fn derived_postcondition_matches_the_actual_report_fixture_for_the_happy_path() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let (state, basis, effect) = derive_postcondition(&plan, &evidence);
+    assert_eq!(state, report["postcondition"]["state"]);
+    assert_eq!(basis, report["postcondition"]["verification_basis"]);
+    assert_eq!(effect, report["postcondition"]["effect"]);
+}
+
+#[test]
+fn derived_postcondition_matches_the_actual_report_fixture_for_the_noop_case() {
+    let plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
+    let evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
+    let (state, basis, effect) = derive_postcondition(&plan, &evidence);
+    assert_eq!(state, report["postcondition"]["state"]);
+    assert_eq!(basis, report["postcondition"]["verification_basis"]);
+    assert_eq!(effect, report["postcondition"]["effect"]);
+}
+
+/// THE fix for the #1715 round-4 review's point 4 headline bug: swap the
+/// evidence bundle's "final" observation to point at mismatched bytes
+/// (final_content_mismatch.pem.fixture) while changing nothing else, and
+/// prove the derived postcondition actually flips to failed. Before this
+/// test existed, nothing in this suite compared the final observation to
+/// plan.expected_staged_hash at all, so this exact tamper was invisible.
+#[test]
+fn tampering_the_final_observation_flips_the_derived_postcondition_to_failed() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+
+    let mismatch_path =
+        "tests/fixtures/trust_operation_v1/artifacts/final_content_mismatch.pem.fixture";
+    let mismatch_bytes = read_artifact(mismatch_path);
+    let mismatch_hash = sha256_hex(&mismatch_bytes);
+    assert_ne!(
+        mismatch_hash, plan["expected_staged_hash"],
+        "sanity: the mismatch fixture must not accidentally equal expected_staged_hash"
+    );
+
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let final_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "final")
+        .expect("verified_removal.json must have a final observation");
+    final_obs["content_hash"] = Value::String(mismatch_hash.clone());
+    final_obs["artifact_ref"] = serde_json::json!({
+        "sha256": mismatch_hash,
+        "size_bytes": mismatch_bytes.len(),
+        "source": "fixture_file",
+        "fixture_path": mismatch_path,
+    });
+
+    let (state, _basis, effect) = derive_postcondition(&plan, &evidence);
+    assert_eq!(state, "failed", "swapping the final observation to mismatched bytes must flip the derived postcondition to failed, not stay verified");
+    assert_ne!(
+        effect, "removed",
+        "a failed postcondition must never still claim effect=removed"
+    );
+}
+
+#[test]
+fn missing_final_observation_derives_to_unverified_not_verified() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    observations.retain(|o| o["step"] != "final");
+    let (state, basis, _effect) = derive_postcondition(&plan, &evidence);
+    assert_eq!(state, "unverified");
+    assert_eq!(basis, "none");
+}
+
+#[test]
+fn a_stale_before_observation_derives_the_noop_case_to_failed_not_already_satisfied() {
+    let plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let before_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "before")
+        .unwrap();
+    before_obs["content_hash"] = Value::String("ab".repeat(32));
+    let (state, _basis, effect) = derive_postcondition(&plan, &evidence);
+    assert_eq!(state, "failed", "a before observation that doesn't match the plan's before_hash must not derive to already_satisfied");
+    assert_ne!(effect, "already_satisfied");
+}
+
+/// Point 4: "real noop target absence" -- independently (via DER parsing,
+/// not by trusting the plan's declared target_fingerprints) confirm the
+/// no-op plan's before artifact genuinely contains ZERO occurrences of the
+/// approved-removal targets (cert_A, cert_B), not just that the plan SAYS
+/// count=0.
+#[test]
+fn noop_plans_before_artifact_genuinely_contains_zero_target_occurrences() {
+    let plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
+    assert!(plan_is_noop(&plan));
+    let before_bytes = read_artifact(
+        plan["before_artifact_ref"]["fixture_path"]
+            .as_str()
+            .unwrap(),
+    );
+    let blocks = find_pem_blocks_strict(&before_bytes)
+        .expect("before_targets_absent.pem.fixture must parse completely");
+    let present_fingerprints: BTreeSet<String> =
+        blocks.iter().map(|b| sha256_hex(&b.der)).collect();
+    for range in plan["approved_removal_ranges"].as_array().unwrap() {
+        let target = range["target_sha256"].as_str().unwrap();
+        assert!(
+            !present_fingerprints.contains(target),
+            "no-op plan's before artifact must genuinely NOT contain target {target}, independently of what the plan declares"
+        );
+    }
+}
+
+/// Point 4: "unique nonconflicting snapshots" -- no two observations in the
+/// same evidence bundle share a (step, step_snapshot_id) pair (each
+/// snapshot id is scoped to its step and must be unique within it).
+#[test]
+fn every_evidence_bundle_has_unique_step_snapshot_ids_per_step() {
+    for path in list_json_files(&format!("{FX}/evidence/valid")) {
+        let evidence = load_json(&path);
+        let mut seen: BTreeSet<(String, String)> = BTreeSet::new();
+        for obs in evidence["observations"].as_array().unwrap() {
+            let key = (
+                obs["step"].as_str().unwrap().to_string(),
+                obs["step_snapshot_id"].as_str().unwrap().to_string(),
+            );
+            assert!(
+                seen.insert(key.clone()),
+                "{path}: duplicate (step, step_snapshot_id) pair {key:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn evidence_with_wrong_schema_version_is_schema_invalid() {
+    let validator = compiled(EVIDENCE_SCHEMA);
+    let bad = load_json(&format!("{FX}/evidence/invalid/wrong_schema_version.json"));
+    assert!(
+        !validator.is_valid(&bad),
+        "schema_version=2 must be rejected (schema pins const 1)"
+    );
+}
+
+#[test]
+fn backup_metadata_cannot_be_an_empty_object() {
+    let validator = compiled(EVIDENCE_SCHEMA);
+    let bad = load_json(&format!(
+        "{FX}/evidence/invalid/backup_completed_with_empty_metadata.json"
+    ));
+    assert!(
+        !validator.is_valid(&bad),
+        "metadata={{}} (present but empty) must be rejected; owner/group/mode are all required"
+    );
 }

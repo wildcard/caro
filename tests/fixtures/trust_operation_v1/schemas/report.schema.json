@@ -137,6 +137,19 @@
       }
     },
     {
+      "$comment": "R7b (new per #1715 round-4 review point 2, 'provenance for ... denied authorization'): a denied authorization is a real claim, not a default -- it must carry a real provenance, same as confirmed_scoped's half.",
+      "if": {
+        "properties": { "authorization": { "properties": { "state": { "const": "denied" } }, "required": ["state"] } },
+        "required": ["authorization"]
+      },
+      "then": {
+        "properties": {
+          "authorization": { "properties": { "provenance": { "not": { "const": "none" } } }, "required": ["provenance"] }
+        },
+        "required": ["authorization"]
+      }
+    },
+    {
       "$comment": "R8 (host_permission, half 1): granted/denied are real claims about host behavior and must carry a real provenance. Fixes the #1715 finding: granted + provenance=none was previously representable.",
       "if": {
         "properties": {
@@ -255,8 +268,101 @@
       }
     },
     {
-      "$comment": "R14 (new per review point 1: 'provenance for observed outcomes'): any step status other than not_attempted is a claim that something was actually observed, so observation_source must say where that observation came from. This lives on the shared step_status definition so it applies uniformly to backup/stage/filter/install.",
+      "$comment": "R14 (new per review point 1: 'provenance for observed outcomes'): any step status other than unobserved is a claim that something was actually established, so observation_source must say where that came from. This lives on the shared step_status definition so it applies uniformly to backup/stage/filter/install.",
       "$see": "definitions.step_status.allOf"
+    },
+    {
+      "$comment": "R15 (new per #1715 round-4 review point 2, 'enforce failed execution => failed workflow'): if the mutation itself failed, the overall workflow cannot be anything but failed, regardless of what cleanup does afterward.",
+      "if": {
+        "properties": { "execution": { "properties": { "state": { "const": "failed" } }, "required": ["state"] } },
+        "required": ["execution"]
+      },
+      "then": {
+        "properties": {
+          "cleanup": { "properties": { "workflow_outcome": { "const": "failed" } }, "required": ["workflow_outcome"] }
+        },
+        "required": ["cleanup"]
+      }
+    },
+    {
+      "$comment": "R16 (new per #1715 round-4 review point 2, 'no completed execution with a failed stage'): unlike R13, this fires directly off execution.state=completed, independent of whatever cleanup.workflow_outcome claims.",
+      "if": {
+        "properties": { "execution": { "properties": { "state": { "const": "completed" } }, "required": ["state"] } },
+        "required": ["execution"]
+      },
+      "then": {
+        "properties": {
+          "execution": {
+            "properties": {
+              "steps": {
+                "properties": {
+                  "backup": { "properties": { "status": { "not": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } } }, "required": ["status"] },
+                  "stage": { "properties": { "status": { "not": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } } }, "required": ["status"] },
+                  "filter": { "properties": { "status": { "not": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } } }, "required": ["status"] },
+                  "install": { "properties": { "status": { "not": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } } }, "required": ["status"] }
+                },
+                "required": ["backup", "stage", "filter", "install"]
+              }
+            },
+            "required": ["steps"]
+          }
+        },
+        "required": ["execution"]
+      }
+    },
+    {
+      "$comment": "R17 (new per #1715 round-4 review point 2, 'provenance for cleanup outcomes'): any cleanup state beyond unobserved is a real claim and must say where it came from (symmetric to step_status's R14 and host_permission's R8/R9).",
+      "if": {
+        "not": {
+          "properties": { "cleanup": { "properties": { "state": { "const": "unobserved" } }, "required": ["state"] } },
+          "required": ["cleanup"]
+        }
+      },
+      "then": {
+        "properties": {
+          "cleanup": { "properties": { "observation_source": { "not": { "const": "none" } } }, "required": ["observation_source"] }
+        },
+        "required": ["cleanup"]
+      }
+    },
+    {
+      "$comment": "R17b: the unobserved/none pairing for cleanup also holds in the other direction.",
+      "if": {
+        "properties": { "cleanup": { "properties": { "state": { "const": "unobserved" } }, "required": ["state"] } },
+        "required": ["cleanup"]
+      },
+      "then": {
+        "properties": {
+          "cleanup": { "properties": { "observation_source": { "const": "none" } }, "required": ["observation_source"] }
+        },
+        "required": ["cleanup"]
+      }
+    },
+    {
+      "$comment": "R18 (new per #1715 round-4 review point 2, 'no not_attempted execution with started/completed mutation steps'): if the overall execution is reported not_attempted, no individual mutation step can claim to have actually started or completed -- every step must itself be unobserved or (a sourced) not_attempted.",
+      "if": {
+        "properties": { "execution": { "properties": { "state": { "const": "not_attempted" } }, "required": ["state"] } },
+        "required": ["execution"]
+      },
+      "then": {
+        "properties": {
+          "execution": {
+            "properties": {
+              "steps": {
+                "properties": {
+                  "backup": { "properties": { "status": { "enum": ["unobserved", "not_attempted"] } }, "required": ["status"] },
+                  "stage": { "properties": { "status": { "enum": ["unobserved", "not_attempted"] } }, "required": ["status"] },
+                  "filter": { "properties": { "status": { "enum": ["unobserved", "not_attempted"] } }, "required": ["status"] },
+                  "install": { "properties": { "status": { "enum": ["unobserved", "not_attempted"] } }, "required": ["status"] }
+                },
+                "required": ["backup", "stage", "filter", "install"]
+              }
+            },
+            "required": ["steps"]
+          }
+        },
+        "required": ["execution"]
+      }
     }
   ],
   "definitions": {
@@ -292,8 +398,8 @@
       "properties": {
         "status": {
           "type": "string",
-          "enum": ["not_attempted", "started", "failed", "completed", "timed_out", "signaled", "spawn_failed", "unknown"],
-          "description": "unknown (added per #1715 revision-2 review): something was observed to have happened at this step, but the observation cannot be classified further (e.g. a process-status read that could not distinguish completion from a late signal). Distinct from not_attempted (nothing happened) and from the specific failure statuses."
+          "enum": ["unobserved", "not_attempted", "started", "failed", "completed", "timed_out", "signaled", "spawn_failed", "unknown"],
+          "description": "unobserved (added per #1715 round-4 review point 2) means NO information exists about this step at all -- distinct from not_attempted, which is a POSITIVE, sourced claim that the step is known NOT to have run (e.g. a supplied confirmation that install was never reached). unknown means something WAS observed to have happened, but the observation cannot be classified further (e.g. a process-status read that could not distinguish completion from a late signal) -- it is observed-indeterminate, never unobserved."
         },
         "observation_source": {
           "type": "string",
@@ -303,8 +409,12 @@
       },
       "allOf": [
         {
-          "$comment": "R14: any status other than not_attempted is a claim that something was actually observed, so it must say where that observation came from.",
-          "if": { "not": { "properties": { "status": { "const": "not_attempted" } }, "required": ["status"] } },
+          "$comment": "R14 (tightened to both directions per #1715 round-4 review point 2): status=unobserved iff observation_source=none. A claim beyond unobserved -- INCLUDING a positive not_attempted claim -- is a claim that something was actually established, so it must say where that came from; conversely unobserved can never carry a source (there is nothing to attribute).",
+          "if": { "properties": { "status": { "const": "unobserved" } }, "required": ["status"] },
+          "then": { "properties": { "observation_source": { "const": "none" } }, "required": ["observation_source"] }
+        },
+        {
+          "if": { "not": { "properties": { "status": { "const": "unobserved" } }, "required": ["status"] } },
           "then": { "properties": { "observation_source": { "not": { "const": "none" } } }, "required": ["observation_source"] }
         }
       ]

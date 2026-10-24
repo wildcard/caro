@@ -24,19 +24,19 @@
     "observation_source": "none",
     "steps": {
       "backup": {
-        "status": "not_attempted",
+        "status": "unobserved",
         "observation_source": "none"
       },
       "stage": {
-        "status": "not_attempted",
+        "status": "unobserved",
         "observation_source": "none"
       },
       "filter": {
-        "status": "not_attempted",
+        "status": "unobserved",
         "observation_source": "none"
       },
       "install": {
-        "status": "not_attempted",
+        "status": "unobserved",
         "observation_source": "none"
       }
     }
