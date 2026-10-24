@@ -1,59 +1,59 @@
 {
   "schema_version": 1,
-  "manifest_version": "1.0.0",
+  "manifest_version": "1.1.0",
   "profile": "macos-bsd-cert-pem-v1",
   "operation_id": "op-already-satisfied",
   "evidence_id": "op-already-satisfied-evidence",
-  "command_digest": "90126c9ba13fef7645a6dd607df4c4f5cbce16b7be44d171615437dc51b7654b",
+  "command_digest": "3f23ead5a28a6269f7654a984e0bb868e6f73a355b39750d5bcc3a141f1a5f79",
   "normalized_destination": "/etc/ssl/cert.pem",
   "context_identity": {
     "cwd_supplied": true,
     "cwd": "/etc/ssl"
   },
-  "before_hash": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+  "before_hash": "a885b33052b2f51a7a488ca818103ed2a56db9279f7d1c4a066d33861ac346b0",
   "before_artifact_ref": {
-    "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
-    "size_bytes": 184,
+    "sha256": "a885b33052b2f51a7a488ca818103ed2a56db9279f7d1c4a066d33861ac346b0",
+    "size_bytes": 741,
     "source": "fixture_file",
     "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/before_targets_absent.pem.fixture"
   },
   "target_fingerprints": [
     {
-      "sha256": "bd0a4e39de84f95017e4409cd5e19c4d0107ba8bbeb55fdfb99ec681eb5145bc",
+      "sha256": "62e4ea45d3b967b26dea8c9b5cf2d350a15c78b127728f165cbb48628ae545a3",
       "occurrence_count": 0
     },
     {
-      "sha256": "8472e2b22802308bcb18255e5abcfa63b6c21c701a9b8147b99c533b77484954",
+      "sha256": "118f012fafbeeeaf55a438aeca1d8d75e47f1d9c0a03da625e359742a3914a58",
       "occurrence_count": 0
     },
     {
-      "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+      "sha256": "a45ecacbc0acf265dabf6860f2fe00ea69a0df65389ab2213db5ee020030c26e",
       "occurrence_count": 1
     }
   ],
   "approved_removal_ranges": [
     {
-      "target_sha256": "bd0a4e39de84f95017e4409cd5e19c4d0107ba8bbeb55fdfb99ec681eb5145bc",
+      "target_sha256": "62e4ea45d3b967b26dea8c9b5cf2d350a15c78b127728f165cbb48628ae545a3",
       "count": 0,
       "byte_ranges": []
     },
     {
-      "target_sha256": "8472e2b22802308bcb18255e5abcfa63b6c21c701a9b8147b99c533b77484954",
+      "target_sha256": "118f012fafbeeeaf55a438aeca1d8d75e47f1d9c0a03da625e359742a3914a58",
       "count": 0,
       "byte_ranges": []
     }
   ],
   "approved_transformation": "remove_approved_certificates_only",
-  "expected_staged_hash": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+  "expected_staged_hash": "a885b33052b2f51a7a488ca818103ed2a56db9279f7d1c4a066d33861ac346b0",
   "expected_staged_artifact_ref": {
-    "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
-    "size_bytes": 184,
+    "sha256": "a885b33052b2f51a7a488ca818103ed2a56db9279f7d1c4a066d33861ac346b0",
+    "size_bytes": 741,
     "source": "fixture_file",
     "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/before_targets_absent.pem.fixture"
   },
   "backup_policy": {
     "required": false,
-    "must_match_before_hash": true,
+    "must_match_before_hash": false,
     "must_be_readable": false,
     "overwrite_existing": false,
     "expected_hash": null

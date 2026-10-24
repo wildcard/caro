@@ -3,7 +3,7 @@
   "assessment": {
     "mutation_detection": "identified",
     "transformation_understanding": "supported",
-    "manifest_version": "1.0.0",
+    "manifest_version": "1.1.0",
     "profile": "macos-bsd-cert-pem-v1",
     "target": "/etc/ssl/cert.pem",
     "reason_codes": []
@@ -11,7 +11,7 @@
   "authorization": {
     "state": "confirmed_scoped",
     "provenance": "supplied_claim",
-    "scope_binding_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    "scope_binding_digest": "1abac11a497ae78f50ee3e0dc7011ae62da08ce0fa0eb17f8147efb214b520f8"
   },
   "host_permission": {
     "state": "granted",

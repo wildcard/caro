@@ -45,35 +45,25 @@
       ]
     },
     "artifact_ref": {
-      "description": "Bounded, offline-only reference to actual raw bytes. Exactly one of fixture_path or inline_base64 must be set. NEVER a URL, host path outside the fixtures tree, or any form of network/live-store resolution.",
+      "description": "Bounded, offline-only reference to actual raw bytes. Frozen to fixture_file only in v1 (#1715 revision-2 review point 6: inline_base64 was speculative, unused, and its exclusivity with fixture_file was prose-only). NEVER a URL, host path outside the fixtures tree, or any form of network/live-store resolution.",
       "type": "object",
-      "required": ["sha256", "size_bytes", "source"],
+      "required": ["sha256", "size_bytes", "source", "fixture_path"],
       "additionalProperties": false,
       "properties": {
         "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
         "size_bytes": { "type": "integer", "minimum": 0 },
-        "source": { "type": "string", "enum": ["fixture_file", "inline_base64"] },
+        "source": { "const": "fixture_file" },
         "fixture_path": {
           "type": "string",
           "pattern": "^tests/fixtures/trust_operation_v1/artifacts/[A-Za-z0-9_.-]+$"
-        },
-        "inline_base64": { "type": "string" }
-      },
-      "allOf": [
-        {
-          "if": { "properties": { "source": { "const": "fixture_file" } }, "required": ["source"] },
-          "then": { "required": ["fixture_path"] }
-        },
-        {
-          "if": { "properties": { "source": { "const": "inline_base64" } }, "required": ["source"] },
-          "then": { "required": ["inline_base64"] }
         }
-      ]
+      }
     },
     "fingerprint_count": {
       "type": "object",
       "required": ["sha256", "occurrence_count"],
       "additionalProperties": false,
+      "description": "sha256 here is a DER fingerprint (sha256 of the base64-decoded certificate body), never a raw-PEM-section hash. tests/trust_operation_v1_contract.rs independently re-derives and cross-checks this; it does not trust the declared value.",
       "properties": {
         "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
         "occurrence_count": { "type": "integer", "minimum": 0 }
@@ -97,7 +87,7 @@
         "source": {
           "type": "string",
           "enum": ["fixture", "supplied", "caro_observed"],
-          "description": "v1 ships no live collector; ordinary non-fixture runs never produce a caro_observed observation for file content. caro_observed is reserved for Caro's own existing process-result observation (exit status of a step), never for a verified filesystem read — enforced below: caro_observed forbids content_hash, artifact_ref, and certificate_fingerprints."
+          "description": "v1 ships no live collector; ordinary non-fixture runs never produce a caro_observed observation for file content. caro_observed is reserved for Caro's own existing process-result observation (exit status of a step), never for a verified filesystem read — enforced below: caro_observed forbids content_hash, artifact_ref, and certificate_fingerprints. CRITICAL (per #1715 revision-2 review point 4): no code path in v1 can actually PRODUCE a caro_observed observation — there is no live collector yet. Every observation in this repo's fixtures with source=caro_observed is a HYPOTHETICAL stand-in for what a future real collector would write, used only to exercise this schema's shape. A caller supplying caro_observed in a hand-written evidence file is, until that collector ships, exactly as unauthoritative as supplied — labeling it caro_observed does not and must not make it self-authenticating."
         },
         "step": {
           "type": "string",
@@ -156,6 +146,19 @@
             "mode": { "type": "string", "pattern": "^0[0-7]{3}$" }
           }
         },
+        "backup_readability": {
+          "type": ["string", "null"],
+          "enum": [null, "unobserved", "readable", "unreadable"],
+          "description": "Required and non-null when step=backup (see allOf below). Per #1715 revision-2 review point 3: a completed backup claim needs OBSERVED readability, not merely the presence of metadata. unobserved means exactly that -- an unobserved backup cannot be claimed step_status=completed (see allOf)."
+        },
+        "consumes_before_snapshot_id": {
+          "type": ["string", "null"],
+          "description": "Required (may be null only when not applicable) when step=install: the step_snapshot_id of the 'before' observation this install step read its pre-mutation state from. tests/trust_operation_v1_contract.rs checks this names an ACTUAL before observation present earlier (by capture_sequence) in the same bundle -- a dangling or forward reference is stale_observation."
+        },
+        "consumes_staging_snapshot_id": {
+          "type": ["string", "null"],
+          "description": "Required (may be null only when not applicable) when step=install: the step_snapshot_id of the 'stage' observation this install step actually installed. Same freshness/order check as consumes_before_snapshot_id."
+        },
         "authorization_claim": {
           "type": ["object", "null"],
           "description": "A supplied claim of approval. Data only; never itself an executor authorization token. See report.authorization provenance rules (R6/R7 in report.schema.json): this can only ever surface as provenance=supplied_claim, never confirmed_scoped.",
@@ -194,7 +197,12 @@
           "then": { "required": ["artifact_ref"], "not": { "properties": { "artifact_ref": { "type": "null" } }, "required": ["artifact_ref"] } }
         },
         {
-          "$comment": "A backup-step observation that claims a readable backup must carry its metadata; empty/absent metadata on a backup claim is the #1715 review's 'metadata is empty' finding.",
+          "$comment": "A backup-step observation always declares its readability, observed or not.",
+          "if": { "properties": { "step": { "const": "backup" } }, "required": ["step"] },
+          "then": { "required": ["backup_readability"], "not": { "properties": { "backup_readability": { "type": "null" } }, "required": ["backup_readability"] } }
+        },
+        {
+          "$comment": "A backup-step observation that claims completed must carry its metadata AND an OBSERVED-readable backup, not merely metadata presence. Fixes #1715 revision-2 review point 3 ('Backup evidence needs OBSERVED readability').",
           "if": {
             "properties": {
               "step": { "const": "backup" },
@@ -203,8 +211,15 @@
             "required": ["step", "step_status"]
           },
           "then": {
+            "properties": { "backup_readability": { "const": "readable" } },
+            "required": ["backup_readability"],
             "not": { "properties": { "metadata": { "type": "null" } }, "required": ["metadata"] }
           }
+        },
+        {
+          "$comment": "An install-step observation must name which before/staging snapshot it actually consumed, so a stale or substituted snapshot can be detected (#1715 revision-2 review point 3: 'explicit pre-install before/staging snapshot bindings').",
+          "if": { "properties": { "step": { "const": "install" } }, "required": ["step"] },
+          "then": { "required": ["consumes_before_snapshot_id", "consumes_staging_snapshot_id"] }
         }
       ]
     }

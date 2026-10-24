@@ -1,35 +1,115 @@
-# Trust-Operation Contract (v1, checkpoint 1, revision 2 — frozen, not implemented)
+# Trust-Operation Contract (v1, checkpoint 1 — frozen, not implemented, pending independent acceptance)
 
-**Status**: Checkpoint 1 of issue
-[#1714](https://github.com/wildcard/caro/issues/1714), revision 2 after the
-independent review on [PR #1715](https://github.com/wildcard/caro/pull/1715).
-This document, the manifest, and the schemas it links are the frozen support
-boundary and report contract. **No behavioral code implements this yet.**
-Nothing here changes `CliResult`, the safety validator, the executor, or any
-CLI output. A later PR adds behavior against this frozen contract; this PR
-exists so that PR has a reviewed target instead of an undefined one.
+**Status**: Checkpoint 1 of issue [#1714](https://github.com/wildcard/caro/issues/1714).
+Two rounds of independent review on [PR #1715](https://github.com/wildcard/caro/pull/1715)
+have found and fixed static-contract defects (round 2: 6 classes; round 3:
+7 classes, including a real CI license-policy failure). **This document
+does NOT claim the contract is "frozen" or "all fixed" — that claim belongs
+to the independent reviewer, not to this PR.** It states, plainly, what
+changed and why, and leaves acceptance to the next review pass.
 
-### What changed in revision 2
+**No behavioral code implements this yet.** Nothing here changes
+`CliResult`, the safety validator, the executor, or any CLI output. A later
+PR adds behavior against this frozen contract; this PR exists so that PR
+has a reviewed target instead of an undefined one.
 
-The first draft of this contract was rejected on independent review for six
-classes of static defect: forbidden report states were representable
-(`confirmed_scoped` with a `supplied_claim` or a missing digest; `granted`
-host permission with no provenance; `verified` postcondition with no basis;
-`workflow_outcome=completed` after a failed cleanup); the evidence/plan
-schemas carried claimed hashes with no real bytes behind them; plan↔evidence
-bindings were inconsistent (no shared `evidence_id`, no canonical
-context-equality rule, optional step status); whole-shell status could not
-be told apart from step-level status; the manifest confused *detecting* a
-mutation with *understanding* its transformation (append rows wrongly
-claimed `supported`; two identical `cp` commands got different verdicts
-based only on a filename); and the manifest invented a `4096`-byte bound
-instead of citing the project's actually-configured limits. All six are
-fixed in this revision — see the `$comment` fields inline in the schemas,
-the `revision 2` notes in `manifest.json`, and the new fixture-backed tests
-in `tests/trust_operation_v1_contract.rs` (34 tests, up from 11, now using a
-real JSON Schema validator — `jsonschema`, dev-dependency only,
-`default-features = false`, so no network/TLS code is pulled in — instead of
-checking only that the right words appear in prose).
+**Actual current shape, mechanically checked** (not asserted by hand — see
+`tests/trust_operation_v1_contract.rs::manifest_has_33_rows_and_four_schema_files_as_actually_shipped`
+and `::no_jsonschema_crate_dependency_exists`):
+
+| Artifact | Count |
+|---|---|
+| `manifest.json` rows | **33** (T001–T033) |
+| Schema files (`manifest`, `plan`, `evidence`, `report`) | **4** |
+| Contract tests in `tests/trust_operation_v1_contract.rs` | **47** |
+| New Cargo dependencies | **0** (round 2 added `jsonschema` as a dev-dependency; round 3 removed it — see below — so the net count is zero) |
+
+### What changed in round 3 (this revision)
+
+Round 2's fix for round 1 introduced, or left unfixed, seven further
+defects an independent review found:
+
+1. **Report schema `R5` was simply wrong**, and `R11` was too weak. `R5`
+   forbade `postcondition=failed` whenever `execution=not_attempted` — but
+   a dry-run CAN legitimately read current state via supplied evidence and
+   find it does not match expectations, with no execution attempted at
+   all. Fixed: `R5` now requires `verification_basis=supplied_evidence` for
+   `failed` (same as `verified`), not a blanket ban. `R11` previously only
+   checked a non-null `failure_mode` label with no corresponding failing
+   step; it now also requires at least one of the four named steps to
+   actually carry a failing-family status (`anyOf` over
+   `backup`/`stage`/`filter`/`install`). `R12`/`R13` are tightened: a
+   failed cleanup must report `workflow_outcome=failed` exactly (not
+   merely "not completed"), and `workflow_outcome=completed` now also
+   requires that none of the four steps carry a failing-family status. A
+   new `unknown` step status and a step-level `observation_source`
+   coupling rule (`R14`) were added. See `reports/valid/dry_run_independently_failed_verification.json`,
+   `reports/valid/stage_status_unknown_but_observed.json`, and five new
+   `reports/invalid/*.json` fixtures.
+2. **The PEM artifacts were fake and the fingerprints were wrong.**
+   Round 2's "synthetic certificates" decoded to a plain base64-encoded
+   label, not DER — and `target_sha256` hashed the raw PEM text section
+   (BEGIN/END markers, line wrapping and all), not the certificate's DER
+   bytes. Both are fixed: `tests/fixtures/trust_operation_v1/artifacts/`
+   now holds real (but throwaway, self-signed, keys never committed)
+   X.509 certificates generated with `openssl req -x509`, and
+   `target_sha256`/`target_fingerprints` are now true DER fingerprints
+   (sha256 of the base64-decoded certificate body). The contract test
+   independently re-parses every PEM block, re-decodes its DER, and
+   re-hashes it — it does not trust the plan's claim. New negative
+   fixtures: `invalid_der.pem.fixture` (valid PEM envelope, non-DER
+   payload), `reordered_two_targets.pem.fixture` (same fingerprint
+   multiset, different byte-range assignment).
+3. **Bindings were still loose.** Evidence observations now carry
+   `backup_readability` (`unobserved`/`readable`/`unreadable`) — a
+   completed backup claim requires `readable`, not just present metadata —
+   and `consumes_before_snapshot_id`/`consumes_staging_snapshot_id` on
+   `install` observations, checked against the ACTUAL earlier observations
+   in the same bundle by `capture_sequence` (a dangling or forward
+   reference is rejected). A mutating plan can no longer set
+   `backup_policy.must_match_before_hash=false` either (round 2 only fixed
+   `required`).
+4. **`caro_observed` cannot authenticate anything on its own.** Every
+   schema touching `caro_observed` now says explicitly: v1 ships no live
+   collector, so every fixture using `caro_observed` is a hypothetical
+   stand-in, and a caller writing that label into a JSON file is no more
+   authoritative than `supplied` until a real collector exists. The
+   scoped-approval digest now has an explicit **versioned** preimage
+   (`compute_scope_binding_digest_v1` in the test file:
+   `"trust_operation_scope_binding_v1\n" + command_digest + "\n" +
+   normalized_destination + "\n" + approved_transformation + "\n" +
+   sorted "sha256:count" pairs`), and a dedicated test recomputes it and
+   rejects a well-formed-but-wrong digest.
+5. **Manifest fixture rigor.** Every row now has EXACTLY ONE of a literal
+   `input` or a fully-specified `input_construction` (never both, never
+   neither — enforced by the metaschema). `input_construction` rows
+   (`T030`, `T032`) now carry a frozen `expected_length`/`expected_sha256`
+   that the test actually constructs (right-padding; repeated POSIX
+   single-quote-escaped `sh -c '...'` wrapping) and checks, rather than
+   trusting the row's own claim. `plan_ref` is now bound to the row's own
+   command bytes (`command_digest` is sha256 of the row's literal text,
+   not a placeholder), destination, context, and manifest version — all
+   cross-checked. Report fixtures' `assessment.manifest_version` now
+   matches `manifest.json`'s actual `manifest_version` (`1.1.0`; round 2
+   left this at a stale `1.0.0`).
+6. **`inline_base64` is removed entirely** from `artifact_ref` in both
+   `plan.schema.json` and `evidence.schema.json`. It was speculative,
+   unused by any fixture, and its exclusivity with `fixture_file` was
+   asserted only in prose. `fixture_file` is now the only branch — trivially
+   exclusive, nothing left to enforce.
+7. **The `jsonschema` dev-dependency added in round 2 failed this
+   repository's real `dependency-review.yml` license allowlist** (`MIT-0`
+   via `fluent-uri`/`borrow-or-share`). Checking an alternative (`jsonschema`
+   0.18.x) found it trades that failure for a different one (`Unicode-3.0`
+   via `url`/`idna`/the icu4x stack) — every `$ref`-capable JSON Schema
+   crate checked pulls in a license string outside the allowlist. Per the
+   review's explicit instruction not to weaken that policy, **the
+   dependency is removed entirely.** `tests/trust_operation_v1_contract.rs`
+   now implements a minimal, self-contained draft-07-SUBSET evaluator
+   (module `minischema`) using only `serde_json` and `regex` — both
+   already-existing dependencies, zero new ones, zero new license
+   exposure. Its documented boundary (what keywords it supports, what it
+   deliberately does not implement) is in that module's doc comment.
 
 ## Why this exists
 
@@ -71,7 +151,13 @@ makes "the enclosing shell exited 0" structurally unable to stand in for
 - Plan schema: `tests/fixtures/trust_operation_v1/schemas/plan.schema.json`
 - Evidence schema: `tests/fixtures/trust_operation_v1/schemas/evidence.schema.json`
 - Report schema: `tests/fixtures/trust_operation_v1/schemas/report.schema.json`
-- Synthetic byte-level artifacts (NOT real certificates): `tests/fixtures/trust_operation_v1/artifacts/`
+- Byte-level artifacts: `tests/fixtures/trust_operation_v1/artifacts/`. Real,
+  valid, self-signed X.509 (EC P-256) certificates generated with `openssl
+  req -x509` for this contract only (subjects named `synthetic-test-cert-*.invalid`,
+  org `Caro Test Fixtures (not real)`). Their private keys were generated
+  only to produce the certificate and were never written to this repository
+  or saved anywhere — these files carry no secret material, and the
+  certificates establish no trust relationship with anything.
 - Plan / evidence / report instance fixtures (valid + invalid): `tests/fixtures/trust_operation_v1/{plans,evidence,reports}/{valid,invalid}/`
 - Contract self-check (real schema validation + byte-level + cross-document checks): `tests/trust_operation_v1_contract.rs`
 - Source issue: [#1714](https://github.com/wildcard/caro/issues/1714)

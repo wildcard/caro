@@ -9,41 +9,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Trust-operation contract v1, checkpoint 1, revision 2 (#1714, review
-  on #1715).** Froze the support boundary, schemas, and reason codes for
-  verifying a trust-store mutation (e.g. the Apple eMudhra CA advisory
-  remediation) actually reached the intended state, instead of trusting a
-  whole-shell exit 0. Revision 2 fixes six static-contract defects an
-  independent review found in revision 1: forbidden report states
-  (`confirmed_scoped` without `caro_interactive` provenance or a digest;
-  `granted` host permission with no provenance; `verified` with no basis;
-  a failed cleanup reporting `workflow_outcome=completed`) are now
-  rejected by real `allOf`/`if`/`then` conditionals in
-  `report.schema.json`, not just described in prose; `plan.schema.json`
-  and `evidence.schema.json` bind approved removals to real byte ranges
-  and content-addressed offline artifacts under
-  `tests/fixtures/trust_operation_v1/artifacts/` (synthetic, not real
-  certificates); plan↔evidence bindings are now explicit (`evidence_id`,
-  a canonical `context_identity` shared definition, required step/status,
-  non-nullable backup metadata, no disabling backup on a mutating plan);
-  `execution` separates `whole_shell_status` from a step-grounded `state`
-  and `steps` object so a masked failed-install can never read as
-  completed; the manifest's `transformation_understanding=supported` now
-  requires a bound `plan_ref` fixture, so append (`tee -a`, `>>`) is
-  correctly `unsupported_transform` and two identical `cp` commands no
-  longer get different verdicts based only on a filename; and the
-  over-limit/depth boundary rows cite the project's actually-configured
-  `src/safety/mod.rs`/`src/safety/segments.rs` limits instead of an
-  invented number. **Still contract-only: no detector, gate, or verifier
-  behavior is implemented**, `CliResult` is unchanged, and no real trust
-  store is touched. Regression guard: `tests/trust_operation_v1_contract.rs`
-  (34 tests, up from 11) now validates every manifest/plan/evidence/report
-  fixture — valid and invalid — against its schema with a real validator
-  (`jsonschema` crate, dev-dependency only, `default-features = false`,
-  no network/TLS code), plus byte-level and cross-document consistency
-  checks. Behavioral implementation is a follow-up PR against this frozen
-  contract, pending the independent safety review this checkpoint's PR
-  requests.
+- **Trust-operation contract v1, checkpoint 1 (#1714), two rounds of
+  independent-review fixes (#1715).** Froze the support boundary, schemas,
+  and reason codes for verifying a trust-store mutation (e.g. the Apple
+  eMudhra CA advisory remediation) actually reached the intended state,
+  instead of trusting a whole-shell exit 0. **Still contract-only: no
+  detector, gate, or verifier behavior is implemented**, `CliResult` is
+  unchanged, and no real trust store is touched. Not claimed as "frozen"
+  or "accepted" — that is for the next independent review pass, not this
+  changelog entry.
+  - Round 2 fixed 6 defects: forbidden report states representable only in
+    prose (now real `allOf`/`if`/`then` conditionals); plan/evidence
+    schemas with no real bytes behind their claimed hashes; loose
+    plan↔evidence bindings; no separation between whole-shell exit status
+    and step-level execution state; `transformation_understanding`
+    conflated with mutation detection (append wrongly `supported`, a
+    filename silently changing the verdict); and an invented `4096`-byte
+    bound instead of the project's actually-configured limits.
+  - Round 3 fixed 7 further defects: a wrong report rule (`R5`) that
+    blocked a legitimate dry-run-with-independently-failed-verification
+    case, and a too-weak one (`R11`) that accepted a failure label with no
+    failing step; synthetic PEM artifacts that decoded to plain text, not
+    DER, with fingerprints hashed over the wrong bytes (raw PEM section
+    instead of DER) — replaced with real throwaway self-signed X.509
+    certificates and true DER fingerprints, independently re-derived by
+    the test, never trusted from a fixture's own claim; missing
+    pre-install snapshot-binding/freshness checks and backup-readability
+    observation; an underspecified, unversioned scoped-approval digest —
+    now a named, versioned preimage a dedicated test recomputes; manifest
+    rows that didn't actually bind `plan_ref` to their own command bytes,
+    and a `manifest_version` mismatch between the manifest and its report
+    fixtures; speculative, unused, prose-only-exclusive `inline_base64`
+    support, now removed entirely; and — the only one with a real CI
+    signal — the `jsonschema` dev-dependency round 2 added failed this
+    repo's `dependency-review.yml` license allowlist (`MIT-0` via
+    `fluent-uri`/`borrow-or-share`; a 0.18.x downgrade only traded that for
+    `Unicode-3.0` via `url`/icu4x). Per the review's explicit instruction
+    not to weaken that policy, the dependency is **removed**:
+    `tests/trust_operation_v1_contract.rs` now implements its own minimal
+    draft-07-subset evaluator (`serde_json` + `regex`, both pre-existing
+    dependencies, zero new ones).
+  - Actual current shape (mechanically checked, not asserted by hand):
+    **33** manifest rows, **4** schema files, **47** contract tests,
+    **0** new Cargo dependencies.
 - **`caro guard test` and `caro guard setup` (spec 011 §P2.1, §P2.2).**
   `caro guard test "<command>"` dry-runs one command through the guard and
   prints risk, verdict, matched patterns and the floor flag (`--output json`

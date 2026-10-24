@@ -15,31 +15,34 @@
         "cwd_supplied": true,
         "cwd": "/etc/ssl"
       },
-      "content_hash": "c4c3628a5e23d2fee277d7fb277de0430e319f962276116753dbf723dbf318f7",
+      "content_hash": "85dda53200adc760853e78d33d90cbab9fb052a18d66d521f75c0a3d5968b85e",
       "artifact_ref": {
-        "sha256": "c4c3628a5e23d2fee277d7fb277de0430e319f962276116753dbf723dbf318f7",
-        "size_bytes": 736,
+        "sha256": "85dda53200adc760853e78d33d90cbab9fb052a18d66d521f75c0a3d5968b85e",
+        "size_bytes": 2964,
         "source": "fixture_file",
         "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/before_two_targets.pem.fixture"
       },
       "parse_outcome": "ok",
       "certificate_fingerprints": [
         {
-          "sha256": "bd0a4e39de84f95017e4409cd5e19c4d0107ba8bbeb55fdfb99ec681eb5145bc",
+          "sha256": "62e4ea45d3b967b26dea8c9b5cf2d350a15c78b127728f165cbb48628ae545a3",
           "occurrence_count": 2
         },
         {
-          "sha256": "8472e2b22802308bcb18255e5abcfa63b6c21c701a9b8147b99c533b77484954",
+          "sha256": "118f012fafbeeeaf55a438aeca1d8d75e47f1d9c0a03da625e359742a3914a58",
           "occurrence_count": 1
         },
         {
-          "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+          "sha256": "a45ecacbc0acf265dabf6860f2fe00ea69a0df65389ab2213db5ee020030c26e",
           "occurrence_count": 1
         }
       ],
       "metadata": null,
       "authorization_claim": null,
-      "host_permission_claim": null
+      "host_permission_claim": null,
+      "backup_readability": null,
+      "consumes_before_snapshot_id": null,
+      "consumes_staging_snapshot_id": null
     },
     {
       "source": "fixture",
@@ -53,10 +56,10 @@
         "cwd_supplied": true,
         "cwd": "/etc/ssl"
       },
-      "content_hash": "c4c3628a5e23d2fee277d7fb277de0430e319f962276116753dbf723dbf318f7",
+      "content_hash": "85dda53200adc760853e78d33d90cbab9fb052a18d66d521f75c0a3d5968b85e",
       "artifact_ref": {
-        "sha256": "c4c3628a5e23d2fee277d7fb277de0430e319f962276116753dbf723dbf318f7",
-        "size_bytes": 736,
+        "sha256": "85dda53200adc760853e78d33d90cbab9fb052a18d66d521f75c0a3d5968b85e",
+        "size_bytes": 2964,
         "source": "fixture_file",
         "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/backup_matches_before.pem.fixture"
       },
@@ -68,7 +71,10 @@
         "mode": "0644"
       },
       "authorization_claim": null,
-      "host_permission_claim": null
+      "host_permission_claim": null,
+      "backup_readability": "readable",
+      "consumes_before_snapshot_id": null,
+      "consumes_staging_snapshot_id": null
     },
     {
       "source": "fixture",
@@ -82,23 +88,26 @@
         "cwd_supplied": true,
         "cwd": "/etc/ssl"
       },
-      "content_hash": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+      "content_hash": "a885b33052b2f51a7a488ca818103ed2a56db9279f7d1c4a066d33861ac346b0",
       "artifact_ref": {
-        "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
-        "size_bytes": 184,
+        "sha256": "a885b33052b2f51a7a488ca818103ed2a56db9279f7d1c4a066d33861ac346b0",
+        "size_bytes": 741,
         "source": "fixture_file",
         "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/staged_targets_removed.pem.fixture"
       },
       "parse_outcome": "ok",
       "certificate_fingerprints": [
         {
-          "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+          "sha256": "a45ecacbc0acf265dabf6860f2fe00ea69a0df65389ab2213db5ee020030c26e",
           "occurrence_count": 1
         }
       ],
       "metadata": null,
       "authorization_claim": null,
-      "host_permission_claim": null
+      "host_permission_claim": null,
+      "backup_readability": null,
+      "consumes_before_snapshot_id": null,
+      "consumes_staging_snapshot_id": null
     },
     {
       "source": "caro_observed",
@@ -118,7 +127,10 @@
       "certificate_fingerprints": null,
       "metadata": null,
       "authorization_claim": null,
-      "host_permission_claim": null
+      "host_permission_claim": null,
+      "backup_readability": null,
+      "consumes_before_snapshot_id": "before-1",
+      "consumes_staging_snapshot_id": "stage-1"
     },
     {
       "source": "fixture",
@@ -132,17 +144,17 @@
         "cwd_supplied": true,
         "cwd": "/etc/ssl"
       },
-      "content_hash": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+      "content_hash": "a885b33052b2f51a7a488ca818103ed2a56db9279f7d1c4a066d33861ac346b0",
       "artifact_ref": {
-        "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
-        "size_bytes": 184,
+        "sha256": "a885b33052b2f51a7a488ca818103ed2a56db9279f7d1c4a066d33861ac346b0",
+        "size_bytes": 741,
         "source": "fixture_file",
         "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/final_targets_removed.pem.fixture"
       },
       "parse_outcome": "ok",
       "certificate_fingerprints": [
         {
-          "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+          "sha256": "a45ecacbc0acf265dabf6860f2fe00ea69a0df65389ab2213db5ee020030c26e",
           "occurrence_count": 1
         }
       ],
@@ -152,7 +164,10 @@
         "mode": "0644"
       },
       "authorization_claim": null,
-      "host_permission_claim": null
+      "host_permission_claim": null,
+      "backup_readability": null,
+      "consumes_before_snapshot_id": null,
+      "consumes_staging_snapshot_id": null
     },
     {
       "source": "caro_observed",
@@ -172,7 +187,10 @@
       "certificate_fingerprints": null,
       "metadata": null,
       "authorization_claim": null,
-      "host_permission_claim": null
+      "host_permission_claim": null,
+      "backup_readability": null,
+      "consumes_before_snapshot_id": null,
+      "consumes_staging_snapshot_id": null
     }
   ]
 }

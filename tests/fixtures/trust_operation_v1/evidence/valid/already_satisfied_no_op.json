@@ -15,23 +15,26 @@
         "cwd_supplied": true,
         "cwd": "/etc/ssl"
       },
-      "content_hash": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+      "content_hash": "a885b33052b2f51a7a488ca818103ed2a56db9279f7d1c4a066d33861ac346b0",
       "artifact_ref": {
-        "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
-        "size_bytes": 184,
+        "sha256": "a885b33052b2f51a7a488ca818103ed2a56db9279f7d1c4a066d33861ac346b0",
+        "size_bytes": 741,
         "source": "fixture_file",
         "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/before_targets_absent.pem.fixture"
       },
       "parse_outcome": "ok",
       "certificate_fingerprints": [
         {
-          "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+          "sha256": "a45ecacbc0acf265dabf6860f2fe00ea69a0df65389ab2213db5ee020030c26e",
           "occurrence_count": 1
         }
       ],
       "metadata": null,
       "authorization_claim": null,
-      "host_permission_claim": null
+      "host_permission_claim": null,
+      "backup_readability": null,
+      "consumes_before_snapshot_id": null,
+      "consumes_staging_snapshot_id": null
     },
     {
       "source": "caro_observed",
@@ -51,7 +54,10 @@
       "certificate_fingerprints": null,
       "metadata": null,
       "authorization_claim": null,
-      "host_permission_claim": null
+      "host_permission_claim": null,
+      "backup_readability": null,
+      "consumes_before_snapshot_id": null,
+      "consumes_staging_snapshot_id": null
     }
   ]
 }

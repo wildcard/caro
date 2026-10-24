@@ -13,7 +13,11 @@
       "notes": "Linux test runners use injected macOS-profile metadata and do not treat wheel as their native default. No Windows trust-store support is claimed in v1."
     }
   ],
-  "shells": ["sh", "bash", "zsh"],
+  "shells": [
+    "sh",
+    "bash",
+    "zsh"
+  ],
   "config_bounds": {
     "max_command_length_strict": 1000,
     "max_command_length_moderate": 5000,
@@ -37,7 +41,7 @@
     },
     {
       "id": "T002",
-      "description": "Double-quoted literal cp(1) with explicit -f source/destination onto the named profile path, bound to a real plan fixture (tests/fixtures/trust_operation_v1/plans/valid/mutating_removal_with_backup_required.json) whose approved_removal_ranges resolve against real artifact bytes under tests/fixtures/trust_operation_v1/artifacts/. This is the one command-text form in this manifest allowed to claim transformation_understanding=supported, and it is allowed only because a real plan backs it — not because of the command syntax alone.",
+      "description": "Double-quoted literal cp(1) with explicit -f source/destination onto the named profile path, bound to a real plan fixture (tests/fixtures/trust_operation_v1/plans/valid/mutating_removal_with_backup_required.json) whose approved_removal_ranges resolve against real artifact bytes under tests/fixtures/trust_operation_v1/artifacts/. This is the one command-text form in this manifest allowed to claim transformation_understanding=supported, and it is allowed only because a real plan backs it \u2014 not because of the command syntax alone.",
       "shell": "bash",
       "profile": "macos-bsd-cert-pem-v1",
       "input": "cp -f \"staged.pem\" \"/etc/ssl/cert.pem\"",
@@ -63,7 +67,7 @@
     },
     {
       "id": "T004",
-      "description": "tee -a append redirection onto the named profile path. Append is a categorically different transformation kind than remove_approved_certificates_only (it can only add bytes, never remove an approved certificate occurrence), so transformation_understanding is unsupported here regardless of any plan — v1 has no transformation model for append at all. Previously (revision 1) this row incorrectly claimed transformation_understanding=supported; that was the #1715 review's point 5 finding.",
+      "description": "tee -a append redirection onto the named profile path. Append is a categorically different transformation kind than remove_approved_certificates_only (it can only add bytes, never remove an approved certificate occurrence), so transformation_understanding is unsupported here regardless of any plan \u2014 v1 has no transformation model for append at all. Previously (revision 1) this row incorrectly claimed transformation_understanding=supported; that was the #1715 review's point 5 finding.",
       "shell": "bash",
       "profile": "macos-bsd-cert-pem-v1",
       "input": "cat filtered.pem | tee -a /etc/ssl/cert.pem",
@@ -279,7 +283,9 @@
       "profile": "macos-bsd-cert-pem-v1",
       "input": "certinstall staged.pem",
       "context_supplied_cwd": true,
-      "aliases_in_effect": { "certinstall": "install -m 0644 -o root -g wheel staged.pem /etc/ssl/cert.pem" },
+      "aliases_in_effect": {
+        "certinstall": "install -m 0644 -o root -g wheel staged.pem /etc/ssl/cert.pem"
+      },
       "context_provenance": "supplied_fixture",
       "mutation_detection": "not_detected",
       "transformation_understanding": "unsupported",
@@ -295,7 +301,9 @@
       "profile": "macos-bsd-cert-pem-v1",
       "input": "install_cert",
       "context_supplied_cwd": true,
-      "functions_in_effect": { "install_cert": "install -m 0644 -o root -g wheel staged.pem /etc/ssl/cert.pem" },
+      "functions_in_effect": {
+        "install_cert": "install -m 0644 -o root -g wheel staged.pem /etc/ssl/cert.pem"
+      },
       "context_provenance": "supplied_fixture",
       "mutation_detection": "not_detected",
       "transformation_understanding": "unsupported",
@@ -311,7 +319,10 @@
       "profile": "macos-bsd-cert-pem-v1",
       "input": "cp -f staged.pem /etc/ssl/cert-link.pem",
       "context_supplied_cwd": true,
-      "controlled_fixture_symlink": { "path": "/etc/ssl/cert-link.pem", "resolves_to": "/etc/ssl/cert.pem" },
+      "controlled_fixture_symlink": {
+        "path": "/etc/ssl/cert-link.pem",
+        "resolves_to": "/etc/ssl/cert.pem"
+      },
       "context_provenance": "supplied_fixture",
       "mutation_detection": "not_detected",
       "transformation_understanding": "unsupported",
@@ -420,7 +431,9 @@
         "base_row_id": "T002",
         "pad_char": " ",
         "total_length": 1001,
-        "bound_reference": "config_bounds.max_command_length_strict + 1"
+        "bound_reference": "config_bounds.max_command_length_strict + 1",
+        "expected_length": 1001,
+        "expected_sha256": "30dc0bcecf6f15cd644bd9c07ab40ead6a9a56b2a78ec11d4955e4764072b5f9"
       },
       "context_supplied_cwd": true,
       "mutation_detection": "not_detected",
@@ -451,7 +464,11 @@
         "base_row_id": "T011",
         "wrapper": "sh -c '{inner}'",
         "nesting_depth": 4,
-        "bound_reference": "config_bounds.max_wrapper_depth + 1"
+        "bound_reference": "config_bounds.max_wrapper_depth + 1",
+        "expected_length": 201,
+        "expected_sha256": "aceb242bf68bb7c1d405e3eb11274e1455f9d19e5c59dc9dbbff80fabf80183b",
+        "base_row_nesting_depth": 1,
+        "additional_wraps_applied": 3
       },
       "context_supplied_cwd": true,
       "mutation_detection": "not_detected",

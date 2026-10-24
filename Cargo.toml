@@ -172,7 +172,6 @@ futures = "0.3"
 serde_yaml = "0.9"
 env_logger = "0.11"
 wiremock = "=0.6.4"  # 0.6.5 uses let-chains (rustc 1.88+); keep MSRV 1.85
-jsonschema = { version = "0.60.1", default-features = false }
 
 [[bench]]
 name = "cache"

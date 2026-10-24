@@ -59,6 +59,7 @@
     },
     "target_fingerprints": {
       "type": "array",
+      "description": "DER fingerprints (sha256 of the base64-decoded certificate body, NOT of the raw PEM text section). Fixed per the #1715 revision-2 review's point 2: revision 2 originally hashed the raw PEM section bytes, which is wrong because whitespace/line-wrapping differences would change the hash without changing the certificate. tests/trust_operation_v1_contract.rs independently re-derives these by base64-decoding each PEM block it finds in the artifact and hashing the decoded DER bytes itself; it does not trust this field.",
       "items": { "$ref": "#/definitions/fingerprint_count" }
     },
     "approved_removal_ranges": {
@@ -68,7 +69,11 @@
         "required": ["target_sha256", "count", "byte_ranges"],
         "additionalProperties": false,
         "properties": {
-          "target_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "target_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "DER fingerprint (sha256 of decoded certificate bytes), not a raw-PEM-section hash. See target_fingerprints."
+          },
           "count": {
             "type": "integer",
             "minimum": 0,
@@ -76,7 +81,7 @@
           },
           "byte_ranges": {
             "type": "array",
-            "description": "Explicit [start, end) byte offsets within the before_artifact_ref bytes for each approved occurrence of this fingerprint. Binds the abstract 'count' to actual bytes: the contract test slices before_artifact_ref[start:end] for each range and asserts sha256(slice) == target_sha256. An empty array is valid only when count=0 (the already-satisfied / no-write case).",
+            "description": "Explicit [start, end) byte offsets within the before_artifact_ref bytes, covering the FULL PEM block text (including its BEGIN/END markers and trailing newline) for each approved occurrence of this fingerprint. The contract test independently: (1) slices before_artifact_ref[start:end], (2) base64-decodes the certificate body found inside that slice, (3) asserts sha256(decoded DER bytes) == target_sha256, (4) asserts the ranges are non-overlapping and sorted, and (5) asserts removing exactly these ranges from the before bytes reconstructs expected_staged_hash byte-for-byte. An empty array is valid only when count=0 (the already-satisfied / no-write case).",
             "items": {
               "type": "object",
               "required": ["start", "end"],
@@ -135,7 +140,7 @@
   },
   "allOf": [
     {
-      "$comment": "A real mutation (at least one approved removal with count>0) can never disable the backup requirement. Fixes the #1715 review finding: 'a mutating plan can disable backup'.",
+      "$comment": "A real mutation (at least one approved removal with count>0) can never disable the backup requirement, NOR skip requiring that the backup match the actual before snapshot. Fixes the #1715 revision-2 review finding ('mutating plans cannot disable matching before hash'): the original fix only forced backup_policy.required=true and left must_match_before_hash free to be false on a mutating plan.",
       "if": {
         "properties": {
           "approved_removal_ranges": {
@@ -150,8 +155,11 @@
       "then": {
         "properties": {
           "backup_policy": {
-            "properties": { "required": { "const": true } },
-            "required": ["required"]
+            "properties": {
+              "required": { "const": true },
+              "must_match_before_hash": { "const": true }
+            },
+            "required": ["required", "must_match_before_hash"]
           }
         },
         "required": ["backup_policy"]
@@ -198,34 +206,20 @@
       }
     },
     "artifact_ref": {
-      "description": "Bounded, offline-only reference to actual raw bytes. Exactly one of fixture_path or inline_base64 must be set. NEVER a URL, host path outside the fixtures tree, or any form of network/live-store resolution.",
+      "description": "Bounded, offline-only reference to actual raw bytes. v1 FREEZES this to fixture_file only (per the #1715 revision-2 review's point 6: inline_base64 was speculative, unused by any fixture in this repo, and its exclusivity with fixture_file was asserted only in prose, not enforced). A future reviewed change can reintroduce an inline form WITH a real enforced-exclusivity rule and size/hash negatives if an actual use case needs it. NEVER a URL, host path outside the fixtures tree, or any form of network/live-store resolution.",
       "type": "object",
-      "required": ["sha256", "size_bytes", "source"],
+      "required": ["sha256", "size_bytes", "source", "fixture_path"],
       "additionalProperties": false,
       "properties": {
         "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
         "size_bytes": { "type": "integer", "minimum": 0 },
-        "source": { "type": "string", "enum": ["fixture_file", "inline_base64"] },
+        "source": { "const": "fixture_file" },
         "fixture_path": {
           "type": "string",
           "pattern": "^tests/fixtures/trust_operation_v1/artifacts/[A-Za-z0-9_.-]+$",
-          "description": "Required and exclusive when source=fixture_file. Always relative to the repository root, always under the frozen artifacts directory."
-        },
-        "inline_base64": {
-          "type": "string",
-          "description": "Required and exclusive when source=inline_base64. Bounded to 4096 bytes decoded (matches the existing base64-decode cap in src/safety/normalize.rs, #1687), enforced by the fixture-level contract test."
+          "description": "Always relative to the repository root, always under the frozen artifacts directory."
         }
-      },
-      "allOf": [
-        {
-          "if": { "properties": { "source": { "const": "fixture_file" } }, "required": ["source"] },
-          "then": { "required": ["fixture_path"] }
-        },
-        {
-          "if": { "properties": { "source": { "const": "inline_base64" } }, "required": ["source"] },
-          "then": { "required": ["inline_base64"] }
-        }
-      ]
+      }
     }
   }
 }

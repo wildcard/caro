@@ -3,7 +3,7 @@
   "assessment": {
     "mutation_detection": "identified",
     "transformation_understanding": "supported",
-    "manifest_version": "1.0.0",
+    "manifest_version": "1.1.0",
     "profile": "macos-bsd-cert-pem-v1",
     "target": "/etc/ssl/cert.pem",
     "reason_codes": []

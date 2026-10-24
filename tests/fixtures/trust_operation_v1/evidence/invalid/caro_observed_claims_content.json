@@ -15,10 +15,10 @@
         "cwd_supplied": true,
         "cwd": "/etc/ssl"
       },
-      "content_hash": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
+      "content_hash": "a885b33052b2f51a7a488ca818103ed2a56db9279f7d1c4a066d33861ac346b0",
       "artifact_ref": {
-        "sha256": "4036d596ff8384e73702b035081bc29ab9eeb34ed45f0accdcd00624dca4600b",
-        "size_bytes": 184,
+        "sha256": "a885b33052b2f51a7a488ca818103ed2a56db9279f7d1c4a066d33861ac346b0",
+        "size_bytes": 741,
         "source": "fixture_file",
         "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/final_targets_removed.pem.fixture"
       },
@@ -26,7 +26,10 @@
       "certificate_fingerprints": null,
       "metadata": null,
       "authorization_claim": null,
-      "host_permission_claim": null
+      "host_permission_claim": null,
+      "backup_readability": null,
+      "consumes_before_snapshot_id": "x",
+      "consumes_staging_snapshot_id": "y"
     }
   ]
 }

@@ -70,8 +70,13 @@
         "profile": { "type": "string" },
         "input": { "type": "string" },
         "input_construction": {
-          "description": "Used instead of a literal 'input' string when the exact bytes are deterministically constructed (e.g. padding a base row to an exact configured length boundary) rather than hand-typed, so the construction rule itself is reviewable.",
-          "type": "object"
+          "description": "Used instead of a literal 'input' string when the exact bytes are deterministically constructed (e.g. padding a base row to an exact configured length boundary) rather than hand-typed. Must be FULLY specified: tests/trust_operation_v1_contract.rs actually runs the construction and asserts the resulting bytes' exact length and sha256 against expected_length/expected_sha256 below, rather than trusting the row's own claim (#1715 revision-2 review point 5).",
+          "type": "object",
+          "required": ["expected_length", "expected_sha256"],
+          "properties": {
+            "expected_length": { "type": "integer", "minimum": 0 },
+            "expected_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          }
         },
         "context_supplied_cwd": { "type": "boolean" },
         "supplied_cwd": { "type": "string" },
@@ -94,7 +99,17 @@
           "description": "For a row that depends on context outside the command text (e.g. T022's symlink mapping): supplied_fixture means the mapping is injected ONLY for this test fixture; unobserved means a real run would have no such mapping and must not invent one."
         }
       },
+      "anyOf": [{ "required": ["input"] }, { "required": ["input_construction"] }],
       "allOf": [
+        {
+          "$comment": "EXACTLY ONE of input (literal) or input_construction (fully-specified constructor) per row (#1715 revision-2 review point 5).",
+          "if": { "required": ["input"] },
+          "then": { "not": { "required": ["input_construction"] } }
+        },
+        {
+          "if": { "required": ["input_construction"] },
+          "then": { "not": { "required": ["input"] } }
+        },
         {
           "if": { "properties": { "transformation_understanding": { "const": "supported" } }, "required": ["transformation_understanding"] },
           "then": { "properties": { "plan_ref": { "type": "string", "minLength": 1 } }, "required": ["plan_ref"] }

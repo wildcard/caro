@@ -87,16 +87,16 @@
       }
     },
     {
-      "$comment": "R5: nothing that was never attempted can be reported as a verification failure.",
+      "$comment": "R5 (revised per #1715 revision-2 review): the ORIGINAL R5 wrongly forbade postcondition=failed whenever execution=not_attempted. That's wrong: a dry-run can independently read and verify the CURRENT state against supplied evidence and find it does NOT match what was expected (a stale/corrupted before snapshot, for example) without ever attempting the mutation. That is a legitimate failed postcondition with execution=not_attempted (see dry_run_independently_failed_verification.json). What must stay forbidden is failing WITHOUT evidence: postcondition=failed, like verified, always requires verification_basis=supplied_evidence. There is no other way to fail in v1 either.",
       "if": {
-        "properties": { "execution": { "properties": { "state": { "const": "not_attempted" } }, "required": ["state"] } },
-        "required": ["execution"]
+        "properties": { "postcondition": { "properties": { "state": { "const": "failed" } }, "required": ["state"] } },
+        "required": ["postcondition"]
       },
       "then": {
-        "not": {
-          "properties": { "postcondition": { "properties": { "state": { "const": "failed" } }, "required": ["state"] } },
-          "required": ["postcondition"]
-        }
+        "properties": {
+          "postcondition": { "properties": { "verification_basis": { "const": "supplied_evidence" } }, "required": ["verification_basis"] }
+        },
+        "required": ["postcondition"]
       }
     },
     {
@@ -192,7 +192,7 @@
       }
     },
     {
-      "$comment": "R11: execution.state=failed requires at least one concrete step-level failure signal, never just an inferred label.",
+      "$comment": "R11 (tightened per #1715 revision-2 review, which found the original only required a non-null failure_mode label with no corresponding step): execution.state=failed now requires BOTH a non-null failure_mode AND at least one of the four named steps to actually carry a failing-family status. A caller cannot claim failed by label alone.",
       "if": {
         "properties": { "execution": { "properties": { "state": { "const": "failed" } }, "required": ["state"] } },
         "required": ["execution"]
@@ -200,38 +200,34 @@
       "then": {
         "properties": {
           "execution": {
-            "properties": {
-              "failure_mode": { "not": { "const": null } },
-              "steps": {
-                "properties": {
-                  "backup": { "$ref": "#/definitions/non_failing_step_status_or_failed" },
-                  "stage": { "$ref": "#/definitions/non_failing_step_status_or_failed" },
-                  "filter": { "$ref": "#/definitions/non_failing_step_status_or_failed" },
-                  "install": { "$ref": "#/definitions/non_failing_step_status_or_failed" }
-                }
-              }
-            },
+            "properties": { "failure_mode": { "not": { "const": null } } },
             "required": ["failure_mode"]
           }
         },
-        "required": ["execution"]
+        "required": ["execution"],
+        "anyOf": [
+          { "properties": { "execution": { "properties": { "steps": { "properties": { "backup": { "properties": { "status": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } }, "required": ["status"] } }, "required": ["backup"] } }, "required": ["steps"] } }, "required": ["execution"] },
+          { "properties": { "execution": { "properties": { "steps": { "properties": { "stage": { "properties": { "status": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } }, "required": ["status"] } }, "required": ["stage"] } }, "required": ["steps"] } }, "required": ["execution"] },
+          { "properties": { "execution": { "properties": { "steps": { "properties": { "filter": { "properties": { "status": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } }, "required": ["status"] } }, "required": ["filter"] } }, "required": ["steps"] } }, "required": ["execution"] },
+          { "properties": { "execution": { "properties": { "steps": { "properties": { "install": { "properties": { "status": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } }, "required": ["status"] } }, "required": ["install"] } }, "required": ["steps"] } }, "required": ["execution"] }
+        ]
       }
     },
     {
-      "$comment": "R12 (cleanup, half 1): a failed cleanup step can never be summarized as a completed workflow.",
+      "$comment": "R12 (cleanup, half 1, tightened per review): a failed cleanup step must report workflow_outcome=failed EXACTLY, not merely 'anything but completed'.",
       "if": {
         "properties": { "cleanup": { "properties": { "state": { "const": "failed" } }, "required": ["state"] } },
         "required": ["cleanup"]
       },
       "then": {
         "properties": {
-          "cleanup": { "properties": { "workflow_outcome": { "not": { "const": "completed" } } }, "required": ["workflow_outcome"] }
+          "cleanup": { "properties": { "workflow_outcome": { "const": "failed" } }, "required": ["workflow_outcome"] }
         },
         "required": ["cleanup"]
       }
     },
     {
-      "$comment": "R13 (cleanup, half 2): workflow_outcome=completed is the strongest claim in the report, so it requires BOTH the execution and the cleanup step to have actually completed/succeeded, not just the enclosing shell exiting 0.",
+      "$comment": "R13 (cleanup, half 2, tightened per review): workflow_outcome=completed requires execution=completed AND cleanup=succeeded AND none of the four steps carry a failing-family status. 'Completed overall, but one stage quietly failed' is not representable.",
       "if": {
         "properties": { "cleanup": { "properties": { "workflow_outcome": { "const": "completed" } }, "required": ["workflow_outcome"] } },
         "required": ["cleanup"]
@@ -239,10 +235,28 @@
       "then": {
         "properties": {
           "cleanup": { "properties": { "state": { "const": "succeeded" } }, "required": ["state"] },
-          "execution": { "properties": { "state": { "const": "completed" } }, "required": ["state"] }
+          "execution": {
+            "properties": {
+              "state": { "const": "completed" },
+              "steps": {
+                "properties": {
+                  "backup": { "properties": { "status": { "not": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } } }, "required": ["status"] },
+                  "stage": { "properties": { "status": { "not": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } } }, "required": ["status"] },
+                  "filter": { "properties": { "status": { "not": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } } }, "required": ["status"] },
+                  "install": { "properties": { "status": { "not": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } } }, "required": ["status"] }
+                },
+                "required": ["backup", "stage", "filter", "install"]
+              }
+            },
+            "required": ["state", "steps"]
+          }
         },
         "required": ["cleanup", "execution"]
       }
+    },
+    {
+      "$comment": "R14 (new per review point 1: 'provenance for observed outcomes'): any step status other than not_attempted is a claim that something was actually observed, so observation_source must say where that observation came from. This lives on the shared step_status definition so it applies uniformly to backup/stage/filter/install.",
+      "$see": "definitions.step_status.allOf"
     }
   ],
   "definitions": {
@@ -271,10 +285,6 @@
         "already_satisfied"
       ]
     },
-    "non_failing_step_status_or_failed": {
-      "$comment": "Used only inside an anyOf-style sibling check; intentionally permissive by itself (the real constraint is R11's failure_mode requirement). Kept as a named definition so a future reviewed change can tighten per-step coupling without touching the allOf block structure.",
-      "type": "object"
-    },
     "step_status": {
       "type": "object",
       "required": ["status", "observation_source"],
@@ -282,13 +292,22 @@
       "properties": {
         "status": {
           "type": "string",
-          "enum": ["not_attempted", "started", "failed", "completed", "timed_out", "signaled", "spawn_failed"]
+          "enum": ["not_attempted", "started", "failed", "completed", "timed_out", "signaled", "spawn_failed", "unknown"],
+          "description": "unknown (added per #1715 revision-2 review): something was observed to have happened at this step, but the observation cannot be classified further (e.g. a process-status read that could not distinguish completion from a late signal). Distinct from not_attempted (nothing happened) and from the specific failure statuses."
         },
         "observation_source": {
           "type": "string",
-          "enum": ["none", "fixture", "supplied", "caro_observed"]
+          "enum": ["none", "fixture", "supplied", "caro_observed"],
+          "description": "caro_observed is reserved for Caro's own existing process-result observation. IMPORTANT: no code path in v1 can actually produce a caro_observed observation (no live collector ships yet) — every fixture in this repo using caro_observed is a HYPOTHETICAL stand-in for what a future real collector would emit, not evidence that one exists. A caller supplying caro_observed in a JSON file is, until that collector ships, no more authoritative than 'supplied'; nothing in this schema or these fixtures should be read as Caro trusting a caller-asserted caro_observed label today."
         }
-      }
+      },
+      "allOf": [
+        {
+          "$comment": "R14: any status other than not_attempted is a claim that something was actually observed, so it must say where that observation came from.",
+          "if": { "not": { "properties": { "status": { "const": "not_attempted" } }, "required": ["status"] } },
+          "then": { "properties": { "observation_source": { "not": { "const": "none" } } }, "required": ["observation_source"] }
+        }
+      ]
     },
     "assessment": {
       "type": "object",
