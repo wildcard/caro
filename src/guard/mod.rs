@@ -228,12 +228,11 @@ pub async fn evaluate(
     // The validator does not scan a command over its length limit and reports
     // Moderate, which would map to "no opinion": a silent fail-open on long
     // heredocs and pipelines. An unscanned command goes to the human.
-    if verdict == Verdict::None
-        && result.matched_patterns.is_empty()
+    let unscanned = result.matched_patterns.is_empty()
         && result
             .explanation
-            .starts_with("Command exceeds maximum length")
-    {
+            .starts_with("Command exceeds maximum length");
+    if verdict == Verdict::None && unscanned {
         verdict = Verdict::Ask;
         result.matched_patterns = vec![OVER_LENGTH.to_string()];
     }
@@ -261,7 +260,8 @@ pub async fn evaluate(
     };
     Ok(GuardDecision {
         risk: result.risk_level,
-        floor_applied: SafetyValidator::floor_applies(command, ShellType::Bash),
+        // An unscanned command never reached the floor; do not build its views.
+        floor_applied: !unscanned && SafetyValidator::floor_applies(command, ShellType::Bash),
         matched_patterns: result.matched_patterns,
         verdict,
         reason,
@@ -557,6 +557,16 @@ mod tests {
         assert_eq!(d.verdict, Verdict::Ask);
         assert_eq!(d.matched_patterns, vec![OVER_LENGTH.to_string()]);
         assert!(!d.reason.contains("aaaa"));
+    }
+
+    /// An over-length command is not scanned, so the floor is not reported
+    /// as applied, and no statement views are built for it.
+    #[tokio::test]
+    async fn over_length_command_skips_the_floor_scan() {
+        let long = "rm -rf /; ".repeat(3_000);
+        let d = evaluate(&validator(), &long).await.unwrap();
+        assert_eq!(d.verdict, Verdict::Ask);
+        assert!(!d.floor_applied);
     }
 
     #[tokio::test]

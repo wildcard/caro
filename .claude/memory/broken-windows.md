@@ -122,18 +122,17 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep, CI run 36658876598
 **Issue:** #1341
-**Status:** open. #1553 (merged 2026-10-11) fixed the download: all 3 models load on the 2026-10-12 nightly (run 38195655733). The job is still red: SmolLM and TinyLlama fail 6 tests each on prompt overflow (BW-068, #1612), every model fails 3 on `caro list` (BW-029, #1550), and Qwen fails `e2e_multiple_commands_performance` (926 s on CPU for 4 commands).
+**Status:** open. The 2026-10-13 nightly (run 38336457787) has no prompt-overflow failures (BW-068 fixed). SmolLM and Qwen each fail 4 tests: 3 are `caro list files` (BW-029, #1550, draft #1651) and 1 is `e2e_multiple_commands_performance`, which asserts `< 60s`. It took 1911.492889208 s on SmolLM and 571.94813475 s on Qwen. TinyLlama was cancelled at GitHub's 360-minute job limit. Both run-time problems are #1654 (BW-083).
 **Needs human?:** no (decided 2026-10-10: SmolLM uses the bundle.yml Q8_0 repo, StarCoder is dropped, CI runs on CPU only).
-**Next step:** after BW-068 merges, check the next nightly; the #1550 and CPU-speed failures remain.
-
+**Next step:** after #1651 merges, the remaining red is #1654 (needs human).
 
 ### BW-016: 1.5.0 declared in-repo but never tagged or published
 
 **Found:** 2026-09-30 sweep
 **Issue:** #1419
-**Status:** open. Release PR #1515 merged 2026-10-11; no `v1.5.0` tag on origin yet, so nothing is published.
+**Status:** release done. `v1.5.0` is published and tagged at `d705666` (verified 2026-10-13). #1419 is still open.
 **Needs human?:** yes (release)
-**Next step:** maintainer decides whether to tag 1.5.0. This is also the root of the BW-002 churn.
+**Next step:** the owner closes #1419 if nothing else is left. Delete this entry after 2026-10-20.
 
 ### BW-017: `pr-merged.yml` `add-contributor` job fails on every merge
 
@@ -236,13 +235,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-10, nightly CI triage (harness-plan session)
 **Issue:** #1550
-**Status:** open
-**Needs human?:** yes (CLI design: subcommands win, prompt fallback, or reserved names)
-**Next step:** the maintainer picks an option in #1550. Until then,
-`e2e_smoke_test_suite` and `e2e_shell_operator_truncation` fail in all 4
-Extended Tests jobs; BW-015 hides them, because most tests fail on the model first.
-
-2 e2e tests (`list files`) fail in every Extended Tests job because of this.
+**Status:** claimed-by fix/1550-subcommand-prompt-fallback (draft #1651, Refs #1550). The owner chose option 2 on 2026-10-11 and set a narrow first scope on 2026-10-13: the fallback covers only `list`, `doctor` and `jobs`.
+**Needs human?:** no (decided). A universal fallback for all subcommands is a separate owner decision.
+**Next step:** the owner reviews draft #1651.
 
 ### BW-030: 8 stray `.worktrees/*` gitlinks on main, no `.gitmodules`
 
@@ -329,9 +324,9 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-07-18)
 **Issue:** #1342
-**Status:** open
-**Needs human?:** yes if the fix is to delete the job (CI gate); no for a root-cause fix.
-**Next step:** read the failing step's log and root-cause it.
+**Status:** not reproducing; no root cause found. The job passed on the last 11 main push runs (2026-10-12 to 2026-10-13, latest run 38394590892; job 115286473160 ran 7/7 ChromaDB tests). Evidence posted on #1342.
+**Needs human?:** yes (decide whether to close #1342 without a root cause; it stays open until then)
+**Next step:** the owner decides on #1342. If the job fails again, add the log there.
 
 ### BW-040: static matcher "Find Python files (simple)" swallows content searches
 
@@ -371,9 +366,9 @@ Extended Tests jobs; BW-015 hides them, because most tests fail on the model fir
 
 **Found:** 2026-10-12, nightly verification of BW-015 (run 38195655733)
 **Issue:** #1612. The agent loop adds ~2.6 KB of context to the embedded system prompt. Real tokenizers count 1,955 (SmolLM) and 2,033 (TinyLlama) tokens on Linux; the macOS runner's context is larger and overflows 2048.
-**Status:** claimed-by sweep/2026-10-12-BW-1612 (#1616)
+**Status:** fixed (#1616 and #1618, merged 2026-10-12). The 2026-10-13 nightly has no prompt-overflow failures.
 **Needs human?:** no
-**Next step:** merge the PR; confirm on the next nightly.
+**Next step:** none. Delete after 2026-10-19.
 
 ### BW-069: stale nested lockfiles in npm workspaces (docs-site, landing, presentation, apps/devrel)
 
@@ -391,25 +386,9 @@ builds after the merge are READY (`cmdai` is already red, #1562).
 
 **Found:** 2026-10-12 sweep register sync
 **Issue:** #1610 (overlaps BW-069 for the four workspace lockfiles)
-**Status:** open
-**Needs human?:** yes (sharp bump in `changelog/`; the owner asked for the lockfile deletions in #1609)
-**Next step:** owner approves the sharp 0.35.5 bump in `changelog/`. #1608 (BW-071) and
-#1620 (BW-069) delete the other four lockfiles.
-
----
-
-## Dedup done (2026-10-09)
-
-The 2026-10-03 and 2026-10-07 tables are closed: 26 duplicates closed on
-2026-10-09 (#1520 #1541 → #1098; #1247 … #1392 → #1221; #1169 … #1205 → #1165;
-#1170 → #1162; #1328 → #1163; #1523 → #1269; #1540 → #1272), plus #985 → #917.
-#1329 closed as fixed by #1503 (guard: `test_needs_stdin_prompt`).
-
-Left open on purpose, because they are related but not the same defect: #1400
-(Pattern 43 plus the CPU stub together), #1408 (init feedback, vs #1272),
-#1267 (TTY hang), #1446 vs #1472 (vulnerability vs upgrade plan), #1164 vs
-#1222 (same root cause, fixed together by BW-010), #1183/#1203/#1508 (missing
-waitlist/playbook locale files; #1508 is the CI symptom of both).
+**Status:** fixed (#1621, `c3169411`: sharp overridden to 0.35.5 in `changelog/`). #1610 closed 2026-10-13.
+**Needs human?:** no
+**Next step:** none. Delete after 2026-10-20.
 
 ### BW-052: `Install` workflow red on every main push: setup.sh step exits 127
 
@@ -464,11 +443,9 @@ waitlist/playbook locale files; #1508 is the CI symptom of both).
 
 **Found:** 2026-10-11, broken-window sweep
 **Issue:** #1586
-**Status:** open
-**Needs human?:** yes (Vercel domain setting)
-**Next step:** Owner picks the primary host: make `caro.sh` the primary
-domain in Vercel and 308-redirect `www` to it, or change `site` in
-`website/astro.config.mjs` to the `www` host.
+**Status:** fixed in the Vercel dashboard (option 1), no code change. #1586 closed 2026-10-12.
+**Needs human?:** no
+**Next step:** none. Delete after 2026-10-19.
 
 ### BW-059: `/blog` index omits two published posts
 
@@ -483,9 +460,9 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 
 **Found:** 2026-10-11, broken-window sweep
 **Issue:** #1592
-**Status:** open
-**Needs human?:** yes (safety pattern or copy)
-**Next step:** See the options in the issue.
+**Status:** fixed (#1600, merged 2026-10-12, `a5624c50`). #1592 closed when #1600 merged.
+**Needs human?:** no
+**Next step:** none. Delete after 2026-10-19.
 
 ### BW-061: PR workflows never cancel superseded runs, so the macOS queue backs up
 
@@ -506,10 +483,10 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 ### BW-063: `caro test --suite` ignores `dangerous_pattern`, so the safety skill's YAML RED/GREEN step tests nothing
 
 **Found:** 2026-10-11, broken-window sweep
-**Issue:** #1599
+**Issue:** #1599 (related: #1597, website-claims suite never runs the validator)
 **Status:** open
 **Needs human?:** no
-**Next step:** Make the runner check `dangerous_pattern`.
+**Next step:** Make the runner check `dangerous_pattern`, or make a Rust contract test the RED/GREEN gate in `.claude/skills/safety-pattern-developer/SKILL.md` (Phases 2 and 4). Seen again in #1054: `.claude/beta-testing/pattern-segment-evasions-test.yaml` is documentation only.
 
 ### BW-064: caro-demo-video skill tells agents to merge or push to main without review
 
@@ -541,10 +518,94 @@ workspaces are BW-069.
 
 **Found:** 2026-10-13, v1.5.0 release follow-up (`claude/v1-5-0-notes-alignment`)
 **Issue:** #1636
+**Status:** fixed (#1638, `c4dac8d2` "isolate platform checksum updates"). #1636 closed 2026-10-13.
+**Needs human?:** no
+**Next step:** none. Delete after 2026-10-20.
+
+### BW-074: `clippy --no-default-features --features embedded-cpu` fails on Apple Silicon (dead GPU-layer helpers)
+
+**Found:** 2026-10-13, broken-window sweep (register sync)
+**Issue:** #1626
+**Status:** claimed-by sweep/2026-10-13-BW-1626 (#1656)
+**Needs human?:** no
+**Next step:** merge the PR.
+
+### BW-075: static matcher Pattern 43 drops file-type and size qualifiers ("list pdf files" gives `ls -la`)
+
+**Found:** 2026-10-13, broken-window sweep (register sync)
+**Issue:** #1645
+**Status:** claimed-by fix/1645-pattern43-qualifiers (draft #1648)
+**Needs human?:** no
+**Next step:** the owner reviews draft #1648.
+
+### BW-076: `--approval smart`: a non-loopback Ollama/vLLM judge can relax a static High verdict
+
+**Found:** 2026-10-13, broken-window sweep (register sync)
+**Issue:** #1647
+**Status:** claimed-by wip/1647-smart-judge-loopback (#1649)
+**Needs human?:** yes (approval policy is a safety decision)
+**Next step:** the owner reviews #1649.
+
+### BW-077: CVE ruleset can compile to 0 rules from a stale shared build script
+
+**Found:** 2026-10-13, broken-window sweep (register sync)
+**Issue:** #1652 (corrected 2026-10-13)
+**Status:** open, scoped. The original `remote-backends` regression is disproven. A clean worktree with a fresh target dir gives 2 rules and `safety_text_contract` 7/7 for both default and default + `remote-backends`. The 0-rule result came from a contaminated shared `target/`. It is not a technical blocker for any PR.
+**Needs human?:** yes (the safety owner decides the hardening scope: fail or warn on a missing rules dir, read the runtime `CARGO_MANIFEST_DIR`).
+**Next step:** the safety owner picks the hardening scope in #1652. The sweep does not take this over.
+
+### BW-078: telemetry upload WARN printed above configuration errors
+
+**Found:** 2026-10-13, broken-window sweep (register sync)
+**Issue:** #1630
 **Status:** open
-**Needs human?:** yes (release workflow change; #1635 needs the correct x86_64
-hash before it merges)
-**Next step:** a range such as `/linux-arm64/,/sha256/` also starts at the
-`bin.install` line and ends at the next platform's `sha256` line. Start each
-range at the `url` line only (`/url .*-linux-arm64"/,/sha256/`; #1636 has the
-replay), and fix line 39 of the formula in #1635.
+**Needs human?:** no
+**Next step:** print config errors before the telemetry upload warning.
+
+### BW-079: caro-shell SKILL.md backend guidance stale after v1.5.0
+
+**Found:** 2026-10-13, broken-window sweep (register sync)
+**Issue:** #1629
+**Status:** open
+**Needs human?:** no
+**Next step:** update the skill text to the v1.5.0 backend list.
+
+### BW-080: generation drops explicit path and age constraints (caro-shell showcase example)
+
+**Found:** 2026-10-13, broken-window sweep (register sync)
+**Issue:** #1628
+**Status:** open
+**Needs human?:** no
+**Next step:** add the showcase query as a static-matcher or eval case, then fix the matcher or prompt.
+
+### BW-081: 'clean up unused docker volumes' gives `docker system prune -f` with no risk note
+
+**Found:** 2026-10-13, broken-window sweep (register sync)
+**Issue:** #1627
+**Status:** open
+**Needs human?:** yes (safety pattern)
+**Next step:** the owner decides the risk level; then add the pattern with the safety-pattern-developer TDD flow.
+
+### BW-082: GitHub Copilot CLI: `caro guard` preToolUse harness
+
+**Found:** 2026-10-13, broken-window sweep (register sync)
+**Issue:** #1623
+**Status:** open
+**Needs human?:** yes (new integration scope)
+**Next step:** the owner decides whether to support the Copilot CLI harness.
+
+### BW-083: nightly Extended Tests run too long (perf test 1911 s vs 60 s; TinyLlama job hits the 6 h limit)
+
+**Found:** 2026-10-13, broken-window sweep (main health, nightly run 38336457787)
+**Issue:** #1654
+**Status:** open
+**Needs human?:** yes (CI test budget and job time limit)
+**Next step:** the owner picks the perf budget and a `timeout-minutes` for Extended Tests.
+
+### BW-084: 669 build-artifact files tracked under `tests/evaluation/target/`
+
+**Found:** 2026-10-13, broken-window sweep (a worktree checkout ran out of disk)
+**Issue:** #1655
+**Status:** open
+**Needs human?:** no
+**Next step:** `git rm -r --cached tests/evaluation/target`; `.gitignore` already ignores the path.

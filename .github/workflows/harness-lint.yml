@@ -25,6 +25,9 @@ jobs:
       - name: Test the linter
         run: python3 -m unittest discover -s scripts/tests -p 'test_check_harness.py'
 
+      - name: Test Homebrew formula updates
+        run: python3 -m unittest discover -s scripts/tests -p 'test_homebrew_formula.py'
+
       - name: Lint the harness
         # The warning budget lives in scripts/harness-budget.json, so lowering
         # it never edits this workflow. It must equal the warning count: the PR

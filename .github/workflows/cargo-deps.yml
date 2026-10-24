@@ -1,0 +1,55 @@
+name: Cargo Dependencies
+
+# cargo-audit and cargo-deny check Rust crates only. They used to run in
+# dependency-review.yml, whose path filter also matches npm manifests, so a
+# JS-only PR paid for a cargo-audit build it did not need. These paths are
+# Cargo-only. CI's Security Audit job (ci.yml) still runs cargo audit on
+# every PR.
+
+on:
+  pull_request:
+    paths:
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - '.cargo/audit.toml'
+      - 'deny.toml'
+      - '.github/workflows/cargo-deps.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  cargo-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          cache-key-suffix: cargo-audit
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
+      - name: Run security audit
+        run: cargo audit
+
+      - name: Check for unmaintained crates
+        run: cargo audit --deny warnings || echo "::warning::Some dependencies have warnings"
+        continue-on-error: true
+
+  cargo-deny:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Check dependencies with cargo-deny
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          log-level: warn
+          command: check
+          arguments: --all-features
+        continue-on-error: true
