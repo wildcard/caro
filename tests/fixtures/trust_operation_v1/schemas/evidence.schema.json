@@ -209,7 +209,7 @@
           "then": { "required": ["backup_readability"], "not": { "properties": { "backup_readability": { "type": "null" } }, "required": ["backup_readability"] } }
         },
         {
-          "$comment": "A backup-step observation that claims completed must carry its metadata AND an OBSERVED-readable backup, not merely metadata presence. Fixes #1715 revision-2 review point 3 ('Backup evidence needs OBSERVED readability').",
+          "$comment": "A backup-step observation that claims completed must carry its metadata AND an OBSERVED-readable backup, not merely metadata presence. Fixes #1715 revision-2 review point 3 ('Backup evidence needs OBSERVED readability') and round-5 review point 2 ('completed backup still permits omitted metadata'): `metadata` must be PRESENT (required, not merely 'absent-or-non-null') AND non-null, so omission, null, empty ({}), and partial ({\"owner\":\"root\"}) are all rejected (the last two by the metadata definition's own required owner/group/mode).",
           "if": {
             "properties": {
               "step": { "const": "backup" },
@@ -218,9 +218,11 @@
             "required": ["step", "step_status"]
           },
           "then": {
-            "properties": { "backup_readability": { "const": "readable" } },
-            "required": ["backup_readability"],
-            "not": { "properties": { "metadata": { "type": "null" } }, "required": ["metadata"] }
+            "properties": {
+              "backup_readability": { "const": "readable" },
+              "metadata": { "not": { "type": "null" } }
+            },
+            "required": ["backup_readability", "metadata"]
           }
         },
         {

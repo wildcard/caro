@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; three
+- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; four
   rounds of independent-review fixes so far (#1715).** Proposes the
   support boundary, schemas, and reason codes for verifying a trust-store
   mutation (e.g. the Apple eMudhra CA advisory remediation) actually
@@ -79,8 +79,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     no-op plan, independently-verified zero-target-occurrence on the
     no-op artifact, unique `(step, snapshot_id)` pairs, and backup/evidence
     metadata that can no longer be `{}` (present but empty).
+  - Round 5 fixed 4 further defects plus one small fix. The test-only
+    `derive_postcondition` cross-check still only compared final-vs-expected
+    hash equality, so a tampered final `metadata.mode` still derived to
+    verified/removed; added a fuller `validate_case` cross-check (also
+    checking backup binding, final metadata, the install step's own
+    status, and same-step conflicts even across differing snapshot IDs,
+    plus an independent DER re-check of a no-op plan's before artifact),
+    backed by 8 new adversarial tests and a 9th proving it still agrees
+    with the frozen fixtures on the untampered happy paths. Report-schema
+    failure aggregation was one-way (a failing step didn't force a failed
+    execution/workflow); added R19 per step, with a new invalid fixture.
+    A backup-metadata `allOf` rule used `"not": {"required": [...]}`,
+    which only fires when the key is present, so an OMITTED `metadata` key
+    still passed; fixed to a direct `required`, with two new invalid
+    fixtures. A whole-shell-only report fixture incorrectly used
+    `workflow_outcome: "not_attempted"`; corrected to `"unverified"`. The
+    DER structural check still accepted `30 06 30 00 30 00 03 00` (empty
+    nested structures) because it never recursed past the outer tiling;
+    deepened to validate `tbsCertificate`/`signatureAlgorithm`/
+    `signatureValue` structurally, including a canonical BIT STRING
+    unused-bits check. The PEM scanner had become over-strict, rejecting
+    the comments/whitespace issue #1714 requires preserving and lacking
+    CRLF support; fixed with 3 new fixtures (nested-empty-DER attack,
+    commented/whitespace bundle, CRLF block). Windows CI genuinely failed
+    5/60 tests from CRLF corruption of fixture bytes during checkout
+    (observed: 741→754, 2964→3016 bytes); fixed via a `.gitattributes`
+    `binary` directive on the fixture glob. Small fix: `minischema`'s
+    `preflight` now rejects boolean schemas instead of silently ignoring
+    them. Preserved: the independently-passing Python schema validator
+    (re-run clean against every round-5 change), zero Cargo dependency
+    changes, and the "proposed, not yet accepted" status language.
   - Actual current shape (mechanically checked, not asserted by hand):
-    **33** manifest rows, **4** schema files, **60** contract tests,
+    **33** manifest rows, **4** schema files, **72** contract tests,
     **0** new Cargo dependencies, **1** new Python dev-tool dependency
     (`jsonschema`, CI-only, outside `dependency-review.yml`'s scope).
 - **`caro guard test` and `caro guard setup` (spec 011 §P2.1, §P2.2).**

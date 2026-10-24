@@ -50,6 +50,6 @@
   "cleanup": {
     "state": "unobserved",
     "observation_source": "none",
-    "workflow_outcome": "not_attempted"
+    "workflow_outcome": "unverified"
   }
 }

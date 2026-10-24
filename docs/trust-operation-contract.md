@@ -1,11 +1,12 @@
 # Trust-Operation Contract (v1, checkpoint 1 — proposed, not yet accepted)
 
 **Status**: Checkpoint 1 of issue [#1714](https://github.com/wildcard/caro/issues/1714),
-**proposed, not yet accepted.** Three rounds of independent review on
+**proposed, not yet accepted.** Four rounds of independent review on
 [PR #1715](https://github.com/wildcard/caro/pull/1715) have found and fixed
 static-contract defects (round 2: 6 classes; round 3: 7 classes, including
 a real CI license-policy failure; round 4: 5 classes, including two real
-bugs in this PR's own cross-checks). This document states, plainly, what
+bugs in this PR's own cross-checks; round 5: 4 classes plus a small fix,
+including a real Windows CI failure). This document states, plainly, what
 changed and why. It never uses the word "frozen" to describe the overall
 contract's acceptance state — only this PR's own content, pending the next
 review pass, which decides acceptance.
@@ -23,11 +24,100 @@ and `::no_jsonschema_crate_dependency_exists`):
 |---|---|
 | `manifest.json` rows | **33** (T001–T033) |
 | Schema files (`manifest`, `plan`, `evidence`, `report`) | **4** |
-| Contract tests in `tests/trust_operation_v1_contract.rs` | **60** |
+| Contract tests in `tests/trust_operation_v1_contract.rs` | **72** |
 | New Cargo dependencies | **0** (round 2 added `jsonschema` as a dev-dependency; round 3 removed it — see below — so the net count is zero) |
 | New Python dev-tool dependencies | **1** (`jsonschema`, via `pip install`; not a Cargo dependency, outside `dependency-review.yml`'s scope — see round 4 below) |
 
-### What changed in round 4 (this revision)
+### What changed in round 5 (this revision)
+
+Round 4's fixes were themselves found to have 4 further classes of defect,
+plus one small fix:
+
+1. **`derive_postcondition` only ever compared final-vs-expected hash
+   equality**, so tampering `verified_removal`'s final `metadata.mode` to
+   `"0000"` still derived to `verified`/`removed`. Added a fuller,
+   still-bounded, TEST-ONLY `validate_case(plan, evidence)` reference
+   cross-check (`derive_postcondition` stays as-is for its own existing
+   tests) that additionally checks: final metadata equality against
+   `plan.expected_metadata`; backup binding (content hash, metadata,
+   observed readability) whenever the plan requires a backup; the
+   install step's own status (a final-bytes match with no install
+   observation at all, or a `failed` install step, is never
+   `verified`/`removed`); conflicting same-step observations, rejected
+   even when their `step_snapshot_id`s differ; and, for a no-op plan, an
+   INDEPENDENT re-parse of the before artifact's real DER fingerprints
+   (not the plan's own claim) to catch a no-op plan whose actual bytes
+   still contain an approved-removal target. Eight new adversarial tests
+   (`validate_case_rejects_*`, `validate_case_treats_*`,
+   `validate_case_never_reports_*`) each start from a known-good fixture
+   pair, tamper exactly one thing, and assert the broken case is never
+   granted `verified`/`removed`; a ninth test
+   (`validate_case_agrees_with_the_frozen_report_fixtures_on_the_untampered_happy_paths`)
+   guards that the fuller validator doesn't become stricter than the
+   frozen contract on the untampered happy paths.
+2. **Report-schema aggregation was one-way, and a metadata-presence rule
+   had a gap.** R11 required a failing step whenever execution/workflow
+   were failed, but not the reverse: a `sourced` `failed` install step
+   could coexist with an `unobserved`/`unverified` workflow. Added R19
+   (one `allOf` entry per step — backup/stage/filter/install) forcing
+   `execution.state=failed` AND `cleanup.workflow_outcome=failed`
+   whenever that step's own status is in the failing family, with a new
+   `reports/invalid/failing_step_without_failed_execution_and_workflow.json`
+   fixture. Separately, the evidence schema's backup+completed rule used
+   `"not": {"required": ["metadata"]}`, which only fires when the key is
+   *present* — so an OMITTED `metadata` key (not merely `null` or `{}`)
+   still satisfied it. Changed to a direct `"required": ["metadata"]` at
+   the `then` level, with two new invalid fixtures
+   (`backup_completed_metadata_omitted.json`,
+   `backup_completed_metadata_partial.json`). Also fixed
+   `shell_status_present_without_granular_observations.json`, which
+   incorrectly used `cleanup.workflow_outcome: "not_attempted"` when a
+   whole-shell status WAS observed; corrected to `"unverified"`.
+3. **DER/PEM checks still had real gaps.** `looks_like_complete_x509_der`
+   accepted `30 06 30 00 30 00 03 00` (empty nested `tbsCertificate`/
+   `signatureAlgorithm`/`signatureValue`) because it only checked the
+   outer three-child tiling, never recursing in. Deepened it to require
+   `tbsCertificate` to have ≥6 non-empty children including an INTEGER
+   and ≥4 SEQUENCE-tagged fields, `signatureAlgorithm` to start with a
+   non-empty OID, and `signatureValue` to be a canonical DER BIT STRING
+   (new `is_valid_der_bit_string_content`, checking the unused-bits
+   count). A new `nested_empty_der_attack_is_rejected_by_the_recursive_structural_check`
+   test proves the exact attack bytes are now rejected. Separately,
+   round 4's PEM scanner had become OVER-strict: it required zero bytes
+   between blocks, rejecting the comments and inter-block whitespace
+   issue #1714 itself requires preserving, and had no CRLF-after-`END`
+   support. Rewrote `find_pem_blocks_strict` to tolerate arbitrary
+   comment/whitespace text before, between, and after blocks (an
+   unmatched trailing `BEGIN` is still an error) and to recognize both
+   LF and CRLF block terminators. Three new fixtures/tests prove this:
+   `commented_whitespace_bundle.pem.fixture` (two real certificates
+   separated by comment lines and blank lines, with the comment text
+   itself asserted still present byte-for-byte) and
+   `crlf_block.pem.fixture` (CRLF-terminated block parses correctly).
+4. **Windows CI genuinely failed** (observed: job `120861400481` in run
+   `40090290433`, 5/60 tests failing with byte-count mismatches — 754 vs
+   741, 3016 vs 2964 — consistent with CRLF line-ending conversion during
+   checkout). Added a `.gitattributes` entry marking
+   `tests/fixtures/trust_operation_v1/artifacts/*.pem.fixture` as
+   `binary` (disabling line-ending conversion on every platform, not
+   normalizing bytes before hashing), verified locally with
+   `git check-attr -a`.
+
+**Small fix**: the `minischema::preflight` pass accepted boolean schemas
+(`true`/`false`) without `eval` having any semantics for them. Per the
+review's explicit either/or, chose to reject: `preflight` now panics on
+any boolean schema value, with a new
+`preflight_rejects_a_boolean_schema_rather_than_silently_mishandling_it`
+`#[should_panic]` test.
+
+Preserved unchanged: the independently-passing Python schema validator
+(re-run against every round-5 schema/fixture change —
+`scripts/validate_trust_operation_schemas.py` reports all green), zero
+Cargo dependency or policy changes, the exact DER fingerprint domain
+(sha256 of base64-decoded certificate bytes, never raw-PEM-section
+bytes), and the "proposed, not yet accepted" status language throughout.
+
+### What changed in round 4
 
 Round 3's fixes were themselves found to have 5 further classes of defect:
 

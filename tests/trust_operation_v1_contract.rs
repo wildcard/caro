@@ -204,7 +204,18 @@ mod minischema {
                     }
                 }
             }
-            Value::Bool(_) => {} // `true`/`false` as a schema (e.g. inside anyOf) is valid draft-07
+            Value::Bool(b) => {
+                // draft-07 allows `true`/`false` as a schema (always-valid /
+                // always-invalid), but `eval` does not implement that
+                // semantics -- it would silently treat a boolean schema as
+                // "no constraints" (always valid) by calling .get() on a
+                // non-object and finding nothing, which is wrong for
+                // `false`. Per the #1715 round-5 review's small fix
+                // ("implement correctly OR reject"), reject rather than
+                // risk a silently-wrong accept. None of this contract's
+                // four real schemas use a boolean schema.
+                panic!("{path}: boolean schema ({b}) is not supported by this evaluator -- `eval` has no semantics for it. Rewrite as an equivalent object schema.");
+            }
             other => panic!("{path}: a (sub)schema must be an object or boolean, got {other}"),
         }
     }
@@ -505,35 +516,36 @@ struct PemBlock {
     der: Vec<u8>,
 }
 
-/// Independently parse EVERY byte of `data` as a sequence of PEM certificate
-/// blocks. Does not trust anything declared in a plan/evidence/manifest
-/// fixture. Unlike a permissive scanner, this REJECTS (per the #1715
-/// round-4 review's point 3): any non-whitespace content that is not part
-/// of a complete, well-formed BEGIN...END block (a trailing unmatched
-/// BEGIN, stray bytes between blocks, stray bytes after the last block),
-/// and a body that fails strict base64 decoding. The whole file must be
-/// exactly tiled by complete blocks with nothing left over.
+/// Independently parse every PEM certificate block in `data`. Does not
+/// trust anything declared in a plan/evidence/manifest fixture.
+///
+/// Per the #1715 round-5 review's point 3, this tolerates (does NOT error
+/// on) comment lines and blank/whitespace content before, between, and
+/// after blocks -- the source issue (#1714) explicitly requires preserving
+/// "all other raw bytes, comments, whitespace" verbatim, and round 4's
+/// "must consume the whole file" fix over-corrected into rejecting that
+/// legitimate content. What IS still rejected: a `BEGIN CERTIFICATE`
+/// marker with no matching `END` (unmatched/truncated -- this is not
+/// "comment text", it is an attempted block that never completes) and a
+/// body that fails strict base64 decoding. Both LF and CRLF line endings
+/// after `END CERTIFICATE-----` are recognized as the block's own trailing
+/// newline.
 fn find_pem_blocks_strict(data: &[u8]) -> Result<Vec<PemBlock>, String> {
     let text = std::str::from_utf8(data).map_err(|e| format!("not valid UTF-8: {e}"))?;
     const BEGIN: &str = "-----BEGIN CERTIFICATE-----";
     const END: &str = "-----END CERTIFICATE-----";
     let mut out = Vec::new();
     let mut pos = 0usize;
-    while pos < text.len() {
-        if text[pos..].trim().is_empty() {
-            break;
-        }
-        if !text[pos..].starts_with(BEGIN) {
-            return Err(format!(
-                "unexpected content at byte offset {pos}, outside any complete PEM block"
-            ));
-        }
-        let b = pos;
+    while let Some(b_rel) = text[pos..].find(BEGIN) {
+        let b = pos + b_rel;
         let Some(e_rel) = text[b..].find(END) else {
             return Err(format!("BEGIN CERTIFICATE at byte offset {b} has no matching END (unmatched/truncated block)"));
         };
         let mut end = b + e_rel + END.len();
-        if text.as_bytes().get(end) == Some(&b'\n') {
+        if text.as_bytes().get(end) == Some(&b'\r') && text.as_bytes().get(end + 1) == Some(&b'\n')
+        {
+            end += 2;
+        } else if text.as_bytes().get(end) == Some(&b'\n') {
             end += 1;
         }
         let body_start = b + BEGIN.len();
@@ -600,17 +612,61 @@ fn parse_der_tlv_sequence_exact(buf: &[u8]) -> Option<Vec<(u8, &[u8])>> {
     Some(out)
 }
 
+/// Validate a DER `BIT STRING` content region per X.690 canonical (DER)
+/// rules: the first octet is the unused-bit count (0-7); if it is zero the
+/// string may be empty (0 content bytes after it), but if it is non-zero
+/// there must be at least one data byte, AND -- the DER canonicalization
+/// rule most encoders violate first -- the low `unused_bits` bits of the
+/// final data byte must themselves be zero. Rejects an empty signature
+/// value and the "strict base64/unused-bit" gap the #1715 round-5 review
+/// named explicitly.
+fn is_valid_der_bit_string_content(content: &[u8]) -> bool {
+    let Some((&unused_bits, data)) = content.split_first() else {
+        return false; // a BIT STRING always has at least the unused-bits octet
+    };
+    if unused_bits > 7 {
+        return false;
+    }
+    if data.is_empty() {
+        return unused_bits == 0;
+    }
+    if unused_bits == 0 {
+        return true;
+    }
+    let mask = (1u8 << unused_bits) - 1;
+    (data[data.len() - 1] & mask) == 0
+}
+
 /// Independently parse `der` as a COMPLETE X.509 `Certificate` structure
 /// (RFC 5280 `Certificate ::= SEQUENCE { tbsCertificate, signatureAlgorithm,
-/// signatureValue }`): exactly one top-level SEQUENCE consuming every byte
-/// of `der`, whose content is exactly three sibling TLVs tagged SEQUENCE
-/// (0x30), SEQUENCE (0x30), BIT STRING (0x03), consuming every byte of the
-/// outer content. This is NOT a full ASN.1/X.509 parser (it does not look
-/// inside `tbsCertificate`, validate dates, extensions, or signatures, and
-/// performs no chain validation) -- but it is a real, shallow structural
-/// parse rather than a one-level length check, and it rejects: an empty
-/// `30 00` SEQUENCE, trailing bytes after a valid SEQUENCE's declared
-/// length, and non-DER payloads, per the #1715 round-4 review's point 3.
+/// signatureValue }`), recursing one level further than round 4's check
+/// into each of the three fields, per the #1715 round-5 review's point 3
+/// ("bytes 30 06 30 00 30 00 03 00 pass with empty nested structures"):
+///
+/// - Exactly one top-level SEQUENCE (0x30) consuming every byte of `der`.
+/// - Its content is exactly three sibling TLVs tagged SEQUENCE, SEQUENCE,
+///   BIT STRING, consuming every byte of the outer content (unchanged
+///   from round 4).
+/// - `tbsCertificate` (child 0) must itself parse as a sequence of sibling
+///   TLVs that exactly tile its content, with AT LEAST 6 children (the 6
+///   RFC 5280 mandatory fields: serialNumber, signature, issuer, validity,
+///   subject, subjectPublicKeyInfo -- version and extensions are the only
+///   optional, context-tagged fields), every child non-empty, at least one
+///   child tagged INTEGER (0x02, serialNumber), and at least 4 children
+///   tagged SEQUENCE (0x30).
+/// - `signatureAlgorithm` (child 1) must itself parse as a sequence of
+///   sibling TLVs with at least 1 child, whose first child is a non-empty
+///   OBJECT IDENTIFIER (0x06, the algorithm OID).
+/// - `signatureValue` (child 2)'s content must be a valid DER BIT STRING
+///   per `is_valid_der_bit_string_content`, with real signature data (not
+///   just the unused-bits octet alone).
+///
+/// This is still NOT a full ASN.1/X.509 parser: it does not validate
+/// dates, extensions, or signatures, and performs no chain validation --
+/// but `30 06 30 00 30 00 03 00` (an outer SEQUENCE whose three children
+/// are all empty) is now rejected, because `tbsCertificate`'s content is
+/// empty (0 children, fails the >=6 check) and `signatureValue`'s content
+/// is empty (fails the BIT-STRING-must-have-data check).
 fn looks_like_complete_x509_der(der: &[u8]) -> bool {
     let top = match parse_der_tlv_sequence_exact(der) {
         Some(v) if v.len() == 1 => v,
@@ -624,7 +680,40 @@ fn looks_like_complete_x509_der(der: &[u8]) -> bool {
         Some(v) => v,
         None => return false,
     };
-    children.len() == 3 && children[0].0 == 0x30 && children[1].0 == 0x30 && children[2].0 == 0x03
+    if children.len() != 3
+        || children[0].0 != 0x30
+        || children[1].0 != 0x30
+        || children[2].0 != 0x03
+    {
+        return false;
+    }
+
+    let tbs_content = children[0].1;
+    let tbs_children = match parse_der_tlv_sequence_exact(tbs_content) {
+        Some(v) => v,
+        None => return false,
+    };
+    if tbs_children.len() < 6 || tbs_children.iter().any(|(_, c)| c.is_empty()) {
+        return false;
+    }
+    if !tbs_children.iter().any(|(tag, _)| *tag == 0x02) {
+        return false; // serialNumber (INTEGER)
+    }
+    if tbs_children.iter().filter(|(tag, _)| *tag == 0x30).count() < 4 {
+        return false; // signature/issuer/validity/subject/subjectPublicKeyInfo
+    }
+
+    let sigalg_content = children[1].1;
+    let sigalg_children = match parse_der_tlv_sequence_exact(sigalg_content) {
+        Some(v) => v,
+        None => return false,
+    };
+    if sigalg_children.is_empty() || sigalg_children[0].0 != 0x06 || sigalg_children[0].1.is_empty()
+    {
+        return false; // algorithm OBJECT IDENTIFIER
+    }
+
+    is_valid_der_bit_string_content(children[2].1)
 }
 
 fn list_json_files(dir: &str) -> Vec<String> {
@@ -1734,6 +1823,99 @@ fn der_and_pem_adversarial_cases_are_each_independently_rejected() {
     assert!(result.is_err(), "a trailing unmatched BEGIN after a valid certificate must be rejected, not silently dropped");
 }
 
+/// Point 3 of the #1715 round-5 review, the exact named attack bytes:
+/// `30 06 30 00 30 00 03 00` -- an outer SEQUENCE whose declared length
+/// (6) exactly matches three empty children (SEQUENCE, SEQUENCE, BIT
+/// STRING), so round 4's one-level-deeper check (which only verified tag
+/// and count, not content) accepted it. The round-5 recursive structural
+/// check must reject it: tbsCertificate's content is empty (0 children,
+/// fails >=6), and signatureValue's content is empty (fails the
+/// BIT-STRING-must-have-data check).
+#[test]
+fn nested_empty_der_attack_is_rejected_by_the_recursive_structural_check() {
+    let bytes = read_artifact(&format!("{FX}/artifacts/nested_empty_der.pem.fixture"));
+    let blocks = find_pem_blocks_strict(&bytes)
+        .expect("a well-formed PEM envelope around the attack bytes still parses as a block");
+    assert_eq!(blocks.len(), 1);
+    assert_eq!(
+        blocks[0].der,
+        vec![0x30, 0x06, 0x30, 0x00, 0x30, 0x00, 0x03, 0x00],
+        "sanity: the decoded DER must actually be the named attack bytes"
+    );
+    // the ROUND-4 (shallow) check would have accepted this; prove the
+    // round-5 (recursive) check does not.
+    assert!(
+        !looks_like_complete_x509_der(&blocks[0].der),
+        "30 06 30 00 30 00 03 00 (empty nested structures) must be rejected"
+    );
+}
+
+/// Point 3 of the #1715 round-5 review: comment lines and blank lines
+/// around and between PEM blocks must be TOLERATED (per #1714's own
+/// requirement to preserve "all other raw bytes, comments, whitespace"),
+/// not rejected the way round 4's "consume the whole file" check did.
+#[test]
+fn commented_and_whitespace_bundle_parses_both_real_certificates() {
+    let bytes = read_artifact(&format!(
+        "{FX}/artifacts/commented_whitespace_bundle.pem.fixture"
+    ));
+    let blocks = find_pem_blocks_strict(&bytes)
+        .expect("comments and blank lines around/between blocks must not be rejected");
+    assert_eq!(
+        blocks.len(),
+        2,
+        "both real certificate blocks must be found despite the surrounding comment text"
+    );
+    for b in &blocks {
+        assert!(
+            looks_like_complete_x509_der(&b.der),
+            "both blocks in the commented bundle must still be valid, complete X.509 structures"
+        );
+    }
+    // exact preservation: the comment/whitespace bytes outside the two
+    // block ranges must still be present, byte-for-byte, in the file.
+    assert!(String::from_utf8(bytes.clone())
+        .unwrap()
+        .contains("Bag Attributes"));
+    assert!(String::from_utf8(bytes.clone())
+        .unwrap()
+        .contains("# a comment line between blocks"));
+    assert!(String::from_utf8(bytes)
+        .unwrap()
+        .contains("trailing comment after the last block"));
+}
+
+/// Point 3 of the #1715 round-5 review: a PEM block whose lines end in
+/// CRLF, not just LF, must still parse -- the round-4 parser only
+/// recognized a single trailing `\n` after `END CERTIFICATE-----`.
+#[test]
+fn crlf_terminated_block_parses_correctly() {
+    let bytes = read_artifact(&format!("{FX}/artifacts/crlf_block.pem.fixture"));
+    let blocks =
+        find_pem_blocks_strict(&bytes).expect("a CRLF-terminated PEM block must still parse");
+    assert_eq!(blocks.len(), 1);
+    assert!(
+        looks_like_complete_x509_der(&blocks[0].der),
+        "the CRLF block's DER must still be a valid, complete X.509 structure"
+    );
+    assert_eq!(
+        blocks[0].range,
+        (0, bytes.len()),
+        "the single CRLF block must span the entire file"
+    );
+}
+
+#[test]
+#[should_panic(expected = "boolean schema")]
+fn preflight_rejects_a_boolean_schema_rather_than_silently_mishandling_it() {
+    // Per the #1715 round-5 review's small fix: a literal `false` schema
+    // (which should make every instance invalid) would, with the old
+    // code, silently evaluate as "no constraints" (always valid) because
+    // `eval` only reads object-shaped schemas. Reject rather than mislead.
+    let bad = serde_json::json!({ "anyOf": [false, { "type": "string" }] });
+    let _ = minischema::Validator::new(&bad);
+}
+
 #[test]
 fn reordered_bundle_has_the_same_fingerprint_multiset_but_different_byte_ranges() {
     // A reordered bundle is a legitimate negative for "order matters for
@@ -2010,6 +2192,134 @@ fn find_observation<'a>(evidence: &'a Value, step: &str) -> Option<&'a Value> {
         .find(|o| o["step"] == step)
 }
 
+fn find_all_observations_for_step<'a>(evidence: &'a Value, step: &str) -> Vec<&'a Value> {
+    evidence["observations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|o| o["step"] == step)
+        .collect()
+}
+
+fn metadata_matches_expected(observed: &Value, expected: &Value) -> bool {
+    !observed.is_null()
+        && observed["owner"] == expected["owner"]
+        && observed["group"] == expected["group"]
+        && observed["mode"] == expected["mode"]
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct CaseVerdict {
+    state: String,
+    effect: String,
+}
+
+impl CaseVerdict {
+    fn new(state: &str, effect: &str) -> Self {
+        CaseVerdict {
+            state: state.to_string(),
+            effect: effect.to_string(),
+        }
+    }
+}
+
+/// Fuller fixture-level case validator, per the #1715 round-5 review's
+/// point 1: `derive_postcondition` (above) only compared final-vs-expected
+/// hash equality, so changing `verified_removal`'s final `metadata.mode`
+/// to `0000` still derived to verified/removed. This function additionally
+/// checks: conflicting same-step observations (rejected even when their
+/// `step_snapshot_id`s differ -- two different claims about the same step
+/// are a conflict regardless of labeling); backup binding (content hash,
+/// metadata, observed readability) when the plan requires one; final
+/// metadata equality to `plan.expected_metadata`; the install step's own
+/// status (a final-bytes match with no install observation at all is
+/// `unverified`, not `verified`); and, for a no-op plan, an INDEPENDENT
+/// re-parse of the before artifact's real DER fingerprints to catch a
+/// plan that claims no-op while the actual bytes still contain an approved
+/// target. Still deliberately bounded -- see the module-level note on
+/// `derive_postcondition` -- this is fixture validation, not production
+/// verifier development.
+fn validate_case(plan: &Value, evidence: &Value) -> CaseVerdict {
+    for step in [
+        "before", "backup", "stage", "filter", "install", "final", "cleanup",
+    ] {
+        let obs = find_all_observations_for_step(evidence, step);
+        if obs.len() > 1 {
+            let first = obs[0];
+            let conflicting = obs.iter().any(|o| {
+                o["content_hash"] != first["content_hash"]
+                    || o["step_status"] != first["step_status"]
+            });
+            if conflicting {
+                return CaseVerdict::new("unverified", "unknown");
+            }
+        }
+    }
+
+    if plan_is_noop(plan) {
+        return match find_observation(evidence, "before") {
+            None => CaseVerdict::new("unverified", "unknown"),
+            Some(before) => {
+                if before["content_hash"] != plan["before_hash"] {
+                    return CaseVerdict::new("failed", "unknown");
+                }
+                let before_bytes =
+                    read_artifact(before["artifact_ref"]["fixture_path"].as_str().unwrap());
+                let blocks = find_pem_blocks_strict(&before_bytes).unwrap_or_default();
+                let present: BTreeSet<String> = blocks.iter().map(|b| sha256_hex(&b.der)).collect();
+                let plan_contradicted = plan["approved_removal_ranges"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|r| present.contains(r["target_sha256"].as_str().unwrap()));
+                if plan_contradicted {
+                    CaseVerdict::new("failed", "unknown")
+                } else {
+                    CaseVerdict::new("verified", "already_satisfied")
+                }
+            }
+        };
+    }
+
+    if plan["backup_policy"]["required"] == true {
+        match find_observation(evidence, "backup") {
+            None => return CaseVerdict::new("unverified", "unknown"),
+            Some(backup) => {
+                if backup["content_hash"] != plan["before_hash"] {
+                    return CaseVerdict::new("failed", "unknown");
+                }
+                if !metadata_matches_expected(&backup["metadata"], &plan["expected_metadata"]) {
+                    return CaseVerdict::new("failed", "unknown");
+                }
+                if backup["backup_readability"] != "readable" {
+                    return CaseVerdict::new("failed", "unknown");
+                }
+            }
+        }
+    }
+
+    match find_observation(evidence, "final") {
+        None => CaseVerdict::new("unverified", "unknown"),
+        Some(final_obs) => {
+            if final_obs["content_hash"] != plan["expected_staged_hash"] {
+                return CaseVerdict::new("failed", "unknown");
+            }
+            if !final_obs["metadata"].is_null()
+                && !metadata_matches_expected(&final_obs["metadata"], &plan["expected_metadata"])
+            {
+                return CaseVerdict::new("failed", "unknown");
+            }
+            match find_observation(evidence, "install") {
+                None => CaseVerdict::new("unverified", "unknown"),
+                Some(install) if install["step_status"] == "completed" => {
+                    CaseVerdict::new("verified", "removed")
+                }
+                Some(_failed_or_other) => CaseVerdict::new("verified", "unknown"),
+            }
+        }
+    }
+}
+
 fn plan_is_noop(plan: &Value) -> bool {
     plan["approved_removal_ranges"]
         .as_array()
@@ -2161,6 +2471,225 @@ fn a_stale_before_observation_derives_the_noop_case_to_failed_not_already_satisf
     let (state, _basis, effect) = derive_postcondition(&plan, &evidence);
     assert_eq!(state, "failed", "a before observation that doesn't match the plan's before_hash must not derive to already_satisfied");
     assert_ne!(effect, "already_satisfied");
+}
+
+// ===========================================================================
+// validate_case adversarial tests, per the #1715 round-5 review's point 1:
+// "Validate the complete paired fixture case ... Unsupported/incomplete
+// cases must not grant verified/removed." Each test below starts from a
+// known-good fixture pair and tampers exactly one thing, asserting
+// validate_case rejects (never verified/removed) the broken case.
+// ===========================================================================
+
+/// The review's own headline example for point 1: changing the final
+/// observation's metadata.mode to "0000" (while leaving content_hash
+/// untouched, so derive_postcondition's narrower hash-only check would
+/// still say "verified") must not be granted verified/removed.
+#[test]
+fn validate_case_rejects_changed_final_metadata_even_when_final_hash_matches() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let final_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "final")
+        .unwrap();
+    assert_eq!(
+        final_obs["content_hash"], plan["expected_staged_hash"],
+        "sanity: final hash must still match before this test's tamper"
+    );
+    final_obs["metadata"]["mode"] = Value::String("0000".to_string());
+
+    let verdict = validate_case(&plan, &evidence);
+    assert_ne!(verdict.state, "verified", "a final observation with tampered metadata must not be verified just because its content_hash still matches");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// A backup observation whose content_hash does not match plan.before_hash
+/// (a wrong/substituted backup) must not let the case verify.
+#[test]
+fn validate_case_rejects_a_wrong_backup_content_hash() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let backup_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "backup")
+        .unwrap();
+    backup_obs["content_hash"] = Value::String("cd".repeat(32));
+
+    let verdict = validate_case(&plan, &evidence);
+    assert_ne!(
+        verdict.state, "verified",
+        "a backup whose content_hash doesn't match before_hash must not let the case verify"
+    );
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// A backup observation with mismatched metadata (right bytes, wrong
+/// owner/group/mode) must also not let the case verify.
+#[test]
+fn validate_case_rejects_a_backup_with_mismatched_metadata() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let backup_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "backup")
+        .unwrap();
+    backup_obs["metadata"]["owner"] = Value::String("nobody".to_string());
+
+    let verdict = validate_case(&plan, &evidence);
+    assert_ne!(
+        verdict.state, "verified",
+        "a backup with mismatched metadata must not let the case verify"
+    );
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Missing bindings: the final bytes match, but there is no install
+/// observation at all (no step evidence that the staged bytes were ever
+/// installed). This must be unverified, not verified -- a matching final
+/// snapshot alone proves nothing about whether install happened.
+#[test]
+fn validate_case_treats_a_missing_install_observation_as_unverified_not_verified() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    observations.retain(|o| o["step"] != "install");
+
+    let verdict = validate_case(&plan, &evidence);
+    assert_eq!(verdict.state, "unverified", "a matching final snapshot with no install observation at all must be unverified, not verified");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Conflicting same-step snapshots: two "stage" observations with
+/// DIFFERENT step_snapshot_ids but different content -- competing claims
+/// about the same step -- must be rejected even though the IDs differ
+/// (the review's explicit requirement: "Reject conflicting same-step
+/// snapshots even when IDs differ").
+#[test]
+fn validate_case_rejects_conflicting_same_step_observations_even_with_different_snapshot_ids() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let stage_obs = observations
+        .iter()
+        .find(|o| o["step"] == "stage")
+        .unwrap()
+        .clone();
+    let mut conflicting_stage = stage_obs.clone();
+    conflicting_stage["step_snapshot_id"] = Value::String("stage-2-different-id".to_string());
+    conflicting_stage["content_hash"] = Value::String("ef".repeat(32));
+    observations.push(conflicting_stage);
+
+    let verdict = validate_case(&plan, &evidence);
+    assert_ne!(verdict.state, "verified", "two conflicting stage observations with different step_snapshot_ids must still be rejected as a conflict");
+    assert_ne!(verdict.effect, "removed");
+}
+
+/// Failed execution with matching final bytes: the final observation's
+/// bytes match plan.expected_staged_hash, but the install step itself is
+/// recorded as failed. The case may still "verify" that the final bytes
+/// are correct, but the effect must never be reported as removed -- a
+/// failed install step means we don't actually know install happened.
+#[test]
+fn validate_case_never_reports_removed_when_the_install_step_itself_failed() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let install_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "install")
+        .unwrap();
+    install_obs["step_status"] = Value::String("failed".to_string());
+
+    let verdict = validate_case(&plan, &evidence);
+    assert_ne!(verdict.effect, "removed", "a failed install step must never be reported as effect=removed even when the final bytes happen to match");
+}
+
+/// No-op with targets present: the plan claims no-op (count=0 for every
+/// approved target), and the declared before_hash/evidence agree with
+/// each other -- but the ACTUAL bytes at that hash still contain one of
+/// the approved-removal targets. validate_case independently re-parses
+/// the before artifact's real DER fingerprints rather than trusting the
+/// plan's claim, so this must derive to failed, not already_satisfied.
+#[test]
+fn validate_case_rejects_a_noop_plan_whose_actual_before_bytes_still_contain_an_approved_target() {
+    let mut plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
+    let contradicting_path =
+        "tests/fixtures/trust_operation_v1/artifacts/before_two_targets.pem.fixture";
+    let contradicting_bytes = read_artifact(contradicting_path);
+    let contradicting_hash = sha256_hex(&contradicting_bytes);
+
+    // The plan still claims this target has zero occurrences (a genuine
+    // no-op), but the before bytes we're about to point it at actually
+    // contain two occurrences of exactly that target.
+    assert_eq!(
+        plan["approved_removal_ranges"][0]["target_sha256"],
+        "62e4ea45d3b967b26dea8c9b5cf2d350a15c78b127728f165cbb48628ae545a3",
+        "sanity: this is the target this test contradicts"
+    );
+    plan["before_hash"] = Value::String(contradicting_hash.clone());
+    plan["before_artifact_ref"] = serde_json::json!({
+        "sha256": contradicting_hash,
+        "size_bytes": contradicting_bytes.len(),
+        "source": "fixture_file",
+        "fixture_path": contradicting_path,
+    });
+
+    let mut evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let observations = evidence["observations"].as_array_mut().unwrap();
+    let before_obs = observations
+        .iter_mut()
+        .find(|o| o["step"] == "before")
+        .unwrap();
+    before_obs["content_hash"] = Value::String(contradicting_hash.clone());
+    before_obs["artifact_ref"] = serde_json::json!({
+        "sha256": contradicting_hash,
+        "size_bytes": contradicting_bytes.len(),
+        "source": "fixture_file",
+        "fixture_path": contradicting_path,
+    });
+
+    let verdict = validate_case(&plan, &evidence);
+    assert_eq!(verdict.state, "failed", "a no-op plan whose actual before bytes still contain an approved-removal target must derive to failed, not already_satisfied, even though the declared before_hash matches");
+    assert_ne!(verdict.effect, "already_satisfied");
+}
+
+/// Happy-path sanity check: validate_case must still agree with
+/// derive_postcondition (and the frozen report fixture) on the untampered
+/// verified_removal and already_satisfied_no_op cases. This guards against
+/// the fuller validator becoming stricter than the frozen contract itself.
+#[test]
+fn validate_case_agrees_with_the_frozen_report_fixtures_on_the_untampered_happy_paths() {
+    let plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    let verdict = validate_case(&plan, &evidence);
+    assert_eq!(verdict.state, report["postcondition"]["state"]);
+    assert_eq!(verdict.effect, report["postcondition"]["effect"]);
+
+    let noop_plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
+    let noop_evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let noop_report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
+    let noop_verdict = validate_case(&noop_plan, &noop_evidence);
+    assert_eq!(noop_verdict.state, noop_report["postcondition"]["state"]);
+    assert_eq!(noop_verdict.effect, noop_report["postcondition"]["effect"]);
 }
 
 /// Point 4: "real noop target absence" -- independently (via DER parsing,

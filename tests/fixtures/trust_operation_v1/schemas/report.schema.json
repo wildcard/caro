@@ -363,6 +363,31 @@
         },
         "required": ["execution"]
       }
+    },
+    {
+      "$comment": "R19 (new per #1715 round-5 review point 2, 'failure aggregation is one-way'): R11 only required that execution.state=failed have a failing step; it never required the REVERSE -- a failing step forcing execution.state and workflow_outcome to failed. Without this, a sourced failed install could coexist with execution.state=started/unobserved and workflow_outcome=unverified. Any failing-family step now forces BOTH.",
+      "anyOf": [
+        { "not": { "properties": { "execution": { "properties": { "steps": { "properties": { "backup": { "properties": { "status": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } }, "required": ["status"] } }, "required": ["backup"] } }, "required": ["steps"] } }, "required": ["execution"] } },
+        { "properties": { "execution": { "properties": { "state": { "const": "failed" } }, "required": ["state"] }, "cleanup": { "properties": { "workflow_outcome": { "const": "failed" } }, "required": ["workflow_outcome"] } }, "required": ["execution", "cleanup"] }
+      ]
+    },
+    {
+      "anyOf": [
+        { "not": { "properties": { "execution": { "properties": { "steps": { "properties": { "stage": { "properties": { "status": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } }, "required": ["status"] } }, "required": ["stage"] } }, "required": ["steps"] } }, "required": ["execution"] } },
+        { "properties": { "execution": { "properties": { "state": { "const": "failed" } }, "required": ["state"] }, "cleanup": { "properties": { "workflow_outcome": { "const": "failed" } }, "required": ["workflow_outcome"] } }, "required": ["execution", "cleanup"] }
+      ]
+    },
+    {
+      "anyOf": [
+        { "not": { "properties": { "execution": { "properties": { "steps": { "properties": { "filter": { "properties": { "status": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } }, "required": ["status"] } }, "required": ["filter"] } }, "required": ["steps"] } }, "required": ["execution"] } },
+        { "properties": { "execution": { "properties": { "state": { "const": "failed" } }, "required": ["state"] }, "cleanup": { "properties": { "workflow_outcome": { "const": "failed" } }, "required": ["workflow_outcome"] } }, "required": ["execution", "cleanup"] }
+      ]
+    },
+    {
+      "anyOf": [
+        { "not": { "properties": { "execution": { "properties": { "steps": { "properties": { "install": { "properties": { "status": { "enum": ["failed", "timed_out", "signaled", "spawn_failed"] } }, "required": ["status"] } }, "required": ["install"] } }, "required": ["steps"] } }, "required": ["execution"] } },
+        { "properties": { "execution": { "properties": { "state": { "const": "failed" } }, "required": ["state"] }, "cleanup": { "properties": { "workflow_outcome": { "const": "failed" } }, "required": ["workflow_outcome"] } }, "required": ["execution", "cleanup"] }
+      ]
     }
   ],
   "definitions": {
