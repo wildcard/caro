@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; nine
+- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; ten
   rounds of independent-review fixes so far (#1715).** Proposes the
   support boundary, schemas, and reason codes for verifying a trust-store
   mutation (e.g. the Apple eMudhra CA advisory remediation) actually
@@ -238,11 +238,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     removed; and `expected_staged_artifact_ref` was never checked by
     either branch. Fixed with a new `resolve_plan_artifact_ref` helper,
     called as a new gate before either branch runs, resolving both
-    plan-level artifact refs unconditionally. 9 new tests cover both
+    plan-level artifact refs unconditionally. 8 new tests cover both
     branches and all three tamper shapes (wrong hash, wrong size, path
-    swapped to different existing bytes).
+    swapped to different existing bytes). (The round-10 self-review
+    miscounted this as 9; corrected in round 11 below.)
+  - Round 11 fixed a regression round 10 itself introduced: the new
+    gate's `resolve_plan_artifact_ref` calls were unconditional, so a
+    valid plan that simply omitted the (schema-optional)
+    `before_artifact_ref` or `expected_staged_artifact_ref` field fell
+    into `failed`/`unknown` even with an otherwise complete, correctly
+    bound evidence chain. Fixed by validating each field only when
+    present (`!plan["<field>"].is_null()`); a present-but-wrong field
+    still fails exactly as round 10 left it (wrong hash, wrong size,
+    wrong path all still rejected). 4 new tests cover the omitted-before
+    and omitted-staged cases in both the no-op and mutation branches.
   - Actual current shape (mechanically checked, not asserted by hand):
-    **33** manifest rows, **4** schema files, **116** contract tests,
+    **33** manifest rows, **4** schema files, **120** contract tests,
     **1** new Cargo dev-dependency (`x509-parser`, test-only, never
     shipped in the `caro` binary), **1** new Python dev-tool dependency
     (`jsonschema`, CI-only, outside `dependency-review.yml`'s scope).

@@ -2866,30 +2866,53 @@ fn validate_fixture_case(plan: &Value, evidence: &Value, report: &Value) -> Case
         }
     }
 
-    // Gate 4.5: resolve EVERY plan-level artifact_ref (`before_artifact_ref`,
-    // `expected_staged_artifact_ref`) independently against real bytes on
-    // disk, cross-checked against the plan's own paired hash field --
-    // BEFORE either the no-op or the mutation branch below ever trusts
-    // them. Per the #1715 round-10 review's point 1: round 9's checks
-    // only ever compared the PLAN's declared `artifact_ref` fields
-    // against each other (`before_artifact_ref.sha256 == before_hash`)
-    // or against the EVIDENCE's own already-resolved bytes -- never
-    // against real bytes read from the PLAN's own `fixture_path`. That
-    // meant: the no-op branch never looked at `before_artifact_ref` at
-    // all (so a tampered `size_bytes` there still verified
-    // already_satisfied); the mutation branch never actually opened
+    // Gate 4.5: resolve EVERY PRESENT plan-level artifact_ref
+    // (`before_artifact_ref`, `expected_staged_artifact_ref`)
+    // independently against real bytes on disk, cross-checked against
+    // the plan's own paired hash field -- BEFORE either the no-op or the
+    // mutation branch below ever trusts them. Per the #1715 round-10
+    // review's point 1: round 9's checks only ever compared the PLAN's
+    // declared `artifact_ref` fields against each other
+    // (`before_artifact_ref.sha256 == before_hash`) or against the
+    // EVIDENCE's own already-resolved bytes -- never against real bytes
+    // read from the PLAN's own `fixture_path`. That meant: the no-op
+    // branch never looked at `before_artifact_ref` at all (so a
+    // tampered `size_bytes` there still verified already_satisfied);
+    // the mutation branch never actually opened
     // `before_artifact_ref.fixture_path` (so swapping it to a
     // DIFFERENT, real fixture file -- while leaving the declared
     // sha256/size_bytes fields untouched -- still verified removed,
     // since nothing ever re-read that path); and
     // `expected_staged_artifact_ref` was never checked at all, by
     // either branch.
+    //
+    // Per the #1715 round-11 review: BOTH fields are OPTIONAL in the
+    // unchanged plan schema (`plan.schema.json`'s top-level `required`
+    // list does not include either one) -- they are checked WHEN
+    // PRESENT, never required outright. The round-10 fix regressed this
+    // by calling `resolve_plan_artifact_ref` unconditionally, so a
+    // valid plan that simply OMITS `before_artifact_ref` (with
+    // everything else -- a complete, bound evidence chain -- correct)
+    // fell into `resolve_plan_artifact_ref`'s `fixture_path` lookup on a
+    // null value, got `Err(())`, and returned `failed`/`unknown` even
+    // though nothing was actually wrong. Each field is now resolved
+    // only when it is actually present (non-null); an absent field is
+    // simply skipped here, leaving the evidence-derived verdict (from
+    // the no-op/mutation branch below) as the sole determinant -- this
+    // does NOT silently require the optional field, and does NOT weaken
+    // the wrong-hash/wrong-size/wrong-path checks for when it IS
+    // present.
     let plan_before_hash = plan["before_hash"].as_str().unwrap_or("");
-    if resolve_plan_artifact_ref(&plan["before_artifact_ref"], plan_before_hash).is_err() {
+    if !plan["before_artifact_ref"].is_null()
+        && resolve_plan_artifact_ref(&plan["before_artifact_ref"], plan_before_hash).is_err()
+    {
         return CaseVerdict::new("failed", "unknown");
     }
     let plan_staged_hash = plan["expected_staged_hash"].as_str().unwrap_or("");
-    if resolve_plan_artifact_ref(&plan["expected_staged_artifact_ref"], plan_staged_hash).is_err() {
+    if !plan["expected_staged_artifact_ref"].is_null()
+        && resolve_plan_artifact_ref(&plan["expected_staged_artifact_ref"], plan_staged_hash)
+            .is_err()
+    {
         return CaseVerdict::new("failed", "unknown");
     }
 
@@ -4557,6 +4580,94 @@ fn validate_fixture_case_still_verifies_the_untampered_happy_paths_after_the_pla
     let noop_verdict = validate_fixture_case(&noop_plan, &noop_evidence, &noop_report);
     assert_eq!(noop_verdict.state, "verified");
     assert_eq!(noop_verdict.effect, "already_satisfied");
+}
+
+// ===========================================================================
+// Round-11 regression tests, per the #1715 round-11 review: "before_artifact_ref
+// and expected_staged_artifact_ref are OPTIONAL, checked WHEN PRESENT." Gate
+// 4.5 must not reject a valid plan that simply OMITS one of these fields
+// (with everything else -- a complete, bound evidence chain -- correct).
+// Each test REMOVES the key entirely (not merely sets it null, which would
+// itself be schema-invalid for a present-but-wrong-typed field) and asserts
+// the untampered, evidence-derived verdict survives unchanged.
+// ===========================================================================
+
+#[test]
+fn validate_fixture_case_retains_the_evidence_derived_verdict_when_a_noop_plan_omits_before_artifact_ref(
+) {
+    let mut plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
+    let evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
+    assert!(
+        plan.as_object()
+            .unwrap()
+            .contains_key("before_artifact_ref"),
+        "sanity: this must actually be present before removal"
+    );
+    plan.as_object_mut().unwrap().remove("before_artifact_ref");
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "verified", "an OMITTED (optional) before_artifact_ref must not reject an otherwise-valid, fully-bound no-op case");
+    assert_eq!(verdict.effect, "already_satisfied");
+}
+
+#[test]
+fn validate_fixture_case_retains_the_evidence_derived_verdict_when_a_noop_plan_omits_expected_staged_artifact_ref(
+) {
+    let mut plan = load_json(&format!("{FX}/plans/valid/no_op_targets_absent.json"));
+    let evidence = load_json(&format!("{FX}/evidence/valid/already_satisfied_no_op.json"));
+    let report = load_json(&format!("{FX}/reports/valid/already_satisfied_no_op.json"));
+    assert!(plan
+        .as_object()
+        .unwrap()
+        .contains_key("expected_staged_artifact_ref"));
+    plan.as_object_mut()
+        .unwrap()
+        .remove("expected_staged_artifact_ref");
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "verified", "an OMITTED (optional) expected_staged_artifact_ref must not reject an otherwise-valid, fully-bound no-op case");
+    assert_eq!(verdict.effect, "already_satisfied");
+}
+
+#[test]
+fn validate_fixture_case_retains_the_evidence_derived_verdict_when_a_mutation_plan_omits_before_artifact_ref(
+) {
+    let mut plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    assert!(plan
+        .as_object()
+        .unwrap()
+        .contains_key("before_artifact_ref"));
+    plan.as_object_mut().unwrap().remove("before_artifact_ref");
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "verified", "an OMITTED (optional) before_artifact_ref must not reject an otherwise-valid, fully-bound mutation case");
+    assert_eq!(verdict.effect, "removed");
+}
+
+#[test]
+fn validate_fixture_case_retains_the_evidence_derived_verdict_when_a_mutation_plan_omits_expected_staged_artifact_ref(
+) {
+    let mut plan = load_json(&format!(
+        "{FX}/plans/valid/mutating_removal_with_backup_required.json"
+    ));
+    let evidence = load_json(&format!("{FX}/evidence/valid/verified_removal.json"));
+    let report = load_json(&format!("{FX}/reports/valid/verified_removal.json"));
+    assert!(plan
+        .as_object()
+        .unwrap()
+        .contains_key("expected_staged_artifact_ref"));
+    plan.as_object_mut()
+        .unwrap()
+        .remove("expected_staged_artifact_ref");
+
+    let verdict = validate_fixture_case(&plan, &evidence, &report);
+    assert_eq!(verdict.state, "verified", "an OMITTED (optional) expected_staged_artifact_ref must not reject an otherwise-valid, fully-bound mutation case");
+    assert_eq!(verdict.effect, "removed");
 }
 
 /// Happy-path sanity check: the untampered `verified_removal` and
