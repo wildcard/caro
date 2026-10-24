@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "assessment": {
+    "mutation_detection": "identified",
+    "transformation_understanding": "supported",
+    "manifest_version": "1.1.0",
+    "profile": "macos-bsd-cert-pem-v1",
+    "target": "/etc/ssl/cert.pem",
+    "reason_codes": []
+  },
+  "authorization": {
+    "state": "denied",
+    "provenance": "supplied_claim",
+    "scope_binding_digest": null
+  },
+  "host_permission": {
+    "state": "unobserved",
+    "provenance": "none"
+  },
+  "execution": {
+    "state": "not_attempted",
+    "failure_mode": null,
+    "whole_shell_status": "unobserved",
+    "observation_source": "none",
+    "steps": {
+      "backup": {
+        "status": "unobserved",
+        "observation_source": "none"
+      },
+      "stage": {
+        "status": "unobserved",
+        "observation_source": "none"
+      },
+      "filter": {
+        "status": "unobserved",
+        "observation_source": "none"
+      },
+      "install": {
+        "status": "unobserved",
+        "observation_source": "none"
+      }
+    }
+  },
+  "postcondition": {
+    "state": "unverified",
+    "verification_basis": "none",
+    "effect": "unknown",
+    "reason_codes": []
+  },
+  "cleanup": {
+    "state": "unobserved",
+    "observation_source": "none",
+    "workflow_outcome": "not_attempted"
+  }
+}

@@ -1,0 +1,236 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://caro.sh/schemas/trust_operation_v1/evidence.schema.json",
+  "title": "TrustOperationEvidenceBundleV1",
+  "description": "The supplied evidence a plan (plan.schema.json) is checked against to produce a report (report.schema.json). Frozen per issue #1714, checkpoint 1 revision 2. v1 authenticates no external collector: it checks internal consistency against declared provenance only, and says so. The definitions.context_identity block here MUST stay byte-identical to the same-named definition in plan.schema.json (tests/trust_operation_v1_contract.rs asserts this).",
+  "type": "object",
+  "required": ["schema_version", "operation_id", "evidence_id", "observations"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "operation_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Must match the bound plan's operation_id; a mismatch is invalid_evidence, checked by the fixture-level contract test."
+    },
+    "evidence_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Must match the bound plan's evidence_id (plan.schema.json). This is the explicit counterpart the #1715 review found missing: a plan names an evidence_id, and the evidence bundle now names the same id back."
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/observation" }
+    }
+  },
+  "definitions": {
+    "context_identity": {
+      "type": "object",
+      "required": ["cwd_supplied", "cwd"],
+      "additionalProperties": false,
+      "properties": {
+        "cwd_supplied": { "type": "boolean" },
+        "cwd": { "type": ["string", "null"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "cwd_supplied": { "const": false } }, "required": ["cwd_supplied"] },
+          "then": { "properties": { "cwd": { "type": "null" } }, "required": ["cwd"] }
+        },
+        {
+          "if": { "properties": { "cwd_supplied": { "const": true } }, "required": ["cwd_supplied"] },
+          "then": { "properties": { "cwd": { "type": "string", "minLength": 1 } }, "required": ["cwd"] }
+        }
+      ]
+    },
+    "artifact_ref": {
+      "description": "Bounded, offline-only reference to actual raw bytes. Frozen to fixture_file only in v1 (#1715 revision-2 review point 6: inline_base64 was speculative, unused, and its exclusivity with fixture_file was prose-only). NEVER a URL, host path outside the fixtures tree, or any form of network/live-store resolution.",
+      "type": "object",
+      "required": ["sha256", "size_bytes", "source", "fixture_path"],
+      "additionalProperties": false,
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "size_bytes": { "type": "integer", "minimum": 0 },
+        "source": { "const": "fixture_file" },
+        "fixture_path": {
+          "type": "string",
+          "pattern": "^tests/fixtures/trust_operation_v1/artifacts/[A-Za-z0-9_.-]+$"
+        }
+      }
+    },
+    "fingerprint_count": {
+      "type": "object",
+      "required": ["sha256", "occurrence_count"],
+      "additionalProperties": false,
+      "description": "sha256 here is a DER fingerprint (sha256 of the base64-decoded certificate body), never a raw-PEM-section hash. tests/trust_operation_v1_contract.rs independently re-derives and cross-checks this; it does not trust the declared value.",
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "occurrence_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "required": [
+        "source",
+        "step",
+        "step_status",
+        "step_snapshot_id",
+        "capture_sequence",
+        "capture_time",
+        "normalized_destination_binding",
+        "context_binding",
+        "parse_outcome"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": ["fixture", "supplied", "caro_observed"],
+          "description": "v1 ships no live collector; ordinary non-fixture runs never produce a caro_observed observation for file content. caro_observed is reserved for Caro's own existing process-result observation (exit status of a step), never for a verified filesystem read — enforced below: caro_observed forbids content_hash, artifact_ref, and certificate_fingerprints. CRITICAL (per #1715 revision-2 review point 4): no code path in v1 can actually PRODUCE a caro_observed observation — there is no live collector yet. Every observation in this repo's fixtures with source=caro_observed is a HYPOTHETICAL stand-in for what a future real collector would write, used only to exercise this schema's shape. A caller supplying caro_observed in a hand-written evidence file is, until that collector ships, exactly as unauthoritative as supplied — labeling it caro_observed does not and must not make it self-authenticating."
+        },
+        "step": {
+          "type": "string",
+          "enum": ["before", "backup", "stage", "filter", "install", "final", "cleanup"]
+        },
+        "step_status": {
+          "type": "string",
+          "enum": ["not_attempted", "started", "failed", "completed", "timed_out", "signaled", "spawn_failed"],
+          "description": "Required on every observation (previously optional; the #1715 review flagged this). A content-only observation (e.g. step=before) uses completed to mean 'this read was captured', not that a mutation occurred."
+        },
+        "step_snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Identifier scoped to (step, step_snapshot_id): two observations with the same step and a different step_snapshot_id are competing/stale claims about that step, not two facets of the same snapshot. Used to detect a substituted or stale before/backup/staging/final snapshot. Renamed from the prior ambiguous 'snapshot_identity' field (#1715 review)."
+        },
+        "capture_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonic sequence number within this evidence bundle. Used for ordering only; not itself proof of freshness."
+        },
+        "capture_time": {
+          "type": ["string", "null"],
+          "description": "RFC3339 timestamp if supplied. A timestamp alone never proves freshness."
+        },
+        "normalized_destination_binding": {
+          "type": "string",
+          "description": "Must be byte-for-byte equal to the bound plan's normalized_destination for this observation to be considered bound to that plan; otherwise it is unbound (stale_observation)."
+        },
+        "context_binding": {
+          "$ref": "#/definitions/context_identity",
+          "description": "Must be structurally (deep-)equal to the bound plan's context_identity for this observation to be considered bound to that plan."
+        },
+        "content_hash": {
+          "type": ["string", "null"],
+          "pattern": "^([0-9a-f]{64})?$",
+          "description": "SHA-256 of the observed raw bytes at this step, when content was captured. Must be null when source=caro_observed (see allOf below)."
+        },
+        "artifact_ref": {
+          "description": "The actual raw bytes this observation's content_hash was computed from, bounded and offline-only (see definitions.artifact_ref). Required whenever content_hash is non-null, so every content claim resolves to real bytes the contract test can re-hash and compare, not just an asserted digest.",
+          "anyOf": [{ "$ref": "#/definitions/artifact_ref" }, { "type": "null" }]
+        },
+        "parse_outcome": {
+          "type": "string",
+          "enum": ["not_applicable", "ok", "malformed", "truncated", "unconsumed_blocks"]
+        },
+        "certificate_fingerprints": {
+          "type": ["array", "null"],
+          "items": { "$ref": "#/definitions/fingerprint_count" }
+        },
+        "metadata": {
+          "description": "Null, or a COMPLETE metadata triple. Fixes the #1715 round-4 review's point 4 finding that this object had no `required`, so `{}` (metadata present but empty) satisfied the 'metadata must not be null' allOf rule below without actually carrying owner/group/mode.",
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["owner", "group", "mode"],
+              "additionalProperties": false,
+              "properties": {
+                "owner": { "type": "string", "minLength": 1 },
+                "group": { "type": "string", "minLength": 1 },
+                "mode": { "type": "string", "pattern": "^0[0-7]{3}$" }
+              }
+            }
+          ]
+        },
+        "backup_readability": {
+          "type": ["string", "null"],
+          "enum": [null, "unobserved", "readable", "unreadable"],
+          "description": "Required and non-null when step=backup (see allOf below). Per #1715 revision-2 review point 3: a completed backup claim needs OBSERVED readability, not merely the presence of metadata. unobserved means exactly that -- an unobserved backup cannot be claimed step_status=completed (see allOf)."
+        },
+        "consumes_before_snapshot_id": {
+          "type": ["string", "null"],
+          "description": "Required (may be null only when not applicable) when step=install: the step_snapshot_id of the 'before' observation this install step read its pre-mutation state from. tests/trust_operation_v1_contract.rs checks this names an ACTUAL before observation present earlier (by capture_sequence) in the same bundle -- a dangling or forward reference is stale_observation."
+        },
+        "consumes_staging_snapshot_id": {
+          "type": ["string", "null"],
+          "description": "Required (may be null only when not applicable) when step=install: the step_snapshot_id of the 'stage' observation this install step actually installed. Same freshness/order check as consumes_before_snapshot_id."
+        },
+        "authorization_claim": {
+          "type": ["object", "null"],
+          "description": "A supplied claim of approval. Data only; never itself an executor authorization token. See report.authorization provenance rules (R6/R7 in report.schema.json): this can only ever surface as provenance=supplied_claim, never confirmed_scoped.",
+          "additionalProperties": false,
+          "properties": {
+            "state": { "type": "string", "enum": ["required", "denied", "approved"] },
+            "provenance": { "const": "supplied_claim" }
+          }
+        },
+        "host_permission_claim": {
+          "type": ["object", "null"],
+          "description": "A supplied claim about host authorization. Never promoted to report.host_permission.state=granted with provenance other than supplied_claim or fixture.",
+          "additionalProperties": false,
+          "properties": {
+            "state": { "type": "string", "enum": ["denied", "granted"] },
+            "provenance": { "const": "supplied_claim" }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "$comment": "caro_observed is restricted to process/step-status observations, never to a content claim. Fixes the #1715 review finding: 'external source claims caro_observed'.",
+          "if": { "properties": { "source": { "const": "caro_observed" } }, "required": ["source"] },
+          "then": {
+            "properties": {
+              "content_hash": { "type": "null" },
+              "artifact_ref": { "type": "null" },
+              "certificate_fingerprints": { "type": "null" }
+            },
+            "required": ["content_hash", "artifact_ref", "certificate_fingerprints"]
+          }
+        },
+        {
+          "$comment": "A non-null content_hash must resolve to real bytes, not a bare asserted digest.",
+          "if": { "properties": { "content_hash": { "type": "string" } }, "required": ["content_hash"] },
+          "then": { "required": ["artifact_ref"], "not": { "properties": { "artifact_ref": { "type": "null" } }, "required": ["artifact_ref"] } }
+        },
+        {
+          "$comment": "A backup-step observation always declares its readability, observed or not.",
+          "if": { "properties": { "step": { "const": "backup" } }, "required": ["step"] },
+          "then": { "required": ["backup_readability"], "not": { "properties": { "backup_readability": { "type": "null" } }, "required": ["backup_readability"] } }
+        },
+        {
+          "$comment": "A backup-step observation that claims completed must carry its metadata AND an OBSERVED-readable backup, not merely metadata presence. Fixes #1715 revision-2 review point 3 ('Backup evidence needs OBSERVED readability') and round-5 review point 2 ('completed backup still permits omitted metadata'): `metadata` must be PRESENT (required, not merely 'absent-or-non-null') AND non-null, so omission, null, empty ({}), and partial ({\"owner\":\"root\"}) are all rejected (the last two by the metadata definition's own required owner/group/mode).",
+          "if": {
+            "properties": {
+              "step": { "const": "backup" },
+              "step_status": { "const": "completed" }
+            },
+            "required": ["step", "step_status"]
+          },
+          "then": {
+            "properties": {
+              "backup_readability": { "const": "readable" },
+              "metadata": { "not": { "type": "null" } }
+            },
+            "required": ["backup_readability", "metadata"]
+          }
+        },
+        {
+          "$comment": "An install-step observation must name which before/staging snapshot it actually consumed, so a stale or substituted snapshot can be detected (#1715 revision-2 review point 3: 'explicit pre-install before/staging snapshot bindings').",
+          "if": { "properties": { "step": { "const": "install" } }, "required": ["step"] },
+          "then": { "required": ["consumes_before_snapshot_id", "consumes_staging_snapshot_id"] }
+        }
+      ]
+    }
+  }
+}

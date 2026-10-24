@@ -23,3 +23,13 @@
 # Uncomment if needed:
 # tokenizer.json filter=lfs diff=lfs merge=lfs -text
 kitty-specs/**/status.events.jsonl merge=spec-kitty-event-log
+
+# Trust-operation v1 contract fixtures (#1714 / #1715 round 5): these PEM
+# fixture files are hashed byte-for-byte by tests/trust_operation_v1_contract.rs
+# (sha256 of the exact bytes, independent PEM/DER parsing at exact byte
+# offsets). Windows checkouts otherwise convert their LF line endings to
+# CRLF (core.autocrlf), which silently changed every hash and byte offset
+# (observed in CI: 741 -> 754 bytes, 2964 -> 3016 bytes). Marking them
+# `binary` disables ALL line-ending conversion on every platform, so the
+# checked-out bytes are always identical to what's committed.
+tests/fixtures/trust_operation_v1/artifacts/*.pem.fixture binary
