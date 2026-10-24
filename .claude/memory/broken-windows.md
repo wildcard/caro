@@ -32,12 +32,11 @@ search overlay first opens (`website/src/components/OmniSearch.astro`).
 
 **Found:** 2026-09-24, google/ax harness survey
 **Issue:** #1479
-**Status:** open. #1478 fixes the `current-tasks.md` row.
-**Needs human?:** no
-**Next step:** see the issue table. Each row is a one-line docs/config fix.
-Remaining: `caro-eval` (use `cargo test --test evaluation`), `AGENTS.md` line in
-dev-process.md, `.kittify` helpers, `claude --skill` in modulization.yml,
-hardcoded `/Users/kobik-private` paths.
+**Status:** claimed-by sweep/2026-10-24-BW-003 (#PR) for the `caro-eval` and `AGENTS.md` rows. The `current-tasks.md` row is already gone from `CLAUDE.md`.
+**Needs human?:** no for the doc rows. The `claude --skill` row edits `.github/workflows/modulization.yml`, which is human-only (`.claude/automation/config/policy.yaml` refuse-list).
+**Next step:** after the sweep PR: `.kittify` helpers in `bin/sk-*` (the Tier 1 git rule names them),
+`claude --skill` in modulization.yml (human review), and hardcoded `/Users/kobik-private`
+paths in live commands (`caro-backlog-groom`, `caro-coder-loop`, `caro.roadmap`, session-wrangler).
 
 ### BW-004: `caro ai --once` hangs silently when no backend/model is ready
 
