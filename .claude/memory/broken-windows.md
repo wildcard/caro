@@ -210,7 +210,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-06)
 **Issue:** #1439
-**Status:** claimed-by sweep/2026-10-25-BW-033 (#PR)
+**Status:** claimed-by sweep/2026-10-25-BW-033 (#1722)
 **Needs human?:** no
 **Next step:** merge the sweep PR.
 
