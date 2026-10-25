@@ -8,6 +8,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
+| [#1720](https://github.com/wildcard/caro/issues/1720) | P2 | safety | No pattern for destructive git commands (force push, reset --hard) | open | 2026-10-25 |
 | [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
 
 ---

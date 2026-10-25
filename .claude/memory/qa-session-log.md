@@ -4,6 +4,37 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-25 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 40s)
+- `caro --version` → **PASS**: `caro 1.5.0 (0766bf8 2026-10-21)`
+- `caro --help` → **PASS**: lists guard, export, and CaroML verbs; no `assess` subcommand
+- `caro doctor` → **PASS**: advisory only (no model, no ollama; expected in sandbox)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` via static matcher, no model download needed
+
+### Slot B — Recent diff
+Merged PRs since last log entry are many (last entry 2026-05-07); sampled the newest: #1683 (guard test/setup), #1680 (README: assess unavailable), #1667 (ai_horde header). Exercised `caro guard test` (rm -rf / → deny rc=2; ls → none rc=0; `guard` stdin payload works). Found a safety coverage gap for destructive git commands (see Findings).
+
+### Slot C — `caro config` + `caro completion` + `--output json` (#14, #15, #17)
+- `config show/get/set/reset` → PASS; unknown key gives clear error listing valid keys.
+- `completion bash/zsh/fish` → PASS (566/424/89 lines).
+- `-o json` dry-run → PASS: valid JSON with timing, warnings, command fields.
+- `caro assess` is no longer a subcommand (README updated in #1680); a bare `caro assess` is treated as a prompt. Matrix row #12 marked N/A.
+
+### Findings
+- [#1720](https://github.com/wildcard/caro/issues/1720) — `safety: no pattern for destructive git commands` (P2)
+
+### Followups
+- FLAKE-001 (model download) not exercised: static matcher answered the smoke prompt.
+- gh CLI token invalid in this sandbox; GitHub MCP tools used instead.
+- Next Slot C candidates: #10/#11 (`caro ai`), #13 (`suggest`), #16 (yaml output).
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
