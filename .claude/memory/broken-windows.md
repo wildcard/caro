@@ -210,9 +210,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-06)
 **Issue:** #1439
-**Status:** open
+**Status:** claimed-by sweep/2026-10-25-BW-033 (#PR)
 **Needs human?:** no
-**Next step:** retire the Gemini CLI row in `.claude/memory/integrations-status.md` and add Antigravity CLI.
+**Next step:** merge the sweep PR.
 
 ### BW-034: `caro ai --help` contradicts itself; `--continue-session` is a no-op
 
@@ -574,3 +574,11 @@ workspaces are BW-069.
 **Needs human?:** yes (CI gate: which workflow runs which targets)
 **Next step:** the owner picks how CI runs the unlisted `tests/` targets
 (the options are in #1537).
+
+### BW-096: no safety pattern for destructive git commands (force push, `reset --hard`)
+
+**Found:** 2026-10-25 sweep register sync (issue filed 2026-10-25)
+**Issue:** #1720. `caro guard test` rates `git push --force origin main`, `git push -f` and `git reset --hard HEAD~5` as `risk: safe`, `verdict: none`.
+**Status:** open
+**Needs human?:** yes (safety patterns are a security-policy decision; add them with `skill: safety-pattern-developer`, not from a sweep branch)
+**Next step:** owner decides the risk level (High/ask is the issue's proposal) and whether `--force-with-lease` is exempt.
