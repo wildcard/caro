@@ -119,3 +119,14 @@ The 2026-10-23 run used the old prompt and read main's May copy. It was folded o
 - **Flakes:** FLAKE-001 was not triggered.
 
 This run picked surface 14 instead of surface 10, because the May copy lists both as "never".
+
+## Added after seeding: #1721 (2026-10-25)
+
+The 2026-10-25 run used the old prompt and read main's May copy. The 2026-10-24 run opened no PR. #1721 was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-10-25; surfaces 14 and 15 get the new date and keep the seed's notes; surface 17 (`caro completion`) is tested for the first time (PASS).
+- **From Slot B:** its `caro guard test` checks give surface 36 the new date and link #1720. It did not run `caro guard setup`, so the result stays PARTIAL.
+- **Backlog:** #1720 (open, P2): `caro guard` has no rule for destructive git commands. No earlier issue covers it. A safety rule is a human decision.
+- **Not taken:** its surface 12 row. `caro assess` stays excluded from Slot C, as the run itself found.
+- **Flakes:** FLAKE-001 was not triggered.
