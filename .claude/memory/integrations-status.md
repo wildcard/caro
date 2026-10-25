@@ -33,7 +33,7 @@
 | Candle CPU (embedded) | ✅ working | 2026-05-11 | `caro --dry-run "show disk usage"` → `du -sh ... \| sort -rh \| head -10` ✓ (auto-fallback path) | — | `embedded-cpu` is in default features; works in default build. |
 | OpenRouter | 🚧 in-progress | 2026-10-03 | wiremock tests on the shared `openai_compat` client | #931, PR #1513 | `openrouter.rs` becomes `openai_compat.rs`; CLI-wired in PR #1513 |
 | xAI Grok | 🚧 in-progress | 2026-10-03 | wiremock tests; live bad-key call → `Grok authentication failed` | PR #1513 | `--backend grok` / `--advisor grok` / `hybrid_remote = "grok"`; `XAI_API_KEY` |
-| Gemini / Jules | ⏳ not-yet | — | — | #1439 | Gemini CLI retired 2026-06-18 and PR #782 is closed. Jules needs re-verification on its own. |
+| Gemini / Jules | ⏳ not-yet | — | — | #1439 | PR #782 is closed. Gemini CLI personal-account access ended 2026-06-18 (see the Gemini CLI row). Jules needs re-verification on its own. |
 | LM Studio + FunctionGemma | 🚧 in-progress | — | — | PR #558 | Tracked, no action this night |
 | quant.cpp | 🚧 in-progress | — | — | PR #838 | Tracked, no action this night |
 | Azure Foundry | ⏳ not-yet | — | — | #661 (epic) | Big lift; deprioritized |
@@ -62,9 +62,9 @@
 | CodePal | ⏳ not-yet | — | TBD | TBD | |
 | Qwen Code | ⏳ not-yet | — | OpenAI shim or native | TBD | |
 | Grok Build (xAI) | 🧪 guard only | 2026-10-03 | Reads `~/.claude/settings.json` hooks natively; or `~/.grok/hooks/caro-guard.json` (docs/coding-agents/grok-build.md) | spec 011 | Grok as a *model* via `--backend grok` |
-| Gemini CLI | 🚫 n/a | — | — | #1439 | Retired by Google on 2026-06-18 (replaced by Antigravity CLI). Do not pick from the queue. |
+| Gemini CLI | ⏳ not-yet (partial) | — | Native backend or shim | #1439 | Free, Pro and Ultra personal accounts lost access on 2026-06-18 (Antigravity CLI replaces it for them). Code Assist Standard/Enterprise and paid API-key users stay supported, so the integration is still valid for them. PR #782 is closed. |
 | Jules (Google) | ⏳ not-yet | — | Native backend or shim | #1439 | Re-verify independently of Gemini CLI. PR #782 is closed. |
-| Antigravity CLI (`agy`) | ⏳ not-yet | — | MCP or OpenAI-compat shim (#929); closed-source binary | #1439 | Gemini CLI's replacement. |
+| Antigravity CLI (`agy`) | ⏳ not-yet | — | MCP or OpenAI-compat shim (#929); closed-source binary | #1439 | Replaces Gemini CLI for personal accounts. |
 | Autocoder | ⏳ not-yet | — | TBD | #667 (epic) | Big lift |
 | Handy.Computer | ⏳ not-yet | — | TBD | #662 (epic) | Big lift |
 
@@ -90,7 +90,7 @@ Topmost unblocked row drives the next nightly PR.
 6. **Claude Code MCP server** (`caro mcp serve`) — spec drafted (`.github/first-time-issues/06-mcp-claude-code-integration.md`, [#928](https://github.com/wildcard/caro/issues/928)); coordinate with [#789](https://github.com/wildcard/caro/pull/789).
 7. **OpenAI-compat HTTP shim** (`caro serve --openai`, [#929](https://github.com/wildcard/caro/issues/929)) — single highest-leverage surface; unlocks ~6 long-tail tools at once.
 8. **Claude Code session-token reuse backend** ([#930](https://github.com/wildcard/caro/issues/930)) — let users with CC subscription get Haiku for free.
-9. ~~Coordinate Gemini PR #782~~ — PR #782 is closed and Gemini CLI was retired on 2026-06-18 (#1439). Its replacement, Antigravity CLI, rides on #929.
+9. ~~Coordinate Gemini PR #782~~ — PR #782 is closed (#1439). Gemini CLI stays a valid target only for Code Assist Standard/Enterprise and paid API-key users; Antigravity CLI, its replacement for personal accounts, rides on #929.
 10. **opencode / crush / droid copy-paste snippets** — once OpenAI shim ships, document each.
 11. **Sourcegraph Amp / Letta** — MCP-based; ride on top of the MCP server work.
 12. **Long tail** — Pi, Aug, CodePal, qwen, Tabby — one each as polish nights.
