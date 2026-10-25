@@ -67,6 +67,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1677](https://github.com/wildcard/caro/issues/1677) | P2 | docs | README documented `caro assess`, which is disabled in 1.5.0 | closed; fixed by #1680 (2026-10-19) | 2026-10-16 |
 | [#1697](https://github.com/wildcard/caro/issues/1697) | P2 | cli | `caro guard test` swallows a trailing `--output json` into the command | open | 2026-10-21 |
 | [#1116](https://github.com/wildcard/caro/issues/1116) | — | cli | Static matcher falls back to an unusable template (`echo "Hello, World!"`) and reports success; re-confirmed 2026-10-18 (#1679) | open | — |
+| [#1720](https://github.com/wildcard/caro/issues/1720) | P2 | safety | No rule for destructive git commands (`git push --force`, `git reset --hard`): `caro guard test` rates them safe; a safety-policy decision, so it needs a human | open | 2026-10-25 |
 | [#1523](https://github.com/wildcard/caro/issues/1523) | P1 | embedded | all embedded CPU paths return wrong "Clarification needed" error — cpu.rs:63 checks full system prompt (contains "rm -rf") instead of user request text; affects ai --once, --force-llm, and any static-matcher miss | closed (duplicate) | 2026-10-04 |
 | [#1248](https://github.com/wildcard/caro/issues/1248) | P2 | ai | caro ai silently hangs in non-TTY; no error or --once suggestion | open | pre-2026-10-05 |
 | [#1530](https://github.com/wildcard/caro/issues/1530) | P2 | cli | config set backend has no 'auto' option — can't restore auto-detect without full config reset | open | 2026-10-06 |
