@@ -56,7 +56,15 @@ fn build_caro_command() -> clap::Command {
                 .long("backend")
                 .help("Inference backend to use")
                 .value_name("BACKEND")
-                .value_parser(["embedded", "ollama", "exo", "vllm", "static"]),
+                // Same roster as `--backend` / `--backend-info`. The old
+                // literal offered `static` (which `--backend` rejects) and
+                // hid six backends that `--backend` accepts.
+                .value_parser(
+                    crate::backends::CLI_SERVABLE_BACKENDS
+                        .iter()
+                        .map(|(name, _)| *name)
+                        .collect::<Vec<_>>(),
+                ),
         )
         .arg(
             Arg::new("shell")
@@ -170,4 +178,28 @@ fn build_caro_command() -> clap::Command {
                         .default_value("5"),
                 ),
         )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn backend_completion_matches_servable_roster() {
+        let cmd = build_caro_command();
+        let backend = cmd
+            .get_arguments()
+            .find(|a| a.get_id() == "backend")
+            .expect("--backend arg");
+        let offered: Vec<String> = backend
+            .get_possible_values()
+            .iter()
+            .map(|v| v.get_name().to_string())
+            .collect();
+        let roster: Vec<String> = crate::backends::CLI_SERVABLE_BACKENDS
+            .iter()
+            .map(|(name, _)| name.to_string())
+            .collect();
+        assert_eq!(offered, roster);
+    }
 }

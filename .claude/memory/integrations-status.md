@@ -3,7 +3,9 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-10-03 — PR #1513 (`claude/nifty-brown-mtjkpu`) adds the experimental `caro guard` PreToolUse hook (Claude Code / Grok Build / Codex / OpenCode) and wires `grok`, `claude` and `openrouter` into `--backend`. Non-`remote-backends` builds get the existing loud "requires remote-backends" error for those names, the same as `mesh`/`vllm`, so the #1298 divergence stays closed.
+> **Last updated:** 2026-10-24 — validated the three oldest rows (caro-shell skill, README agent table, `integrations.ts`) against published `caro 1.5.0`. Shell completion for `--backend` still offered `static` (rejected) and hid 6 servable backends; fixed off `CLI_SERVABLE_BACKENDS`. README "Use Caro from your agent" table is stale (MCP/shim marked in-progress with no implementation, OpenRouter marked planned though shipped) — open PR #1689 does not touch that table.
+>
+> **Earlier:** 2026-10-03 — PR #1513 (`claude/nifty-brown-mtjkpu`) adds the experimental `caro guard` PreToolUse hook (Claude Code / Grok Build / Codex / OpenCode) and wires `grok`, `claude` and `openrouter` into `--backend`. Non-`remote-backends` builds get the existing loud "requires remote-backends" error for those names, the same as `mesh`/`vllm`, so the #1298 divergence stays closed.
 >
 > **Previous:** 2026-07-11 (post-merge pass) — **PR #1298 is MERGED** (2026-07-12 UTC) and **issue #1115 is CLOSED**: the acute half of the backend-roster divergence is resolved on `main` (`--backend-info` / `available_backends()` / `--backend` help all iterate the single source of truth `backends::CLI_SERVABLE_BACKENDS`, shared with `validate_backend_name`). No code PR tonight — the fix already exists on `main`, and re-touching the roster would regress it (see below). Instead: re-validated the **still-published `caro 1.4.0`** (crates.io, 2026-05-09) and confirmed the #1115 P0 is **live in the shipped artifact** — `--backend-info` advertises `static`+`claude`, `--backend claude`/`--backend static` → `Unknown backend`. This is now purely a **release-cadence gap**: `main` exposes 7 CLI-servable backends (adds `mesh`/`ai-horde`/`hybrid` from #1209), the shipped binary knows 4. Posted a post-#1298 status update to **#1081** (the surviving tracking home now that #1115 is closed) covering the remaining wiring-half + release gap. **The wiring half (claude/openrouter arms in `create_backend`) is NOT trivial**: `CLI_SERVABLE_BACKENDS` is not feature-gated, so adding those names without a `#[cfg(feature="remote-backends")]` split would re-open the divergence for default builds. See log.
 
@@ -43,7 +45,7 @@
 
 | Tool | Status | Last validated | Method | GH | Notes |
 |---|---|---|---|---|---|
-| Claude Code skill (`caro-shell`) | ✅ working | 2026-04-26 | Skill installed in fresh CC session; invokes published `caro` binary; validated suggestion returned | — | Shipped first night (this PR) |
+| Claude Code skill (`caro-shell`) | ⚠️ partial | 2026-10-24 | published 1.5.0: `caro --dry-run "find files larger than 100MB in the current directory"` → `find . -type f -size +100M` ✓ | #1629, PR #1658 | Invocation works; backend guidance in SKILL.md still cites v1.4.0 rejections (fix open in PR #1658) |
 | Harness guardian hook (`caro guard`) | 🧪 experimental | 2026-10-03 | `echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /"}}' \| caro guard --mode enforce` → deny; e2e `tests/e2e_guard.rs` | spec 011 / ADR-020 | PreToolUse adapter for Claude Code, Grok Build, Codex; OpenCode via `integrations/opencode/caro-guard.ts`. Shadow by default |
 | Claude Code MCP server (`caro mcp serve`) | ⏳ not-yet | — | `mcp-inspect` against `caro mcp serve` | #928 | Spec: `.github/first-time-issues/06-mcp-claude-code-integration.md`; tools `generate_command` / `validate_command` / `explain_safety` / `show_decision_tree` |
 | OpenAI-compat HTTP shim (`caro serve --openai`) | ⏳ not-yet | — | `curl /v1/chat/completions` with a tool call | #929 | Highest leverage — unlocks Codex/Cursor/Continue/Aider/Tabby in one shot |
@@ -71,9 +73,9 @@
 
 | Surface | Status | Last validated | GH | Notes |
 |---|---|---|---|---|
-| `website/src/data/integrations.ts` | ✅ working | 2026-04-26 | — | Shipped first night |
+| `website/src/data/integrations.ts` | ⚠️ partial | 2026-10-24 | #1657, PR #1689 | Claude/Ollama entries + `--model` snippet stale; fix open in PR #1689 |
 | `website/src/pages/integrations/index.astro` | ✅ working | 2026-04-26 | — | Shipped first night |
-| README "Use caro from your agent" section | ✅ working | 2026-04-26 | — | Shipped first night |
+| README "Use caro from your agent" section | ⚠️ partial | 2026-10-24 | — | Table drift: MCP (#928) and OpenAI shim (#929) shown 🚧 though unimplemented; OpenRouter shown ⏳ though wired in 1.5.0; Gemini row cites closed PR #782 (#1439) |
 | `.github/first-time-issues/06-mcp-claude-code-integration.md` | 🚫 reference only | — | — | Spec doc; not a runtime surface |
 
 ---
