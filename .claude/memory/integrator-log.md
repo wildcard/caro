@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-10-25 (23:00 PT fire) — stdin hang found (P1 #1723); fix already in PR #1043, no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io, still newest). Ollama/vLLM/Exo: PASS for the loud-error contract. `--backend ollama` exits 1 with the `--features remote-backends` install hint, and the 2026-05-11 "silent fallback" note is now stale. Candle CPU: PASS, `caro --dry-run "show disk usage"` → `df -h`. MLX/embedded: PARTIAL, `"list pdf files"` → `ls -la` from the static matcher (already #1645). caro.sh/integrations/: PARTIAL, page returns 200 and MCP/shim say "Coming soon", but the Claude/OpenRouter text is stale (#1657, PR #1689). Stdin: `sleep 25 | caro --dry-run "list pdf files"` hangs (rc=142 from a 20 s alarm). `echo -n | caro ...` returns in 20 ms. A Claude Code Bash-tool call hung on this tonight.
+- **Shipped:** no PR. The P1 fix (`should_consult_stdin()` at `src/main.rs:3473`) is already in open PR #1043 (2026-05-07). A second PR would duplicate it, and 7 integrator PRs already await review. Tonight's matrix and log ride on PR #1719's branch as a separate commit, to avoid a log-prepend conflict.
+- **Filed:** #1723 (P1, `integration`): the top-level prompt blocks on an open stdin pipe. Commented on PR #1043 (the hang is cross-platform, so the stdin hunk could merge alone). Commented on PR #1719 (its red checks come from `main`: #1703, #1699). Dedup: #1499/#1503 fixed only `caro ai --once`. #1645 already covers the pdf regression.
+- **Discovered:** GitHub Copilot CLI had no matrix row, though #1623 tracks its guard hook. Row added. Windows `odr.exe` lists registered MCP servers, which is a future discovery surface once `caro mcp serve` exists (not filed; low leverage until #928). No new coder-agent launch found for October 2026.
+- **Next pass should:** check whether #1043's stdin hunk merged (alone or in the bundle). Then re-run the `sleep | caro` repro on `main`. Hold new PRs until the integrator PR backlog (#1658, #1689, #1624, #1492, #1153, #1708, #1719) moves.
+
+---
+
 ## 2026-10-24 (23:00 PT fire) — completion roster fix; duplicate PR #1348/#1713 flagged
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io). caro-shell skill path: `caro --dry-run "find files larger than 100MB in the current directory"` → `find . -type f -size +100M` (PASS; SKILL.md backend text still stale, PR #1658). README "Use Caro from your agent" table: PARTIAL — MCP/OpenAI shim marked 🚧 with no implementation, OpenRouter marked ⏳ though wired in 1.5.0. `integrations.ts`: PARTIAL, covered by #1657 / PR #1689. Extra: `caro completion zsh` offers `embedded ollama exo vllm static` — `static` is rejected by `--backend`, and grok/claude/openrouter/mesh/ai-horde/hybrid are hidden.
