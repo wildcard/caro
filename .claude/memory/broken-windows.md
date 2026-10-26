@@ -359,7 +359,7 @@ builds after the merge are READY (`cmdai` is already red, #1562).
 
 **Found:** 2026-10-11, broken-window sweep
 **Issue:** #1587
-**Status:** claimed-by sweep/2026-10-26-BW-059 (#PR)
+**Status:** claimed-by sweep/2026-10-26-BW-059 (#1724)
 **Needs human?:** no
 **Next step:** Add `claude-skill-launch` and `founders-playbook-adaptation`
 to the `posts` array in `website/src/pages/blog/index.astro`.
