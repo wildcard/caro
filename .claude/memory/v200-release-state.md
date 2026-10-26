@@ -1,13 +1,13 @@
 # v2.0.0 Release State
 
-**Last Updated**: 2026-10-19 (weekly planning agent run)
+**Last Updated**: 2026-10-26 (weekly planning agent run)
 **Routine ID**: `trig_01KTFtDwFfs4xHiJ2JVbCgEV`
 **Schedule**: Every Monday at 16:00 UTC
 **Manage at**: https://claude.ai/code/routines/trig_01KTFtDwFfs4xHiJ2JVbCgEV
 
 ## Current Status
 
-**Completion**: ~61.7% (carried from 2026-07-06; not re-measured, API search capped)
+**Completion**: ~9% (2/23 milestone items closed, measured 2026-10-26)
 **Core feature completion**: 0% (0/7 research lines validated)
 **Open blockers**: 4
 **Target release**: Jun 30, 2026 (passed)
@@ -37,5 +37,6 @@
 
 ## Weekly Reports
 
-- `.claude/memory/v200-weekly-report-2026-10-19.md` (this run)
+- `.claude/memory/v200-weekly-report-2026-10-26.md` (this run)
+- `.claude/memory/v200-weekly-report-2026-10-19.md`
 - `.claude/memory/v200-weekly-report-2026-07-06.md`
