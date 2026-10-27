@@ -480,6 +480,39 @@ enum GuardAuditAction {
     },
 }
 
+/// `caro guard audit` subcommands (spec 011 §P2.4).
+#[derive(Parser, Clone)]
+enum GuardAuditAction {
+    /// Walk the SHA-256 hash chain; exit 1 at the first break.
+    Verify {
+        /// Decision log path (default: <data dir>/caro/guard/decisions.jsonl).
+        #[arg(long)]
+        log: Option<std::path::PathBuf>,
+    },
+    /// Print the newest records, one per line.
+    Tail {
+        /// Decision log path (default: <data dir>/caro/guard/decisions.jsonl).
+        #[arg(long)]
+        log: Option<std::path::PathBuf>,
+
+        /// How many records to show.
+        #[arg(long, short = 'n', default_value_t = 20)]
+        limit: usize,
+
+        /// Keep printing new records as they are appended.
+        #[arg(long, short = 'f')]
+        follow: bool,
+    },
+    /// Summarize the log (alias of `caro guard report`).
+    Report {
+        #[arg(long)]
+        log: Option<std::path::PathBuf>,
+
+        #[arg(long, default_value_t = 10)]
+        limit: usize,
+    },
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
 enum GuardTestOutput {
     Text,
