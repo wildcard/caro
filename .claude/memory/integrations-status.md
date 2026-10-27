@@ -3,7 +3,9 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-10-25 — validated the stalest rows (Ollama/vLLM/Exo, Candle CPU, MLX, integrations page) against published `caro 1.5.0`. Remote backends now fail loudly (exit 1) in the default binary, no longer silently. New P1 #1723: top-level `caro "<prompt>"` blocks on an open stdin pipe, which is how agent harnesses spawn it (fix already in PR #1043). No PR: the fix exists, and 7 integrator PRs await review.
+> **Last updated:** 2026-10-26 — validated the `caro guard` rows against published `caro 1.5.0` for the first time (they were last checked on the PR #1513 branch). All five harness formats deny Critical commands in enforce mode, malformed input fails safe to `ask`, and the documented smoke commands work verbatim. #1723 stdin hang still live (fix in PR #1043, unmerged). No PR: nothing in the integrator backlog merged since 2026-10-24.
+>
+> **Previous:** 2026-10-25 — validated the stalest rows (Ollama/vLLM/Exo, Candle CPU, MLX, integrations page) against published `caro 1.5.0`. Remote backends now fail loudly (exit 1) in the default binary, no longer silently. New P1 #1723: top-level `caro "<prompt>"` blocks on an open stdin pipe, which is how agent harnesses spawn it (fix already in PR #1043). No PR: the fix exists, and 7 integrator PRs await review.
 >
 > **Earlier:** 2026-10-24 — validated the three oldest rows (caro-shell skill, README agent table, `integrations.ts`) against published `caro 1.5.0`. Shell completion for `--backend` still offered `static` (rejected) and hid 6 servable backends; fixed off `CLI_SERVABLE_BACKENDS`. README "Use Caro from your agent" table is stale (MCP/shim marked in-progress with no implementation, OpenRouter marked planned though shipped) — open PR #1689 does not touch that table.
 >
@@ -48,15 +50,15 @@
 | Tool | Status | Last validated | Method | GH | Notes |
 |---|---|---|---|---|---|
 | Claude Code skill (`caro-shell`) | ⚠️ partial | 2026-10-24 | published 1.5.0: `caro --dry-run "find files larger than 100MB in the current directory"` → `find . -type f -size +100M` ✓ | #1629, PR #1658 | Invocation works; backend guidance in SKILL.md still cites v1.4.0 rejections (fix open in PR #1658) |
-| Harness guardian hook (`caro guard`) | 🧪 experimental | 2026-10-03 | `echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /"}}' \| caro guard --mode enforce` → deny; e2e `tests/e2e_guard.rs` | spec 011 / ADR-020 | PreToolUse adapter for Claude Code, Grok Build, Codex; OpenCode via `integrations/opencode/caro-guard.ts`. Shadow by default |
+| Harness guardian hook (`caro guard`) | 🧪 experimental | 2026-10-26 | ✓ published 1.5.0: `… \| caro guard --mode enforce --no-log` → `permissionDecision: deny` for `rm -rf /`; shadow (default) logs only; `not json` → `ask`; `caro guard report` lists verdicts by harness; e2e `tests/e2e_guard.rs` | spec 011 / ADR-020 | PreToolUse adapter for Claude Code, Grok Build, Codex; OpenCode via `integrations/opencode/caro-guard.ts`. Shadow by default |
 | Claude Code MCP server (`caro mcp serve`) | ⏳ not-yet | — | `mcp-inspect` against `caro mcp serve` | #928 | Spec: `.github/first-time-issues/06-mcp-claude-code-integration.md`; tools `generate_command` / `validate_command` / `explain_safety` / `show_decision_tree` |
 | OpenAI-compat HTTP shim (`caro serve --openai`) | ⏳ not-yet | — | `curl /v1/chat/completions` with a tool call | #929 | Highest leverage — unlocks Codex/Cursor/Continue/Aider/Tabby in one shot |
-| Codex (OpenAI) | 🧪 guard only | 2026-10-03 | `[[hooks.PreToolUse]]` → `caro guard --harness codex` (docs/coding-agents/codex.md) | #789 (Crush MCP config PR) | Generation still awaits OpenAI shim |
+| Codex (OpenAI) | 🧪 guard only | 2026-10-26 | `[[hooks.PreToolUse]]` → `caro guard --harness codex` (docs/coding-agents/codex.md) | #789 (Crush MCP config PR) | Generation still awaits OpenAI shim |
 | Cursor | ⏳ not-yet | — | OpenAI shim snippet copy-pasted into Cursor settings | — | Satisfied by OpenAI shim |
 | Continue (continue.dev) | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
 | Aider | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
 | Tabby (self-hosted) | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
-| opencode | 🧪 guard only | 2026-10-03 | Plugin `integrations/opencode/caro-guard.ts` → `caro guard --harness opencode` | TBD | sst/opencode; generation still awaits MCP/shim |
+| opencode | 🧪 guard only | 2026-10-26 | Plugin `integrations/opencode/caro-guard.ts` → `caro guard --harness opencode` | TBD | sst/opencode; generation still awaits MCP/shim |
 | crush | ⏳ not-yet | — | MCP or OpenAI shim | #789 (related) | Charm.sh ecosystem |
 | droid | ⏳ not-yet | — | MCP or OpenAI shim | TBD | |
 | Sourcegraph Amp | ⏳ not-yet | — | MCP | TBD | Enterprise coding agent |
@@ -65,8 +67,9 @@
 | Aug | ⏳ not-yet | — | TBD | TBD | |
 | CodePal | ⏳ not-yet | — | TBD | TBD | |
 | Qwen Code | ⏳ not-yet | — | OpenAI shim or native | TBD | |
-| Grok Build (xAI) | 🧪 guard only | 2026-10-03 | Reads `~/.claude/settings.json` hooks natively; or `~/.grok/hooks/caro-guard.json` (docs/coding-agents/grok-build.md) | spec 011 | Grok as a *model* via `--backend grok` |
+| Grok Build (xAI) | 🧪 guard only | 2026-10-26 | Reads `~/.claude/settings.json` hooks natively; or `~/.grok/hooks/caro-guard.json` (docs/coding-agents/grok-build.md) | spec 011 | Grok as a *model* via `--backend grok` |
 | GitHub Copilot CLI | ⏳ not-yet | — | `preToolUse` hook → `caro guard` | #1623 | Row added 2026-10-25; issue already open |
+| Kiro CLI (AWS) | ⏳ not-yet | — | MCP or hook, once available | — | Row added 2026-10-26; listed in 2026 terminal-agent comparisons. Not filed: low leverage until #928/#929 |
 | Gemini CLI | ⏳ not-yet | — | Native backend or shim | PR #782 | Coordinate |
 | Jules (Google) | ⏳ not-yet | — | Native backend or shim | PR #782 | Coordinate |
 | Autocoder | ⏳ not-yet | — | TBD | #667 (epic) | Big lift |

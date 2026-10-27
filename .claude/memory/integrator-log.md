@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-10-26 (23:00 PT fire) — `caro guard` validated on published 1.5.0; no PR (backlog unchanged)
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io, still newest). `caro guard` rows were last checked on the PR #1513 branch, so this is their first published-binary check. Harness guardian hook: PASS. `rm -rf /` with `--mode enforce` → `permissionDecision: deny`; the default shadow mode only logs; `not json` → `ask` (fails safe); a non-Bash tool → no output. Grok Build (`--harness grok`, camelCase): PASS, `rm -rf ~` → deny. Codex (`--harness codex`): PASS, `curl … | sudo bash` → deny. opencode / generic: PASS, verdict JSON with exit 2. The documented smoke commands in `docs/coding-agents/{claude-code,codex,README}.md` run verbatim, `--no-log` included. #1723 re-check: `sleep 25 | caro --dry-run "list pdf files"` still hangs (alarm rc=142).
+- **Shipped:** no PR. Every validated row passed. The one live P1 (#1723) has its fix in open PR #1043. None of the 10 integrator-area PRs merged since 2026-10-24: #1624, #1658 and #1689 are `CLEAN`; #1708, #1713, #1719 and #1722 are `UNSTABLE`; #1153, #1348 and #1492 are `CONFLICTING`. Per playbook step 6a (in #1708), a new PR would only grow the queue. This matrix and log update rides on PR #1719's branch as a separate commit.
+- **Filed:** none. Dedup: `kiro` matched no issue or integration PR (only the competitor-facts PR #1583).
+- **Discovered:** Kiro CLI (AWS) appears in 2026 terminal-agent comparisons but had no matrix row. Row added as ⏳, not filed, because it has low leverage until #928/#929. CVE-2026-55580 (mcp-shell before 0.6.0 runs arbitrary commands with its policy off by default) is a positioning data point for `caro mcp serve` (#928): ship validation on by default. No new coder-agent launch found for October 2026.
+- **Next pass should:** check whether the backlog moved. If #1043 merged, re-run the `sleep | caro` repro on `main`. If still stalled, run another validation-only night. #1153 is superseded by #1492 and can be closed once a maintainer agrees.
+
+---
+
 ## 2026-10-25 (23:00 PT fire) — stdin hang found (P1 #1723); fix already in PR #1043, no new PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io, still newest). Ollama/vLLM/Exo: PASS for the loud-error contract. `--backend ollama` exits 1 with the `--features remote-backends` install hint, and the 2026-05-11 "silent fallback" note is now stale. Candle CPU: PASS, `caro --dry-run "show disk usage"` → `df -h`. MLX/embedded: PARTIAL, `"list pdf files"` → `ls -la` from the static matcher (already #1645). caro.sh/integrations/: PARTIAL, page returns 200 and MCP/shim say "Coming soon", but the Claude/OpenRouter text is stale (#1657, PR #1689). Stdin: `sleep 25 | caro --dry-run "list pdf files"` hangs (rc=142 from a 20 s alarm). `echo -n | caro ...` returns in 20 ms. A Claude Code Bash-tool call hung on this tonight.
