@@ -4444,7 +4444,6 @@ fn load_protected_paths(
     ))
 }
 
-<<<<<<< HEAD
 /// `caro guard audit <verify|tail|report>` (spec 011 §P2.4).
 fn handle_guard_audit(action: GuardAuditAction) -> i32 {
     use caro::guard::log;
@@ -4611,8 +4610,6 @@ fn handle_guard_audit(action: GuardAuditAction) -> i32 {
     }
 }
 
-=======
->>>>>>> origin/main
 /// `caro guard test "<command>"` (spec 011 §P2.1). Exit 0/2/3 like generic
 /// enforce. Nothing is written to the decision log.
 async fn handle_guard_test(
