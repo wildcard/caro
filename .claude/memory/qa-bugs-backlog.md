@@ -9,6 +9,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1726](https://github.com/wildcard/caro/issues/1726) | P2 | cli | invalid --output value silently accepted, falls back to plain | open | 2026-10-27 |
 
 ---
 

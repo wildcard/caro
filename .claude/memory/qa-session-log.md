@@ -4,6 +4,37 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-27 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC (fired 14:14).
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 16s)
+- `caro --version` → **PASS**: `caro 1.5.0 (0766bf8 2026-10-21)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (advisory: no model downloaded)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` (static matcher; no model download needed)
+
+### Slot B — Recent diff
+Last log entry (2026-05-07) is stale; 186 PRs merged since. Sampled #1683 (`caro guard test`): `guard test 'rm -rf /'` → deny, exit 2; `guard test 'ls -la'` → none, exit 0. **PASS**.
+
+### Slot C — `--output json/yaml` format correctness (#15, #16)
+- JSON and YAML output for a dry-run parse cleanly (`json.load` / `yaml.safe_load`) and carry `generated_command`. **PASS**.
+- `--output bogus` is silently accepted (exit 0, plain output). **FAIL** → #1726.
+- Observed: unmatched `-p` queries (`x`, `y`, `hello`) print "What exactly should be deleted?" — CPU stub at `src/backends/embedded/cpu.rs:64`. Already tracked by open #1269 (closed dupes #1500, #1523, #1673). Not refiled.
+
+### Findings
+- [#1726](https://github.com/wildcard/caro/issues/1726) — `cli: invalid --output value silently accepted` (P2)
+
+### Followups
+- `gh` CLI token was invalid in this sandbox; used GitHub MCP tools instead.
+- Earlier QA runs (e.g. 2026-06-26, 2026-10-15; see #1269, #1673) have no entries in this log: their memory PRs apparently never merged.
+- #1269 still reproduces via `-p` on unrecognized input at HEAD; consider a comment there.
+- Surfaces #25, #26, #31 (website) are good next Slot C candidates.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
