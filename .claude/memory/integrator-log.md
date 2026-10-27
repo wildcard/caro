@@ -21,6 +21,18 @@
 
 ---
 
+## 2026-10-13 (23:00 PT fire) — caro-shell skill guidance refreshed for 1.5.0 (#1629)
+
+> Note: the 2026-10-12 entries live on the still-open PR #1624 branch; expect a prepend conflict on this file when both merge.
+
+- **Validated:** ✓ VERIFIED against `cargo install caro --force --locked` → `caro 1.5.0 ( crates.io)`. This is the crates.io artifact; last night used the GitHub release binary, so both channels are now confirmed. `--backend-info`: only `embedded` is `available`, 9 others are `not compiled`. `--backend claude|openrouter|grok|ollama` → `Configuration error: … requires the 'remote-backends' feature`, exit 1. `--backend static` → `Unknown backend`, exit 1. `--model x` → clap usage error, exit 2 (the flag is `--model-name`). Skill examples: Ex 3 → CRITICAL block ✓; Ex 1 drops `src` + 6-month filter (already #1628); Ex 2 → `docker system prune -f && docker volume prune -f` (already #1627). Marketing rows: `integrations.ts` claude/ollama entries and `--model` snippet are stale → FAIL.
+- **Shipped:** PR (branch `integrator/20261013`): `.claude/skills/caro-shell/SKILL.md` backend guidance rewritten for 1.5.0. Lists the full remote roster, says to check `--backend-info` first, quotes the exact config error, fixes `--model` → `--model-name`, and drops the unreachable `caro-zh41` beads ref in favor of #1081. Every new sentence was re-run against the published binary.
+- **Filed:** [#1657](https://github.com/wildcard/caro/issues/1657): website `integrations.ts` claude/ollama copy + `--model` snippet stale after 1.5.0 (P1). Dedup: `integrations.ts ollama|claude`, `website --model`, and `model-name` searches only hit #1081 (binary, not copy). Not bundled into tonight's PR because open PR #1504 edits the same file.
+- **Discovered:** one `caro … 2>&1 | head -1` run exited 134; it did not reproduce in 2 retries, so nothing was filed. `caro-shell` is distributed only through the plugin marketplace (#1624). `caro skill install` ships `caro-scaffold`.
+- **Next pass should:** merge-check #1624 and this PR, then test `/plugin marketplace add wildcard/caro` against GitHub and close #1490. Then #1657 (after or folded into #1504). #1081 (ship `remote-backends` in release artifacts) is still the highest-leverage row, but it's a maintainer decision.
+
+---
+
 ## 2026-07-11 (23:00 PT fire, post-merge pass) — #1298 landed; verify + close-the-loop, no code PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.4.0` (crates.io, 2026-05-09 — still newest). Confirmed **PR #1298 MERGED** (2026-07-12 UTC, commit `2a76cf90`) and **issue #1115 CLOSED**. Re-ran the #1115 repro on the shipped binary: `caro --backend-info` still advertises `static` (available) + `claude` (configurable), yet `caro --backend claude --dry-run -p "list pdf files"` → `Error: Invalid argument: Unknown backend 'claude'` and `--backend static` → identical. So the P0 divergence #1298 fixed on `main` is **still live in the shipped artifact** — this is now purely a release-cadence gap, not a code gap. PASS data point: `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls *.pdf` ✓. New-roster gap: `caro --backend ai-horde` → `Unknown backend` (main exposes it via #1209; published 1.4.0 knows only embedded/ollama/exo/vllm). Inspected `main` source: `CLI_SERVABLE_BACKENDS` (`src/backends/mod.rs:35`) now the single source of truth for `validate_backend_name`/`print_backend_info`/`available_backends`/help; `create_backend` (`src/cli/mod.rs:295`) still has no `claude`/`openrouter` arm (wiring half deferred, per the in-code comment).
