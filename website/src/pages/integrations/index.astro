@@ -19,6 +19,7 @@ import {
 
 const grouped = (rows: Integration[]) => ({
   working: rows.filter((r) => r.status === 'working'),
+  partial: rows.filter((r) => r.status === 'partial'),
   inProgress: rows.filter((r) => r.status === 'in-progress'),
   planned: rows.filter((r) => r.status === 'not-yet'),
 });
@@ -148,7 +149,7 @@ const inb = grouped(inboundBackends);
         </p>
 
         <ul class="integration-list">
-          {[...inb.working, ...inb.inProgress, ...inb.planned].map((row) => (
+          {[...inb.working, ...inb.partial, ...inb.inProgress, ...inb.planned].map((row) => (
             <li class="integration-row" data-status={row.status}>
               <div class="row-head">
                 <span class="row-name">{row.name}</span>
