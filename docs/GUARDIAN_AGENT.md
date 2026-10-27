@@ -37,18 +37,6 @@ itself.
 
 Caro fills that gap.
 
-### Neighbours in the same slot
-
-[Rampart](https://github.com/peg/rampart) (Go, Apache-2.0) is the closest
-product to `caro guard`: a policy-and-approval layer that hooks Claude Code,
-Codex, Cursor, Cline, Copilot, OpenClaw and MCP servers, answers `allow` /
-`ask` / `deny` from YAML policy, and keeps a hash-chained audit log. It
-overlaps Caro on the hook, differs on philosophy (Rampart can `allow` and
-auto-approve; Caro never does), and covers file, fetch and MCP tools that
-Caro does not yet see. The gap analysis and the parity milestone are in
-[`docs/research/2026-10-18-rampart-lessons.md`](research/2026-10-18-rampart-lessons.md)
-and `ROADMAP.md` (v1.6.0).
-
 ## What Caro provides
 
 | Capability | How it works |
@@ -59,7 +47,6 @@ and `ROADMAP.md` (v1.6.0).
 | **Backend symmetry** | The `SafetyValidator` is backend-agnostic. An embedded model, Ollama, vLLM, or any future backend all pass through the same code path. |
 | **Structured output** | JSON and YAML output modes give guardian orchestrators a machine-readable signal to consume. |
 | **CVE rule pipeline** | Weekly automated sync with NVD + CISA KEV + GHSA for shell-invocation CVEs (CVSS >= 7.0). Rules compiled into the binary with zero runtime network calls. |
-| **Harness guardian (`caro guard`)** | PreToolUse hook adapter for Claude Code, Grok Build, Codex and OpenCode. Shadow by default, Critical → `deny`, High → `ask`, never `allow`. Redacted decision log and `caro guard report`. See [ADR-020](adr/ADR-020-guardian-hook-harness-adapters.md). |
 
 ## Integration patterns
 
@@ -85,6 +72,22 @@ Install and check it:
     caro guard setup claude            # writes ~/.claude/settings.json (shadow)
     caro guard setup claude --verify   # entry present, caro on $PATH, rm -rf / → deny
     caro guard test "rm -rf /"         # dry-run one command: exit 2 = deny, 3 = ask
+
+The hook also receives `Read`, `Write`, `Edit`, `Grep` and `Glob`. A call
+that touches a protected path (`~/.ssh/**`, `**/.env`, `**/*.pem`, …) goes
+to the human as `ask`; a write to caro's own decision log is denied; every
+other path gets no opinion. Add your own globs with
+`[safety] protected_paths = ["**/vault/**"]` in `config.toml`.
+
+The decision log is hash-chained with a `.head` sidecar. `caro guard audit
+verify` exits 1 and names the first edited, removed or torn line;
+`caro guard audit tail -f` follows new decisions. It detects partial
+tampering, not a full rewrite of both files.
+
+`caro guard setup claude --post` adds a PostToolUse hook. Tool output that
+contains a credential shape (an AWS key id, a private-key block, a token
+prefix) is recorded by class in the log and noted on stderr. The secret
+itself is never written anywhere, and nothing is emitted to the harness.
 
 A `PreToolUse` hook adapter. Claude Code, Grok Build, Codex CLI and OpenCode
 (through a plugin) send every shell command their agent is about to run to
