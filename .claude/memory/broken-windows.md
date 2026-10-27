@@ -579,7 +579,7 @@ workspaces are BW-069.
 
 **Found:** 2026-10-27 sweep register sync (issue filed 2026-10-27)
 **Issue:** #1726. `--output` was a free-form string; `main.rs` discarded the parse error with `.ok()` and used `Plain`, so `--output jsno` exited 0 with non-JSON output.
-**Status:** claimed-by sweep/2026-10-27-BW-098 (#PR)
+**Status:** claimed-by sweep/2026-10-27-BW-098 (#1728)
 **Needs human?:** no
 **Next step:** merge the sweep PR (clap `value_parser` with `ignore_case`).
 
