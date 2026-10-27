@@ -81,9 +81,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1213 (dup #1422, closed)
-**Status:** open
+**Status:** claimed-by sweep/2026-10-23-BW-012 (#1710)
 **Needs human?:** no
-**Next step:** accept `-p`, or fix the message.
+**Next step:** fix the message (the sweep fix names only trailing text and stdin).
 
 ### BW-013: `caro config reset <key>` unsupported
 
@@ -97,7 +97,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep, CI run 36658876598
 **Issue:** #1341
-**Status:** open. The 2026-10-13 nightly (run 38336457787) has no prompt-overflow failures (BW-068 fixed). SmolLM and Qwen each fail 4 tests: 3 are `caro list files` (BW-029, #1550, draft #1651) and 1 is `e2e_multiple_commands_performance`, which asserts `< 60s`. It took 1911.492889208 s on SmolLM and 571.94813475 s on Qwen. TinyLlama was cancelled at GitHub's 360-minute job limit. Both run-time problems are #1654 (BW-083). The 2026-10-15 nightly (run 38669323737, after #1660) finishes all three jobs inside the job limit. The perf test took 282.789383667 s on Qwen, 1841.566916541 s on SmolLM and 2256.054322916 s on TinyLlama. The 3 `list files` failures remain (#1550). TinyLlama also fails `e2e_yaml_output_format`: the model picked the tool `show`, which is not allowed.
+**Status:** open. The 2026-10-13 nightly (run 38336457787) has no prompt-overflow failures (BW-068 fixed). SmolLM and Qwen each fail 4 tests: 3 are `caro list files` (BW-029, #1550, draft #1651) and 1 is `e2e_multiple_commands_performance`, which asserts `< 60s`. It took 1911.492889208 s on SmolLM and 571.94813475 s on Qwen. TinyLlama was cancelled at GitHub's 360-minute job limit. Both run-time problems are #1654 (BW-083). The 2026-10-15 nightly (run 38669323737, after #1660) finishes all three jobs inside the job limit. The perf test took 282.789383667 s on Qwen, 1841.566916541 s on SmolLM and 2256.054322916 s on TinyLlama. The 3 `list files` failures remain (#1550). TinyLlama also fails `e2e_yaml_output_format`: the model picked the tool `show`, which is not allowed. The 2026-10-23 nightly (run 39887989447) shows the same 4 failures on SmolLM and Qwen. TinyLlama also fails `e2e_special_characters_handling` the same way (tool `test-verbose`).
 **Needs human?:** no (decided 2026-10-10: SmolLM uses the bundle.yml Q8_0 repo, StarCoder is dropped, CI runs on CPU only).
 **Next step:** after #1651 merges, the remaining red is #1654 (needs human).
 
