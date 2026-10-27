@@ -12,6 +12,7 @@
 //! sending one. Shadow mode (the default) decides and logs but emits nothing
 //! the harness acts on.
 
+pub mod leak;
 pub mod log;
 pub mod paths;
 pub mod setup;
@@ -118,6 +119,10 @@ pub struct HookEvent {
     /// The path a file tool is about to use (`file_path`, `path`,
     /// `notebook_path`).
     pub file_path: Option<String>,
+    /// `hook_event_name` / `hookEventName` (`PreToolUse`, `PostToolUse`, …).
+    pub event_name: Option<String>,
+    /// PostToolUse only: the tool's output, flattened to text.
+    pub tool_response: Option<String>,
     /// `Glob`/`Grep` `pattern`: the files a search enumerates.
     pub search_pattern: Option<String>,
 }
@@ -149,6 +154,8 @@ impl HookEvent {
                 tool_use_id: field("tool_use_id", "toolUseId"),
                 truncated: false,
                 file_path: None,
+                event_name: field("hook_event_name", "hookEventName"),
+                tool_response: None,
                 search_pattern: None,
             });
         }
@@ -176,8 +183,28 @@ impl HookEvent {
                 .or_else(|| input_str("filePath"))
                 .or_else(|| input_str("notebook_path"))
                 .or_else(|| input_str("path")),
+            event_name: field("hook_event_name", "hookEventName"),
+            tool_response: v
+                .get("tool_response")
+                .or_else(|| v.get("toolResponse"))
+                .map(|r| match r {
+                    Value::String(s) => s.clone(),
+                    other => other.to_string(),
+                }),
             search_pattern: input_str("pattern"),
         })
+    }
+
+    /// True for a PostToolUse payload (the tool already ran).
+    pub fn is_post_tool_use(&self) -> bool {
+        self.event_name
+            .as_deref()
+            .map(|e| {
+                e.to_ascii_lowercase()
+                    .replace('_', "")
+                    .contains("posttooluse")
+            })
+            .unwrap_or(false)
     }
 
     /// Best-effort tool name from the start of a payload too large to parse,
@@ -195,6 +222,15 @@ impl HookEvent {
             .as_deref()
             .map(|t| paths::file_access(t).is_some())
             .unwrap_or(false)
+    }
+
+    /// Best-effort event name from the start of a payload too large to parse.
+    pub fn sniff_event_name(prefix: &str) -> Option<String> {
+        static EVENT: once_cell::sync::Lazy<regex::Regex> = once_cell::sync::Lazy::new(|| {
+            regex::Regex::new(r#""(?:hook_event_name|hookEventName)"\s*:\s*"([^"]+)""#)
+                .expect("valid regex")
+        });
+        EVENT.captures(prefix).map(|c| c[1].to_string())
     }
 
     /// True when the tool call runs a shell command.
@@ -298,6 +334,9 @@ pub enum Outcome {
     Decided(GuardDecision),
     /// Could not evaluate a shell call (bad payload, missing command, …).
     Error(String),
+    /// PostToolUse: the tool's output matched these credential classes
+    /// (spec 011 §P2.5). Detection only; nothing is emitted to the harness.
+    Leak(Vec<&'static str>),
 }
 
 /// The process result the CLI writes out.
@@ -319,8 +358,23 @@ const ERROR_REASON: &str = "caro guard: could not evaluate this shell command; a
 ///   Never `allow`, never `additionalContext` (Codex fails open on it).
 /// - enforce + generic/opencode: decision JSON, exit 0 / 2 (deny) / 3 (ask).
 pub fn render(harness: Harness, mode: GuardMode, outcome: &Outcome) -> Rendered {
+    // A leak is reported on stderr in every mode and never reaches the
+    // harness: PostToolUse cannot block in Claude Code, and Codex rejects
+    // `additionalContext`. Enforce behavior is deferred (spec 011 §P2.5).
+    if let Outcome::Leak(classes) = outcome {
+        return Rendered {
+            stdout: None,
+            stderr: Some(format!(
+                "caro guard: tool output contains {}",
+                classes.join(", ")
+            )),
+            exit_code: 0,
+            emitted: Verdict::None,
+        };
+    }
+
     let (verdict, reason) = match outcome {
-        Outcome::NotShell => (Verdict::None, String::new()),
+        Outcome::NotShell | Outcome::Leak(_) => (Verdict::None, String::new()),
         Outcome::Decided(d) => (d.verdict, d.reason.clone()),
         // Fail toward the human, not open and not a hard deny.
         Outcome::Error(_) => (Verdict::Ask, ERROR_REASON.to_string()),
@@ -375,7 +429,7 @@ pub fn render(harness: Harness, mode: GuardMode, outcome: &Outcome) -> Rendered 
             d.matched_patterns.clone(),
             d.floor_applied,
         ),
-        _ => (None, Vec::new(), false),
+        Outcome::NotShell | Outcome::Error(_) | Outcome::Leak(_) => (None, Vec::new(), false),
     };
     let body = serde_json::json!({
         "verdict": verdict.as_str(),
@@ -471,6 +525,22 @@ pub async fn run_with_paths(
 
     let (outcome, event) = match event {
         Err(e) => (Outcome::Error(e), HookEvent::default()),
+        // After the tool ran: scan its output for credential shapes. A
+        // clean response is not logged.
+        Ok(ev) if ev.is_post_tool_use() => {
+            let outcome = match ev.tool_response.as_deref() {
+                None | Some("") => Outcome::NotShell,
+                Some(text) => {
+                    let classes = leak::scan(text);
+                    if classes.is_empty() {
+                        Outcome::NotShell
+                    } else {
+                        Outcome::Leak(classes)
+                    }
+                }
+            };
+            (outcome, ev)
+        }
         Ok(ev) if ev.is_file_tool() => {
             let access = ev
                 .tool_name
@@ -563,17 +633,31 @@ pub fn oversize(
             Harness::Generic | Harness::Opencode => Some("bash".into()),
             _ => HookEvent::sniff_tool_name(prefix),
         },
+        event_name: HookEvent::sniff_event_name(prefix),
         ..Default::default()
     };
-    // A shell or a recognized file tool whose payload cannot be parsed
-    // fails toward `ask`: its command or destination was not inspected.
-    // Only a tool the guard never evaluates is `NotShell`.
-    let outcome = match event.tool_name {
-        Some(_) if !event.is_shell() && !event.is_file_tool() => Outcome::NotShell,
-        _ => Outcome::Error(format!(
-            "hook payload exceeds {} MiB; not scanned",
-            MAX_PAYLOAD_BYTES / (1024 * 1024)
-        )),
+    let outcome = if event.is_post_tool_use() {
+        // A huge tool response: scan the prefix that was read (up to the
+        // scanner's own cap) rather than dropping it unseen. The payload is
+        // raw JSON here, so the response text is JSON-escaped, which the
+        // credential shapes still match.
+        let classes = leak::scan(prefix);
+        if classes.is_empty() {
+            Outcome::NotShell
+        } else {
+            Outcome::Leak(classes)
+        }
+    } else {
+        // A shell or a recognized file tool whose payload cannot be parsed
+        // fails toward `ask`: its command or destination was not inspected.
+        // Only a tool the guard never evaluates is `NotShell`.
+        match event.tool_name {
+            Some(_) if !event.is_shell() && !event.is_file_tool() => Outcome::NotShell,
+            _ => Outcome::Error(format!(
+                "hook payload exceeds {} MiB; not scanned",
+                MAX_PAYLOAD_BYTES / (1024 * 1024)
+            )),
+        }
     };
     let rendered = render(harness, mode, &outcome);
     let record = match &outcome {

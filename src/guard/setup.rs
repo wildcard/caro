@@ -139,8 +139,18 @@ impl SetupTarget {
 
 /// One PreToolUse entry in the Claude hook format.
 pub fn hook_entry(target: SetupTarget, mode: GuardMode) -> Value {
+    hook_entry_matching(target, mode, HOOK_MATCHER)
+}
+
+/// The PostToolUse entry: every tool, because any tool's output (WebFetch,
+/// an MCP tool) can carry a credential and the scanner reads any tool name.
+pub fn post_hook_entry(target: SetupTarget, mode: GuardMode) -> Value {
+    hook_entry_matching(target, mode, "")
+}
+
+fn hook_entry_matching(target: SetupTarget, mode: GuardMode, matcher: &str) -> Value {
     json!({
-        "matcher": HOOK_MATCHER,
+        "matcher": matcher,
         "hooks": [{
             "type": "command",
             "command": hook_command(target, mode),
@@ -161,6 +171,17 @@ fn is_caro_entry(entry: &Value) -> bool {
 /// Returns `true` when the document changed. Every other key and every other
 /// hook entry is left as it was.
 pub fn merge_hook(settings: &mut Value, target: SetupTarget, mode: GuardMode) -> bool {
+    merge_hook_event(settings, "PreToolUse", target, mode)
+}
+
+/// Insert or replace caro's entry under `hooks.<event>` (`PreToolUse` or
+/// `PostToolUse`, spec 011 §P2.5). Returns `true` when the document changed.
+pub fn merge_hook_event(
+    settings: &mut Value,
+    event: &str,
+    target: SetupTarget,
+    mode: GuardMode,
+) -> bool {
     if !settings.is_object() {
         *settings = json!({});
     }
@@ -175,13 +196,17 @@ pub fn merge_hook(settings: &mut Value, target: SetupTarget, mode: GuardMode) ->
     let pre = hooks
         .as_object_mut()
         .expect("object")
-        .entry("PreToolUse")
+        .entry(event)
         .or_insert_with(|| json!([]));
     if !pre.is_array() {
         *pre = json!([]);
     }
     let arr = pre.as_array_mut().expect("array");
-    let wanted = hook_entry(target, mode);
+    let wanted = if event == "PostToolUse" {
+        post_hook_entry(target, mode)
+    } else {
+        hook_entry(target, mode)
+    };
     let before = arr.clone();
     // Remove only caro's own command(s); an entry that also carries another
     // tool's command keeps that command. An entry left empty is dropped.
@@ -247,12 +272,24 @@ fn read_json(path: &Path) -> Result<Value, String> {
     }
 }
 
-/// Install (or preview) the hook.
+/// Install (or preview) the PreToolUse hook.
 pub fn install(
     target: SetupTarget,
     scope: Scope,
     mode: GuardMode,
     dry_run: bool,
+) -> Result<SetupOutcome, String> {
+    install_with_post(target, scope, mode, dry_run, false)
+}
+
+/// Install (or preview) the hook; with `post`, also the PostToolUse
+/// leak-scan hook (spec 011 §P2.5). OpenCode has no post hook yet.
+pub fn install_with_post(
+    target: SetupTarget,
+    scope: Scope,
+    mode: GuardMode,
+    dry_run: bool,
+    post: bool,
 ) -> Result<SetupOutcome, String> {
     let path = hook_file(target, scope).ok_or("no home directory on this platform")?;
 
@@ -278,7 +315,10 @@ pub fn install(
     }
 
     let mut settings = read_json(&path)?;
-    let changed = merge_hook(&mut settings, target, mode);
+    let mut changed = merge_hook(&mut settings, target, mode);
+    if post {
+        changed |= merge_hook_event(&mut settings, "PostToolUse", target, mode);
+    }
     let rendered =
         serde_json::to_string_pretty(&settings).map_err(|e| format!("render: {e}"))? + "\n";
     if changed && !dry_run {
@@ -650,6 +690,29 @@ mod tests {
         assert_eq!(s["model"], "x");
         assert!(s["hooks"]["PreToolUse"].is_array());
         assert!(installed_command(&s).unwrap().contains("--harness codex"));
+    }
+
+    #[test]
+    fn post_hook_is_separate_and_idempotent() {
+        let mut s = json!({});
+        assert!(merge_hook_event(
+            &mut s,
+            "PostToolUse",
+            SetupTarget::Claude,
+            GuardMode::Shadow
+        ));
+        assert!(!merge_hook_event(
+            &mut s,
+            "PostToolUse",
+            SetupTarget::Claude,
+            GuardMode::Shadow
+        ));
+        assert!(s["hooks"].get("PreToolUse").is_none());
+        assert_eq!(s["hooks"]["PostToolUse"].as_array().unwrap().len(), 1);
+        assert_eq!(
+            s["hooks"]["PostToolUse"][0]["matcher"], "",
+            "post scan covers every tool"
+        );
     }
 
     #[test]

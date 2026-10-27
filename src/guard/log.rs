@@ -84,6 +84,9 @@ pub struct DecisionRecord {
     /// before spec 011 §P2.3.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tool: Option<String>,
+    /// `PostToolUse` for a leak record (spec 011 §P2.5); absent otherwise.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub event: Option<String>,
     /// The file-tool path, redacted.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -109,6 +112,31 @@ pub struct DecisionRecord {
     pub error: Option<String>,
     pub latency_us: u64,
     pub caro_version: String,
+    /// `hash` of the previous record in the file; empty for the first record
+    /// (spec 011 §P2.4). Absent in records written before the chain existed.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub prev_hash: String,
+    /// SHA-256 (hex) of this record's canonical JSON with `hash` empty.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub hash: String,
+}
+
+impl DecisionRecord {
+    /// Hex SHA-256 over the canonical JSON of `self` with `hash` cleared.
+    /// Field order is the struct order, so serialization is deterministic.
+    pub fn compute_hash(&self) -> String {
+        use sha2::{Digest, Sha256};
+        let mut clone = self.clone();
+        clone.hash.clear();
+        let bytes = serde_json::to_vec(&clone).expect("record serializes");
+        let digest = Sha256::digest(&bytes);
+        let mut hex = String::with_capacity(64);
+        for b in digest {
+            use std::fmt::Write as _;
+            let _ = write!(hex, "{b:02x}");
+        }
+        hex
+    }
 }
 
 impl DecisionRecord {
@@ -120,6 +148,7 @@ impl DecisionRecord {
         emitted: Verdict,
         latency_us: u64,
     ) -> Self {
+        let is_leak = matches!(outcome, Outcome::Leak(_));
         let (risk, patterns, floor, verdict, error) = match outcome {
             Outcome::Decided(d) => (
                 Some(d.risk),
@@ -130,6 +159,14 @@ impl DecisionRecord {
             ),
             Outcome::Error(e) => (None, Vec::new(), false, Verdict::Ask, Some(e.clone())),
             Outcome::NotShell => (None, Vec::new(), false, Verdict::None, None),
+            // A leak record carries the class labels only, never the text.
+            Outcome::Leak(classes) => (
+                None,
+                classes.iter().map(|c| format!("leak: {c}")).collect(),
+                false,
+                Verdict::None,
+                None,
+            ),
         };
         Self {
             ts: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
@@ -139,9 +176,19 @@ impl DecisionRecord {
             tool_use_id: event.tool_use_id.clone(),
             cwd: event.cwd.clone(),
             tool: event.tool_name.clone(),
-            path: event.file_path.as_deref().map(redact_command),
-            command: event.command.as_deref().map(redact_command),
-            description: event.description.as_deref().map(redact_command),
+            event: is_leak.then(|| "PostToolUse".to_string()),
+            // A leak record carries no tool input at all: the command that
+            // printed the secret (`printf AKIA…`) can hold the secret too, and
+            // `redact_command` knows command shapes, not output shapes.
+            path: (!is_leak)
+                .then(|| event.file_path.as_deref().map(redact_command))
+                .flatten(),
+            command: (!is_leak)
+                .then(|| event.command.as_deref().map(redact_command))
+                .flatten(),
+            description: (!is_leak)
+                .then(|| event.description.as_deref().map(redact_command))
+                .flatten(),
             risk,
             matched_patterns: patterns,
             floor_applied: floor,
@@ -151,6 +198,8 @@ impl DecisionRecord {
             error,
             latency_us,
             caro_version: env!("CARGO_PKG_VERSION").into(),
+            prev_hash: String::new(),
+            hash: String::new(),
         }
     }
 }
@@ -162,29 +211,275 @@ pub fn default_log_path() -> Option<PathBuf> {
 }
 
 /// Append one record as a single line in a single `write` on an `O_APPEND`
-/// file, so concurrent harness sessions interleave whole lines. The file is
-/// created owner-only (0600): it indexes every command an agent ran.
-pub fn append(path: &Path, record: &DecisionRecord) -> std::io::Result<()> {
+/// file. The file is created owner-only (0600): it indexes every command an
+/// agent ran.
+///
+/// The record is chained (spec 011 §P2.4): `prev_hash` is set to the `hash`
+/// of the file's last record and `hash` is computed over the result, under
+/// an exclusive advisory lock so two harness sessions cannot both chain onto
+/// the same predecessor. Returns the record as written.
+pub fn append(path: &Path, record: &DecisionRecord) -> std::io::Result<DecisionRecord> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    let mut line = serde_json::to_vec(record).map_err(std::io::Error::other)?;
-    line.push(b'\n');
     let mut opts = OpenOptions::new();
-    opts.create(true).append(true);
+    opts.create(true).read(true).append(true);
     #[cfg(unix)]
     {
         use std::os::unix::fs::OpenOptionsExt;
         opts.mode(0o600);
     }
-    let mut f = opts.open(path)?;
+    let f = opts.open(path)?;
     // `mode` only applies on create; tighten a pre-existing log too.
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         let _ = f.set_permissions(std::fs::Permissions::from_mode(0o600));
     }
-    f.write_all(&line)
+    let mut lock = fd_lock::RwLock::new(f);
+    let mut guard = lock.write()?;
+
+    let mut chained = record.clone();
+    chained.prev_hash = last_hash(&mut guard)?;
+    chained.hash = chained.compute_hash();
+
+    let mut line = serde_json::to_vec(&chained).map_err(std::io::Error::other)?;
+    line.push(b'\n');
+    guard.write_all(&line)?;
+    // Head sidecar, still under the lock. A failure here must not break the
+    // hook: the record is already durable.
+    let _ = write_head(path, &chained.hash);
+    Ok(chained)
+}
+
+/// How much of the file's tail is read to find the last record.
+const TAIL_BYTES: u64 = 64 * 1024;
+
+/// The `hash` of the last parsable record in the file, or empty when the
+/// file is empty or its last record predates the chain.
+fn last_hash(f: &mut std::fs::File) -> std::io::Result<String> {
+    use std::io::{Read, Seek, SeekFrom};
+    let len = f.metadata()?.len();
+    if len == 0 {
+        return Ok(String::new());
+    }
+    // Read a growing tail window until it holds a newline before the last
+    // record (or the whole file): a record can be up to the 4 MiB payload
+    // cap, larger than one window.
+    let mut window = TAIL_BYTES;
+    loop {
+        let start = len.saturating_sub(window);
+        f.seek(SeekFrom::Start(start))?;
+        let mut tail = Vec::with_capacity((len - start) as usize);
+        f.read_to_end(&mut tail)?;
+        let trimmed_len = tail
+            .iter()
+            .rposition(|&b| b != b'\n' && b != b'\r' && b != b' ')
+            .map(|i| i + 1)
+            .unwrap_or(0);
+        let body = &tail[..trimmed_len];
+        let last_nl = body.iter().rposition(|&b| b == b'\n');
+        if start > 0 && last_nl.is_none() {
+            window = window.saturating_mul(2);
+            continue;
+        }
+        let line = &body[last_nl.map(|i| i + 1).unwrap_or(0)..];
+        let text = String::from_utf8_lossy(line);
+        return Ok(serde_json::from_str::<DecisionRecord>(text.trim())
+            .ok()
+            .map(|r| r.hash)
+            .unwrap_or_default());
+    }
+}
+
+/// Result of walking the hash chain (`caro guard audit verify`).
+#[derive(Debug, Default, PartialEq, Eq)]
+pub struct ChainCheck {
+    /// Records that carry a hash and were checked.
+    pub chained: usize,
+    /// Records written before the chain existed (no hash). They are counted
+    /// and skipped; the chain restarts after them.
+    pub legacy: usize,
+    /// Lines that did not parse as a record (torn writes, garbage).
+    pub unparsable: usize,
+    /// First break: (1-based line number, reason).
+    pub first_break: Option<(usize, String)>,
+    /// Hash of the last chained record seen.
+    pub last_hash: String,
+    /// A `.head` sidecar existed and was compared.
+    pub head_checked: bool,
+}
+
+impl ChainCheck {
+    pub fn ok(&self) -> bool {
+        self.first_break.is_none()
+    }
+
+    pub fn format(&self, path: &Path) -> String {
+        let mut s = format!(
+            "caro guard audit verify: {}\n  chained records: {}\n",
+            path.display(),
+            self.chained
+        );
+        if self.legacy > 0 {
+            s.push_str(&format!("  legacy (unchained) records: {}\n", self.legacy));
+        }
+        if self.unparsable > 0 {
+            s.push_str(&format!("  unparsable lines: {}\n", self.unparsable));
+        }
+        s.push_str(if self.head_checked {
+            "  head sidecar: compared\n"
+        } else {
+            "  head sidecar: none (trailing deletions not detectable)\n"
+        });
+        match &self.first_break {
+            None => s.push_str("status: CHAIN INTACT\n"),
+            Some((line, why)) => {
+                s.push_str(&format!("status: CHAIN BROKEN at line {line}: {why}\n"));
+            }
+        }
+        s
+    }
+}
+
+/// Walk a decision log and check that every chained record's `hash` matches
+/// its content and its `prev_hash` matches the previous chained record. An
+/// unparsable line is counted and reported as a break: a torn write is a
+/// gap the chain cannot vouch for.
+pub fn verify_chain<R: std::io::BufRead>(reader: R) -> std::io::Result<ChainCheck> {
+    let mut check = ChainCheck::default();
+    let mut expected_prev = String::new();
+    for (idx, line) in reader.lines().enumerate() {
+        let line = line?;
+        if line.trim().is_empty() {
+            continue;
+        }
+        let n = idx + 1;
+        let Ok(rec) = serde_json::from_str::<DecisionRecord>(&line) else {
+            check.unparsable += 1;
+            if check.first_break.is_none() {
+                check.first_break = Some((n, "line is not a decision record".into()));
+            }
+            continue;
+        };
+        if rec.hash.is_empty() {
+            // Legacy compatibility covers only the prefix written before the
+            // chain existed. A hashless record after a chained one is a
+            // break: a forged or stripped record would otherwise pass.
+            if check.chained == 0 {
+                check.legacy += 1;
+                continue;
+            }
+            if check.first_break.is_none() {
+                check.first_break = Some((n, "record has no hash after the chain started".into()));
+            }
+            continue;
+        }
+        check.chained += 1;
+        if check.first_break.is_some() {
+            continue;
+        }
+        if rec.prev_hash != expected_prev {
+            check.first_break = Some((n, "prev_hash does not match the previous record".into()));
+        } else if rec.compute_hash() != rec.hash {
+            check.first_break = Some((n, "hash does not match the record's content".into()));
+        }
+        expected_prev = rec.hash.clone();
+    }
+    check.last_hash = expected_prev;
+    Ok(check)
+}
+
+/// Sidecar that records the hash of the last appended record
+/// (`decisions.jsonl.head`). `verify` compares the file's final hash to it,
+/// so records deleted from the end are detected. It lives next to the log,
+/// so it defends against partial edits and truncation, not against an
+/// attacker who can rewrite both files; that needs a key or an external
+/// anchor (spec 011 follow-up).
+pub fn head_path(log: &Path) -> PathBuf {
+    let mut name = log
+        .file_name()
+        .map(|n| n.to_os_string())
+        .unwrap_or_default();
+    name.push(".head");
+    log.with_file_name(name)
+}
+
+fn write_head(log: &Path, hash: &str) -> std::io::Result<()> {
+    let head = head_path(log);
+    let tmp = head.with_extension("head.tmp");
+    std::fs::write(&tmp, format!("{hash}\n"))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&tmp, std::fs::Permissions::from_mode(0o600));
+    }
+    #[cfg(windows)]
+    if head.exists() {
+        std::fs::remove_file(&head)?;
+    }
+    std::fs::rename(&tmp, &head)
+}
+
+/// The recorded head hash, if a sidecar exists.
+pub fn read_head(log: &Path) -> Option<String> {
+    std::fs::read_to_string(head_path(log))
+        .ok()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
+/// [`verify_chain`] plus the head comparison for a log on disk.
+pub fn verify_log(log: &Path) -> std::io::Result<ChainCheck> {
+    let file = std::fs::File::open(log)?;
+    let mut check = verify_chain(std::io::BufReader::new(file))?;
+    if let Some(head) = read_head(log) {
+        check.head_checked = true;
+        if check.first_break.is_none() && check.last_hash != head {
+            check.first_break = Some((
+                check.chained + check.legacy + check.unparsable + 1,
+                "log ends before the recorded head (records removed from the end)".into(),
+            ));
+        }
+    }
+    Ok(check)
+}
+
+/// One line per record for `caro guard audit tail`.
+pub fn format_tail_line(rec: &DecisionRecord) -> String {
+    if rec.event.as_deref() == Some("PostToolUse") {
+        return format!(
+            "{}  leak  {:<8}  {:<8}  {:<6}  {}",
+            rec.ts,
+            "output",
+            format!("{:?}", rec.harness).to_lowercase(),
+            rec.tool
+                .as_deref()
+                .map(str::to_ascii_lowercase)
+                .unwrap_or_else(|| "bash".into()),
+            rec.matched_patterns
+                .iter()
+                .map(|p| p.trim_start_matches("leak: "))
+                .collect::<Vec<_>>()
+                .join(", "),
+        );
+    }
+    format!(
+        "{}  {:<4}  {:<8}  {:<8}  {:<6}  {}",
+        rec.ts,
+        rec.verdict.as_str(),
+        rec.risk.map(risk_str).unwrap_or("error"),
+        format!("{:?}", rec.harness).to_lowercase(),
+        rec.tool
+            .as_deref()
+            .map(str::to_ascii_lowercase)
+            .unwrap_or_else(|| "bash".into()),
+        rec.command
+            .as_deref()
+            .or(rec.path.as_deref())
+            .map(|c| c.escape_debug().to_string())
+            .unwrap_or_else(|| "-".into()),
+    )
 }
 
 /// Summary of a decision log for `caro guard report`.
@@ -196,6 +491,8 @@ pub struct Report {
     pub by_harness: BTreeMap<String, usize>,
     /// Decisions per tool name (lowercase); `bash` for pre-P2.3 records.
     pub by_tool: BTreeMap<String, usize>,
+    /// PostToolUse records whose output matched a credential shape.
+    pub leaks: usize,
     pub top_patterns: Vec<(String, usize)>,
     pub p50_latency_us: Option<u64>,
     pub p95_latency_us: Option<u64>,
@@ -259,6 +556,9 @@ fn summarize_lines(lines: impl Iterator<Item = String>, limit: usize) -> Report 
                     .unwrap_or_else(|| "bash".into()),
             )
             .or_default() += 1;
+        if rec.event.as_deref() == Some("PostToolUse") {
+            report.leaks += 1;
+        }
         for p in &rec.matched_patterns {
             *patterns.entry(p.clone()).or_default() += 1;
         }
@@ -316,6 +616,9 @@ pub fn format_report(path: &Path, r: &Report) -> String {
     let _ = writeln!(s, "  by verdict: {}", join(&r.by_verdict));
     let _ = writeln!(s, "  by harness: {}", join(&r.by_harness));
     let _ = writeln!(s, "  by tool:    {}", join(&r.by_tool));
+    if r.leaks > 0 {
+        let _ = writeln!(s, "  output leaks: {} (see top patterns)", r.leaks);
+    }
     if let (Some(p50), Some(p95)) = (r.p50_latency_us, r.p95_latency_us) {
         let _ = writeln!(s, "  latency:    p50 {p50}µs · p95 {p95}µs");
     }
@@ -392,6 +695,141 @@ mod tests {
 
         let text = format_report(&path, &r);
         assert!(text.contains("by verdict: deny 2 · none 1"));
+    }
+
+    fn record(cmd: &str) -> DecisionRecord {
+        let ev = HookEvent {
+            tool_name: Some("Bash".into()),
+            command: Some(cmd.into()),
+            ..Default::default()
+        };
+        DecisionRecord::new(
+            Harness::Claude,
+            GuardMode::Shadow,
+            &ev,
+            &Outcome::Error("x".into()),
+            Verdict::None,
+            1,
+        )
+    }
+
+    #[test]
+    fn append_chains_records_and_verify_accepts_them() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("d.jsonl");
+        let a = append(&path, &record("a")).unwrap();
+        let b = append(&path, &record("b")).unwrap();
+        let c = append(&path, &record("c")).unwrap();
+        assert_eq!(a.prev_hash, "");
+        assert_eq!(b.prev_hash, a.hash);
+        assert_eq!(c.prev_hash, b.hash);
+        assert_eq!(a.hash.len(), 64);
+        assert_eq!(a.compute_hash(), a.hash);
+
+        let check = verify_chain(std::io::Cursor::new(std::fs::read(&path).unwrap())).unwrap();
+        assert!(check.ok(), "{check:?}");
+        assert_eq!(check.chained, 3);
+    }
+
+    #[test]
+    fn one_changed_byte_breaks_the_chain_at_that_line() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("d.jsonl");
+        for c in ["a", "b", "c"] {
+            append(&path, &record(c)).unwrap();
+        }
+        let text = std::fs::read_to_string(&path).unwrap();
+        // Change the command of record 2 without touching its hash.
+        let tampered = text.replacen("\"command\":\"b\"", "\"command\":\"B\"", 1);
+        assert_ne!(text, tampered);
+        let check = verify_chain(std::io::Cursor::new(tampered)).unwrap();
+        assert_eq!(
+            check.first_break,
+            Some((2, "hash does not match the record's content".to_string()))
+        );
+
+        // Deleting record 2 breaks the link at the line that follows it.
+        let mut lines: Vec<&str> = text.lines().collect();
+        lines.remove(1);
+        let check = verify_chain(std::io::Cursor::new(lines.join("\n"))).unwrap();
+        assert_eq!(check.first_break.as_ref().map(|b| b.0), Some(2));
+        assert!(check.first_break.unwrap().1.contains("prev_hash"));
+    }
+
+    #[test]
+    fn legacy_unchained_records_are_counted_and_the_chain_restarts_after_them() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("d.jsonl");
+        // A pre-P2.4 record: no hash fields at all.
+        let legacy = serde_json::to_string(&record("old")).unwrap();
+        std::fs::write(&path, format!("{legacy}\n")).unwrap();
+        let a = append(&path, &record("a")).unwrap();
+        assert_eq!(a.prev_hash, "", "chain starts fresh after a legacy record");
+        let check = verify_chain(std::io::Cursor::new(std::fs::read(&path).unwrap())).unwrap();
+        assert!(check.ok(), "{check:?}");
+        assert_eq!((check.legacy, check.chained), (1, 1));
+    }
+
+    #[test]
+    fn hashless_record_after_the_chain_started_is_a_break() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("d.jsonl");
+        append(&path, &record("a")).unwrap();
+        let forged = serde_json::to_string(&record("forged")).unwrap();
+        std::fs::OpenOptions::new()
+            .append(true)
+            .open(&path)
+            .unwrap()
+            .write_all(format!("{forged}\n").as_bytes())
+            .unwrap();
+        let check = verify_chain(std::io::Cursor::new(std::fs::read(&path).unwrap())).unwrap();
+        assert_eq!(check.first_break.as_ref().map(|b| b.0), Some(2));
+        assert!(check.first_break.unwrap().1.contains("no hash"));
+    }
+
+    #[test]
+    fn head_sidecar_detects_records_removed_from_the_end() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("d.jsonl");
+        for c in ["a", "b", "c"] {
+            append(&path, &record(c)).unwrap();
+        }
+        assert!(verify_log(&path).unwrap().ok());
+        let text = std::fs::read_to_string(&path).unwrap();
+        let two: Vec<&str> = text.lines().take(2).collect();
+        std::fs::write(&path, format!("{}\n", two.join("\n"))).unwrap();
+        let check = verify_log(&path).unwrap();
+        assert!(check.head_checked);
+        assert!(!check.ok());
+        assert!(check.first_break.unwrap().1.contains("recorded head"));
+    }
+
+    #[test]
+    fn last_record_larger_than_the_tail_window_still_chains() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("d.jsonl");
+        let mut big = record("big");
+        big.description = Some("x".repeat(TAIL_BYTES as usize + 4096));
+        let big = append(&path, &big).unwrap();
+        let next = append(&path, &record("next")).unwrap();
+        assert_eq!(next.prev_hash, big.hash);
+        assert!(verify_log(&path).unwrap().ok());
+    }
+
+    #[test]
+    fn torn_line_is_reported_as_a_break() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("d.jsonl");
+        append(&path, &record("a")).unwrap();
+        std::fs::OpenOptions::new()
+            .append(true)
+            .open(&path)
+            .unwrap()
+            .write_all(b"{\"ts\":\"torn")
+            .unwrap();
+        let check = verify_chain(std::io::Cursor::new(std::fs::read(&path).unwrap())).unwrap();
+        assert_eq!(check.unparsable, 1);
+        assert_eq!(check.first_break.as_ref().map(|b| b.0), Some(2));
     }
 
     #[test]

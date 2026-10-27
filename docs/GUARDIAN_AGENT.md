@@ -79,6 +79,16 @@ to the human as `ask`; a write to caro's own decision log is denied; every
 other path gets no opinion. Add your own globs with
 `[safety] protected_paths = ["**/vault/**"]` in `config.toml`.
 
+The decision log is hash-chained with a `.head` sidecar. `caro guard audit
+verify` exits 1 and names the first edited, removed or torn line;
+`caro guard audit tail -f` follows new decisions. It detects partial
+tampering, not a full rewrite of both files.
+
+`caro guard setup claude --post` adds a PostToolUse hook. Tool output that
+contains a credential shape (an AWS key id, a private-key block, a token
+prefix) is recorded by class in the log and noted on stderr. The secret
+itself is never written anywhere, and nothing is emitted to the harness.
+
 A `PreToolUse` hook adapter. Claude Code, Grok Build, Codex CLI and OpenCode
 (through a plugin) send every shell command their agent is about to run to
 Caro. In **shadow** mode (the default) Caro records what it would have decided
