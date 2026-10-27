@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-10-26 (23:00 PT fire) — `caro guard` validated on published 1.5.0; no PR (backlog unchanged)
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io, still newest). `caro guard` rows were last checked on the PR #1513 branch, so this is their first published-binary check. Harness guardian hook: PASS. `rm -rf /` with `--mode enforce` → `permissionDecision: deny`; the default shadow mode only logs; `not json` → `ask` (fails safe); a non-Bash tool → no output. Grok Build (`--harness grok`, camelCase): PASS, `rm -rf ~` → deny. Codex (`--harness codex`): PASS, `curl … | sudo bash` → deny. opencode / generic: PASS, verdict JSON with exit 2. The documented smoke commands in `docs/coding-agents/{claude-code,codex,README}.md` run verbatim, `--no-log` included. #1723 re-check: `sleep 25 | caro --dry-run "list pdf files"` still hangs (alarm rc=142).
+- **Shipped:** no PR. Every validated row passed. The one live P1 (#1723) has its fix in open PR #1043. None of the 10 integrator-area PRs merged since 2026-10-24: #1624, #1658 and #1689 are `CLEAN`; #1708, #1713, #1719 and #1722 are `UNSTABLE`; #1153, #1348 and #1492 are `CONFLICTING`. Per playbook step 6a (in #1708), a new PR would only grow the queue. This matrix and log update rides on PR #1719's branch as a separate commit.
+- **Filed:** none. Dedup: `kiro` matched no issue or integration PR (only the competitor-facts PR #1583).
+- **Discovered:** Kiro CLI (AWS) appears in 2026 terminal-agent comparisons but had no matrix row. Row added as ⏳, not filed, because it has low leverage until #928/#929. CVE-2026-55580 (mcp-shell before 0.6.0 runs arbitrary commands with its policy off by default) is a positioning data point for `caro mcp serve` (#928): ship validation on by default. No new coder-agent launch found for October 2026.
+- **Next pass should:** check whether the backlog moved. If #1043 merged, re-run the `sleep | caro` repro on `main`. If still stalled, run another validation-only night. #1153 is superseded by #1492 and can be closed once a maintainer agrees.
+
+---
+
+## 2026-10-25 (23:00 PT fire) — stdin hang found (P1 #1723); fix already in PR #1043, no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io, still newest). Ollama/vLLM/Exo: PASS for the loud-error contract. `--backend ollama` exits 1 with the `--features remote-backends` install hint, and the 2026-05-11 "silent fallback" note is now stale. Candle CPU: PASS, `caro --dry-run "show disk usage"` → `df -h`. MLX/embedded: PARTIAL, `"list pdf files"` → `ls -la` from the static matcher (already #1645). caro.sh/integrations/: PARTIAL, page returns 200 and MCP/shim say "Coming soon", but the Claude/OpenRouter text is stale (#1657, PR #1689). Stdin: `sleep 25 | caro --dry-run "list pdf files"` hangs (rc=142 from a 20 s alarm). `echo -n | caro ...` returns in 20 ms. A Claude Code Bash-tool call hung on this tonight.
+- **Shipped:** no PR. The P1 fix (`should_consult_stdin()` at `src/main.rs:3473`) is already in open PR #1043 (2026-05-07). A second PR would duplicate it, and 7 integrator PRs already await review. Tonight's matrix and log ride on PR #1719's branch as a separate commit, to avoid a log-prepend conflict.
+- **Filed:** #1723 (P1, `integration`): the top-level prompt blocks on an open stdin pipe. Commented on PR #1043 (the hang is cross-platform, so the stdin hunk could merge alone). Commented on PR #1719 (its red checks come from `main`: #1703, #1699). Dedup: #1499/#1503 fixed only `caro ai --once`. #1645 already covers the pdf regression.
+- **Discovered:** GitHub Copilot CLI had no matrix row, though #1623 tracks its guard hook. Row added. Windows `odr.exe` lists registered MCP servers, which is a future discovery surface once `caro mcp serve` exists (not filed; low leverage until #928). No new coder-agent launch found for October 2026.
+- **Next pass should:** check whether #1043's stdin hunk merged (alone or in the bundle). Then re-run the `sleep | caro` repro on `main`. Hold new PRs until the integrator PR backlog (#1658, #1689, #1624, #1492, #1153, #1708, #1719) moves.
+
+---
+
+## 2026-10-24 (23:00 PT fire) — completion roster fix; duplicate PR #1348/#1713 flagged
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io). caro-shell skill path: `caro --dry-run "find files larger than 100MB in the current directory"` → `find . -type f -size +100M` (PASS; SKILL.md backend text still stale, PR #1658). README "Use Caro from your agent" table: PARTIAL — MCP/OpenAI shim marked 🚧 with no implementation, OpenRouter marked ⏳ though wired in 1.5.0. `integrations.ts`: PARTIAL, covered by #1657 / PR #1689. Extra: `caro completion zsh` offers `embedded ollama exo vllm static` — `static` is rejected by `--backend`, and grok/claude/openrouter/mesh/ai-horde/hybrid are hidden.
+- **Shipped:** PR (this branch) — `src/completion/generator.rs` builds the `--backend` value parser from `backends::CLI_SERVABLE_BACKENDS`; new test `completion::generator::tests::backend_completion_matches_servable_roster`. Branch binary: `caro completion zsh` → all 10 servable names, no `static`.
+- **Filed:** none. Posted a comment on PR #1348 (2026-07-18): its `config set backend` half duplicates PR #1713 (2026-10-23); its completion half is tonight's PR. Owner can close #1348 once #1713 and this PR merge.
+- **Discovered:** playbook step 6a (dedup-before-PR, in unmerged PR #1708) would have caught #1713 duplicating #1348 — it is not on `main` yet, so last night's pass could not follow it. UiPath `uip` CLI (public preview, July 2026) is a new long-tail agent surface; not added as a row — low leverage until MCP/shim exist. 8 integrator PRs are open; the review backlog, not research, is now the bottleneck.
+- **Next pass should:** do not open a new PR until the open integrator PRs are reviewed or merged. If they merge: Claude Code MCP server (#928) design doc, as it does not fit one night.
+
+---
+
 ## 2026-07-11 (23:00 PT fire, post-merge pass) — #1298 landed; verify + close-the-loop, no code PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.4.0` (crates.io, 2026-05-09 — still newest). Confirmed **PR #1298 MERGED** (2026-07-12 UTC, commit `2a76cf90`) and **issue #1115 CLOSED**. Re-ran the #1115 repro on the shipped binary: `caro --backend-info` still advertises `static` (available) + `claude` (configurable), yet `caro --backend claude --dry-run -p "list pdf files"` → `Error: Invalid argument: Unknown backend 'claude'` and `--backend static` → identical. So the P0 divergence #1298 fixed on `main` is **still live in the shipped artifact** — this is now purely a release-cadence gap, not a code gap. PASS data point: `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls *.pdf` ✓. New-roster gap: `caro --backend ai-horde` → `Unknown backend` (main exposes it via #1209; published 1.4.0 knows only embedded/ollama/exo/vllm). Inspected `main` source: `CLI_SERVABLE_BACKENDS` (`src/backends/mod.rs:35`) now the single source of truth for `validate_backend_name`/`print_backend_info`/`available_backends`/help; `create_backend` (`src/cli/mod.rs:295`) still has no `claude`/`openrouter` arm (wiring half deferred, per the in-code comment).
