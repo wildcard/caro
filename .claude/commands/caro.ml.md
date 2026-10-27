@@ -46,7 +46,7 @@ The skill spawns the `ml-ds-engineer` sub-agent with the right context bundle an
 - `git log --since='1 week ago' --oneline -- src/evaluation/ src/backends/embedded/ src/prompts/`
 
 ### 2. AUDIT
-- Dataset count + coverage matrix (per shell × OS × intent), via `cargo run --bin caro-eval -- --stats` or direct read of YAML test cases under `tests/evaluation/datasets/`
+- Dataset count + coverage matrix (per shell × OS × intent), via a direct read of `tests/evaluation/dataset.yaml` (the dataset the harness loads, see `tests/evaluation/main.rs`) and the JSON datasets under `tests/evaluation/datasets/`
 - Most recent eval pass-rate per backend from the harness ([src/evaluation/harness.rs](src/evaluation/harness.rs))
 - Largest coverage gap — surface the dimension with the lowest count
 - Open beads epics tagged `ml` if present

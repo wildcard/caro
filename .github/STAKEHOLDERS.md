@@ -66,5 +66,5 @@ own automation (today: planned; tomorrow: integrated into
 
 - `grep -r '@wildcard' .github/CODEOWNERS .github/STAKEHOLDERS.yml` —
   confirm both files agree on humans for safety/release paths.
-- Run `cargo run --bin caro-eval` after touching `src/safety/**` to
+- Run `cargo test --test evaluation` after touching `src/safety/**` to
   confirm the safety-pattern-developer agent's TDD discipline held.
