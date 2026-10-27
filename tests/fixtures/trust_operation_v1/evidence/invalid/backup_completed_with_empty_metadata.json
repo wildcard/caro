@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "operation_id": "op-backup-empty-metadata",
+  "evidence_id": "op-backup-empty-metadata-evidence",
+  "observations": [
+    {
+      "source": "fixture",
+      "step": "backup",
+      "step_status": "completed",
+      "step_snapshot_id": "backup-1",
+      "capture_sequence": 0,
+      "capture_time": "2026-10-24T09:00:00Z",
+      "normalized_destination_binding": "/etc/ssl/cert.pem",
+      "context_binding": {
+        "cwd_supplied": true,
+        "cwd": "/etc/ssl"
+      },
+      "content_hash": "85dda53200adc760853e78d33d90cbab9fb052a18d66d521f75c0a3d5968b85e",
+      "artifact_ref": {
+        "sha256": "85dda53200adc760853e78d33d90cbab9fb052a18d66d521f75c0a3d5968b85e",
+        "size_bytes": 2964,
+        "source": "fixture_file",
+        "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/backup_matches_before.pem.fixture"
+      },
+      "parse_outcome": "ok",
+      "certificate_fingerprints": null,
+      "metadata": {},
+      "authorization_claim": null,
+      "host_permission_claim": null,
+      "backup_readability": "readable",
+      "consumes_before_snapshot_id": null,
+      "consumes_staging_snapshot_id": null
+    }
+  ]
+}

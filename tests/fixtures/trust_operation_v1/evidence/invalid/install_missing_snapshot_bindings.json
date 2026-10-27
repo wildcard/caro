@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "operation_id": "op-install-missing-snapshot-bindings",
+  "evidence_id": "op-install-missing-snapshot-bindings-evidence",
+  "observations": [
+    {
+      "source": "caro_observed",
+      "step": "install",
+      "step_status": "completed",
+      "step_snapshot_id": "install-1",
+      "capture_sequence": 0,
+      "capture_time": "2026-10-24T09:00:00Z",
+      "normalized_destination_binding": "/etc/ssl/cert.pem",
+      "context_binding": {
+        "cwd_supplied": true,
+        "cwd": "/etc/ssl"
+      },
+      "content_hash": null,
+      "artifact_ref": null,
+      "parse_outcome": "not_applicable",
+      "certificate_fingerprints": null,
+      "metadata": null,
+      "authorization_claim": null,
+      "host_permission_claim": null,
+      "backup_readability": null
+    }
+  ]
+}

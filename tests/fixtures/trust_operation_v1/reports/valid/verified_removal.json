@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "assessment": {
+    "mutation_detection": "identified",
+    "transformation_understanding": "supported",
+    "manifest_version": "1.1.0",
+    "profile": "macos-bsd-cert-pem-v1",
+    "target": "/etc/ssl/cert.pem",
+    "reason_codes": []
+  },
+  "authorization": {
+    "state": "confirmed_scoped",
+    "provenance": "caro_interactive",
+    "scope_binding_digest": "1abac11a497ae78f50ee3e0dc7011ae62da08ce0fa0eb17f8147efb214b520f8"
+  },
+  "host_permission": {
+    "state": "granted",
+    "provenance": "fixture"
+  },
+  "execution": {
+    "state": "completed",
+    "failure_mode": null,
+    "whole_shell_status": "exit_zero",
+    "observation_source": "caro_observed",
+    "steps": {
+      "backup": {
+        "status": "completed",
+        "observation_source": "fixture"
+      },
+      "stage": {
+        "status": "completed",
+        "observation_source": "fixture"
+      },
+      "filter": {
+        "status": "completed",
+        "observation_source": "fixture"
+      },
+      "install": {
+        "status": "completed",
+        "observation_source": "caro_observed"
+      }
+    }
+  },
+  "postcondition": {
+    "state": "verified",
+    "verification_basis": "supplied_evidence",
+    "effect": "removed",
+    "reason_codes": []
+  },
+  "cleanup": {
+    "state": "succeeded",
+    "observation_source": "caro_observed",
+    "workflow_outcome": "completed"
+  }
+}

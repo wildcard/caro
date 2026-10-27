@@ -1,0 +1,225 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://caro.sh/schemas/trust_operation_v1/plan.schema.json",
+  "title": "TrustOperationPlanV1",
+  "description": "The bound plan a trust-operation evidence bundle (evidence.schema.json) is checked against to produce a report (report.schema.json). Frozen per issue #1714, checkpoint 1 revision 2. Supplied scope/approval information in a plan can never itself authorize execution. The definitions.context_identity block here MUST stay byte-identical to the same-named definition in evidence.schema.json (tests/trust_operation_v1_contract.rs asserts this); that identity is the canonical binding rule between a plan and an evidence bundle's context claim.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "manifest_version",
+    "profile",
+    "operation_id",
+    "evidence_id",
+    "command_digest",
+    "normalized_destination",
+    "context_identity",
+    "before_hash",
+    "target_fingerprints",
+    "approved_removal_ranges",
+    "approved_transformation",
+    "expected_staged_hash",
+    "backup_policy",
+    "expected_metadata"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "manifest_version": {
+      "type": "string",
+      "description": "Version of tests/fixtures/trust_operation_v1/manifest.json this plan was bound against."
+    },
+    "profile": {
+      "type": "string",
+      "description": "Named platform/target profile, e.g. macos-bsd-cert-pem-v1."
+    },
+    "operation_id": { "type": "string", "minLength": 1 },
+    "evidence_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The evidence bundle this plan is bound to. A conforming evidence bundle carries the SAME value in its own top-level evidence_id (evidence.schema.json); a mismatch is invalid_evidence, checked by the fixture-level contract test, not by this schema alone (cross-document checks are outside single-document JSON Schema validation)."
+    },
+    "command_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 (lowercase hex) of the exact command bytes this plan binds to. A changed command invalidates the plan."
+    },
+    "normalized_destination": {
+      "type": "string",
+      "description": "Lexically normalized destination path (tilde/./.. resolved against a supplied cwd). No filesystem probing. Canonical binding rule: an observation binds to this plan's destination iff its own normalized_destination_binding string is byte-for-byte equal to this value."
+    },
+    "context_identity": { "$ref": "#/definitions/context_identity" },
+    "before_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 (lowercase hex) of the raw before-mutation bytes of the artifact named by before_artifact_ref."
+    },
+    "before_artifact_ref": {
+      "$ref": "#/definitions/artifact_ref",
+      "description": "Optional pointer to the actual raw bytes this plan's before_hash was computed from (an offline fixture file under tests/fixtures/trust_operation_v1/artifacts/, or inline base64). Never a network or live-store location. When present, the contract test re-hashes these bytes and asserts the result equals before_hash."
+    },
+    "target_fingerprints": {
+      "type": "array",
+      "description": "DER fingerprints (sha256 of the base64-decoded certificate body, NOT of the raw PEM text section). Fixed per the #1715 revision-2 review's point 2: revision 2 originally hashed the raw PEM section bytes, which is wrong because whitespace/line-wrapping differences would change the hash without changing the certificate. tests/trust_operation_v1_contract.rs independently re-derives these by base64-decoding each PEM block it finds in the artifact and hashing the decoded DER bytes itself; it does not trust this field.",
+      "items": { "$ref": "#/definitions/fingerprint_count" }
+    },
+    "approved_removal_ranges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target_sha256", "count", "byte_ranges"],
+        "additionalProperties": false,
+        "properties": {
+          "target_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "DER fingerprint (sha256 of decoded certificate bytes), not a raw-PEM-section hash. See target_fingerprints."
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Exact approved occurrence count to remove for this fingerprint. after == before - approved, never more. Must equal byte_ranges.length."
+          },
+          "byte_ranges": {
+            "type": "array",
+            "description": "Explicit [start, end) byte offsets within the before_artifact_ref bytes, covering the FULL PEM block text (including its BEGIN/END markers and trailing newline) for each approved occurrence of this fingerprint. The contract test independently: (1) slices before_artifact_ref[start:end], (2) base64-decodes the certificate body found inside that slice, (3) asserts sha256(decoded DER bytes) == target_sha256, (4) asserts the ranges are non-overlapping and sorted, and (5) asserts removing exactly these ranges from the before bytes reconstructs expected_staged_hash byte-for-byte. An empty array is valid only when count=0 (the already-satisfied / no-write case).",
+            "items": {
+              "type": "object",
+              "required": ["start", "end"],
+              "additionalProperties": false,
+              "properties": {
+                "start": { "type": "integer", "minimum": 0 },
+                "end": { "type": "integer", "minimum": 0 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "approved_transformation": {
+      "type": "string",
+      "enum": ["remove_approved_certificates_only"],
+      "description": "v1 supports exactly one transformation kind; this is a closed enum until a reviewed manifest change adds another. An append-shaped operation (tee -a, >>) is categorically a different, unsupported transformation kind and MUST NOT be bound to a plan with this value (see manifest.json rows T004/T005 and docs/trust-operation-contract.md)."
+    },
+    "expected_staged_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "expected_staged_artifact_ref": { "$ref": "#/definitions/artifact_ref" },
+    "backup_policy": {
+      "type": "object",
+      "required": ["required", "must_match_before_hash", "must_be_readable", "overwrite_existing"],
+      "additionalProperties": false,
+      "properties": {
+        "required": { "type": "boolean" },
+        "must_match_before_hash": { "type": "boolean" },
+        "must_be_readable": {
+          "type": "boolean",
+          "description": "When required=true, this must also be true: an unreadable backup is the same as no backup for the purpose of this contract."
+        },
+        "overwrite_existing": {
+          "const": false,
+          "description": "An existing different backup is never overwritten."
+        },
+        "expected_hash": { "type": ["string", "null"], "pattern": "^([0-9a-f]{64})?$" }
+      },
+      "allOf": [
+        {
+          "$comment": "A plan that requires a backup must also require it be readable; 'required but unreadable is fine' is not representable.",
+          "if": { "properties": { "required": { "const": true } }, "required": ["required"] },
+          "then": { "properties": { "must_be_readable": { "const": true } }, "required": ["must_be_readable"] }
+        }
+      ]
+    },
+    "expected_metadata": {
+      "type": "object",
+      "required": ["owner", "group", "mode"],
+      "additionalProperties": false,
+      "properties": {
+        "owner": { "type": "string", "minLength": 1 },
+        "group": { "type": "string", "minLength": 1 },
+        "mode": { "type": "string", "pattern": "^0[0-7]{3}$" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "A real mutation (at least one approved removal with count>0) can never disable the backup requirement, NOR skip requiring that the backup match the actual before snapshot. Fixes the #1715 revision-2 review finding ('mutating plans cannot disable matching before hash'): the original fix only forced backup_policy.required=true and left must_match_before_hash free to be false on a mutating plan.",
+      "if": {
+        "properties": {
+          "approved_removal_ranges": {
+            "contains": {
+              "properties": { "count": { "type": "integer", "exclusiveMinimum": 0 } },
+              "required": ["count"]
+            }
+          }
+        },
+        "required": ["approved_removal_ranges"]
+      },
+      "then": {
+        "properties": {
+          "backup_policy": {
+            "properties": {
+              "required": { "const": true },
+              "must_match_before_hash": { "const": true }
+            },
+            "required": ["required", "must_match_before_hash"]
+          }
+        },
+        "required": ["backup_policy"]
+      }
+    },
+    {
+      "$comment": "count must equal the number of bound byte ranges for every removal row; this is the explicit occurrence-identity-to-bytes binding the #1715 review asked for.",
+      "properties": {
+        "approved_removal_ranges": {
+          "items": {
+            "$comment": "JSON Schema draft-07 cannot compare count to byte_ranges.length directly without a custom keyword; this is enforced by tests/trust_operation_v1_contract.rs (fn approved_removal_ranges_count_matches_byte_ranges_length), not by this schema alone. Left as a documented limitation rather than a silently-missing check."
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "context_identity": {
+      "type": "object",
+      "required": ["cwd_supplied", "cwd"],
+      "additionalProperties": false,
+      "properties": {
+        "cwd_supplied": { "type": "boolean" },
+        "cwd": { "type": ["string", "null"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "cwd_supplied": { "const": false } }, "required": ["cwd_supplied"] },
+          "then": { "properties": { "cwd": { "type": "null" } }, "required": ["cwd"] }
+        },
+        {
+          "if": { "properties": { "cwd_supplied": { "const": true } }, "required": ["cwd_supplied"] },
+          "then": { "properties": { "cwd": { "type": "string", "minLength": 1 } }, "required": ["cwd"] }
+        }
+      ]
+    },
+    "fingerprint_count": {
+      "type": "object",
+      "required": ["sha256", "occurrence_count"],
+      "additionalProperties": false,
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "occurrence_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "artifact_ref": {
+      "description": "Bounded, offline-only reference to actual raw bytes. v1 FREEZES this to fixture_file only (per the #1715 revision-2 review's point 6: inline_base64 was speculative, unused by any fixture in this repo, and its exclusivity with fixture_file was asserted only in prose, not enforced). A future reviewed change can reintroduce an inline form WITH a real enforced-exclusivity rule and size/hash negatives if an actual use case needs it. NEVER a URL, host path outside the fixtures tree, or any form of network/live-store resolution.",
+      "type": "object",
+      "required": ["sha256", "size_bytes", "source", "fixture_path"],
+      "additionalProperties": false,
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "size_bytes": { "type": "integer", "minimum": 0 },
+        "source": { "const": "fixture_file" },
+        "fixture_path": {
+          "type": "string",
+          "pattern": "^tests/fixtures/trust_operation_v1/artifacts/[A-Za-z0-9_.-]+$",
+          "description": "Always relative to the repository root, always under the frozen artifacts directory."
+        }
+      }
+    }
+  }
+}

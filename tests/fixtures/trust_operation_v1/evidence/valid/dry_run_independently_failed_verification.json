@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "operation_id": "op-dry-run-independently-failed",
+  "evidence_id": "op-dry-run-independently-failed-evidence",
+  "observations": [
+    {
+      "source": "fixture",
+      "step": "before",
+      "step_status": "completed",
+      "step_snapshot_id": "before-1",
+      "capture_sequence": 0,
+      "capture_time": "2026-10-24T09:00:00Z",
+      "normalized_destination_binding": "/etc/ssl/cert.pem",
+      "context_binding": {
+        "cwd_supplied": true,
+        "cwd": "/etc/ssl"
+      },
+      "content_hash": "4ba5b005508c0706766d00908aaacea89f34d69cef7b22cc5046ee5cac4aeae2",
+      "artifact_ref": {
+        "sha256": "4ba5b005508c0706766d00908aaacea89f34d69cef7b22cc5046ee5cac4aeae2",
+        "size_bytes": 1482,
+        "source": "fixture_file",
+        "fixture_path": "tests/fixtures/trust_operation_v1/artifacts/final_content_mismatch.pem.fixture"
+      },
+      "parse_outcome": "ok",
+      "certificate_fingerprints": [
+        {
+          "sha256": "62e4ea45d3b967b26dea8c9b5cf2d350a15c78b127728f165cbb48628ae545a3",
+          "occurrence_count": 1
+        },
+        {
+          "sha256": "a45ecacbc0acf265dabf6860f2fe00ea69a0df65389ab2213db5ee020030c26e",
+          "occurrence_count": 1
+        }
+      ],
+      "metadata": null,
+      "authorization_claim": null,
+      "host_permission_claim": null,
+      "backup_readability": null,
+      "consumes_before_snapshot_id": null,
+      "consumes_staging_snapshot_id": null
+    },
+    {
+      "source": "caro_observed",
+      "step": "install",
+      "step_status": "not_attempted",
+      "step_snapshot_id": "install-1",
+      "capture_sequence": 1,
+      "capture_time": "2026-10-24T09:00:00Z",
+      "normalized_destination_binding": "/etc/ssl/cert.pem",
+      "context_binding": {
+        "cwd_supplied": true,
+        "cwd": "/etc/ssl"
+      },
+      "content_hash": null,
+      "artifact_ref": null,
+      "parse_outcome": "not_applicable",
+      "certificate_fingerprints": null,
+      "metadata": null,
+      "authorization_claim": null,
+      "host_permission_claim": null,
+      "backup_readability": null,
+      "consumes_before_snapshot_id": null,
+      "consumes_staging_snapshot_id": null
+    }
+  ]
+}

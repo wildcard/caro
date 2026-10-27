@@ -9,6 +9,254 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Trust-operation contract v1, checkpoint 1 (#1714), proposed; ten
+  rounds of independent-review fixes so far (#1715).** Proposes the
+  support boundary, schemas, and reason codes for verifying a trust-store
+  mutation (e.g. the Apple eMudhra CA advisory remediation) actually
+  reached the intended state, instead of trusting a whole-shell exit 0.
+  **Still contract-only: no detector, gate, or verifier behavior is
+  implemented**, `CliResult` is unchanged, and no real trust store is
+  touched. Not claimed as accepted — that is for the next independent
+  review pass, not this changelog entry.
+  - Round 2 fixed 6 defects: forbidden report states representable only in
+    prose (now real `allOf`/`if`/`then` conditionals); plan/evidence
+    schemas with no real bytes behind their claimed hashes; loose
+    plan↔evidence bindings; no separation between whole-shell exit status
+    and step-level execution state; `transformation_understanding`
+    conflated with mutation detection (append wrongly `supported`, a
+    filename silently changing the verdict); and an invented `4096`-byte
+    bound instead of the project's actually-configured limits.
+  - Round 3 fixed 7 further defects: a wrong report rule (`R5`) that
+    blocked a legitimate dry-run-with-independently-failed-verification
+    case, and a too-weak one (`R11`) that accepted a failure label with no
+    failing step; synthetic PEM artifacts that decoded to plain text, not
+    DER, with fingerprints hashed over the wrong bytes (raw PEM section
+    instead of DER) — replaced with real throwaway self-signed X.509
+    certificates and true DER fingerprints, independently re-derived by
+    the test, never trusted from a fixture's own claim; missing
+    pre-install snapshot-binding/freshness checks and backup-readability
+    observation; an underspecified, unversioned scoped-approval digest —
+    now a named, versioned preimage a dedicated test recomputes; manifest
+    rows that didn't actually bind `plan_ref` to their own command bytes,
+    and a `manifest_version` mismatch between the manifest and its report
+    fixtures; speculative, unused, prose-only-exclusive `inline_base64`
+    support, now removed entirely; and — the only one with a real CI
+    signal — the `jsonschema` dev-dependency round 2 added failed this
+    repo's `dependency-review.yml` license allowlist (`MIT-0` via
+    `fluent-uri`/`borrow-or-share`; a 0.18.x downgrade only traded that for
+    `Unicode-3.0` via `url`/icu4x). Per the review's explicit instruction
+    not to weaken that policy, the dependency is **removed**:
+    `tests/trust_operation_v1_contract.rs` now implements its own minimal
+    draft-07-subset evaluator (`serde_json` + `regex`, both pre-existing
+    dependencies, zero new ones).
+  - Round 4 fixed 5 further defects: the hand-written `minischema`
+    evaluator used by the Rust test (no `$ref`-capable JSON Schema crate
+    clears this repo's license allowlist) previously only cloned schema
+    JSON with no checking, so `"type": 42` or an unsupported keyword
+    would silently compile; it now preflights every schema (3
+    `#[should_panic]` conformance tests) and a new
+    `scripts/validate_trust_operation_schemas.py` meta-validates all four
+    schemas and every fixture with the real `jsonschema` PyPI package (a
+    Python dev-tool dependency, outside `dependency-review.yml`'s scope),
+    wired into its own CI job. Report-schema step statuses could not
+    distinguish "no information" from a positive "known not attempted"
+    claim; split into `unobserved`/`not_attempted` with matching rules
+    (failed execution forces a failed workflow outcome; a completed
+    execution forbids any failing step directly; cleanup and denied
+    authorization both need real provenance; a not-attempted execution
+    forbids started/completed steps). The DER/PEM checks accepted an
+    empty `30 00` SEQUENCE, trailing bytes past a declared length,
+    malformed base64 padding, and a valid certificate followed by an
+    unmatched `BEGIN`; replaced with a strict base64 decoder, a PEM parser
+    that must consume the entire file, and a real (shallow) X.509
+    structural walk requiring exact TLV tiling, backed by four new
+    adversarial artifacts. The headline fix: nothing previously compared
+    an evidence bundle's `final` observation to the plan's
+    `expected_staged_hash`, so swapping it to mismatched bytes left every
+    existing test green; a new test-only `derive_postcondition`
+    cross-check (explicitly not product behavior) now catches exactly
+    that tamper, plus a missing-`final` case, a stale-`before` case on the
+    no-op plan, independently-verified zero-target-occurrence on the
+    no-op artifact, unique `(step, snapshot_id)` pairs, and backup/evidence
+    metadata that can no longer be `{}` (present but empty).
+  - Round 5 fixed 4 further defects plus one small fix. The test-only
+    `derive_postcondition` cross-check still only compared final-vs-expected
+    hash equality, so a tampered final `metadata.mode` still derived to
+    verified/removed; added a fuller `validate_case` cross-check (also
+    checking backup binding, final metadata, the install step's own
+    status, and same-step conflicts even across differing snapshot IDs,
+    plus an independent DER re-check of a no-op plan's before artifact),
+    backed by 8 new adversarial tests and a 9th proving it still agrees
+    with the frozen fixtures on the untampered happy paths. Report-schema
+    failure aggregation was one-way (a failing step didn't force a failed
+    execution/workflow); added R19 per step, with a new invalid fixture.
+    A backup-metadata `allOf` rule used `"not": {"required": [...]}`,
+    which only fires when the key is present, so an OMITTED `metadata` key
+    still passed; fixed to a direct `required`, with two new invalid
+    fixtures. A whole-shell-only report fixture incorrectly used
+    `workflow_outcome: "not_attempted"`; corrected to `"unverified"`. The
+    DER structural check still accepted `30 06 30 00 30 00 03 00` (empty
+    nested structures) because it never recursed past the outer tiling;
+    deepened to validate `tbsCertificate`/`signatureAlgorithm`/
+    `signatureValue` structurally, including a canonical BIT STRING
+    unused-bits check. The PEM scanner had become over-strict, rejecting
+    the comments/whitespace issue #1714 requires preserving and lacking
+    CRLF support; fixed with 3 new fixtures (nested-empty-DER attack,
+    commented/whitespace bundle, CRLF block). Windows CI genuinely failed
+    5/60 tests from CRLF corruption of fixture bytes during checkout
+    (observed: 741→754, 2964→3016 bytes); fixed via a `.gitattributes`
+    `binary` directive on the fixture glob. Small fix: `minischema`'s
+    `preflight` now rejects boolean schemas instead of silently ignoring
+    them. Preserved: the independently-passing Python schema validator
+    (re-run clean against every round-5 change), zero Cargo dependency
+    changes, and the "proposed, not yet accepted" status language.
+  - Round 6 fixed 3 further defect classes. The fixture-case validator
+    still had five real gaps: a null final metadata silently SKIPPED the
+    equality check instead of failing it; `final.parse_outcome` was never
+    checked; the `stage` observation was never independently verified
+    against `expected_staged_hash` at all; the final observation's
+    declared `certificate_fingerprints` were never cross-checked against
+    an independent re-parse of the real bytes; and install's snapshot
+    bindings were required present by schema but never checked for exact
+    equality in the validator itself. The no-op path's
+    `unwrap_or_default()` on a parse failure silently became "zero
+    certificates found," the opposite of correct. A new
+    `validate_full_case(plan, evidence, report)` — the one path ALL
+    paired triads now route through — added a report/evidence
+    consistency check that caught a real bug in `verified_removal.json`:
+    its report claimed `filter` completed with no matching evidence
+    observation at all; fixed by adding the missing evidence observation.
+    9 new adversarial tests plus 2 fuller happy-path checks. X.509
+    checking was still child-tag/count heuristics, satisfied by the
+    review's counterexample DER despite its fields being empty
+    placeholders; replaced entirely with `x509-parser` (a real,
+    independently conformant DER/ASN.1 parser, dev-dependency,
+    `default-features = false` so no chain/trust/expiry/signature
+    validation — pure syntax parsing, full-consumption-required), whose
+    own transitive deps are plain `MIT OR Apache-2.0` and clear
+    `dependency-review.yml`'s allowlist without exception (unlike
+    `jsonschema`). Base64 unused padding bits (RFC 4648 §3.5) are now
+    rejected as a separate strictness concern from DER BIT STRING unused
+    bits. A removal test now applies an actual byte-range removal to the
+    commented/whitespace bundle and compares byte-for-byte against an
+    independently authored expected artifact, not just substring
+    searches on the untouched original. `stage_status_unknown_but_observed.json`
+    paired `execution.state=started` with `cleanup.workflow_outcome=not_attempted`
+    (a contradiction: "nothing happened" against a started execution);
+    fixed the fixture and added report-schema R20 plus a negative
+    regression fixture and a genuine-dry-run retention test.
+  - Round 7 fixed 2 further defects. The shared test-only fixture-
+    integrity path existed but wasn't actually used everywhere: round 6's
+    `validate_full_case` wrapped a narrower `validate_case`, but almost
+    every adversarial test called `validate_case` directly, bypassing the
+    wrapper's schema/report gates. That split is gone -- a single
+    `validate_fixture_case(plan, evidence, report)` is now the only entry
+    point, used by every test. It also closed five real gaps: a FALSE
+    POSITIVE (removing the `before` observation while nulling
+    `install.consumes_before_snapshot_id` used to "verify" via a vacuous
+    null-equals-null default; `before` is now a required,
+    independently-resolved observation checked before any binding
+    comparison); content hashes are now independently rehashed from real
+    artifact bytes, not merely compared to other declared fields;
+    `independent_fingerprint_multiset` now calls the real X.509 parser on
+    every block, so an invalid-DER block can no longer silently contribute
+    a fingerprint count; destination/context binding, range
+    transformation (applying the plan's own byte ranges to the real
+    before bytes must actually produce the real stage bytes), freshness
+    (install captured strictly after what it consumes), and the
+    scoped-approval digest are now all wired into the one path; and the
+    report-consistency check now covers `cleanup` and requires the
+    report's claimed source match the evidence's own source, not just its
+    status. Classification was corrected throughout: missing/null fields
+    now derive `unverified`, never `failed` (round 6's own
+    overcorrection on final metadata). 18 new tests, each asserting the
+    exact classification. Separately, R20 explicitly allowed
+    `execution.state=unobserved` paired with `workflow_outcome=
+    not_attempted`; tightened to require EXACTLY `not_attempted`, fixing
+    `authorization_denied_with_provenance.json` (which genuinely does
+    establish non-attempt) and adding a new unobserved-negative fixture
+    plus test.
+  - Round 8 fixed 4 further defect classes. Range transformation applied
+    byte ranges using only declared start/end offsets, never binding
+    them to real certificate fingerprints, occurrence counts, or
+    boundaries -- relabeling a target fingerprint to an unrelated value
+    and recomputing the scope-binding digest over the tampered plan
+    still verified removal. Replaced with
+    `bind_and_apply_approved_removal_ranges`, which independently
+    re-parses the before bytes, binds `plan.target_fingerprints` to the
+    real multiset, binds each range's declared count to the real
+    occurrence count, and binds each byte range to the actual DER
+    fingerprint at that offset; `before_bytes` is also now bound
+    directly to `plan.before_hash` and `before_artifact_ref`'s own
+    hash/size fields. Report/evidence consistency was one-way: a known
+    evidence failure in a mutation step could be hidden behind a report
+    claiming unobserved/none while execution/workflow claimed completed.
+    Made bidirectional -- a known failure must now propagate into the
+    report, while a failed cleanup becomes visible without forcing
+    execution/workflow to failed (preserving an independently verified
+    mutation outcome). The same-step conflict check now also rejects
+    observations differing only in metadata/source. Classification
+    gained two more missing-vs-contradictory fixes: a null consumed
+    snapshot id against a real existing snapshot is FAILED (confirmed,
+    regression-tested); `parse_outcome=not_applicable` and a null
+    `certificate_fingerprints` declaration are now UNVERIFIED, not
+    FAILED (both mean "no information," not "demonstrated
+    contradiction"). Finally, round 7's own fixture fix was itself
+    wrong and is reverted: a `supplied_claim` authorization denial does
+    not prove execution never occurred, so
+    `authorization_denied_with_provenance.json`'s `execution.state`
+    reverts to `unobserved` (R20 itself is unweakened). 10 new
+    adversarial tests.
+  - Round 9 fixed 3 further defects, all in round 8's own work. Round 8
+    itself over-corrected: it classified a null
+    `consumes_before_snapshot_id` as `failed` even when a real before
+    observation existed, but existence doesn't prove WHICH snapshot
+    install consumed -- a null claim is missing information, not a
+    demonstrated contradiction. Fixed to `unverified`; only a non-null
+    but WRONG id now fails. The effect computation only ever consulted
+    `install`'s own step_status, so a truthfully reported
+    backup/stage/filter failure with a completed install and verified
+    final bytes still produced effect=removed; fixed so any
+    mutation-step failure (not cleanup, which stays decoupled per
+    R12/R13) forces effect=unknown. The content resolver validated
+    `content_hash` but never checked `artifact_ref.sha256`/`size_bytes`
+    against the real bytes, so an internally inconsistent artifact
+    reference passed undetected in both the mutation and no-op paths;
+    fixed in the one shared helper. A no-op plan's range entry claiming
+    count=0 while still declaring non-empty byte_ranges is also now
+    rejected. 5 new/corrected tests, all through the one shared checker.
+  - Round 10 fixed the one residual gap: the shared checker never
+    independently resolved the plan's own `before_artifact_ref`/
+    `expected_staged_artifact_ref` against real bytes read from their
+    own `fixture_path` -- prior checks only compared the plan's
+    declared artifact_ref fields against each other or against
+    already-resolved evidence bytes. The no-op branch never consulted
+    `before_artifact_ref` at all; the mutation branch's checks were
+    internal-consistency-only, so swapping `fixture_path` to a
+    different, real, existing fixture (leaving sha256/size_bytes/
+    before_hash mutually consistent with each other) still verified
+    removed; and `expected_staged_artifact_ref` was never checked by
+    either branch. Fixed with a new `resolve_plan_artifact_ref` helper,
+    called as a new gate before either branch runs, resolving both
+    plan-level artifact refs unconditionally. 8 new tests cover both
+    branches and all three tamper shapes (wrong hash, wrong size, path
+    swapped to different existing bytes). (The round-10 self-review
+    miscounted this as 9; corrected in round 11 below.)
+  - Round 11 fixed a regression round 10 itself introduced: the new
+    gate's `resolve_plan_artifact_ref` calls were unconditional, so a
+    valid plan that simply omitted the (schema-optional)
+    `before_artifact_ref` or `expected_staged_artifact_ref` field fell
+    into `failed`/`unknown` even with an otherwise complete, correctly
+    bound evidence chain. Fixed by validating each field only when
+    present (`!plan["<field>"].is_null()`); a present-but-wrong field
+    still fails exactly as round 10 left it (wrong hash, wrong size,
+    wrong path all still rejected). 4 new tests cover the omitted-before
+    and omitted-staged cases in both the no-op and mutation branches.
+  - Actual current shape (mechanically checked, not asserted by hand):
+    **33** manifest rows, **4** schema files, **120** contract tests,
+    **1** new Cargo dev-dependency (`x509-parser`, test-only, never
+    shipped in the `caro` binary), **1** new Python dev-tool dependency
+    (`jsonschema`, CI-only, outside `dependency-review.yml`'s scope).
 - **`caro guard test` and `caro guard setup` (spec 011 §P2.1, §P2.2).**
   `caro guard test "<command>"` dry-runs one command through the guard and
   prints risk, verdict, matched patterns and the floor flag (`--output json`
