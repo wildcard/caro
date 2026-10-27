@@ -569,11 +569,12 @@ fn is_posix_compliant(os: &str) -> bool {
     )
 }
 
+/// Slow, loaded hosts (busy CI runners) can take well over 500 ms to start `ls`.
+const LS_VERSION_TIMEOUT: Duration = Duration::from_secs(2);
+
 async fn detect_gnu_coreutils() -> bool {
     // Try to run `ls --version` - GNU coreutils respond with version info
-    if let Ok(output) =
-        run_command_with_timeout("ls", &["--version"], Duration::from_millis(500)).await
-    {
+    if let Ok(output) = run_command_with_timeout("ls", &["--version"], LS_VERSION_TIMEOUT).await {
         is_gnu_compatible_ls_version(&output)
     } else {
         false
@@ -589,14 +590,22 @@ fn is_gnu_compatible_ls_version(output: &str) -> bool {
 
 async fn detect_bsd_utils() -> bool {
     // BSD utils typically don't support --version
-    if (run_command_with_timeout("ls", &["--version"], Duration::from_millis(500)).await).is_ok() {
-        false // If --version works, it's likely GNU
+    let probe = run_command_with_timeout("ls", &["--version"], LS_VERSION_TIMEOUT).await;
+    if ls_version_probe_rules_out_bsd(&probe) {
+        false
     } else {
         // BSD utils will fail on --version, check if ls exists normally
         run_command_with_timeout("ls", &["-d", "."], Duration::from_millis(500))
             .await
             .is_ok()
     }
+}
+
+/// `ls --version` working means GNU-style tools. A timeout says nothing about
+/// the flavor, so it must not be read as BSD (#1533). Only a rejected flag
+/// leaves BSD possible.
+fn ls_version_probe_rules_out_bsd(probe: &Result<String, PlatformContextError>) -> bool {
+    matches!(probe, Ok(_) | Err(PlatformContextError::Timeout))
 }
 
 async fn detect_available_tools() -> HashMap<String, String> {
@@ -778,5 +787,21 @@ mod tests {
         assert_eq!(ctx.os(), "linux");
         assert_eq!(ctx.arch(), "x86_64");
         assert_eq!(ctx.shell(), "bash");
+    }
+
+    #[test]
+    fn test_ls_version_timeout_does_not_imply_bsd() {
+        // `ls --version` answered: GNU-style tools, so not BSD.
+        assert!(ls_version_probe_rules_out_bsd(&Ok(
+            "ls (GNU coreutils) 9.4".into()
+        )));
+        // Timed out on a loaded host: unknown, so not BSD either (#1533).
+        assert!(ls_version_probe_rules_out_bsd(&Err(
+            PlatformContextError::Timeout
+        )));
+        // Rejected the flag: BSD `ls` stays possible.
+        assert!(!ls_version_probe_rules_out_bsd(&Err(
+            PlatformContextError::CommandError("exit status: 1".into())
+        )));
     }
 }
