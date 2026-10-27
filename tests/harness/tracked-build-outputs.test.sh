@@ -72,8 +72,32 @@ git rm -r --cached --quiet tests/evaluation/target
 expect tree_mode_reads_commit 1 $?
 "$GUARD" >/dev/null 2>&1
 expect index_after_untrack_passes 0 $?
-[ -f tests/evaluation/target/debug/bin ]
-expect untrack_keeps_file_on_disk 0 $?
+rc=0; [ -f tests/evaluation/target/debug/bin ] || rc=1
+expect untrack_keeps_file_on_disk 0 "$rc"
+
+# #1551: a local worktree added as a gitlink (mode 160000, no .gitmodules)
+# breaks `git submodule` in every clone and checkout's post-job cleanup.
+fixture; git update-index --add --cacheinfo "160000,$(git rev-parse HEAD),.worktrees/001-feature"
+"$GUARD" >/dev/null 2>"$TMP/err"
+expect worktree_gitlink_fails 1 $?
+grep -q '\.worktrees/001-feature' "$TMP/err"
+expect error_names_worktree_path 0 $?
+git commit -qm bad
+"$GUARD" --tree HEAD >/dev/null 2>&1
+expect tree_mode_flags_worktree_gitlink 1 $?
+
+fixture; git update-index --add --cacheinfo "160000,$(git rev-parse HEAD),.claude/worktrees/agent-x"
+"$GUARD" >/dev/null 2>&1
+expect claude_worktree_gitlink_fails 1 $?
+
+fixture; git update-index --add --cacheinfo "160000,$(git rev-parse HEAD),.worktrees"
+"$GUARD" >/dev/null 2>&1
+expect worktree_root_gitlink_fails 1 $?
+
+fixture; mkdir -p docs/worktrees && echo d > docs/worktrees/howto.md
+git add docs/worktrees
+"$GUARD" >/dev/null 2>&1
+expect worktrees_lookalike_dir_passes 0 $?
 
 echo "tracked-build-outputs: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

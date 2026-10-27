@@ -66,6 +66,25 @@ ignore = [
     "RUSTSEC-2026-0099",
     "RUSTSEC-2026-0104",
 
+    # RUSTSEC-2026-0346: rustls — `Debug` impls for client session values expose TLS secrets.
+    # RUSTSEC-2026-0349: rustls — unauthenticated ServerHello can downgrade later
+    #                    connections to classical key exchange.
+    # Fixed only in rustls >= 0.23.46; the 0.23 path is patched in Cargo.lock
+    # (#1669). These entries cover the LEGACY rustls 0.21.12 path, which has no
+    # fixed 0.21 release and exists only behind optional, non-default features:
+    #   - `knowledge`: lancedb 0.23 -> lance -> aws-sdk-dynamodb (default
+    #     feature "rustls") -> aws-smithy-http-client "legacy-rustls-ring"
+    #     -> hyper-rustls 0.24 / tokio-rustls 0.24 -> rustls 0.21.12
+    #   - `chromadb`: chromadb 2.3.0 (latest) -> minreq "https-rustls" -> rustls 0.21.12
+    # The default build (`cargo install caro`) does not link rustls 0.21.
+    # Caveat: the IDs also match rustls 0.23.45; keep Cargo.lock on >= 0.23.46.
+    # Revert: when lancedb/lance and chromadb drop rustls 0.21 (lancedb 0.40+
+    # needs an arrow bump), or when the knowledge/chromadb features are removed.
+    # Review by: 2026-12-31.
+    # Tracked: https://github.com/wildcard/caro/issues/1668
+    "RUSTSEC-2026-0346",
+    "RUSTSEC-2026-0349",
+
     # -------------------------------------------------------------------------
     # TRANSITIVE — time crate (MSRV-pinned)
     # -------------------------------------------------------------------------
@@ -103,6 +122,23 @@ ignore = [
     # Revert: When lancedb updates to an lru version with the fix.
     # Tracked: https://github.com/wildcard/caro/issues/1050
     "RUSTSEC-2026-0002",
+
+    # RUSTSEC-2026-0367: zip — SUID/SGID bits preserved during extraction.
+    # RUSTSEC-2026-0368: zip — `ZipArchive::extract` creates symlinks that point
+    #                    outside the destination directory.
+    # RUSTSEC-2026-0369: zip — `extract()` applies Unix permissions through symlinks.
+    # Fixed only in zip >= 9.0.0. zip 7.2.0 comes in only via candle-core 0.10.2
+    # (default `embedded-cpu`); even candle-core 0.11.0 requires zip ^8.6.
+    # All three advisories are in the extract APIs. candle-core only reads
+    # archives in memory (`ZipArchive::new` + `by_name` in src/pickle.rs and
+    # src/npy.rs, plus `ZipWriter` for .npz output) and never calls `extract`;
+    # caro's own code does not use the zip crate.
+    # Revert: when a candle release requires zip >= 9 and caro bumps to it.
+    # Review by: 2026-12-31.
+    # Tracked: https://github.com/wildcard/caro/issues/1681
+    "RUSTSEC-2026-0367",
+    "RUSTSEC-2026-0368",
+    "RUSTSEC-2026-0369",
 
     # -------------------------------------------------------------------------
     # TRANSITIVE — wiremock dev-dependency only (not in release binaries)
