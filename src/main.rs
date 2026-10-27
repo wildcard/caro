@@ -849,7 +849,13 @@ struct Cli {
     safety: Option<String>,
 
     /// Output format
-    #[arg(short, long, help = "Output format (json, yaml, plain)")]
+    #[arg(
+        short,
+        long,
+        value_parser = ["json", "yaml", "plain"],
+        ignore_case = true,
+        help = "Output format (json, yaml, plain)"
+    )]
     output: Option<String>,
 
     /// Auto-confirm dangerous commands

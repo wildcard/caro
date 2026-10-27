@@ -574,3 +574,12 @@ workspaces are BW-069.
 **Needs human?:** yes (CI gate: which workflow runs which targets)
 **Next step:** the owner picks how CI runs the unlisted `tests/` targets
 (the options are in #1537).
+
+### BW-098: invalid `--output` value is silently accepted and falls back to plain
+
+**Found:** 2026-10-27 sweep register sync (issue filed 2026-10-27)
+**Issue:** #1726. `--output` was a free-form string; `main.rs` discarded the parse error with `.ok()` and used `Plain`, so `--output jsno` exited 0 with non-JSON output.
+**Status:** claimed-by sweep/2026-10-27-BW-098 (#PR)
+**Needs human?:** no
+**Next step:** merge the sweep PR (clap `value_parser` with `ignore_case`).
+
