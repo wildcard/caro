@@ -226,3 +226,35 @@ fn backend_info_shows_status_column() {
         combined
     );
 }
+
+// =============================================================================
+// --output rejects unknown formats (#1726)
+// =============================================================================
+
+#[test]
+fn output_rejects_unknown_format() {
+    let runner = CliRunner::new();
+    let (stdout, stderr, code) = runner.run(&["--output", "bogus", "--dry-run", "list files"]);
+    assert_ne!(
+        code, 0,
+        "--output bogus must fail instead of falling back to plain. stdout:\n{}\nstderr:\n{}",
+        stdout, stderr
+    );
+    for value in ["json", "yaml", "plain"] {
+        assert!(
+            stderr.contains(value),
+            "error should list the valid format {value:?}, got:\n{stderr}"
+        );
+    }
+}
+
+#[test]
+fn output_format_is_case_insensitive() {
+    let runner = CliRunner::new();
+    let (stdout, stderr, code) = runner.run(&["--output", "JSON", "--backend-info"]);
+    assert_eq!(
+        code, 0,
+        "--output JSON should still parse. stdout:\n{}\nstderr:\n{}",
+        stdout, stderr
+    );
+}
