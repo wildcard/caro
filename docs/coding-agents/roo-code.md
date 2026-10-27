@@ -39,7 +39,7 @@ Or search "Roo Code" in VS Code Extensions.
 {
   "roo-cline.apiProvider": "anthropic",
   "roo-cline.apiKey": "...",
-  "roo-cline.model": "claude-sonnet-4-20250514",
+  "roo-cline.model": "claude-sonnet-4-6",
   "roo-cline.customInstructions": "Use caro for shell command safety",
   "roo-cline.autoApprove": false
 }
