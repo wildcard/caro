@@ -517,9 +517,9 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 
 **Found:** 2026-10-22, main CI (same runner-image move as BW-094)
 **Issue:** #1701
-**Status:** claimed-by fix/1701-pin-website-runner (#1731). Owner chose to pin `ubuntu-24.04` on 2026-10-27.
-**Needs human?:** yes (decided 2026-10-27: pin `ubuntu-24.04`)
-**Next step:** merge #1731 when green. Revert the pin once Playwright supports Ubuntu 26.04.
+**Status:** fixed (#1731, merged 2026-10-27). Owner chose to pin `ubuntu-24.04` on 2026-10-27.
+**Needs human?:** no (decided 2026-10-27: pin `ubuntu-24.04`)
+**Next step:** revert the pin once Playwright supports Ubuntu 26.04.
 
 ### BW-099: `Security Audit` red: 4 zstd advisories via lancedb/datafusion (optional features)
 
