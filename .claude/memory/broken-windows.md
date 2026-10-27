@@ -590,3 +590,12 @@ workspaces are BW-069.
 **Needs human?:** yes (CI gate: which workflow runs which targets)
 **Next step:** the owner picks how CI runs the unlisted `tests/` targets
 (the options are in #1537).
+
+### BW-099: `Security Audit` red: 4 zstd advisories via lancedb/datafusion (optional features)
+
+**Found:** 2026-10-27, while porting the uutils fix into #1700
+**Issue:** #1730. RUSTSEC-2026-0391 (zstd 0.13.3), 0398 and 0403 (zstd-safe 7.2.4), 0410 (zstd-sys 2.0.16). Only the optional `knowledge` and `chromadb` features pull zstd.
+**Status:** open
+**Needs human?:** yes (security policy: reviewed `audit.toml` entries, a dependency-major bump of lancedb/datafusion, or dropping the feature path)
+**Next step:** owner picks an option on #1730. Until then `Security Audit` stays red even after #1700 merges.
+
