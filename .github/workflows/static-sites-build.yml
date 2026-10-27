@@ -47,7 +47,9 @@ permissions:
 jobs:
   docs-site:
     name: Build docs-site (Cloudflare Pages)
-    runs-on: ubuntu-latest
+    # Pinned (#1701): playwright-chromium has no Chromium for ubuntu-latest
+    # (Ubuntu 26.04), so npm ci fails. Revert to ubuntu-latest once it does.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -77,7 +79,9 @@ jobs:
   # or description, so a green run means every page shipped with them.
   website:
     name: Build website (caro.sh)
-    runs-on: ubuntu-latest
+    # Pinned (#1701): playwright-chromium has no Chromium for ubuntu-latest
+    # (Ubuntu 26.04), so npm ci fails. Revert to ubuntu-latest once it does.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -121,7 +125,9 @@ jobs:
 
   storybook:
     name: Build Storybook (Cloudflare Pages)
-    runs-on: ubuntu-latest
+    # Pinned (#1701): playwright-chromium has no Chromium for ubuntu-latest
+    # (Ubuntu 26.04), so npm ci fails. Revert to ubuntu-latest once it does.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
