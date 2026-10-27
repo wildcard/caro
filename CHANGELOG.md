@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`caro guard` sees file tools (spec 011 §P2.3).** `Read`, `Write`,
+  `Edit`, `MultiEdit`, `NotebookEdit`, `Grep` and `Glob` calls are checked
+  against a built-in protected-path set (`~/.ssh/**`, `~/.gnupg/**`,
+  `~/.aws/**`, `~/.kube/config`, `~/.netrc`, `**/.env`, `**/.env.*`,
+  `**/id_rsa`, `**/*.pem`, caro's own `config.toml`, …): a protected path
+  → `ask`; a write to caro's own decision log → `deny`; every other path →
+  no opinion, no output, no log line. Matching is lexical (tilde, `.`,
+  `..`, cwd), no filesystem access on the hook path, and the reason names
+  a label, never the path. `[safety] protected_paths = [...]` in
+  `config.toml` adds globs (additive only). The decision record gains
+  `tool` and `path`; `caro guard report` groups by tool; the installed hook
+  matcher now covers the file tools. Regression guards:
+  `enforce_asks_on_protected_path_read` and
+  `routine_read_stays_silent_and_unlogged` in `tests/e2e_guard.rs`.
 - **`caro guard test` and `caro guard setup` (spec 011 §P2.1, §P2.2).**
   `caro guard test "<command>"` dry-runs one command through the guard and
   prints risk, verdict, matched patterns and the floor flag (`--output json`
@@ -39,7 +53,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   inside a payload (`bash -c 'echo rm -rf /'` stays allowed). Guarded by
   `tests/safety_segment_evasion_contract.rs` and
   `enforce_catches_segment_and_wrapper_evasions` in `tests/e2e_guard.rs`.
-- **Provisional gold labels.** All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
+- **Gold subset: `moderate` floor reached.** 13 authored single-target rows
+  (gold-122 to gold-134) join `docs/ml/risk-gold-candidates.jsonl`, with their
+  static tiers in `risk-gold-static-tiers.jsonl`, taking `moderate` from 22 to
+  32 and `high` from 34 to 37. Labelled the same provisional way. `critical` stays 10 under its floor;
+  the guide records that those rows wait for a human maintainer.
+- **Provisional gold labels.** (Initial snapshot; the entry above adds 13 rows.) All 121 rows of `docs/ml/risk-gold-candidates.jsonl`
   carry a `gold_tier`, `uncertain`, `rationale`, `labeller` and `labelled_at`.
   Labelled by an agent session on the owner's decision, blind to the static
   tiers, and marked provisional in `docs/ml/risk-gold-subset.md` pending human

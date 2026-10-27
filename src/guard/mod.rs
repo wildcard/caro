@@ -13,6 +13,7 @@
 //! the harness acts on.
 
 pub mod log;
+pub mod paths;
 pub mod setup;
 
 use std::time::Instant;
@@ -114,6 +115,11 @@ pub struct HookEvent {
     /// The harness truncated the tool input (Grok Build `toolInputTruncated`):
     /// the visible command is only a prefix of what will run.
     pub truncated: bool,
+    /// The path a file tool is about to use (`file_path`, `path`,
+    /// `notebook_path`).
+    pub file_path: Option<String>,
+    /// `Glob`/`Grep` `pattern`: the files a search enumerates.
+    pub search_pattern: Option<String>,
 }
 
 impl HookEvent {
@@ -142,6 +148,8 @@ impl HookEvent {
                 session_id: field("session_id", "sessionId"),
                 tool_use_id: field("tool_use_id", "toolUseId"),
                 truncated: false,
+                file_path: None,
+                search_pattern: None,
             });
         }
 
@@ -164,6 +172,11 @@ impl HookEvent {
                 .or_else(|| v.get("toolInputTruncated"))
                 .and_then(Value::as_bool)
                 .unwrap_or(false),
+            file_path: input_str("file_path")
+                .or_else(|| input_str("filePath"))
+                .or_else(|| input_str("notebook_path"))
+                .or_else(|| input_str("path")),
+            search_pattern: input_str("pattern"),
         })
     }
 
@@ -174,6 +187,14 @@ impl HookEvent {
             regex::Regex::new(r#""(?:tool_name|toolName)"\s*:\s*"([^"]+)""#).expect("valid regex")
         });
         TOOL.captures(prefix).map(|c| c[1].to_string())
+    }
+
+    /// True when the tool call reads, searches or writes a file.
+    pub fn is_file_tool(&self) -> bool {
+        self.tool_name
+            .as_deref()
+            .map(|t| paths::file_access(t).is_some())
+            .unwrap_or(false)
     }
 
     /// True when the tool call runs a shell command.
@@ -393,10 +414,103 @@ pub async fn run(
     raw: &str,
     started: Instant,
 ) -> (Outcome, Rendered, Option<log::DecisionRecord>) {
+    run_with_paths(
+        validator,
+        Ok(&paths::ProtectedPaths::builtin()),
+        harness,
+        mode,
+        raw,
+        started,
+    )
+    .await
+}
+
+/// Decide a file-tool call against the protected-path set (spec 011 §P2.3).
+/// A protected path is reported as High (`ask`); caro's own decision log as
+/// Critical (`deny`). The reason names the label, never the path.
+pub fn evaluate_path(
+    protected: &paths::ProtectedPaths,
+    access: paths::FileAccess,
+    path: &str,
+    cwd: Option<&str>,
+) -> Option<GuardDecision> {
+    let d = protected.check(access, path, cwd)?;
+    Some(path_decision(access, d))
+}
+
+/// Turn a protected-path hit into a guard decision.
+fn path_decision(access: paths::FileAccess, d: paths::PathDecision) -> GuardDecision {
+    let risk = match d.verdict {
+        Verdict::Deny => RiskLevel::Critical,
+        _ => RiskLevel::High,
+    };
+    let what = match access {
+        paths::FileAccess::Read => "reads",
+        paths::FileAccess::Write => "writes",
+    };
+    GuardDecision {
+        risk,
+        matched_patterns: vec![format!("{what} {}", d.label)],
+        floor_applied: false,
+        verdict: d.verdict,
+        reason: format!("caro guard: {} risk: {what} {}", risk_str(risk), d.label),
+    }
+}
+
+/// [`run`] with an explicit protected-path set (the hook path builds it from
+/// the user's `[safety] protected_paths`).
+pub async fn run_with_paths(
+    validator: Result<&SafetyValidator, &str>,
+    protected: Result<&paths::ProtectedPaths, &str>,
+    harness: Harness,
+    mode: GuardMode,
+    raw: &str,
+    started: Instant,
+) -> (Outcome, Rendered, Option<log::DecisionRecord>) {
     let event = HookEvent::parse(harness, raw);
 
     let (outcome, event) = match event {
         Err(e) => (Outcome::Error(e), HookEvent::default()),
+        Ok(ev) if ev.is_file_tool() => {
+            let access = ev
+                .tool_name
+                .as_deref()
+                .and_then(paths::file_access)
+                .expect("is_file_tool checked");
+            let is_search = ev
+                .tool_name
+                .as_deref()
+                .map(|t| matches!(t.to_ascii_lowercase().as_str(), "glob" | "grep"))
+                .unwrap_or(false);
+            let outcome = match protected {
+                // The user's protected_paths could not be loaded: a file call
+                // must not silently lose that protection (shell calls already
+                // fail toward the human on the same error).
+                Err(e) => Outcome::Error(e.to_string()),
+                Ok(protected) => {
+                    let decision = if is_search {
+                        protected
+                            .check_search(
+                                access,
+                                ev.file_path.as_deref(),
+                                ev.search_pattern.as_deref(),
+                                ev.cwd.as_deref(),
+                            )
+                            .map(|d| path_decision(access, d))
+                    } else {
+                        match ev.file_path.as_deref() {
+                            None | Some("") => None,
+                            Some(p) => evaluate_path(protected, access, p, ev.cwd.as_deref()),
+                        }
+                    };
+                    match decision {
+                        Some(d) => Outcome::Decided(d),
+                        None => Outcome::NotShell,
+                    }
+                }
+            };
+            (outcome, ev)
+        }
         Ok(ev) if !ev.is_shell() => (Outcome::NotShell, ev),
         Ok(ev) if ev.truncated => (
             Outcome::Error("harness truncated the tool input; command not fully visible".into()),
@@ -451,8 +565,11 @@ pub fn oversize(
         },
         ..Default::default()
     };
+    // A shell or a recognized file tool whose payload cannot be parsed
+    // fails toward `ask`: its command or destination was not inspected.
+    // Only a tool the guard never evaluates is `NotShell`.
     let outcome = match event.tool_name {
-        Some(_) if !event.is_shell() => Outcome::NotShell,
+        Some(_) if !event.is_shell() && !event.is_file_tool() => Outcome::NotShell,
         _ => Outcome::Error(format!(
             "hook payload exceeds {} MiB; not scanned",
             MAX_PAYLOAD_BYTES / (1024 * 1024)
@@ -694,15 +811,25 @@ mod tests {
     }
 
     #[test]
-    fn oversize_payload_asks_for_shell_but_not_for_writes() {
+    fn oversize_payload_asks_for_shell_and_file_tools_but_not_for_other_tools() {
         let shell = r#"{"tool_name":"Bash","tool_input":{"command":"echo aaaa"#;
         let (o, r, rec) = oversize(Harness::Claude, GuardMode::Enforce, shell, Instant::now());
         assert!(matches!(o, Outcome::Error(_)));
         assert!(r.stdout.unwrap().contains("\"ask\""));
         assert!(rec.is_some());
 
-        let write = r#"{"tool_name":"Write","tool_input":{"content":"aaaa"#;
-        let (o, r, _) = oversize(Harness::Claude, GuardMode::Enforce, write, Instant::now());
+        // A Write or Edit too large to parse hides its destination: ask.
+        for tool in ["Write", "Edit"] {
+            let file = format!(r#"{{"tool_name":"{tool}","tool_input":{{"content":"aaaa"#);
+            let (o, r, rec) = oversize(Harness::Claude, GuardMode::Enforce, &file, Instant::now());
+            assert!(matches!(o, Outcome::Error(_)), "{tool}");
+            assert!(r.stdout.unwrap().contains("\"ask\""), "{tool}");
+            assert_eq!(rec.as_ref().unwrap().tool.as_deref(), Some(tool));
+        }
+
+        // A tool the guard never evaluates stays silent.
+        let other = r#"{"tool_name":"WebFetch","tool_input":{"url":"aaaa"#;
+        let (o, r, _) = oversize(Harness::Claude, GuardMode::Enforce, other, Instant::now());
         assert_eq!(o, Outcome::NotShell);
         assert_eq!(r.stdout, None);
 

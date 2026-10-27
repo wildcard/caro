@@ -80,6 +80,13 @@ pub struct DecisionRecord {
     pub tool_use_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cwd: Option<String>,
+    /// The harness tool name (`Bash`, `Read`, …); absent in records written
+    /// before spec 011 §P2.3.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tool: Option<String>,
+    /// The file-tool path, redacted.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
     /// Redacted via [`Redaction`].
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub command: Option<String>,
@@ -131,6 +138,8 @@ impl DecisionRecord {
             session_id: event.session_id.clone(),
             tool_use_id: event.tool_use_id.clone(),
             cwd: event.cwd.clone(),
+            tool: event.tool_name.clone(),
+            path: event.file_path.as_deref().map(redact_command),
             command: event.command.as_deref().map(redact_command),
             description: event.description.as_deref().map(redact_command),
             risk,
@@ -185,6 +194,8 @@ pub struct Report {
     pub unparsable: usize,
     pub by_verdict: BTreeMap<String, usize>,
     pub by_harness: BTreeMap<String, usize>,
+    /// Decisions per tool name (lowercase); `bash` for pre-P2.3 records.
+    pub by_tool: BTreeMap<String, usize>,
     pub top_patterns: Vec<(String, usize)>,
     pub p50_latency_us: Option<u64>,
     pub p95_latency_us: Option<u64>,
@@ -238,6 +249,15 @@ fn summarize_lines(lines: impl Iterator<Item = String>, limit: usize) -> Report 
         *report
             .by_harness
             .entry(format!("{:?}", rec.harness).to_lowercase())
+            .or_default() += 1;
+        *report
+            .by_tool
+            .entry(
+                rec.tool
+                    .as_deref()
+                    .map(str::to_ascii_lowercase)
+                    .unwrap_or_else(|| "bash".into()),
+            )
             .or_default() += 1;
         for p in &rec.matched_patterns {
             *patterns.entry(p.clone()).or_default() += 1;
@@ -295,6 +315,7 @@ pub fn format_report(path: &Path, r: &Report) -> String {
     };
     let _ = writeln!(s, "  by verdict: {}", join(&r.by_verdict));
     let _ = writeln!(s, "  by harness: {}", join(&r.by_harness));
+    let _ = writeln!(s, "  by tool:    {}", join(&r.by_tool));
     if let (Some(p50), Some(p95)) = (r.p50_latency_us, r.p95_latency_us) {
         let _ = writeln!(s, "  latency:    p50 {p50}µs · p95 {p95}µs");
     }
@@ -319,6 +340,7 @@ pub fn format_report(path: &Path, r: &Report) -> String {
                 // reviewer's terminal.
                 rec.command
                     .as_deref()
+                    .or(rec.path.as_deref())
                     .map(|c| c.escape_debug().to_string())
                     .unwrap_or_else(|| "-".into()),
             );
