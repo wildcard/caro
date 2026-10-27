@@ -440,6 +440,22 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Needs human?:** no
 **Next step:** make the comment sticky (marker plus update in `.github/workflows/caro-demo-drift.yml`); compare against the merge base, not the last render.
 
+### BW-092: Security Audit red on main: RUSTSEC-2026-0381/0382/0383 (webpki crates)
+
+**Found:** 2026-10-21, broken-window sweep (main health; scheduled `ci.yml` runs on 2026-10-20 and 2026-10-21)
+**Issue:** #1699
+**Status:** fixed (#1700, merged 2026-10-27): patch updates plus reviewed `.cargo/audit.toml` entries for the 2 legacy-path findings (owner-approved 2026-10-22).
+**Needs human?:** no (owner decided 2026-10-22: audit.toml entries, and CDLA-Permissive-2.0 allowed in dependency-review).
+**Next step:** revisit the entries by 2026-12-31 (same revert condition as BW-087).
+
+### BW-093: `caro guard test "<cmd>" --output json` reads the flag as part of the command
+
+**Found:** 2026-10-21, QA agent report
+**Issue:** #1697
+**Status:** open
+**Needs human?:** no
+**Next step:** make `<COMMAND>` stop before known flags (or take one quoted value) and add a flag-last case to `tests/e2e_guard.rs`. Check the open guard PRs (#1684 to #1687) for overlap first.
+
 ### BW-086: website `integrations.ts` Claude/Ollama entries and `--model` snippet are stale after v1.5.0
 
 **Found:** 2026-10-14, broken-window sweep (register sync)
@@ -492,15 +508,24 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 ### BW-094: uutils coreutils (Ubuntu 26.04, `ubuntu-latest` CI) detected as `UtilityType::Unknown`
 
 **Found:** 2026-10-22, CI on #1700 (`test_utility_type_detection` red on main and every PR)
-**Issue:** #1703. BW-092 (#1699) and BW-093 (#1697) are added by #1700, not yet on main.
-**Status:** claimed-by fix/uutils-coreutils-detection (#1704). #1704 and #1700 each need the other to go green; the owner picks which PR carries both.
-**Needs human?:** no (fix); yes for the carrier choice only
-**Next step:** owner picks the carrier, then merge.
+**Issue:** #1703
+**Status:** fixed (#1700, merged 2026-10-27; owner chose #1700 as the carrier)
+**Needs human?:** no
+**Next step:** none.
 
 ### BW-095: Static Sites Build red on main: Playwright has no Chromium for ubuntu26.04
 
 **Found:** 2026-10-22, main CI (same runner-image move as BW-094)
 **Issue:** #1701
-**Status:** open
-**Needs human?:** yes (CI runner choice)
-**Next step:** owner picks an option in #1701: pin `ubuntu-24.04`, skip the browser download, or upgrade Playwright.
+**Status:** claimed-by fix/1701-pin-website-runner (#1731). Owner chose to pin `ubuntu-24.04` on 2026-10-27.
+**Needs human?:** yes (decided 2026-10-27: pin `ubuntu-24.04`)
+**Next step:** merge #1731 when green. Revert the pin once Playwright supports Ubuntu 26.04.
+
+### BW-099: `Security Audit` red: 4 zstd advisories via lancedb/datafusion (optional features)
+
+**Found:** 2026-10-27, while porting the uutils fix into #1700
+**Issue:** #1730. RUSTSEC-2026-0391 (zstd 0.13.3), 0398 and 0403 (zstd-safe 7.2.4), 0410 (zstd-sys 2.0.16). Only the optional `knowledge` and `chromadb` features pull zstd.
+**Status:** fixed (#1700, merged 2026-10-27). Owner chose reviewed `audit.toml` entries on 2026-10-27 (review by 2026-12-31).
+**Needs human?:** yes (decided 2026-10-27: reviewed `audit.toml` entries)
+**Next step:** remove the entries when lancedb/lance/arrow move to zstd 0.14.
+
