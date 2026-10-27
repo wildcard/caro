@@ -130,3 +130,13 @@ The 2026-10-25 run used the old prompt and read main's May copy. The 2026-10-24 
 - **Backlog:** #1720 (open, P2): `caro guard` has no rule for destructive git commands. No earlier issue covers it. A safety rule is a human decision.
 - **Not taken:** its surface 12 row. `caro assess` stays excluded from Slot C, as the run itself found.
 - **Flakes:** FLAKE-001 was not triggered.
+
+## Added after seeding: #1727 (2026-10-27)
+
+The 2026-10-27 run used the old prompt and read main's May copy. The 2026-10-26 run opened no PR. #1727 was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-10-27; surfaces 15 (`--output json`) and 16 (`--output yaml`) get the new date. Surface 15 keeps the seed's note and links #1726.
+- **From Slot B:** its `caro guard test` checks give surface 36 the new date. It did not run `caro guard setup`, so the result stays PARTIAL.
+- **Backlog:** #1726 (open, P2): an invalid `--output` value falls back to plain with exit 0. No earlier issue covers it. #1269 is re-confirmed (unmatched `-p` prompts reach the CPU stub) and keeps P1.
+- **Flakes:** FLAKE-001 was not triggered.
