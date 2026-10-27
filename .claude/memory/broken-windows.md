@@ -595,7 +595,7 @@ workspaces are BW-069.
 
 **Found:** 2026-10-27, while porting the uutils fix into #1700
 **Issue:** #1730. RUSTSEC-2026-0391 (zstd 0.13.3), 0398 and 0403 (zstd-safe 7.2.4), 0410 (zstd-sys 2.0.16). Only the optional `knowledge` and `chromadb` features pull zstd.
-**Status:** open
-**Needs human?:** yes (security policy: reviewed `audit.toml` entries, a dependency-major bump of lancedb/datafusion, or dropping the feature path)
-**Next step:** owner picks an option on #1730. Until then `Security Audit` stays red even after #1700 merges.
+**Status:** claimed-by sweep/2026-10-21-BW-092 (#1700). Owner chose reviewed `audit.toml` entries on 2026-10-27 (review by 2026-12-31).
+**Needs human?:** yes (decided 2026-10-27: reviewed `audit.toml` entries)
+**Next step:** merge #1700. Remove the entries when lancedb/lance/arrow move to zstd 0.14.
 
