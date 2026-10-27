@@ -398,6 +398,13 @@ enum GuardAction {
         limit: usize,
     },
 
+    /// Inspect the decision log: `verify` the hash chain, `tail` records,
+    /// or `report` a summary (same as `caro guard report`).
+    Audit {
+        #[command(subcommand)]
+        action: GuardAuditAction,
+    },
+
     /// Dry-run one command through the guard: risk, verdict, patterns.
     /// Exit 0 = no opinion, 2 = deny, 3 = ask. Nothing is logged.
     Test {
@@ -432,6 +439,44 @@ enum GuardAction {
         /// `caro` on $PATH, and a synthetic `rm -rf /` payload comes back deny.
         #[arg(long)]
         verify: bool,
+
+        /// Also install the PostToolUse hook that scans tool output for
+        /// leaked credentials (logged, never blocking).
+        #[arg(long)]
+        post: bool,
+    },
+}
+
+/// `caro guard audit` subcommands (spec 011 §P2.4).
+#[derive(Parser, Clone)]
+enum GuardAuditAction {
+    /// Walk the SHA-256 hash chain; exit 1 at the first break.
+    Verify {
+        /// Decision log path (default: <data dir>/caro/guard/decisions.jsonl).
+        #[arg(long)]
+        log: Option<std::path::PathBuf>,
+    },
+    /// Print the newest records, one per line.
+    Tail {
+        /// Decision log path (default: <data dir>/caro/guard/decisions.jsonl).
+        #[arg(long)]
+        log: Option<std::path::PathBuf>,
+
+        /// How many records to show.
+        #[arg(long, short = 'n', default_value_t = 20)]
+        limit: usize,
+
+        /// Keep printing new records as they are appended.
+        #[arg(long, short = 'f')]
+        follow: bool,
+    },
+    /// Summarize the log (alias of `caro guard report`).
+    Report {
+        #[arg(long)]
+        log: Option<std::path::PathBuf>,
+
+        #[arg(long, default_value_t = 10)]
+        limit: usize,
     },
 }
 
@@ -4374,6 +4419,197 @@ fn load_guard_validator() -> Result<caro::safety::SafetyValidator, String> {
         .map_err(|_| "safety rules: a configured pattern failed to build".to_string())
 }
 
+/// The protected-path set for file tools: built-ins plus the user's
+/// `[safety] protected_paths`. A config that fails to load keeps the
+/// built-ins (the shell path reports that failure separately).
+fn load_protected_paths(
+    log: Option<&std::path::Path>,
+) -> Result<caro::guard::paths::ProtectedPaths, String> {
+    // Same generic error text as the validator: config diagnostics can quote
+    // a line that holds a token, and this text is logged.
+    let cm = caro::config::ConfigManager::new()
+        .map_err(|_| "config: could not locate the caro config directory".to_string())?;
+    let uc = cm.load().map_err(|_| {
+        format!(
+            "config: {} could not be loaded (run `caro config show` for details)",
+            cm.config_path().display()
+        )
+    })?;
+    let own_log = log
+        .map(std::path::Path::to_path_buf)
+        .or_else(caro::guard::log::default_log_path);
+    Ok(caro::guard::paths::ProtectedPaths::new(
+        &uc.safety.protected_paths,
+        own_log,
+    ))
+}
+
+/// `caro guard audit <verify|tail|report>` (spec 011 §P2.4).
+fn handle_guard_audit(action: GuardAuditAction) -> i32 {
+    use caro::guard::log;
+    use std::io::BufRead;
+
+    let resolve = |log: Option<std::path::PathBuf>| -> Result<std::path::PathBuf, i32> {
+        log.or_else(log::default_log_path).ok_or_else(|| {
+            eprintln!("caro guard audit: no data directory; pass --log <PATH>");
+            1
+        })
+    };
+
+    match action {
+        GuardAuditAction::Report { log: path, limit } => {
+            let path = match resolve(path) {
+                Ok(p) => p,
+                Err(code) => return code,
+            };
+            match std::fs::File::open(&path) {
+                Ok(file) => match log::summarize_reader(std::io::BufReader::new(file), limit) {
+                    Ok(report) => {
+                        print!("{}", log::format_report(&path, &report));
+                        0
+                    }
+                    Err(e) => {
+                        eprintln!("caro guard audit report: {}: {e}", path.display());
+                        1
+                    }
+                },
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    println!(
+                        "caro guard audit: no decisions logged yet ({})",
+                        path.display()
+                    );
+                    0
+                }
+                Err(e) => {
+                    eprintln!("caro guard audit report: {}: {e}", path.display());
+                    1
+                }
+            }
+        }
+        GuardAuditAction::Verify { log: path } => {
+            let path = match resolve(path) {
+                Ok(p) => p,
+                Err(code) => return code,
+            };
+            match log::verify_log(&path) {
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    println!(
+                        "caro guard audit verify: no decisions logged yet ({})",
+                        path.display()
+                    );
+                    0
+                }
+                Ok(check) => {
+                    print!("{}", check.format(&path));
+                    if check.ok() {
+                        0
+                    } else {
+                        1
+                    }
+                }
+                Err(e) => {
+                    eprintln!("caro guard audit verify: {}: {e}", path.display());
+                    1
+                }
+            }
+        }
+        GuardAuditAction::Tail {
+            log: path,
+            limit,
+            follow,
+        } => {
+            let path = match resolve(path) {
+                Ok(p) => p,
+                Err(code) => return code,
+            };
+            let print_line = |line: &str| {
+                if line.trim().is_empty() {
+                    return;
+                }
+                match serde_json::from_str::<log::DecisionRecord>(line) {
+                    Ok(rec) => println!("{}", log::format_tail_line(&rec)),
+                    Err(_) => println!("(unparsable line)"),
+                }
+            };
+            let mut offset: u64 = 0;
+            match std::fs::File::open(&path) {
+                Ok(file) => {
+                    let mut reader = std::io::BufReader::new(file);
+                    let mut lines: std::collections::VecDeque<String> =
+                        std::collections::VecDeque::with_capacity(limit.min(1024));
+                    let mut buf = String::new();
+                    loop {
+                        buf.clear();
+                        match reader.read_line(&mut buf) {
+                            Ok(0) => break,
+                            Ok(n) => {
+                                offset += n as u64;
+                                if limit > 0 {
+                                    if lines.len() == limit {
+                                        lines.pop_front();
+                                    }
+                                    lines.push_back(buf.trim_end_matches('\n').to_string());
+                                }
+                            }
+                            Err(e) => {
+                                eprintln!("caro guard audit tail: {}: {e}", path.display());
+                                return 1;
+                            }
+                        }
+                    }
+                    for l in &lines {
+                        print_line(l);
+                    }
+                }
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound && follow => {}
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    println!(
+                        "caro guard audit tail: no decisions logged yet ({})",
+                        path.display()
+                    );
+                    return 0;
+                }
+                Err(e) => {
+                    eprintln!("caro guard audit tail: {}: {e}", path.display());
+                    return 1;
+                }
+            }
+            if !follow {
+                return 0;
+            }
+            // Follow: poll for appended bytes. The log is append-only, so a
+            // shrinking file means rotation; start over from the top.
+            loop {
+                std::thread::sleep(std::time::Duration::from_millis(500));
+                let Ok(mut file) = std::fs::File::open(&path) else {
+                    continue;
+                };
+                let len = file.metadata().map(|m| m.len()).unwrap_or(0);
+                if len < offset {
+                    offset = 0;
+                }
+                if len == offset {
+                    continue;
+                }
+                use std::io::{Read, Seek, SeekFrom};
+                if file.seek(SeekFrom::Start(offset)).is_err() {
+                    continue;
+                }
+                let mut chunk = String::new();
+                if file.read_to_string(&mut chunk).is_err() {
+                    continue;
+                }
+                // Only complete lines; a partial tail is re-read next round.
+                let complete = chunk.rfind('\n').map(|i| i + 1).unwrap_or(0);
+                for l in chunk[..complete].lines() {
+                    print_line(l);
+                }
+                offset += complete as u64;
+            }
+        }
+    }
+}
+
 /// `caro guard test "<command>"` (spec 011 §P2.1). Exit 0/2/3 like generic
 /// enforce. Nothing is written to the decision log.
 async fn handle_guard_test(
@@ -4449,6 +4685,7 @@ fn handle_guard_setup(
     mode: caro::guard::GuardMode,
     dry_run: bool,
     verify: bool,
+    post: bool,
 ) -> i32 {
     use caro::guard::setup;
     if verify {
@@ -4456,7 +4693,7 @@ fn handle_guard_setup(
         print!("{}", report.format());
         return if report.ok() { 0 } else { 1 };
     }
-    match setup::install(target, scope, mode, dry_run) {
+    match setup::install_with_post(target, scope, mode, dry_run, post) {
         Ok(outcome) => {
             if dry_run {
                 println!(
@@ -4505,6 +4742,10 @@ async fn handle_guard(
     // read: the time the harness's hook timeout actually sees.
     let started = std::time::Instant::now();
 
+    if let Some(GuardAction::Audit { action }) = action {
+        return handle_guard_audit(action);
+    }
+
     if let Some(GuardAction::Report { log, limit }) = action {
         let Some(path) = log.or_else(guard::log::default_log_path) else {
             eprintln!("caro guard report: no data directory; pass --log <PATH>");
@@ -4541,9 +4782,10 @@ async fn handle_guard(
         mode,
         dry_run,
         verify,
+        post,
     }) = action
     {
-        return handle_guard_setup(target, scope, mode, dry_run, verify);
+        return handle_guard_setup(target, scope, mode, dry_run, verify, post);
     }
 
     if let Some(GuardAction::Test { command, output }) = action {
@@ -4563,6 +4805,7 @@ async fn handle_guard(
     // as defaults; a config that exists but cannot be loaded is an error, not
     // a silent fallback that would drop the user's own High/Critical rules.
     let validator = load_guard_validator();
+    let protected = load_protected_paths(log.as_deref());
 
     // Cap the read: an unbounded payload could stall the hook past the
     // harness timeout, which fails open.
@@ -4581,7 +4824,15 @@ async fn handle_guard(
         }
         Ok(_) => {
             let validator = validator.as_ref().map_err(String::as_str);
-            let (_, rendered, record) = guard::run(validator, harness, mode, &raw, started).await;
+            let (_, rendered, record) = guard::run_with_paths(
+                validator,
+                protected.as_ref().map_err(String::as_str),
+                harness,
+                mode,
+                &raw,
+                started,
+            )
+            .await;
             (rendered, record)
         }
         Err(e) => (

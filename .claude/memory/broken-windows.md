@@ -526,6 +526,22 @@ workspaces are BW-069.
 **Needs human?:** no
 **Next step:** make the comment sticky (marker plus update in `.github/workflows/caro-demo-drift.yml`); compare against the merge base, not the last render.
 
+### BW-092: Security Audit red on main: RUSTSEC-2026-0381/0382/0383 (webpki crates)
+
+**Found:** 2026-10-21, broken-window sweep (main health; scheduled `ci.yml` runs on 2026-10-20 and 2026-10-21)
+**Issue:** #1699
+**Status:** claimed-by sweep/2026-10-21-BW-092 (#1700): patch updates plus reviewed `.cargo/audit.toml` entries for the 2 legacy-path findings (owner-approved 2026-10-22).
+**Needs human?:** no (owner decided 2026-10-22: audit.toml entries, and CDLA-Permissive-2.0 allowed in dependency-review).
+**Next step:** merge #1700; revisit the entries by 2026-12-31 (same revert condition as BW-087).
+
+### BW-093: `caro guard test "<cmd>" --output json` reads the flag as part of the command
+
+**Found:** 2026-10-21, QA agent report
+**Issue:** #1697
+**Status:** open
+**Needs human?:** no
+**Next step:** make `<COMMAND>` stop before known flags (or take one quoted value) and add a flag-last case to `tests/e2e_guard.rs`. Check the open guard PRs (#1684 to #1687) for overlap first.
+
 ### BW-086: website `integrations.ts` Claude/Ollama entries and `--model` snippet are stale after v1.5.0
 
 **Found:** 2026-10-14, broken-window sweep (register sync)
@@ -582,3 +598,12 @@ workspaces are BW-069.
 **Status:** open. PR #1043 (outside contributor, updated 2026-10-26) already changes this call site, together with Windows-only fixes.
 **Needs human?:** no
 **Next step:** let #1043 land, or ask its author to split the stdin hunk out. Do not open a competing sweep PR on the same lines while #1043 is active.
+
+### BW-099: `Security Audit` red: 4 zstd advisories via lancedb/datafusion (optional features)
+
+**Found:** 2026-10-27, while porting the uutils fix into #1700
+**Issue:** #1730. RUSTSEC-2026-0391 (zstd 0.13.3), 0398 and 0403 (zstd-safe 7.2.4), 0410 (zstd-sys 2.0.16). Only the optional `knowledge` and `chromadb` features pull zstd.
+**Status:** claimed-by sweep/2026-10-21-BW-092 (#1700). Owner chose reviewed `audit.toml` entries on 2026-10-27 (review by 2026-12-31).
+**Needs human?:** yes (decided 2026-10-27: reviewed `audit.toml` entries)
+**Next step:** merge #1700. Remove the entries when lancedb/lance/arrow move to zstd 0.14.
+
