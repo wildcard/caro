@@ -451,7 +451,7 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 
 **Found:** 2026-10-21, QA agent report
 **Issue:** #1697
-**Status:** claimed-by sweep/2026-10-28-BW-093 (#PRNUM)
+**Status:** claimed-by sweep/2026-10-28-BW-093 (#1734)
 **Needs human?:** no
 **Next step:** merge the sweep PR (trailing `--output <fmt>` is taken out of the command tokens; e2e `guard_test_accepts_output_flag_after_the_command`).
 
