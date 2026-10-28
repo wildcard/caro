@@ -49,9 +49,10 @@ open pipe (scripts, CI) blocked forever (#1499); (2) the first run silently
 downloads the ~1 GB default model, with no progress output (#1272, #1484).
 **Needs human?:** no
 **Next step:** cause (2) is still open:
-PR #1415 only prints a one-time "Initializing backend…" line, not download
-progress. Keep #1272 open until first-run download progress (or a clear
-"downloading model" message) lands; #1415 is a partial step.
+PR #1415 prints "Initializing backend…" on every run, before backend setup,
+so the download wait after it stays silent (review of 2026-10-15 asks for
+changes). Keep #1272 open until first-run download progress (or a clear
+"downloading model" message) lands.
 
 ### BW-006: embedded CPU stub always returns `echo 'Please clarify your request'`
 
@@ -226,9 +227,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-08-15)
 **Issue:** #1408 (related to BW-004 / #1272, kept separate)
-**Status:** open (#1415 prints a one-time "Initializing backend…" line)
+**Status:** open (#1415 prints one line before backend setup, on every run; changes requested 2026-10-15)
 **Needs human?:** no
-**Next step:** merge #1415, then add download progress (BW-004 cause 2).
+**Next step:** show a message when a download starts (what the #1415 review asks for), then add download progress (BW-004 cause 2).
 
 ### BW-036: `caro config set backend` rejects mesh, ai-horde, hybrid
 
