@@ -268,6 +268,38 @@ fn guard_test_denies_critical_with_exit_2_and_json() {
     assert!(!out.stdout.windows(7).any(|w| w == b"\"allow\""));
 }
 
+/// #1697: `--output json` after the command must not join the command.
+#[test]
+fn guard_test_accepts_output_flag_after_the_command() {
+    let home = TempDir::new().unwrap();
+    for args in [
+        &["test", "rm -rf /", "--output", "json"][..],
+        &["test", "rm -rf /", "--output=json"][..],
+        &["test", "rm", "-rf", "/", "--output", "json"][..],
+    ] {
+        let out = guard_cmd(&home, args);
+        assert_eq!(out.status.code(), Some(2), "{args:?}");
+        let v = stdout_json(&out);
+        assert_eq!(v["verdict"], "deny", "{args:?}");
+        assert_eq!(v["command"], "rm -rf /", "{args:?}");
+    }
+
+    // A quoted command that itself ends in `--output json` stays whole.
+    let out = guard_cmd(
+        &home,
+        &["test", "--output", "json", "aws s3 ls --output json"],
+    );
+    assert_eq!(stdout_json(&out)["command"], "aws s3 ls --output json");
+
+    // After `--` every token is the command, so the trailing flag stays in it.
+    let out = guard_cmd(
+        &home,
+        &["test", "--", "aws", "s3", "ls", "--output", "json"],
+    );
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert!(text.contains("command:  aws s3 ls --output json"), "{text}");
+}
+
 #[test]
 fn guard_test_asks_on_high_and_is_silent_on_safe() {
     let home = TempDir::new().unwrap();

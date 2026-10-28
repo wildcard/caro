@@ -105,9 +105,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep
 **Issue:** #1419
-**Status:** release done. `v1.5.0` is published and tagged at `d705666` (verified 2026-10-13). #1419 is still open.
+**Status:** fixed (v1.5.0 published 2026-10-13; #1419 closed 2026-10-22)
 **Needs human?:** yes (release)
-**Next step:** the owner closes #1419 if nothing else is left. Delete this entry after 2026-10-20.
+**Next step:** none.
 
 ### BW-018: Claude Code plugin marketplace.json shape / install one-liner likely stale
 
@@ -185,10 +185,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-10, nightly CI triage (harness-plan session)
 **Issue:** #1551
-**Status:** claimed-by sweep/2026-10-20-BW-030 (#1696)
+**Status:** fixed (#1696, merged 2026-10-22). #1551 closed.
 **Needs human?:** no
-**Next step:** `git rm --cached` the 8 paths listed in #1551 (all added by
-`9599ca7`). `.gitignore` already covers `.worktrees/`.
+**Next step:** none.
 
 ### BW-048: hybrid sanitizer leaks spaced paths and inline credentials
 
@@ -197,14 +196,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Status:** open
 **Needs human?:** yes (privacy policy: what may leave the machine)
 **Next step:** reuse `COMMAND_SECRETS` from `src/guard/log.rs` as reversible sanitizer rules; add tests.
-
-### BW-031: ai_horde `Client-Agent` header hardcoded to `caro:1.4.0`
-
-**Found:** 2026-10-09 sweep register sync (issue filed 2026-09-22)
-**Issue:** #1467
-**Status:** fixed (#1667, merged 2026-10-19). #1467 closed.
-**Needs human?:** no
-**Next step:** build the header from `env!("CARGO_PKG_VERSION")` in `src/backends/remote/ai_horde.rs`.
 
 ### BW-033: Gemini CLI row in integrations status is stale (product shut down 2026-06-18)
 
@@ -279,34 +270,6 @@ progress. Keep #1272 open until first-run download progress (or a clear
 **Next step:** remove `OmniMenu.astro`, `Waitlist.astro`,
 `landing/LPUseCases.astro` and the unread locale fields listed in #1591.
 
-### BW-068: llama.cpp "advancing context failed (error code 1)": prompt overflows n_ctx 2048
-
-**Found:** 2026-10-12, nightly verification of BW-015 (run 38195655733)
-**Issue:** #1612. The agent loop adds ~2.6 KB of context to the embedded system prompt. Real tokenizers count 1,955 (SmolLM) and 2,033 (TinyLlama) tokens on Linux; the macOS runner's context is larger and overflows 2048.
-**Status:** fixed (#1616 and #1618, merged 2026-10-12). The 2026-10-13 nightly has no prompt-overflow failures.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-19.
-
-### BW-069: stale nested lockfiles in npm workspaces (docs-site, landing, presentation, apps/devrel)
-
-**Found:** 2026-10-12 sweep register sync
-**Issue:** #1609 (related: #1610)
-**Status:** fixed (#1620)
-**Needs human?:** no
-**Next step:** merge #1620. It deletes the nested `package-lock.json` in
-`docs-site/`, `landing/`, `presentation/` and `apps/devrel/`; the PR body
-has the per-project evidence that each Vercel build reads the root lockfile.
-Then confirm the first `caro-docs`, `caro-slides` and `cmdai-saas` production
-builds after the merge are READY (`cmdai` is already red, #1562).
-
-### BW-070: five nested lockfiles still pin sharp 0.34.5 (three advisories)
-
-**Found:** 2026-10-12 sweep register sync
-**Issue:** #1610 (overlaps BW-069 for the four workspace lockfiles)
-**Status:** fixed (#1621, `c3169411`: sharp overridden to 0.35.5 in `changelog/`). #1610 closed 2026-10-13.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-20.
-
 ### BW-053: an invalid `config.toml` is silently replaced with defaults
 
 **Found:** 2026-10-11, broken-window sweep
@@ -347,14 +310,6 @@ builds after the merge are READY (`cmdai` is already red, #1562).
 **Needs human?:** yes (hook policy)
 **Next step:** Owner picks: allow merge commits, or narrow `SENSITIVE_RE`.
 
-### BW-058: caro.sh 307-redirects to www.caro.sh, but canonical/og/sitemap URLs say caro.sh
-
-**Found:** 2026-10-11, broken-window sweep
-**Issue:** #1586
-**Status:** fixed in the Vercel dashboard (option 1), no code change. #1586 closed 2026-10-12.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-19.
-
 ### BW-059: `/blog` index omits two published posts
 
 **Found:** 2026-10-11, broken-window sweep
@@ -363,14 +318,6 @@ builds after the merge are READY (`cmdai` is already red, #1562).
 **Needs human?:** no
 **Next step:** Add `claude-skill-launch` and `founders-playbook-adaptation`
 to the `posts` array in `website/src/pages/blog/index.astro`.
-
-### BW-060: landing page says caro blocks `chmod -R 777 /var/www`; the validator does not flag it
-
-**Found:** 2026-10-11, broken-window sweep
-**Issue:** #1592
-**Status:** fixed (#1600, merged 2026-10-12, `a5624c50`). #1592 closed when #1600 merged.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-19.
 
 ### BW-061: PR workflows never cancel superseded runs, so the macOS queue backs up
 
@@ -400,9 +347,9 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 
 **Found:** 2026-10-11, broken-window sweep
 **Issue:** #1602
-**Status:** claimed-by sweep/2026-10-19-BW-064 (#1691)
+**Status:** fixed (#1691, merged 2026-10-22). #1602 closed.
 **Needs human?:** no
-**Next step:** Change the skill text to the branch + PR flow.
+**Next step:** none.
 
 ### BW-065: QA rotation memory files stuck at the 2026-05-07 bootstrap; 25+ update PRs unmerged
 
@@ -411,32 +358,6 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Status:** open
 **Needs human?:** yes (owner merges or closes the PRs)
 **Next step:** Owner triages the open update PRs.
-
-### BW-071: `website/package-lock.json` was dead and stale
-
-**Found:** 2026-10-12, owner task (`claude/zealous-meitner-y29aw1`)
-**Issue:** none (owner asked for the fix directly)
-**Status:** fixed (#1608)
-**Needs human?:** no
-**Next step:** merge #1608. npm reads only the root lockfile for workspaces;
-`website/README.md` → "Workspace and lockfile" documents it. The other
-workspaces are BW-069.
-
-### BW-072: `update-homebrew.yml` writes the Linux ARM64 checksum into the Linux x86_64 block
-
-**Found:** 2026-10-13, v1.5.0 release follow-up (`claude/v1-5-0-notes-alignment`)
-**Issue:** #1636
-**Status:** fixed (#1638, `c4dac8d2` "isolate platform checksum updates"). #1636 closed 2026-10-13.
-**Needs human?:** no
-**Next step:** none. Delete after 2026-10-20.
-
-### BW-074: `clippy --no-default-features --features embedded-cpu` fails on Apple Silicon (dead GPU-layer helpers)
-
-**Found:** 2026-10-13, broken-window sweep (register sync)
-**Issue:** #1626
-**Status:** fixed (#1656, merged 2026-10-14). The GPU-layer helpers are `allow(dead_code)` off the MLX build.
-**Needs human?:** no
-**Next step:** none; #1626 is closed. Delete after 2026-10-21.
 
 ### BW-075: static matcher Pattern 43 drops file-type and size qualifiers ("list pdf files" gives `ls -la`)
 
@@ -474,9 +395,9 @@ workspaces are BW-069.
 
 **Found:** 2026-10-13, broken-window sweep (register sync)
 **Issue:** #1629
-**Status:** open
+**Status:** fixed (#1658). #1629 closed 2026-10-27.
 **Needs human?:** no
-**Next step:** update the skill text to the v1.5.0 backend list.
+**Next step:** none.
 
 ### BW-080: generation drops explicit path and age constraints (caro-shell showcase example)
 
@@ -510,14 +431,6 @@ workspaces are BW-069.
 **Needs human?:** yes (CI test budget and job time limit)
 **Next step:** the owner picks the perf budget and a `timeout-minutes` for Extended Tests.
 
-### BW-084: 669 build-artifact files tracked under `tests/evaluation/target/`
-
-**Found:** 2026-10-13, broken-window sweep (a worktree checkout ran out of disk)
-**Issue:** #1655
-**Status:** fixed (#1659, merged 2026-10-14). Index-only removal of the 669 files; they stay on disk and in history. `scripts/check-tracked-build-outputs.sh` guards against a repeat.
-**Needs human?:** no
-**Next step:** none; #1655 is closed. Delete after 2026-10-21.
-
 ### BW-085: `caro-demo-drift` repeats its PR comment on every push and blames the PR for drift on `main`
 
 **Found:** 2026-10-14, broken-window sweep (register sync)
@@ -530,33 +443,25 @@ workspaces are BW-069.
 
 **Found:** 2026-10-21, broken-window sweep (main health; scheduled `ci.yml` runs on 2026-10-20 and 2026-10-21)
 **Issue:** #1699
-**Status:** claimed-by sweep/2026-10-21-BW-092 (#1700): patch updates plus reviewed `.cargo/audit.toml` entries for the 2 legacy-path findings (owner-approved 2026-10-22).
+**Status:** fixed (#1700, merged 2026-10-27): patch updates plus reviewed `.cargo/audit.toml` entries for the 2 legacy-path findings (owner-approved 2026-10-22). #1699 closed.
 **Needs human?:** no (owner decided 2026-10-22: audit.toml entries, and CDLA-Permissive-2.0 allowed in dependency-review).
-**Next step:** merge #1700; revisit the entries by 2026-12-31 (same revert condition as BW-087).
+**Next step:** revisit the entries by 2026-12-31.
 
 ### BW-093: `caro guard test "<cmd>" --output json` reads the flag as part of the command
 
 **Found:** 2026-10-21, QA agent report
 **Issue:** #1697
-**Status:** open
+**Status:** claimed-by sweep/2026-10-28-BW-093 (#1734)
 **Needs human?:** no
-**Next step:** make `<COMMAND>` stop before known flags (or take one quoted value) and add a flag-last case to `tests/e2e_guard.rs`. Check the open guard PRs (#1684 to #1687) for overlap first.
+**Next step:** merge the sweep PR (trailing `--output <fmt>` is taken out of the command tokens; e2e `guard_test_accepts_output_flag_after_the_command`).
 
 ### BW-086: website `integrations.ts` Claude/Ollama entries and `--model` snippet are stale after v1.5.0
 
 **Found:** 2026-10-14, broken-window sweep (register sync)
 **Issue:** #1657
-**Status:** claimed-by integrator/20261014 (#1672, Closes #1657). Duplicate sweep PR #1675 was closed.
+**Status:** fixed (#1689, merged 2026-10-27). #1657 closed. #1672 and #1675 were closed unmerged.
 **Needs human?:** no
-**Next step:** rewrite the three entries in `website/src/data/integrations.ts` for 1.5.0 behavior; use `--model-name` in the snippet.
-
-### BW-087: `Security Audit` red on every PR: rustls 0.21.12 and 0.23.45 hit RUSTSEC-2026-0346 to 0349
-
-**Found:** 2026-10-14, broken-window sweep (CI on #1667)
-**Issue:** #1668
-**Status:** fixed (#1669, merged 2026-10-19): rustls 0.23.46 plus reviewed `.cargo/audit.toml` entries for the rustls 0.21 IDs. #1668 closed.
-**Needs human?:** yes (dependency and audit-policy decision)
-**Next step:** owner picks the options in #1668: patch 0.23.x in the lockfile, then move or record the 0.21.x path.
+**Next step:** none.
 
 ### BW-088: shell `?` keybinding cannot take a request: `caro ai --continue-session` exits "no prompt provided"
 
@@ -565,22 +470,6 @@ workspaces are BW-069.
 **Status:** open
 **Needs human?:** no
 **Next step:** when stdin is a terminal and no prompt words are given, read one `caro> ` line from the terminal in `run_ai_once` (`src/main.rs`); widgets are in `src/ai/shell_init.rs`.
-
-### BW-089: README documents `caro assess`, but the subcommand is disabled in 1.5.0
-
-**Found:** 2026-10-18, broken-window sweep (register sync)
-**Issue:** #1677
-**Status:** fixed (#1680, merged 2026-10-19). #1677 closed.
-**Needs human?:** no (docs). Re-enabling the subcommand is a separate product call.
-**Next step:** mark the README "assess" section (`README.md` ~413-436) as not available in 1.5.0, or remove it; `src/main.rs:445` keeps the subcommand commented out.
-
-### BW-090: `Security Audit` red: zip 7.2.0 (via candle-core) hits RUSTSEC-2026-0367 to 0369
-
-**Found:** 2026-10-18, broken-window sweep (CI on #1680)
-**Issue:** #1681
-**Status:** fixed (#1669, merged 2026-10-19): reviewed `.cargo/audit.toml` entries for the zip IDs. #1681 closed.
-**Needs human?:** yes (audit-policy decision; no candle release requires zip 9 yet)
-**Next step:** owner picks an option in #1681: a reviewed `.cargo/audit.toml` entry now, or wait for a candle release that requires `zip >=9`.
 
 ### BW-091: CI never runs 23 of 46 integration test targets
 
@@ -595,7 +484,14 @@ workspaces are BW-069.
 
 **Found:** 2026-10-27, while porting the uutils fix into #1700
 **Issue:** #1730. RUSTSEC-2026-0391 (zstd 0.13.3), 0398 and 0403 (zstd-safe 7.2.4), 0410 (zstd-sys 2.0.16). Only the optional `knowledge` and `chromadb` features pull zstd.
-**Status:** claimed-by sweep/2026-10-21-BW-092 (#1700). Owner chose reviewed `audit.toml` entries on 2026-10-27 (review by 2026-12-31).
+**Status:** fixed (#1700, merged 2026-10-27). Owner chose reviewed `audit.toml` entries on 2026-10-27 (review by 2026-12-31). #1730 stays open as the tracker.
 **Needs human?:** yes (decided 2026-10-27: reviewed `audit.toml` entries)
-**Next step:** merge #1700. Remove the entries when lancedb/lance/arrow move to zstd 0.14.
+**Next step:** remove the entries when lancedb/lance/arrow move to zstd 0.14.
 
+### BW-100: `caro test --help` advertises mlx/ollama backends that it rejects
+
+**Found:** 2026-10-28 sweep register sync (issue filed 2026-10-28)
+**Issue:** #1732. `src/main.rs` help text says `static, mlx, ollama, or embedded`; the `match` accepts only `static` and `embedded`.
+**Status:** open
+**Needs human?:** no
+**Next step:** change the help text to `static or embedded`; optionally test that help and match arms agree. Check open roster PRs (#1713, #1719, #1348) for overlap first.
