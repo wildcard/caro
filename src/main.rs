@@ -4615,7 +4615,7 @@ fn handle_guard_audit(action: GuardAuditAction) -> i32 {
 /// `trailing_var_arg` makes `<COMMAND>...` swallow a flag placed after the
 /// command (#1697). Take a trailing `--output <fmt>` / `--output=<fmt>` back
 /// out of the command tokens. A quoted command is one token, so a command
-/// that itself ends in `--output json` stays intact when quoted.
+/// that itself ends in `--output json` stays intact when quoted or after `--`.
 fn split_trailing_output(
     mut command: Vec<String>,
     output: GuardTestOutput,
@@ -4815,7 +4815,13 @@ async fn handle_guard(
     }
 
     if let Some(GuardAction::Test { command, output }) = action {
-        let (command, output) = split_trailing_output(command, output);
+        // clap drops a `--` delimiter; after one, every token is the command.
+        let escaped = std::env::args_os().any(|a| a == "--");
+        let (command, output) = if escaped {
+            (command, output)
+        } else {
+            split_trailing_output(command, output)
+        };
         return handle_guard_test(load_guard_validator(), command.join(" "), output, started).await;
     }
 

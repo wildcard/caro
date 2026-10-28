@@ -290,6 +290,14 @@ fn guard_test_accepts_output_flag_after_the_command() {
         &["test", "--output", "json", "aws s3 ls --output json"],
     );
     assert_eq!(stdout_json(&out)["command"], "aws s3 ls --output json");
+
+    // After `--` every token is the command, so the trailing flag stays in it.
+    let out = guard_cmd(
+        &home,
+        &["test", "--", "aws", "s3", "ls", "--output", "json"],
+    );
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert!(text.contains("command:  aws s3 ls --output json"), "{text}");
 }
 
 #[test]
