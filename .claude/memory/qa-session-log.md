@@ -11,12 +11,12 @@ Reading order: most recent first.
 **Note**: `gh` CLI token invalid (GH_TOKEN rejected); GitHub MCP tools used instead. Memory files had no entries between 2026-05-07 and today, although QA issues #1269/#1281/#1673 were filed in that window; log is incomplete for that period.
 
 ### Slot A — Smoke
-- `cargo build --release --features embedded-cpu` → **PASS** (2m 26s)
+- `cargo build --release --features embedded-cpu` → **PASS**
 - `caro --version` → **PASS**: `caro 1.5.0 (d0f4d3f 2026-10-27)`
 - `caro --help` → **PASS**: lists new `guard`, `integration`, `export`; `assess` no longer listed (matches #1680)
 - `caro doctor` → **PASS**: advisory (no model yet); does not list compiled remote backends (known #1282)
 - `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`
-- Model download from HuggingFace succeeded this run (1.1 GB GGUF) — FLAKE-001 did not recur.
+- Model download from HuggingFace succeeded this run — FLAKE-001 did not recur.
 
 ### Slot B — Recent diff
 Merged since 2026-05-07 (194 PRs; sampled the latest 20). Representative surface: spec 011 guard (#1683-#1687).
@@ -29,7 +29,7 @@ Merged since 2026-05-07 (194 PRs; sampled the latest 20). Representative surface
 - `caro ai --once 'list files'` (also `--new-session`, other prompts) → **FAIL**: `Error: backend error: Clarification needed: What exactly should be deleted?` on 4 of 4 runs.
 - Control `caro -p 'show disk usage' --dry-run` → `df -h` (PASS).
 - Root cause still `src/backends/embedded/cpu.rs:63-64`: CPU backend is a placeholder stub, and `prompt.contains("rm")` matches the system prompt. Already tracked in open #1269 (full analysis, P1); #1673 was closed as duplicate. No new issue filed.
-- Also seen: `ai --once` and `-p` on a cold start hit the 60s timeout while the model downloaded, with no progress output (open #1408).
+- Also seen: `ai --once` and `-p` on a cold start timed out while the model downloaded, with no progress output (open #1408).
 
 ### Findings
 - None new. Reproduced existing open #1269 on 1.5.0 (d0f4d3f).
