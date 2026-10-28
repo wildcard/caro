@@ -412,7 +412,7 @@ enum GuardAction {
         #[arg(required = true, trailing_var_arg = true)]
         command: Vec<String>,
 
-        /// Output format.
+        /// Output format. Goes before or after the quoted command.
         #[arg(long, value_enum, default_value = "text")]
         output: GuardTestOutput,
     },
@@ -4612,6 +4612,32 @@ fn handle_guard_audit(action: GuardAuditAction) -> i32 {
 
 /// `caro guard test "<command>"` (spec 011 §P2.1). Exit 0/2/3 like generic
 /// enforce. Nothing is written to the decision log.
+/// `trailing_var_arg` makes `<COMMAND>...` swallow a flag placed after the
+/// command (#1697). Take a trailing `--output <fmt>` / `--output=<fmt>` back
+/// out of the command tokens. A quoted command is one token, so a command
+/// that itself ends in `--output json` stays intact when quoted.
+fn split_trailing_output(
+    mut command: Vec<String>,
+    output: GuardTestOutput,
+) -> (Vec<String>, GuardTestOutput) {
+    use clap::ValueEnum;
+    let parse = |v: &str| GuardTestOutput::from_str(v, true).ok();
+    let n = command.len();
+    if n >= 2 {
+        if let Some(fmt) = command[n - 1].strip_prefix("--output=").and_then(parse) {
+            command.truncate(n - 1);
+            return (command, fmt);
+        }
+    }
+    if n >= 3 && command[n - 2] == "--output" {
+        if let Some(fmt) = parse(&command[n - 1]) {
+            command.truncate(n - 2);
+            return (command, fmt);
+        }
+    }
+    (command, output)
+}
+
 async fn handle_guard_test(
     validator: Result<caro::safety::SafetyValidator, String>,
     command: String,
@@ -4789,6 +4815,7 @@ async fn handle_guard(
     }
 
     if let Some(GuardAction::Test { command, output }) = action {
+        let (command, output) = split_trailing_output(command, output);
         return handle_guard_test(load_guard_validator(), command.join(" "), output, started).await;
     }
 
