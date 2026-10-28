@@ -36,7 +36,7 @@
 //! - `USE … FROM <path>` clause from the design plan is not yet implemented;
 //!   reserved for v0.2.
 
-use crate::caroml::ast::{ParseError, ParseErrorKind};
+use crate::caroml::ast::{check_version_header, ParseError, ParseErrorKind};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::path::PathBuf;
@@ -88,6 +88,7 @@ pub fn parse(src: &str) -> Result<Carofile, ParseError> {
 /// Parse a Carofile with an associated source path.
 pub fn parse_with_path(src: &str, source_path: Option<PathBuf>) -> Result<Carofile, ParseError> {
     let mut state = State::new(source_path);
+    let mut seen_content = false;
     for (idx, raw_line) in src.lines().enumerate() {
         state.line_no = idx + 1;
         let line = raw_line.trim_end();
@@ -98,8 +99,13 @@ pub fn parse_with_path(src: &str, source_path: Option<PathBuf>) -> Result<Carofi
         state.last_line = state.line_no;
 
         let (keyword, rest) = split_keyword(trimmed);
+        if keyword == "REM" {
+            continue;
+        }
+        let first_content = !seen_content;
+        seen_content = true;
         match keyword {
-            "REM" => continue,
+            "CAROML" => check_version_header(rest, state.line_no, !first_content)?,
             "TASK" => {
                 state.close_active_job();
                 state.handle_task(rest)?;
@@ -347,6 +353,16 @@ mod tests {
         assert!(cf.why.is_none());
         assert!(cf.uses.is_empty());
         assert!(cf.jobs.is_empty());
+    }
+
+    #[test]
+    fn carofile_reads_version_header() {
+        let cf = must_parse("CAROML 1\nTASK demo\n");
+        assert_eq!(cf.title, "demo");
+        let err = parse("CAROML 2\nTASK demo\n").unwrap_err();
+        assert_eq!(err.kind, ParseErrorKind::UnsupportedVersion("2".into()));
+        let err = parse("TASK demo\nCAROML 1\n").unwrap_err();
+        assert_eq!(err.kind, ParseErrorKind::MisplacedVersion);
     }
 
     #[test]
