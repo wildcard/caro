@@ -516,3 +516,199 @@ fn test_invalid_current_directory_handling() {
         Err(e) => panic!("Unexpected error: {:?}", e),
     }
 }
+
+/// `caro run --timeout` runs each step in its own process group, so a
+/// terminal Ctrl-C reaches only `caro`. Caro must forward the signal to the
+/// step's group. Otherwise the step keeps running after `caro` exits.
+#[cfg(unix)]
+mod signal_forwarding {
+    use std::fs;
+    use std::path::Path;
+    use std::process::{Command, Stdio};
+    use std::thread;
+    use std::time::{Duration, Instant};
+
+    /// Write `tasks/demo.caro`, generate its lock with the mock backend, then
+    /// replace the generated step with `command`.
+    fn task_with_step(work: &Path, command: &str) {
+        task_with_steps(work, &[command]);
+    }
+
+    /// Like `task_with_step`, with one DO line per command.
+    fn task_with_steps(work: &Path, commands: &[&str]) {
+        let bin = env!("CARGO_BIN_EXE_caro");
+        fs::create_dir_all(work.join("tasks")).unwrap();
+        let mut task = String::from("TASK Demo\nWHY test\n\n");
+        for i in 0..commands.len() {
+            task.push_str(&format!("DO say hello {i}\n"));
+        }
+        fs::write(work.join("tasks/demo.caro"), task).unwrap();
+        let status = caro(bin, work)
+            .args(["generate", "demo", "--backend", "mock"])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .unwrap();
+        assert!(status.success(), "caro generate failed");
+
+        let lock_path = work.join("tasks/demo.caro.lock");
+        let mut lock = fs::read_to_string(&lock_path).unwrap();
+        for (i, command) in commands.iter().enumerate() {
+            let generated = format!("command = 'echo \"say hello {i}\"'");
+            assert!(lock.contains(&generated), "unexpected mock lock:\n{lock}");
+            lock = lock.replace(&generated, &format!("command = '{command}'"));
+        }
+        fs::write(&lock_path, lock).unwrap();
+    }
+
+    fn caro(bin: &str, work: &Path) -> Command {
+        let mut cmd = Command::new(bin);
+        cmd.current_dir(work)
+            .env("HOME", work)
+            .env("XDG_CONFIG_HOME", work.join("config"))
+            .env("XDG_DATA_HOME", work.join("data"))
+            .env("XDG_STATE_HOME", work.join("state"))
+            .env("XDG_CACHE_HOME", work.join("cache"));
+        cmd
+    }
+
+    fn wait_for(path: &Path, limit: Duration) -> bool {
+        let start = Instant::now();
+        while start.elapsed() < limit {
+            if path.exists() {
+                return true;
+            }
+            thread::sleep(Duration::from_millis(20));
+        }
+        false
+    }
+
+    fn signal_stops_the_step(args: &[&str], sig: libc::c_int) {
+        let dir = tempfile::tempdir().unwrap();
+        let work = dir.path();
+        // `sleep` is a grandchild of caro: bash forks it. Only a group-wide
+        // signal stops it before it can create `finished`.
+        task_with_step(work, "touch started; sleep 2; touch finished");
+
+        let child = caro(env!("CARGO_BIN_EXE_caro"), work)
+            .args(args)
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        assert!(
+            wait_for(&work.join("started"), Duration::from_secs(20)),
+            "step never started"
+        );
+
+        // SAFETY: kill(2) takes plain integers and has no memory effects.
+        assert_eq!(unsafe { libc::kill(child.id() as libc::pid_t, sig) }, 0);
+        let output = child.wait_with_output().unwrap();
+
+        // Give an orphaned step more than enough time to finish.
+        thread::sleep(Duration::from_secs(3));
+        assert!(
+            !work.join("finished").exists(),
+            "the step kept running after caro exited"
+        );
+        // A shell reports "stopped by signal N" as status 128 + N.
+        assert_eq!(
+            output.status.code(),
+            Some(128 + sig),
+            "stderr: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    const RUN: &[&str] = &["run", "demo", "--yes", "--timeout", "60"];
+
+    #[test]
+    fn sigint_reaches_the_step() {
+        signal_stops_the_step(RUN, libc::SIGINT);
+    }
+
+    #[test]
+    fn sigterm_reaches_the_step() {
+        signal_stops_the_step(RUN, libc::SIGTERM);
+    }
+
+    #[test]
+    fn timeout_is_per_step_with_a_clean_runbook() {
+        // A clean runbook runs as one `bash` call. Two 1.2 s steps must not
+        // share one 2 s deadline. Each step keeps 0.8 s of headroom for slow
+        // CI runners.
+        let dir = tempfile::tempdir().unwrap();
+        let work = dir.path();
+        let bin = env!("CARGO_BIN_EXE_caro");
+        task_with_steps(work, &["sleep 1.2", "sleep 1.2"]);
+        let export = caro(bin, work).args(["export", "demo"]).output().unwrap();
+        assert!(export.status.success(), "caro export failed: {:?}", export);
+
+        let output = caro(bin, work)
+            .args(["run", "demo", "--yes", "--timeout", "2"])
+            .output()
+            .unwrap();
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            output.status.success(),
+            "stdout: {stdout}\nstderr: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(stdout.contains("--timeout is per step"), "stdout: {stdout}");
+    }
+
+    #[test]
+    fn inherited_ignored_sighup_stays_ignored() {
+        // Under `nohup` caro starts with SIGHUP ignored. Closing the terminal
+        // must not stop the step, so caro must not catch or forward it.
+        let dir = tempfile::tempdir().unwrap();
+        let work = dir.path();
+        task_with_step(work, "touch started; sleep 1; touch finished");
+
+        let bin = env!("CARGO_BIN_EXE_caro");
+        let mut child = caro("sh", work)
+            .args(["-c", "trap '' HUP; exec \"$0\" \"$@\""])
+            .args([bin, "run", "demo", "--yes", "--timeout", "60"])
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        assert!(
+            wait_for(&work.join("started"), Duration::from_secs(20)),
+            "step never started"
+        );
+
+        // SAFETY: kill(2) takes plain integers and has no memory effects.
+        assert_eq!(
+            unsafe { libc::kill(child.id() as libc::pid_t, libc::SIGHUP) },
+            0
+        );
+        let status = child.wait().unwrap();
+        assert!(status.success(), "caro did not finish: {status:?}");
+        assert!(work.join("finished").exists(), "the step was stopped");
+    }
+
+    #[test]
+    fn timed_out_step_exits_124() {
+        // Scripts tell a timeout from a failure by the GNU `timeout` status.
+        let dir = tempfile::tempdir().unwrap();
+        let work = dir.path();
+        task_with_step(work, "sleep 30");
+        let output = caro(env!("CARGO_BIN_EXE_caro"), work)
+            .args(["run", "demo", "--yes", "--timeout", "1"])
+            .output()
+            .unwrap();
+        assert_eq!(
+            output.status.code(),
+            Some(124),
+            "stderr: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    #[test]
+    fn caro_do_forwards_sigint() {
+        // No Carofile, so `caro do demo` runs the bare task.
+        signal_stops_the_step(&["do", "demo", "--timeout", "60"], libc::SIGINT);
+    }
+}
