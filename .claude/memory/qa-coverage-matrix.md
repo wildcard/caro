@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-10-28
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -13,6 +13,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
+| 2026-10-28 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static match `ls -la`; model download succeeded; gh CLI token invalid, MCP used |
 
 ---
 
@@ -23,7 +24,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | # | Surface | Domain | Last tested | Result | Linked issue(s) |
 |---|---------|--------|-------------|--------|-----------------|
 | 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-05-07 | PASS | — |
-| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-05-07 | FLAKE | — |
+| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-28 | PASS | — |
 | 3 | Telemetry consent persistence across invocations | cli | 2026-05-07 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
@@ -31,7 +32,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-05-07 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-05-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | never | — | — |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-28 | FAIL (known) | [#1269](https://github.com/wildcard/caro/issues/1269) |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
@@ -53,6 +54,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 29 | `caro --safety strict/moderate/permissive` modes | safety | never | — | — |
 | 30 | `caro --verbose` timing output | cli | never | — | — |
 | 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | never | — | — |
+| 33 | `caro guard test/audit/setup` (spec 011) | safety | 2026-10-28 | PASS (test only; audit/setup --verify untested) | — |
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-05-07 | PASS | — |
 
 ---

