@@ -3,7 +3,9 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-10-26 — validated the `caro guard` rows against published `caro 1.5.0` for the first time (they were last checked on the PR #1513 branch). All five harness formats deny Critical commands in enforce mode, malformed input fails safe to `ask`, and the documented smoke commands work verbatim. #1723 stdin hang still live (fix in PR #1043, unmerged). No PR: nothing in the integrator backlog merged since 2026-10-24.
+> **Last updated:** 2026-10-27 — backlog moved: PR #1689 (#1657 website fix) and PR #1658 (caro-shell skill refresh) merged, and the main-CI blockers #1699/#1701 landed. ✓ VERIFIED caro.sh/integrations/ now serves the corrected 1.5.0 copy (loud `remote-backends` error, no "Unknown backend"), and the caro-shell skill on `main` documents `--model-name` and the feature gate. New P2: `caro test --help` advertises `mlx`/`ollama`, but both fail with `Supported: static, embedded`. A merge of `origin/main` into this branch is blocked on the interactive safety-pattern pre-commit prompt (see log).
+>
+> **Previous:** 2026-10-26 — validated the `caro guard` rows against published `caro 1.5.0` for the first time (they were last checked on the PR #1513 branch). All five harness formats deny Critical commands in enforce mode, malformed input fails safe to `ask`, and the documented smoke commands work verbatim. #1723 stdin hang still live (fix in PR #1043, unmerged). No PR: nothing in the integrator backlog merged since 2026-10-24.
 >
 > **Previous:** 2026-10-25 — validated the stalest rows (Ollama/vLLM/Exo, Candle CPU, MLX, integrations page) against published `caro 1.5.0`. Remote backends now fail loudly (exit 1) in the default binary, no longer silently. New P1 #1723: top-level `caro "<prompt>"` blocks on an open stdin pipe, which is how agent harnesses spawn it (fix already in PR #1043). No PR: the fix exists, and 7 integrator PRs await review.
 >
@@ -49,7 +51,7 @@
 
 | Tool | Status | Last validated | Method | GH | Notes |
 |---|---|---|---|---|---|
-| Claude Code skill (`caro-shell`) | ⚠️ partial | 2026-10-24 | published 1.5.0: `caro --dry-run "find files larger than 100MB in the current directory"` → `find . -type f -size +100M` ✓ | #1629, PR #1658 | Invocation works; backend guidance in SKILL.md still cites v1.4.0 rejections (fix open in PR #1658) |
+| Claude Code skill (`caro-shell`) | ⚠️ partial | 2026-10-27 | published 1.5.0: `caro --dry-run` with the skill's large-files `find` prompt (stdin closed) → dry-run OK in 0.26 s; SKILL.md on `main` (PR #1658 merged) documents `--model-name` and the `remote-backends` gate | #1490, #1628, #1627 | Guidance fixed (#1629); remaining partial is generation quality (#1627/#1628) and marketplace install (PR #1624) |
 | Harness guardian hook (`caro guard`) | 🧪 experimental | 2026-10-26 | ✓ published 1.5.0: `… \| caro guard --mode enforce --no-log` → `permissionDecision: deny` for `rm -rf /`; shadow (default) logs only; `not json` → `ask`; `caro guard report` lists verdicts by harness; e2e `tests/e2e_guard.rs` | spec 011 / ADR-020 | PreToolUse adapter for Claude Code, Grok Build, Codex; OpenCode via `integrations/opencode/caro-guard.ts`. Shadow by default |
 | Claude Code MCP server (`caro mcp serve`) | ⏳ not-yet | — | `mcp-inspect` against `caro mcp serve` | #928 | Spec: `.github/first-time-issues/06-mcp-claude-code-integration.md`; tools `generate_command` / `validate_command` / `explain_safety` / `show_decision_tree` |
 | OpenAI-compat HTTP shim (`caro serve --openai`) | ⏳ not-yet | — | `curl /v1/chat/completions` with a tool call | #929 | Highest leverage — unlocks Codex/Cursor/Continue/Aider/Tabby in one shot |
@@ -79,8 +81,8 @@
 
 | Surface | Status | Last validated | GH | Notes |
 |---|---|---|---|---|
-| `website/src/data/integrations.ts` | ⚠️ partial | 2026-10-24 | #1657, PR #1689 | Claude/Ollama entries + `--model` snippet stale; fix open in PR #1689 |
-| `website/src/pages/integrations/index.astro` | ⚠️ partial | 2026-10-25 | #1657, PR #1689 | caro.sh/integrations/ → 200; MCP and OpenAI shim correctly say "Coming soon". Claude row still says `Unknown backend 'claude'` and OpenRouter says "Planned"; both wired in 1.5.0 (`not compiled` in the default build) |
+| `website/src/data/integrations.ts` | ✅ working | 2026-10-27 | #1657 (closed) | PR #1689 merged; Claude/Ollama/vLLM/Exo entries describe the 1.5.0 loud `remote-backends` error; snippet uses `--model-name` |
+| `website/src/pages/integrations/index.astro` | ✅ working | 2026-10-27 | — | caro.sh/integrations/ → 200; live copy says the default binary "no longer silently falls back"; `partial` bucket renders (PR #1689) |
 | README "Use caro from your agent" section | ⚠️ partial | 2026-10-24 | — | Table drift: MCP (#928) and OpenAI shim (#929) shown 🚧 though unimplemented; OpenRouter shown ⏳ though wired in 1.5.0; Gemini row cites closed PR #782 (#1439) |
 | `.github/first-time-issues/06-mcp-claude-code-integration.md` | 🚫 reference only | — | — | Spec doc; not a runtime surface |
 
@@ -92,12 +94,12 @@ Topmost unblocked row drives the next nightly PR.
 
 1. ✅ **DONE — [PR #1298](https://github.com/wildcard/caro/pull/1298) MERGED** (2026-07-12 UTC), **[#1115](https://github.com/wildcard/caro/issues/1115) CLOSED**. Acute divergence half resolved via `backends::CLI_SERVABLE_BACKENDS` single source of truth.
 2. **[#1081](https://github.com/wildcard/caro/issues/1081) — wiring half + feature-gate split** (P1; surviving home now #1115 is closed). `create_backend` (`src/cli/mod.rs:295`) has no arm for `claude`/`openrouter`; structs exist under `src/backends/remote/`. Add arms instantiating `ClaudeBackend`/`OpenRouterBackend` with config-error paths for missing `ANTHROPIC_API_KEY`/`OPENROUTER_API_KEY`. **CAUTION:** `CLI_SERVABLE_BACKENDS` is NOT feature-gated — adding those names to the unconditional slice would re-open the #1298 divergence for default (`remote-backends`-off) builds. The roster needs a feature-gated view first. ~60–80 LOC + the gate split — a single-night fit only once the gating approach is settled. **Topmost unblocked integrator row.**
-3. **Reconcile the `caro test`-subcommand rosters** — `src/main.rs:437` help + `src/main.rs:2069` `valid_backends` advertise `static`/`mlx`, a genuinely-different roster from top-level `--backend`. Part of #1115's full fix; deferred from #1298 to keep it tight.
+3. **[#1732](https://github.com/wildcard/caro/issues/1732) — `caro test --help` roster drift** (P2). ✓ VERIFIED 2026-10-27 on published 1.5.0: help (`src/main.rs:547`) advertises `static, mlx, ollama, or embedded`; `--backend mlx`/`ollama` → `Unknown backend ... Supported: static, embedded` (`src/main.rs:3091`). One-line doc fix; quick-win slot once the PR backlog clears.
 4. **Release-cadence P0 (out of integrator scope — flag to release management / caro-qa-agent):** published crates.io binary is still `1.4.0` (2026-05-09). VERIFIED 2026-07-11 that the #1115 divergence is live in the shipped 1.4.0 (`--backend claude`/`static` → `Unknown backend` despite `--backend-info` advertising them). Mesh-LLM/AI-Horde/hybrid (#1209), OpenRouter (#1097), smart-approval (#1206), the #1092 loud-error fix, and now #1298 are all stranded in main, never reaching a released binary. `cargo install caro` users get none of it. A 1.4.1/1.5.0 cut is overdue.
 6. **Claude Code MCP server** (`caro mcp serve`) — spec drafted (`.github/first-time-issues/06-mcp-claude-code-integration.md`, [#928](https://github.com/wildcard/caro/issues/928)); coordinate with [#789](https://github.com/wildcard/caro/pull/789).
 7. **OpenAI-compat HTTP shim** (`caro serve --openai`, [#929](https://github.com/wildcard/caro/issues/929)) — single highest-leverage surface; unlocks ~6 long-tail tools at once.
 8. **Claude Code session-token reuse backend** ([#930](https://github.com/wildcard/caro/issues/930)) — let users with CC subscription get Haiku for free.
-9. **Coordinate Gemini [PR #782](https://github.com/wildcard/caro/pull/782)** — review and merge or supersede.
+9. **Coordinate Gemini [PR #782](https://github.com/wildcard/caro/pull/782)** — review and merge or supersede. PR #782 is CLOSED; Gemini CLI row retirement (#1439) is covered by sweep PR #1722.
 10. **opencode / crush / droid copy-paste snippets** — once OpenAI shim ships, document each.
 11. **Sourcegraph Amp / Letta** — MCP-based; ride on top of the MCP server work.
 12. **Long tail** — Pi, Aug, CodePal, qwen, Tabby — one each as polish nights.

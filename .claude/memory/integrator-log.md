@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-10-27 (23:00 PT fire) — backlog moved; P2 #1732 filed; #1719 main-merge blocked on safety prompt
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io `max_version` still 1.5.0, 2026-10-13). `website/src/data/integrations.ts` + caro.sh/integrations/: PASS — page returns 200 and serves the PR #1689 copy (default binary "no longer silently falls back"); #1657 is CLOSED. caro-shell skill: PASS for guidance — SKILL.md on `main` (PR #1658 merged) documents `--model-name` and the `remote-backends` gate; `caro --dry-run` with the skill's large-files `find` prompt (stdin closed) completes in 0.26 s. `caro test` roster (queue row 5, never checked before): FAIL — `--help` lists `static, mlx, ollama, or embedded`, but `--backend mlx` and `--backend ollama` exit with `Unknown backend … Supported: static, embedded`; `--backend static` passes.
+- **Shipped:** no new PR. Tried to merge `origin/main` into this branch (PR #1719) to clear the log/matrix conflicts from PR #1689 and PR #1658. Conflicts resolved, but the pre-commit hook stops on an interactive `Potential CRITICAL gaps` prompt because the merge brings `src/safety/patterns.rs` from #1687. The same 14 CRITICAL lines appear for `main` and for this branch, so the merge adds no gap. An unattended run must not answer a safety gate, so the merge was aborted. This entry rides on the branch as a plain commit. A human can redo the merge (`git merge origin/main`, answer `y`); the conflicts are only in these two files.
+- **Filed:** [#1732](https://github.com/wildcard/caro/issues/1732) (P2, `integration` + `bug`): `caro test --help` advertises backends it rejects. Dedup: no issue matched `caro test backend mlx`; `gh pr diff` of #1348/#1713/#1719/#1184 shows none touches `src/main.rs:547`.
+- **Discovered:** #1439 (Gemini CLI row) is now covered by sweep PR #1722, so it leaves the integrator queue. Main CI fixes #1699/#1701 merged, so the red checks on #1719 that came from `main` should clear on re-run. No research queries tonight — the budget went to backlog hygiene, and 2026-10-24…26 scans found no new launches.
+- **Next pass should:** check whether a human merged `main` into #1719. If yes and it merges, re-sync the other `DIRTY` integrator PRs (#1713, #1708, #1624, #1492) in the same way. Those branches do not touch `patterns.rs` on their own, but any merge of `main` brings it in. #1732 is the next quick-win code PR once the backlog is under 5 open PRs.
+
+---
+
 ## 2026-10-26 (23:00 PT fire) — `caro guard` validated on published 1.5.0; no PR (backlog unchanged)
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io, still newest). `caro guard` rows were last checked on the PR #1513 branch, so this is their first published-binary check. Harness guardian hook: PASS. `rm -rf /` with `--mode enforce` → `permissionDecision: deny`; the default shadow mode only logs; `not json` → `ask` (fails safe); a non-Bash tool → no output. Grok Build (`--harness grok`, camelCase): PASS, `rm -rf ~` → deny. Codex (`--harness codex`): PASS, `curl … | sudo bash` → deny. opencode / generic: PASS, verdict JSON with exit 2. The documented smoke commands in `docs/coding-agents/{claude-code,codex,README}.md` run verbatim, `--no-log` included. #1723 re-check: `sleep 25 | caro --dry-run "list pdf files"` still hangs (alarm rc=142).
