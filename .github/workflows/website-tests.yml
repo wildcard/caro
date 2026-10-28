@@ -30,7 +30,9 @@ permissions:
 jobs:
   website-tests:
     name: Website tests (vitest)
-    runs-on: ubuntu-latest
+    # Pinned (#1701): playwright-chromium has no Chromium for ubuntu-latest
+    # (Ubuntu 26.04), so npm ci fails. Revert to ubuntu-latest once it does.
+    runs-on: ubuntu-24.04
     steps:
       # On pull_request, HEAD is the PR's merge commit and HEAD^1 is the
       # base branch tip, so depth 2 is enough to list the PR's changes.
