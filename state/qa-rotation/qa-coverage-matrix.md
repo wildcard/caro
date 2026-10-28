@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-10-27
+**Last updated**: 2026-10-28
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -59,6 +59,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-10-23 | PASS | PASS (1.5.0) | PASS | PASS | PASS | `ls -la`; no model download needed |
 | 2026-10-25 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher answered; no model download needed |
 | 2026-10-27 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher answered; no model needed |
+| 2026-10-28 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static match `ls -la`; model download succeeded; gh CLI token invalid, MCP used |
 
 ---
 
@@ -69,7 +70,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | # | Surface | Domain | Last tested | Result | Linked issue(s) |
 |---|---------|--------|-------------|--------|-----------------|
 | 1 | CLI smoke (build, --version, --help, doctor) | cli | 2026-10-11 | PASS | — |
-| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-22 | PASS | — |
+| 2 | `caro -p "..." --dry-run` command generation | cli | 2026-10-28 | PASS | — |
 | 3 | Telemetry consent persistence across invocations | cli | 2026-10-11 | PASS | — |
 | 4 | `caro shell-init bash/zsh/fish` | shell-integration | 2026-05-07 | PASS | — |
 | 5 | `caro init` setup wizard (--minimal, --force) | cli | 2026-05-07 | PASS | — |
@@ -77,7 +78,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-10-08 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-09-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-22 | FAIL | #1269 (CPU stub; #1673 is its duplicate), #1272, #1408 (open) |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-28 | FAIL | #1269 (CPU stub; #1673 is its duplicate), #1272, #1408 (open) |
 | 11 | `caro ai --continue-session` shell widget | ai | 2026-10-19 | FAIL | #1269 (CPU stub, as surface 10, when a prompt is passed). With no prompt, the `?` widget cannot take a request (#1671) |
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection. The README claimed it until #1680 fixed #1677 on 2026-10-19) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
@@ -103,7 +104,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 33 | `caro ai` decision gates (clarification, Jev gap, constrained decoding) (#1459) | ai | never | — | — |
 | 34 | Executor timeout / guard hooks / loop budget enforcement (#1470) | cli | never | — | — |
 | 35 | `caro export` platform runbook writer (new in v1.5.0) | cli | never | — | — |
-| 36 | `caro guard test / setup` (spec 011, new after v1.5.0) | safety | 2026-10-27 | PARTIAL (test ok, setup not run) | [#1697](https://github.com/wildcard/caro/issues/1697), [#1720](https://github.com/wildcard/caro/issues/1720) (no rule for destructive git commands) |
+| 36 | `caro guard test / setup` (spec 011, new after v1.5.0) | safety | 2026-10-28 | PARTIAL (test ok; setup and audit not run) | [#1697](https://github.com/wildcard/caro/issues/1697), [#1720](https://github.com/wildcard/caro/issues/1720) (no rule for destructive git commands) |
 
 ---
 
