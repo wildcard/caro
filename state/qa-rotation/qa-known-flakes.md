@@ -63,6 +63,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 - 2026-10-23: not triggered — `--dry-run` gave `ls -la` without a download (#1709).
 - 2026-10-25: not triggered — the static matcher answered `--dry-run` without a download (#1721).
 - 2026-10-27: not triggered — the static matcher answered `--dry-run` without a download (#1727).
+- 2026-10-28: not triggered — the model download from Hugging Face succeeded (#1733).
 
 **Promotion threshold**: File regression issue if explicit download failure observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Status**: Promoted to regression (behavior change constitutes a regression even under 3-in-7-days threshold). Filed as #1440.  
@@ -87,6 +88,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 - 2026-10-15: not triggered — the model download finished, so `caro ai --once` returned the CPU stub's "What exactly should be deleted?" clarification instead of hanging (#1674 filed it as #1673; root cause #1269).
 - 2026-10-16, 10-18, 10-19 and 10-21: not triggered — the download finished, so `caro ai --once` reached the CPU stub of #1269 (#1678, #1679, #1690, #1698).
 - 2026-10-22: not triggered — `caro ai --once` returned the CPU stub's clarification of #1269 at once, without a hang (#1705).
+- 2026-10-28: observed — on a cold start, `caro ai --once` and `-b embedded -p` timed out while the model downloaded, with no progress output (#1733). Tracked in #1408; #1415 is the open fix.
 **Promotion threshold**: Not applicable — known root cause, tracked in open issues #1272 and #1408. File a separate regression issue only if behavior changes (e.g. starts producing an error message, or starts hanging on a different backend).  
 **Workaround**: Test `caro ai --once` only in an environment with a pre-downloaded model or Ollama available.
 ---
