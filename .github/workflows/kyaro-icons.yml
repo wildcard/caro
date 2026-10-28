@@ -68,7 +68,9 @@ jobs:
 
   usage:
     name: Site uses the icon set correctly
-    runs-on: ubuntu-latest
+    # Pinned (#1701): playwright-chromium has no Chromium for ubuntu-latest
+    # (Ubuntu 26.04), so npm ci fails. Revert to ubuntu-latest once it does.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
