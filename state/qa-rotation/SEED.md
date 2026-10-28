@@ -140,3 +140,12 @@ The 2026-10-27 run used the old prompt and read main's May copy. The 2026-10-26 
 - **From Slot B:** its `caro guard test` checks give surface 36 the new date. It did not run `caro guard setup`, so the result stays PARTIAL.
 - **Backlog:** #1726 (open, P2): an invalid `--output` value falls back to plain with exit 0. No earlier issue covers it. #1269 is re-confirmed (unmatched `-p` prompts reach the CPU stub) and keeps P1.
 - **Flakes:** FLAKE-001 was not triggered.
+
+## Added after seeding: #1733 (2026-10-28)
+
+The 2026-10-28 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win, matched by surface name:** a smoke row for 2026-10-28; surfaces 2 (PASS) and 10 (FAIL, the CPU stub of #1269) get the new date. Its guard surface 33 is surface 36 here; it ran `caro guard test` only, so the result stays PARTIAL.
+- **Backlog:** no new issues. #1269 is re-confirmed and keeps P1, not the P0 the run suggests. The run cites #1281 and #1282, two open QA issues from 2026-07-01 that the backlog did not list, so they are added.
+- **Flakes:** FLAKE-001 was not triggered. FLAKE-002 was observed: the cold-start download gave no progress output (#1408).
