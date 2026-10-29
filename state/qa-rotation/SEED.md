@@ -149,3 +149,12 @@ The 2026-10-28 run used the old prompt and read main's May copy. It was folded o
 - **Its rows win, matched by surface name:** a smoke row for 2026-10-28; surfaces 2 (PASS) and 10 (FAIL, the CPU stub of #1269) get the new date. Its guard surface 33 is surface 36 here; it ran `caro guard test` only, so the result stays PARTIAL.
 - **Backlog:** no new issues. #1269 is re-confirmed and keeps P1, not the P0 the run suggests. The run cites #1281 and #1282, two open QA issues from 2026-07-01 that the backlog did not list, so they are added.
 - **Flakes:** FLAKE-001 was not triggered. FLAKE-002 was observed: the cold-start download gave no progress output (#1408).
+
+## Added after seeding: #1736 (2026-10-29)
+
+The 2026-10-29 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-10-29; surface 10 (FAIL, the CPU stub of #1269) gets the new date and keeps the seed's links.
+- **Re-filed known issue:** the run filed #1735 for the CPU stub. #1269 is the open canonical issue, and the reports the run calls closed (#1494, #1500, #1523, #1673) were closed as its duplicates. #1735 is recorded as another duplicate; #1269 keeps P1.
+- **Flakes:** FLAKE-001 and FLAKE-002 were not triggered.
