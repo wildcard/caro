@@ -603,6 +603,6 @@ workspaces are BW-069.
 
 **Found:** 2026-10-28 sweep register sync (issue filed 2026-10-28)
 **Issue:** #1732. `src/main.rs` help text said `static, mlx, ollama, or embedded`; the `match` accepts only `static` and `embedded`.
-**Status:** claimed-by sweep/2026-10-29-BW-100 (#PRNUM)
+**Status:** claimed-by sweep/2026-10-29-BW-100 (#1737)
 **Needs human?:** no
 **Next step:** merge the sweep PR (clap `value_parser = ["static", "embedded"]`, so help and accepted values share one list).
