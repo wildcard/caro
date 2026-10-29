@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-10-28 (23:00 PT fire) — validation-only; backlog stalled, no PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io, still newest). OpenRouter: PASS for the loud-error contract (`--backend openrouter` → `requires the 'remote-backends' feature`); row re-dated from 2026-10-03 and status corrected to ⚠️ feature-gated. Candle CPU: PASS, `show disk usage` → `df -h`. `caro guard --mode enforce` with `rm -rf /`: PASS, `permissionDecision: deny`. Known FAILs re-confirmed, no change: #1723 (`sleep 25 | caro --dry-run …` hangs, rc=142); #1732 (`caro test --backend mlx` → `Unknown backend: mlx. Supported: static, embedded`); completion roster `embedded ollama exo vllm static` (fix in #1719); `list pdf files` → `ls -la` (#1645).
+- **Shipped:** no PR. Every failure already has an issue or an open fix PR. 8 integrator-area PRs are still open (#1153, #1348, #1492, #1624, #1708, #1713, #1719 `DIRTY`; #1722 `CLEAN`), and nobody merged `main` into #1719. A new PR would only grow the queue. This entry rides on #1719's branch.
+- **Filed:** none.
+- **Discovered:** no new coder-agent launch for October 2026 (2 queries). Shrike Security ships an MCP `scan_command` tool that checks shell commands before execution. It is a direct comparison point for `validate_command` in #928, not an integration target, so no row was added.
+- **Next pass should:** check whether a human merged `main` into #1719 (answer `y` to the safety-gate prompt). If the backlog is still stalled, run a short validation-only night. #1732 stays the next quick-win code PR once fewer than 5 integrator PRs are open.
+
+---
+
 ## 2026-10-27 (23:00 PT fire) — backlog moved; P2 #1732 filed; #1719 main-merge blocked on safety prompt
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io `max_version` still 1.5.0, 2026-10-13). `website/src/data/integrations.ts` + caro.sh/integrations/: PASS — page returns 200 and serves the PR #1689 copy (default binary "no longer silently falls back"); #1657 is CLOSED. caro-shell skill: PASS for guidance — SKILL.md on `main` (PR #1658 merged) documents `--model-name` and the `remote-backends` gate; `caro --dry-run` with the skill's large-files `find` prompt (stdin closed) completes in 0.26 s. `caro test` roster (queue row 5, never checked before): FAIL — `--help` lists `static, mlx, ollama, or embedded`, but `--backend mlx` and `--backend ollama` exit with `Unknown backend … Supported: static, embedded`; `--backend static` passes.
