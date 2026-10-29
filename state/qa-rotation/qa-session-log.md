@@ -4,6 +4,37 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-29 — Scheduled run (Slot A + Slot C)
+
+> Folded from #1736 into this state on 2026-10-29. The run read main's May copy, so it could not see that #1269, the canonical issue for the CPU stub, is open: the reports it calls closed (#1494, #1500, #1523, #1673) were closed as duplicates of #1269. Its #1735 is recorded here as another duplicate of #1269.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (Slot B skipped: last entry is 2026-05-07, 175 days of merges; not sampled this pass).
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (d0f4d3f 2026-10-27)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (no model cached at start; HF reachable)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` (model downloaded this time; FLAKE-001 did not recur)
+
+### Slot B — Recent diff
+Not run (gap since last log too large to sample meaningfully; the Slot B query is a followup).
+
+### Slot C — `caro ai --once` (#10)
+- `caro ai --once` with "list files", "list files in the current directory", "show disk usage" → **FAIL**: all return `Clarification needed: What exactly should be deleted?`
+- Root cause: placeholder stub in `src/backends/embedded/cpu.rs:62-64` matches `rm`/`delete` substring in the full prompt.
+
+### Findings
+- [#1735](https://github.com/wildcard/caro/issues/1735) — ai: `caro ai --once` still answers "deleted" clarification (P1, regression of closed #1494/#1500/#1523/#1673)
+
+### Followups
+- Re-test `caro ai --once` after #1735 is fixed.
+- FLAKE-001 not observed this pass.
+- Next Slot C candidates: #11, #12 (never tested).
+
+---
+
 ## 2026-10-28 — Scheduled run (Slot A + Slot B + Slot C)
 
 > Folded from #1733 into this state on 2026-10-28. The run read main's May copy, so its "no entries between 2026-05-07 and today" and its "194 PRs merged" do not see the runs below. Its guard surface 33 is surface 36 here, because the seed already uses 33.
