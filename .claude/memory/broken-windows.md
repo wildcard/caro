@@ -56,7 +56,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ### BW-006: embedded CPU stub always returns `echo 'Please clarify your request'`
 
 **Found:** 2026-09-30 sweep dedup
-**Issue:** #1269 (14 duplicates, closed; latest #1673 on 2026-10-15). Root cause: the stub keyword-matches "rm" in the system prompt (`src/backends/embedded/cpu.rs`).
+**Issue:** #1269 (15 duplicates, closed; latest #1735 on 2026-10-29). Root cause: the stub keyword-matches "rm" in the system prompt (`src/backends/embedded/cpu.rs`).
 **Status:** open
 **Needs human?:** yes. Product call: fail with a clear error on the CPU variant, or fall back to the static matcher. Epic #1460 / #1462 also touch this path.
 **Next step:** maintainer picks the behaviour.
@@ -599,3 +599,10 @@ workspaces are BW-069.
 **Needs human?:** yes (decided 2026-10-27: reviewed `audit.toml` entries)
 **Next step:** merge #1700. Remove the entries when lancedb/lance/arrow move to zstd 0.14.
 
+### BW-100: `caro test --help` advertises mlx/ollama backends that it rejects
+
+**Found:** 2026-10-28 sweep register sync (issue filed 2026-10-28)
+**Issue:** #1732. `src/main.rs` help text said `static, mlx, ollama, or embedded`; the `match` accepts only `static` and `embedded`.
+**Status:** claimed-by sweep/2026-10-29-BW-100 (#1737)
+**Needs human?:** no
+**Next step:** merge the sweep PR (clap `value_parser = ["static", "embedded"]`, so help and accepted values share one list).

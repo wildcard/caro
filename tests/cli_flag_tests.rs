@@ -226,3 +226,30 @@ fn backend_info_shows_status_column() {
         combined
     );
 }
+
+// =============================================================================
+// #1732: `caro test --backend` help and accepted values come from one list
+// =============================================================================
+
+#[test]
+fn test_subcommand_help_lists_only_supported_backends() {
+    let runner = CliRunner::new();
+    let (stdout, stderr, code) = runner.run(&["test", "--help"]);
+    assert_eq!(code, 0, "stderr:\n{stderr}");
+    assert!(
+        stdout.contains("[possible values: static, embedded]"),
+        "help should list exactly the accepted backends:\n{stdout}"
+    );
+    assert!(
+        !stdout.contains("mlx") && !stdout.contains("ollama"),
+        "{stdout}"
+    );
+}
+
+#[test]
+fn test_subcommand_rejects_unsupported_backend_at_parse_time() {
+    let runner = CliRunner::new();
+    let (_stdout, stderr, code) = runner.run(&["test", "--backend", "ollama"]);
+    assert_eq!(code, 2, "clap usage error expected, stderr:\n{stderr}");
+    assert!(stderr.contains("invalid value 'ollama'"), "{stderr}");
+}
