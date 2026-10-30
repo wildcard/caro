@@ -112,3 +112,37 @@ fn invalid_values_are_rejected() {
         );
     }
 }
+
+/// #1260: `caro config reset <key>` resets only that key; bare `reset`
+/// still resets everything.
+#[test]
+fn reset_key_restores_only_that_key() {
+    let dir = TempDir::new().unwrap();
+    ok(dir.path(), &["config", "set", "safety", "strict"]);
+    ok(dir.path(), &["config", "set", "log_rotation", "14"]);
+
+    let reset = ok(dir.path(), &["config", "reset", "safety"]);
+    assert!(reset.contains("Reset safety to default"), "got: {reset}");
+    let safety = ok(dir.path(), &["config", "get", "safety"]);
+    assert!(safety.contains("Moderate"), "got: {safety}");
+    let rotation = ok(dir.path(), &["config", "get", "log_rotation"]);
+    assert!(
+        rotation.contains("14 days"),
+        "other keys must stay: {rotation}"
+    );
+
+    // Aliases work like they do for set/get.
+    ok(dir.path(), &["config", "reset", "log-rotation"]);
+    let rotation = ok(dir.path(), &["config", "get", "log_rotation"]);
+    assert!(!rotation.contains("14 days"), "got: {rotation}");
+
+    let bad = caro(dir.path(), &["config", "reset", "nope"]);
+    assert!(!bad.status.success());
+    assert!(String::from_utf8_lossy(&bad.stderr).contains("Unknown config key"));
+
+    ok(dir.path(), &["config", "set", "safety", "strict"]);
+    let all = ok(dir.path(), &["config", "reset"]);
+    assert!(all.contains("reset to defaults"), "got: {all}");
+    let safety = ok(dir.path(), &["config", "get", "safety"]);
+    assert!(safety.contains("Moderate"), "got: {safety}");
+}

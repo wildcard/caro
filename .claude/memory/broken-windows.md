@@ -89,9 +89,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1260 (dup #1381, closed)
-**Status:** open
+**Status:** claimed-by sweep/2026-10-30-BW-013 (#PRNUM)
 **Needs human?:** no
-**Next step:** add per-key reset.
+**Next step:** merge the sweep PR (`caro config reset <key>` resets one key; bare `reset` unchanged).
 
 ### BW-015: main CI `Extended Tests` (4 model jobs) red: HF Hub model download fails
 
@@ -250,9 +250,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-07-19)
 **Issue:** #1349
-**Status:** open
+**Status:** open. Open PR #1415 (`fix: show ai once backend initialization status`) also adds `CARO_CONFIG_DIR` to `ConfigManager::new`; `tests/cli_flag_tests.rs` and `tests/e2e_cli_tests.rs` already set the variable, which main ignores.
 **Needs human?:** no
-**Next step:** honor a `CARO_CONFIG_DIR` env var in `src/config/mod.rs` and use it in the config tests.
+**Next step:** merge #1415, or split its `CARO_CONFIG_DIR` hunk out. Do not open a competing sweep PR while #1415 is open.
 
 ### BW-039: `ChromaDB Integration Tests` CI job fails late in the run
 
