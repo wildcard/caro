@@ -288,11 +288,12 @@ surface that matches your stack:
 | Tool | How | Status |
 |---|---|---|
 | **Claude Code** | Auto-discovered skill at `.claude/skills/caro-shell/SKILL.md` (bundled with this repo). Triggers when the user asks for shell-command synthesis. | ✅ Working |
-| **Claude Code (MCP)** | `caro mcp serve` — exposes `generate_command` / `validate_command` / `explain_safety` over the Model Context Protocol. | 🚧 In progress |
-| **Codex / Cursor / Continue / Aider / Tabby** | Point at `caro serve --openai` (an OpenAI Chat Completions endpoint backed by caro's safety validator). | 🚧 In progress |
-| **opencode / crush / droid / Sourcegraph Amp / Letta** | Via the upcoming `caro mcp serve` MCP server. | ⏳ Planned |
-| **Gemini CLI / Jules** | Native Gemini backend. | 🚧 In progress (PR #782) |
-| **OpenRouter** (incl. `auto`) | Native backend wrapping `openrouter.ai/api/v1`. | ⏳ Planned |
+| **Claude Code / Codex / Grok Build / opencode (guard hook)** | `caro guard` — a PreToolUse hook that checks the agent's shell commands before they run. Shadow (log-only) by default; `--mode enforce` denies critical commands. Setup: [`docs/coding-agents/`](docs/coding-agents/). | 🧪 Experimental |
+| **Claude Code (MCP)** | `caro mcp serve` — would expose `generate_command` / `validate_command` / `explain_safety` over the Model Context Protocol ([#928](https://github.com/wildcard/caro/issues/928)). | ⏳ Planned |
+| **Codex / Cursor / Continue / Aider / Tabby** | `caro serve --openai` — an OpenAI Chat Completions endpoint backed by caro's safety validator ([#929](https://github.com/wildcard/caro/issues/929)). | ⏳ Planned |
+| **opencode / crush / droid / Sourcegraph Amp / Letta** | Via the planned `caro mcp serve` MCP server. | ⏳ Planned |
+| **Gemini CLI / Jules** | No native Gemini backend (PR #782 closed without merging). Replacement target tracked in [#1439](https://github.com/wildcard/caro/issues/1439). | ⏳ Not started |
+| **OpenRouter** | `caro --backend openrouter` with `OPENROUTER_API_KEY`. Needs a build with remote backends: `cargo install caro --features remote-backends --locked`. | ⚠️ Opt-in build |
 
 Full matrix with copy-paste configs and live status:
 **[caro.sh/integrations](https://caro.sh/integrations)** — maintained by the
