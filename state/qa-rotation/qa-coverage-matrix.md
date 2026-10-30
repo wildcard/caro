@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-10-29
+**Last updated**: 2026-10-30
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -61,6 +61,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-10-27 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher answered; no model needed |
 | 2026-10-28 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static match `ls -la`; model download succeeded; gh CLI token invalid, MCP used |
 | 2026-10-29 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Model downloaded OK this time |
+| 2026-10-30 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static match returned `ls -la` |
 
 ---
 
@@ -79,7 +80,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-10-08 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-09-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-29 | FAIL | #1269 (CPU stub; #1673 and #1735 are its duplicates), #1272, #1408 (open) |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-10-30 | FAIL | #1269 (CPU stub; #1673 and #1735 are its duplicates), #1272, #1408 (open) |
 | 11 | `caro ai --continue-session` shell widget | ai | 2026-10-19 | FAIL | #1269 (CPU stub, as surface 10, when a prompt is passed). With no prompt, the `?` widget cannot take a request (#1671) |
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection. The README claimed it until #1680 fixed #1677 on 2026-10-19) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
@@ -165,7 +166,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1697](https://github.com/wildcard/caro/issues/1697) | `caro guard test` swallows a trailing `--output json` | cli | 2026-10-21 | open |
 | [#1720](https://github.com/wildcard/caro/issues/1720) | `caro guard` has no rule for destructive git commands (force push, reset --hard) | safety | 2026-10-25 | open |
 | [#1726](https://github.com/wildcard/caro/issues/1726) | `--output` accepts an invalid value and falls back to plain | cli | 2026-10-27 | open |
-| [#1735](https://github.com/wildcard/caro/issues/1735) | ai --once deletion clarification (CPU stub, duplicate of #1269) | ai | 2026-10-29 | open (duplicate of #1269) |
+| [#1735](https://github.com/wildcard/caro/issues/1735) | ai --once deletion clarification (CPU stub, duplicate of #1269) | ai | 2026-10-29 | closed (duplicate of #1269, 2026-10-29) |
 
 ---
 
