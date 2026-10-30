@@ -4,6 +4,37 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-30 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1739 into this state on 2026-10-30. The run read main's May copy. This state holds the rotation PRs it calls closed unmerged (#1733, #1736), so continuity does not need its PR merged. The broken-window sweep closed #1735 as a duplicate of #1269; the sweep posts with the owner's account.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` -> **PASS** ([duration omitted])
+- `caro --version` -> **PASS**: `caro 1.5.0 (d0f4d3f 2026-10-27)`
+- `caro --help` -> **PASS**
+- `caro doctor` -> **PASS**: advisory only (no model in sandbox)
+- `caro -p 'list files in current directory' --dry-run` -> **PASS**: `ls -la`
+
+### Slot B — Recent diff
+- Last memory entry on main is 2026-05-07; the 2026-10-28/29 rotation PRs (#1733, #1736) were closed unmerged. Sampled newest merged PRs only.
+- #1687 (safety normalization views): `cargo test --lib normalize` -> PASS (5/5).
+
+### Slot C — `caro ai --once` (surface #10)
+- `caro ai --once --new-session 'list files in current directory'` -> **FAIL**: `Error: backend error: Clarification needed: What exactly should be deleted?` (3 of 3 prompts, rc=1).
+- Cause: placeholder in `src/backends/embedded/cpu.rs:62-64` matches `rm` in the full prompt. Same as #1735 (closed as duplicate by owner, open sibling #1269). Not refiled.
+
+### Findings
+None new. Known defect still reproduces on d0f4d3f: #1269 (open), #1735 (closed dup).
+
+### Followups
+- Memory files on main lag the closed rotation PRs; merge this PR to restore continuity.
+- `gh` token (GH_TOKEN) was invalid this run; GitHub MCP tools were used instead.
+
+---
+
 ## 2026-10-29 — Scheduled run (Slot A + Slot C)
 
 > Folded from #1736 into this state on 2026-10-29. The run read main's May copy, so it could not see that #1269, the canonical issue for the CPU stub, is open: the reports it calls closed (#1494, #1500, #1523, #1673) were closed as duplicates of #1269. Its #1735 is recorded here as another duplicate of #1269.
