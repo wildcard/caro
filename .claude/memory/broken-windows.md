@@ -89,7 +89,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1260 (dup #1381, closed)
-**Status:** claimed-by sweep/2026-10-30-BW-013 (#PRNUM)
+**Status:** claimed-by sweep/2026-10-30-BW-013 (#1740)
 **Needs human?:** no
 **Next step:** merge the sweep PR (`caro config reset <key>` resets one key; bare `reset` unchanged).
 
