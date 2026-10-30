@@ -3,7 +3,9 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-10-28 — validation-only night; backlog did not move (8 integrator-area PRs open, #1719 still waits for a human `main` merge). ✓ VERIFIED on published `caro 1.5.0`: OpenRouter loud config error (row re-dated, was 2026-10-03), Candle CPU `df -h`, `caro guard` deny, #1723 stdin hang still live (rc=142), #1732 `caro test --backend mlx` still rejected, completion roster still `… static` (fix in #1719).
+> **Last updated:** 2026-10-29 — re-dated the 3 stalest rows (Claude API, xAI Grok, README table) on published `caro 1.5.0`. Claude/Grok: PASS for the loud-error contract (both were stale `🚧 in-progress` from 2026-10-03). README table: FAIL, fixed in PR #1738.
+>
+> **Previous:** 2026-10-28 — validation-only night; backlog did not move (8 integrator-area PRs open, #1719 still waits for a human `main` merge). ✓ VERIFIED on published `caro 1.5.0`: OpenRouter loud config error (row re-dated, was 2026-10-03), Candle CPU `df -h`, `caro guard` deny, #1723 stdin hang still live (rc=142), #1732 `caro test --backend mlx` still rejected, completion roster still `… static` (fix in #1719).
 >
 > **Previous:** 2026-10-27 — backlog moved: PR #1689 (#1657 website fix) and PR #1658 (caro-shell skill refresh) merged, and the main-CI blockers #1699/#1701 landed. ✓ VERIFIED caro.sh/integrations/ now serves the corrected 1.5.0 copy (loud `remote-backends` error, no "Unknown backend"), and the caro-shell skill on `main` documents `--model-name` and the feature gate. New P2: `caro test --help` advertises `mlx`/`ollama`, but both fail with `Supported: static, embedded`. A merge of `origin/main` into this branch is blocked on the interactive safety-pattern pre-commit prompt (see log).
 >
@@ -35,14 +37,14 @@
 
 | Tool | Status | Last validated | Method | GH | Notes |
 |---|---|---|---|---|---|
-| Anthropic Claude API | 🚧 in-progress | 2026-10-03 | `create_backend` arm + `CLI_SERVABLE_BACKENDS` entry in PR #1513 (`--backend claude`, `ANTHROPIC_API_KEY`) | #1081, PR #1513 | Wired on the PR branch; ✅ once #1513 merges and a published binary is validated. The shipped 1.4.0 still rejects `--backend claude`. |
+| Anthropic Claude API | ⚠️ partial (feature-gated) | 2026-10-29 | ✓ published 1.5.0: `caro --backend claude --dry-run -p "list pdf files"` → `Configuration error: Backend 'claude' requires the 'remote-backends' feature`, exit 1; `--backend-info` → `not compiled` | #1081 (closed 2026-10-24) | Wiring is done (PR #1513). Needs `--features remote-backends` + `ANTHROPIC_API_KEY`. |
 | Ollama | ⚠️ partial (feature-gated) | 2026-10-25 | published 1.5.0: `caro --backend ollama --dry-run "list pdfs"` → exit 1, error names `cargo install caro --features remote-backends --locked` and the embedded alternative (loud, no silent fallback) | — | `remote-backends` is **not** in `default = ["embedded-mlx","embedded-cpu","cve-rules"]`. `cargo install caro` and the release-workflow `cargo build --release` (no `--features`) both omit it. |
 | vLLM | ⚠️ partial (feature-gated) | 2026-10-25 | same as Ollama — loud error in default binary | — | Same root cause as Ollama. |
 | Exo | ⚠️ partial (feature-gated) | 2026-10-25 | same as Ollama — loud error in default binary | — | Same root cause as Ollama. |
 | MLX (Apple Silicon embedded) | ⚠️ partial | 2026-10-25 | published 1.5.0: `caro --backend embedded --dry-run "list pdf files"` → `ls -la` (served by static matcher "List files (simple)", drops "pdf"; 1.4.0 gave `ls *.pdf`) | #1645, #1723 | Backend loads in the default build. Static matcher pre-empts the model (#1645). Hangs when stdin is an open pipe (#1723). |
 | Candle CPU (embedded) | ✅ working | 2026-10-28 | ✓ published 1.5.0: `caro --dry-run "show disk usage" </dev/null` → `df -h` | — | `embedded-cpu` is in default features; works in default build. |
 | OpenRouter | ⚠️ partial (feature-gated) | 2026-10-28 | ✓ published 1.5.0: `caro --backend openrouter --dry-run -p "list files"` → `Configuration error: Backend 'openrouter' requires the 'remote-backends' feature` | #931, #1081 | CLI-wired since PR #1513; same feature-gate omission as claude/grok/ollama. |
-| xAI Grok | 🚧 in-progress | 2026-10-03 | wiremock tests; live bad-key call → `Grok authentication failed` | PR #1513 | `--backend grok` / `--advisor grok` / `hybrid_remote = "grok"`; `XAI_API_KEY` |
+| xAI Grok | ⚠️ partial (feature-gated) | 2026-10-29 | ✓ published 1.5.0: `caro --backend grok --dry-run -p "list pdf files"` → same `requires the 'remote-backends' feature` error; `--backend-info` → `not compiled` | PR #1513 | `--backend grok` / `--advisor grok` / `hybrid_remote = "grok"`; `XAI_API_KEY` |
 | Gemini / Jules | 🚧 in-progress | — | — | PR #782 | Coordinate with existing PR; don't fork |
 | LM Studio + FunctionGemma | 🚧 in-progress | — | — | PR #558 | Tracked, no action this night |
 | quant.cpp | 🚧 in-progress | — | — | PR #838 | Tracked, no action this night |
@@ -85,7 +87,7 @@
 |---|---|---|---|---|
 | `website/src/data/integrations.ts` | ✅ working | 2026-10-27 | #1657 (closed) | PR #1689 merged; Claude/Ollama/vLLM/Exo entries describe the 1.5.0 loud `remote-backends` error; snippet uses `--model-name` |
 | `website/src/pages/integrations/index.astro` | ✅ working | 2026-10-27 | — | caro.sh/integrations/ → 200; live copy says the default binary "no longer silently falls back"; `partial` bucket renders (PR #1689) |
-| README "Use caro from your agent" section | ⚠️ partial | 2026-10-24 | — | Table drift: MCP (#928) and OpenAI shim (#929) shown 🚧 though unimplemented; OpenRouter shown ⏳ though wired in 1.5.0; Gemini row cites closed PR #782 (#1439) |
+| README "Use caro from your agent" section | 🚧 fix in PR #1738 | 2026-10-29 | ✓ published 1.5.0: `caro guard --mode enforce` deny, `--backend openrouter` config error, PR #782 CLOSED | Table drift fixed in PR #1738 (README-only): MCP/shim → Planned, OpenRouter → Opt-in build, Gemini → #1439, guard row added |
 | `.github/first-time-issues/06-mcp-claude-code-integration.md` | 🚫 reference only | — | — | Spec doc; not a runtime surface |
 
 ---

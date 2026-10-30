@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-10-29 (23:00 PT fire) — README agent table fixed (PR #1738); Claude/Grok rows re-dated
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io `max_version` still 1.5.0). Anthropic Claude API: PASS for the loud-error contract, `--backend claude` → `requires the 'remote-backends' feature`, exit 1. xAI Grok: PASS, same error. Both rows were stale `🚧 in-progress` from 2026-10-03 on this branch. README "Use Caro from your agent" table: FAIL. MCP (#928) and OpenAI shim (#929) are marked 🚧 with no implementation, OpenRouter is marked ⏳ though it routes in a `remote-backends` build, the Gemini row cites closed PR #782, and the shipped `caro guard` hook is missing. `caro guard --mode enforce` with `rm -rf /` → deny (re-checked for the new README row).
+- **Shipped:** [PR #1738](https://github.com/wildcard/caro/pull/1738), README-only (6 lines). The drift has been known since 2026-10-24. No open PR touches `README.md`, so this PR cannot conflict with the stalled backlog. This deviates from the "<5 open integrator PRs" heuristic of the last nights. Reason: the task's triage tree says a scoped P1 doc gap is a same-night fix, and a one-file PR that cannot conflict does not make the backlog harder to merge. This log entry rides on #1719's branch.
+- **Filed:** none. Dedup: no issue or open PR covers the README table (searched issues; diffed every open PR that touches `README.md`).
+- **Discovered:** [#1081](https://github.com/wildcard/caro/issues/1081) closed on 2026-10-24 as COMPLETED. The matrix still listed it as the open tracking home for Claude; row updated. Backlog: 8 integrator-area PRs, all `DIRTY` except #1722; #1043 (stdin hang fix) `CLEAN`; nothing merged since 2026-10-24. No research queries tonight.
+- **Next pass should:** check whether #1738 merged. If a human merged `main` into #1719, re-sync the other `DIRTY` integrator PRs. #1732 (`caro test --help` roster) stays the next quick-win code PR.
+
+---
+
 ## 2026-10-28 (23:00 PT fire) — validation-only; backlog stalled, no PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io, still newest). OpenRouter: PASS for the loud-error contract (`--backend openrouter` → `requires the 'remote-backends' feature`); row re-dated from 2026-10-03 and status corrected to ⚠️ feature-gated. Candle CPU: PASS, `show disk usage` → `df -h`. `caro guard --mode enforce` with `rm -rf /`: PASS, `permissionDecision: deny`. Known FAILs re-confirmed, no change: #1723 (`sleep 25 | caro --dry-run …` hangs, rc=142); #1732 (`caro test --backend mlx` → `Unknown backend: mlx. Supported: static, embedded`); completion roster `embedded ollama exo vllm static` (fix in #1719); `list pdf files` → `ls -la` (#1645).
