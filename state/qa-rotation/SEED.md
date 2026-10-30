@@ -158,3 +158,15 @@ The 2026-10-29 run used the old prompt and read main's May copy. It was folded o
 - **Its rows win:** a smoke row for 2026-10-29; surface 10 (FAIL, the CPU stub of #1269) gets the new date and keeps the seed's links.
 - **Re-filed known issue:** the run filed #1735 for the CPU stub. #1269 is the open canonical issue, and the reports the run calls closed (#1494, #1500, #1523, #1673) were closed as its duplicates. #1735 is recorded as another duplicate; #1269 keeps P1.
 - **Flakes:** FLAKE-001 and FLAKE-002 were not triggered.
+
+## Added after seeding: #1739 (2026-10-30)
+
+The 2026-10-30 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-10-30; surface 10 (FAIL, the CPU stub of #1269) gets the new date and keeps the seed's links.
+- **Slot B:** `cargo test --lib normalize` for #1687 passed 5 of 5. A filtered unit-test run does not test a surface end to end, so no surface row changes.
+- **Backlog:** no new issues. The run's own #1269 row merges into the existing one. #1269 is re-confirmed and keeps P1.
+- **Corrected:** the broken-window sweep closed #1735 as a duplicate of #1269 on 2026-10-29, after the #1736 fold. The matrix and the backlog still said "open".
+- **Flakes:** FLAKE-001 and FLAKE-002 were not triggered.
+- **Continuity:** the run asks to merge its PR because main's copy lags. This state already holds that continuity, so the PR is closed instead.
