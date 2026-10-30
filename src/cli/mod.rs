@@ -203,11 +203,31 @@ impl CliApp {
     /// 3. Config file (`~/.config/caro/config.toml`)
     /// 4. Auto-detect (default: embedded)
     pub async fn with_overrides(
+        config: CliConfig,
+        backend_override: Option<String>,
+        model_name_override: Option<String>,
+        force_llm: bool,
+        advisor_override: Option<String>,
+    ) -> Result<Self, CliError> {
+        Self::with_overrides_and_download_message(
+            config,
+            backend_override,
+            model_name_override,
+            force_llm,
+            advisor_override,
+            false,
+        )
+        .await
+    }
+
+    /// Create a CLI application that reports when the embedded backend starts a model download.
+    pub async fn with_overrides_and_download_message(
         mut config: CliConfig,
         backend_override: Option<String>,
         model_name_override: Option<String>,
         force_llm: bool,
         advisor_override: Option<String>,
+        show_download_message: bool,
     ) -> Result<Self, CliError> {
         // Load user configuration to determine backend preferences
         let config_manager =
@@ -263,7 +283,7 @@ impl CliApp {
         }
 
         // Create backend based on configuration
-        let backend = Self::create_backend(&user_config).await?;
+        let backend = Self::create_backend(&user_config, show_download_message).await?;
         let backend_arc: Arc<dyn CommandGenerator> = Arc::from(backend);
 
         // Build a safety validator that honors both the user's safety level
@@ -374,11 +394,13 @@ impl CliApp {
     /// Create appropriate backend based on user configuration
     async fn create_backend(
         user_config: &crate::models::UserConfiguration,
+        show_download_message: bool,
     ) -> Result<Box<dyn CommandGenerator>, CliError> {
         // For test builds only, use mock backend
         #[cfg(test)]
         {
             let _ = user_config; // Suppress unused warning in test builds
+            let _ = show_download_message;
             Ok(Box::new(MockCommandGenerator::new()))
         }
 
@@ -403,6 +425,7 @@ impl CliApp {
                 .map_err(|e| CliError::ConfigurationError {
                     message: format!("Failed to create embedded backend: {}", e),
                 })?
+                .with_download_message(show_download_message)
                 .with_safety_config(safety_config)
                 .map_err(|e| CliError::ConfigurationError {
                     message: format!("Failed to apply safety config to embedded backend: {}", e),

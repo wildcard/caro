@@ -35,6 +35,7 @@ pub struct EmbeddedModelBackend {
     safety_validator: Arc<SafetyValidator>,
     /// Which system-prompt variant to use (default vs minimal).
     prompt_style: PromptStyle,
+    show_download_message: bool,
 }
 
 impl EmbeddedModelBackend {
@@ -97,12 +98,20 @@ impl EmbeddedModelBackend {
             model_loader,
             safety_validator,
             prompt_style: PromptStyle::Default,
+            show_download_message: false,
         })
     }
 
     /// Update the embedded configuration
     pub fn with_config(mut self, config: EmbeddedConfig) -> Self {
         self.config = config;
+        self
+    }
+
+    /// Show a notice when the first request needs to download the model.
+    #[cfg(not(test))]
+    pub(crate) fn with_download_message(mut self, enabled: bool) -> Self {
+        self.show_download_message = enabled;
         self
     }
 
@@ -150,7 +159,7 @@ impl EmbeddedModelBackend {
     pub async fn load_model(&mut self) -> Result<(), GeneratorError> {
         // Ensure model is downloaded
         self.model_loader
-            .download_model_if_missing(self.model_variant)
+            .download_model_if_missing_with_notice(self.model_variant, self.show_download_message)
             .await
             .map_err(|e| GeneratorError::BackendUnavailable {
                 reason: format!("Failed to download model: {}", e),
@@ -460,7 +469,7 @@ impl CommandGenerator for EmbeddedModelBackend {
 
         // Ensure model is downloaded if needed
         self.model_loader
-            .download_model_if_missing(self.model_variant)
+            .download_model_if_missing_with_notice(self.model_variant, self.show_download_message)
             .await
             .map_err(|e| GeneratorError::BackendUnavailable {
                 reason: format!("Failed to download model: {}", e),

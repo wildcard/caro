@@ -90,14 +90,20 @@ impl ModelLoader {
     }
 
     /// Get the default cache directory for models
-    /// Returns: ~/.cache/caro/models/ on Unix, %LOCALAPPDATA%\caro\models\ on Windows
+    /// Uses `CARO_CACHE_DIR` when set; otherwise defaults to
+    /// ~/.cache/caro/models/ on Unix and %LOCALAPPDATA%\caro\models\ on Windows.
     pub fn default_cache_dir() -> Result<PathBuf> {
-        let cache_base = directories::BaseDirs::new()
-            .context("Failed to determine user cache directory")?
-            .cache_dir()
-            .to_path_buf();
-
-        let caro_cache = cache_base.join("caro").join("models");
+        let caro_cache = if let Some(path) =
+            std::env::var_os("CARO_CACHE_DIR").filter(|path| !path.is_empty())
+        {
+            PathBuf::from(path)
+        } else {
+            let cache_base = directories::BaseDirs::new()
+                .context("Failed to determine user cache directory")?
+                .cache_dir()
+                .to_path_buf();
+            cache_base.join("caro").join("models")
+        };
 
         // Create cache directory if it doesn't exist
         std::fs::create_dir_all(&caro_cache).context("Failed to create model cache directory")?;
@@ -145,11 +151,28 @@ impl ModelLoader {
     /// This will download the selected model from Hugging Face
     /// and save it to the cache directory with retry logic.
     pub async fn download_model_if_missing(&self, variant: ModelVariant) -> Result<PathBuf> {
+        self.download_model_if_missing_with_notice(variant, false)
+            .await
+    }
+
+    /// Download the model, optionally reporting the start on stderr.
+    pub(crate) async fn download_model_if_missing_with_notice(
+        &self,
+        variant: ModelVariant,
+        show_download_message: bool,
+    ) -> Result<PathBuf> {
         let model_path = self.get_embedded_model_path()?;
 
         if model_path.exists() {
             debug!("Model already exists at: {}", model_path.display());
             return Ok(model_path);
+        }
+
+        if show_download_message {
+            eprintln!(
+                "Downloading {} ({} MB) from Hugging Face Hub...",
+                self.selected_model.name, self.selected_model.size_mb
+            );
         }
 
         info!(
@@ -216,7 +239,7 @@ impl ModelLoader {
 
     /// Single download attempt from Hugging Face Hub
     async fn download_model_attempt(&self, dest_path: &Path, _variant: ModelVariant) -> Result<()> {
-        use hf_hub::api::tokio::Api;
+        use hf_hub::api::tokio::ApiBuilder;
         use indicatif::{ProgressBar, ProgressStyle};
 
         info!(
@@ -235,7 +258,7 @@ impl ModelLoader {
 
         // Download the model file. A stalled connection has no HTTP timeout in
         // hf-hub, so a watchdog fails the attempt when no bytes arrive (#1440).
-        let cached = hf_hub::Cache::default()
+        let cached = hf_hub::Cache::from_env()
             .model(self.selected_model.hf_repo.to_string())
             .get(self.selected_model.filename);
         let downloaded = match cached {
@@ -246,7 +269,9 @@ impl ModelLoader {
                     (self.selected_model.hf_repo, self.selected_model.filename);
                 let progress = watch.clone();
                 let download = async move {
-                    let api = Api::new().context("Failed to initialize Hugging Face API")?;
+                    let api = ApiBuilder::from_env()
+                        .build()
+                        .context("Failed to initialize Hugging Face API")?;
                     api.model(hf_repo.to_string())
                         .download_with_progress(filename, progress)
                         .await
@@ -491,8 +516,15 @@ mod tests {
     #[test]
     fn test_default_cache_dir() {
         let cache_dir = ModelLoader::default_cache_dir().unwrap();
-        assert!(cache_dir.to_string_lossy().contains("caro"));
-        assert!(cache_dir.to_string_lossy().contains("models"));
+        if let Some(configured_dir) = std::env::var_os("CARO_CACHE_DIR")
+            .filter(|path| !path.is_empty())
+            .map(PathBuf::from)
+        {
+            assert_eq!(cache_dir, configured_dir);
+        } else {
+            assert!(cache_dir.to_string_lossy().contains("caro"));
+            assert!(cache_dir.to_string_lossy().contains("models"));
+        }
     }
 
     #[test]
