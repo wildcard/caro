@@ -232,8 +232,12 @@ enum ConfigCommands {
     },
     /// Show all configuration
     Show,
-    /// Reset configuration to defaults
-    Reset,
+    /// Reset configuration to defaults, or only KEY when given
+    Reset {
+        /// Configuration key to reset (backend, model-name, shell, safety,
+        /// telemetry.enabled, log_level, cache_max_size, log_rotation)
+        key: Option<String>,
+    },
 }
 
 /// Profile management subcommands
@@ -2427,12 +2431,64 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 format!("Config file: {}", config_manager.config_path().display()).dimmed()
             );
         }
-        ConfigCommands::Reset => {
+        ConfigCommands::Reset { key: None } => {
             let config = caro::models::UserConfiguration::default();
             config_manager
                 .save(&config)
                 .map_err(|e| format!("Failed to save config: {}", e))?;
             println!("{} Configuration reset to defaults", "✓".green());
+        }
+        ConfigCommands::Reset { key: Some(key) } => {
+            let mut config = config_manager
+                .load()
+                .map_err(|e| format!("Failed to load config: {}", e))?;
+            let defaults = caro::models::UserConfiguration::default();
+
+            let (name, shown) = match key.to_lowercase().as_str() {
+                "backend" => {
+                    config.default_model = defaults.default_model;
+                    ("backend", "(auto-detect)".to_string())
+                }
+                "model-name" | "model_name" => {
+                    config.model_name = defaults.model_name;
+                    ("model-name", "(default)".to_string())
+                }
+                "shell" => {
+                    config.default_shell = defaults.default_shell;
+                    ("shell", "(auto-detect)".to_string())
+                }
+                "safety" => {
+                    config.safety_level = defaults.safety_level;
+                    ("safety", format!("{:?}", config.safety_level))
+                }
+                "telemetry" | "telemetry.enabled" | "telemetry-enabled" => {
+                    config.telemetry.enabled = defaults.telemetry.enabled;
+                    ("telemetry.enabled", config.telemetry.enabled.to_string())
+                }
+                "log_level" | "log-level" => {
+                    config.log_level = defaults.log_level;
+                    ("log_level", format!("{:?}", config.log_level))
+                }
+                "cache_max_size" | "cache-max-size" => {
+                    config.cache_max_size_gb = defaults.cache_max_size_gb;
+                    ("cache_max_size", format!("{} GB", config.cache_max_size_gb))
+                }
+                "log_rotation" | "log-rotation" => {
+                    config.log_rotation_days = defaults.log_rotation_days;
+                    ("log_rotation", format!("{} days", config.log_rotation_days))
+                }
+                _ => {
+                    return Err(format!(
+                        "Unknown config key '{}'. Valid keys: {}",
+                        key, CONFIG_KEYS
+                    ));
+                }
+            };
+
+            config_manager
+                .save(&config)
+                .map_err(|e| format!("Failed to save config: {}", e))?;
+            println!("{} Reset {} to default ({})", "✓".green(), name, shown);
         }
     }
 
