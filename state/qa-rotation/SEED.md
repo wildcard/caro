@@ -170,3 +170,12 @@ The 2026-10-30 run used the old prompt and read main's May copy. It was folded o
 - **Corrected:** the broken-window sweep closed #1735 as a duplicate of #1269 on 2026-10-29, after the #1736 fold. The matrix and the backlog still said "open".
 - **Flakes:** FLAKE-001 and FLAKE-002 were not triggered.
 - **Continuity:** the run asks to merge its PR because main's copy lags. This state already holds that continuity, so the PR is closed instead.
+
+## Added after seeding: #1741 (2026-10-31)
+
+The 2026-10-31 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. Its duration figures became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-10-31, whose note names FLAKE-002 instead of a duration; surfaces 15 and 16 (`--output json` and `--output yaml`, PASS) get the new date. Surface 15 keeps the seed's result and links, because #1726 is still open and the run did not test an invalid value.
+- **Backlog:** no new issues. Slot B was skipped.
+- **Flakes:** the run's new "cold-start latency" flake matches the cold-start case of FLAKE-002 (2026-10-28), tracked in #1408 with #1415 as the open fix. It is logged there, not as a new flake. FLAKE-001 was not triggered.
