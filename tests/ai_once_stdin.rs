@@ -81,3 +81,20 @@ fn trailing_prompt_does_not_wait_for_open_stdin() {
         "stderr: {stderr}"
     );
 }
+
+/// #1435: `caro ai --help` must describe what the command does today: one
+/// turn per call, no REPL, and `--continue-session` as the default.
+#[test]
+fn ai_help_describes_single_turn_behavior() {
+    let out = Command::new(env!("CARGO_BIN_EXE_caro"))
+        .args(["ai", "--help"])
+        .stdin(Stdio::null())
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let help = String::from_utf8_lossy(&out.stdout);
+    assert!(help.contains("no interactive REPL"), "{help}");
+    assert!(!help.contains("The only mode supported today"), "{help}");
+    assert!(!help.contains("interactive AI command"), "{help}");
+    assert!(help.contains("This is already the default"), "{help}");
+}
