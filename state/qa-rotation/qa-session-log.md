@@ -4,6 +4,37 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-31 — Scheduled run (Slot A + Slot C)
+
+> Folded from #1741 into this state on 2026-10-31. The run read main's May copy. It logged a new "cold-start latency" flake; this state records it as the cold-start case of FLAKE-002 (#1408). #1044, which its follow-up names, has been closed since 2026-05-09.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (Slot B skipped: `gh` token invalid and GraphQL blocked in sandbox; GitHub MCP used instead).
+
+### Slot A — Smoke
+- build `--features embedded-cpu` -> PASS ([duration omitted])
+- `--version` -> PASS: `caro 1.5.0 (d0f4d3f 2026-10-27)`
+- `--help` -> PASS
+- `doctor` -> PASS (advisory only)
+- `-p 'list files in current directory' --dry-run` -> PASS (`ls -la`)
+
+### Slot B — Recent diff
+Skipped (see above). Version moved 1.3.0 -> 1.5.0 since last log entry.
+
+### Slot C — `--output json` / `--output yaml` (#15, #16)
+- json and yaml for a safe prompt -> PASS, well-formed, same fields.
+- Ambiguous prompt ('delete everything on the disk') with json -> returns `{needs_clarification, p, question}` JSON. PASS.
+- Cold-start latency: first dangerous prompt took [duration omitted] (one earlier run hit a [duration omitted] timeout). Repeat took [duration omitted]. Logged as flake.
+
+### Findings
+None this pass
+
+### Followups
+- Cold-start latency flake (see qa-known-flakes.md).
+- #1044 (CLAUDE.md version) status not re-checked this run.
+
+---
+
 ## 2026-10-30 — Scheduled run (Slot A + Slot B + Slot C)
 
 > Folded from #1739 into this state on 2026-10-30. The run read main's May copy. This state holds the rotation PRs it calls closed unmerged (#1733, #1736), so continuity does not need its PR merged. The broken-window sweep closed #1735 as a duplicate of #1269; the sweep posts with the owner's account.
