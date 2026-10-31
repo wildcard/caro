@@ -3,7 +3,9 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-10-29 — re-dated the 3 stalest rows (Claude API, xAI Grok, README table) on published `caro 1.5.0`. Claude/Grok: PASS for the loud-error contract (both were stale `🚧 in-progress` from 2026-10-03). README table: FAIL, fixed in PR #1738.
+> **Last updated:** 2026-10-30 — validation-only night; backlog still stalled (10 integrator-area PRs open, nothing merged since 2026-10-24; crates.io still `caro 1.5.0`). ✓ VERIFIED on published 1.5.0: Ollama/vLLM/Exo → exit 1 with the `remote-backends` config error (PASS, loud-error contract); MLX/embedded `show disk usage` → `df -h` (PASS), `list pdf files in current directory` → `ls -la` (#1645 still open); Codex guard `curl … | sudo bash` → `deny` (PASS). #1723 stdin hang re-confirmed (rc=142). Added ⏳ rows for Cline CLI and UiPath `uip` CLI.
+>
+> **Previous:** 2026-10-29 — re-dated the 3 stalest rows (Claude API, xAI Grok, README table) on published `caro 1.5.0`. Claude/Grok: PASS for the loud-error contract (both were stale `🚧 in-progress` from 2026-10-03). README table: FAIL, fixed in PR #1738.
 >
 > **Previous:** 2026-10-28 — validation-only night; backlog did not move (8 integrator-area PRs open, #1719 still waits for a human `main` merge). ✓ VERIFIED on published `caro 1.5.0`: OpenRouter loud config error (row re-dated, was 2026-10-03), Candle CPU `df -h`, `caro guard` deny, #1723 stdin hang still live (rc=142), #1732 `caro test --backend mlx` still rejected, completion roster still `… static` (fix in #1719).
 >
@@ -38,10 +40,10 @@
 | Tool | Status | Last validated | Method | GH | Notes |
 |---|---|---|---|---|---|
 | Anthropic Claude API | ⚠️ partial (feature-gated) | 2026-10-29 | ✓ published 1.5.0: `caro --backend claude --dry-run -p "list pdf files"` → `Configuration error: Backend 'claude' requires the 'remote-backends' feature`, exit 1; `--backend-info` → `not compiled` | #1081 (closed 2026-10-24) | Wiring is done (PR #1513). Needs `--features remote-backends` + `ANTHROPIC_API_KEY`. |
-| Ollama | ⚠️ partial (feature-gated) | 2026-10-25 | published 1.5.0: `caro --backend ollama --dry-run "list pdfs"` → exit 1, error names `cargo install caro --features remote-backends --locked` and the embedded alternative (loud, no silent fallback) | — | `remote-backends` is **not** in `default = ["embedded-mlx","embedded-cpu","cve-rules"]`. `cargo install caro` and the release-workflow `cargo build --release` (no `--features`) both omit it. |
-| vLLM | ⚠️ partial (feature-gated) | 2026-10-25 | same as Ollama — loud error in default binary | — | Same root cause as Ollama. |
-| Exo | ⚠️ partial (feature-gated) | 2026-10-25 | same as Ollama — loud error in default binary | — | Same root cause as Ollama. |
-| MLX (Apple Silicon embedded) | ⚠️ partial | 2026-10-25 | published 1.5.0: `caro --backend embedded --dry-run "list pdf files"` → `ls -la` (served by static matcher "List files (simple)", drops "pdf"; 1.4.0 gave `ls *.pdf`) | #1645, #1723 | Backend loads in the default build. Static matcher pre-empts the model (#1645). Hangs when stdin is an open pipe (#1723). |
+| Ollama | ⚠️ partial (feature-gated) | 2026-10-30 | published 1.5.0: `caro --backend ollama --dry-run "list pdfs"` → exit 1, error names `cargo install caro --features remote-backends --locked` and the embedded alternative (loud, no silent fallback) | — | `remote-backends` is **not** in `default = ["embedded-mlx","embedded-cpu","cve-rules"]`. `cargo install caro` and the release-workflow `cargo build --release` (no `--features`) both omit it. |
+| vLLM | ⚠️ partial (feature-gated) | 2026-10-30 | same as Ollama — loud error in default binary | — | Same root cause as Ollama. |
+| Exo | ⚠️ partial (feature-gated) | 2026-10-30 | same as Ollama — loud error in default binary | — | Same root cause as Ollama. |
+| MLX (Apple Silicon embedded) | ⚠️ partial | 2026-10-30 | published 1.5.0: `caro --backend embedded --dry-run "list pdf files"` → `ls -la` (served by static matcher "List files (simple)", drops "pdf"; 1.4.0 gave `ls *.pdf`) | #1645, #1723 | Backend loads in the default build. Static matcher pre-empts the model (#1645). Hangs when stdin is an open pipe (#1723). |
 | Candle CPU (embedded) | ✅ working | 2026-10-28 | ✓ published 1.5.0: `caro --dry-run "show disk usage" </dev/null` → `df -h` | — | `embedded-cpu` is in default features; works in default build. |
 | OpenRouter | ⚠️ partial (feature-gated) | 2026-10-28 | ✓ published 1.5.0: `caro --backend openrouter --dry-run -p "list files"` → `Configuration error: Backend 'openrouter' requires the 'remote-backends' feature` | #931, #1081 | CLI-wired since PR #1513; same feature-gate omission as claude/grok/ollama. |
 | xAI Grok | ⚠️ partial (feature-gated) | 2026-10-29 | ✓ published 1.5.0: `caro --backend grok --dry-run -p "list pdf files"` → same `requires the 'remote-backends' feature` error; `--backend-info` → `not compiled` | PR #1513 | `--backend grok` / `--advisor grok` / `hybrid_remote = "grok"`; `XAI_API_KEY` |
@@ -59,7 +61,7 @@
 | Harness guardian hook (`caro guard`) | 🧪 experimental | 2026-10-28 | ✓ published 1.5.0: `… \| caro guard --mode enforce --no-log` → `permissionDecision: deny` for `rm -rf /`; shadow (default) logs only; `not json` → `ask`; `caro guard report` lists verdicts by harness; e2e `tests/e2e_guard.rs` | spec 011 / ADR-020 | PreToolUse adapter for Claude Code, Grok Build, Codex; OpenCode via `integrations/opencode/caro-guard.ts`. Shadow by default |
 | Claude Code MCP server (`caro mcp serve`) | ⏳ not-yet | — | `mcp-inspect` against `caro mcp serve` | #928 | Spec: `.github/first-time-issues/06-mcp-claude-code-integration.md`; tools `generate_command` / `validate_command` / `explain_safety` / `show_decision_tree` |
 | OpenAI-compat HTTP shim (`caro serve --openai`) | ⏳ not-yet | — | `curl /v1/chat/completions` with a tool call | #929 | Highest leverage — unlocks Codex/Cursor/Continue/Aider/Tabby in one shot |
-| Codex (OpenAI) | 🧪 guard only | 2026-10-26 | `[[hooks.PreToolUse]]` → `caro guard --harness codex` (docs/coding-agents/codex.md) | #789 (Crush MCP config PR) | Generation still awaits OpenAI shim |
+| Codex (OpenAI) | 🧪 guard only | 2026-10-30 | `[[hooks.PreToolUse]]` → `caro guard --harness codex` (docs/coding-agents/codex.md) | #789 (Crush MCP config PR) | Generation still awaits OpenAI shim |
 | Cursor | ⏳ not-yet | — | OpenAI shim snippet copy-pasted into Cursor settings | — | Satisfied by OpenAI shim |
 | Continue (continue.dev) | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
 | Aider | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
@@ -76,6 +78,8 @@
 | Grok Build (xAI) | 🧪 guard only | 2026-10-26 | Reads `~/.claude/settings.json` hooks natively; or `~/.grok/hooks/caro-guard.json` (docs/coding-agents/grok-build.md) | spec 011 | Grok as a *model* via `--backend grok` |
 | GitHub Copilot CLI | ⏳ not-yet | — | `preToolUse` hook → `caro guard` | #1623 | Row added 2026-10-25; issue already open |
 | Kiro CLI (AWS) | ⏳ not-yet | — | MCP or hook, once available | — | Row added 2026-10-26; listed in 2026 terminal-agent comparisons. Not filed: low leverage until #928/#929 |
+| Cline CLI | ⏳ not-yet | — | MCP or hook, once available | — | Row added 2026-10-30; Cline ships an open-source terminal agent (CLI 2.0). Not filed: low leverage until #928/#929 |
+| UiPath for Coding Agents (`uip` CLI) | ⏳ not-yet | — | MCP or hook, once available | — | Row added 2026-10-30; public preview since July 2026. Not filed: low leverage until #928/#929 |
 | Gemini CLI | ⏳ not-yet | — | Native backend or shim | PR #782 | Coordinate |
 | Jules (Google) | ⏳ not-yet | — | Native backend or shim | PR #782 | Coordinate |
 | Autocoder | ⏳ not-yet | — | TBD | #667 (epic) | Big lift |

