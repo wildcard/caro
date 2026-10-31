@@ -283,7 +283,8 @@ caro --verbose "show disk usage"
 ### Use Caro from your agent
 
 Caro is built to be called by other coder agents and agentic IDEs. Pick the
-surface that matches your stack:
+surface that matches your stack. Statuses below describe Caro 1.5.0; planned
+commands are not available in that release:
 
 | Tool | How | Status |
 |---|---|---|
