@@ -32,3 +32,7 @@ _(none yet)_
 |------------------------|--------|
 | 1-2 | Log here as flake, note in session-log Followups |
 | 3+ | Reclassify as regression, file GitHub issue with `bug` + `qa` labels, link from this file |
+
+## Cold-start latency on first prompt (observed 2026-10-31)
+
+First prompt after build took ~80s (another run timed out at 60s); repeat took 2.7s. Count: 1 in 7 days.

@@ -4,6 +4,35 @@ Reading order: most recent first.
 
 ---
 
+## 2026-10-31 — Scheduled run (Slot A + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (Slot B skipped: `gh` token invalid and GraphQL blocked in sandbox; GitHub MCP used instead).
+
+### Slot A — Smoke
+- build `--features embedded-cpu` -> PASS (3m34s)
+- `--version` -> PASS: `caro 1.5.0 (d0f4d3f 2026-10-27)`
+- `--help` -> PASS
+- `doctor` -> PASS (advisory only)
+- `-p 'list files in current directory' --dry-run` -> PASS (`ls -la`)
+
+### Slot B — Recent diff
+Skipped (see above). Version moved 1.3.0 -> 1.5.0 since last log entry.
+
+### Slot C — `--output json` / `--output yaml` (#15, #16)
+- json and yaml for a safe prompt -> PASS, well-formed, same fields.
+- Ambiguous prompt ('delete everything on the disk') with json -> returns `{needs_clarification, p, question}` JSON. PASS.
+- Cold-start latency: first dangerous prompt took ~80s (one earlier run hit a 60s timeout). Repeat took 2.7s. Logged as flake.
+
+### Findings
+None this pass
+
+### Followups
+- Cold-start latency flake (see qa-known-flakes.md).
+- #1044 (CLAUDE.md version) status not re-checked this run.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
