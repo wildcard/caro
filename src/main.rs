@@ -582,8 +582,9 @@ enum Commands {
         limit: usize,
     },
 
-    /// Generate an interactive AI command via conversational session (Atuin-AI-style).
+    /// Generate a shell command from one conversational AI turn (Atuin-AI-style).
     ///
+    /// Each call runs one turn and exits; there is no interactive REPL.
     /// By default, a recent session is resumed (see `ai.session_continue_minutes` in config).
     /// Stdout is the generated command only, so shell widgets can inject it straight
     /// into the prompt buffer.
@@ -592,12 +593,13 @@ enum Commands {
         #[arg(long)]
         new_session: bool,
 
-        /// Resume a recent session if available (default behavior). Kept as an
-        /// explicit flag so shell hooks can be unambiguous.
+        /// Resume a recent session if one exists, else start a new one. This is
+        /// already the default; the flag lets shell hooks say so explicitly.
         #[arg(long)]
         continue_session: bool,
 
-        /// Run one turn and return — no TTY REPL. The only mode supported today.
+        /// Run one turn and exit. Every `caro ai` call does this today, so the
+        /// flag changes nothing; it is kept for scripts.
         #[arg(long)]
         once: bool,
 
