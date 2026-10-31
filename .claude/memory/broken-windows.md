@@ -218,7 +218,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-09-05)
 **Issue:** #1435 (overlaps #1197, which covers only `--continue-session`)
-**Status:** claimed-by sweep/2026-10-31-BW-034 (PR pending)
+**Status:** claimed-by sweep/2026-10-31-BW-034 (#1742)
 **Needs human?:** no
 **Next step:** merge the sweep PR, which fixes the help text only. #1197 keeps the `--continue-session` → `ResumeStrict` question: the `?` shell widget (#1671, BW-088) calls `caro ai --continue-session`, so a strict mapping could break it.
 
