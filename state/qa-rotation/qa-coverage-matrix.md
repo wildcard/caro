@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-10-30
+**Last updated**: 2026-10-31
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -62,6 +62,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-10-28 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static match `ls -la`; model download succeeded; gh CLI token invalid, MCP used |
 | 2026-10-29 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Model downloaded OK this time |
 | 2026-10-30 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static match returned `ls -la` |
+| 2026-10-31 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Cold-start delay on the first dangerous prompt (FLAKE-002) |
 
 ---
 
@@ -85,8 +86,8 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection. The README claimed it until #1680 fixed #1677 on 2026-10-19) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
 | 14 | `caro config get/set/show/reset` | cli | 2026-10-25 | PASS | — (minor, not filed: the `safety bogus` error repeats its message) |
-| 15 | `caro --output json` format correctness | cli | 2026-10-27 | PASS (an invalid value is silently accepted) | [#1726](https://github.com/wildcard/caro/issues/1726); --dry-run --output json shows the dry_run:true field (Slot B via fix(cli) #1532) |
-| 16 | `caro --output yaml` format correctness | cli | 2026-10-27 | PASS | — |
+| 15 | `caro --output json` format correctness | cli | 2026-10-31 | PASS (an invalid value is silently accepted) | [#1726](https://github.com/wildcard/caro/issues/1726); --dry-run --output json shows the dry_run:true field (Slot B via fix(cli) #1532) |
+| 16 | `caro --output yaml` format correctness | cli | 2026-10-31 | PASS | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | 2026-10-25 | PASS | — |
 | 18 | `caro test --backend static` eval harness | cli | 2026-07-25 | PASS | (from prior session PR #1373, unmerged) |
 | 19 | Embedded model backend command quality | embedded | never | — | [#1523](https://github.com/wildcard/caro/issues/1523) (expected FAIL: same cpu.rs:63 bug as surface #10) |
