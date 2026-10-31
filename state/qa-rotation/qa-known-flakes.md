@@ -66,6 +66,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 - 2026-10-28: not triggered — the model download from Hugging Face succeeded (#1733).
 - 2026-10-29: not triggered — the model download succeeded, and `--dry-run` gave `ls -la` (#1736).
 - 2026-10-30: not triggered — the static matcher answered `--dry-run` with `ls -la` (#1739).
+- 2026-10-31: not triggered — `--dry-run` gave `ls -la`; the cold-start delay is logged under FLAKE-002 (#1741).
 
 **Promotion threshold**: File regression issue if explicit download failure observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Status**: Promoted to regression (behavior change constitutes a regression even under 3-in-7-days threshold). Filed as #1440.  
@@ -93,6 +94,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 - 2026-10-28: observed — on a cold start, `caro ai --once` and `-b embedded -p` timed out while the model downloaded, with no progress output (#1733). Tracked in #1408; #1415 is the open fix.
 - 2026-10-29: not triggered — `caro ai --once` returned the CPU stub's clarification of #1269 (#1736).
 - 2026-10-30: not triggered — `caro ai --once` returned the CPU stub's clarification of #1269 for 3 of 3 prompts, with exit code 1 (#1739).
+- 2026-10-31: observed — on a cold start, the first dangerous prompt was slow and one earlier attempt hit the run's timeout; the repeat was fast (#1741). The run logged it as a new "cold-start latency" flake. It matches the cold-start case of 2026-10-28: tracked in #1408, with #1415 as the open fix.
 **Promotion threshold**: Not applicable — known root cause, tracked in open issues #1272 and #1408. File a separate regression issue only if behavior changes (e.g. starts producing an error message, or starts hanging on a different backend).  
 **Workaround**: Test `caro ai --once` only in an environment with a pre-downloaded model or Ollama available.
 ---
