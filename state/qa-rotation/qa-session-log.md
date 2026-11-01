@@ -4,6 +4,40 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-01 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1743 into this state on 2026-11-01. The run read main's May copy. This state holds the QA PRs it calls closed unmerged (#1733 to #1741), so main's copy does not need them. Its `caro guard` checks in Slot B update surface 36 here.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (d0f4d3f 2026-10-27)`
+- `caro --help` → **PASS**: lists `guard`, `ai`, `suggest`, CaroML verbs
+- `caro doctor` → **PASS**: advisory only (no model, no Ollama; expected in sandbox)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`
+- Note: `gh` token invalid (GH_TOKEN); GitHub MCP tools and `gh api search` worked and were used instead.
+
+### Slot B — Recent diff
+Memory on main is stale (last entry 2026-05-07; QA PRs #1733-#1741 were closed unmerged). Sampled only the newest merged PR:
+- #1687 (safety normalization, spec 011 P2.6): `caro guard` on `eval "$(echo cm0gLXJmIC8= | base64 -d)"` → shadow "would deny: critical" → **PASS**. `ls -la` → no opinion → **PASS**.
+
+### Slot C — `caro ai --once` (#10)
+- `caro ai --once "list files"` → exit 1, `Clarification needed: What exactly should be deleted?` → **FAIL (known)**. Same for `"show disk usage"`.
+- `caro ai --once ""` → clear "no prompt provided" error → PASS.
+- Cause: stub in `src/backends/embedded/cpu.rs:62` matches `rm`/`delete` in the prompt text.
+- Already tracked: #1269 (open, canonical, waits on owner decision); #1735, #1673, #1523, #1494, #1500 closed as dupes. No new issue filed.
+
+### Findings
+- None new. Known bug #1269 re-confirmed on d0f4d3f.
+
+### Followups
+- Memory files on main lag behind (several unmerged QA PRs). Matrix rows from May reflect only the bootstrap run.
+- Next Slot C candidate: #11 `caro ai --continue-session`.
+
+---
+
 ## 2026-10-31 — Scheduled run (Slot A + Slot C)
 
 > Folded from #1741 into this state on 2026-10-31. The run read main's May copy. It logged a new "cold-start latency" flake; this state records it as the cold-start case of FLAKE-002 (#1408). #1044, which its follow-up names, has been closed since 2026-05-09.
