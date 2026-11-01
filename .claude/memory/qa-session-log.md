@@ -4,6 +4,38 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-01 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 33s)
+- `caro --version` → **PASS**: `caro 1.5.0 (d0f4d3f 2026-10-27)`
+- `caro --help` → **PASS**: lists `guard`, `ai`, `suggest`, CaroML verbs
+- `caro doctor` → **PASS**: advisory only (no model, no Ollama; expected in sandbox)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`
+- Note: `gh` token invalid (GH_TOKEN); GitHub MCP tools and `gh api search` worked and were used instead.
+
+### Slot B — Recent diff
+Memory on main is stale (last entry 2026-05-07; QA PRs #1733-#1741 were closed unmerged). Sampled only the newest merged PR:
+- #1687 (safety normalization, spec 011 P2.6): `caro guard` on `eval "$(echo cm0gLXJmIC8= | base64 -d)"` → shadow "would deny: critical" → **PASS**. `ls -la` → no opinion → **PASS**.
+
+### Slot C — `caro ai --once` (#10)
+- `caro ai --once "list files"` → exit 1, `Clarification needed: What exactly should be deleted?` → **FAIL (known)**. Same for `"show disk usage"`.
+- `caro ai --once ""` → clear "no prompt provided" error → PASS.
+- Cause: stub in `src/backends/embedded/cpu.rs:62` matches `rm`/`delete` in the prompt text.
+- Already tracked: #1269 (open, canonical, waits on owner decision); #1735, #1673, #1523, #1494, #1500 closed as dupes. No new issue filed.
+
+### Findings
+- None new. Known bug #1269 re-confirmed on d0f4d3f.
+
+### Followups
+- Memory files on main lag behind (several unmerged QA PRs). Matrix rows from May reflect only the bootstrap run.
+- Next Slot C candidate: #11 `caro ai --continue-session`.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
