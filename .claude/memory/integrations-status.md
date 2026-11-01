@@ -3,7 +3,9 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-10-30 — validation-only night; backlog still stalled (10 integrator-area PRs open, nothing merged since 2026-10-24; crates.io still `caro 1.5.0`). ✓ VERIFIED on published 1.5.0: Ollama/vLLM/Exo → exit 1 with the `remote-backends` config error (PASS, loud-error contract); MLX/embedded `show disk usage` → `df -h` (PASS), `list pdf files in current directory` → `ls -la` (#1645 still open); Codex guard `curl … | sudo bash` → `deny` (PASS). #1723 stdin hang re-confirmed (rc=142). Added ⏳ rows for Cline CLI and UiPath `uip` CLI.
+> **Last updated:** 2026-10-31 — validation-only night; backlog still stalled (nothing merged to `main` since 2026-10-27; #1738, #1722 and #1043 `CLEAN`, #1719 `DIRTY`; crates.io still `caro 1.5.0`). ✓ VERIFIED on published 1.5.0: Grok Build guard `rm -rf ~` → `deny`, `ls -la` → no output (PASS); opencode guard with the plugin's exact `{command,cwd}` payload: `rm -rf /` → `verdict: deny`, exit 2, `git status` → `verdict: none`, exit 0 (PASS); `caro guard report` runs (PASS); caro-shell skill guidance matches the binary (`--backend-info`, `--model` → exit 2, `--backend ollama` config error), Ex 3 → CRITICAL block, Ex 1/Ex 2 unchanged (#1628/#1627).
+>
+> **Previous:** 2026-10-30 — validation-only night; backlog still stalled (10 integrator-area PRs open, nothing merged since 2026-10-24; crates.io still `caro 1.5.0`). ✓ VERIFIED on published 1.5.0: Ollama/vLLM/Exo → exit 1 with the `remote-backends` config error (PASS, loud-error contract); MLX/embedded `show disk usage` → `df -h` (PASS), `list pdf files in current directory` → `ls -la` (#1645 still open); Codex guard `curl … | sudo bash` → `deny` (PASS). #1723 stdin hang re-confirmed (rc=142). Added ⏳ rows for Cline CLI and UiPath `uip` CLI.
 >
 > **Previous:** 2026-10-29 — re-dated the 3 stalest rows (Claude API, xAI Grok, README table) on published `caro 1.5.0`. Claude/Grok: PASS for the loud-error contract (both were stale `🚧 in-progress` from 2026-10-03). README table: FAIL, fixed in PR #1738.
 >
@@ -57,7 +59,7 @@
 
 | Tool | Status | Last validated | Method | GH | Notes |
 |---|---|---|---|---|---|
-| Claude Code skill (`caro-shell`) | ⚠️ partial | 2026-10-27 | published 1.5.0: `caro --dry-run` with the skill's large-files `find` prompt (stdin closed) → dry-run OK in 0.26 s; SKILL.md on `main` (PR #1658 merged) documents `--model-name` and the `remote-backends` gate | #1490, #1628, #1627 | Guidance fixed (#1629); remaining partial is generation quality (#1627/#1628) and marketplace install (PR #1624) |
+| Claude Code skill (`caro-shell`) | ⚠️ partial | 2026-10-31 | published 1.5.0, stdin closed: Ex 3 `delete everything in /tmp` → CRITICAL block, exit 1 ✓; Ex 1 → `find . -name "*.py" -type f` (drops `src` + age, #1628); Ex 2 → `docker system prune -f && docker volume prune -f` (#1627); `--model x` → exit 2 and `--backend ollama` → `remote-backends` config error, both as SKILL.md says | #1490, #1628, #1627 | Guidance fixed (#1629); remaining partial is generation quality (#1627/#1628) and marketplace install (PR #1624) |
 | Harness guardian hook (`caro guard`) | 🧪 experimental | 2026-10-28 | ✓ published 1.5.0: `… \| caro guard --mode enforce --no-log` → `permissionDecision: deny` for `rm -rf /`; shadow (default) logs only; `not json` → `ask`; `caro guard report` lists verdicts by harness; e2e `tests/e2e_guard.rs` | spec 011 / ADR-020 | PreToolUse adapter for Claude Code, Grok Build, Codex; OpenCode via `integrations/opencode/caro-guard.ts`. Shadow by default |
 | Claude Code MCP server (`caro mcp serve`) | ⏳ not-yet | — | `mcp-inspect` against `caro mcp serve` | #928 | Spec: `.github/first-time-issues/06-mcp-claude-code-integration.md`; tools `generate_command` / `validate_command` / `explain_safety` / `show_decision_tree` |
 | OpenAI-compat HTTP shim (`caro serve --openai`) | ⏳ not-yet | — | `curl /v1/chat/completions` with a tool call | #929 | Highest leverage — unlocks Codex/Cursor/Continue/Aider/Tabby in one shot |
@@ -66,7 +68,7 @@
 | Continue (continue.dev) | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
 | Aider | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
 | Tabby (self-hosted) | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
-| opencode | 🧪 guard only | 2026-10-26 | Plugin `integrations/opencode/caro-guard.ts` → `caro guard --harness opencode` | TBD | sst/opencode; generation still awaits MCP/shim |
+| opencode | 🧪 guard only | 2026-10-31 | Plugin payload `{"command":"rm -rf /","cwd":…}` → `caro guard --harness opencode --mode enforce` → `verdict: deny`, exit 2; `git status` → `verdict: none`, exit 0 | TBD | sst/opencode; generation still awaits MCP/shim |
 | crush | ⏳ not-yet | — | MCP or OpenAI shim | #789 (related) | Charm.sh ecosystem |
 | droid | ⏳ not-yet | — | MCP or OpenAI shim | TBD | |
 | Sourcegraph Amp | ⏳ not-yet | — | MCP | TBD | Enterprise coding agent |
@@ -75,7 +77,7 @@
 | Aug | ⏳ not-yet | — | TBD | TBD | |
 | CodePal | ⏳ not-yet | — | TBD | TBD | |
 | Qwen Code | ⏳ not-yet | — | OpenAI shim or native | TBD | |
-| Grok Build (xAI) | 🧪 guard only | 2026-10-26 | Reads `~/.claude/settings.json` hooks natively; or `~/.grok/hooks/caro-guard.json` (docs/coding-agents/grok-build.md) | spec 011 | Grok as a *model* via `--backend grok` |
+| Grok Build (xAI) | 🧪 guard only | 2026-10-31 | `{"toolName":"Bash","toolInput":{"command":"rm -rf ~"}}` → `caro guard --harness grok --mode enforce` → `permissionDecision: deny`; `ls -la` → no output. Config: `~/.claude/settings.json` or `~/.grok/hooks/caro-guard.json` (docs/coding-agents/grok-build.md) | spec 011 | Grok as a *model* via `--backend grok` |
 | GitHub Copilot CLI | ⏳ not-yet | — | `preToolUse` hook → `caro guard` | #1623 | Row added 2026-10-25; issue already open |
 | Kiro CLI (AWS) | ⏳ not-yet | — | MCP or hook, once available | — | Row added 2026-10-26; listed in 2026 terminal-agent comparisons. Not filed: low leverage until #928/#929 |
 | Cline CLI | ⏳ not-yet | — | MCP or hook, once available | — | Row added 2026-10-30; Cline ships an open-source terminal agent (CLI 2.0). Not filed: low leverage until #928/#929 |
