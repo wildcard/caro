@@ -941,6 +941,16 @@ pub struct BackendsConfig {
     /// vLLM endpoint (default `http://localhost:8000`).
     #[serde(default)]
     pub vllm_url: Option<String>,
+    /// Output-token cap for the explicit `--backend vllm` route (default 100).
+    #[serde(default)]
+    pub vllm_max_tokens: Option<u32>,
+    /// Request timeout in seconds for the explicit `--backend vllm` route (default 30).
+    #[serde(default)]
+    pub vllm_timeout_secs: Option<u64>,
+    /// Ask the explicit `--backend vllm` route's server for per-token log-probs
+    /// (default true). Set `false` for servers that reject the field.
+    #[serde(default)]
+    pub vllm_logprobs: Option<bool>,
     /// Exo cluster endpoint (default `http://localhost:52415`).
     #[serde(default)]
     pub exo_url: Option<String>,
@@ -1212,6 +1222,9 @@ impl ConfigSchema {
         known_keys.insert("backends.mesh_url".to_string(), "String".to_string());
         known_keys.insert("backends.ollama_url".to_string(), "String".to_string());
         known_keys.insert("backends.vllm_url".to_string(), "String".to_string());
+        known_keys.insert("backends.vllm_max_tokens".to_string(), "u32".to_string());
+        known_keys.insert("backends.vllm_timeout_secs".to_string(), "u64".to_string());
+        known_keys.insert("backends.vllm_logprobs".to_string(), "bool".to_string());
         known_keys.insert("backends.exo_url".to_string(), "String".to_string());
         known_keys.insert("backends.ai_horde_url".to_string(), "String".to_string());
         known_keys.insert("backends.ai_horde_key".to_string(), "String".to_string());

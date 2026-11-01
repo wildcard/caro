@@ -17,7 +17,7 @@ mod embedded_backend;
 pub use common::{EmbeddedConfig, InferenceBackend, ModelVariant, EMBEDDED_N_CTX};
 
 // Re-export main backend
-pub use embedded_backend::EmbeddedModelBackend;
+pub use embedded_backend::{constructions as embedded_constructions, EmbeddedModelBackend};
 
 // Re-export platform-specific backend
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]

@@ -1,6 +1,7 @@
 // EmbeddedModelBackend implementation for offline command generation
 
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -37,9 +38,20 @@ pub struct EmbeddedModelBackend {
     prompt_style: PromptStyle,
 }
 
+/// Times an [`EmbeddedModelBackend`] constructor has run in this process. A test
+/// sentinel: a route that must never build the embedded backend (explicit
+/// `--backend vllm`) asserts this stays zero.
+static CONSTRUCTIONS: AtomicUsize = AtomicUsize::new(0);
+
+/// Number of embedded-backend constructions so far in this process.
+pub fn constructions() -> usize {
+    CONSTRUCTIONS.load(Ordering::SeqCst)
+}
+
 impl EmbeddedModelBackend {
     /// Create a new embedded model backend with auto-detected platform variant
     pub fn new() -> Result<Self, GeneratorError> {
+        CONSTRUCTIONS.fetch_add(1, Ordering::SeqCst);
         let variant = ModelVariant::detect();
         let model_loader = ModelLoader::new().map_err(|e| GeneratorError::ConfigError {
             message: format!("Failed to initialize model loader: {}", e),
@@ -59,6 +71,7 @@ impl EmbeddedModelBackend {
         variant: ModelVariant,
         model_path: PathBuf,
     ) -> Result<Self, GeneratorError> {
+        CONSTRUCTIONS.fetch_add(1, Ordering::SeqCst);
         // Create the appropriate backend based on variant
         let backend: Box<dyn InferenceBackend> = match variant {
             #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
