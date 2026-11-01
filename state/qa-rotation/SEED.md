@@ -179,3 +179,13 @@ The 2026-10-31 run used the old prompt and read main's May copy. It was folded o
 - **Its rows win:** a smoke row for 2026-10-31, whose note names FLAKE-002 instead of a duration; surfaces 15 and 16 (`--output json` and `--output yaml`, PASS) get the new date. Surface 15 keeps the seed's result and links, because #1726 is still open and the run did not test an invalid value.
 - **Backlog:** no new issues. Slot B was skipped.
 - **Flakes:** the run's new "cold-start latency" flake matches the cold-start case of FLAKE-002 (2026-10-28), tracked in #1408 with #1415 as the open fix. It is logged there, not as a new flake. FLAKE-001 was not triggered.
+
+## Added after seeding: #1743 (2026-11-01)
+
+The 2026-11-01 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-11-01; surface 10 (FAIL, the CPU stub of #1269) gets the new date and keeps the seed's links.
+- **From Slot B:** its `caro guard` checks for #1687 (an encoded `rm -rf /` would be denied as critical; `ls -la` gets no opinion) give surface 36 the new date. It did not run `caro guard setup`, so the result stays PARTIAL.
+- **Backlog:** no new issues. The run's own #1269 row merges into the existing one. #1269 is re-confirmed and keeps P1.
+- **Flakes:** FLAKE-001 and FLAKE-002 were not triggered.
