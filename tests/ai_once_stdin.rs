@@ -81,3 +81,30 @@ fn trailing_prompt_does_not_wait_for_open_stdin() {
         "stderr: {stderr}"
     );
 }
+
+/// Regression guard for #1213: the "no prompt" error must name inputs that
+/// `caro ai` accepts. It used to say "use -p", which `caro ai` rejects.
+#[test]
+fn missing_prompt_error_names_accepted_inputs() {
+    let dir = TempDir::new().unwrap();
+    let out = Command::new(env!("CARGO_BIN_EXE_caro"))
+        .args(["ai", "--once"])
+        .env("XDG_CONFIG_HOME", dir.path())
+        .env("XDG_DATA_HOME", dir.path())
+        .env("HOME", dir.path())
+        .env("CARO_TELEMETRY_ENABLED", "false")
+        .stdin(Stdio::null())
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(!out.status.success());
+    assert!(stderr.contains("no prompt provided"), "stderr: {stderr}");
+    assert!(
+        !stderr.contains("-p"),
+        "suggests -p, which `caro ai` rejects: {stderr}"
+    );
+    assert!(
+        stderr.contains("caro ai --once \"list files\"") && stderr.contains("stdin"),
+        "stderr: {stderr}"
+    );
+}
