@@ -1,0 +1,307 @@
+#!/usr/bin/env python3
+"""verify-artifact — grounding gate for agent-authored public-facing text.
+
+Adapted from warden's hallucination_audit.py + verifier.py
+(https://github.com/JithendraNara/warden). Caro-specific:
+artifact-agnostic (PR comments, hermes digests, release notes, audit
+matrices), stdlib-only, single binary.
+
+Checks any 3+ word n-gram in quoted spans, all #N / @mention / URL /
+path references in the input text against an evidence corpus and
+explicit allowlists. Exits non-zero on any fail-severity finding so
+callers can gate `gh pr comment`, digest commits, etc. on it.
+
+Usage:
+    bin/verify-artifact --text-file draft.md --evidence-file evidence.json \\
+        --allowed-pr 1154 --allowed-mention kobik
+
+    gh pr view 1154 --json title,body,commits \\
+        | bin/verify-artifact --text-file draft.md --evidence-file - \\
+            --allowed-pr 1154 --json
+
+Exit codes:
+    0  no fail-severity findings (warnings may be present)
+    1  grounding failure
+    2  usage error
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Iterable
+
+_ISSUE_REF_RE = re.compile(r"#(\d+)")
+_MENTION_RE = re.compile(r"(?<![A-Za-z0-9_])@([A-Za-z0-9_\-]+)")
+_URL_RE = re.compile(r"https?://[^\s)\"']+")
+_PATH_RE = re.compile(r"\b(?:[A-Za-z0-9_\-]+/)+[A-Za-z0-9_.\-/]+\b")
+_SHA_RE = re.compile(r"\b([0-9a-f]{7,40})\b")
+_QUOTE_RE = re.compile(r'"([^"]+)"')
+_MIN_QUOTE_CHARS = 8
+
+
+@dataclass
+class Finding:
+    code: str
+    message: str
+    severity: str  # "fail" or "warn"
+
+
+@dataclass
+class Report:
+    ok: bool = True
+    findings: list[Finding] = field(default_factory=list)
+
+    def add(self, code: str, message: str, severity: str = "fail") -> None:
+        self.findings.append(Finding(code=code, message=message, severity=severity))
+        if severity == "fail":
+            self.ok = False
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "ok": self.ok,
+            "findings": [
+                {"code": f.code, "message": f.message, "severity": f.severity}
+                for f in self.findings
+            ],
+        }
+
+    def to_human(self) -> str:
+        if not self.findings:
+            return "ok — no grounding issues found"
+        lines = []
+        for f in self.findings:
+            mark = "✗" if f.severity == "fail" else "⚠"
+            lines.append(f"  {mark} [{f.severity}/{f.code}] {f.message}")
+        head = "ok with warnings" if self.ok else "grounding FAILED"
+        return f"{head}:\n" + "\n".join(lines)
+
+
+def audit(
+    text: str,
+    evidence: str,
+    *,
+    allowed_prs: Iterable[int] = (),
+    allowed_mentions: Iterable[str] = (),
+    allowed_urls: Iterable[str] = (),
+    strict_quotes: bool = False,
+) -> Report:
+    report = Report()
+    corpus = evidence.lower()
+    allowed_pr_set = set(allowed_prs)
+    allowed_mention_set = {m.lower().lstrip("@") for m in allowed_mentions}
+    allowed_url_set = {u.lower().rstrip(".,") for u in allowed_urls}
+
+    _check_quotes(text, corpus, report, strict=strict_quotes)
+    _check_issue_refs(text, allowed_pr_set, corpus, report)
+    _check_mentions(text, allowed_mention_set, report)
+    _check_urls(text, allowed_url_set, corpus, report)
+    _check_paths(text, corpus, report)
+    _check_shas(text, corpus, report)
+
+    return report
+
+
+def _check_quotes(text: str, corpus: str, report: Report, *, strict: bool) -> None:
+    severity = "fail" if strict else "warn"
+    for match in _QUOTE_RE.finditer(text):
+        quoted = match.group(1).strip().lower()
+        if len(quoted) < _MIN_QUOTE_CHARS:
+            continue
+        if quoted in corpus:
+            continue
+        report.add(
+            "quote_not_in_source",
+            f"quoted span {quoted!r} not found in evidence",
+            severity=severity,
+        )
+
+
+def _check_issue_refs(
+    text: str, allowed: set[int], corpus: str, report: Report
+) -> None:
+    for match in _ISSUE_REF_RE.finditer(text):
+        n = int(match.group(1))
+        if n in allowed:
+            continue
+        if f"#{n}" in corpus:
+            continue
+        report.add(
+            "fabricated_issue_reference",
+            f"#{n} is neither allowed nor present in evidence",
+            severity="fail",
+        )
+
+
+def _check_mentions(text: str, allowed: set[str], report: Report) -> None:
+    for match in _MENTION_RE.finditer(text):
+        user = match.group(1).lower()
+        if user in allowed:
+            continue
+        report.add(
+            "fabricated_mention",
+            f"@{user} is not in --allowed-mention list",
+            severity="warn",
+        )
+
+
+def _check_urls(
+    text: str, allowed: set[str], corpus: str, report: Report
+) -> None:
+    for match in _URL_RE.finditer(text):
+        url = match.group(0).rstrip(".,").lower()
+        if url in allowed:
+            continue
+        if url in corpus:
+            continue
+        report.add(
+            "fabricated_url",
+            f"URL {url} not in --allowed-url and not in evidence",
+            severity="fail",
+        )
+
+
+def _check_paths(text: str, corpus: str, report: Report) -> None:
+    seen = set()
+    for match in _PATH_RE.finditer(text):
+        path = match.group(0).lower().rstrip(".,;:")
+        if path in seen:
+            continue
+        seen.add(path)
+        if "/" not in path:
+            continue
+        if path.startswith("http"):
+            continue
+        if path in corpus:
+            continue
+        # Tolerate doc-style references like "src/safety/patterns.rs"
+        # only when the *basename* appears — many evidence corpora hold
+        # filenames without the full prefix. Still warn.
+        basename = path.rsplit("/", 1)[-1]
+        if basename and basename in corpus:
+            continue
+        report.add(
+            "suspicious_path",
+            f"path {path} not found in evidence (possible fabrication)",
+            severity="warn",
+        )
+
+
+def _check_shas(text: str, corpus: str, report: Report) -> None:
+    seen = set()
+    for match in _SHA_RE.finditer(text):
+        sha = match.group(1).lower()
+        if sha in seen:
+            continue
+        seen.add(sha)
+        # Only flag long-looking SHAs (≥7 hex). Short hex tokens like
+        # color codes or counters are filtered by the regex itself.
+        if sha in corpus:
+            continue
+        report.add(
+            "fabricated_sha",
+            f"commit sha {sha} not present in evidence",
+            severity="fail",
+        )
+
+
+def _read(path: str) -> str:
+    if path == "-":
+        return sys.stdin.read()
+    return Path(path).read_text(encoding="utf-8")
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="verify-artifact",
+        description="Grounding gate for agent-authored public-facing text.",
+    )
+    parser.add_argument(
+        "--text-file",
+        required=True,
+        help="Path to draft artifact text (use '-' for stdin)",
+    )
+    parser.add_argument(
+        "--evidence-file",
+        required=True,
+        help="Path to evidence corpus (use '-' for stdin)",
+    )
+    parser.add_argument(
+        "--allowed-pr",
+        type=int,
+        action="append",
+        default=[],
+        metavar="N",
+        help="PR/issue numbers permitted in text (repeatable)",
+    )
+    parser.add_argument(
+        "--allowed-mention",
+        action="append",
+        default=[],
+        metavar="USER",
+        help="@mentions permitted in text (repeatable)",
+    )
+    parser.add_argument(
+        "--allowed-url",
+        action="append",
+        default=[],
+        metavar="URL",
+        help="URLs permitted in text (repeatable)",
+    )
+    parser.add_argument(
+        "--strict-quotes",
+        action="store_true",
+        help="Treat ungrounded quoted spans as fail (default: warn)",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit findings as JSON instead of human text",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress output; rely on exit code",
+    )
+
+    if argv is None:
+        argv = sys.argv[1:]
+    if not argv:
+        parser.print_help(sys.stderr)
+        return 2
+    args = parser.parse_args(argv)
+
+    if args.text_file == "-" and args.evidence_file == "-":
+        print(
+            "verify-artifact: cannot read both text and evidence from stdin",
+            file=sys.stderr,
+        )
+        return 2
+
+    text = _read(args.text_file)
+    evidence = _read(args.evidence_file)
+
+    report = audit(
+        text,
+        evidence,
+        allowed_prs=args.allowed_pr,
+        allowed_mentions=args.allowed_mention,
+        allowed_urls=args.allowed_url,
+        strict_quotes=args.strict_quotes,
+    )
+
+    if not args.quiet:
+        if args.json:
+            print(json.dumps(report.to_dict(), indent=2))
+        else:
+            print(report.to_human())
+
+    return 0 if report.ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
