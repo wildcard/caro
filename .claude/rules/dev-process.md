@@ -14,7 +14,6 @@
 2. **Commit early, push often, push to remote when done**
    - Every meaningful change should be committed
    - Always push to `origin` when work is complete
-   - The AGENTS.md "Landing the Plane" rules apply
 
 3. **Create a PR for review**
    ```bash
