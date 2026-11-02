@@ -101,6 +101,8 @@ jobs:
             }
 
   check-for-duplicates:
+    # On `opened` only: running on every edit would post the same comment again.
+    if: github.event.action == 'opened'
     runs-on: ubuntu-latest
     steps:
       - name: Check for potential duplicate issues
@@ -112,13 +114,14 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            // Get open issues
-            const { data: openIssues } = await github.rest.issues.listForRepo({
+            // All open issues. listForRepo also returns pull requests, and a single
+            // page of 100 left most issues unchecked, so page through and skip PRs.
+            const openIssues = (await github.paginate(github.rest.issues.listForRepo, {
               owner: owner,
               repo: repo,
               state: 'open',
               per_page: 100
-            });
+            })).filter(i => !i.pull_request);
 
             // Simple word-based similarity check
             const titleWords = title.split(/\s+/).filter(w => w.length > 3);
@@ -151,5 +154,25 @@ jobs:
                 repo: repo,
                 issue_number: issue.number,
                 body: comment
+              });
+
+              // A label makes the flag actionable: the broken-window sweep and the
+              // Fleet issue (scripts/fleet.py) find flagged issues by it.
+              try {
+                await github.rest.issues.createLabel({
+                  owner: owner,
+                  repo: repo,
+                  name: 'possible-duplicate',
+                  color: 'cfd3d7',
+                  description: 'Flagged by the duplicate check; a person confirms or clears it'
+                });
+              } catch (e) {
+                if (e.status !== 422) throw e;  // 422: the label already exists
+              }
+              await github.rest.issues.addLabels({
+                owner: owner,
+                repo: repo,
+                issue_number: issue.number,
+                labels: ['possible-duplicate']
               });
             }
