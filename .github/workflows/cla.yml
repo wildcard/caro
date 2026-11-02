@@ -19,7 +19,7 @@ jobs:
       # Check if user already signed before running CLA Assistant
       - name: Checkout signatures branch
         if: github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA'
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: cla-signatures
           path: signatures-check
