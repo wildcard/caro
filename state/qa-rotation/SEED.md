@@ -189,3 +189,14 @@ The 2026-11-01 run used the old prompt and read main's May copy. It was folded o
 - **From Slot B:** its `caro guard` checks for #1687 (an encoded `rm -rf /` would be denied as critical; `ls -la` gets no opinion) give surface 36 the new date. It did not run `caro guard setup`, so the result stays PARTIAL.
 - **Backlog:** no new issues. The run's own #1269 row merges into the existing one. #1269 is re-confirmed and keeps P1.
 - **Flakes:** FLAKE-001 and FLAKE-002 were not triggered.
+
+## Added after seeding: #1744 (2026-11-02)
+
+The 2026-11-02 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-11-02; surfaces 15 and 16 (`--output json` and `--output yaml`, PASS) get the new date. Surface 15 keeps the seed's result and links: #1726 is still open, and the run did not test an invalid value.
+- **Not new:** its `"executed": true` on `--dry-run` note restates #1217 (canonical; #1417 was its duplicate). #1532 closed #1217 on 2026-10-10 by adding `dry_run: true`; `executed` means "passed safety checks".
+- **Slot B:** it listed #1740, #1737, #1710 and #1706 but ran only `--dry-run`, so no surface changes.
+- **Backlog:** no new issues.
+- **Flakes:** FLAKE-001 was not triggered. `caro ai --once` (FLAKE-002) was not exercised.
