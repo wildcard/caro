@@ -32,12 +32,11 @@ search overlay first opens (`website/src/components/OmniSearch.astro`).
 
 **Found:** 2026-09-24, google/ax harness survey
 **Issue:** #1479
-**Status:** open. #1478 fixes the `current-tasks.md` row.
-**Needs human?:** no
-**Next step:** see the issue table. Each row is a one-line docs/config fix.
-Remaining: `caro-eval` (use `cargo test --test evaluation`), `AGENTS.md` line in
-dev-process.md, `.kittify` helpers, `claude --skill` in modulization.yml,
-hardcoded `/Users/kobik-private` paths.
+**Status:** claimed-by sweep/2026-10-24-BW-003 (#1716) for the `caro-eval` and `AGENTS.md` rows. The `current-tasks.md` row is already gone from `CLAUDE.md`.
+**Needs human?:** no for the doc rows. The `claude --skill` row edits `.github/workflows/modulization.yml`, which is human-only (`.claude/automation/config/policy.yaml` refuse-list).
+**Next step:** after the sweep PR: `.kittify` helpers in `bin/sk-*` (the Tier 1 git rule names them),
+`claude --skill` in modulization.yml (human review), and hardcoded `/Users/kobik-private`
+paths in live commands (`caro-backlog-groom`, `caro-coder-loop`, `caro.roadmap`, session-wrangler).
 
 ### BW-004: `caro ai --once` hangs silently when no backend/model is ready
 
@@ -56,7 +55,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 ### BW-006: embedded CPU stub always returns `echo 'Please clarify your request'`
 
 **Found:** 2026-09-30 sweep dedup
-**Issue:** #1269 (14 duplicates, closed; latest #1673 on 2026-10-15). Root cause: the stub keyword-matches "rm" in the system prompt (`src/backends/embedded/cpu.rs`).
+**Issue:** #1269 (15 duplicates, closed; latest #1735 on 2026-10-29). Root cause: the stub keyword-matches "rm" in the system prompt (`src/backends/embedded/cpu.rs`).
 **Status:** open
 **Needs human?:** yes. Product call: fail with a clear error on the CPU variant, or fall back to the static matcher. Epic #1460 / #1462 also touch this path.
 **Next step:** maintainer picks the behaviour.
@@ -81,23 +80,23 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1213 (dup #1422, closed)
-**Status:** open
+**Status:** claimed-by sweep/2026-10-23-BW-012 (#1710)
 **Needs human?:** no
-**Next step:** accept `-p`, or fix the message.
+**Next step:** fix the message (the sweep fix names only trailing text and stdin).
 
 ### BW-013: `caro config reset <key>` unsupported
 
 **Found:** 2026-09-30 sweep dedup
 **Issue:** #1260 (dup #1381, closed)
-**Status:** open
+**Status:** claimed-by sweep/2026-10-30-BW-013 (#1740)
 **Needs human?:** no
-**Next step:** add per-key reset.
+**Next step:** merge the sweep PR (`caro config reset <key>` resets one key; bare `reset` unchanged).
 
 ### BW-015: main CI `Extended Tests` (4 model jobs) red: HF Hub model download fails
 
 **Found:** 2026-09-30 sweep, CI run 36658876598
 **Issue:** #1341
-**Status:** open. The 2026-10-13 nightly (run 38336457787) has no prompt-overflow failures (BW-068 fixed). SmolLM and Qwen each fail 4 tests: 3 are `caro list files` (BW-029, #1550, draft #1651) and 1 is `e2e_multiple_commands_performance`, which asserts `< 60s`. It took 1911.492889208 s on SmolLM and 571.94813475 s on Qwen. TinyLlama was cancelled at GitHub's 360-minute job limit. Both run-time problems are #1654 (BW-083). The 2026-10-15 nightly (run 38669323737, after #1660) finishes all three jobs inside the job limit. The perf test took 282.789383667 s on Qwen, 1841.566916541 s on SmolLM and 2256.054322916 s on TinyLlama. The 3 `list files` failures remain (#1550). TinyLlama also fails `e2e_yaml_output_format`: the model picked the tool `show`, which is not allowed.
+**Status:** open. The 2026-10-13 nightly (run 38336457787) has no prompt-overflow failures (BW-068 fixed). SmolLM and Qwen each fail 4 tests: 3 are `caro list files` (BW-029, #1550, draft #1651) and 1 is `e2e_multiple_commands_performance`, which asserts `< 60s`. It took 1911.492889208 s on SmolLM and 571.94813475 s on Qwen. TinyLlama was cancelled at GitHub's 360-minute job limit. Both run-time problems are #1654 (BW-083). The 2026-10-15 nightly (run 38669323737, after #1660) finishes all three jobs inside the job limit. The perf test took 282.789383667 s on Qwen, 1841.566916541 s on SmolLM and 2256.054322916 s on TinyLlama. The 3 `list files` failures remain (#1550). TinyLlama also fails `e2e_yaml_output_format`: the model picked the tool `show`, which is not allowed. The 2026-10-23 nightly (run 39887989447) shows the same 4 failures on SmolLM and Qwen. TinyLlama also fails `e2e_special_characters_handling` the same way (tool `test-verbose`).
 **Needs human?:** no (decided 2026-10-10: SmolLM uses the bundle.yml Q8_0 repo, StarCoder is dropped, CI runs on CPU only).
 **Next step:** after #1651 merges, the remaining red is #1654 (needs human).
 
@@ -161,7 +160,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-06, CI on #1532 (`test_coreutils_detection` failed on ubuntu-24.04)
 **Issue:** #1533
-**Status:** open
+**Status:** claimed-by sweep/2026-10-22-BW-025 (#1706)
 **Needs human?:** no
 **Next step:** raise the `ls --version` timeout in `src/platform/mod.rs` to about 2 s; treat a timeout as unknown in `detect_bsd_utils`.
 
@@ -241,9 +240,9 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-09 sweep register sync (issue filed 2026-07-19)
 **Issue:** #1349
-**Status:** open
+**Status:** open. Open PR #1415 (`fix: show ai once backend initialization status`) also adds `CARO_CONFIG_DIR` to `ConfigManager::new`; `tests/cli_flag_tests.rs` and `tests/e2e_cli_tests.rs` already set the variable, which main ignores.
 **Needs human?:** no
-**Next step:** honor a `CARO_CONFIG_DIR` env var in `src/config/mod.rs` and use it in the config tests.
+**Next step:** merge #1415, or split its `CARO_CONFIG_DIR` hunk out. Do not open a competing sweep PR while #1415 is open.
 
 ### BW-039: `ChromaDB Integration Tests` CI job fails late in the run
 
@@ -447,6 +446,10 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Needs human?:** no (owner decided 2026-10-22: audit.toml entries, and CDLA-Permissive-2.0 allowed in dependency-review).
 **Next step:** revisit the entries by 2026-12-31.
 
+**Status:** fixed (#1700, merged 2026-10-27): patch updates plus reviewed `.cargo/audit.toml` entries for the 2 legacy-path findings (owner-approved 2026-10-22).
+**Needs human?:** no (owner decided 2026-10-22: audit.toml entries, and CDLA-Permissive-2.0 allowed in dependency-review).
+**Next step:** revisit the entries by 2026-12-31 (same revert condition as BW-087).
+
 ### BW-093: `caro guard test "<cmd>" --output json` reads the flag as part of the command
 
 **Found:** 2026-10-21, QA agent report
@@ -480,18 +483,36 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Next step:** the owner picks how CI runs the unlisted `tests/` targets
 (the options are in #1537).
 
+### BW-094: uutils coreutils (Ubuntu 26.04, `ubuntu-latest` CI) detected as `UtilityType::Unknown`
+
+**Found:** 2026-10-22, CI on #1700 (`test_utility_type_detection` red on main and every PR)
+**Issue:** #1703
+**Status:** fixed (#1700, merged 2026-10-27; owner chose #1700 as the carrier)
+**Needs human?:** no
+**Next step:** none.
+
+### BW-095: Static Sites Build red on main: Playwright has no Chromium for ubuntu26.04
+
+**Found:** 2026-10-22, main CI (same runner-image move as BW-094)
+**Issue:** #1701
+**Status:** fixed (#1731, merged 2026-10-27). Owner chose to pin `ubuntu-24.04` on 2026-10-27.
+**Needs human?:** no (decided 2026-10-27: pin `ubuntu-24.04`)
+**Next step:** revert the pin once Playwright supports Ubuntu 26.04.
+
 ### BW-099: `Security Audit` red: 4 zstd advisories via lancedb/datafusion (optional features)
 
 **Found:** 2026-10-27, while porting the uutils fix into #1700
 **Issue:** #1730. RUSTSEC-2026-0391 (zstd 0.13.3), 0398 and 0403 (zstd-safe 7.2.4), 0410 (zstd-sys 2.0.16). Only the optional `knowledge` and `chromadb` features pull zstd.
 **Status:** fixed (#1700, merged 2026-10-27). Owner chose reviewed `audit.toml` entries on 2026-10-27 (review by 2026-12-31). #1730 stays open as the tracker.
+
+**Status:** fixed (#1700, merged 2026-10-27). Owner chose reviewed `audit.toml` entries on 2026-10-27 (review by 2026-12-31).
 **Needs human?:** yes (decided 2026-10-27: reviewed `audit.toml` entries)
 **Next step:** remove the entries when lancedb/lance/arrow move to zstd 0.14.
 
 ### BW-100: `caro test --help` advertises mlx/ollama backends that it rejects
 
 **Found:** 2026-10-28 sweep register sync (issue filed 2026-10-28)
-**Issue:** #1732. `src/main.rs` help text says `static, mlx, ollama, or embedded`; the `match` accepts only `static` and `embedded`.
-**Status:** open
+**Issue:** #1732. `src/main.rs` help text said `static, mlx, ollama, or embedded`; the `match` accepts only `static` and `embedded`.
+**Status:** claimed-by sweep/2026-10-29-BW-100 (#1737)
 **Needs human?:** no
-**Next step:** change the help text to `static or embedded`; optionally test that help and match arms agree. Check open roster PRs (#1713, #1719, #1348) for overlap first.
+**Next step:** merge the sweep PR (clap `value_parser = ["static", "embedded"]`, so help and accepted values share one list).
