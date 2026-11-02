@@ -15,6 +15,9 @@
 
 export type IntegrationStatus =
   | 'working'    // ✅ Validated end-to-end against published caro binary
+  | 'experimental' // Shipped, experimental surface
+  | 'opt-in' // Requires a non-default build feature
+  | 'not-started' // No implementation
   | 'partial'    // ⚠️ Works with caveats
   | 'in-progress' // 🚧 PR or epic in flight
   | 'not-yet'    // ⏳ Tracked target, no implementation yet
@@ -22,6 +25,7 @@ export type IntegrationStatus =
 
 export type IntegrationSurface =
   | 'claude-code-skill'
+  | 'guard-hook'
   | 'mcp-server'
   | 'openai-compat'
   | 'native-backend'
@@ -69,30 +73,40 @@ export const outboundIntegrations: Integration[] = [
     homepage: 'https://www.anthropic.com/claude-code',
   },
   {
+    id: 'guard-hook',
+    name: 'Claude Code / Codex / Grok Build / opencode (guard hook)',
+    category: 'agent',
+    status: 'experimental',
+    surface: 'guard-hook',
+    lastValidated: null,
+    description: 'caro guard ships in 1.5.0 as an experimental PreToolUse command-checking hook. Shadow mode logs only by default; --mode enforce denies critical commands. Agent-specific adapters and setup are documented in docs/coding-agents/. This is separate from the planned MCP server and OpenAI-compatible generation endpoint.',
+    homepage: 'https://github.com/wildcard/caro/tree/main/docs/coding-agents',
+  },
+  {
     id: 'claude-code-mcp',
     name: 'Claude Code (MCP server)',
     category: 'agent',
-    status: 'in-progress',
+    status: 'not-yet',
     surface: 'mcp-server',
     lastValidated: null,
     description:
       'Planned `caro mcp serve` subcommand exposing `generate_command`, `validate_command`, `explain_safety`, `show_decision_tree` over the Model Context Protocol. Spec drafted in `.github/first-time-issues/06-mcp-claude-code-integration.md`.',
-    tracking: 'see GitHub issues labeled `integration` + `mcp`',
+    tracking: '#928',
   },
   {
     id: 'openai-compat-shim',
     name: 'OpenAI-compat HTTP shim',
     category: 'agent',
-    status: 'in-progress',
+    status: 'not-yet',
     surface: 'openai-compat',
     lastValidated: null,
     description:
       'Planned `caro serve --openai` mode. Exposes an OpenAI Chat Completions endpoint backed by caro\'s safety-validated generation. Single integration unlocks Codex, Cursor, Continue, Aider, Tabby, and most long-tail tools that already speak OpenAI\'s schema.',
-    tracking: 'see GitHub issues labeled `integration` + `openai-compat`',
+    tracking: '#929',
   },
   {
     id: 'codex',
-    name: 'OpenAI Codex',
+    name: 'OpenAI Codex (generation)',
     category: 'agent',
     status: 'not-yet',
     surface: 'openai-compat',
@@ -145,22 +159,22 @@ export const outboundIntegrations: Integration[] = [
   },
   {
     id: 'opencode',
-    name: 'opencode',
+    name: 'opencode (generation)',
     category: 'cli',
     status: 'not-yet',
     surface: 'mcp-server',
     lastValidated: null,
-    description: 'Charm.sh terminal coding agent. Will integrate via MCP server or OpenAI shim.',
+    description: 'Terminal coding agent. Will integrate via MCP server or OpenAI shim.',
     homepage: 'https://opencode.ai',
   },
   {
     id: 'crush',
     name: 'crush',
     category: 'cli',
-    status: 'in-progress',
+    status: 'not-yet',
     surface: 'mcp-server',
     lastValidated: null,
-    description: 'Charm.sh terminal coding agent. Codex MCP server config pattern in flight.',
+    description: 'Charm.sh terminal coding agent. Generation awaits the planned MCP server or OpenAI shim.',
     tracking: 'PR #789 (Crush MCP config)',
     homepage: 'https://github.com/charmbracelet/crush',
   },
@@ -206,22 +220,22 @@ export const outboundIntegrations: Integration[] = [
     id: 'gemini-cli',
     name: 'Gemini CLI',
     category: 'cli',
-    status: 'in-progress',
+    status: 'not-started',
     surface: 'native-backend',
     lastValidated: null,
-    description: 'Google\'s agentic CLI. Caro-side Gemini backend in flight.',
-    tracking: 'PR #782 (Gemini integration workflows)',
+    description: 'No native Gemini backend ships in Caro 1.5.0. PR #782 closed without merging; replacement-target work is tracked in #1439.',
+    tracking: '#1439',
     homepage: 'https://github.com/google-gemini/gemini-cli',
   },
   {
     id: 'jules',
     name: 'Jules (Google)',
     category: 'agent',
-    status: 'not-yet',
+    status: 'not-started',
     surface: 'native-backend',
     lastValidated: null,
-    description: 'Google\'s async coding agent. Coordinate with the Gemini backend work.',
-    tracking: 'PR #782',
+    description: 'No native Gemini backend ships in Caro 1.5.0. Jules integration has not started; PR #782 closed without merging.',
+    tracking: '#1439',
   },
 ];
 
@@ -295,12 +309,17 @@ export const inboundBackends: Integration[] = [
   },
   {
     id: 'openrouter',
-    name: 'OpenRouter (incl. `auto`)',
+    name: 'OpenRouter',
     category: 'router',
-    status: 'not-yet',
+    status: 'opt-in',
     surface: 'native-backend',
     lastValidated: null,
-    description: 'Single backend → 100+ models including OpenRouter\'s `auto` routing. Planned: clones the vLLM backend shape.',
+    description: 'Implemented in Caro 1.5.0 via src/backends/remote/openai_compat.rs. The default cargo install build rejects --backend openrouter because remote-backends is disabled. Build with the opt-in feature and set OPENROUTER_API_KEY. This status does not claim a verified live inference request or auto routing.',
+    snippet: [
+      'cargo install caro --features remote-backends --locked',
+      '# Set OPENROUTER_API_KEY in your environment, then:',
+      'caro --backend openrouter --dry-run -p "list files"',
+    ].join('\n'),
   },
   {
     id: 'claude-code-session',
@@ -321,6 +340,9 @@ export const allIntegrations: Integration[] = [
 export const statusLabel: Record<IntegrationStatus, string> = {
   working: '✅ Working',
   partial: '⚠️ Partial',
+  experimental: 'Experimental',
+  'opt-in': 'Opt-in build',
+  'not-started': 'Not started',
   'in-progress': '🚧 In progress',
   'not-yet': '⏳ Planned',
   broken: '❌ Broken',
@@ -328,6 +350,7 @@ export const statusLabel: Record<IntegrationStatus, string> = {
 
 export const surfaceLabel: Record<IntegrationSurface, string> = {
   'claude-code-skill': 'Claude Code skill',
+  'guard-hook': 'PreToolUse guard hook',
   'mcp-server': 'MCP server',
   'openai-compat': 'OpenAI-compat HTTP',
   'native-backend': 'Native backend',

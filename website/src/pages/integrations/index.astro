@@ -19,9 +19,10 @@ import {
 
 const grouped = (rows: Integration[]) => ({
   working: rows.filter((r) => r.status === 'working'),
-  partial: rows.filter((r) => r.status === 'partial'),
+  partial: rows.filter((r) => r.status === 'partial' || r.status === 'opt-in'),
+  experimental: rows.filter((r) => r.status === 'experimental'),
   inProgress: rows.filter((r) => r.status === 'in-progress'),
-  planned: rows.filter((r) => r.status === 'not-yet'),
+  planned: rows.filter((r) => r.status === 'not-yet' || r.status === 'not-started'),
 });
 
 const out = grouped(outboundIntegrations);
@@ -30,7 +31,7 @@ const inb = grouped(inboundBackends);
 
 <Layout
   title="Integrations — Caro"
-  description="Use Caro from Claude Code, Codex, Cursor, Continue, Aider, Tabby, opencode, crush, and more. Caro speaks Claude Code skills, MCP, and the OpenAI Chat Completions API."
+  description="Use Caro from Claude Code, Codex, Cursor, Continue, Aider, Tabby, opencode, crush, and more. Caro provides a Claude Code skill and experimental guard hooks; MCP and OpenAI-compatible serving are planned."
 >
   <Navigation />
 
@@ -57,11 +58,11 @@ const inb = grouped(inboundBackends);
           </div>
           <div class="surface-card">
             <h3>MCP server</h3>
-            <p><code>caro mcp serve</code> — exposes shell-command tools over the Model Context Protocol. Coming soon.</p>
+            <p><code>caro mcp serve</code> — planned shell-command tools over the Model Context Protocol; not implemented in 1.5.0.</p>
           </div>
           <div class="surface-card">
             <h3>OpenAI-compat HTTP</h3>
-            <p><code>caro serve --openai</code> — OpenAI Chat Completions endpoint. Unlocks Codex, Cursor, Continue, Aider, Tabby in one shot. Coming soon.</p>
+            <p><code>caro serve --openai</code> — planned OpenAI Chat Completions endpoint for Codex, Cursor, Continue, Aider and Tabby; not implemented in 1.5.0.</p>
           </div>
         </div>
       </div>
@@ -89,9 +90,30 @@ const inb = grouped(inboundBackends);
                   {row.snippet && (
                     <pre class="row-snippet" tabindex="0" role="region" aria-label={`${row.name} setup snippet`}><code>{row.snippet}</code></pre>
                   )}
+                  {row.tracking && <p class="row-tracking">Tracking: {row.tracking}</p>}
                   {row.homepage && (
                     <p class="row-link"><a href={row.homepage}>{row.homepage}</a></p>
                   )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {out.experimental.length > 0 && (
+          <>
+            <h3>Experimental</h3>
+            <ul class="integration-list">
+              {out.experimental.map((row) => (
+                <li class="integration-row" data-status={row.status}>
+                  <div class="row-head">
+                    <span class="row-name">{row.name}</span>
+                    <span class="row-badge">{statusLabel[row.status]}</span>
+                    <span class="row-surface">{surfaceLabel[row.surface]}</span>
+                  </div>
+                  <p class="row-desc">{row.description}</p>
+                  {row.homepage && <p class="row-link"><a href={row.homepage}>Guard setup documentation</a></p>}
+                  {row.tracking && <p class="row-tracking">Tracking: {row.tracking}</p>}
                 </li>
               ))}
             </ul>
@@ -129,6 +151,7 @@ const inb = grouped(inboundBackends);
                     <span class="row-surface">{surfaceLabel[row.surface]}</span>
                   </div>
                   <p class="row-desc">{row.description}</p>
+                  {row.tracking && <p class="row-tracking">Tracking: {row.tracking}</p>}
                   {row.homepage && (
                     <p class="row-link"><a href={row.homepage}>{row.homepage}</a></p>
                   )}
