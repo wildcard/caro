@@ -37,7 +37,7 @@
 | Candle CPU (embedded) | ✅ working | 2026-05-11 | `caro --dry-run "show disk usage"` → `du -sh ... \| sort -rh \| head -10` ✓ (auto-fallback path) | — | `embedded-cpu` is in default features; works in default build. |
 | OpenRouter | ⚠️ partial (feature-gated) | 2026-10-19 | ✓ VERIFIED published `caro 1.5.0`: `caro --backend openrouter --dry-run -p "..."` → same loud `Configuration error: ... requires the 'remote-backends' feature` | #931, #1081 | `openrouter.rs` is `openai_compat.rs`; CLI-wired since PR #1513, same feature-gate omission as the others. |
 | xAI Grok | ⚠️ partial (feature-gated) | 2026-10-19 | ✓ VERIFIED published `caro 1.5.0`: `caro --backend grok --dry-run -p "..."` → same loud `Configuration error: ... requires the 'remote-backends' feature` | PR #1513 | `--backend grok` / `--advisor grok` / `hybrid_remote = "grok"`; `XAI_API_KEY`. Consistent with claude/openrouter/ollama/vllm/exo. |
-| Gemini / Jules | 🚧 in-progress | — | — | PR #782 | Coordinate with existing PR; don't fork |
+| Gemini / Jules | ⏳ not-yet | — | — | #1439 | PR #782 is closed. Gemini CLI personal-account access ended 2026-06-18 (see the Gemini CLI row). Jules needs re-verification on its own. |
 | LM Studio + FunctionGemma | 🚧 in-progress | — | — | PR #558 | Tracked, no action this night |
 | quant.cpp | 🚧 in-progress | — | — | PR #838 | Tracked, no action this night |
 | Azure Foundry | ⏳ not-yet | — | — | #661 (epic) | Big lift; deprioritized |
@@ -66,8 +66,9 @@
 | CodePal | ⏳ not-yet | — | TBD | TBD | |
 | Qwen Code | ⏳ not-yet | — | OpenAI shim or native | TBD | |
 | Grok Build (xAI) | 🧪 guard only | 2026-10-03 | Reads `~/.claude/settings.json` hooks natively; or `~/.grok/hooks/caro-guard.json` (docs/coding-agents/grok-build.md) | spec 011 | Grok as a *model* via `--backend grok` |
-| Gemini CLI | ⏳ not-yet | — | Native backend or shim | PR #782 | Coordinate |
-| Jules (Google) | ⏳ not-yet | — | Native backend or shim | PR #782 | Coordinate |
+| Gemini CLI | ⏳ not-yet (partial) | — | Native backend or shim | #1439 | Free, Pro and Ultra personal accounts lost access on 2026-06-18 (Antigravity CLI replaces it for them). Code Assist Standard/Enterprise and paid API-key users stay supported, so the integration is still valid for them. PR #782 is closed. |
+| Jules (Google) | ⏳ not-yet | — | Native backend or shim | #1439 | Re-verify independently of Gemini CLI. PR #782 is closed. |
+| Antigravity CLI (`agy`) | ⏳ not-yet | — | MCP or OpenAI-compat shim (#929); closed-source binary | #1439 | Replaces Gemini CLI for personal accounts. |
 | Autocoder | ⏳ not-yet | — | TBD | #667 (epic) | Big lift |
 | Handy.Computer | ⏳ not-yet | — | TBD | #662 (epic) | Big lift |
 
@@ -92,7 +93,7 @@ Topmost unblocked row drives the next nightly PR.
 4. **[#1081](https://github.com/wildcard/caro/issues/1081) — feature-gate the default build, or flip `remote-backends` into `default`** (P1; wiring itself is done — claude/openrouter/grok all give the same clean config error as ollama/vllm/exo, verified tonight). The remaining ask is a product decision: ship remote backends in the default binary, or keep them opt-in and this stays a docs-only story. **Topmost unblocked *code* row, but needs a maintainer call on the default-feature question before a PR makes sense.**
 5. **Reconcile the `caro test`-subcommand rosters** — `src/main.rs:437` help + `src/main.rs:2069` `valid_backends` advertise `static`/`mlx`, a genuinely-different roster from top-level `--backend`. Not re-checked tonight (budget); carry forward.
 6. **[#1645](https://github.com/wildcard/caro/issues/1645) — static matcher Pattern 43 drops file-type qualifiers.** Reproduced tonight as a side-effect of validation: `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls -la`, not `ls *.pdf`. Already filed (P1); not a tonight-sized fix (matcher logic, not docs).
-7. **[#1439](https://github.com/wildcard/caro/issues/1439) — retire Gemini CLI row, track Antigravity CLI instead.** PR #782 confirmed CLOSED (not merged). Small docs fix; good candidate for next pass's quick-win slot.
+7. ✅ **DONE — [#1439](https://github.com/wildcard/caro/issues/1439) Gemini CLI row retired to ⏳ not-yet (partial), Antigravity CLI row added.** PR #782 is closed (not merged). Gemini CLI stays a valid target only for Code Assist Standard/Enterprise and paid API-key users; Antigravity CLI, its replacement for personal accounts, rides on #929.
 8. **Claude Code MCP server** (`caro mcp serve`) — spec drafted (`.github/first-time-issues/06-mcp-claude-code-integration.md`, [#928](https://github.com/wildcard/caro/issues/928)); coordinate with [#789](https://github.com/wildcard/caro/pull/789).
 9. **OpenAI-compat HTTP shim** (`caro serve --openai`, [#929](https://github.com/wildcard/caro/issues/929)) — single highest-leverage surface; unlocks ~6 long-tail tools at once.
 10. **Claude Code session-token reuse backend** ([#930](https://github.com/wildcard/caro/issues/930)) — let users with CC subscription get Haiku for free.
