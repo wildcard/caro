@@ -811,9 +811,16 @@ Your PR will use the template from `.github/PULL_REQUEST_TEMPLATE.md`. Include:
 
 ### Review Process
 
-1. **Automated checks** will run (tests, formatting, linting)
-2. **Maintainers will review** within 48 hours
-3. **Address feedback** with additional commits
+1. **Automated checks** will run (tests, formatting, linting). On a PR from
+   a fork, a maintainer approves the first CI run after reading the diff.
+2. **Maintainers will review** within 48 hours. We check the code against
+   the description:
+   - each test the description names exists in the PR;
+   - CI ran on the latest commit;
+   - for a fix, the issue's steps fail on `main` and pass with the PR, so
+     please paste that before/after output in the description.
+3. **Address feedback** with additional commits, and keep the description
+   in step with the code
 4. **Approval and merge** once all checks pass
 
 ---
