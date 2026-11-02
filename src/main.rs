@@ -544,8 +544,8 @@ enum Commands {
     // },
     /// Run evaluation tests on command generation quality
     Test {
-        /// Backend to test (static, mlx, ollama, or embedded)
-        #[arg(short, long, default_value = "static")]
+        /// Backend to test
+        #[arg(short, long, default_value = "static", value_parser = ["static", "embedded"])]
         backend: String,
 
         /// Show verbose output including all test cases
