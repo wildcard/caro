@@ -314,7 +314,7 @@ progress. Keep #1272 open until first-run download progress (or a clear
 
 **Found:** 2026-10-11, broken-window sweep
 **Issue:** #1587
-**Status:** open
+**Status:** claimed-by sweep/2026-10-26-BW-059 (#1724)
 **Needs human?:** no
 **Next step:** Add `claude-skill-launch` and `founders-playbook-adaptation`
 to the `posts` array in `website/src/pages/blog/index.astro`.
@@ -395,7 +395,7 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 
 **Found:** 2026-10-13, broken-window sweep (register sync)
 **Issue:** #1629
-**Status:** open
+**Status:** open. PR #1658 (`fix(integrations): refresh caro-shell skill backend guidance for 1.5.0`) carries the fix.
 **Needs human?:** no
 **Next step:** update the skill text to the v1.5.0 backend list.
 
@@ -503,6 +503,14 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Needs human?:** yes (CI gate: which workflow runs which targets)
 **Next step:** the owner picks how CI runs the unlisted `tests/` targets
 (the options are in #1537).
+
+### BW-097: top-level `caro "<prompt>"` blocks on an open stdin pipe (agent subprocess hang)
+
+**Found:** 2026-10-26 sweep register sync (issue filed 2026-10-26)
+**Issue:** #1723. `src/main.rs` reads stdin whenever it is not a TTY, even when `-p` or trailing words already gave a prompt. `caro ai --once` had the same bug (#1499, fixed by #1503 with `needs_stdin_prompt()`).
+**Status:** open. PR #1043 (outside contributor, updated 2026-10-26) already changes this call site, together with Windows-only fixes.
+**Needs human?:** no
+**Next step:** let #1043 land, or ask its author to split the stdin hunk out. Do not open a competing sweep PR on the same lines while #1043 is active.
 
 ### BW-094: uutils coreutils (Ubuntu 26.04, `ubuntu-latest` CI) detected as `UtilityType::Unknown`
 
