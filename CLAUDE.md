@@ -56,7 +56,7 @@ cargo run -- --dry-run "query" # Generate without executing
 
 # Benchmarks and evaluation
 cargo bench                    # Run benchmarks
-cargo run --bin caro-eval      # Run evaluation suite
+cargo test --test evaluation   # Run evaluation harness (tests/evaluation/)
 ```
 
 ## Context Management
