@@ -32,6 +32,7 @@ description: |
   user: "/caro.leftovers"
   assistant: "I'll spawn the leftovers-reporter agent to document incomplete work as GitHub issues."
   </example>
+tools: Read, Write, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

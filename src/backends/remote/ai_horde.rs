@@ -34,6 +34,13 @@ pub const AI_HORDE_DEFAULT_URL: &str = "https://aihorde.net/api";
 /// Anonymous API key — works without registration at lowest queue priority.
 pub const AI_HORDE_ANON_KEY: &str = "0000000000";
 
+/// `Client-Agent` header value: `name:version:contact`, as AI-Horde asks.
+const CLIENT_AGENT: &str = concat!(
+    "caro:",
+    env!("CARGO_PKG_VERSION"),
+    ":github.com/wildcard/caro"
+);
+
 /// Default total budget to wait for a queued job to finish.
 const DEFAULT_MAX_WAIT: Duration = Duration::from_secs(60);
 
@@ -245,7 +252,7 @@ Request: {}
             .client
             .post(&url)
             .header("apikey", &self.api_key)
-            .header("Client-Agent", "caro:1.4.0:github.com/wildcard/caro")
+            .header("Client-Agent", CLIENT_AGENT)
             .json(&body)
             .send()
             .await
@@ -438,7 +445,7 @@ impl CommandGenerator for AiHordeBackend {
 mod tests {
     use super::*;
     use crate::models::{SafetyLevel, ShellType};
-    use wiremock::matchers::{method, path, path_regex};
+    use wiremock::matchers::{header, method, path, path_regex};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     fn req() -> CommandRequest {
@@ -504,6 +511,47 @@ mod tests {
         let result = backend.generate_command(&req()).await.unwrap();
         assert_eq!(result.command, "ls *.txt");
         assert_eq!(result.backend_used, "AI-Horde");
+    }
+
+    #[test]
+    fn test_client_agent_uses_crate_version() {
+        assert_eq!(
+            CLIENT_AGENT,
+            format!(
+                "caro:{}:github.com/wildcard/caro",
+                env!("CARGO_PKG_VERSION")
+            )
+        );
+    }
+
+    #[tokio::test]
+    async fn test_submit_sends_current_client_agent() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v2/generate/text/async"))
+            .and(header("Client-Agent", CLIENT_AGENT))
+            .respond_with(
+                ResponseTemplate::new(202).set_body_json(serde_json::json!({ "id": "j" })),
+            )
+            .expect(1)
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path_regex(r"^/v2/generate/text/status/.+$"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "done": true,
+                "faulted": false,
+                "generations": [ { "text": "{\"cmd\": \"ls\"}" } ]
+            })))
+            .mount(&server)
+            .await;
+
+        let backend = AiHordeBackend::new(server.uri(), AI_HORDE_ANON_KEY)
+            .unwrap()
+            .with_poll_interval(Duration::from_millis(5))
+            .with_max_wait(Duration::from_secs(2));
+
+        backend.generate_command(&req()).await.unwrap();
     }
 
     #[tokio::test]

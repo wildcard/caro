@@ -1,6 +1,7 @@
 ---
 name: rust-cli-expert
 description: Use this agent when developing, debugging, or enhancing the caro Rust CLI application. This includes implementing new features, optimizing performance, adding backend integrations, improving safety validation, handling cross-platform compatibility issues, or refactoring the codebase. Examples: <example>Context: User is working on the caro project and needs to implement a new inference backend. user: 'I need to add support for a new LLM backend that uses HTTP API calls' assistant: 'I'll use the rust-cli-expert agent to help implement the new HTTP-based inference backend with proper trait abstractions and error handling.'</example> <example>Context: User encounters a performance issue with model loading. user: 'The model loading is taking too long on startup, can you help optimize it?' assistant: 'Let me use the rust-cli-expert agent to analyze and optimize the model loading performance with lazy initialization patterns.'</example> <example>Context: User needs to improve command safety validation. user: 'I want to add better detection for potentially dangerous shell commands' assistant: 'I'll engage the rust-cli-expert agent to enhance the safety validation system with more comprehensive pattern detection.'</example>
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

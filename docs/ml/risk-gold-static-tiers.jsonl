@@ -119,3 +119,16 @@
 {"id": "gold-119", "static_tier": "safe", "static_patterns": []}
 {"id": "gold-120", "static_tier": "safe", "static_patterns": []}
 {"id": "gold-121", "static_tier": "safe", "static_patterns": []}
+{"id":"gold-122","static_patterns":["modify system services with elevated privileges"],"static_tier":"high"}
+{"id":"gold-123","static_patterns":[],"static_tier":"safe"}
+{"id":"gold-124","static_patterns":[],"static_tier":"safe"}
+{"id":"gold-125","static_patterns":[],"static_tier":"safe"}
+{"id":"gold-126","static_patterns":[],"static_tier":"safe"}
+{"id":"gold-127","static_patterns":["modify system services with elevated privileges"],"static_tier":"high"}
+{"id":"gold-128","static_patterns":[],"static_tier":"safe"}
+{"id":"gold-129","static_patterns":["delete important file types"],"static_tier":"moderate"}
+{"id":"gold-130","static_patterns":[],"static_tier":"safe"}
+{"id":"gold-131","static_patterns":[],"static_tier":"safe"}
+{"id":"gold-132","static_patterns":["recursive deletion of root, home, current, or parent directory","modification of critical system directories","delete files with elevated privileges"],"static_tier":"critical"}
+{"id":"gold-133","static_patterns":[],"static_tier":"safe"}
+{"id":"gold-134","static_patterns":[],"static_tier":"safe"}

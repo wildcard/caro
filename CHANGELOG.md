@@ -9,6 +9,80 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Normalization views before the safety scanners (spec 011 §P2.6,
+  `src/safety/normalize.rs`).** The validator now also scans the command
+  with terminal control sequences stripped (`rm\x1b[0m -rf /`), with
+  ANSI-C quoting unescaped (`$'rm -rf /'`, `$'\x72m' -rf /`), and with a
+  base64 literal decoded when it feeds an exec sink
+  (`eval "$(echo cm0gLXJmIC8= | base64 -d)"`, `… | base64 -d | sh`), so
+  the decoded payload reaches the catastrophic floor. A literal that is
+  only decoded and printed is data and is not decoded. Three new patterns
+  cover fetched content that reaches a shell without a pipe:
+  `bash <(curl …)` and `source <(wget …)` (High), `sh <<< "$(curl …)"`
+  (High), `sudo bash <(curl …)` (Critical). This is in the safety core, so
+  caro-generated commands benefit too. Regression guards:
+  `control_sequences_do_not_hide_a_catastrophic_command`,
+  `ansi_c_quoting_is_unescaped_before_scanning`,
+  `decoded_base64_payload_reaches_the_floor`,
+  `fetch_and_execute_without_a_pipe_is_flagged` and the extended benign
+  list in `tests/safety_segment_evasion_contract.rs`.
+- **PostToolUse secret-leak scan, shadow only (spec 011 §P2.5).** When a
+  harness sends a `PostToolUse` payload, `caro guard` scans the tool's output
+  for credential shapes (AWS access key ids, private-key blocks, GitHub,
+  Slack, OpenAI, Anthropic, Google and Stripe key prefixes, JWTs,
+  authorization headers, secret-named assignments) and records the match
+  **class** in the decision log (`event: "PostToolUse"`, `leak: <class>`)
+  with a one-line stderr note. The secret itself never reaches the log or
+  stderr, nothing is emitted to the harness in any mode (PostToolUse cannot
+  block), and clean output is not logged. `caro guard setup <harness>
+  --post` installs the PostToolUse hook; `caro guard report` shows an
+  `output leaks` count. Regression guards:
+  `post_tool_use_leak_is_logged_by_class_never_by_value` and
+  `clean_post_tool_use_output_is_silent_and_unlogged` in `tests/e2e_guard.rs`.
+- **Hash-chained guard log and `caro guard audit` (spec 011 §P2.4).** Each
+  decision record now carries `prev_hash` and `hash` (SHA-256 of its canonical
+  JSON), written under an exclusive file lock so concurrent harness sessions
+  chain correctly, and a `decisions.jsonl.head` sidecar records the last
+  hash. `caro guard audit verify` walks the chain and exits 1 at the first
+  break (edited record, record removed from the middle or the end, hashless
+  record after the chain started, or torn line), naming the line;
+  `caro guard audit tail [-n N] [-f]` prints records; `caro guard audit
+  report` is the summary (`caro guard report` stays as an alias). Records
+  written before this change have no hash: the prefix before the first
+  chained record is counted as legacy. What this does not defend against:
+  an attacker who can rewrite both the log and the sidecar can recompute a
+  valid chain; a key or an external anchor is a follow-up. Regression guards:
+  `audit_verify_detects_a_one_byte_edit_and_tail_prints_records` in
+  `tests/e2e_guard.rs`, `one_changed_byte_breaks_the_chain_at_that_line` in
+  `src/guard/log.rs`.
+- **`caro guard` sees file tools (spec 011 §P2.3).** `Read`, `Write`,
+  `Edit`, `MultiEdit`, `NotebookEdit`, `Grep` and `Glob` calls are checked
+  against a built-in protected-path set (`~/.ssh/**`, `~/.gnupg/**`,
+  `~/.aws/**`, `~/.kube/config`, `~/.netrc`, `**/.env`, `**/.env.*`,
+  `**/id_rsa`, `**/*.pem`, caro's own `config.toml`, …): a protected path
+  → `ask`; a write to caro's own decision log → `deny`; every other path →
+  no opinion, no output, no log line. Matching is lexical (tilde, `.`,
+  `..`, cwd), no filesystem access on the hook path, and the reason names
+  a label, never the path. `[safety] protected_paths = [...]` in
+  `config.toml` adds globs (additive only). The decision record gains
+  `tool` and `path`; `caro guard report` groups by tool; the installed hook
+  matcher now covers the file tools. Regression guards:
+  `enforce_asks_on_protected_path_read` and
+  `routine_read_stays_silent_and_unlogged` in `tests/e2e_guard.rs`.
+- **`caro guard test` and `caro guard setup` (spec 011 §P2.1, §P2.2).**
+  `caro guard test "<command>"` dry-runs one command through the guard and
+  prints risk, verdict, matched patterns and the floor flag (`--output json`
+  for scripts; exit 0 none / 2 deny / 3 ask; nothing is logged).
+  `caro guard setup <claude|codex|opencode>` installs the PreToolUse hook
+  idempotently into the user-scope (default) or `--scope project` hook
+  file, keeping every other hook and key; `--dry-run` previews, `--verify`
+  checks the entry, resolves `caro` on `$PATH`, sends a synthetic `rm -rf /`
+  payload and reports **ADAPTER VERIFIED** (never "host verified": caro
+  cannot observe the host ingesting the hook). `caro doctor` shows the
+  hook status. Regression guards: `guard_test_denies_critical_with_exit_2_and_json`
+  and `guard_setup_is_idempotent_keeps_other_hooks_and_verifies` in
+  `tests/e2e_guard.rs`. First parity item from the Rampart research
+  (`docs/research/2026-10-18-rampart-lessons.md`).
 - **Segment- and wrapper-aware safety validation (#1054).** The validator
   now scans each statement of a command line, each statement without its
   `sudo`/`env`/`timeout`/`nice`/`nohup`/`xargs`/`busybox` prefix, and each

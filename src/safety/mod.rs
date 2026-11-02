@@ -27,6 +27,7 @@
 //! ```
 
 pub mod cve_patterns;
+mod normalize;
 mod patterns;
 mod segments;
 
@@ -138,6 +139,10 @@ pub struct SafetySection {
     pub custom_patterns: Vec<DangerPattern>,
     #[serde(default)]
     pub allowlist_patterns: Vec<String>,
+    /// Extra protected-path globs for `caro guard` file tools (spec 011
+    /// §P2.3). Additive on top of the built-in set; `~` is expanded.
+    #[serde(default)]
+    pub protected_paths: Vec<String>,
 }
 
 /// Sibling `patterns.toml` schema. The top-level array uses `[[pattern]]`
@@ -622,6 +627,20 @@ impl SafetyValidator {
         let mut targets = vec![command.to_string()];
         if !shell.is_windows() {
             targets.extend(segments::scan_views(command));
+            // Encoded forms (control sequences, `$'…'`, a base64 literal fed
+            // to an exec sink) are decoded once and scanned like the command,
+            // statements and wrapper payloads included (spec 011 §P2.6).
+            for view in normalize::views(command) {
+                let inner = segments::scan_views(&view);
+                if !targets.contains(&view) {
+                    targets.push(view);
+                }
+                for v in inner {
+                    if !targets.contains(&v) {
+                        targets.push(v);
+                    }
+                }
+            }
         }
         let unescaped: Vec<String> = targets
             .iter()

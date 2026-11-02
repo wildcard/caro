@@ -574,10 +574,17 @@ async fn detect_gnu_coreutils() -> bool {
     if let Ok(output) =
         run_command_with_timeout("ls", &["--version"], Duration::from_millis(500)).await
     {
-        output.to_lowercase().contains("gnu")
+        is_gnu_compatible_ls_version(&output)
     } else {
         false
     }
+}
+
+/// True when `ls --version` output comes from GNU coreutils or from uutils
+/// coreutils (the GNU-compatible Rust rewrite, default on Ubuntu 26.04).
+fn is_gnu_compatible_ls_version(output: &str) -> bool {
+    let output = output.to_lowercase();
+    output.contains("gnu") || output.contains("uutils")
 }
 
 async fn detect_bsd_utils() -> bool {
@@ -712,6 +719,21 @@ async fn run_command_with_timeout(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_ls_version_classifies_gnu_compatible_coreutils() {
+        // GNU coreutils (Ubuntu <= 25.04, Debian, Fedora).
+        assert!(is_gnu_compatible_ls_version(
+            "ls (GNU coreutils) 9.4\nCopyright (C) 2023 Free Software Foundation, Inc."
+        ));
+        // uutils coreutils, the default on Ubuntu 26.04 (and the
+        // ubuntu-latest CI image): GNU-compatible flags, no "GNU" in --version.
+        assert!(is_gnu_compatible_ls_version("ls (uutils coreutils) 0.2.2"));
+        assert!(!is_gnu_compatible_ls_version(
+            "BusyBox v1.36.1 (2023-11-07 18:53:09 UTC) multi-call binary."
+        ));
+        assert!(!is_gnu_compatible_ls_version(""));
+    }
 
     #[tokio::test]
     async fn test_detect_os() {

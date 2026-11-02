@@ -112,9 +112,9 @@ impl EmbeddedConfig {
 
 /// Default number of model layers to offload to the GPU (Metal): all of them.
 #[cfg_attr(
-    not(all(target_os = "macos", target_arch = "aarch64")),
+    not(all(target_os = "macos", target_arch = "aarch64", feature = "embedded-mlx")),
     allow(dead_code)
-)] // used by mlx.rs only
+)] // used only by mlx.rs's `embedded-mlx` load path (#1626)
 pub const DEFAULT_GPU_LAYERS: u32 = 99;
 
 /// GPU layers to offload, from the `CARO_GPU_LAYERS` env var.
@@ -123,17 +123,17 @@ pub const DEFAULT_GPU_LAYERS: u32 = 99;
 /// in `llama_cpp` 0.3 aborts on some models on hosted macOS runners (#1341).
 /// An unset or unparsable value keeps [`DEFAULT_GPU_LAYERS`].
 #[cfg_attr(
-    not(all(target_os = "macos", target_arch = "aarch64")),
+    not(all(target_os = "macos", target_arch = "aarch64", feature = "embedded-mlx")),
     allow(dead_code)
-)] // used by mlx.rs only
+)] // used only by mlx.rs's `embedded-mlx` load path (#1626)
 pub fn gpu_layers() -> u32 {
     gpu_layers_from(std::env::var("CARO_GPU_LAYERS").ok().as_deref())
 }
 
 #[cfg_attr(
-    not(all(target_os = "macos", target_arch = "aarch64")),
+    not(all(target_os = "macos", target_arch = "aarch64", feature = "embedded-mlx")),
     allow(dead_code)
-)] // used by mlx.rs only
+)] // used only by mlx.rs's `embedded-mlx` load path (#1626)
 fn gpu_layers_from(value: Option<&str>) -> u32 {
     value
         .and_then(|v| v.trim().parse().ok())
