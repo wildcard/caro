@@ -66,6 +66,19 @@ fn consent_screen_command_disables_telemetry() {
 }
 
 #[test]
+fn telemetry_first_run_is_configurable_and_shown() {
+    let dir = TempDir::new().unwrap();
+    for key in ["telemetry.first_run", "telemetry_first_run"] {
+        ok(dir.path(), &["config", "set", key, "false"]);
+        let got = ok(dir.path(), &["config", "get", key]);
+        assert!(got.contains("false"), "{key}: got {got}");
+    }
+
+    let show = ok(dir.path(), &["config", "show"]);
+    assert!(show.contains("telemetry.first_run"), "show: {show}");
+}
+
+#[test]
 fn keys_shown_by_config_show_are_settable() {
     let dir = TempDir::new().unwrap();
     for (key, value) in [
@@ -90,6 +103,7 @@ fn invalid_values_are_rejected() {
     let dir = TempDir::new().unwrap();
     for (key, value) in [
         ("telemetry.enabled", "maybe"),
+        ("telemetry.first_run", "maybe"),
         ("log_level", "loud"),
         ("cache_max_size", "0"),
         ("log_rotation", "999"),
