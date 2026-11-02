@@ -55,7 +55,7 @@ Press `Cmd+,` to open settings:
     "enabled": true,
     "default_model": {
       "provider": "anthropic",
-      "model": "claude-sonnet-4-20250514"
+      "model": "claude-sonnet-4-6"
     }
   },
   "terminal": {

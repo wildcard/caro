@@ -110,8 +110,8 @@ Located at `~/.config/crush/config.json`:
   "editor": "nvim",
   "shell": "zsh",
   "models": {
-    "default": "claude-sonnet-4-20250514",
-    "fast": "claude-3-5-haiku-20241022"
+    "default": "claude-sonnet-4-6",
+    "fast": "claude-haiku-4-5-20251001"
   }
 }
 ```
@@ -129,7 +129,7 @@ crush "explain this codebase"
 crush -C /path/to/project
 
 # Use a specific model
-crush --model claude-sonnet-4-20250514 "refactor this function"
+crush --model claude-sonnet-4-6 "refactor this function"
 ```
 
 ## Key Features

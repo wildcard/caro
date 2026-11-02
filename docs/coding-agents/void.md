@@ -45,7 +45,7 @@ brew install --cask void
 // ~/.config/Void/User/settings.json
 {
   "void.ai.provider": "anthropic",
-  "void.ai.model": "claude-sonnet-4-20250514",
+  "void.ai.model": "claude-sonnet-4-6",
   "void.ai.apiKey": "...",
   "void.chat.systemPrompt": "Validate shell commands with caro"
 }
