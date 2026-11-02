@@ -49,6 +49,9 @@ Desktop.ini
 tmp/
 temp/
 
+# Local diagnostic / audit output (per-session test artefacts)
+audit-output/
+
 # Debug files
 *.dSYM/
 *.su
