@@ -1,25 +1,24 @@
 # v2.0.0 Release State
 
-**Last Updated**: 2026-07-06 (weekly planning agent run)
+**Last Updated**: 2026-11-02 (weekly planning agent run)
 **Routine ID**: `trig_01KTFtDwFfs4xHiJ2JVbCgEV`
 **Schedule**: Every Monday at 09:00 AM PDT (16:00 UTC)
 **Manage at**: https://claude.ai/code/routines/trig_01KTFtDwFfs4xHiJ2JVbCgEV
 
 ## Current Status
 
-**Completion**: 61.7% (29/47 GitHub milestone items)
-**Core feature completion**: 0% (0/5 gantt features implemented)
-**Open blockers**: 4 identified
-**Target release**: June 30, 2026 → **6 DAYS OVERDUE**
+**Completion**: 9% (2/23 GitHub milestone items closed)
+**Core feature completion**: 0% (0/7 research lines past Gate 1; 0/20 transcripts each)
+**Open blockers**: 4
+**Target release**: June 30, 2026 -> **125 days overdue**
 **Status**: BLOCKED
 
 ## Blockers
 
-1. **Validation discipline (CRITICAL)** — All 5 core features need 20 user interviews each;
-   current count is 0/20 across all five features
-2. **Release date passed** — June 30, 2026 target, now July 6
-3. **PR #1173 stale** — May-25 planning PR still open (42 days)
-4. **PR #1246 CI** — pre-existing test failures flagged `path:refuse-list`
+1. **Validation discipline (CRITICAL)** — 0/20 transcripts for all research lines
+2. **Release date passed** — June 30, 2026 target
+3. **Planning PRs #1694 / #1725 unmerged** — `main` state is stale
+4. **PR #1725 CI** — `cla-check` and `Unit Tests (ubuntu-latest)` failing (outside its docs-only diff)
 
 ## Core Feature Issues
 
@@ -33,9 +32,9 @@
 
 ## Next 3 Priority Items
 
-1. Begin user discovery for Self-Healing (#1151) — run `caro.discovery` skill, 20 interviews
-2. Begin user discovery for Local Context Indexing (#1152) — ChromaDB foundation ready
-3. Merge or close PR #1173 (42-day-old planning PR)
+1. Merge #1725 and close #1694
+2. Begin discovery for Self-Healing (#1151) or Local Context Indexing (#1152)
+3. Decide scope reset: ship exempt `caro-core` items as v2.0.0, defer research lines
 
 ## Milestone Alignment Gaps
 
@@ -49,7 +48,9 @@ Issues referencing v2.0.0 in body but NOT assigned to GitHub milestone #3:
 | Date | Report | PR |
 |------|--------|----|
 | 2026-05-25 | `.claude/memory/v200-weekly-report-2026-05-25.md` | #1173 (open, stale 42d) |
-| 2026-07-06 | `.claude/memory/v200-weekly-report-2026-07-06.md` | This run |
+| 2026-07-06 | `.claude/memory/v200-weekly-report-2026-07-06.md` | merged |
+| 2026-10-19 / 10-26 | on PR branches only | #1694 / #1725 (open) |
+| 2026-11-02 | `.claude/memory/v200-weekly-report-2026-11-02.md` | This run |
 
 ## Notes
 
