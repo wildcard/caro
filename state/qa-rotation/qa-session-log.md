@@ -4,6 +4,38 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-02 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1744 into this state on 2026-11-02. The run read main's May copy. The QA PRs it calls open and unmerged (#1739, #1741, #1743) were folded into this state and closed. Its `executed: true` note is by design: #1532 closed #1217 by adding `dry_run: true` and kept `executed` as "passed safety checks".
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (advisory: no model downloaded, expected)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` via static matcher
+
+### Slot B — Recent diff
+Last logged run was 2026-05-07; many PRs merged since. Listed the 2026-11-02 batch: #1740 (`config reset <key>`), #1737 (`test --help` backends), #1710 (`caro ai` no-prompt error), #1706 (platform ls detection). Only the dry-run path was exercised this pass; the config/ai/test surfaces are flagged for Slot C (#14, #10, #18).
+Note: QA rotation PRs #1739, #1741, #1743 are open and unmerged, so this log lags those branches.
+
+### Slot C — `--output json` / `--output yaml` (#15, #16)
+- `--output json -p 'list files in current directory' --dry-run` → valid JSON, expected keys, timing_info present → **PASS**
+- `--output yaml` → valid YAML, same keys → **PASS**
+
+### Findings
+None this pass.
+
+### Followups
+- JSON/YAML report `"executed": true` for a `--dry-run` that did not run the command. Text mode says "would execute". Field meaning is ambiguous for scripted consumers; consider P3 if confirmed unintended.
+- `gh` CLI token (GH_TOKEN) was invalid in this sandbox; GitHub MCP tools used instead.
+- Memory files on main predate several months of runs; reconcile with open QA PRs.
+
+---
+
 ## 2026-11-01 — Scheduled run (Slot A + Slot B + Slot C)
 
 > Folded from #1743 into this state on 2026-11-01. The run read main's May copy. This state holds the QA PRs it calls closed unmerged (#1733 to #1741), so main's copy does not need them. Its `caro guard` checks in Slot B update surface 36 here.
