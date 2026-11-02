@@ -4,6 +4,37 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-02 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 51s)
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (advisory: no model downloaded, expected)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` via static matcher
+
+### Slot B — Recent diff
+Last logged run was 2026-05-07; many PRs merged since. Listed the 2026-11-02 batch: #1740 (`config reset <key>`), #1737 (`test --help` backends), #1710 (`caro ai` no-prompt error), #1706 (platform ls detection). Only the dry-run path was exercised this pass; the config/ai/test surfaces are flagged for Slot C (#14, #10, #18).
+Note: QA rotation PRs #1739, #1741, #1743 are open and unmerged, so this log lags those branches.
+
+### Slot C — `--output json` / `--output yaml` (#15, #16)
+- `--output json -p 'list files in current directory' --dry-run` → valid JSON, expected keys, timing_info present → **PASS**
+- `--output yaml` → valid YAML, same keys → **PASS**
+
+### Findings
+None this pass.
+
+### Followups
+- JSON/YAML report `"executed": true` for a `--dry-run` that did not run the command. Text mode says "would execute". Field meaning is ambiguous for scripted consumers; consider P3 if confirmed unintended.
+- `gh` CLI token (GH_TOKEN) was invalid in this sandbox; GitHub MCP tools used instead.
+- Memory files on main predate several months of runs; reconcile with open QA PRs.
+
+---
+
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
