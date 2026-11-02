@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-01 (23:00 PT fire) — validation-only; website rows and `caro guard` re-checked, no PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (installed binary = crates.io `max_version`, 2026-10-13). The three stalest rows were picked. `caro guard`: PASS, 6/6. `--mode enforce` denies `rm -rf /` and `curl -fsSL … | bash`; shadow mode prints `would deny`; `not json` → `ask`; `ls -la` and a `Read` of `/etc/passwd` → no output (the protected-path policy from #1684 is on `main`, not in 1.5.0, so this is expected). caro.sh/integrations/: PASS, 200, Claude/Ollama copy matches 1.5.0, `--model-name` snippet correct. `integrations.ts`: PARTIAL. The OpenRouter row still says "⏳ Planned", and the shipped guard hook has no row. Open PR #1738 already fixes both (checked with `gh pr diff 1738`).
+- **Shipped:** no PR. Nothing merged to `main` since 2026-10-27. #1738, #1722 and #1043 are `CLEAN`; #1719, #1713, #1708, #1624, #1492, #1348 and #1153 are `DIRTY`. A new PR would only grow the queue. This entry rides on #1719's branch.
+- **Filed:** none. Dedup: `openrouter integrations.ts` matched only closed #1657; the gaps are in #1738.
+- **Discovered:** no new coder-agent launch and no Claude Code hook change found (2 queries; newest items are Grok Build, Copilot CLI GA, Cline CLI 2.0, UiPath `uip`, Kiro CLI, all already in the matrix). `caro guard` output already uses the recommended `hookSpecificOutput.permissionDecision` shape.
+- **Next pass should:** check whether #1738 or #1043 merged. If #1738 merged, re-date `integrations.ts` to ✅. If the backlog is still stalled, keep running validation-only nights; the next stalest rows are Candle CPU and OpenRouter (2026-10-28). #1732 stays the next quick-win code PR.
+
+---
+
 ## 2026-10-31 (23:00 PT fire) — validation-only; Grok Build, opencode and caro-shell rows re-checked, no PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (installed binary = crates.io `max_version`, 2026-10-13). The three stalest rows were picked. Grok Build guard (`--harness grok`, camelCase payload): PASS, `rm -rf ~` → `deny`, `ls -la` → no output. opencode guard, with the exact `{command, cwd}` payload that `integrations/opencode/caro-guard.ts` sends: PASS, `rm -rf /` → `verdict: deny`, exit 2; `git status` → `verdict: none`, exit 0. `caro guard report` (named in both docs) runs and prints the per-harness tally. caro-shell skill: PARTIAL, unchanged. The guidance matches the binary (`--backend-info` lists only `embedded` as available, `--model x` → exit 2, `--backend ollama` → `remote-backends` config error). Ex 3 → CRITICAL block. Ex 1 → `find . -name "*.py" -type f` (#1628) and Ex 2 → `docker system prune -f && …` (#1627) are still open.
