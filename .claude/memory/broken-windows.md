@@ -504,6 +504,14 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Next step:** the owner picks how CI runs the unlisted `tests/` targets
 (the options are in #1537).
 
+### BW-098: invalid `--output` value is silently accepted and falls back to plain
+
+**Found:** 2026-10-27 sweep register sync (issue filed 2026-10-27)
+**Issue:** #1726. `--output` was a free-form string; `main.rs` discarded the parse error with `.ok()` and used `Plain`, so `--output jsno` exited 0 with non-JSON output.
+**Status:** claimed-by sweep/2026-10-27-BW-098 (#1728)
+**Needs human?:** no
+**Next step:** merge the sweep PR (clap `value_parser` with `ignore_case`).
+
 ### BW-094: uutils coreutils (Ubuntu 26.04, `ubuntu-latest` CI) detected as `UtilityType::Unknown`
 
 **Found:** 2026-10-22, CI on #1700 (`test_utility_type_detection` red on main and every PR)
@@ -527,6 +535,8 @@ to the `posts` array in `website/src/pages/blog/index.astro`.
 **Status:** fixed (#1700, merged 2026-10-27). Owner chose reviewed `audit.toml` entries on 2026-10-27 (review by 2026-12-31).
 **Needs human?:** yes (decided 2026-10-27: reviewed `audit.toml` entries)
 **Next step:** remove the entries when lancedb/lance/arrow move to zstd 0.14.
+
+
 
 ### BW-100: `caro test --help` advertises mlx/ollama backends that it rejects
 
