@@ -775,11 +775,15 @@ impl StaticMatcher {
             // Pattern 43: "list files" (very simple variant - was Pattern 44)
             PatternEntry {
                 required_keywords: vec!["list".to_string(), "files".to_string()],
-                optional_keywords: vec!["all".to_string()],
+                // No optional keywords: a keyword-only match would turn
+                // "list all pdf files" into a bare `ls -la` (#1645).
+                optional_keywords: vec![],
                 // Optional trailing qualifier names only the current directory (#1181);
                 // any other location must not collapse to a bare `ls -la`.
-                // `[^/~]` keeps a named path's last component ("/var/log/files") from satisfying `files?`.
-                regex_pattern: Some(Regex::new(r"(?i)^(list|show)[^/~]*\bfiles?(\s+((in\s+)?here|in\s+(the\s+)?(current|this)\s+(directory|dir|folder)))?\s*$").unwrap()),
+                // Only filler words may sit between the verb and `files`, so a
+                // file type or size ("pdf", "python", "large") falls through (#1645),
+                // and so does a path ("/var/log/files").
+                regex_pattern: Some(Regex::new(r"(?i)^(list(ing)?|show)(\s+(all|every|out|of|the|my|me))*\s+files?(\s+((in\s+)?here|in\s+(the\s+)?(current|this)\s+(directory|dir|folder)))?\s*$").unwrap()),
                 gnu_command: "ls -la".to_string(),
                 bsd_command: Some("ls -la".to_string()),
                 description: "List files (simple)".to_string(),
@@ -2422,6 +2426,54 @@ mod tests {
             Some("ls -la"),
             "/var/log/files must not be dropped"
         );
+    }
+
+    /// Issue #1645: a file-type or size qualifier must not collapse to a bare
+    /// listing. The static matcher must report no match, so the query falls
+    /// through to the next backend.
+    #[tokio::test]
+    async fn test_list_files_keeps_qualifiers() {
+        let profile = CapabilityProfile::ubuntu();
+        let matcher = StaticMatcher::new(profile);
+
+        let mut not_fallthrough = Vec::new();
+        for query in [
+            "list pdf files",
+            "list pdf files in current directory",
+            "list python files here",
+            "list large files in current directory",
+            "list all pdf files",
+            "show all python files",
+        ] {
+            let request = CommandRequest::new(query, ShellType::Bash);
+            match matcher.generate_command(&request).await {
+                Err(GeneratorError::BackendUnavailable { reason })
+                    if reason == "No static pattern match found" => {}
+                other => {
+                    not_fallthrough.push(format!("{query:?} => {:?}", other.map(|c| c.command)))
+                }
+            }
+        }
+        assert!(
+            not_fallthrough.is_empty(),
+            "qualified queries must fall through: {not_fallthrough:#?}"
+        );
+
+        // Plain listings still match Pattern 43
+        for query in [
+            "list files",
+            "list all files",
+            "show all files",
+            "list every file",
+            "show all of the files",
+        ] {
+            let request = CommandRequest::new(query, ShellType::Bash);
+            let cmd = matcher
+                .generate_command(&request)
+                .await
+                .unwrap_or_else(|e| panic!("{query:?} should match statically: {e}"));
+            assert_eq!(cmd.command, "ls -la", "{query:?}");
+        }
     }
 
     /// Issue #411: Test GNU platform generates GNU syntax (du --max-depth)
