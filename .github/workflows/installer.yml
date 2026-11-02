@@ -15,8 +15,10 @@ env:
 jobs:
   install:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14]
+        # Supported macOS baseline on both Intel and Apple Silicon.
+        os: [ubuntu-latest, macos-15-intel, macos-15]
     runs-on: ${{ matrix.os }}
 
     steps:

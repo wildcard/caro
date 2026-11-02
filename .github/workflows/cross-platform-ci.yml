@@ -16,7 +16,7 @@ name: Cross-Platform CI
 # Windows on every PR — so the floor of cross-platform coverage is preserved.
 #
 # This workflow now runs a small redundancy matrix on supported targets to
-# catch any drift specific to multiple OS minor versions. Any future BSD or
+# catch any drift specific to OS versions and architectures. Any future BSD or
 # exotic-distro coverage requires either real platform support in src/ or a
 # separate PR re-introducing the matrix entry with verified-green CI.
 
@@ -49,7 +49,7 @@ env:
 jobs:
   # ============================================================================
   # Supported-platform redundancy matrix
-  # Runs against the OS minor versions caro promises to support.
+  # Runs against supported OS versions and architectures.
   # ============================================================================
 
   supported-platform-tests:
@@ -62,8 +62,10 @@ jobs:
         os:
           - ubuntu-latest
           - ubuntu-22.04
+          # Rolling Apple Silicon image, alongside the explicit macOS baseline.
           - macos-latest
-          - macos-14
+          - macos-15-intel
+          - macos-15
 
     steps:
       - name: Checkout repository
