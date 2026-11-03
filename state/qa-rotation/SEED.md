@@ -200,3 +200,13 @@ The 2026-11-02 run used the old prompt and read main's May copy. It was folded o
 - **Slot B:** it listed #1740, #1737, #1710 and #1706 but ran only `--dry-run`, so no surface changes.
 - **Backlog:** no new issues.
 - **Flakes:** FLAKE-001 was not triggered. `caro ai --once` (FLAKE-002) was not exercised.
+
+## Added after seeding: #1746 (2026-11-03)
+
+The 2026-11-03 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-11-03; surface 14 (`caro config get/set/show/reset`, PASS) gets the new date and keeps the seed's note. The run exercised #1740's per-key `reset`.
+- **Answered:** its open question, the exit code for an unknown key, is covered for `reset` by `reset_key_restores_only_that_key` in `tests/config_cli_keys.rs` on main.
+- **Backlog:** no new issues.
+- **Flakes:** FLAKE-001 was not triggered. `caro ai --once` (FLAKE-002) was not exercised.
