@@ -4,6 +4,40 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-03 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1746 into this state on 2026-11-03. The run read main's May copy. Its open question, the exit code for an unknown key, is answered for `reset` on main: `reset_key_restores_only_that_key` in `tests/config_cli_keys.rs` checks that `caro config reset nope` exits non-zero with "Unknown config key".
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (no model downloaded; advisory only)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`, dry-run OK (FLAKE-001 did not recur)
+- Note: `gh auth status` reports invalid GH_TOKEN, but `gh api` REST calls work; `gh pr list` (GraphQL) is blocked in this sandbox.
+
+### Slot B — Recent diff
+PRs merged since 2026-05-07 (latest via REST): #1740 config reset <key>, #1737 test --help backends, #1710 ai no-prompt error, #1716 harness docs, #1706 platform ls detection. Exercised #1740 (config reset) in Slot C. Others not deep-tested.
+
+### Slot C — `caro config get/set/show/reset`
+- `set safety strict` / `get safety` → PASS
+- `reset safety` → PASS (back to Moderate, other keys such as log_level untouched)
+- `reset` (no key) → PASS; `show` lists defaults
+- `set safety bogus` → PASS: clear error, rc=1
+- Observation (not filed, P3): `caro config reset bogus.key` / `get` with unknown key prints an error but the exit code seen was from `tail`/redirect; I did not isolate the real exit code.
+
+### Findings
+None this pass.
+
+### Followups
+- Unknown-key exit code for `config reset`/`get` not verified; recheck next time.
+- Next Slot C candidate: #10 `caro ai --once`.
+
+---
+
 ## 2026-11-02 — Scheduled run (Slot A + Slot B + Slot C)
 
 > Folded from #1744 into this state on 2026-11-02. The run read main's May copy. The QA PRs it calls open and unmerged (#1739, #1741, #1743) were folded into this state and closed. Its `executed: true` note is by design: #1532 closed #1217 by adding `dry_run: true` and kept `executed` as "passed safety checks".
