@@ -1,6 +1,11 @@
 ---
 import ComparisonPageLayout from '../../layouts/ComparisonPageLayout.astro';
 
+// The OpenCode claims changed in this refresh were checked against
+// opencode.ai docs and the anomalyco/opencode repo on 2026-10-11 (permissions
+// page re-checked 2026-10-13); sources are in the verification block below.
+// This page covers opencode.ai, not the archived opencode-ai/opencode project
+// (now Charm's Crush).
 const comparison = {
   competitor: {
     name: 'OpenCode',
@@ -9,71 +14,81 @@ const comparison = {
   tldr: {
     title: 'TL;DR',
     points: [
-      'Both are open source and support local-first operation',
-      'OpenCode is a general-purpose AI coding agent; Caro is a specialized shell companion',
-      'Caro has 52+ rule-based safety patterns; OpenCode relies on model discretion',
-      'OpenCode does file editing, refactoring, etc.; Caro focuses on shell commands only',
-      'Both support multiple model backends (Ollama, etc.)'
+      'Both are open source: OpenCode is MIT, Caro is AGPL-3.0. Both can run local models.',
+      'OpenCode is a general-purpose coding agent with 75+ model providers. Caro is a shell specialist.',
+      'By default OpenCode allows most operations, shell commands included, without asking. Exceptions: doom-loop and outside-directory actions ask, and .env reads are denied. You can turn on prompts and write wildcard rules. Caro checks every command it generates against 52+ curated patterns with risk levels, with no configuration.',
+      'OpenCode runs offline once you configure a local provider and turn off its model, update and LSP downloads. With its default embedded backend, Caro is offline after a one-time model download.',
+      'They work well together: OpenCode for coding, Caro for quick, safety-checked shell commands.'
     ]
   },
   headToHead: [
     { feature: 'Open source', caro: true, competitor: true, winner: 'tie' },
-    { feature: 'Works offline', caro: true, competitor: 'partial', winner: 'caro' },
-    { feature: 'Privacy-first design', caro: true, competitor: true, winner: 'tie' },
-    { feature: 'Rule-based safety checks', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Blocks dangerous commands', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'Multi-backend support', caro: true, competitor: true, winner: 'tie' },
+    { feature: 'Offline by default', caro: true, competitor: 'partial', winner: 'caro' },
+    { feature: 'Asks before running shell commands inside the project, by default', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Built-in dangerous-command patterns', caro: true, competitor: false, winner: 'caro' },
+    { feature: 'Risk level for each command', caro: true, competitor: 'unknown', winner: 'none' },
+    { feature: 'Custom command rules (patterns, allow/deny lists)', caro: true, competitor: true, winner: 'tie' },
     { feature: 'Shell command specialist', caro: true, competitor: false, winner: 'caro' },
-    { feature: 'General code editing', caro: false, competitor: true, winner: 'competitor' },
-    { feature: 'File refactoring', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'Multi-provider model support', caro: true, competitor: true, winner: 'tie' },
+    { feature: 'General code editing and refactoring', caro: false, competitor: true, winner: 'competitor' },
+    { feature: 'MCP servers and custom agents', caro: false, competitor: true, winner: 'competitor' },
   ],
   sections: [
     {
-      title: 'Scope & Focus',
+      title: 'Scope and Focus',
       icon: '▸',
       content: `
-        <p><strong>OpenCode</strong> is a general-purpose AI coding agent. It can edit files, refactor code, explain codebases, and run terminal commands. It's designed to be a comprehensive coding assistant.</p>
-        <p><strong>Caro</strong> intentionally does one thing well: helping you remember and safely execute shell commands. It's a specialized sub-agent, not a full coding assistant. This focus allows for deeper expertise in shell workflows and stronger safety guarantees.</p>
+        <p><strong>OpenCode</strong> is a general-purpose AI coding agent. It edits files, refactors code, explains codebases, runs terminal commands, uses MCP servers and supports 75+ model providers. It has a terminal UI, a desktop app and IDE extensions.</p>
+        <p><strong>Caro</strong> does one job: help you write and safely run shell commands. That focus allows deeper shell knowledge, such as platform detection and GNU/BSD awareness, and stronger safety defaults.</p>
       `
     },
     {
-      title: 'Safety Philosophy',
+      title: 'Safety Approach',
       icon: '■',
       content: `
-        <p><strong>OpenCode</strong> generates commands without systematic pre-execution validation. While you can review commands before running them, there's no dedicated layer that catches dangerous patterns.</p>
-        <p><strong>Caro</strong> validates every command against 52+ predefined safety patterns. Commands like <code>rm -rf /</code>, fork bombs, and system-breaking operations are blocked before they're ever shown to you. Safety isn't optional—it's built into the core.</p>
-      `
-    },
-    {
-      title: 'Complementary Use',
-      icon: '▸',
-      content: `
-        <p>These tools can work together! Use <strong>OpenCode</strong> for general coding tasks—editing files, explaining code, refactoring. When you need shell command help with safety guarantees, reach for <strong>Caro</strong>.</p>
-        <p>Caro is designed to be a focused companion, not a replacement for broader tools. Its lightweight, specialized nature makes it easy to add to any workflow without overlap.</p>
+        <p><strong>OpenCode</strong> allows most operations by default, including shell commands. Its documented exceptions: doom-loop and outside-directory actions ask, and reading <code>.env</code> files is denied (<code>.env.example</code> is allowed). You can set <code>bash</code> to <code>ask</code> and write wildcard rules such as <code>"rm *": "deny"</code> in <code>opencode.json</code>. The built-in Plan agent asks before edits and shell commands. A plugin can check or block any command before it runs. OpenCode's documented default permissions include no curated list of dangerous commands.</p>
+        <p><strong>Caro</strong> checks every command it generates against 52+ curated patterns and rates it Safe, Moderate, High or Critical. At the default safety level it blocks Critical commands, such as <code>rm -rf /</code> and fork bombs, with no configuration, and asks before High ones. You can add your own patterns and allowlist entries.</p>
       `
     },
     {
       title: 'Local Operation',
       icon: '$',
       content: `
-        <p><strong>OpenCode</strong> supports local operation with various model backends, though some configurations may require internet for model downloads or API calls.</p>
-        <p><strong>Caro</strong> is designed offline-first from the ground up. Once you have local models configured, it never needs internet. Perfect for air-gapped environments, flights, or restrictive networks.</p>
+        <p><strong>OpenCode</strong> works with Ollama, LM Studio and llama.cpp. By default it still goes online to fetch model metadata, check for updates and download language servers. Each of these has an off switch.</p>
+        <p><strong>Caro</strong> is offline-first with its default embedded backend. After a one-time model download it never needs the internet, which suits air-gapped networks, flights and restricted VPNs.</p>
+      `
+    },
+    {
+      title: 'Use Both',
+      icon: '▸',
+      content: `
+        <p>Use <strong>OpenCode</strong> for coding work: editing files, explaining code and refactoring. Reach for <strong>Caro</strong> when you want one shell command, checked for safety, in seconds.</p>
       `
     },
   ],
   verdict: {
     chooseCaro: [
-      'You need specialized shell command assistance',
-      'Rule-based safety validation is important to you',
+      'You need specialized shell command help',
+      'You want safety checks on by default, with no configuration',
       'You want a lightweight, focused tool',
-      'Air-gapped / offline-first is a requirement',
-      'You\'re adding to (not replacing) your existing tools',
+      'Offline or air-gapped use is a requirement',
+      'You are adding to your tools, not replacing them',
     ],
     chooseCompetitor: [
       'You need a general-purpose AI coding agent',
-      'File editing and refactoring are primary use cases',
-      'You want one tool for multiple coding tasks',
-      'Broader codebase understanding is needed',
+      'File editing and refactoring are your main tasks',
+      'You want one tool for many coding tasks',
+      'You want a choice of 75+ model providers',
+    ]
+  },
+  verification: {
+    date: '2026-10-13',
+    sources: [
+      { label: 'anomalyco/opencode repository (MIT)', url: 'https://github.com/anomalyco/opencode' },
+      { label: 'OpenCode docs: permissions (re-checked Oct 13, 2026)', url: 'https://opencode.ai/docs/permissions/' },
+      { label: 'OpenCode docs: config', url: 'https://opencode.ai/docs/config/' },
+      { label: 'OpenCode docs: providers', url: 'https://opencode.ai/docs/providers/' },
+      { label: 'OpenCode docs: plugins', url: 'https://opencode.ai/docs/plugins/' },
     ]
   }
 };
@@ -81,7 +96,7 @@ const comparison = {
 
 <ComparisonPageLayout
   title="Caro vs OpenCode - Feature Comparison | Shell AI Tools"
-  description="Compare Caro and OpenCode. Specialized shell companion with safety guardrails vs general-purpose AI coding agent."
+  description="Compare Caro and OpenCode. A shell specialist with safety checks on by default vs an open-source general-purpose AI coding agent."
   comparison={comparison}
   heroSubtitle="Specialized shell companion vs general coding agent"
   finalCtaHeading="Specialized. Safe. Focused."
