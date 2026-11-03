@@ -218,6 +218,9 @@ tests/evaluation/results/*.md
 .worktrees/
 .claude/worktrees/
 
+# Automation scheduler run-history ledgers (runtime audit trail, not shared)
+.claude/automation/state/run_history/
+
 # Continuous-Claude session continuity
 # Ledgers are OPTIONAL to track (uncomment if you want to share session state)
 # thoughts/ledgers/CONTINUITY_CLAUDE-*.md

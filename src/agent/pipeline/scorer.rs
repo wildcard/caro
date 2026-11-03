@@ -45,6 +45,7 @@ impl Scorer for LinearScorer {
             + self.weights.safety_confidence * f.safety_confidence
             + self.weights.platform_fit * f.platform_fit
             + self.weights.knowledge_similarity * knowledge
+            + self.weights.backend_success * f.backend_success
             + self.weights.latency * latency;
         raw.clamp(0.0, 1.0)
     }
@@ -73,6 +74,7 @@ mod tests {
             safety_confidence: 1.0,
             platform_fit: 1.0,
             knowledge_similarity: Some(1.0),
+            backend_success: 1.0,
             latency_ms: 0,
             validation_passed: true,
             ..Default::default()
