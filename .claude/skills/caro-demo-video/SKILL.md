@@ -47,12 +47,12 @@ These are caro-specific and not covered by `remotion-best-practices`.
 | `bgTerminal` | `#1a1a2e` | Terminal window body |
 | `bgChrome` | `#16161c` | Terminal title bar |
 | `borderSubtle` | `#1e1e24` | Window border |
-| `accent` | `#ff8c42` | Caro suggestions, primary CTA |
-| `accentDark` | `#ff6b35` | Hover states, secondary brand |
+| `accent` | `#ef3333` | Caro suggestions, primary CTA |
+| `accentDark` | `#e63636` | Hover states, secondary brand |
 | `prompt` | `#4ec9b0` | Shell prompt `$` |
 | `command` | `#9cdcfe` | Typed command text |
 | `success` | `#22c55e` | Safe / passed indicator |
-| `danger` | `#ef4444` | Blocked / error indicator |
+| `danger` | `#dc2626` | Blocked / error indicator |
 | `warning` | `#f59e0b` | High-risk warning |
 | `textPrimary` | `#e0e0e0` | Body text on dark bg |
 | `textMuted` | `#a0a0a0` | Captions, secondary text |
@@ -123,7 +123,7 @@ Total duration: 900 frames @ 30fps = **30 seconds**.
 |---|---|---|---|---|---|
 | 1 | ScenePain | 0–119 | 4s | "Forgot the syntax. Again." | Cursor blinks; `# how do I find...` types in then trails off |
 | 2 | SceneQueries | 120–539 | 14s | Per-query badge: `0.3s · 100% local` | 3 caro queries from test-cases.yaml render back-to-back, ~4.5s each |
-| 3 | SceneSafety | 540–779 | 8s | "52+ patterns. Blocked before damage." | `caro "delete everything in the current directory"` → red `✗ command blocked by safety validator (Critical)` |
+| 3 | SceneSafety | 540–779 | 8s | "67+ patterns. Blocked before damage." | `caro "delete everything in the current directory"` → red `✗ command blocked by safety validator (Critical)` |
 | 4 | SceneCloser | 780–899 | 4s | "Local. Private. No API key." | Logo + `cargo install caro` install line |
 
 Scene 2 queries (verified against `.claude/beta-testing/test-cases.yaml`):
@@ -228,7 +228,7 @@ is the source of truth. It records:
 | `website/src/components/landing/LPDemo.astro` | Terminal chrome design | All scenes |
 | `src/main.rs` (lines ~1014–1023) | CLI block-message string | Scene 3 |
 | `.claude/beta-testing/test-cases.yaml` | Verified caro queries + outputs | Scene 2 |
-| `src/safety/patterns.rs` | Pattern count (currently 52) | Scene 3 caption |
+| `src/safety/patterns.rs` | Pattern count (currently 67) | Scene 3 caption |
 | `homebrew-tap/README.md` | Install command | Scene 4 |
 | `install.sh` | Curl-pipe install | Scene 4 |
 

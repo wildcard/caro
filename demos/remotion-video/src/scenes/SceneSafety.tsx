@@ -104,7 +104,7 @@ export const SceneSafety: React.FC = () => {
       </div>
 
       <Caption
-        text="52+ patterns. Blocked before damage."
+        text="67+ patterns. Blocked before damage."
         startFrame={150}
         emphasis={{ word: "Blocked", color: colors.danger }}
       />
