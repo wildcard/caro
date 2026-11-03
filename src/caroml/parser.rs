@@ -16,7 +16,9 @@
 //! returns a single `ParseError` today but the type is shaped to allow
 //! a `Vec<ParseError>` variant later without source-breaking changes.
 
-use crate::caroml::ast::{Param, ParseError, ParseErrorKind, PlatformPragma, Step, Task};
+use crate::caroml::ast::{
+    check_version_header, Param, ParseError, ParseErrorKind, PlatformPragma, Step, Task,
+};
 use std::collections::HashSet;
 use std::path::PathBuf;
 
@@ -30,6 +32,7 @@ pub fn parse(src: &str) -> Result<Task, ParseError> {
 /// Parse with an associated source path (for error messages and the `Task.source_path` field).
 pub fn parse_with_path(src: &str, source_path: Option<PathBuf>) -> Result<Task, ParseError> {
     let mut state = ParseState::new(source_path);
+    let mut seen_content = false;
     for (idx, raw_line) in src.lines().enumerate() {
         state.line_no = idx + 1;
         let line = raw_line.trim_end();
@@ -40,8 +43,13 @@ pub fn parse_with_path(src: &str, source_path: Option<PathBuf>) -> Result<Task, 
         state.last_line = state.line_no;
 
         let (keyword, rest) = split_keyword(trimmed);
+        if keyword == "REM" {
+            continue;
+        }
+        let first_content = !seen_content;
+        seen_content = true;
         match keyword {
-            "REM" => continue,
+            "CAROML" => check_version_header(rest, state.line_no, !first_content)?,
             "TASK" => state.handle_task(rest)?,
             "WHY" => state.handle_why(rest)?,
             "NEED" => state.handle_need(rest)?,
@@ -362,6 +370,40 @@ mod tests {
         let task = must_parse(src);
         assert_eq!(task.title, "Hello");
         assert_eq!(task.steps.len(), 1);
+    }
+
+    #[test]
+    fn version_header_v1_parses_like_no_header() {
+        let plain = must_parse("TASK Hello\nDO say hi\n");
+        let versioned = must_parse("REM saved library\nCAROML 1\nTASK Hello\nDO say hi\n");
+        assert_eq!(versioned.title, plain.title);
+        assert_eq!(versioned.steps.len(), plain.steps.len());
+    }
+
+    #[test]
+    fn rejects_unknown_version() {
+        for v in ["2", "1.1", "v1", ""] {
+            let src = format!("CAROML {v}\nTASK Hello\nDO say hi\n");
+            let err = parse(&src).unwrap_err();
+            assert_eq!(err.line, 1);
+            assert_eq!(
+                err.kind,
+                ParseErrorKind::UnsupportedVersion(v.to_string()),
+                "version `{v}`"
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_misplaced_or_repeated_version() {
+        for src in [
+            "TASK Hello\nCAROML 1\nDO say hi\n",
+            "CAROML 1\nCAROML 1\nTASK Hello\nDO say hi\n",
+        ] {
+            let err = parse(src).unwrap_err();
+            assert_eq!(err.line, 2);
+            assert_eq!(err.kind, ParseErrorKind::MisplacedVersion);
+        }
     }
 
     #[test]
