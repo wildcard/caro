@@ -32,7 +32,8 @@ DO filter to those older than {days} days
 ```
 
 Substitution happens at parse time. The lock stores the post-substitution
-intent.
+intent. `LET` values are not passed to commands as environment variables; see
+the [runner contract](runner-contract.md).
 
 ### Escaping literal braces
 
