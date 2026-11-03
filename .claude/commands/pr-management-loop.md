@@ -277,7 +277,7 @@ run:
 
 ## Related Skills
 
-- `/stale-revival-loop` - Weekly deep stale cleanup
+- `/stale-revival-loop` - Weekly deep stale cleanup (planned; disabled in `schedule.yaml` until it exists)
 - `/caro.roadmap` - Roadmap-aligned PR prioritization
 - `/create_handoff` - Create handoff for stale PRs
 

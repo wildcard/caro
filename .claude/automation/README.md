@@ -58,7 +58,7 @@ This directory contains the infrastructure for automated development workflows t
 | Loop | Schedule | Description |
 |------|----------|-------------|
 | `/pr-management-loop` | Every 4 hours | PR review, rebase, agent responses |
-| `/stale-revival-loop` | Weekly Monday | Revive stale PRs/issues |
+| `/stale-revival-loop` | Disabled (not implemented) | Revive stale PRs/issues. No command or skill exists yet; see `schedule.yaml` |
 
 ## Directory Structure
 
