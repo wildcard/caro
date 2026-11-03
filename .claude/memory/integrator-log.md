@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-02 (23:00 PT fire) — validation-only; Claude, OpenRouter and Candle CPU rows re-checked, no PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (fresh `cargo install caro --force --locked`). The three stalest rows were picked. OpenRouter: PASS, `--backend openrouter --dry-run -p "list pdf files" </dev/null` → `requires the 'remote-backends' feature`, exit 1. Anthropic Claude API: PASS, same error, exit 1. Candle CPU (auto path): PASS, `show disk usage` → `df -h` in 0.30 s. `--backend-info` lists only `embedded` as available, 9 others `not compiled`.
+- **Shipped:** no PR. `main` moved (#1706, #1710, #1716, #1737, #1740), but no integrator-area PR merged. #1738, #1722 and #1043 are `CLEAN`; #1719, #1713, #1708, #1624, #1492, #1348 and #1153 are `DIRTY`. #1737 closed #1732, so the queued quick-win code PR is gone. A new PR would only grow the queue. This entry rides on #1719's branch.
+- **Filed:** none.
+- **Discovered:** no November 2026 coder-agent launch and no Claude Code hook change found (2 queries; newest items are Grok Build, Copilot CLI, Cline CLI 2.0, UiPath, Kiro CLI — all in the matrix).
+- **Next pass should:** check whether #1738, #1722 or #1043 merged. If the backlog is still stalled, keep running validation-only nights; the next stalest rows are README (2026-10-29), xAI Grok (2026-10-29) and Codex guard (2026-10-30). The integrator backlog needs a human merge pass; with #1732 done there is no queued quick-win.
+
+---
+
 ## 2026-11-01 (23:00 PT fire) — validation-only; website rows and `caro guard` re-checked, no PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (installed binary = crates.io `max_version`, 2026-10-13). The three stalest rows were picked. `caro guard`: PASS, 6/6. `--mode enforce` denies `rm -rf /` and `curl -fsSL … | bash`; shadow mode prints `would deny`; `not json` → `ask`; `ls -la` and a `Read` of `/etc/passwd` → no output (the protected-path policy from #1684 is on `main`, not in 1.5.0, so this is expected). caro.sh/integrations/: PASS, 200, Claude/Ollama copy matches 1.5.0, `--model-name` snippet correct. `integrations.ts`: PARTIAL. The OpenRouter row still says "⏳ Planned", and the shipped guard hook has no row. Open PR #1738 already fixes both (checked with `gh pr diff 1738`).
