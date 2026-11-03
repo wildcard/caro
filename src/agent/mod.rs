@@ -11,9 +11,12 @@ use crate::prompts::{CapabilityProfile, CommandValidator, ValidationResult};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::process::Command;
+use std::process::Stdio;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+// tokio's clock, so the budget and `tokio::time::timeout` agree (and paused
+// test clocks see the same time).
+use tokio::time::Instant;
 use tracing::{debug, info, warn};
 
 #[cfg(feature = "knowledge")]
@@ -32,6 +35,17 @@ pub const MAX_BACKEND_CALLS: usize = 2;
 /// advisor adds at most one call of its own, before the refine. The tests
 /// pin both limits; there is no knob for them, because a knob that the code
 /// cannot honour is a declared-but-unenforced budget.
+///
+/// Time: the follow-up (repair, advisor or refine, including the command
+/// probes that feed refine) is skipped once half of `timeout` has passed,
+/// and cut off when `timeout` runs out: refine keeps the draft, repair
+/// fails closed with `ValidationFailed` (the reason says it was cut off). The advisor gets half of
+/// what is left, so the local refine it falls back to still has time. The
+/// initial call has no deadline (a first-run model load can take longer
+/// than the budget). Cutting off a backend that runs on `spawn_blocking`
+/// (embedded MLX) returns on time, but the blocking thread runs to the end;
+/// the CLI exits through `process::exit`, which does not wait for it.
+/// Guarded by `tests::second_pass_deadline_*`.
 pub struct AgentLoop {
     backend: Arc<dyn CommandGenerator>,
     static_matcher: Option<StaticMatcher>,
@@ -311,7 +325,25 @@ impl AgentLoop {
 
             // Attempt to repair the command
             debug!("Attempting to repair command with validation feedback");
-            let repaired = self.repair_command(prompt, &initial, &validation).await?;
+            let repaired = match tokio::time::timeout(
+                self.remaining(start),
+                self.repair_command(prompt, &initial, &validation),
+            )
+            .await
+            {
+                Ok(repaired) => repaired?,
+                Err(_) => {
+                    warn!("Repair ran past the time budget; failing closed");
+                    // ValidationFailed, like a skipped repair: the user sees
+                    // why the draft was refused, not only that time ran out.
+                    return Err(GeneratorError::ValidationFailed {
+                        reason: format!(
+                            "{} (repair cut off at the time budget)",
+                            validation.error_message()
+                        ),
+                    });
+                }
+            };
 
             // Validate the repaired command
             let repaired_validation = self.validator.validate(&repaired.command);
@@ -348,6 +380,8 @@ impl AgentLoop {
         let elapsed = start.elapsed();
         if elapsed > self.timeout / 2 {
             warn!("Timeout approaching, skipping refinement");
+            let backend = self.backend.backend_info().backend_type.to_string();
+            Self::emit_generation_success(&backend, &initial, start);
             return Ok(initial);
         }
 
@@ -383,7 +417,20 @@ impl AgentLoop {
         // the local worker is uncertain; if it can't safely help we resume
         // locally with the normal refinement below (fail-safe).
         if low_confidence && self.advisor.is_some() {
-            if let Some(advised) = self.try_advisor(prompt, &initial).await {
+            let advised = tokio::time::timeout(
+                self.remaining(start) / 2,
+                self.try_advisor(prompt, &initial),
+            )
+            .await
+            .unwrap_or_else(|_| {
+                warn!("Advisor ran past the time budget; resuming locally");
+                None
+            });
+            if let Some(advised) = advised {
+                if let Some(advisor) = &self.advisor {
+                    let backend = advisor.backend_info().backend_type.to_string();
+                    Self::emit_generation_success(&backend, &advised, start);
+                }
                 info!(
                     "Command generation complete via advisor in {:?}",
                     start.elapsed()
@@ -401,12 +448,32 @@ impl AgentLoop {
         } else {
             debug!("Iteration 2: Refining due to platform issues");
         }
-        let commands = Self::extract_commands(&initial.command);
-        let command_context = self.get_command_context(&commands).await;
-
-        let refined = self
-            .refine_command(prompt, &initial, &command_context)
-            .await?;
+        let refinement = async {
+            let commands = Self::extract_commands(&initial.command);
+            let command_context = self.get_command_context(&commands).await;
+            self.refine_command(prompt, &initial, &command_context)
+                .await
+        };
+        let refined = match tokio::time::timeout(self.remaining(start), refinement).await {
+            Ok(refined) => refined?,
+            Err(_) => {
+                warn!("Refinement ran past the time budget; keeping the draft");
+                // A success, but marked: the draft was not refined.
+                crate::telemetry::emit_event(
+                    crate::telemetry::events::EventType::CommandGeneration {
+                        backend: self.backend.backend_info().backend_type.to_string(),
+                        duration_ms: start.elapsed().as_millis() as u64,
+                        success: true,
+                        error_category: Some("refine_timeout".to_string()),
+                        confidence: initial
+                            .has_confidence()
+                            .then_some(initial.confidence_score as f32),
+                        confidence_source: Some(initial.confidence_source.to_string()),
+                    },
+                );
+                return Ok(initial);
+            }
+        };
 
         info!("Command generation complete in {:?}", start.elapsed());
 
@@ -426,6 +493,13 @@ impl AgentLoop {
         Self::emit_generation_success(&backend, &refined, start);
 
         Ok(refined)
+    }
+
+    /// Time left in the request budget. The draft call has no deadline (a
+    /// first-run model load can take longer than the budget); the optional
+    /// second call (repair, advisor or refinement) gets only what is left.
+    fn remaining(&self, start: Instant) -> Duration {
+        self.timeout.saturating_sub(start.elapsed())
     }
 
     /// Telemetry for a successful LLM generation, with the command's
@@ -892,19 +966,13 @@ DO NOT include explanations, comments, or multiple commands - just ONE valid com
     /// Get information about a specific command
     async fn get_command_info(command: &str) -> Result<CommandInfo> {
         // Get version
-        let version = Command::new(command)
-            .arg("--version")
-            .output()
-            .ok()
-            .and_then(|out| String::from_utf8(out.stdout).ok())
+        let version = Self::probe(command, "--version")
+            .await
             .map(|s| s.lines().next().unwrap_or("").to_string());
 
         // Get help text (first 20 lines)
-        let help_text = Command::new(command)
-            .arg("--help")
-            .output()
-            .ok()
-            .and_then(|out| String::from_utf8(out.stdout).ok())
+        let help_text = Self::probe(command, "--help")
+            .await
             .map(|s| s.lines().take(20).collect::<Vec<_>>().join("\n"));
 
         Ok(CommandInfo {
@@ -912,6 +980,61 @@ DO NOT include explanations, comments, or multiple commands - just ONE valid com
             version,
             help_text,
         })
+    }
+
+    /// Run `command flag` and return its stdout. Async, so the refinement
+    /// deadline can fire while it runs. If the deadline drops this future,
+    /// the probe and anything it started are killed, not left behind: on
+    /// Unix the probe leads its own process group and the guard kills the
+    /// group; elsewhere `kill_on_drop` kills the probe itself.
+    async fn probe(command: &str, flag: &str) -> Option<String> {
+        let mut cmd = tokio::process::Command::new(command);
+        cmd.arg(flag)
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .kill_on_drop(true);
+        #[cfg(unix)]
+        cmd.process_group(0);
+        let child = cmd.spawn().ok()?;
+        let pid = child.id();
+        let out = wait_guarded(pid, child.wait_with_output()).await;
+        String::from_utf8(out.ok()?.stdout).ok()
+    }
+}
+
+/// Awaits a probe with its process-group guard armed. Only a successful
+/// wait disarms it: if the wait fails, or the deadline drops this future,
+/// the guard kills the group, so children still in it do not outlive the
+/// probe. After a successful wait the guard does nothing: a background
+/// child the tool left running, or one that left the group (`setsid`),
+/// keeps running.
+async fn wait_guarded<T, E>(
+    pid: Option<u32>,
+    wait: impl std::future::Future<Output = Result<T, E>>,
+) -> Result<T, E> {
+    let mut group = ProbeGroup(pid);
+    let out = wait.await;
+    if out.is_ok() {
+        group.0 = None; // reaped: nothing left to kill
+    }
+    out
+}
+
+/// Kills a probe's process group when dropped while armed (see
+/// `wait_guarded`).
+#[cfg_attr(not(unix), allow(dead_code))]
+struct ProbeGroup(Option<u32>);
+
+impl Drop for ProbeGroup {
+    fn drop(&mut self) {
+        #[cfg(unix)]
+        if let Some(pgid) = self.0.and_then(|p| libc::pid_t::try_from(p).ok()) {
+            // SAFETY: kill(2) has no memory-safety preconditions.
+            unsafe {
+                libc::kill(-pgid, libc::SIGKILL);
+            }
+        }
     }
 }
 
@@ -1340,5 +1463,386 @@ mod tests {
         assert!(called.load(Ordering::SeqCst), "advisor was consulted");
         assert_ne!(result.command, "rm -rf /", "unsafe advice must be rejected");
         assert_eq!(result.command, "ls", "safe local result kept");
+    }
+
+    /// Answers the first call at once and hangs on every later call.
+    struct HangsAfterDraft {
+        command: &'static str,
+        confidence: f64,
+        calls: Arc<std::sync::atomic::AtomicUsize>,
+    }
+
+    #[async_trait]
+    impl CommandGenerator for HangsAfterDraft {
+        async fn generate_command(
+            &self,
+            _request: &CommandRequest,
+        ) -> Result<GeneratedCommand, GeneratorError> {
+            if self.calls.fetch_add(1, Ordering::SeqCst) > 0 {
+                tokio::time::sleep(Duration::from_secs(3600)).await;
+            }
+            Ok(mock_command(self.command, self.confidence))
+        }
+        async fn is_available(&self) -> bool {
+            true
+        }
+        fn backend_info(&self) -> BackendInfo {
+            BackendInfo {
+                backend_type: BackendType::Mock,
+                model_name: "hangs".to_string(),
+                supports_streaming: false,
+                max_tokens: 100,
+                typical_latency_ms: 1,
+                memory_usage_mb: 0,
+                version: "test".to_string(),
+            }
+        }
+        async fn shutdown(&self) -> Result<(), GeneratorError> {
+            Ok(())
+        }
+    }
+
+    fn hanging_agent(command: &'static str, confidence: f64) -> AgentLoop {
+        let backend = HangsAfterDraft {
+            command,
+            confidence,
+            calls: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+        };
+        AgentLoop::new(
+            Arc::new(backend),
+            ExecutionContext::detect(),
+            CapabilityProfile::ubuntu(),
+        )
+        .with_static_matcher(false)
+    }
+
+    /// A hung refinement call is cut off at the budget; the draft is kept.
+    #[tokio::test(start_paused = true)]
+    async fn second_pass_deadline_keeps_the_draft_on_refinement() {
+        let t0 = tokio::time::Instant::now();
+        let result = hanging_agent("ls", 0.1)
+            .generate_command("list files")
+            .await;
+        assert!(
+            t0.elapsed() <= Duration::from_secs(15) && t0.elapsed() >= Duration::from_secs(7),
+            "{:?}",
+            t0.elapsed()
+        );
+        assert_eq!(result.unwrap().command, "ls");
+    }
+
+    /// A hung repair call is cut off at the budget; the request fails closed.
+    #[tokio::test(start_paused = true)]
+    async fn second_pass_deadline_fails_closed_on_repair() {
+        let t0 = tokio::time::Instant::now();
+        let result = hanging_agent("rm -rf /", 0.99)
+            .generate_command("delete everything")
+            .await;
+        assert!(
+            t0.elapsed() <= Duration::from_secs(15) && t0.elapsed() >= Duration::from_secs(7),
+            "{:?}",
+            t0.elapsed()
+        );
+        assert!(
+            matches!(result, Err(GeneratorError::ValidationFailed { ref reason }) if reason.contains("cut off")),
+            "{result:?}"
+        );
+    }
+
+    /// Probes capture the tool's stdout (it feeds the refinement prompt);
+    /// they must not print to the user's terminal.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn command_probe_captures_stdout() {
+        let dir = tempfile::tempdir().unwrap();
+        let tool = dir.path().join("tool");
+        write_script(&tool, "#!/bin/sh\necho \"tool 1.2.3\"\n");
+
+        let info = AgentLoop::get_command_info(tool.to_str().unwrap())
+            .await
+            .unwrap();
+        assert_eq!(info.version.as_deref(), Some("tool 1.2.3"));
+    }
+
+    /// An advisor that never answers gets half the remaining budget; the
+    /// local refine it falls back to still runs. Real clock with a 2 s
+    /// budget: refine runs real `--version`/`--help` probes, and a paused
+    /// clock would jump past the deadline while they run.
+    #[tokio::test]
+    async fn second_pass_deadline_leaves_refine_time_after_a_hung_advisor() {
+        struct HangingAdvisor;
+        #[async_trait]
+        impl CommandGenerator for HangingAdvisor {
+            async fn generate_command(
+                &self,
+                _request: &CommandRequest,
+            ) -> Result<GeneratedCommand, GeneratorError> {
+                unreachable!("only advise is used")
+            }
+            async fn advise(
+                &self,
+                _draft: &GeneratedCommand,
+                _request: &CommandRequest,
+            ) -> Option<GeneratedCommand> {
+                tokio::time::sleep(Duration::from_secs(3600)).await;
+                None
+            }
+            async fn is_available(&self) -> bool {
+                true
+            }
+            fn backend_info(&self) -> BackendInfo {
+                BackendInfo {
+                    backend_type: BackendType::Mock,
+                    model_name: "hanging-advisor".to_string(),
+                    supports_streaming: false,
+                    max_tokens: 100,
+                    typical_latency_ms: 1,
+                    memory_usage_mb: 0,
+                    version: "test".to_string(),
+                }
+            }
+            async fn shutdown(&self) -> Result<(), GeneratorError> {
+                Ok(())
+            }
+        }
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let primary = CountingBackend {
+            command: "ls".to_string(),
+            confidence: 0.3,
+            calls: calls.clone(),
+            advise_calls: Arc::new(AtomicUsize::new(0)),
+        };
+        let agent = AgentLoop::new(
+            Arc::new(primary),
+            ExecutionContext::detect(),
+            CapabilityProfile::ubuntu(),
+        )
+        .with_static_matcher(false)
+        .with_advisor(Arc::new(HangingAdvisor));
+        let mut agent = agent;
+        agent.timeout = Duration::from_secs(2);
+
+        let t0 = tokio::time::Instant::now();
+        let result = agent.generate_command("list files").await;
+        assert!(t0.elapsed() <= Duration::from_secs(3), "{:?}", t0.elapsed());
+        assert_eq!(result.unwrap().command, "ls");
+        // Draft + local refine: the advisor's timeout left the refine time.
+        assert_eq!(calls.load(Ordering::SeqCst), MAX_BACKEND_CALLS);
+    }
+
+    /// Writes a script that starts a long-lived worker, records the
+    /// worker's pid in `worker.pid`, and waits. Returns (script, pidfile).
+    #[cfg(unix)]
+    fn hanging_script(dir: &std::path::Path) -> (std::path::PathBuf, std::path::PathBuf) {
+        let script = dir.join("hangs");
+        let pidfile = dir.join("worker.pid");
+        let body = format!(
+            "#!/bin/sh\n[ \"$1\" = --warm ] && exit 0\nsleep 3600 &\necho $! > {}\nwait\n",
+            pidfile.display()
+        );
+        write_script(&script, &body);
+        (script, pidfile)
+    }
+
+    /// Writes an executable script and waits until it can be executed.
+    /// A test thread that forks while the file is open for writing keeps
+    /// the write handle until it execs, and exec of the script then fails
+    /// with ETXTBSY. Once one run with `--warm` succeeds, no writer is
+    /// left, so later runs cannot hit it. The script must exit at once
+    /// when given `--warm`.
+    #[cfg(unix)]
+    fn write_script(path: &std::path::Path, body: &str) {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::write(path, body).unwrap();
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o755)).unwrap();
+        for _ in 0..200 {
+            match std::process::Command::new(path)
+                .arg("--warm")
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status()
+            {
+                Ok(_) => return,
+                Err(e) if e.raw_os_error() == Some(libc::ETXTBSY) => {
+                    std::thread::sleep(Duration::from_millis(10))
+                }
+                Err(e) => panic!("cannot run {}: {e}", path.display()),
+            }
+        }
+        panic!("{} stayed busy (ETXTBSY)", path.display());
+    }
+
+    /// Polls `pidfile` until the script has written the worker's pid.
+    #[cfg(unix)]
+    async fn worker_pid(pidfile: &std::path::Path) -> String {
+        for _ in 0..100 {
+            if let Ok(p) = std::fs::read_to_string(pidfile) {
+                if p.ends_with('\n') {
+                    return p.trim().to_string();
+                }
+            }
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
+        panic!("probe worker never started");
+    }
+
+    /// True while `pid` runs. Dead or zombie counts as gone. /proc on
+    /// Linux, `ps` elsewhere.
+    #[cfg(unix)]
+    fn worker_alive(pid: &str) -> bool {
+        let stat = match std::fs::read_to_string(format!("/proc/{pid}/stat")) {
+            Ok(s) => s.rsplit(')').next().unwrap_or("").trim().to_string(),
+            Err(_) if std::path::Path::new("/proc/self").exists() => String::new(),
+            Err(_) => std::process::Command::new("ps")
+                .args(["-o", "stat=", "-p", pid])
+                .output()
+                .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+                .expect("ps is needed to check the worker on this platform"),
+        };
+        !stat.is_empty() && !stat.starts_with('Z')
+    }
+
+    /// Waits up to 5 s for `pid` to be gone.
+    #[cfg(unix)]
+    async fn worker_gone(pid: &str) -> bool {
+        for _ in 0..50 {
+            if !worker_alive(pid) {
+                return true;
+            }
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+        false
+    }
+
+    /// A command probe (`--version`/`--help`) that never exits must yield,
+    /// so the refinement deadline can cut it off, and cancelling it must
+    /// kill what it started. A blocking probe would never yield.
+    #[cfg(unix)]
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn second_pass_deadline_covers_command_probes() {
+        let dir = tempfile::tempdir().unwrap();
+        let (script, pidfile) = hanging_script(dir.path());
+
+        let path = script.to_str().unwrap().to_string();
+        let task = tokio::spawn(async move { AgentLoop::get_command_info(&path).await });
+        let pid = worker_pid(&pidfile).await;
+
+        // What the deadline does: drop the probe future.
+        task.abort();
+        let joined = tokio::time::timeout(Duration::from_secs(5), task).await;
+        assert!(joined.is_ok(), "probe did not yield to cancellation");
+
+        // The probe's own child must not outlive the cancelled probe.
+        assert!(
+            worker_gone(&pid).await,
+            "probe worker {pid} survived the deadline"
+        );
+    }
+
+    /// End to end: a low-confidence draft whose command hangs on
+    /// `--version`. The refinement deadline must cut the probe off, keep
+    /// the draft, skip the refine call, and kill the probe's worker.
+    #[cfg(unix)]
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn second_pass_deadline_cuts_off_a_hanging_probe_in_refinement() {
+        let dir = tempfile::tempdir().unwrap();
+        let (script, pidfile) = hanging_script(dir.path());
+        let command = script.to_str().unwrap().to_string();
+
+        let calls = Arc::new(AtomicUsize::new(0));
+        let primary = CountingBackend {
+            command: command.clone(),
+            confidence: 0.1,
+            calls: calls.clone(),
+            advise_calls: Arc::new(AtomicUsize::new(0)),
+        };
+        let mut agent = AgentLoop::new(
+            Arc::new(primary),
+            ExecutionContext::detect(),
+            CapabilityProfile::ubuntu(),
+        )
+        .with_static_matcher(false);
+        agent.timeout = Duration::from_secs(2);
+        // Test-only allowlist: the draft must pass validation to reach
+        // the refinement path.
+        agent.validator =
+            CommandValidator::new(CapabilityProfile::ubuntu()).with_tools([command.clone()]);
+
+        let t0 = tokio::time::Instant::now();
+        let result = agent.generate_command("run the tool").await;
+        assert!(t0.elapsed() <= Duration::from_secs(3), "{:?}", t0.elapsed());
+        assert_eq!(result.unwrap().command, command, "draft kept");
+        assert_eq!(calls.load(Ordering::SeqCst), 1, "refine call never ran");
+
+        // The probe did start, and its worker did not outlive the deadline.
+        let pid = worker_pid(&pidfile).await;
+        assert!(
+            worker_gone(&pid).await,
+            "probe worker {pid} survived the deadline"
+        );
+    }
+
+    /// Spawns `hanging_script` as its own process group, as `probe` does,
+    /// and returns the child (leader) and the worker's pid.
+    #[cfg(unix)]
+    async fn spawn_probe_group(dir: &std::path::Path) -> (tokio::process::Child, String) {
+        let (script, pidfile) = hanging_script(dir);
+        let mut cmd = tokio::process::Command::new(&script);
+        cmd.stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .kill_on_drop(true)
+            .process_group(0);
+        let child = cmd.spawn().unwrap();
+        let pid = worker_pid(&pidfile).await;
+        (child, pid)
+    }
+
+    /// A failed wait (injected) keeps the guard armed: the probe's whole
+    /// group, worker included, is killed.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn probe_guard_kills_the_group_when_the_wait_fails() {
+        let dir = tempfile::tempdir().unwrap();
+        let (child, pid) = spawn_probe_group(dir.path()).await;
+
+        let out: Result<(), std::io::Error> = wait_guarded(child.id(), async {
+            Err(std::io::Error::other("injected wait failure"))
+        })
+        .await;
+        assert!(out.is_err());
+        assert!(
+            worker_gone(&pid).await,
+            "worker {pid} survived a failed wait"
+        );
+        drop(child);
+    }
+
+    /// Negative control for the test above: a successful wait disarms the
+    /// guard, so the same worker is left running. This shows the kill comes
+    /// from the guard, not from the test setup. Cleanup kills only the group
+    /// this test started.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn probe_guard_is_disarmed_by_a_successful_wait() {
+        let dir = tempfile::tempdir().unwrap();
+        let (child, pid) = spawn_probe_group(dir.path()).await;
+        let pgid = libc::pid_t::try_from(child.id().unwrap()).unwrap();
+
+        let out: Result<(), std::io::Error> = wait_guarded(child.id(), async { Ok(()) }).await;
+        assert!(out.is_ok());
+        tokio::time::sleep(Duration::from_millis(300)).await;
+        let survived = worker_alive(&pid);
+
+        // SAFETY: kill(2) has no memory-safety preconditions; `pgid` is the
+        // group this test spawned.
+        unsafe {
+            libc::kill(-pgid, libc::SIGKILL);
+        }
+        drop(child);
+        assert!(survived, "a successful wait must not kill the group");
+        assert!(worker_gone(&pid).await, "cleanup failed for worker {pid}");
     }
 }
