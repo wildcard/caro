@@ -4,6 +4,41 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-04 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1749 into this state on 2026-11-04. The run read main's May copy. The QA PRs it calls closed without merge (#1743, #1744, #1746) were folded into this state first, so this log does not end at the May entry. Its `config show` nit is recorded on surface 14.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**: subcommands listed (doctor, config, test, ai, guard, check, ...)
+- `caro doctor` → **PASS**: advisory only; no model cached (expected in fresh sandbox)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`, dry-run banner shown (FLAKE-001 did not recur; telemetry consent prompt shown once on fresh HOME, as designed)
+- Note: `gh auth status` reported an invalid GH_TOKEN; the GitHub MCP tools worked and were used instead.
+
+### Slot B — Recent diff
+Merged since last log entry: many; sampled the 5 most recent (all merged 2026-11-02):
+- #1740 `config reset <key>` → PASS (see Slot C)
+- #1737 `caro test --help` backends → PASS (`[possible values: static, embedded]`)
+- #1710 `caro ai` no-prompt error → PASS (rc=1, message suggests `caro ai --once "list files"` not `-p`)
+- #1706 `ls --version` timeout not read as BSD → not exercised (platform detection; doctor reports Ubuntu x86_64 correctly)
+- #1716 harness docs cleanup → docs only, skipped
+
+### Slot C — `caro config get/set/show/reset` (#14)
+Exercised with a fresh HOME: `show`, `get`/`set`/`reset` on `safety` and `log_level`, `reset` of one key leaves other keys intact, unknown key (rc=1 with valid-key list), invalid value `safety bogus` (rc=1, lists valid values), `telemetry.enabled false`. All as documented. Minor nit (not filed): `config show` prints `telemetry: disabled` while the key is `telemetry.enabled`.
+
+### Findings
+None this pass.
+
+### Followups
+- Earlier QA rotation PRs #1743, #1744, #1746 (2026-11-01..03) show as closed without merge, so this log still ended at the 2026-05-07 bootstrap entry. Slot B used the most recent merged PRs, not a date window.
+- `qa_agent_role.md` not present; no prompt drift check possible.
+
+---
+
 ## 2026-11-03 — Scheduled run (Slot A + Slot B + Slot C)
 
 > Folded from #1746 into this state on 2026-11-03. The run read main's May copy. Its open question, the exit code for an unknown key, is answered for `reset` on main: `reset_key_restores_only_that_key` in `tests/config_cli_keys.rs` checks that `caro config reset nope` exits non-zero with "Unknown config key".
