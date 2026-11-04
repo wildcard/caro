@@ -3,7 +3,9 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-11-02 — validation-only night. `main` moved (5 merges on 11-01/11-02, incl. #1737 which fixes #1732), but none of the 10 integrator-area PRs merged: #1738, #1722, #1043 `CLEAN`; the other 7 `DIRTY`. crates.io still `caro 1.5.0`. ✓ VERIFIED on published 1.5.0: OpenRouter and Claude loud config error (exit 1), Candle CPU `show disk usage` → `df -h` (0.30 s).
+> **Last updated:** 2026-11-03 — validation-only night. Backlog unchanged: none of the 10 integrator-area PRs merged; #1738, #1722 and #1043 `CLEAN`, the other 7 `DIRTY`; crates.io still `caro 1.5.0`. ✓ VERIFIED on published 1.5.0 (fresh `cargo install caro --force --locked`): xAI Grok `--backend grok --dry-run` → `requires the 'remote-backends' feature`, exit 1 (PASS); Codex guard (`--harness codex --mode enforce`, Codex PreToolUse payload) → `deny` for `rm -rf /` and `curl … | sudo bash`, no output for `ls -la`, no `additionalContext` in any reply (PASS); README agent table still FAIL: `caro mcp serve` and `caro serve --openai` are not subcommands — both fall through to NL generation and error with `Tool 'mcp'/'openai' is not in the allowed list`; fix is in PR #1738.
+>
+> **Previous:** 2026-11-02 — validation-only night. `main` moved (5 merges on 11-01/11-02, incl. #1737 which fixes #1732), but none of the 10 integrator-area PRs merged: #1738, #1722, #1043 `CLEAN`; the other 7 `DIRTY`. crates.io still `caro 1.5.0`. ✓ VERIFIED on published 1.5.0: OpenRouter and Claude loud config error (exit 1), Candle CPU `show disk usage` → `df -h` (0.30 s).
 >
 > **Previous:** 2026-11-01 — validation-only night; backlog still stalled (nothing merged to `main` since 2026-10-27; #1738, #1722 and #1043 `CLEAN`, the other 7 integrator-area PRs `DIRTY`; crates.io still `caro 1.5.0`). ✓ VERIFIED on published 1.5.0: `caro guard` 6/6 cases PASS; caro.sh/integrations/ → 200 with correct 1.5.0 Claude/Ollama copy, but OpenRouter still says ⏳ Planned and the guard hook has no row — both already fixed in open PR #1738 (rows marked ⚠️).
 >
@@ -52,7 +54,7 @@
 | MLX (Apple Silicon embedded) | ⚠️ partial | 2026-10-30 | published 1.5.0: `caro --backend embedded --dry-run "list pdf files"` → `ls -la` (served by static matcher "List files (simple)", drops "pdf"; 1.4.0 gave `ls *.pdf`) | #1645, #1723 | Backend loads in the default build. Static matcher pre-empts the model (#1645). Hangs when stdin is an open pipe (#1723). |
 | Candle CPU (embedded) | ✅ working | 2026-11-02 | ✓ published 1.5.0: `caro --dry-run "show disk usage" </dev/null` → `df -h` | — | `embedded-cpu` is in default features; works in default build. |
 | OpenRouter | ⚠️ partial (feature-gated) | 2026-11-02 | ✓ published 1.5.0: `caro --backend openrouter --dry-run -p "list files"` → `Configuration error: Backend 'openrouter' requires the 'remote-backends' feature` | #931, #1081 | CLI-wired since PR #1513; same feature-gate omission as claude/grok/ollama. |
-| xAI Grok | ⚠️ partial (feature-gated) | 2026-10-29 | ✓ published 1.5.0: `caro --backend grok --dry-run -p "list pdf files"` → same `requires the 'remote-backends' feature` error; `--backend-info` → `not compiled` | PR #1513 | `--backend grok` / `--advisor grok` / `hybrid_remote = "grok"`; `XAI_API_KEY` |
+| xAI Grok | ⚠️ partial (feature-gated) | 2026-11-03 | ✓ published 1.5.0: `caro --backend grok --dry-run -p "list pdf files"` → same `requires the 'remote-backends' feature` error; `--backend-info` → `not compiled` | PR #1513 | `--backend grok` / `--advisor grok` / `hybrid_remote = "grok"`; `XAI_API_KEY` |
 | Gemini / Jules | 🚧 in-progress | — | — | PR #782 | Coordinate with existing PR; don't fork |
 | LM Studio + FunctionGemma | 🚧 in-progress | — | — | PR #558 | Tracked, no action this night |
 | quant.cpp | 🚧 in-progress | — | — | PR #838 | Tracked, no action this night |
@@ -67,7 +69,7 @@
 | Harness guardian hook (`caro guard`) | 🧪 experimental | 2026-11-01 | ✓ published 1.5.0: `… \| caro guard --mode enforce --no-log` → `permissionDecision: deny` for `rm -rf /` and `curl … \| bash`; benign `ls -la` and a non-Bash `Read` → no output (protected-path policy #1684 is on `main`, not in 1.5.0); shadow (default) logs only; `not json` → `ask`; `caro guard report` lists verdicts by harness; e2e `tests/e2e_guard.rs` | spec 011 / ADR-020 | PreToolUse adapter for Claude Code, Grok Build, Codex; OpenCode via `integrations/opencode/caro-guard.ts`. Shadow by default |
 | Claude Code MCP server (`caro mcp serve`) | ⏳ not-yet | — | `mcp-inspect` against `caro mcp serve` | #928 | Spec: `.github/first-time-issues/06-mcp-claude-code-integration.md`; tools `generate_command` / `validate_command` / `explain_safety` / `show_decision_tree` |
 | OpenAI-compat HTTP shim (`caro serve --openai`) | ⏳ not-yet | — | `curl /v1/chat/completions` with a tool call | #929 | Highest leverage — unlocks Codex/Cursor/Continue/Aider/Tabby in one shot |
-| Codex (OpenAI) | 🧪 guard only | 2026-10-30 | `[[hooks.PreToolUse]]` → `caro guard --harness codex` (docs/coding-agents/codex.md) | #789 (Crush MCP config PR) | Generation still awaits OpenAI shim |
+| Codex (OpenAI) | 🧪 guard only | 2026-11-03 | ✓ published 1.5.0: Codex PreToolUse payload → `caro guard --harness codex --mode enforce` → `permissionDecision: deny` for `rm -rf /` and `curl … \| sudo bash`; `ls -la` → no output; no `additionalContext` emitted (doc claim holds). Config: `[[hooks.PreToolUse]]` (docs/coding-agents/codex.md) | #789 (Crush MCP config PR) | Generation still awaits OpenAI shim |
 | Cursor | ⏳ not-yet | — | OpenAI shim snippet copy-pasted into Cursor settings | — | Satisfied by OpenAI shim |
 | Continue (continue.dev) | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
 | Aider | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
@@ -97,7 +99,7 @@
 |---|---|---|---|---|
 | `website/src/data/integrations.ts` | ⚠️ partial | 2026-11-01 | #1657 (closed), PR #1738 | OpenRouter row still `not-yet` "Planned" and no `caro guard` row — both fixed in open PR #1738. PR #1689 merged; Claude/Ollama/vLLM/Exo entries describe the 1.5.0 loud `remote-backends` error; snippet uses `--model-name` |
 | `website/src/pages/integrations/index.astro` | ✅ working | 2026-11-01 | — | caro.sh/integrations/ → 200 (re-checked 2026-11-01, no `Unknown backend` or `--model ` text); live copy says the default binary "no longer silently falls back"; `partial` bucket renders (PR #1689) |
-| README "Use caro from your agent" section | 🚧 fix in PR #1738 | 2026-10-29 | ✓ published 1.5.0: `caro guard --mode enforce` deny, `--backend openrouter` config error, PR #782 CLOSED | Table drift fixed in PR #1738 (README-only): MCP/shim → Planned, OpenRouter → Opt-in build, Gemini → #1439, guard row added |
+| README "Use caro from your agent" section | 🚧 fix in PR #1738 | 2026-11-03 | ✓ published 1.5.0: table still FAIL. `caro mcp serve` / `caro serve --openai` (marked 🚧) are not subcommands; both fall through to NL generation → `Tool 'mcp'/'openai' is not in the allowed list`. Earlier: guard deny, `--backend openrouter` config error, PR #782 CLOSED | Table drift fixed in PR #1738 (README-only): MCP/shim → Planned, OpenRouter → Opt-in build, Gemini → #1439, guard row added |
 | `.github/first-time-issues/06-mcp-claude-code-integration.md` | 🚫 reference only | — | — | Spec doc; not a runtime surface |
 
 ---
