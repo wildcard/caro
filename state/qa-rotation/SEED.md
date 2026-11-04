@@ -210,3 +210,13 @@ The 2026-11-03 run used the old prompt and read main's May copy. It was folded o
 - **Answered:** its open question, the exit code for an unknown key, is covered for `reset` by `reset_key_restores_only_that_key` in `tests/config_cli_keys.rs` on main.
 - **Backlog:** no new issues.
 - **Flakes:** FLAKE-001 was not triggered. `caro ai --once` (FLAKE-002) was not exercised.
+
+## Added after seeding: #1749 (2026-11-04)
+
+The 2026-11-04 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-11-04; surface 14 (`caro config get/set/show/reset`, PASS) gets the new date. Its nit (`config show` labels `telemetry.enabled` as `telemetry`) joins the seed's not-filed note. Earlier show/get key mismatches (#1216, #1286, #1380) are closed.
+- **Slot B:** it checked `caro test --help` (#1737) and the `caro ai` no-prompt error (#1710); both passed. These are help and error-message checks, not end-to-end surface tests, so no other surface changes.
+- **Backlog:** no new issues.
+- **Flakes:** FLAKE-001 was not triggered. `caro ai --once` (FLAKE-002) was not exercised.
