@@ -1912,14 +1912,14 @@ impl StaticMatcher {
             let all_required = pattern
                 .required_keywords
                 .iter()
-                .all(|kw| query_lower.contains(kw));
+                .all(|kw| Self::has_word_start(&query_lower, kw));
 
             if all_required {
                 // Optional-keyword coverage is the confidence signal
                 let optional_count = pattern
                     .optional_keywords
                     .iter()
-                    .filter(|kw| query_lower.contains(*kw))
+                    .filter(|kw| Self::has_word_start(&query_lower, kw))
                     .count();
 
                 // Require at least some optional keywords for keyword-only match
@@ -1932,6 +1932,25 @@ impl StaticMatcher {
         }
 
         None
+    }
+
+    /// True when `kw` occurs in `query` at a word start ("move" in "move files",
+    /// not in "remove files"; a unit after a digit, "100MB", counts). A keyword
+    /// inside a longer word matches only for the listed compounds, so "all" does
+    /// not match "small" or "install" and "pid" does not match "rapid".
+    fn has_word_start(query: &str, kw: &str) -> bool {
+        // (letters before the keyword, keyword): real compounds, e.g. sys+log.
+        const COMPOUNDS: [(&str, &str); 2] = [("sys", "log"), ("change", "log")];
+        query.match_indices(kw).any(|(i, _)| {
+            let before = &query[..i];
+            before
+                .chars()
+                .next_back()
+                .is_none_or(|c| !c.is_alphabetic())
+                || COMPOUNDS
+                    .iter()
+                    .any(|(prefix, word)| *word == kw && before.ends_with(prefix))
+        })
     }
 
     /// Select the appropriate command based on platform
@@ -2002,6 +2021,18 @@ impl CommandGenerator for StaticMatcher {
             }),
         };
 
+        // SLOT FIDELITY: a template that drops or invents a value is not an answer.
+        // Fall through so a backend that can bind the request, or the clarify
+        // path, gets it. Content search carries the user's term itself.
+        let mut unbound: Option<String> = None;
+        let matched = matched.filter(|(command, matched_by, _)| {
+            if matched_by.starts_with("Search Python file contents") {
+                return true;
+            }
+            unbound = super::slot_fidelity::slot_violation(&request.input, command);
+            unbound.is_none()
+        });
+
         if let Some((command, matched_by, confidence)) = matched {
             // SAFETY VALIDATION: Validate the GENERATED command
             // This happens after pattern matching to check if the generated command is safe
@@ -2040,7 +2071,10 @@ impl CommandGenerator for StaticMatcher {
         } else {
             // No match - return error so we can fall through to LLM
             Err(GeneratorError::BackendUnavailable {
-                reason: "No static pattern match found".to_string(),
+                reason: match unbound {
+                    Some(why) => format!("template cannot bind the request: {why}"),
+                    None => "No static pattern match found".to_string(),
+                },
             })
         }
     }
@@ -2070,6 +2104,35 @@ impl CommandGenerator for StaticMatcher {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn keyword_needs_a_word_start() {
+        assert!(!StaticMatcher::has_word_start("remove old files", "move"));
+        assert!(StaticMatcher::has_word_start("move old files", "move"));
+        assert!(StaticMatcher::has_word_start("count the lines", "line"));
+        assert!(StaticMatcher::has_word_start("files over 100mb", "mb"));
+        assert!(StaticMatcher::has_word_start("bigger than 1gb", "gb"));
+        assert!(StaticMatcher::has_word_start("show syslog lines", "log"));
+        assert!(!StaticMatcher::has_word_start(
+            "undelete the file",
+            "delete"
+        ));
+        // A keyword inside a longer word must not match (regression of review 6).
+        assert!(!StaticMatcher::has_word_start("rapid", "pid"));
+        assert!(!StaticMatcher::has_word_start(
+            "list the smallest files",
+            "all"
+        ));
+        assert!(!StaticMatcher::has_word_start(
+            "kill small processes",
+            "all"
+        ));
+        assert!(!StaticMatcher::has_word_start("remove install logs", "all"));
+        assert!(!StaticMatcher::has_word_start(
+            "remove firewall rules",
+            "all"
+        ));
+    }
+
     use super::*;
 
     #[test]
