@@ -220,3 +220,13 @@ The 2026-11-04 run used the old prompt and read main's May copy. It was folded o
 - **Slot B:** it checked `caro test --help` (#1737) and the `caro ai` no-prompt error (#1710); both passed. These are help and error-message checks, not end-to-end surface tests, so no other surface changes.
 - **Backlog:** no new issues.
 - **Flakes:** FLAKE-001 was not triggered. `caro ai --once` (FLAKE-002) was not exercised.
+
+## Added after seeding: #1751 (2026-11-05)
+
+The 2026-11-05 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-11-05; surface 17 (`caro completion bash/zsh/fish`) goes from PASS (2026-10-25) to FAIL, linked to #1750.
+- **New issue:** #1750 (P2): an unknown shell name prints the bash script and exits 0. No earlier issue covers it; #1719 is an unrelated completion fix PR. The fallback is in `src/main.rs` (`unwrap_or(caro::ShellType::Bash)`). It is added to the watch list and the bug-filings table.
+- **Slot B:** skipped; nothing merged since 2026-11-02.
+- **Flakes:** FLAKE-001 was not triggered. `caro ai --once` (FLAKE-002) was not exercised.
