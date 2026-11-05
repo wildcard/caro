@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-04 (23:00 PT fire) — no PR: all-PASS validation, integrator PR backlog at 4
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (still the newest crates.io release). Candle CPU default path: `caro --dry-run "show disk usage"` → `df -h`, exit 0 — PASS. `caro guard --mode enforce`: `rm -rf /` payload → `deny` (critical, recursive deletion of root); `ls -la` payload → no output, exit 0 — PASS. `caro-shell` Example 3: `caro --dry-run "delete everything in /tmp"` → `Unsafe command detected … Critical risk level` — PASS. `--backend-info` is unchanged: only `embedded` is available, 9 backends are `not compiled` (#1081).
+- **Shipped:** no PR. Four integrator PRs are still open: #1738 (mergeable, CI green), #1719 (CI green, conflicts on `.claude/memory/*`), #1713 and #1708 (both conflict, CI failing). All four prepend to this log and the status matrix, so a fifth PR would conflict too. The two 2026-10-19 queue quick-wins are taken: #1439 (Gemini → Antigravity) would touch `integrations.ts`, which #1738 also edits. Matrix and log updates for tonight are on branch `integrator/20261104` (pushed, no PR), to be folded in when the backlog clears.
+- **Filed:** none. Dedup: `copilot` → #1623 (Copilot CLI guard harness) already open. `cline` and `kiro` → no issues. I did not file them because tonight I did not confirm that either one has a hook or MCP surface.
+- **Discovered:** Cline CLI 2.0 (open-source terminal agent) and Kiro CLI (renamed Amazon Q Developer CLI) are not in the matrix. Next pass: confirm their hook/MCP surface, then add rows.
+- **Next pass should:** check if the owner merged or closed the backlog (#1738 first: it is clean). If the backlog is still 3 or more PRs, do not open a new one. Then #1439 (rebase onto #1738 if it merged), then add Cline/Kiro rows.
+
+---
+
 ## 2026-10-19 (23:00 PT fire) — release-cadence gap closed; docs fix for stale 1.5.0 claims
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo install caro --force --locked`, confirmed `caro --version` → `caro 1.5.0 ( crates.io)`). **The release-cadence gap flagged every pass since 2026-05-18 is closed** — 1.5.0 was tagged + published to crates.io and GH releases on 2026-10-13. Re-ran the full remote-backend roster: `caro --backend claude/openrouter/grok/ollama/vllm/exo --dry-run -p "..."` all now return a consistent `Configuration error: Backend '<name>' requires the 'remote-backends' feature, which is not compiled into this build.` with a fix command and an embedded-backend fallback suggestion — no more `Unknown backend` for advertised names, no more silent WARN-fallback. `--backend static` correctly rejected (not CLI-servable). `--backend embedded` control case passes (`ls -la`, though see #1645 below). This closes out the #1115/#1298/#1081 divergence story as far as *wiring + error quality* goes — the only open question left on #1081 is whether `remote-backends` should become a default feature.
