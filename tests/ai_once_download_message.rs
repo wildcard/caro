@@ -212,6 +212,7 @@ fn ai_once_does_not_report_a_download_for_a_hugging_face_cached_model() {
         .env("CARO_CACHE_DIR", &model_cache)
         .env("CARO_CONFIG_DIR", temp_dir.path().join("config"))
         .env("HF_HOME", &hf_home)
+        .env("HF_ENDPOINT", "http://127.0.0.1:9")
         .env("APPDATA", temp_dir.path().join("appdata"))
         .env("LOCALAPPDATA", temp_dir.path().join("localappdata"))
         .stdin(Stdio::null())
