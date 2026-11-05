@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Model download and configuration paths.** `CARO_CACHE_DIR` overrides the
+  cache root (models are stored under `models/`), and `CARO_CONFIG_DIR`
+  overrides the config directory. Hugging Face downloads also honor
+  `HF_ENDPOINT` and `HF_HOME` for the Hub endpoint and cache location.
 - **Normalization views before the safety scanners (spec 011 §P2.6,
   `src/safety/normalize.rs`).** The validator now also scans the command
   with terminal control sequences stripped (`rm\x1b[0m -rf /`), with

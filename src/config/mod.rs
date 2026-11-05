@@ -40,9 +40,10 @@ pub struct ConfigManager {
 }
 
 impl ConfigManager {
-    /// Create a new ConfigManager with default XDG config directory
+    /// Create a new ConfigManager with `CARO_CONFIG_DIR` or the default XDG config directory
     ///
-    /// Creates the config directory (~/.config/caro) if it doesn't exist.
+    /// Creates `CARO_CONFIG_DIR` when set, or the platform's default caro config
+    /// directory (typically `~/.config/caro` on Unix), if it doesn't exist.
     ///
     /// # Example
     ///
@@ -61,11 +62,17 @@ impl ConfigManager {
     /// Returns `ConfigError::DirectoryError` if the config directory cannot be determined
     /// or created.
     pub fn new() -> Result<Self, ConfigError> {
-        let config_dir = dirs::config_dir()
-            .ok_or_else(|| {
-                ConfigError::DirectoryError("Could not determine config directory".to_string())
-            })?
-            .join("caro");
+        let config_dir = if let Some(path) =
+            std::env::var_os("CARO_CONFIG_DIR").filter(|path| !path.is_empty())
+        {
+            PathBuf::from(path)
+        } else {
+            dirs::config_dir()
+                .ok_or_else(|| {
+                    ConfigError::DirectoryError("Could not determine config directory".to_string())
+                })?
+                .join("caro")
+        };
 
         // Create config directory if it doesn't exist
         if !config_dir.exists() {
