@@ -4,6 +4,34 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-05 — Scheduled run (Slot A + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (B skipped: main still at aa1b0e6, no PRs merged since 2026-11-02 runs).
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` -> **PASS** (2m 50s)
+- `caro --version` -> **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` -> **PASS**
+- `caro doctor` -> **PASS**
+- `caro -p 'list files in current directory' --dry-run` -> **PASS**: `ls -la`; FLAKE-001 did not recur
+
+### Slot B — Recent diff
+Skipped. No PRs merged since the last runs.
+
+### Slot C — `caro completion bash/zsh/fish`
+- bash, zsh, fish, powershell emit valid-looking scripts; bash output passes `bash -n`.
+- **FAIL**: unknown shells (`nope`, `elvish`, empty string) print the bash script and exit 0. Help lists only bash, zsh, fish.
+
+### Findings
+- [#1750](https://github.com/wildcard/caro/issues/1750) — `cli: caro completion <unknown-shell> silently emits a bash script and exits 0` (P2)
+
+### Followups
+- Earlier rotation PRs (#1743, #1744, #1746, #1749) were closed unmerged, so memory on main still ends at 2026-05-07. Per those PRs, config get/set/reset and `--output json/yaml` passed on 2026-11-02..04.
+- `gh` token invalid in sandbox; GitHub MCP tools used instead.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
