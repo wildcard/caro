@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-04
+**Last updated**: 2026-11-05
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -67,6 +67,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-02 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher `ls -la` |
 | 2026-11-03 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Dry-run produced `ls -la` |
 | 2026-11-04 | PASS | PASS (1.5.0) | PASS | PASS | PASS | FLAKE-001 did not recur |
+| 2026-11-05 | PASS | PASS (1.5.0) | PASS | PASS | PASS | FLAKE-001 did not recur |
 
 ---
 
@@ -92,7 +93,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 14 | `caro config get/set/show/reset` | cli | 2026-11-04 | PASS | — (minor, not filed: the `safety bogus` error repeats its message; `config show` labels `telemetry.enabled` as `telemetry`) |
 | 15 | `caro --output json` format correctness | cli | 2026-11-02 | PASS (an invalid value is silently accepted) | [#1726](https://github.com/wildcard/caro/issues/1726); --dry-run --output json shows the dry_run:true field (Slot B via fix(cli) #1532) |
 | 16 | `caro --output yaml` format correctness | cli | 2026-11-02 | PASS | — |
-| 17 | `caro completion bash/zsh/fish` | shell-integration | 2026-10-25 | PASS | — |
+| 17 | `caro completion bash/zsh/fish` | shell-integration | 2026-11-05 | FAIL (an unknown shell prints the bash script and exits 0) | [#1750](https://github.com/wildcard/caro/issues/1750) |
 | 18 | `caro test --backend static` eval harness | cli | 2026-07-25 | PASS | (from prior session PR #1373, unmerged) |
 | 19 | Embedded model backend command quality | embedded | never | — | [#1523](https://github.com/wildcard/caro/issues/1523) (expected FAIL: same cpu.rs:63 bug as surface #10) |
 | 20 | Ollama backend (requires ollama installed) | ollama | never | — | — |
@@ -172,6 +173,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1720](https://github.com/wildcard/caro/issues/1720) | `caro guard` has no rule for destructive git commands (force push, reset --hard) | safety | 2026-10-25 | open |
 | [#1726](https://github.com/wildcard/caro/issues/1726) | `--output` accepts an invalid value and falls back to plain | cli | 2026-10-27 | open |
 | [#1735](https://github.com/wildcard/caro/issues/1735) | ai --once deletion clarification (CPU stub, duplicate of #1269) | ai | 2026-10-29 | closed (duplicate of #1269, 2026-10-29) |
+| [#1750](https://github.com/wildcard/caro/issues/1750) | `caro completion` unknown-shell fallback to bash | shell-integration | 2026-11-05 | open |
 
 ---
 
