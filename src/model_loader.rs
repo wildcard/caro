@@ -90,13 +90,13 @@ impl ModelLoader {
     }
 
     /// Get the default cache directory for models
-    /// Uses `CARO_CACHE_DIR` when set; otherwise defaults to
+    /// Uses `CARO_CACHE_DIR/models` when set; otherwise defaults to
     /// ~/.cache/caro/models/ on Unix and %LOCALAPPDATA%\caro\models\ on Windows.
     pub fn default_cache_dir() -> Result<PathBuf> {
         let caro_cache = if let Some(path) =
             std::env::var_os("CARO_CACHE_DIR").filter(|path| !path.is_empty())
         {
-            PathBuf::from(path)
+            PathBuf::from(path).join("models")
         } else {
             let cache_base = directories::BaseDirs::new()
                 .context("Failed to determine user cache directory")?
@@ -168,18 +168,8 @@ impl ModelLoader {
             return Ok(model_path);
         }
 
-        if show_download_message {
-            eprintln!(
-                "Downloading {} ({} MB) from Hugging Face Hub...",
-                self.selected_model.name, self.selected_model.size_mb
-            );
-        }
-
-        info!(
-            "Downloading {} ({} MB) from Hugging Face Hub...",
-            self.selected_model.name, self.selected_model.size_mb
-        );
-        self.download_model_with_retry(&model_path, variant).await?;
+        self.download_model_with_retry(&model_path, variant, show_download_message)
+            .await?;
 
         Ok(model_path)
     }
@@ -189,11 +179,13 @@ impl ModelLoader {
         &self,
         dest_path: &Path,
         variant: ModelVariant,
+        show_download_message: bool,
     ) -> Result<()> {
         const MAX_RETRIES: u32 = 3;
         const INITIAL_DELAY_SECS: u64 = 2;
 
         let mut last_error = None;
+        let mut notice_pending = show_download_message;
 
         for attempt in 1..=MAX_RETRIES {
             if attempt > 1 {
@@ -207,7 +199,10 @@ impl ModelLoader {
                 tokio::time::sleep(std::time::Duration::from_secs(delay)).await;
             }
 
-            match self.download_model_attempt(dest_path, variant).await {
+            match self
+                .download_model_attempt(dest_path, variant, &mut notice_pending)
+                .await
+            {
                 Ok(_) => {
                     info!("Model downloaded successfully to: {}", dest_path.display());
                     return Ok(());
@@ -238,7 +233,12 @@ impl ModelLoader {
     }
 
     /// Single download attempt from Hugging Face Hub
-    async fn download_model_attempt(&self, dest_path: &Path, _variant: ModelVariant) -> Result<()> {
+    async fn download_model_attempt(
+        &self,
+        dest_path: &Path,
+        _variant: ModelVariant,
+        notice_pending: &mut bool,
+    ) -> Result<()> {
         use hf_hub::api::tokio::ApiBuilder;
         use indicatif::{ProgressBar, ProgressStyle};
 
@@ -264,6 +264,17 @@ impl ModelLoader {
         let downloaded = match cached {
             Some(path) => path,
             None => {
+                if *notice_pending {
+                    eprintln!(
+                        "Downloading {} ({} MB) from Hugging Face Hub...",
+                        self.selected_model.name, self.selected_model.size_mb
+                    );
+                    *notice_pending = false;
+                }
+                info!(
+                    "Downloading {} ({} MB) from Hugging Face Hub...",
+                    self.selected_model.name, self.selected_model.size_mb
+                );
                 let watch = StallWatch::new(pb.clone());
                 let (hf_repo, filename) =
                     (self.selected_model.hf_repo, self.selected_model.filename);
@@ -520,7 +531,7 @@ mod tests {
             .filter(|path| !path.is_empty())
             .map(PathBuf::from)
         {
-            assert_eq!(cache_dir, configured_dir);
+            assert_eq!(cache_dir, configured_dir.join("models"));
         } else {
             assert!(cache_dir.to_string_lossy().contains("caro"));
             assert!(cache_dir.to_string_lossy().contains("models"));

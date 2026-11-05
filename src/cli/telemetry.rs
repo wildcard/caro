@@ -303,19 +303,16 @@ async fn clear_events(storage_path: PathBuf, force: bool) -> Result<()> {
 /// Show telemetry status and configuration
 async fn show_status(storage_path: PathBuf) -> Result<()> {
     // Load config
-    let config_dir = dirs::config_dir()
-        .context("Failed to determine config directory")?
-        .join("caro");
-
-    let config_path = config_dir.join("config.toml");
+    let manager = crate::config::ConfigManager::new()?;
+    let config_path = manager.config_path();
 
     // Try to load telemetry config, use defaults if not found
     let config = if config_path.exists() {
-        let content = std::fs::read_to_string(&config_path)?;
+        let content = std::fs::read_to_string(config_path)?;
         let full_config: toml::Value = toml::from_str(&content)?;
 
         if let Some(telemetry) = full_config.get("telemetry") {
-            toml::from_str::<TelemetryConfig>(&telemetry.to_string())?
+            telemetry.clone().try_into::<TelemetryConfig>()?
         } else {
             TelemetryConfig::default()
         }
@@ -402,6 +399,39 @@ async fn show_status(storage_path: PathBuf) -> Result<()> {
 mod tests {
     use super::*;
     use tempfile::TempDir;
+
+    #[test]
+    fn status_uses_config_directory_override() {
+        const CHILD: &str = "CARO_TEST_TELEMETRY_STATUS_CHILD";
+        if let Some(path) = std::env::var_os(CHILD) {
+            let runtime = tokio::runtime::Runtime::new().unwrap();
+            runtime.block_on(show_status(PathBuf::from(path))).unwrap();
+            return;
+        }
+
+        let temp_dir = TempDir::new().unwrap();
+        std::fs::write(
+            temp_dir.path().join("config.toml"),
+            "[telemetry]\nenabled = true\n",
+        )
+        .unwrap();
+        let output = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "cli::telemetry::tests::status_uses_config_directory_override",
+                "--nocapture",
+            ])
+            .env("CARO_CONFIG_DIR", temp_dir.path())
+            .env(CHILD, temp_dir.path().join("telemetry.db"))
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "child failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(String::from_utf8_lossy(&output.stdout).contains("ENABLED (collecting data)"));
+    }
 
     #[tokio::test]
     async fn test_show_empty_events() {

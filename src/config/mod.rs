@@ -42,7 +42,8 @@ pub struct ConfigManager {
 impl ConfigManager {
     /// Create a new ConfigManager with `CARO_CONFIG_DIR` or the default XDG config directory
     ///
-    /// Creates the config directory (~/.config/caro) if it doesn't exist.
+    /// Creates `CARO_CONFIG_DIR` when set, or the platform's default caro config
+    /// directory (typically `~/.config/caro` on Unix), if it doesn't exist.
     ///
     /// # Example
     ///

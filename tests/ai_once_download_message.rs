@@ -100,6 +100,13 @@ async fn ai_once_reports_download_before_the_request_finishes() {
             }
             preceding_stderr.push(line);
         }
+        if let Some(status) = child.0.try_wait().expect("check child status") {
+            reader.join().expect("join stderr reader");
+            preceding_stderr.extend(receiver.try_iter());
+            panic!(
+                "caro exited before reporting a download ({status}); stderr: {preceding_stderr:?}"
+            );
+        }
         assert!(
             Instant::now() < deadline,
             "caro did not report the model download before the timeout; stderr: {preceding_stderr:?}"
@@ -150,7 +157,7 @@ fn ai_once_does_not_report_a_download_for_a_cached_model() {
     let local_app_data = temp_dir.path().join("localappdata");
     let model_cache = temp_dir.path().join("model-cache");
     let model = ModelCatalog::by_id("smollm-135m-q4").expect("model in catalog");
-    let model_path = model_cache.join(model.filename);
+    let model_path = model_cache.join("models").join(model.filename);
     std::fs::create_dir_all(model_path.parent().expect("model cache parent"))
         .expect("create isolated model cache");
     std::fs::write(&model_path, b"cached model placeholder").expect("write cached model marker");
@@ -170,6 +177,56 @@ fn ai_once_does_not_report_a_download_for_a_cached_model() {
         .expect("run caro ai --once with a cached model");
 
     let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Clarification needed:") || stderr.contains("Failed to load model:"),
+        "cached model did not reach model loading: {stderr}"
+    );
+    assert!(
+        !stderr.contains("Downloading") && !stderr.contains("Hugging Face Hub"),
+        "cached model unexpectedly produced a download notice: {stderr}"
+    );
+}
+
+#[test]
+#[serial]
+fn ai_once_does_not_report_a_download_for_a_hugging_face_cached_model() {
+    let temp_dir = tempdir().expect("create isolated CLI directories");
+    let model = ModelCatalog::by_id("smollm-135m-q4").expect("model in catalog");
+    let hf_home = temp_dir.path().join("hf-home");
+    let repo = hf_home
+        .join("hub")
+        .join(format!("models--{}", model.hf_repo.replace('/', "--")));
+    let snapshot = repo.join("snapshots").join("cached-revision");
+    std::fs::create_dir_all(repo.join("refs")).unwrap();
+    std::fs::create_dir_all(&snapshot).unwrap();
+    std::fs::write(repo.join("refs/main"), "cached-revision").unwrap();
+    std::fs::write(snapshot.join(model.filename), b"cached model placeholder").unwrap();
+
+    let model_cache = temp_dir.path().join("model-cache");
+    let output = Command::new(assert_cmd::cargo::cargo_bin!("caro"))
+        .args(["ai", "--once", "list files"])
+        .current_dir(temp_dir.path())
+        .env("CARO_BACKEND", "embedded")
+        .env_remove("CARO_MOCK_BACKEND")
+        .env("CARO_MODEL", "smollm-135m-q4")
+        .env("CARO_CACHE_DIR", &model_cache)
+        .env("CARO_CONFIG_DIR", temp_dir.path().join("config"))
+        .env("HF_HOME", &hf_home)
+        .env("APPDATA", temp_dir.path().join("appdata"))
+        .env("LOCALAPPDATA", temp_dir.path().join("localappdata"))
+        .stdin(Stdio::null())
+        .output()
+        .expect("run caro ai --once with a Hugging Face cached model");
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Clarification needed:") || stderr.contains("Failed to load model:"),
+        "cached model did not reach model loading: {stderr}"
+    );
+    assert!(
+        model_cache.join("models").join(model.filename).exists(),
+        "model was not copied into the Caro cache"
+    );
     assert!(
         !stderr.contains("Downloading") && !stderr.contains("Hugging Face Hub"),
         "cached model unexpectedly produced a download notice: {stderr}"
