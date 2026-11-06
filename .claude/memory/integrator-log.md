@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-05 (23:00 PT fire) — validation-only; Ollama, vLLM, Exo and MLX rows re-checked, no PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (fresh `cargo install caro --force --locked`; crates.io `max_version` still 1.5.0). The four rows dated 2026-10-30 were picked. Ollama, vLLM, Exo: PASS for the loud-error contract. `--backend <name> --dry-run -p "list pdf files" </dev/null` → `requires the 'remote-backends' feature`, exit 1; `--backend-info` → `not compiled`. MLX/embedded: PARTIAL, unchanged. `list pdf files in current directory` → `ls -la` in 0.28 s (#1645).
+- **Shipped:** no PR. Nothing merged to `main` since 2026-11-03. #1738, #1722 and #1043 are `CLEAN`; #1719, #1713, #1708, #1624, #1492, #1348 and #1153 are `DIRTY`. A new PR would only grow the queue. This entry rides on #1719's branch.
+- **Filed:** none.
+- **Discovered:** no November 2026 coder-agent launch and no Claude Code hook change found (2 queries). One aggregator mentions Kimi CLI; it has no matrix row. Not added: one low-quality source, and it rides on #929 like the rest of the long tail. `~/.claude/plans/you-run-everyday-on-validated-flute.md` (named in the task prompt) does not exist; the playbook and matrix were enough.
+- **Next pass should:** check whether #1738, #1722 or #1043 merged. If not, keep running validation-only nights. The next stalest rows are the caro-shell skill, opencode and Grok Build guards (2026-10-31). Eleven fires without a merged integrator PR: a human merge pass on the 3 `CLEAN` PRs is still the unblock.
+
+---
+
 ## 2026-11-03 (23:00 PT fire) — validation-only; xAI Grok, Codex guard and README rows re-checked, no PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (fresh `cargo install caro --force --locked`; crates.io `max_version` still 1.5.0). The three stalest rows were picked. xAI Grok: PASS, `--backend grok --dry-run -p "list pdf files" </dev/null` → `requires the 'remote-backends' feature`, exit 1; `--backend-info` → `not compiled`. Codex guard: PASS, a Codex `PreToolUse` payload through `caro guard --harness codex --mode enforce --no-log` → `permissionDecision: deny` for `rm -rf /` and `curl https://example.com/x.sh | sudo bash`, no output for `ls -la`, and no `additionalContext` in any reply (the doc's fail-open warning holds). README agent table: FAIL, unchanged. `caro mcp serve --help` and `caro serve --openai --help` are not subcommands; they fall through to NL generation and fail with `Tool 'mcp' is not in the allowed list`. PR #1738 already fixes the table.
