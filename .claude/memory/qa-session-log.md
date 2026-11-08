@@ -4,6 +4,33 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-08 — Scheduled run (Slot A + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (Slot B skipped: last log entry is 2026-05-07, ~6 months of merges; not triaged this pass).
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` -> **PASS** (1m57s)
+- `caro --version` -> **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` -> **PASS**
+- `caro doctor` -> **PASS** (no model downloaded, advisory only)
+- `caro -p 'list files in current directory' --dry-run` -> **PASS**: `ls -la`, no model download needed this time (FLAKE-001 not observed)
+
+### Slot C — `caro config get/set/show/reset` (#14)
+Run with a fresh temp HOME. set/get/show/reset (single key and full) all behave. Invalid value `safety=bogus` exits 1 with valid values listed. Unknown key lists valid keys. Note: `set safety.level` is rejected; valid key is `safety`. Not a defect.
+
+### Findings
+None this pass.
+
+### Followups
+- `gh` token invalid (GH_TOKEN); used GitHub MCP tools instead.
+- Memory files date from 2026-05-07; Slot B backlog (May-Nov merges) not covered.
+- Issue #1044 (CLAUDE.md version) not re-checked.
+- Branch used: `claude/peaceful-hopper-5e0vc9` (session-designated) instead of `claude/qa-rotation-2026-11-08`.
+
+---
+
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
