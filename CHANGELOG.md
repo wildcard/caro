@@ -335,6 +335,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`caro "<prompt>"` no longer hangs on an open stdin pipe (#1723).** The
+  top-level path read stdin whenever it was not a terminal, even when `-p` or
+  trailing words already gave the prompt. Coder-agent Bash tools hand the child
+  a pipe that never reaches EOF, so the call the `caro-shell` skill makes blocked
+  forever. Stdin is now read only when no prompt was given on the command line,
+  as `caro ai --once` already does (#1499). Guard: `tests/top_level_stdin.rs`.
+
 - **`/ai-agent-safety` no longer shows invented testimonials.** The "What
   Enterprise Teams Are Saying" section quoted three unnamed people ("Platform
   Engineering Lead, Series B SaaS Company", …). An AI agent wrote the quotes

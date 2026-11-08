@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-07 (23:00 PT fire) — fix: top-level prompt hangs on an open stdin pipe (#1723)
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (latest release; v1.5.1 is still a Draft). `sleep 9 | caro --dry-run "list pdf files in current directory"` and the `-p` form both block until the 6 s alarm (rc=142). With `</dev/null` they return `ls -la` in milliseconds. `--backend claude|ollama` → clean `remote-backends` config error; `--backend embedded` → `df -h`; `--backend static` → `Unknown backend`. All unchanged from 2026-10-19.
+- **Shipped:** PR on `integrator/20261107`. One-line fix in `src/main.rs`: the top-level path now calls `read_stdin()` only when `needs_stdin_prompt()` is true, the same gate `caro ai --once` got in #1499. Guard: `tests/top_level_stdin.rs` (two tests). Proven red without the fix (both hang for 60 s) and green with it. `tests/ai_once_stdin.rs` still passes. Splits the stdin hunk out of the Windows PR #1043, which stays open for its other changes.
+- **Filed:** none. #1723 already carries the diagnosis. Dedup: `gh pr list --search "stdin"` → only #1043 touches this call site.
+- **Discovered:** (a) four integrator PRs are open and unmerged (#1738, #1719, #1624, #1492) plus #1153 from May. They touch different files from tonight's PR, but the pile-up means the matrix and log will conflict on merge. (b) With real text on stdin and trailing words, the request leaves the static matcher for the full model path. Not caused by this PR; not filed (unclear if intended as stdin-as-context). (c) #1439 is now covered by PR #1722 (BW-033).
+- **Next pass should:** check that #1738/#1719/#1624 got merged or closed before adding more docs PRs. Then #1081 (needs a maintainer call on `remote-backends` default) or the `caro test` roster check carried since 10-19.
+
+---
+
 ## 2026-10-19 (23:00 PT fire) — release-cadence gap closed; docs fix for stale 1.5.0 claims
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo install caro --force --locked`, confirmed `caro --version` → `caro 1.5.0 ( crates.io)`). **The release-cadence gap flagged every pass since 2026-05-18 is closed** — 1.5.0 was tagged + published to crates.io and GH releases on 2026-10-13. Re-ran the full remote-backend roster: `caro --backend claude/openrouter/grok/ollama/vllm/exo --dry-run -p "..."` all now return a consistent `Configuration error: Backend '<name>' requires the 'remote-backends' feature, which is not compiled into this build.` with a fix command and an embedded-backend fallback suggestion — no more `Unknown backend` for advertised names, no more silent WARN-fallback. `--backend static` correctly rejected (not CLI-servable). `--backend embedded` control case passes (`ls -la`, though see #1645 below). This closes out the #1115/#1298/#1081 divergence story as far as *wiring + error quality* goes — the only open question left on #1081 is whether `remote-backends` should become a default feature.
