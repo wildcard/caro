@@ -3574,15 +3574,19 @@ async fn main() {
     // Truncate trailing args at shell operators (handles edge cases)
     cli.trailing_args = truncate_at_shell_operator(cli.trailing_args);
 
-    // Resolve prompt from multiple sources (flag > stdin > trailing args)
-    let stdin_content = if is_stdin_available() {
-        match read_stdin() {
-            Ok(content) if !content.is_empty() => Some(content),
-            _ => None,
-        }
-    } else {
-        None
-    };
+    // Resolve prompt from multiple sources (flag > stdin > trailing args).
+    // Stdin is read only when neither -p nor trailing words gave a prompt:
+    // agent harnesses hand the child an open pipe that never reaches EOF, so
+    // reading it unconditionally hangs `caro "<prompt>"` forever (#1723, #1499).
+    let stdin_content =
+        if needs_stdin_prompt(&cli.prompt, &cli.trailing_args) && is_stdin_available() {
+            match read_stdin() {
+                Ok(content) if !content.is_empty() => Some(content),
+                _ => None,
+            }
+        } else {
+            None
+        };
 
     let resolved = resolve_prompt(cli.prompt.clone(), stdin_content, cli.trailing_args.clone());
 
