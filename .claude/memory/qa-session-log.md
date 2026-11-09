@@ -4,6 +4,35 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-09 — Scheduled run (Slot A + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (B: no PRs merged; main still at aa1b0e6, 2026-11-02).
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → PASS (2m 12s)
+- `caro --version` → PASS (`caro 1.5.0 (aa1b0e6 2026-11-02)`)
+- `caro --help` → PASS
+- `caro doctor` → PASS (no model cached, advisory only)
+- `caro -p 'list files in current directory' --dry-run` → PASS (`ls -la`); FLAKE-001 did not recur
+
+### Slot B — Recent diff
+No PRs merged since the last run.
+
+### Slot C — `caro config` + `--output json/yaml`
+- `config set safety strict`, `get`, `reset` → PASS; invalid value exits with a clear error listing valid values
+- `--output json` stdout parses as valid JSON; `--output yaml` renders correctly → PASS
+- `--safety strict -p 'delete everything in /' --dry-run` → asks "What exactly should be deleted?" (clarification, no command emitted)
+
+### Findings
+None this pass.
+
+### Followups
+- Earlier rotation PRs (#1743, #1744, #1746, #1749, #1751) were closed unmerged, so memory on main still ends at 2026-05-07. #1750 (`caro completion <unknown-shell>` exits 0) was filed 2026-11-05 and is not tracked on main yet.
+- `gh auth` token is invalid in the sandbox; GitHub MCP tools work.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
