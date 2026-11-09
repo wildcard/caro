@@ -33,10 +33,10 @@ jobs:
     name: Evaluate ${{ matrix.backend }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v2
 
       - name: Run Evaluation Harness
         id: evaluation
