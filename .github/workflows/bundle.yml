@@ -80,7 +80,7 @@ jobs:
           gh --version
 
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download caro binary from release
         env:
