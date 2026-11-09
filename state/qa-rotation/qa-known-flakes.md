@@ -72,6 +72,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 - 2026-11-03: not triggered — `--dry-run` gave `ls -la` (#1746).
 - 2026-11-04: not triggered — `--dry-run` gave `ls -la` (#1749).
 - 2026-11-05: not triggered — `--dry-run` gave `ls -la` (#1751).
+- 2026-11-09: not triggered — `--dry-run` gave `ls -la` (#1756).
 
 **Promotion threshold**: File regression issue if explicit download failure observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Status**: Promoted to regression (behavior change constitutes a regression even under 3-in-7-days threshold). Filed as #1440.  
