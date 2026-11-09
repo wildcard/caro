@@ -230,3 +230,14 @@ The 2026-11-05 run used the old prompt and read main's May copy. It was folded o
 - **New issue:** #1750 (P2): an unknown shell name prints the bash script and exits 0. No earlier issue covers it; #1719 is an unrelated completion fix PR. The fallback is in `src/main.rs` (`unwrap_or(caro::ShellType::Bash)`). It is added to the watch list and the bug-filings table.
 - **Slot B:** skipped; nothing merged since 2026-11-02.
 - **Flakes:** FLAKE-001 was not triggered. `caro ai --once` (FLAKE-002) was not exercised.
+
+## Added after seeding: #1756 (2026-11-09)
+
+The 2026-11-09 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-11-09; surfaces 14, 15 and 16 (`caro config`, `--output json`, `--output yaml`, all PASS) get the new date and keep the seed's results and links. #1726 is still open.
+- **Corrected:** the run reads the reply "What exactly should be deleted?" to `--safety strict -p 'delete everything in /'` as a safety clarification. It is the CPU stub of #1269, which answers that way for any prompt containing "delete" or "rm". The note says so.
+- **Not new:** #1750 was already tracked in this state; the run could not see it.
+- **Backlog:** no new issues. Surface 17 keeps FAIL (#1750), because the run did not test completion.
+- **Flakes:** FLAKE-001 was not triggered. `caro ai --once` (FLAKE-002) was not exercised.
