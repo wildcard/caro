@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-11-08 (23:00 PT fire) — no-op night: backlog of open integrator PRs, validation unchanged
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo install caro --force --locked`; crates.io, unchanged since 2026-10-13). `--backend claude|openrouter|ollama --dry-run` → `Configuration error: ... requires the 'remote-backends' feature` (PASS, same as 2026-10-19). `--backend embedded --dry-run -p "list pdf files in current directory"` → `ls -la` (still #1645). `--backend static` → `Unknown backend`. `--backend-info` lists only `embedded` as available. `caro test --help` still advertises `static, mlx, ollama, or embedded` (queue item 5 roster divergence still live in the shipped binary).
+- **Shipped:** no PR. Every topmost queue row already has an open PR or needs a maintainer call: #1439 -> PR #1722; README/website drift -> PR #1738; `--backend` completion roster -> #1719 (DIRTY); `config set` roster -> #1713 (DIRTY, CI red); stdin hang #1723 -> PR #1754 (Security Audit + check-labels red). #1081 needs a product decision. Opening a 9th integrator PR would repeat the pile-up that #1708 documented. This log/matrix update is pushed on branch `integrator/20261108` with no PR.
+- **Filed:** none. Dedup-checked open `integration` issues; nothing new found.
+- **Discovered:** none. Web research (step 4) was skipped tonight; no ecosystem scan was run.
+- **Next pass should:** if #1738 / #1754 have merged, pick the `caro test` roster reconcile (queue 5). If the PR backlog is still unmerged, stay no-op and surface it.
+- **Needs user input:** 8+ integrator PRs are open and unmerged (#1348, #1492, #1624, #1713, #1719, #1722, #1738, #1754). Two are DIRTY and two have red CI. They need a merge/close pass.
+
 ## 2026-10-19 (23:00 PT fire) — release-cadence gap closed; docs fix for stale 1.5.0 claims
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo install caro --force --locked`, confirmed `caro --version` → `caro 1.5.0 ( crates.io)`). **The release-cadence gap flagged every pass since 2026-05-18 is closed** — 1.5.0 was tagged + published to crates.io and GH releases on 2026-10-13. Re-ran the full remote-backend roster: `caro --backend claude/openrouter/grok/ollama/vllm/exo --dry-run -p "..."` all now return a consistent `Configuration error: Backend '<name>' requires the 'remote-backends' feature, which is not compiled into this build.` with a fix command and an embedded-backend fallback suggestion — no more `Unknown backend` for advertised names, no more silent WARN-fallback. `--backend static` correctly rejected (not CLI-servable). `--backend embedded` control case passes (`ls -la`, though see #1645 below). This closes out the #1115/#1298/#1081 divergence story as far as *wiring + error quality* goes — the only open question left on #1081 is whether `remote-backends` should become a default feature.
