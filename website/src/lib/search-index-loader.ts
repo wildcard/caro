@@ -55,8 +55,8 @@ export function createSearchIndexLoader({ fetchIndex, fallback }: LoaderOptions)
         loaded = prepareSearchPages(data.pages);
         return loaded;
       }
-    } catch {
-      // Fall through to the compact index.
+    } catch (error) {
+      console.warn('Failed to load full search index; using compact fallback.', error);
     }
     return fallbackPages;
   }

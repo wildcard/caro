@@ -78,15 +78,23 @@ describe('OmniSearch.astro wiring', () => {
     fileURLToPath(new URL('../components/OmniSearch.astro', import.meta.url)),
     'utf8',
   );
+  const clientScript = src.split('<script>')[1]?.split('</script>')[0] ?? '';
+  const staticFallback = readFileSync(
+    fileURLToPath(new URL('../config/pages-static.ts', import.meta.url)),
+    'utf8',
+  );
 
-  it('does not import or embed the full generated index', () => {
-    expect(src).not.toContain('config/search-index');
-    expect(src).not.toContain('searchIndexData');
-    expect(src).not.toContain('data-pages');
+  it('uses a client-safe fallback without importing the page glob', () => {
+    expect(clientScript).toContain("import { STATIC_PAGES_INDEX } from '../config/pages-static';");
+    expect(clientScript).not.toContain("from '../config/pages';");
+    expect(staticFallback).not.toContain('import.meta.glob');
   });
 
-  it('fetches /search-index.json lazily from open()', () => {
-    expect(src).toContain('/search-index.json');
-    expect(src).toMatch(/createSearchIndexLoader/);
+  it('loads the full index when search opens and rerenders the fallback', () => {
+    expect(clientScript).toContain("fetch('/search-index.json')");
+    expect(clientScript).toContain('function open(viaHotkey = false) {');
+    expect(clientScript).toContain('loadIndex();');
+    expect(clientScript).toContain('if (loaded === pages) {');
+    expect(clientScript).toContain("if (overlay.classList.contains('open')) render(input.value);");
   });
 });

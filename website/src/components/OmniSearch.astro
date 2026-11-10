@@ -353,7 +353,7 @@ const isEnabled = true;
 </style>
 
 <script>
-  import { PAGES_INDEX } from '../config/pages';
+  import { STATIC_PAGES_INDEX } from '../config/pages-static';
   import { createSearchIndexLoader } from '../lib/search-index-loader';
 
   // Platform detection: Update hotkey symbol for Mac users
@@ -407,7 +407,7 @@ const isEnabled = true;
         if (!res.ok) throw new Error(`search index: HTTP ${res.status}`);
         return res.json();
       },
-      fallback: PAGES_INDEX,
+      fallback: STATIC_PAGES_INDEX,
     });
     let pages = loader.fallbackPages();
 
@@ -654,7 +654,10 @@ const isEnabled = true;
     // Load the full index on first open; reopening reuses it.
     function loadIndex() {
       loader.load().then(loaded => {
-        if (loaded === pages) return;
+        if (loaded === pages) {
+          if (overlay.classList.contains('open')) render(input.value);
+          return;
+        }
         pages = loaded;
         if (overlay.classList.contains('open')) render(input.value);
       });
