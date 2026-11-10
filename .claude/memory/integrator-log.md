@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-09 (23:00 PT fire) — validation pass; #1723 hang reproduced; no code PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (still newest on crates.io). PASS: Candle CPU (`show disk usage` → `df -h`); `caro guard` (`rm -rf /` → deny, `ls -la` → allow); `caro-shell` Example 3 (`delete everything in /tmp` → Critical block); embedded backend (`list pdf files…` → `ls -la`, still #1645). FAIL (P1): with an open stdin pipe (`sleep 15 | caro --dry-run -p "list files"`), caro printed nothing in 8s. The positional prompt behaves the same. This is #1723.
+- **Shipped:** no code PR. Fix PR [#1754](https://github.com/wildcard/caro/pull/1754) already covers #1723 (open, mergeable, some CI red). A second fix would duplicate it. This log and the matrix update are the only changes.
+- **Filed:** none. Dedup: #1723 is the exact match.
+- **Discovered:** no new tools; no web research run tonight (budget). Many integration docs PRs are open and unmerged (#1738, #1722, #1492, #1624, #1153). They block #1439 and #1490.
+- **Next pass should:** check whether #1754 merged, then re-test the hang. Then merge-check #1722/#1738.
+
+---
+
 ## 2026-10-19 (23:00 PT fire) — release-cadence gap closed; docs fix for stale 1.5.0 claims
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo install caro --force --locked`, confirmed `caro --version` → `caro 1.5.0 ( crates.io)`). **The release-cadence gap flagged every pass since 2026-05-18 is closed** — 1.5.0 was tagged + published to crates.io and GH releases on 2026-10-13. Re-ran the full remote-backend roster: `caro --backend claude/openrouter/grok/ollama/vllm/exo --dry-run -p "..."` all now return a consistent `Configuration error: Backend '<name>' requires the 'remote-backends' feature, which is not compiled into this build.` with a fix command and an embedded-backend fallback suggestion — no more `Unknown backend` for advertised names, no more silent WARN-fallback. `--backend static` correctly rejected (not CLI-servable). `--backend embedded` control case passes (`ls -la`, though see #1645 below). This closes out the #1115/#1298/#1081 divergence story as far as *wiring + error quality* goes — the only open question left on #1081 is whether `remote-backends` should become a default feature.
