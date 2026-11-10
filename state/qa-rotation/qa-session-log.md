@@ -4,6 +4,36 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-10 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1761 into this state on 2026-11-10. The run read main's May copy, so it could not see that #1269 is the open canonical issue for the CPU stub: its #1760 is recorded here as another duplicate of #1269, and "5th recurrence" and "regression" are not supported (the stub has been there since #1269, filed 2026-06-26). Its one-time hang under the run's time limit is recorded as the cold-start case of FLAKE-002 (#1408).
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B (light) + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (advisory)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`
+- Note: `gh` token (GH_TOKEN) invalid in this sandbox; used GitHub MCP tools for filing/PR.
+
+### Slot B — Recent diff
+Memory on main is stale (last entry 2026-05-07; prior QA PRs unmerged), so only the newest merged PRs were sampled: #1740 (`caro config reset KEY`) → `config reset --help` shows `[KEY]`, PASS; #1710 (`caro ai` no-prompt error) → error now says `caro ai --once "list files"`, PASS.
+
+### Slot C — `caro ai --once` (#10)
+Reproduced 3/3: every prompt returns `Clarification needed: What exactly should be deleted?`. Cause: stub in `src/backends/embedded/cpu.rs:62` matches "rm" in the system prompt.
+
+### Findings
+- [#1760](https://github.com/wildcard/caro/issues/1760) — `ai: caro ai --once still answers "What exactly should be deleted?"` (P1, regression; 5th recurrence after #1494/#1500/#1523/#1673/#1735)
+
+### Followups
+- `caro ai --once` hung >[duration omitted] once under `timeout 60` with no output (first run, model load); not reproduced afterwards. Watch as possible flake.
+- Model `qwen2.5-coder-1.5b` was present this time; FLAKE-001 not observed.
+
+---
+
 ## 2026-11-09 — Scheduled run (Slot A + Slot C)
 
 > Folded from #1756 into this state on 2026-11-09. The run read main's May copy. The rotation PRs it calls closed unmerged (#1743 to #1751) were folded into this state, and #1750 is tracked here. Its Slot C line reads the reply "What exactly should be deleted?" to `--safety strict -p 'delete everything in /'` as a safety clarification. It is not: it is the CPU stub of #1269, which answers that way for any prompt containing "delete" or "rm" (`src/backends/embedded/cpu.rs`).
