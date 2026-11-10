@@ -276,7 +276,7 @@ export const STATIC_PAGES_INDEX: PageEntry[] = [
   {
     path: "/docs",
     title: "Caro Documentation",
-    description: "Welcome to the Caro documentation. Caro is your loyal shell companion that converts natural language descriptions into safe, POSIX-compliant shell commands using local language models.",
+    description: "Welcome to the Caro documentation. Caro is your loyal shell companion that converts natural language descriptions into safe shell commands for POSIX shells, PowerShell, and cmd on Windows.",
     category: "docs",
     keywords: ["caro", "your", "documentation", "commands", "language", "shell", "configuration", "natural", "posix", "compliant"],
     icon: "▸",
@@ -316,7 +316,7 @@ export const STATIC_PAGES_INDEX: PageEntry[] = [
   {
     path: "/docs/kavana",
     title: "Bring Kavana into Codex",
-    description: "CARO FIELD GUIDE · COMPANION 01",
+    description: "Meet Kavana, install her as a community pet in the Codex desktop app, or use Codex to hatch an animated companion of your own.",
     category: "docs",
     keywords: ["codex", "kavana", "pet", "guide", "app", "her", "companion", "your", "openai", "caro"],
     icon: "▸",
@@ -340,7 +340,7 @@ export const STATIC_PAGES_INDEX: PageEntry[] = [
   {
     path: "/docs/security",
     title: "Security",
-    description: "Caro uses AI to generate shell commands from natural language. While we've built comprehensive safety features, it's important to understand the security considerations when using AI-powered command g",
+    description: "Security considerations and best practices when using Caro for shell command generation",
     category: "docs",
     keywords: ["caro", "commands", "command", "security", "safety", "confirmation", "use", "before", "generated", "dangerous"],
     icon: "▸",
