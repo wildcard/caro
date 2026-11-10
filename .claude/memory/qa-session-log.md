@@ -4,6 +4,34 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-10 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B (light) + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 03s)
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (advisory)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`
+- Note: `gh` token (GH_TOKEN) invalid in this sandbox; used GitHub MCP tools for filing/PR.
+
+### Slot B — Recent diff
+Memory on main is stale (last entry 2026-05-07; prior QA PRs unmerged), so only the newest merged PRs were sampled: #1740 (`caro config reset KEY`) → `config reset --help` shows `[KEY]`, PASS; #1710 (`caro ai` no-prompt error) → error now says `caro ai --once "list files"`, PASS.
+
+### Slot C — `caro ai --once` (#10)
+Reproduced 3/3: every prompt returns `Clarification needed: What exactly should be deleted?`. Cause: stub in `src/backends/embedded/cpu.rs:62` matches "rm" in the system prompt.
+
+### Findings
+- [#1760](https://github.com/wildcard/caro/issues/1760) — `ai: caro ai --once still answers "What exactly should be deleted?"` (P1, regression; 5th recurrence after #1494/#1500/#1523/#1673/#1735)
+
+### Followups
+- `caro ai --once` hung >60s once under `timeout 60` with no output (first run, model load); not reproduced afterwards. Watch as possible flake.
+- Model `qwen2.5-coder-1.5b` was present this time; FLAKE-001 not observed.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
