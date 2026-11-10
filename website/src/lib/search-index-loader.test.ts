@@ -94,7 +94,49 @@ describe('OmniSearch.astro wiring', () => {
     expect(clientScript).toContain("fetch('/search-index.json')");
     expect(clientScript).toContain('function open(viaHotkey = false) {');
     expect(clientScript).toContain('loadIndex();');
+    expect(clientScript).toContain("overlay?.dispatchEvent(new Event('omni-search:load'));");
+    expect(clientScript).toContain("overlay.addEventListener('omni-search:load', loadIndex);");
     expect(clientScript).toContain('if (loaded === pages) {');
     expect(clientScript).toContain("if (overlay.classList.contains('open')) render(input.value);");
   });
+
+  it('keeps fallback metadata aligned with page searchMeta exports', () => {
+    const metadataPages = [
+      ['/product', '../pages/product/index.astro'],
+      ['/telemetry', '../pages/telemetry.astro'],
+      ['/faq', '../pages/faq.astro'],
+      ['/modern-unix-tools', '../pages/modern-unix-tools.astro'],
+      ['/evals', '../pages/evals.astro'],
+      ['/glossary', '../pages/glossary.astro'],
+      ['/support', '../pages/support.astro'],
+    ] as const;
+
+    const extractString = (text: string, field: string) =>
+      text.match(new RegExp(`${field}:\\s*(['"])(.*?)\\1`))?.[2];
+
+    const extractKeywords = (text: string) => {
+      const array = text.match(/keywords:\s*\[([\s\S]*?)\]/)?.[1] ?? '';
+      return Array.from(array.matchAll(/(['"])(.*?)\1/g), (match) => match[2] ?? '');
+    };
+
+    for (const [pagePath, file] of metadataPages) {
+      const pageSource = readFileSync(
+        fileURLToPath(new URL(file, import.meta.url)),
+        'utf8',
+      );
+      const pageMeta = pageSource.match(/export const searchMeta = \{([\s\S]*?)\n\};/)?.[1] ?? '';
+      const fallbackEntry = staticFallback
+        .split(/\n  \{\n/)
+        .find((entry) =>
+          entry.includes(`path: "${pagePath}"`) || entry.includes(`path: '${pagePath}'`),
+        ) ?? '';
+
+      expect(pageMeta, `${pagePath} searchMeta`).not.toBe('');
+      expect(fallbackEntry, `${pagePath} fallback`).not.toBe('');
+      expect(extractString(fallbackEntry, 'title')).toBe(extractString(pageMeta, 'title'));
+      expect(extractString(fallbackEntry, 'description')).toBe(extractString(pageMeta, 'description'));
+      expect(extractKeywords(fallbackEntry)).toEqual(extractKeywords(pageMeta));
+    }
+  });
+
 });
