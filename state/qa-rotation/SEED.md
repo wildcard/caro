@@ -241,3 +241,13 @@ The 2026-11-09 run used the old prompt and read main's May copy. It was folded o
 - **Not new:** #1750 was already tracked in this state; the run could not see it.
 - **Backlog:** no new issues. Surface 17 keeps FAIL (#1750), because the run did not test completion.
 - **Flakes:** FLAKE-001 was not triggered. `caro ai --once` (FLAKE-002) was not exercised.
+
+## Added after seeding: #1761 (2026-11-10)
+
+The 2026-11-10 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-11-10; surface 10 (FAIL, the CPU stub of #1269) gets the new date, and #1760 joins its duplicate list.
+- **Re-filed known issue:** the run filed #1760 (P1, "regression", "5th recurrence"). It is the CPU stub of canonical #1269, which is open; the earlier reports (#1494, #1500, #1523, #1673, #1735) were closed as its duplicates. #1760 is recorded as another duplicate; #1269 keeps P1. "Regression" is not supported: the stub is in `src/backends/embedded/cpu.rs` and #1269 was filed on 2026-06-26. #1760 is still open on GitHub; closing it as a duplicate is the sweep's step.
+- **Slot B:** the run's `config reset --help` check (#1740) and `caro ai` no-prompt error check (#1710) passed. They are help and error-message checks, so no other surface changes.
+- **Flakes:** FLAKE-001 was not triggered. The run's one-time no-output wait under the run's time limit is recorded as the cold-start case of FLAKE-002 (#1408).
