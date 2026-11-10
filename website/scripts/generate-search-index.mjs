@@ -7,7 +7,8 @@
  *
  * Usage: node scripts/generate-search-index.mjs
  *
- * This script is run at build time to generate the search index.
+ * This script is run at build time to generate the search index. The output is
+ * public/search-index.json, which OmniSearch fetches on first open (#1564).
  */
 
 import fs from 'fs';
@@ -573,7 +574,7 @@ function generateSearchIndex() {
 
   const pagesDir = path.join(WEBSITE_ROOT, 'src/pages');
   const componentsDir = path.join(WEBSITE_ROOT, 'src/components');
-  const outputPath = path.join(WEBSITE_ROOT, 'src/config/search-index.json');
+  const outputPath = path.join(WEBSITE_ROOT, 'public/search-index.json');
 
   const pages = [];
 

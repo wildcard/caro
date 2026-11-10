@@ -11,30 +11,13 @@
  * - Full content search across all pages
  * - Visible search button with hotkey hint
  * - Keyboard navigation
- * - Compile-time search index
+ * - Search index fetched lazily on first open (/search-index.json)
  */
 
-import { PAGES_INDEX } from '../config/pages';
 import TermGlyph from '../ui/TermGlyph/TermGlyph.astro';
-import searchIndexData from '../config/search-index.json';
 
 // Search is always enabled - no feature flag needed
 const isEnabled = true;
-
-// Use generated search index with full content, fallback to PAGES_INDEX
-const searchIndex = searchIndexData?.pages?.length > 0
-  ? searchIndexData.pages.map(p => ({
-      ...p,
-      // Use pre-computed _searchText which includes ALL page content
-      _search: p._searchText || [p.title, p.description || '', p.path, ...(p.keywords || [])].join(' ').toLowerCase(),
-      // Use pre-computed _words for fuzzy matching
-      _words: p._words || [p.title, p.description || '', ...(p.keywords || [])].join(' ').toLowerCase().split(/\s+/).filter(w => w.length > 2)
-    }))
-  : PAGES_INDEX.map(p => ({
-      ...p,
-      _search: [p.title, p.description || '', p.path, ...(p.keywords || [])].join(' ').toLowerCase(),
-      _words: [p.title, p.description || '', ...(p.keywords || [])].join(' ').toLowerCase().split(/\s+/).filter(w => w.length > 2)
-    }));
 ---
 
 {/* Search Trigger Button - Always visible */}
@@ -55,7 +38,7 @@ const searchIndex = searchIndexData?.pages?.length > 0
 
 {/* Search Overlay */}
 {isEnabled && (
-  <div id="omni-overlay" class="omni-overlay" data-pages={JSON.stringify(searchIndex)}>
+  <div id="omni-overlay" class="omni-overlay">
     <div class="omni-backdrop"></div>
     <div class="omni-dialog" role="dialog" aria-label="Site search">
       <div class="omni-search-box">
@@ -370,6 +353,9 @@ const searchIndex = searchIndexData?.pages?.length > 0
 </style>
 
 <script>
+  import { PAGES_INDEX } from '../config/pages';
+  import { createSearchIndexLoader } from '../lib/search-index-loader';
+
   // Platform detection: Update hotkey symbol for Mac users
   const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
   const kbdSymbol = document.getElementById('omni-kbd-symbol');
@@ -401,6 +387,8 @@ const searchIndex = searchIndexData?.pages?.length > 0
       const input = document.getElementById('omni-input') as HTMLInputElement;
       input?.focus();
       document.body.style.overflow = 'hidden';
+      // This path skips open(), so ask it to load the index.
+      overlay?.dispatchEvent(new Event('omni-search:load'));
     });
   }
 
@@ -412,7 +400,16 @@ const searchIndex = searchIndexData?.pages?.length > 0
     const input = document.getElementById('omni-input') as HTMLInputElement;
     const list = document.getElementById('omni-list')!;
     const hotkeyHint = overlay.querySelector('.omni-hotkey-hint');
-    const pages: any[] = JSON.parse(overlay.dataset.pages || '[]');
+    // Compact PAGES_INDEX until the full index loads (or if the fetch fails).
+    const loader = createSearchIndexLoader({
+      fetchIndex: async () => {
+        const res = await fetch('/search-index.json');
+        if (!res.ok) throw new Error(`search index: HTTP ${res.status}`);
+        return res.json();
+      },
+      fallback: PAGES_INDEX,
+    });
+    let pages = loader.fallbackPages();
 
     let activeIdx = 0;
     let hasUsedHotkey = false;
@@ -654,12 +651,24 @@ const searchIndex = searchIndexData?.pages?.length > 0
       items[activeIdx]?.scrollIntoView({ block: 'nearest' });
     }
 
+    // Load the full index on first open; reopening reuses it.
+    function loadIndex() {
+      loader.load().then(loaded => {
+        if (loaded === pages) return;
+        pages = loaded;
+        if (overlay.classList.contains('open')) render(input.value);
+      });
+    }
+    overlay.addEventListener('omni-search:load', loadIndex);
+
     function open(viaHotkey = false) {
       overlay.classList.add('open');
       input.value = '';
       render('');
       input.focus();
       document.body.style.overflow = 'hidden';
+
+      loadIndex();
 
       // Hide hotkey hint if user already knows about it
       if (viaHotkey) {

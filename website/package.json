@@ -6,7 +6,8 @@
   "scripts": {
     "generate-search-index": "node scripts/generate-search-index.mjs",
     "prebuild": "node scripts/extract-version.mjs && node scripts/generate-search-index.mjs",
-    "predev": "node scripts/extract-version.mjs",
+    "predev": "node scripts/extract-version.mjs && node scripts/generate-search-index.mjs",
+    "prestart": "npm run predev",
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build --remote",
