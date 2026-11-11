@@ -202,6 +202,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let result = CommandResult::success("ls -la".to_string(), 100, "test".to_string());
@@ -226,6 +227,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let mut ok = CommandResult::success("ls -la".to_string(), 1, "b".to_string());
@@ -256,6 +258,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let result = CommandResult::success("ls -l".to_string(), 100, "test".to_string());
@@ -280,6 +283,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         // Test equivalent command (different flag order)
@@ -304,6 +308,7 @@ mod tests {
             difficulty: Some(Difficulty::Medium),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let result =
@@ -328,6 +333,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let result = CommandResult::failed("Backend timeout".to_string(), 100, "test".to_string());

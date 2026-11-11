@@ -148,6 +148,7 @@ mod tests {
             difficulty: Some(Difficulty::Medium),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let result = CommandResult::success("find . -mtime 0".to_string(), 100, "test".to_string());
@@ -172,6 +173,7 @@ mod tests {
             difficulty: Some(Difficulty::Medium),
             source: None,
             notes: None,
+            execution: None,
         };
 
         // Command uses GNU extension (-mtime -1)
@@ -205,6 +207,7 @@ mod tests {
             difficulty: Some(Difficulty::Medium),
             source: None,
             notes: None,
+            execution: None,
         };
 
         // Command uses bash-specific [[ operator
@@ -238,6 +241,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         // Command uses GNU long options
@@ -262,6 +266,7 @@ mod tests {
             difficulty: Some(Difficulty::Easy),
             source: None,
             notes: None,
+            execution: None,
         };
 
         let result = CommandResult::failed("Timeout".to_string(), 100, "test".to_string());

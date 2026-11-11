@@ -57,6 +57,7 @@ Example: `ADR-001-enterprise-community-architecture.md`
 | [ADR-018](./ADR-018-gate-classifier-calibration-experiment.md) | Gate-Classifier Experiment with a Calibration Objective | Proposed | 2026-10-03 |
 | [ADR-019](./ADR-019-autoharness-harness-hygiene.md) | Harness Hygiene Lessons from autoharness (Additive Adoption) | Proposed | 2026-09-26 |
 | [ADR-020](./ADR-020-guardian-hook-harness-adapters.md) | Guardian Hook and Harness Adapters (`caro guard`) | Proposed | 2026-10-03 |
+| [ADR-021](./ADR-021-cloud-assisted-verification.md) | Cloud-Assisted Verification (execution-grounded eval, detonation, browser QA) | Proposed | 2026-09-06 |
 
 ## Contributing to ADRs
 

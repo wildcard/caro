@@ -14,9 +14,19 @@ use std::path::PathBuf;
 #[command(name = "evaluation")]
 #[command(about = "Run LLM evaluation harness", long_about = None)]
 pub struct Args {
-    /// Test category to run (correctness, safety, posix, multi_backend)
+    /// Test category to run (correctness, safety, posix, multi_backend, execution)
     #[arg(long)]
     pub category: Option<String>,
+
+    /// Dataset file to load (YAML or JSON test-case array)
+    #[arg(long, default_value = "tests/evaluation/dataset.yaml")]
+    pub dataset: PathBuf,
+
+    /// Sandbox tier for execution-category cases (off, tier0).
+    /// tier0 = just-bash via tools/exec-harness (needs `npm ci` there);
+    /// when unavailable, execution cases are skipped, never failed.
+    #[arg(long, default_value = "off")]
+    pub execution_tier: String,
 
     /// Backend to test (static_matcher, mlx, ollama, vllm)
     #[arg(long)]

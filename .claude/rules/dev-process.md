@@ -40,6 +40,12 @@
   not deployed since at least January 2026, and a copy at
   `wildcard.github.io/caro/` would need a `/caro` base path.
 
+### Cloudflare compute (dev harness only — ADR-021)
+- `tools/exec-harness/worker/` → Workers + Sandbox containers
+  (`detonation-nightly.yml`, dormant until secrets exist)
+- `website/e2e/` → Browser Run/Kitesurf structural QA
+  (`website-qa-kitesurf.yml`, dormant until secrets exist)
+
 ### Release Workflow
 ```bash
 # Pre-release grooming
