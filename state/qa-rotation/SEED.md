@@ -251,3 +251,13 @@ The 2026-11-10 run used the old prompt and read main's May copy. It was folded o
 - **Re-filed known issue:** the run filed #1760 (P1, "regression", "5th recurrence"). It is the CPU stub of canonical #1269, which is open; the earlier reports (#1494, #1500, #1523, #1673, #1735) were closed as its duplicates. #1760 is recorded as another duplicate; #1269 keeps P1. "Regression" is not supported: the stub is in `src/backends/embedded/cpu.rs` and #1269 was filed on 2026-06-26. #1760 is still open on GitHub; closing it as a duplicate is the sweep's step.
 - **Slot B:** the run's `config reset --help` check (#1740) and `caro ai` no-prompt error check (#1710) passed. They are help and error-message checks, so no other surface changes.
 - **Flakes:** FLAKE-001 was not triggered. The run's one-time no-output wait under the run's time limit is recorded as the cold-start case of FLAKE-002 (#1408).
+
+## Added after seeding: #1762 (2026-11-11)
+
+The 2026-11-11 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note. The build duration became "[duration omitted]".
+- **Its rows win:** a smoke row for 2026-11-11; surfaces 14, 15 and 16 (PASS) get the new date and keep the seed's results and links. Surface 17 gets the new date and keeps FAIL: the run tested only bash, zsh and fish, so "bash, zsh and fish PASS" is added, but #1750 (an unknown shell) is still open.
+- **Flake numbering:** the run's "FLAKE-002" (a hang with inherited stdin) collides with the existing FLAKE-002 (`caro ai --once`). It is recorded as FLAKE-004. It matches the open #1723 (the top-level path reads stdin even with `-p`); the fix is in the held PR #1043.
+- **Slot B:** skipped by the run. Backlog: no new issues.
+- **Flakes:** FLAKE-001 was not triggered.
