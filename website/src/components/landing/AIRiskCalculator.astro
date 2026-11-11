@@ -143,17 +143,17 @@
     -webkit-appearance: none;
     width: 24px;
     height: 24px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 2px 8px rgba(239, 51, 51, 0.3);
   }
 
   .input-value {
     font-family: 'SF Mono', 'Monaco', monospace;
     font-size: 18px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent-text);
     min-width: 80px;
     text-align: right;
   }
@@ -179,7 +179,7 @@
   }
 
   .result-item.danger {
-    background: rgba(239, 68, 68, 0.1);
+    background: rgba(239, 51, 51, 0.08);
     border: 1px solid rgba(239, 68, 68, 0.3);
   }
 
@@ -201,7 +201,7 @@
   }
 
   .result-item.danger .result-value {
-    color: #ef4444;
+    color: var(--accent-text);
   }
 
   .result-operator {
@@ -242,11 +242,11 @@
   }
 
   .summary-header.bad {
-    color: #ef4444;
+    color: var(--accent-text);
   }
 
   .summary-header.good {
-    color: #22c55e;
+    color: var(--status-safe-text);
   }
 
   .summary-stat {
@@ -262,11 +262,11 @@
   }
 
   .without-caro .stat-number {
-    color: #ef4444;
+    color: var(--accent-text);
   }
 
   .with-caro .stat-number {
-    color: #22c55e;
+    color: var(--status-safe-text);
   }
 
   .stat-label {
@@ -281,8 +281,9 @@
   }
 
   .summary-note code {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
+    background: var(--color-bg);
+    border: 1px solid rgba(239, 51, 51, 0.3);
+    color: var(--accent-text);
     padding: 2px 6px;
     border-radius: 4px;
     font-family: 'SF Mono', 'Monaco', monospace;
@@ -291,8 +292,8 @@
 
   .enterprise-cta {
     text-align: center;
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.04) 100%);
-    border: 1px solid rgba(255, 140, 66, 0.2);
+    background: color-mix(in srgb, var(--accent-fill) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-fill) 20%, transparent);
     border-radius: 12px;
     padding: 32px;
   }
@@ -306,8 +307,8 @@
   .cta-button {
     display: inline-block;
     padding: 14px 36px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     border-radius: 8px;
     font-size: 16px;
     font-weight: 600;
@@ -316,8 +317,9 @@
   }
 
   .cta-button:hover {
+    background: var(--accent-fill-hover);
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--accent-fill) 30%, transparent);
   }
 
   @media (max-width: 768px) {
@@ -344,6 +346,18 @@
     .stat-number {
       font-size: 36px;
     }
+  }
+
+  /* The range track drops the default outline, so restore a visible focus ring. */
+  .input-group input[type="range"]:focus-visible,
+  .cta-button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-button { transition: none; }
+    .cta-button:hover { transform: none; }
   }
 </style>
 

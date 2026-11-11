@@ -2,6 +2,8 @@ import type { StorybookConfig } from '@storybook/react-vite';
 
 const config: StorybookConfig = {
   stories: ['../src/ui/**/*.stories.@(js|jsx|ts|tsx)'],
+  // Holds only favicon.svg (from scripts/favicons.py); Storybook uses it as the tab icon.
+  staticDirs: ['./static'],
   addons: [
     '@storybook/addon-essentials',
     '@storybook/addon-a11y',

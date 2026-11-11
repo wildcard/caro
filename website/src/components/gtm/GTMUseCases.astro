@@ -104,7 +104,7 @@ const useCases = [
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: #3b82f6;
+    color: var(--accent-text);
     margin-bottom: 16px;
   }
 
@@ -139,7 +139,7 @@ const useCases = [
   }
 
   .case-card:hover {
-    border-color: #ff8c42;
+    border-color: var(--accent);
     transform: translateY(-4px);
   }
 
@@ -170,11 +170,11 @@ const useCases = [
   }
 
   .case-problem .label {
-    color: #ef4444;
+    color: var(--accent-text);
   }
 
   .case-solution .label {
-    color: #22c55e;
+    color: var(--status-safe-text);
   }
 
   .case-problem p,
@@ -185,7 +185,7 @@ const useCases = [
   }
 
   .case-example {
-    background: #0d1117;
+    background: var(--term-bg);
     border-radius: 12px;
     padding: 20px;
   }
@@ -205,7 +205,7 @@ const useCases = [
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #8b949e;
+    color: var(--caro-grey-300);
     margin-bottom: 6px;
   }
 
@@ -213,20 +213,21 @@ const useCases = [
     display: block;
     font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
     font-size: 13px;
-    color: #79c0ff;
+    color: var(--term-fg);
+    overflow-wrap: anywhere;
   }
 
   .example-output code {
     display: block;
     font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
     font-size: 12px;
-    color: #22c55e;
+    color: var(--highlight);
     word-break: break-all;
   }
 
   .example-arrow {
     text-align: center;
-    color: #8b949e;
+    color: var(--caro-grey-300);
     font-size: 18px;
     margin: 8px 0;
   }
@@ -253,5 +254,10 @@ const useCases = [
     .example-output code {
       font-size: 11px;
     }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .case-card { transition: none; }
+    .case-card:hover { transform: none; }
   }
 </style>

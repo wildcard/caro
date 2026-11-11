@@ -29,7 +29,7 @@ const comparison = {
   sections: [
     {
       title: 'Cloud Dependency',
-      icon: '☁️',
+      icon: '$',
       content: `
         <p><strong>Kiro CLI</strong> (formerly Amazon Q CLI) is built by AWS and requires an internet connection. Your prompts and context are sent to AWS for processing, and the tool is optimized for AWS-specific workflows.</p>
         <p><strong>Caro</strong> has zero cloud dependency. It runs entirely on your machine with local models. No accounts, no API keys, no internet required. This makes it suitable for any environment, not just AWS.</p>
@@ -37,7 +37,7 @@ const comparison = {
     },
     {
       title: 'Privacy & Data',
-      icon: '🔒',
+      icon: '▸',
       content: `
         <p><strong>Kiro CLI</strong> sends your terminal context to AWS for processing. While AWS has enterprise security policies, your shell commands traverse their infrastructure.</p>
         <p><strong>Caro</strong> processes everything locally. Your commands, prompts, and terminal context never leave your machine. Perfect for organizations with strict data sovereignty requirements or developers who prefer to keep their workflow private.</p>
@@ -45,7 +45,7 @@ const comparison = {
     },
     {
       title: 'Features & Capabilities',
-      icon: '🎯',
+      icon: '▸',
       content: `
         <p><strong>Kiro CLI</strong> offers interactive chat, custom agents, MCP integration for external tools, smart hooks, and agent steering for team practices. It shines with AWS-specific tasks and enterprise workflows.</p>
         <p><strong>Caro</strong> specializes in general shell commands with POSIX compliance and cross-platform support. It's cloud-agnostic and works equally well whether you're on AWS, GCP, Azure, or bare metal.</p>
@@ -53,7 +53,7 @@ const comparison = {
     },
     {
       title: 'Safety Approach',
-      icon: '🛡️',
+      icon: '■',
       content: `
         <p><strong>Kiro CLI</strong> relies on its model to generate safe commands. There's no systematic pre-execution validation layer for dangerous patterns.</p>
         <p><strong>Caro</strong> validates every command against 52+ safety patterns before presenting it. Dangerous operations like <code>rm -rf /</code>, fork bombs, and privilege escalations are blocked independently of what the model suggests.</p>

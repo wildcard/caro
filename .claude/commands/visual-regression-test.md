@@ -293,5 +293,5 @@ website/
 
 ## Related
 
-- [VISUAL_REGRESSION_DRS.md](../.claude/automation/specs/VISUAL_REGRESSION_DRS.md)
+- [VISUAL_REGRESSION_DRS.md](../automation/specs/VISUAL_REGRESSION_DRS.md)
 - [Playwright Visual Comparisons](https://playwright.dev/docs/test-snapshots)

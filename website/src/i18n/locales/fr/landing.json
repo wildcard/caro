@@ -5,7 +5,16 @@
       "cta": "Commencer gratuitement",
       "darkMode": {
         "toggle": "Basculer le mode sombre"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "Agent Compagnon",
@@ -254,32 +263,32 @@
         {
           "question": "Attendez, Caro s'exécute localement. Comment reste-t-il à jour avec les nouveaux motifs dangereux ?",
           "answer": "Les motifs de sécurité de Caro sont intégrés dans le binaire—aucun réseau nécessaire. Lorsque vous mettez à jour Caro (cargo install caro --force), vous obtenez les derniers motifs. Les commandes dangereuses principales (rm -rf /, bombes fork, effaceurs de disque) ne changent pas. Nous acceptons également les contributions de motifs via GitHub.",
-          "icon": "🔄"
+          "icon": "▸"
         },
         {
           "question": "Cela va-t-il ralentir ma réponse aux incidents ?",
           "answer": "Non. Caro ajoute moins de 100 ms à la génération de commandes. La vérification de sécurité est instantanée (correspondance de motifs, pas d'inférence IA). Lors d'un véritable incident, ces 100 ms pourraient vous éviter d'aggraver les choses 10 fois. La validation est synchrone—vous voyez l'avertissement immédiatement.",
-          "icon": "⚡"
+          "icon": "❯"
         },
         {
           "question": "Comment connaît-il ma configuration système spécifique (BSD vs GNU, etc.) ?",
           "answer": "Caro détecte votre système d'exploitation et votre shell à l'exécution. Sur macOS, il sait que vous utilisez les outils BSD. Sur Linux, il s'ajuste à la syntaxe GNU. Il lit votre $SHELL et s'adapte en conséquence. Aucune configuration nécessaire—ça fonctionne tout simplement.",
-          "icon": "🖥️"
+          "icon": "▸"
         },
         {
           "question": "Et si j'ai VRAIMENT besoin d'exécuter une commande dangereuse ?",
           "answer": "Caro avertit, il n'emprisonne pas. Lorsque vous voyez un avertissement, vous pouvez toujours continuer—nous nous assurons simplement que vous le faites intentionnellement. Pour les commandes vraiment destructrices (rm -rf /), vous devrez confirmer. C'est votre ceinture de sécurité, pas une camisole de force.",
-          "icon": "🔓"
+          "icon": "▸"
         },
         {
           "question": "Est-ce juste un autre wrapper IA qui envoie mes commandes dans le cloud ?",
           "answer": "Non. Caro s'exécute 100 % localement. Vos commandes, chemins de fichiers, noms de serveurs et structures de répertoires ne quittent jamais votre machine. L'inférence se produit sur votre matériel. Nous avons zéro télémétrie. Vérifiez le code source—il est sous licence AGPL-3.0.",
-          "icon": "🔒"
+          "icon": "▸"
         },
         {
           "question": "Pourquoi devrais-je faire confiance aux commandes shell générées par IA ?",
           "answer": "Vous ne devriez pas leur faire confiance aveuglément—c'est justement le but. Caro génère des commandes ET les valide avant que vous ne les exécutiez. Ce n'est pas « faites confiance à l'IA »—c'est « faites confiance à la couche de sécurité basée sur des motifs qui détecte ce que l'IA pourrait manquer ». La validation est déterministe, pas probabiliste.",
-          "icon": "🎯"
+          "icon": "■"
         }
       ]
     },
@@ -313,7 +322,7 @@
         "rank": "RANG #{{rank}} !",
         "finalScore": "Vous avez atteint le niveau {{level}} avec {{score}} points !"
       },
-      "streak": "🔥 Série :",
+      "streak": "Série :",
       "messages": {
         "correct": [
           "Excellent travail ! 🎉",
@@ -351,7 +360,7 @@
     },
     "announcement": {
       "renameBanner": {
-        "emoji": "🎉",
+        "emoji": "▸",
         "title": "Annonce de Caro !",
         "message": "Nous avons changé de nom : de cmdai à caro.",
         "linkText": "Lire l'annonce",
@@ -405,7 +414,7 @@
       "bottom": {
         "built": "Conçu avec 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "♥",
         "inspiration": "Inspiré par Caroline de Portal—la loyauté transformée en compagnonnage numérique",
         "heritagePre": "Fièrement construit sur les fondations posées par",
         "gnu": "GNU",

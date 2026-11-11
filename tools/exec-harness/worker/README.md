@@ -2,7 +2,7 @@
 
 Serves `PROTOCOL.md` over HTTPS backed by disposable **real-Linux** containers
 (`@cloudflare/sandbox`, GA), plus `POST /detonate` for the red-team suite
-(`tests/red_team/`). Committed dormant per ADR-017: nothing here runs until a
+(`tests/red_team/`). Committed dormant per ADR-021: nothing here runs until a
 human creates the Cloudflare account and tokens (decision D5 reserves vendor
 secrets to humans).
 
@@ -57,4 +57,4 @@ commands on `lite` instances — well under one container-hour per night.
 
 Backend-fidelity comparison against `@cloudflare/computer` (preview) belongs
 in `experimental/` (not yet created) and may never back a required check —
-ADR-017's preview-API policy.
+ADR-021's preview-API policy.

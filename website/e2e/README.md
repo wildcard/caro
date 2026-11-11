@@ -4,7 +4,7 @@ Nightly structural checks of the production site, driven through
 [Cloudflare Browser Run's Kitesurf engine](https://developers.cloudflare.com/browser-run/kitesurf/)
 over CDP — Playwright connects to a remote agent-first browser, so CI needs
 **no local browser install** and the Kitesurf lane is free while in beta.
-Part of ADR-017 phase P3; dormant until CF secrets exist.
+Part of ADR-021 phase P3; dormant until CF secrets exist.
 
 Suites (structural only — Kitesurf is not pixel-perfect; brand/visual audits
 stay on the claude-design Chromium flow):

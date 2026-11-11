@@ -13,6 +13,10 @@ Slidev presentations for the Caro project (formerly caro):
 npm install
 ```
 
+This directory is an npm workspace. `npm install` here reads and writes the
+root `package-lock.json`, so do not commit a lockfile in this directory. See
+[Workspace and lockfile](../website/README.md#workspace-and-lockfile).
+
 ## Run Presentations
 
 ### Main Presentation

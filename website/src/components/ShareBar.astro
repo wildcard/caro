@@ -1,0 +1,260 @@
+---
+/**
+ * ShareBar — share a page with people, or hand it to an AI agent.
+ *
+ * - Share: X, LinkedIn, Bluesky, Hacker News, Reddit, the system share sheet
+ *   (where the browser has one) and copy link.
+ * - For AI agents: the page's Markdown twin (view or copy), and "Ask Claude" /
+ *   "Ask ChatGPT" links that start a chat with the twin's URL.
+ *
+ * Links work without JavaScript; the copy and share-sheet buttons start
+ * hidden and the script shows them where the browser supports them. `data-md-skip` keeps the bar out of the Markdown twin itself.
+ */
+import { markdownPath, normalizePath } from '../lib/seo/routes';
+
+interface Props {
+  title: string;
+  /** Hide the social networks and keep only the agent row (docs pages). */
+  agentsOnly?: boolean;
+}
+
+const { title, agentsOnly = false } = Astro.props;
+const site = Astro.site ?? new URL('https://caro.sh');
+const path = normalizePath(Astro.url.pathname);
+const url = new URL(path, site).href;
+const markdownUrl = new URL(markdownPath(path), site).href;
+
+const e = encodeURIComponent;
+const networks = [
+  { name: 'X', href: `https://x.com/intent/tweet?text=${e(title)}&url=${e(url)}&via=CaroDaShellShib` },
+  { name: 'LinkedIn', href: `https://www.linkedin.com/sharing/share-offsite/?url=${e(url)}` },
+  { name: 'Bluesky', href: `https://bsky.app/intent/compose?text=${e(`${title} ${url}`)}` },
+  { name: 'Hacker News', href: `https://news.ycombinator.com/submitlink?u=${e(url)}&t=${e(title)}` },
+  { name: 'Reddit', href: `https://www.reddit.com/submit?url=${e(url)}&title=${e(title)}` },
+];
+const prompt = `Read ${markdownUrl} and help me with it.`;
+const agents = [
+  { name: 'Ask Claude', href: `https://claude.ai/new?q=${e(prompt)}` },
+  { name: 'Ask ChatGPT', href: `https://chatgpt.com/?q=${e(prompt)}` },
+];
+---
+
+<aside
+  class="share-bar"
+  aria-label={agentsOnly ? 'Use this page with AI agents' : 'Share this page'}
+  data-share-bar
+  data-md-skip
+>
+  {!agentsOnly && (
+    <div class="share-row">
+      <p class="share-label" id="share-people">Share</p>
+      <ul class="share-list" aria-labelledby="share-people">
+        {networks.map(({ name, href }) => (
+          <li>
+            <a
+              class="share-action"
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Share on ${name} (opens in a new tab)`}
+            >{name}</a>
+          </li>
+        ))}
+        <li data-share-native-item hidden>
+          <button type="button" class="share-action" data-share-native data-title={title} data-url={url}>
+            Share…
+          </button>
+        </li>
+        <li data-needs-clipboard hidden>
+          <button type="button" class="share-action" data-copy-link={url}>Copy link</button>
+        </li>
+      </ul>
+    </div>
+  )}
+  <div class="share-row">
+    <p class="share-label" id="share-agents">For AI agents</p>
+    <ul class="share-list" aria-labelledby="share-agents">
+      <li>
+        <a class="share-action" href={markdownUrl} type="text/markdown">View as Markdown</a>
+      </li>
+      <li data-needs-clipboard hidden>
+        <button type="button" class="share-action" data-copy-markdown={markdownUrl}>Copy as Markdown</button>
+      </li>
+      {agents.map(({ name, href }) => (
+        <li>
+          <a
+            class="share-action"
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${name} about this page (opens in a new tab)`}
+          >{name}</a>
+        </li>
+      ))}
+    </ul>
+  </div>
+  <p class="share-status" role="status" aria-live="polite" data-share-status></p>
+</aside>
+
+<script>
+  function setup() {
+    document.querySelectorAll<HTMLElement>('[data-share-bar]').forEach((bar) => {
+      if (bar.dataset.ready) return;
+      bar.dataset.ready = 'true';
+      const status = bar.querySelector<HTMLElement>('[data-share-status]');
+      const say = (message: string) => {
+        if (!status) return;
+        status.textContent = message;
+        window.setTimeout(() => {
+          if (status.textContent === message) status.textContent = '';
+        }, 2500);
+      };
+      const copy = async (text: string, done: string) => {
+        try {
+          await navigator.clipboard.writeText(text);
+          say(done);
+        } catch {
+          say('Copy failed. Select the text and copy it by hand.');
+        }
+      };
+
+      // The copy buttons start hidden, so a page without JavaScript (or
+      // without the Clipboard API) shows no button that does nothing.
+      if (navigator.clipboard) {
+        bar.querySelectorAll<HTMLElement>('[data-needs-clipboard]').forEach((item) => {
+          item.hidden = false;
+        });
+      }
+
+      const native = bar.querySelector<HTMLButtonElement>('[data-share-native]');
+      const nativeItem = bar.querySelector<HTMLElement>('[data-share-native-item]');
+      if (native && nativeItem && typeof navigator.share === 'function') {
+        nativeItem.hidden = false;
+        native.addEventListener('click', () => {
+          navigator
+            .share({ title: native.dataset.title, url: native.dataset.url })
+            .catch(() => {});
+        });
+      }
+
+      bar.querySelectorAll<HTMLButtonElement>('[data-copy-link]').forEach((button) => {
+        button.addEventListener('click', () => copy(button.dataset.copyLink ?? location.href, 'Link copied.'));
+      });
+
+      bar.querySelectorAll<HTMLButtonElement>('[data-copy-markdown]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const source = button.dataset.copyMarkdown;
+          if (!source) return;
+          try {
+            const response = await fetch(new URL(source).pathname, { headers: { accept: 'text/markdown' } });
+            if (!response.ok) throw new Error(String(response.status));
+            await copy(await response.text(), 'Page copied as Markdown.');
+          } catch {
+            say('Could not load the Markdown. Use "View as Markdown" instead.');
+          }
+        });
+      });
+    });
+  }
+  setup();
+  document.addEventListener('astro:page-load', setup);
+</script>
+
+<style>
+  /* Every rule starts at .share-bar so it outranks the prose rules of the
+     layout around it (e.g. .blog-post-content :global(a), :global(ul)). */
+  .share-bar {
+    display: grid;
+    gap: 16px;
+    margin: 48px 0 0;
+    padding: 24px 0 0;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+  }
+
+  .share-bar .share-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+  }
+
+  .share-bar .share-label {
+    margin: 0;
+    /* Wide enough for "For AI agents", so both rows' buttons line up. */
+    min-width: 15ch;
+    font-size: 12px;
+    line-height: 1.4;
+    letter-spacing: var(--track-wide);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  .share-bar .share-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  .share-bar .share-list li {
+    margin: 0;
+  }
+
+  .share-bar .share-list li[hidden] {
+    display: none;
+  }
+
+  .share-bar .share-action {
+    display: inline-block;
+    padding: 6px 12px;
+    /* --border is 1.5:1 on the page; grey-500 keeps the button edge visible (≈3.8:1 light, 3.3:1 dark). */
+    border: 1px solid var(--caro-grey-500);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--fg);
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.4;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color var(--transition-fast), color var(--transition-fast);
+  }
+
+  .share-bar .share-action:hover {
+    border-color: var(--accent);
+    color: var(--color-link-hover);
+    text-decoration: none;
+  }
+
+  .share-bar .share-action:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .share-bar .share-status {
+    min-height: 1.4em;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--fg-muted);
+  }
+
+  /* Touch: buttons reach the 44px target. */
+  @media (max-width: 600px) {
+    .share-bar .share-action {
+      min-height: var(--touch-target-min);
+      padding: 12px 14px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .share-bar .share-action {
+      transition: none;
+    }
+  }
+</style>

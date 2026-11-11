@@ -1,0 +1,50 @@
+---
+/**
+ * CaroMark - the official Caro mark (the Shiba face in a terminal window,
+ * with signal dots above) as an inline vector.
+ *
+ * Inline so it takes the text color: ink on paper, reversed out in dark
+ * mode. The source is public/brand/caro-mark.svg, a vector trace of the
+ * official smooth mark (public/mark-caro-smooth.png). See
+ * docs/brand/ICONOGRAPHY.md.
+ *
+ * Decorative (aria-hidden): the link around it carries the name "Caro".
+ *
+ * @example
+ * <a href="/"><CaroMark size={28} />Caro</a>
+ */
+import raw from '../../../public/brand/caro-mark.svg?raw';
+
+interface Props {
+  /** Height in px; the width follows the mark's aspect ratio. */
+  size?: number;
+  class?: string;
+}
+
+const { size = 28, class: className } = Astro.props;
+
+const viewBox = raw.match(/viewBox="([^"]+)"/)?.[1] ?? '';
+const [, , vw, vh] = viewBox.split(/\s+/).map(Number);
+const inner = (raw.match(/<svg[^>]*>([\s\S]*?)<\/svg>/)?.[1] ?? '')
+  .replace(/<title>[\s\S]*?<\/title>|<!--[\s\S]*?-->/g, '')
+  .trim();
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox={viewBox}
+  width={Math.round((size * vw) / vh)}
+  height={size}
+  fill="currentColor"
+  aria-hidden="true"
+  focusable="false"
+  class:list={['caro-mark', className]}
+  set:html={inner}
+></svg>
+
+<style>
+  .caro-mark {
+    display: inline-block;
+    flex-shrink: 0;
+  }
+</style>

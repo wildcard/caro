@@ -2,20 +2,21 @@
 
 ## Overview
 
+> **Update 2026-10-10 (#1341):** SmolLM 135M now downloads a 145 MB Q8_0 build because the 82 MB Q4_K_M repo is gone. StarCoder 1B is removed for the same reason, and the model CI jobs run on CPU only (`CARO_GPU_LAYERS=0`). The "Performance Impact" and "Test Results" sections record the original 82 MB measurements.
+
 Successfully implemented comprehensive multi-model support with parallel testing on GitHub Actions for macOS runners.
 
 ## What Was Implemented
 
 ### 1. Model Catalog System (`src/model_catalog.rs`)
 
-Created a catalog of **7 GGUF models** from Hugging Face:
+Created a catalog of GGUF models from Hugging Face (6 since #1341):
 
 | Model | Size | Category | CI-Suitable | MLX-Optimized |
 |-------|------|----------|-------------|---------------|
-| SmolLM 135M | 82 MB | Tiny | ✅ | ❌ |
+| SmolLM 135M | 145 MB | Tiny | ✅ | ❌ |
 | Qwen 0.5B | 352 MB | Small | ✅ | ✅ |
 | TinyLlama 1.1B | 669 MB | Small | ✅ | ❌ |
-| StarCoder 1B | 700 MB | Small | ✅ | ❌ |
 | Qwen 1.5B | 1.1 GB | Medium | ❌ | ✅ |
 | Phi-2 2.7B | 1.6 GB | Medium | ❌ | ❌ |
 | Mistral 7B | 3.5 GB | Large | ❌ | ❌ |
@@ -63,16 +64,13 @@ strategy:
     model:
       - id: smollm-135m-q4
         name: SmolLM 135M
-        size: 82MB
+        size: 145MB
       - id: qwen-0.5b-q4
         name: Qwen 0.5B  
         size: 352MB
       - id: tinyllama-1.1b-q4
         name: TinyLlama 1.1B
         size: 669MB
-      - id: starcoder-1b-q4
-        name: StarCoder 1B
-        size: 700MB
 ```
 
 **Test Coverage per Model:**
@@ -146,7 +144,7 @@ Comprehensive guide covering:
 
 ## Matrix Strategy Benefits
 
-1. **Parallel Execution**: All 4 models test simultaneously
+1. **Parallel Execution**: All 3 models test simultaneously
 2. **Independent Results**: One model failure doesn't stop others
 3. **Model Validation**: Ensures all CI models work correctly
 4. **Easy Debugging**: Clear which model has issues
@@ -168,7 +166,7 @@ Comprehensive guide covering:
 
 ### GitHub Actions Tests
 Will run on next push:
-- 🔄 4 parallel jobs (one per model)
+- 🔄 3 parallel jobs (one per model)
 - 🔄 Each running full E2E, MLX, and embedded tests
 - 🔄 Independent pass/fail per model
 - 🔄 Cached models for faster subsequent runs
@@ -223,14 +221,14 @@ env:
 Use SmolLM:
 ```yaml
 env:
-  CARO_MODEL: smollm-135m-q4  # 82MB, fastest
+  CARO_MODEL: smollm-135m-q4  # 145MB, fastest
 ```
 
 ### For Code-Focused Tests
-Use StarCoder:
+Use Qwen2.5-Coder 0.5B (StarCoder 1B was dropped in #1341: its Hugging Face repo is gone):
 ```yaml
 env:
-  CARO_MODEL: starcoder-1b-q4  # 700MB, code-specialized
+  CARO_MODEL: qwen-0.5b-q4  # 352MB, code-specialized
 ```
 
 ## Success Metrics

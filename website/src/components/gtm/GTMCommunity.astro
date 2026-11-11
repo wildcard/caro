@@ -130,7 +130,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: #8b5cf6;
+    color: var(--accent-text);
     margin-bottom: 16px;
   }
 
@@ -168,7 +168,7 @@
   }
 
   .stat-card:hover {
-    border-color: #ff8c42;
+    border-color: var(--accent);
     transform: translateY(-4px);
   }
 
@@ -222,12 +222,12 @@
   .author-avatar {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent-fill);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: var(--on-accent);
     font-weight: 700;
     font-size: 16px;
   }
@@ -277,8 +277,8 @@
   }
 
   .join-option:hover {
-    border-color: #ff8c42;
-    background: rgba(255, 140, 66, 0.05);
+    border-color: var(--accent);
+    background: rgba(239, 51, 51, 0.05);
   }
 
   @media (max-width: 900px) {

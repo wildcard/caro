@@ -46,7 +46,11 @@
         "glossary": "Glosarium",
         "terminalTerms": "Istilah Terminal & Unix",
         "github": "GitHub",
-        "sourceCode": "Kode Sumber"
+        "sourceCode": "Kode Sumber",
+        "useCases": "Use Cases",
+        "byRoleSummary": "By role: SRE, DevOps, security",
+        "docs": "Docs",
+        "installAndReference": "Install, configure, reference"
       },
       "mobile": {
         "allComparisons": "Semua Perbandingan",

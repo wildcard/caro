@@ -75,49 +75,15 @@ for platform in "${!PLATFORMS[@]}"; do
     fi
 done
 
-# Check if we have all checksums
+# Do not publish a formula with incomplete platform checksums.
 if [[ ${#CHECKSUMS[@]} -ne ${#PLATFORMS[@]} ]]; then
-    log_warn "Not all platforms were available. Formula will have placeholder values."
-    log_warn "Available checksums:"
-    for platform in "${!CHECKSUMS[@]}"; do
-        echo "  $platform: ${CHECKSUMS[$platform]}"
-    done
+    log_error "Not all platforms were available. Formula left unchanged."
+    exit 1
 fi
 
-# Update the formula file
-log_info "Updating formula at $FORMULA_PATH"
-
-# First, update the version
-sed -i "s/version \".*\"/version \"$VERSION\"/" "$FORMULA_PATH"
-
-# Update each platform's SHA256
-for platform in "${!CHECKSUMS[@]}"; do
-    placeholder="${PLATFORMS[$platform]}"
-    checksum="${CHECKSUMS[$platform]}"
-
-    # Handle both placeholder and existing SHA256 patterns
-    # First try to replace a placeholder
-    if grep -q "$placeholder" "$FORMULA_PATH"; then
-        sed -i "s/$placeholder/$checksum/" "$FORMULA_PATH"
-    else
-        # Replace existing SHA256 for this platform's URL
-        # This is more complex - we need to find the right sha256 line
-        case "$platform" in
-            "macos-silicon")
-                sed -i "/macos-silicon/,/sha256/{s/sha256 \"[a-f0-9]*\"/sha256 \"$checksum\"/}" "$FORMULA_PATH"
-                ;;
-            "macos-intel")
-                sed -i "/macos-intel/,/sha256/{s/sha256 \"[a-f0-9]*\"/sha256 \"$checksum\"/}" "$FORMULA_PATH"
-                ;;
-            "linux-arm64")
-                sed -i "/linux-arm64/,/sha256/{s/sha256 \"[a-f0-9]*\"/sha256 \"$checksum\"/}" "$FORMULA_PATH"
-                ;;
-            "linux-amd64")
-                sed -i "/linux-amd64/,/sha256/{s/sha256 \"[a-f0-9]*\"/sha256 \"$checksum\"/}" "$FORMULA_PATH"
-                ;;
-        esac
-    fi
-done
+python3 "$SCRIPT_DIR/render-homebrew-formula.py" "$FORMULA_PATH" "$VERSION" \
+    "${CHECKSUMS[macos-silicon]}" "${CHECKSUMS[macos-intel]}" \
+    "${CHECKSUMS[linux-amd64]}" "${CHECKSUMS[linux-arm64]}"
 
 log_info "Formula updated successfully!"
 log_info ""

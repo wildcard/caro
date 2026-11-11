@@ -15,9 +15,9 @@
 
     <div class="install-box">
       <div class="install-tabs">
-        <button class="tab active" data-tab="quick">One-Line Install</button>
-        <button class="tab" data-tab="cargo">Cargo</button>
-        <button class="tab" data-tab="source">From Source</button>
+        <button type="button" class="tab active" data-tab="quick" aria-pressed="true">One-Line Install</button>
+        <button type="button" class="tab" data-tab="cargo" aria-pressed="false">Cargo</button>
+        <button type="button" class="tab" data-tab="source" aria-pressed="false">From Source</button>
       </div>
 
       <div class="install-content">
@@ -87,8 +87,8 @@
 <style>
   .cta-section {
     padding: 100px 24px;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     text-align: center;
   }
 
@@ -99,8 +99,8 @@
 
   .cta-badge {
     display: inline-block;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     padding: 8px 20px;
     border-radius: 24px;
     font-size: 14px;
@@ -109,6 +109,7 @@
   }
 
   h2 {
+    color: var(--on-accent);
     font-size: 48px;
     font-weight: 800;
     margin-bottom: 16px;
@@ -116,7 +117,6 @@
 
   .cta-subtitle {
     font-size: 20px;
-    opacity: 0.9;
     margin-bottom: 48px;
   }
 
@@ -217,7 +217,6 @@
 
   .install-note {
     font-size: 14px;
-    opacity: 0.8;
     text-align: left;
   }
 
@@ -227,7 +226,6 @@
 
   .first-label {
     font-size: 16px;
-    opacity: 0.9;
     margin-bottom: 12px;
   }
 
@@ -256,7 +254,6 @@
     align-items: center;
     gap: 8px;
     font-size: 14px;
-    opacity: 0.9;
   }
 
   .trust-icon {
@@ -290,6 +287,21 @@
       text-align: left;
     }
   }
+
+  /* The section is red, so a red ring would vanish; use the white label colour. */
+  .tab:focus-visible,
+  .copy-btn:focus-visible {
+    outline: 2px solid var(--on-accent);
+    outline-offset: 2px;
+  }
+
+  .first-example {
+    max-width: 100%;
+  }
+
+  .first-example code {
+    overflow-wrap: anywhere;
+  }
 </style>
 
 <script>
@@ -299,8 +311,12 @@
       const tabName = tab.getAttribute('data-tab');
 
       // Update tabs
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-pressed', 'false');
+      });
       tab.classList.add('active');
+      tab.setAttribute('aria-pressed', 'true');
 
       // Update panels
       document.querySelectorAll('.install-panel').forEach(p => p.classList.remove('active'));

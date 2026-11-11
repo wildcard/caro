@@ -263,17 +263,18 @@ const backends = [
     border: 2px solid var(--color-border);
     border-radius: 12px;
     padding: 30px;
+    min-width: 0;
     transition: transform 0.3s, box-shadow 0.3s, background 0.3s ease, border-color 0.3s ease;
   }
 
   .backend-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 36px rgba(255, 140, 66, 0.15);
-    border-color: #ff8c42;
+    box-shadow: 0 12px 36px rgba(239, 51, 51, 0.15);
+    border-color: var(--accent);
   }
 
   :global(.dark) .backend-card:hover {
-    box-shadow: 0 12px 36px rgba(255, 140, 66, 0.25);
+    box-shadow: 0 12px 36px rgba(239, 51, 51, 0.25);
   }
 
   .backend-header {
@@ -304,7 +305,7 @@ const backends = [
 
   .tagline {
     font-size: 14px;
-    color: #ff8c42;
+    color: var(--accent-text);
     font-weight: 600;
     margin: 0;
   }
@@ -317,24 +318,28 @@ const backends = [
     white-space: nowrap;
   }
 
+  /* Status hue lives in the tint and border; labels use AA text tokens. */
   .status-in-development {
     background: rgba(33, 150, 243, 0.1);
-    color: #2196f3;
+    border: 1px solid rgba(33, 150, 243, 0.45);
+    color: var(--fg-strong);
   }
 
   .status-available {
     background: rgba(76, 175, 80, 0.1);
-    color: #4caf50;
+    color: var(--status-safe-text);
   }
 
   .status-planned {
     background: rgba(156, 39, 176, 0.1);
-    color: #9c27b0;
+    border: 1px solid rgba(156, 39, 176, 0.45);
+    color: var(--fg-strong);
   }
 
   .status-untested {
-    background: rgba(255, 152, 0, 0.1);
-    color: #ff9800;
+    background: rgba(240, 237, 59, 0.2);
+    border: 1px solid var(--status-warn);
+    color: var(--fg-strong);
   }
 
   .backend-description {
@@ -381,13 +386,13 @@ const backends = [
     content: "→";
     position: absolute;
     left: 0;
-    color: #ff8c42;
+    color: var(--accent-text);
     font-weight: bold;
   }
 
   .metrics {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
     gap: 15px;
   }
 
@@ -413,7 +418,7 @@ const backends = [
   .metric-value {
     font-size: 18px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent-text);
   }
 
   .setup-guide ol {
@@ -426,6 +431,7 @@ const backends = [
     color: var(--color-text-tertiary);
     font-size: 14px;
     line-height: 1.6;
+    overflow-wrap: anywhere;
     transition: color 0.3s ease;
   }
 
@@ -456,13 +462,21 @@ const backends = [
 
   .tag:hover {
     background: var(--color-bg-tertiary);
-    border-color: #ff8c42;
+    border-color: var(--accent);
     transform: translateY(-1px);
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .backend-card:hover,
+    .tag:hover {
+      transform: none;
+    }
+  }
+
+
   .comparison-note {
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
-    border: 2px solid rgba(255, 140, 66, 0.3);
+    background: rgba(239, 51, 51, 0.1);
+    border: 2px solid rgba(239, 51, 51, 0.3);
     border-radius: 12px;
     padding: 30px;
     margin-top: 50px;

@@ -46,7 +46,11 @@
         "glossary": "Glossário",
         "terminalTerms": "Termos de Terminal & Unix",
         "github": "GitHub",
-        "sourceCode": "Código Fonte"
+        "sourceCode": "Código Fonte",
+        "useCases": "Use Cases",
+        "byRoleSummary": "By role: SRE, DevOps, security",
+        "docs": "Docs",
+        "installAndReference": "Install, configure, reference"
       },
       "mobile": {
         "allComparisons": "Todas as Comparacões",

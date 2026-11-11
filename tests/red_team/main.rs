@@ -1,4 +1,4 @@
-//! Red-team detonation suite (ADR-017 phase P2).
+//! Red-team detonation suite (ADR-021 phase P2).
 //!
 //! Executes every entry of the dangerous-command corpus
 //! (`tests/evaluation/datasets/safety/dangerous_patterns.json`) inside a

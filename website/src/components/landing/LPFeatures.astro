@@ -1,6 +1,7 @@
 ---
 import { t, type Locale } from '../../i18n/config';
 import { translations } from '../../i18n/index';
+import KyaroIcon, { type KyaroIconName } from '../../ui/KyaroIcon/KyaroIcon.astro';
 
 interface Props {
   lang?: Locale;
@@ -11,11 +12,11 @@ const { lang = 'en' } = Astro.props;
 // Load features from translation file
 const features = translations[lang].landing.features.items;
 
-// Per the v2.1 icon-system reframe (spec: claude.ai/design/p/332f73e9 May 9):
-// emoji are not feature icons. Terminal glyphs map 1:1 to feature ordering
-// across every locale — overriding the legacy `feature.icon` emoji from
-// the i18n payload without touching 15 locale JSON files.
-const featureGlyphs = ['■', '▸', '❯', '$'] as const;
+// Emoji are not feature icons. Each card shows the Kyaro state that means it
+// (docs/brand/ICONOGRAPHY.md), mapped 1:1 to feature order in every locale:
+// safety, privacy, commands that work, speed. This overrides the legacy
+// `feature.icon` emoji in the i18n payload without touching 15 locale files.
+const featureIcons: KyaroIconName[] = ['danger', 'ready', 'success', 'running'];
 ---
 
 <section id="features">
@@ -26,7 +27,7 @@ const featureGlyphs = ['■', '▸', '❯', '$'] as const;
     <div class="features">
       {features.map((feature, index) => (
         <div class={`feature ${feature.highlight ? 'feature-highlight' : ''}`}>
-          <div class="feature-icon" aria-hidden="true">{featureGlyphs[index] ?? featureGlyphs[0]}</div>
+          <div class="feature-icon"><KyaroIcon name={featureIcons[index] ?? 'ready'} /></div>
           <h3>{feature.title}{feature.privacyLink && <a href="/telemetry" class="privacy-asterisk">*</a>}</h3>
           <p>{feature.description}</p>
         </div>
@@ -92,17 +93,13 @@ const featureGlyphs = ['■', '▸', '❯', '$'] as const;
 
   .feature-highlight {
     border-color: rgba(239, 51, 51, 0.3);
-    background: linear-gradient(135deg, rgba(239, 51, 51, 0.03) 0%, var(--color-bg) 100%);
+    background: var(--bg);
   }
 
-  /* Terminal-glyph feature icon: monospaced ink at display weight, brand
-     red. Replaces the v1 emoji per Claude Design's icon-system reframe. */
+  /* Kyaro icon on its tile: 48 px art + 4 px padding = 56 px, no rescale. */
   .feature-icon {
-    font-family: var(--font-mono);
-    font-size: 32px;
-    font-weight: 700;
-    line-height: 1;
-    color: var(--accent);
+    display: flex;
+    height: 56px;
     margin-bottom: 16px;
   }
 
@@ -132,7 +129,7 @@ const featureGlyphs = ['■', '▸', '❯', '$'] as const;
   }
 
   .cta-link {
-    color: var(--accent);
+    color: var(--accent-text);
     font-weight: 600;
     text-decoration: none;
     font-size: 16px;
@@ -144,7 +141,7 @@ const featureGlyphs = ['■', '▸', '❯', '$'] as const;
   }
 
   .privacy-asterisk {
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: none;
     font-size: 0.8em;
     vertical-align: super;

@@ -75,6 +75,12 @@ fn is_stdin_available() -> bool {
     !std::io::stdin().is_terminal()
 }
 
+/// Whether `caro ai --once` should fall back to reading its prompt from stdin:
+/// only when -p and the trailing words are absent or blank.
+fn needs_stdin_prompt(flag: &Option<String>, trailing: &[String]) -> bool {
+    flag.is_none() && trailing.iter().all(|w| w.trim().is_empty())
+}
+
 /// Read all content from stdin
 ///
 /// Returns the complete stdin content as a String, or an error if reading fails
@@ -212,20 +218,26 @@ enum ExportFormat {
 enum ConfigCommands {
     /// Set a configuration value
     Set {
-        /// Configuration key (backend, model-name, shell, safety)
+        /// Configuration key (backend, model-name, shell, safety, telemetry.enabled,
+        /// log_level, cache_max_size, log_rotation)
         key: String,
         /// Value to set
         value: String,
     },
     /// Get a configuration value
     Get {
-        /// Configuration key (backend, model-name, shell, safety)
+        /// Configuration key (backend, model-name, shell, safety, telemetry.enabled,
+        /// log_level, cache_max_size, log_rotation)
         key: String,
     },
     /// Show all configuration
     Show,
-    /// Reset configuration to defaults
-    Reset,
+    /// Reset configuration to defaults, or only KEY when given
+    Reset {
+        /// Configuration key to reset (backend, model-name, shell, safety,
+        /// telemetry.enabled, log_level, cache_max_size, log_rotation)
+        key: Option<String>,
+    },
 }
 
 /// Profile management subcommands
@@ -376,6 +388,108 @@ enum SkillSubcommand {
     Uninstall,
 }
 
+/// `caro guard` subcommands
+#[derive(Parser, Clone)]
+enum GuardAction {
+    /// Summarize the decision log: verdict counts, top patterns, recent flags.
+    Report {
+        /// Decision log path (default: <data dir>/caro/guard/decisions.jsonl).
+        #[arg(long)]
+        log: Option<std::path::PathBuf>,
+
+        /// How many recent would-be deny/ask decisions to list.
+        #[arg(long, default_value_t = 10)]
+        limit: usize,
+    },
+
+    /// Inspect the decision log: `verify` the hash chain, `tail` records,
+    /// or `report` a summary (same as `caro guard report`).
+    Audit {
+        #[command(subcommand)]
+        action: GuardAuditAction,
+    },
+
+    /// Dry-run one command through the guard: risk, verdict, patterns.
+    /// Exit 0 = no opinion, 2 = deny, 3 = ask. Nothing is logged.
+    Test {
+        /// The shell command to evaluate (quote it).
+        #[arg(required = true, trailing_var_arg = true)]
+        command: Vec<String>,
+
+        /// Output format.
+        #[arg(long, value_enum, default_value = "text")]
+        output: GuardTestOutput,
+    },
+
+    /// Install the PreToolUse hook for a harness, or verify an installed one.
+    Setup {
+        /// Harness to install into.
+        #[arg(value_enum)]
+        target: caro::guard::setup::SetupTarget,
+
+        /// user (~/.claude/settings.json, default) or project (.claude/settings.json).
+        #[arg(long, value_enum, default_value = "user")]
+        scope: caro::guard::setup::Scope,
+
+        /// Mode written into the hook command. Default: shadow.
+        #[arg(long, value_enum, default_value = "shadow")]
+        mode: caro::guard::GuardMode,
+
+        /// Print the resulting hook file without writing it.
+        #[arg(long)]
+        dry_run: bool,
+
+        /// Check the installed hook instead of installing: entry present,
+        /// `caro` on $PATH, and a synthetic `rm -rf /` payload comes back deny.
+        #[arg(long)]
+        verify: bool,
+
+        /// Also install the PostToolUse hook that scans tool output for
+        /// leaked credentials (logged, never blocking).
+        #[arg(long)]
+        post: bool,
+    },
+}
+
+/// `caro guard audit` subcommands (spec 011 §P2.4).
+#[derive(Parser, Clone)]
+enum GuardAuditAction {
+    /// Walk the SHA-256 hash chain; exit 1 at the first break.
+    Verify {
+        /// Decision log path (default: <data dir>/caro/guard/decisions.jsonl).
+        #[arg(long)]
+        log: Option<std::path::PathBuf>,
+    },
+    /// Print the newest records, one per line.
+    Tail {
+        /// Decision log path (default: <data dir>/caro/guard/decisions.jsonl).
+        #[arg(long)]
+        log: Option<std::path::PathBuf>,
+
+        /// How many records to show.
+        #[arg(long, short = 'n', default_value_t = 20)]
+        limit: usize,
+
+        /// Keep printing new records as they are appended.
+        #[arg(long, short = 'f')]
+        follow: bool,
+    },
+    /// Summarize the log (alias of `caro guard report`).
+    Report {
+        #[arg(long)]
+        log: Option<std::path::PathBuf>,
+
+        #[arg(long, default_value_t = 10)]
+        limit: usize,
+    },
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+enum GuardTestOutput {
+    Text,
+    Json,
+}
+
 /// Subcommands for caro
 #[derive(Parser, Clone)]
 enum Commands {
@@ -434,8 +548,8 @@ enum Commands {
     // },
     /// Run evaluation tests on command generation quality
     Test {
-        /// Backend to test (static, mlx, ollama, or embedded)
-        #[arg(short, long, default_value = "static")]
+        /// Backend to test
+        #[arg(short, long, default_value = "static", value_parser = ["static", "embedded"])]
         backend: String,
 
         /// Show verbose output including all test cases
@@ -506,6 +620,33 @@ enum Commands {
         /// Skip the `?` AI keybinding even if `ai.enabled` is true in config.
         #[arg(long)]
         disable_ai: bool,
+    },
+
+    /// [experimental] PreToolUse guardian for agent harnesses (spec 011).
+    ///
+    /// Reads a hook payload on stdin (Claude Code, Grok Build, Codex, or
+    /// `{"command": ...}`) and validates the agent's shell command. Shadow
+    /// mode (default) only logs; enforce mode denies Critical and asks on
+    /// High. Never emits `allow`.
+    Guard {
+        #[command(subcommand)]
+        action: Option<GuardAction>,
+
+        /// Payload/output format of the calling harness.
+        #[arg(long, value_enum, default_value = "claude")]
+        harness: caro::guard::Harness,
+
+        /// shadow (log only) or enforce. Default: $CARO_GUARD_MODE, else shadow.
+        #[arg(long, value_enum)]
+        mode: Option<caro::guard::GuardMode>,
+
+        /// Decision log path (default: <data dir>/caro/guard/decisions.jsonl).
+        #[arg(long, conflicts_with = "no_log")]
+        log: Option<std::path::PathBuf>,
+
+        /// Do not write the decision log.
+        #[arg(long)]
+        no_log: bool,
     },
 
     /// Validate a CaroML (`.caro`) task file: parse, lint, report errors with line numbers.
@@ -715,7 +856,7 @@ struct Cli {
     #[arg(
         short = 'b',
         long,
-        help = "Inference backend (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid; see --backend-info)"
+        help = "Inference backend (embedded, ollama, exo, vllm, mesh, ai-horde, hybrid, grok, claude, openrouter; see --backend-info)"
     )]
     backend: Option<String>,
 
@@ -731,7 +872,7 @@ struct Cli {
     /// (off by default). Its output is re-validated for safety before use.
     #[arg(
         long = "advisor",
-        help = "Frontier advisor for low-confidence drafts (e.g., claude; sends prompts off-host)"
+        help = "Frontier advisor for low-confidence drafts (claude, grok, openrouter; sends prompts off-host)"
     )]
     advisor: Option<String>,
 
@@ -1077,15 +1218,21 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
     use std::str::FromStr;
     use std::sync::Arc;
 
-    // Resolve prompt (flag > stdin > trailing).
-    let stdin_text = if is_stdin_available() {
+    // Resolve prompt. Stdin is read only when neither -p nor trailing words gave
+    // one: in scripts and CI stdin is a pipe that may never reach EOF, so
+    // reading it would hang `--once` forever (#1499).
+    let stdin_text = if needs_stdin_prompt(&cli.prompt, &trailing) && is_stdin_available() {
         read_stdin().ok().filter(|s| !s.is_empty())
     } else {
         None
     };
     let resolved = resolve_prompt(cli.prompt.clone(), stdin_text, trailing);
     if resolved.text.trim().is_empty() {
-        return Err("no prompt provided (pass text, pipe stdin, or use -p)".into());
+        // `caro ai` has no -p flag; name only the inputs it accepts (#1213).
+        return Err(
+            "no prompt provided (pass text, e.g. `caro ai --once \"list files\"`, or pipe it on stdin)"
+                .into(),
+        );
     }
 
     // Load config — defaults are fine for a first-time user.
@@ -1126,6 +1273,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         // The hybrid gateway sanitizes PII before remote transmission by
         // default, so it is intentionally NOT treated as an off-host leak here.
         caro::models::BackendType::Hybrid => "hybrid".to_string(),
+        caro::models::BackendType::Grok => "grok".to_string(),
     };
 
     let exec_ctx = ExecutionContext::detect();
@@ -1170,6 +1318,7 @@ async fn run_ai_once(cli: &Cli, new_session: bool, trailing: Vec<String>) -> Res
         store_path,
         session_mode,
         last_command_hint,
+        hybrid_allow_public: user_cfg.backends.allow_public,
     })
     .await
     .map_err(|e| format!("{}", e))?;
@@ -1957,6 +2106,7 @@ impl caro::backends::CommandGenerator for InlineMockBackend {
             backend_used: "mock-inline".into(),
             generation_time_ms: 1,
             confidence_score: 0.5,
+            confidence_source: caro::models::ConfidenceSource::Measured,
         })
     }
 
@@ -2059,6 +2209,12 @@ fn build_knowledge_backend_config(
 // Configuration Commands
 // =============================================================================
 
+/// Canonical keys for `caro config set/get` (every key `config show` prints),
+/// listed in the unknown-key error. The match arms also accept dash/underscore
+/// aliases; `tests/config_cli_keys.rs` exercises each key and alias.
+const CONFIG_KEYS: &str =
+    "backend, model-name, shell, safety, telemetry.enabled, log_level, cache_max_size, log_rotation";
+
 /// Handle configuration subcommands
 fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
     use colored::Colorize;
@@ -2108,10 +2264,52 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                     config.safety_level = level;
                     println!("{} Set safety level to '{:?}'", "✓".green(), level);
                 }
+                "telemetry" | "telemetry.enabled" | "telemetry-enabled" => {
+                    let enabled: bool = value.to_lowercase().parse().map_err(|_| {
+                        format!("Invalid telemetry value '{}': use true or false", value)
+                    })?;
+                    config.telemetry.enabled = enabled;
+                    // An explicit choice counts as consent; don't re-prompt over it.
+                    config.telemetry.first_run = false;
+                    println!("{} Set telemetry.enabled to '{}'", "✓".green(), enabled);
+                }
+                "log_level" | "log-level" => {
+                    let level: caro::models::LogLevel = value.parse()?;
+                    config.log_level = level;
+                    println!("{} Set log level to '{:?}'", "✓".green(), level);
+                }
+                "cache_max_size" | "cache-max-size" => {
+                    config.cache_max_size_gb = value.parse().map_err(|_| {
+                        format!(
+                            "Invalid cache_max_size '{}': expected a number of GB",
+                            value
+                        )
+                    })?;
+                    config.validate()?;
+                    println!(
+                        "{} Set cache max size to {} GB",
+                        "✓".green(),
+                        config.cache_max_size_gb
+                    );
+                }
+                "log_rotation" | "log-rotation" => {
+                    config.log_rotation_days = value.parse().map_err(|_| {
+                        format!(
+                            "Invalid log_rotation '{}': expected a number of days",
+                            value
+                        )
+                    })?;
+                    config.validate()?;
+                    println!(
+                        "{} Set log rotation to {} days",
+                        "✓".green(),
+                        config.log_rotation_days
+                    );
+                }
                 _ => {
                     return Err(format!(
-                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety",
-                        key
+                        "Unknown config key '{}'. Valid keys: {}",
+                        key, CONFIG_KEYS
                     ));
                 }
             }
@@ -2153,10 +2351,34 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 "safety" => {
                     println!("{}: {:?}", "safety".bold(), config.safety_level);
                 }
+                "telemetry" | "telemetry.enabled" | "telemetry-enabled" => {
+                    println!(
+                        "{}: {}",
+                        "telemetry.enabled".bold(),
+                        config.telemetry.enabled
+                    );
+                }
+                "log_level" | "log-level" => {
+                    println!("{}: {:?}", "log_level".bold(), config.log_level);
+                }
+                "cache_max_size" | "cache-max-size" => {
+                    println!(
+                        "{}: {} GB",
+                        "cache_max_size".bold(),
+                        config.cache_max_size_gb
+                    );
+                }
+                "log_rotation" | "log-rotation" => {
+                    println!(
+                        "{}: {} days",
+                        "log_rotation".bold(),
+                        config.log_rotation_days
+                    );
+                }
                 _ => {
                     return Err(format!(
-                        "Unknown config key '{}'. Valid keys: backend, model-name, shell, safety",
-                        key
+                        "Unknown config key '{}'. Valid keys: {}",
+                        key, CONFIG_KEYS
                     ));
                 }
             }
@@ -2213,12 +2435,64 @@ fn handle_config_command(command: ConfigCommands) -> Result<(), String> {
                 format!("Config file: {}", config_manager.config_path().display()).dimmed()
             );
         }
-        ConfigCommands::Reset => {
+        ConfigCommands::Reset { key: None } => {
             let config = caro::models::UserConfiguration::default();
             config_manager
                 .save(&config)
                 .map_err(|e| format!("Failed to save config: {}", e))?;
             println!("{} Configuration reset to defaults", "✓".green());
+        }
+        ConfigCommands::Reset { key: Some(key) } => {
+            let mut config = config_manager
+                .load()
+                .map_err(|e| format!("Failed to load config: {}", e))?;
+            let defaults = caro::models::UserConfiguration::default();
+
+            let (name, shown) = match key.to_lowercase().as_str() {
+                "backend" => {
+                    config.default_model = defaults.default_model;
+                    ("backend", "(auto-detect)".to_string())
+                }
+                "model-name" | "model_name" => {
+                    config.model_name = defaults.model_name;
+                    ("model-name", "(default)".to_string())
+                }
+                "shell" => {
+                    config.default_shell = defaults.default_shell;
+                    ("shell", "(auto-detect)".to_string())
+                }
+                "safety" => {
+                    config.safety_level = defaults.safety_level;
+                    ("safety", format!("{:?}", config.safety_level))
+                }
+                "telemetry" | "telemetry.enabled" | "telemetry-enabled" => {
+                    config.telemetry.enabled = defaults.telemetry.enabled;
+                    ("telemetry.enabled", config.telemetry.enabled.to_string())
+                }
+                "log_level" | "log-level" => {
+                    config.log_level = defaults.log_level;
+                    ("log_level", format!("{:?}", config.log_level))
+                }
+                "cache_max_size" | "cache-max-size" => {
+                    config.cache_max_size_gb = defaults.cache_max_size_gb;
+                    ("cache_max_size", format!("{} GB", config.cache_max_size_gb))
+                }
+                "log_rotation" | "log-rotation" => {
+                    config.log_rotation_days = defaults.log_rotation_days;
+                    ("log_rotation", format!("{} days", config.log_rotation_days))
+                }
+                _ => {
+                    return Err(format!(
+                        "Unknown config key '{}'. Valid keys: {}",
+                        key, CONFIG_KEYS
+                    ));
+                }
+            };
+
+            config_manager
+                .save(&config)
+                .map_err(|e| format!("Failed to save config: {}", e))?;
+            println!("{} Reset {} to default ({})", "✓".green(), name, shown);
         }
     }
 
@@ -3107,6 +3381,13 @@ async fn main() {
                 }
             }
         }
+        Some(Commands::Guard {
+            action,
+            harness,
+            mode,
+            log,
+            no_log,
+        }) => process::exit(handle_guard(action, harness, mode, log, no_log).await),
         Some(Commands::Check { ref file }) => match caro::caroml::check_file(file) {
             Ok(task) => {
                 println!(
@@ -3539,6 +3820,37 @@ async fn main() {
             // Exit with code 0 for successful or safe commands
             process::exit(if was_blocked { 1 } else { 0 })
         }
+        Err(CliError::NeedsClarification { question, p }) => {
+            // Typed clarification gate (ADR-017): a question, not an error.
+            // Honour the requested machine-readable format so wrappers can
+            // tell a question from a command.
+            let fallback = "Could you rephrase the request with a bit more detail?";
+            let format = cli
+                .output
+                .as_deref()
+                .and_then(|o| o.parse::<caro::cli::OutputFormat>().ok())
+                .unwrap_or(caro::cli::OutputFormat::Plain);
+            let payload = serde_json::json!({
+                "needs_clarification": true,
+                "question": question.as_deref().unwrap_or(fallback),
+                "p": p,
+            });
+            match format {
+                caro::cli::OutputFormat::Json => {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&payload).unwrap_or_default()
+                    )
+                }
+                caro::cli::OutputFormat::Yaml => {
+                    print!("{}", serde_yaml::to_string(&payload).unwrap_or_default())
+                }
+                caro::cli::OutputFormat::Plain => {
+                    eprintln!("{}", question.as_deref().unwrap_or(fallback))
+                }
+            }
+            process::exit(0);
+        }
         Err(e) => {
             eprintln!("Error: {}", e);
             match e {
@@ -3732,6 +4044,19 @@ async fn print_plain_output(result: &mut caro::cli::CliResult, cli: &Cli) -> Res
             display!("  {} Primary command", "#".dimmed());
             display!("  {}", result.generated_command.bright_cyan().bold());
             display!("");
+
+            // Print what the command does (STE-lite text)
+            if !explanation.detailed_explanation.is_empty() {
+                display!("{}", "What it does:".bold());
+                for line in explanation.detailed_explanation.lines() {
+                    if line.is_empty() {
+                        display!("");
+                    } else {
+                        display!("  {}", line);
+                    }
+                }
+                display!("");
+            }
 
             // Print usage examples
             if !explanation.examples.is_empty() {
@@ -4032,8 +4357,8 @@ fn print_backend_info() {
     // The roster is driven by `CLI_SERVABLE_BACKENDS` — the SAME slice that
     // `validate_backend_name` accepts — so this table can never advertise a
     // backend that `--backend <name>` would reject (the divergence tracked
-    // by #1115). `static`/`claude`/`openrouter` are intentionally absent
-    // because the CLI does not route to them yet.
+    // by #1115). `static`/`mlx` are intentionally absent because the CLI
+    // does not route to them yet.
     let remote_backends_compiled = cfg!(feature = "remote-backends");
 
     println!("{}", "Available inference backends".bold());
@@ -4063,6 +4388,10 @@ fn print_backend_info() {
                 "exo" if env_or(&["CARO_EXO_URL"]) => "configured",
                 "mesh" if env_or(&["CARO_MESH_URL"]) => "configured",
                 "hybrid" => "needs config",
+                "grok" if env_or(&["XAI_API_KEY"]) => "configured",
+                "claude" if env_or(&["ANTHROPIC_API_KEY"]) => "configured",
+                "openrouter" if env_or(&["OPENROUTER_API_KEY"]) => "configured",
+                "grok" | "claude" | "openrouter" => "needs API key",
                 _ => "default endpoint",
             }
         };
@@ -4133,6 +4462,466 @@ async fn show_configuration(cli: &Cli) -> Result<String, CliError> {
 // Unit Tests
 // =============================================================================
 
+/// Build the guard's validator from the user's `[safety]` config. Error text
+/// stays generic: parser diagnostics can quote the offending config line,
+/// which may hold a token, and this text is logged.
+fn load_guard_validator() -> Result<caro::safety::SafetyValidator, String> {
+    let cm = caro::config::ConfigManager::new()
+        .map_err(|_| "config: could not locate the caro config directory".to_string())?;
+    let uc = cm.load().map_err(|_| {
+        format!(
+            "config: {} could not be loaded (run `caro config show` for details)",
+            cm.config_path().display()
+        )
+    })?;
+    let cfg = caro::safety::SafetyConfig::from_user_config(&uc, cm.config_path());
+    caro::safety::SafetyValidator::new(cfg)
+        .map_err(|_| "safety rules: a configured pattern failed to build".to_string())
+}
+
+/// The protected-path set for file tools: built-ins plus the user's
+/// `[safety] protected_paths`. A config that fails to load keeps the
+/// built-ins (the shell path reports that failure separately).
+fn load_protected_paths(
+    log: Option<&std::path::Path>,
+) -> Result<caro::guard::paths::ProtectedPaths, String> {
+    // Same generic error text as the validator: config diagnostics can quote
+    // a line that holds a token, and this text is logged.
+    let cm = caro::config::ConfigManager::new()
+        .map_err(|_| "config: could not locate the caro config directory".to_string())?;
+    let uc = cm.load().map_err(|_| {
+        format!(
+            "config: {} could not be loaded (run `caro config show` for details)",
+            cm.config_path().display()
+        )
+    })?;
+    let own_log = log
+        .map(std::path::Path::to_path_buf)
+        .or_else(caro::guard::log::default_log_path);
+    Ok(caro::guard::paths::ProtectedPaths::new(
+        &uc.safety.protected_paths,
+        own_log,
+    ))
+}
+
+/// `caro guard audit <verify|tail|report>` (spec 011 §P2.4).
+fn handle_guard_audit(action: GuardAuditAction) -> i32 {
+    use caro::guard::log;
+    use std::io::BufRead;
+
+    let resolve = |log: Option<std::path::PathBuf>| -> Result<std::path::PathBuf, i32> {
+        log.or_else(log::default_log_path).ok_or_else(|| {
+            eprintln!("caro guard audit: no data directory; pass --log <PATH>");
+            1
+        })
+    };
+
+    match action {
+        GuardAuditAction::Report { log: path, limit } => {
+            let path = match resolve(path) {
+                Ok(p) => p,
+                Err(code) => return code,
+            };
+            match std::fs::File::open(&path) {
+                Ok(file) => match log::summarize_reader(std::io::BufReader::new(file), limit) {
+                    Ok(report) => {
+                        print!("{}", log::format_report(&path, &report));
+                        0
+                    }
+                    Err(e) => {
+                        eprintln!("caro guard audit report: {}: {e}", path.display());
+                        1
+                    }
+                },
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    println!(
+                        "caro guard audit: no decisions logged yet ({})",
+                        path.display()
+                    );
+                    0
+                }
+                Err(e) => {
+                    eprintln!("caro guard audit report: {}: {e}", path.display());
+                    1
+                }
+            }
+        }
+        GuardAuditAction::Verify { log: path } => {
+            let path = match resolve(path) {
+                Ok(p) => p,
+                Err(code) => return code,
+            };
+            match log::verify_log(&path) {
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    println!(
+                        "caro guard audit verify: no decisions logged yet ({})",
+                        path.display()
+                    );
+                    0
+                }
+                Ok(check) => {
+                    print!("{}", check.format(&path));
+                    if check.ok() {
+                        0
+                    } else {
+                        1
+                    }
+                }
+                Err(e) => {
+                    eprintln!("caro guard audit verify: {}: {e}", path.display());
+                    1
+                }
+            }
+        }
+        GuardAuditAction::Tail {
+            log: path,
+            limit,
+            follow,
+        } => {
+            let path = match resolve(path) {
+                Ok(p) => p,
+                Err(code) => return code,
+            };
+            let print_line = |line: &str| {
+                if line.trim().is_empty() {
+                    return;
+                }
+                match serde_json::from_str::<log::DecisionRecord>(line) {
+                    Ok(rec) => println!("{}", log::format_tail_line(&rec)),
+                    Err(_) => println!("(unparsable line)"),
+                }
+            };
+            let mut offset: u64 = 0;
+            match std::fs::File::open(&path) {
+                Ok(file) => {
+                    let mut reader = std::io::BufReader::new(file);
+                    let mut lines: std::collections::VecDeque<String> =
+                        std::collections::VecDeque::with_capacity(limit.min(1024));
+                    let mut buf = String::new();
+                    loop {
+                        buf.clear();
+                        match reader.read_line(&mut buf) {
+                            Ok(0) => break,
+                            Ok(n) => {
+                                offset += n as u64;
+                                if limit > 0 {
+                                    if lines.len() == limit {
+                                        lines.pop_front();
+                                    }
+                                    lines.push_back(buf.trim_end_matches('\n').to_string());
+                                }
+                            }
+                            Err(e) => {
+                                eprintln!("caro guard audit tail: {}: {e}", path.display());
+                                return 1;
+                            }
+                        }
+                    }
+                    for l in &lines {
+                        print_line(l);
+                    }
+                }
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound && follow => {}
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    println!(
+                        "caro guard audit tail: no decisions logged yet ({})",
+                        path.display()
+                    );
+                    return 0;
+                }
+                Err(e) => {
+                    eprintln!("caro guard audit tail: {}: {e}", path.display());
+                    return 1;
+                }
+            }
+            if !follow {
+                return 0;
+            }
+            // Follow: poll for appended bytes. The log is append-only, so a
+            // shrinking file means rotation; start over from the top.
+            loop {
+                std::thread::sleep(std::time::Duration::from_millis(500));
+                let Ok(mut file) = std::fs::File::open(&path) else {
+                    continue;
+                };
+                let len = file.metadata().map(|m| m.len()).unwrap_or(0);
+                if len < offset {
+                    offset = 0;
+                }
+                if len == offset {
+                    continue;
+                }
+                use std::io::{Read, Seek, SeekFrom};
+                if file.seek(SeekFrom::Start(offset)).is_err() {
+                    continue;
+                }
+                let mut chunk = String::new();
+                if file.read_to_string(&mut chunk).is_err() {
+                    continue;
+                }
+                // Only complete lines; a partial tail is re-read next round.
+                let complete = chunk.rfind('\n').map(|i| i + 1).unwrap_or(0);
+                for l in chunk[..complete].lines() {
+                    print_line(l);
+                }
+                offset += complete as u64;
+            }
+        }
+    }
+}
+
+/// `caro guard test "<command>"` (spec 011 §P2.1). Exit 0/2/3 like generic
+/// enforce. Nothing is written to the decision log.
+async fn handle_guard_test(
+    validator: Result<caro::safety::SafetyValidator, String>,
+    command: String,
+    output: GuardTestOutput,
+    started: std::time::Instant,
+) -> i32 {
+    use caro::guard::{self, Verdict};
+    let validator = match validator {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("caro guard test: {e}");
+            return 1;
+        }
+    };
+    let decision = match guard::evaluate(&validator, &command).await {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("caro guard test: validator error: {e}");
+            return 1;
+        }
+    };
+    let latency_us = started.elapsed().as_micros() as u64;
+    let verdict = match decision.verdict {
+        Verdict::None => "none",
+        Verdict::Ask => "ask",
+        Verdict::Deny => "deny",
+    };
+    let risk = format!("{:?}", decision.risk).to_lowercase();
+    match output {
+        GuardTestOutput::Json => {
+            let body = serde_json::json!({
+                "command": guard::log::redact_command(&command),
+                "risk": risk,
+                "verdict": verdict,
+                "matched_patterns": decision.matched_patterns,
+                "floor_applied": decision.floor_applied,
+                "reason": decision.reason,
+                "source": "static",
+                "latency_us": latency_us,
+                "caro_version": env!("CARGO_PKG_VERSION"),
+            });
+            println!("{body}");
+        }
+        GuardTestOutput::Text => {
+            println!("command:  {}", guard::log::redact_command(&command));
+            println!("risk:     {risk}");
+            println!("verdict:  {verdict}");
+            println!("floor:    {}", decision.floor_applied);
+            if decision.matched_patterns.is_empty() {
+                println!("patterns: (none)");
+            } else {
+                println!("patterns:");
+                for p in &decision.matched_patterns {
+                    println!("  - {p}");
+                }
+            }
+            println!("latency:  {latency_us} µs");
+        }
+    }
+    match decision.verdict {
+        Verdict::None => 0,
+        Verdict::Deny => 2,
+        Verdict::Ask => 3,
+    }
+}
+
+/// `caro guard setup <target>` (spec 011 §P2.2).
+fn handle_guard_setup(
+    target: caro::guard::setup::SetupTarget,
+    scope: caro::guard::setup::Scope,
+    mode: caro::guard::GuardMode,
+    dry_run: bool,
+    verify: bool,
+    post: bool,
+) -> i32 {
+    use caro::guard::setup;
+    if verify {
+        let report = setup::verify(target, scope);
+        print!("{}", report.format());
+        return if report.ok() { 0 } else { 1 };
+    }
+    match setup::install_with_post(target, scope, mode, dry_run, post) {
+        Ok(outcome) => {
+            if dry_run {
+                println!(
+                    "caro guard setup (dry run): would write {}",
+                    outcome.path.display()
+                );
+                print!("{}", outcome.rendered);
+            } else if outcome.changed {
+                println!("caro guard setup: wrote {}", outcome.path.display());
+                println!("  hook: {}", outcome.command);
+                println!(
+                    "  next: caro guard setup {} --verify",
+                    match target {
+                        setup::SetupTarget::Claude => "claude",
+                        setup::SetupTarget::Codex => "codex",
+                        setup::SetupTarget::Opencode => "opencode",
+                    }
+                );
+            } else {
+                println!(
+                    "caro guard setup: {} already up to date",
+                    outcome.path.display()
+                );
+            }
+            0
+        }
+        Err(e) => {
+            eprintln!("caro guard setup: {e}");
+            1
+        }
+    }
+}
+
+/// `caro guard` (spec 011 / ADR-020). Returns the process exit code.
+async fn handle_guard(
+    action: Option<GuardAction>,
+    harness: caro::guard::Harness,
+    mode: Option<caro::guard::GuardMode>,
+    log: Option<std::path::PathBuf>,
+    no_log: bool,
+) -> i32 {
+    use caro::guard::{self, GuardMode};
+    use std::io::Read;
+
+    // Latency is measured from here so it includes config load and the stdin
+    // read: the time the harness's hook timeout actually sees.
+    let started = std::time::Instant::now();
+
+    if let Some(GuardAction::Audit { action }) = action {
+        return handle_guard_audit(action);
+    }
+
+    if let Some(GuardAction::Report { log, limit }) = action {
+        let Some(path) = log.or_else(guard::log::default_log_path) else {
+            eprintln!("caro guard report: no data directory; pass --log <PATH>");
+            return 1;
+        };
+        return match std::fs::File::open(&path) {
+            Ok(file) => match guard::log::summarize_reader(std::io::BufReader::new(file), limit) {
+                Ok(report) => {
+                    print!("{}", guard::log::format_report(&path, &report));
+                    0
+                }
+                Err(e) => {
+                    eprintln!("caro guard report: {}: {}", path.display(), e);
+                    1
+                }
+            },
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                println!(
+                    "caro guard report: no decisions logged yet ({})",
+                    path.display()
+                );
+                0
+            }
+            Err(e) => {
+                eprintln!("caro guard report: {}: {}", path.display(), e);
+                1
+            }
+        };
+    }
+
+    if let Some(GuardAction::Setup {
+        target,
+        scope,
+        mode,
+        dry_run,
+        verify,
+        post,
+    }) = action
+    {
+        return handle_guard_setup(target, scope, mode, dry_run, verify, post);
+    }
+
+    if let Some(GuardAction::Test { command, output }) = action {
+        return handle_guard_test(load_guard_validator(), command.join(" "), output, started).await;
+    }
+
+    let mode = mode.unwrap_or_else(|| match std::env::var("CARO_GUARD_MODE") {
+        Ok(v) => v.parse().unwrap_or_else(|e: String| {
+            eprintln!("caro guard: {e}; using shadow");
+            GuardMode::Shadow
+        }),
+        Err(_) => GuardMode::Shadow,
+    });
+
+    // Honor the user's [safety] custom patterns and allowlist; the built-in
+    // catastrophic floor cannot be allowlisted. A missing config file loads
+    // as defaults; a config that exists but cannot be loaded is an error, not
+    // a silent fallback that would drop the user's own High/Critical rules.
+    let validator = load_guard_validator();
+    let protected = load_protected_paths(log.as_deref());
+
+    // Cap the read: an unbounded payload could stall the hook past the
+    // harness timeout, which fails open.
+    let mut raw = String::new();
+    let read = std::io::stdin()
+        .take(guard::MAX_PAYLOAD_BYTES as u64 + 1)
+        .read_to_string(&mut raw);
+
+    let (rendered, record) = match read {
+        Ok(n) if n > guard::MAX_PAYLOAD_BYTES => {
+            // Drain (without buffering) the rest of the payload so the harness
+            // never sees a broken pipe, which some treat as a hook failure.
+            let _ = std::io::copy(&mut std::io::stdin(), &mut std::io::sink());
+            let (_, rendered, record) = guard::oversize(harness, mode, &raw, started);
+            (rendered, record)
+        }
+        Ok(_) => {
+            let validator = validator.as_ref().map_err(String::as_str);
+            let (_, rendered, record) = guard::run_with_paths(
+                validator,
+                protected.as_ref().map_err(String::as_str),
+                harness,
+                mode,
+                &raw,
+                started,
+            )
+            .await;
+            (rendered, record)
+        }
+        Err(e) => (
+            guard::render(
+                harness,
+                mode,
+                &guard::Outcome::Error(format!("could not read stdin: {e}")),
+            ),
+            None,
+        ),
+    };
+
+    if let (Some(record), false) = (record, no_log) {
+        if let Some(path) = log.or_else(guard::log::default_log_path) {
+            // Logging must never break the hook.
+            if let Err(e) = guard::log::append(&path, &record) {
+                eprintln!("caro guard: could not write {}: {}", path.display(), e);
+            }
+        }
+    }
+    if let Some(err) = rendered.stderr {
+        eprintln!("{err}");
+    }
+    if let Some(out) = rendered.stdout {
+        println!("{out}");
+    }
+    rendered.exit_code
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -4148,6 +4937,15 @@ mod tests {
         );
         assert_eq!(resolved.text, "flag");
         assert_eq!(resolved.source, PromptSource::Flag);
+    }
+
+    #[test]
+    fn test_needs_stdin_prompt() {
+        let words = |w: &[&str]| w.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        assert!(needs_stdin_prompt(&None, &[]));
+        assert!(needs_stdin_prompt(&None, &words(&["", "  "])));
+        assert!(!needs_stdin_prompt(&None, &words(&["list", "files"])));
+        assert!(!needs_stdin_prompt(&Some("x".into()), &[]));
     }
 
     #[test]

@@ -11,13 +11,22 @@
  * - Override locale for testing locale-specific themes
  * - Preview all holiday themes instantly
  * - View engine state and debug info
+ *
+ * Theme previews link to ?occasion=<id> (the same mechanism as the
+ * occasion preview bar), generated from config/occasions.ts.
  */
+import { OCCASIONS } from '../config/occasions';
+const previewGroups = [
+  ['Holidays', OCCASIONS.filter((o) => o.kind === 'holiday')],
+  ['National days', OCCASIONS.filter((o) => o.kind === 'national')],
+  ['Humanity events', OCCASIONS.filter((o) => o.kind === 'humanity')],
+] as const;
 ---
 
 <div id="holiday-debug-panel" class="debug-panel hidden">
   <div class="debug-header">
-    <h3>🎄 Holiday Theme Debug</h3>
-    <button id="debug-close" class="debug-close">×</button>
+    <h3>Occasion theme debug</h3>
+    <button id="debug-close" class="debug-close" type="button" aria-label="Close debug panel">×</button>
   </div>
 
   <div class="debug-content">
@@ -81,31 +90,20 @@
       </select>
     </div>
 
-    <!-- Theme Preview - Holidays -->
-    <div class="debug-section">
-      <label class="debug-label">Preview Theme - Holidays</label>
-      <div class="debug-themes">
-        <button class="theme-preview-btn" data-theme="none">None</button>
-        <button class="theme-preview-btn" data-theme="christmas">🎄 Christmas</button>
-        <button class="theme-preview-btn" data-theme="hanukkah">🕎 Hanukkah</button>
-        <button class="theme-preview-btn" data-theme="newyear">🎊 New Year</button>
-        <button class="theme-preview-btn" data-theme="diwali">🪔 Diwali</button>
-        <button class="theme-preview-btn" data-theme="lunar-new-year">🐉 Lunar NY</button>
+    <!-- Theme previews (every occasion in config/occasions.ts) -->
+    {previewGroups.map(([label, list]) => (
+      <div class="debug-section">
+        <p class="debug-label">Preview - {label}</p>
+        <div class="debug-themes">
+          {list.map((o) => (
+            <a class="theme-preview-btn" href={`?occasion=${o.id}`} data-theme={o.id}>
+              <span class="dot" style={`background:${o.fill}`} aria-hidden="true"></span>{o.name}
+            </a>
+          ))}
+        </div>
       </div>
-    </div>
-
-    <!-- Theme Preview - Humanity Events -->
-    <div class="debug-section">
-      <label class="debug-label">Preview Theme - Humanity Events</label>
-      <div class="debug-themes humanity-themes">
-        <button class="theme-preview-btn humanity" data-theme="black-history-month">✊🏿 Black History</button>
-        <button class="theme-preview-btn humanity" data-theme="womens-history-month">💜 Women's</button>
-        <button class="theme-preview-btn humanity" data-theme="aapi-heritage-month">🌸 AAPI</button>
-        <button class="theme-preview-btn humanity" data-theme="pride-month">🏳️‍🌈 Pride</button>
-        <button class="theme-preview-btn humanity" data-theme="hispanic-heritage-month">🎺 Hispanic</button>
-        <button class="theme-preview-btn humanity" data-theme="native-american-heritage-month">🪶 Native</button>
-      </div>
-    </div>
+    ))}
+    <p class="debug-gallery"><a href="/occasions">Open the occasion gallery</a></p>
 
     <!-- Engine State -->
     <div class="debug-section">
@@ -127,7 +125,7 @@
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     z-index: 10000;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: var(--font-body);
     overflow: hidden;
   }
 
@@ -140,8 +138,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 12px 16px;
-    background: linear-gradient(135deg, #c41e3a 0%, #228b22 100%);
-    color: white;
+    background: var(--bg-inverse);
+    color: var(--fg-inverse);
   }
 
   .debug-header h3 {
@@ -153,7 +151,7 @@
   .debug-close {
     background: none;
     border: none;
-    color: white;
+    color: var(--fg-inverse);
     font-size: 24px;
     cursor: pointer;
     line-height: 1;
@@ -220,13 +218,13 @@
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    background: #228b22;
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     transition: all 0.2s;
   }
 
   .debug-btn:hover {
-    background: #1a6b1a;
+    background: var(--accent-fill-hover);
   }
 
   .debug-btn.secondary {
@@ -277,6 +275,10 @@
   }
 
   .theme-preview-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
     padding: 8px 12px;
     border: 2px solid var(--color-border);
     border-radius: 6px;
@@ -329,6 +331,19 @@
   }
 
   /* Hotkey hint */
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .debug-gallery a {
+    color: var(--accent-text);
+    text-decoration: underline;
+    font-size: 13px;
+  }
+
   .debug-panel::after {
     content: 'Press Cmd+Shift+\\ to toggle';
     position: absolute;
@@ -650,27 +665,7 @@
         }
       }
 
-      // Theme preview buttons
-      var themeBtns = document.querySelectorAll('.theme-preview-btn');
-      for (var i = 0; i < themeBtns.length; i++) {
-        (function(btn) {
-          btn.addEventListener('click', function() {
-            var theme = btn.dataset.theme || null;
-            applyTheme(theme === 'none' ? null : theme);
-            updateDebugState();
-            console.log('🎨 Theme manually set to: ' + (theme || 'none'));
-          });
-        })(themeBtns[i]);
-      }
-
-      // Initialize button states
-      var currentTheme = localStorage.getItem('holidayTheme') || 'none';
-      for (var i = 0; i < themeBtns.length; i++) {
-        var btn = themeBtns[i];
-        if (btn.dataset.theme === currentTheme) {
-          btn.classList.add('active');
-        }
-      }
+      // Theme previews are plain ?occasion= links (see markup).
 
       // =========================================================================
       // INITIALIZATION

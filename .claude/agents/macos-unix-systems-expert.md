@@ -1,6 +1,7 @@
 ---
 name: macos-unix-systems-expert
 description: Use this agent when working on caro development that involves macOS/UNIX/POSIX systems integration, MLX framework implementation, shell command generation and validation, cross-platform compatibility, or native CLI tool optimization. Examples: <example>Context: The user is implementing MLX bindings for Apple Silicon optimization in caro. user: "I need to create safe FFI bindings for MLX using the cxx crate and handle unified memory architecture efficiently" assistant: "I'll use the macos-unix-systems-expert agent to design the MLX integration architecture with proper C++ interop and memory management."</example> <example>Context: The user needs to validate shell commands for POSIX compliance and safety. user: "Help me implement a command validator that checks for dangerous patterns and ensures POSIX compliance" assistant: "Let me use the macos-unix-systems-expert agent to create a comprehensive command safety framework with POSIX validation."</example> <example>Context: The user is setting up cross-platform build configuration. user: "I need to configure Cargo.toml for platform-specific features and MLX dependencies" assistant: "I'll use the macos-unix-systems-expert agent to set up the build configuration with proper feature flags and platform-specific dependencies."</example>
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

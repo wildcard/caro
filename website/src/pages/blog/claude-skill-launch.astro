@@ -299,16 +299,22 @@ cargo install caro</code></pre>
     line-height: 1.6;
   }
 
+  /* This transcript block sits on the light card, not the console surface,
+     so its text uses the strong ink token in both modes. */
+  .code-example pre code {
+    color: var(--fg-strong);
+  }
+
   .highlight {
-    background: rgba(255, 140, 66, 0.1);
-    border-left: 4px solid #ff8c42;
+    background: rgba(239, 51, 51, 0.1);
+    border-left: 4px solid var(--accent);
     padding: 15px 20px;
     margin: 20px 0;
     border-radius: 4px;
   }
 
   :global(.dark) .highlight {
-    background: rgba(255, 140, 66, 0.15);
+    background: rgba(239, 51, 51, 0.15);
   }
 
   h2 {
@@ -340,8 +346,10 @@ cargo install caro</code></pre>
     font-size: 0.9em;
   }
 
+  /* Raised grey keeps --accent-text at 4.7:1 in dark mode, also inside
+     the red-tinted .highlight box (a white tint dropped it to 3.8:1). */
   :global(.dark) code {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-raised);
   }
 
   hr {

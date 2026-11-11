@@ -30,7 +30,7 @@ const comparison = {
   sections: [
     {
       title: 'Terminal Philosophy',
-      icon: '🖥️',
+      icon: '>_',
       content: `
         <p><strong>Warp</strong> is a completely new terminal emulator built from scratch with AI capabilities baked in. It requires you to switch from your current terminal (iTerm2, Terminal.app, Alacritty, etc.) to Warp.</p>
         <p><strong>Caro</strong> is a companion agent that works with your existing terminal. No app switching, no new UI to learn, no config migration. Just shell command assistance that integrates into your current workflow.</p>
@@ -38,7 +38,7 @@ const comparison = {
     },
     {
       title: 'Privacy & Connectivity',
-      icon: '🔒',
+      icon: '▸',
       content: `
         <p><strong>Warp</strong> requires cloud connectivity for its AI features. Your prompts are sent to Warp's servers for processing. Warp also collects telemetry data by default (though it can be disabled).</p>
         <p><strong>Caro</strong> runs entirely locally. AI inference happens on your machine with local models. No internet required, privacy-first design with minimal anonymous telemetry. Perfect for air-gapped environments or privacy-conscious users.</p>
@@ -46,7 +46,7 @@ const comparison = {
     },
     {
       title: 'Features vs Focus',
-      icon: '⚖️',
+      icon: '▸',
       content: `
         <p><strong>Warp</strong> offers a rich feature set: modern text editing in terminal, command blocks, notebook-style outputs, team workflows, and more. It's a full terminal replacement with many capabilities.</p>
         <p><strong>Caro</strong> intentionally does one thing well: help you remember shell commands safely. It's lightweight, focused, and doesn't try to reinvent the terminal. If you love your current terminal, Caro enhances it without replacing it.</p>
@@ -54,7 +54,7 @@ const comparison = {
     },
     {
       title: 'Safety Approach',
-      icon: '🛡️',
+      icon: '■',
       content: `
         <p><strong>Warp</strong> relies on AI to generate commands without systematic safety validation. Dangerous commands can still be suggested if the model doesn't catch them.</p>
         <p><strong>Caro</strong> validates every command against 52+ safety patterns before presenting it. Commands like <code>rm -rf /</code>, fork bombs, and system-breaking operations are blocked regardless of what the model suggests.</p>

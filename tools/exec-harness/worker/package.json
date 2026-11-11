@@ -2,7 +2,7 @@
   "name": "caro-exec-harness-worker",
   "version": "0.1.0",
   "private": true,
-  "description": "Tier-1 exec-harness: PROTOCOL.md over HTTPS backed by disposable Cloudflare Sandbox containers, plus the safety-corpus detonation endpoint. Dormant until CF account secrets exist (ADR-017).",
+  "description": "Tier-1 exec-harness: PROTOCOL.md over HTTPS backed by disposable Cloudflare Sandbox containers, plus the safety-corpus detonation endpoint. Dormant until CF account secrets exist (ADR-021).",
   "type": "module",
   "license": "AGPL-3.0",
   "scripts": {

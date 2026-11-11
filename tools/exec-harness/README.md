@@ -5,7 +5,7 @@ time, caro's eval can answer "does this command actually *run* and do what the
 test expects?" instead of only "does the string look right?".
 
 Part of the cloud-assisted verification architecture — see
-[`docs/adr/ADR-017-cloud-assisted-verification.md`](../../docs/adr/ADR-017-cloud-assisted-verification.md).
+[`docs/adr/ADR-021-cloud-assisted-verification.md`](../../docs/adr/ADR-021-cloud-assisted-verification.md).
 
 ## Tier 0 (this package)
 

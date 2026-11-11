@@ -2,6 +2,10 @@
 
 # dependencies
 /node_modules
+# npm workspaces: the root package-lock.json is the only lockfile (see README.md)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
 /.pnp
 .pnp.*
 .yarn/*

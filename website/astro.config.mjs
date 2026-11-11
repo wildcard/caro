@@ -3,6 +3,16 @@ import sitemap from '@astrojs/sitemap';
 import react from '@astrojs/react';
 import db from '@astrojs/db';
 import vercel from '@astrojs/vercel';
+import agentSeo from './src/integrations/agent-seo.ts';
+import { isIndexablePath, LOCALES, normalizePath } from './src/lib/seo/routes.ts';
+
+// Sitemap URLs match each page's canonical URL (no trailing slash, see
+// src/components/SEO.astro) and skip i18n fallback stubs and noindex pages.
+const canonicalUrl = (url) => {
+  const { origin, pathname } = new URL(url);
+  const path = normalizePath(pathname);
+  return path === '/' ? `${origin}/` : `${origin}${path}`;
+};
 
 // https://astro.build/config
 export default defineConfig({
@@ -20,9 +30,23 @@ export default defineConfig({
   output: 'static',
   adapter: vercel(),
   integrations: [
-    sitemap(),
+    sitemap({
+      filter: (page) => isIndexablePath(new URL(page).pathname),
+      serialize: (item) => ({
+        ...item,
+        url: canonicalUrl(item.url),
+        links: item.links?.map((link) => ({ ...link, url: canonicalUrl(link.url) })),
+      }),
+      i18n: {
+        defaultLocale: 'en',
+        locales: Object.fromEntries(LOCALES.map((locale) => [locale, locale])),
+      },
+    }),
     react(),
     db(),
+    // Share cards, Markdown twins, llms.txt and rss.xml for every page.
+    // Runs after the build, before the Vercel adapter copies the output.
+    agentSeo(),
   ],
   build: {
     inlineStylesheets: 'auto',

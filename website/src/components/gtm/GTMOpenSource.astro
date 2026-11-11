@@ -19,7 +19,7 @@ const codeBlock = "<span class=\"comment\">// Example safety patterns - you can 
           <div class="benefit">
             <span class="benefit-icon">🔍</span>
             <div class="benefit-content">
-              <h4>Fully Auditable</h4>
+              <h3>Fully Auditable</h3>
               <p>Review every safety pattern, every line of inference code. Know exactly what you're running.</p>
             </div>
           </div>
@@ -27,7 +27,7 @@ const codeBlock = "<span class=\"comment\">// Example safety patterns - you can 
           <div class="benefit">
             <span class="benefit-icon">🔧</span>
             <div class="benefit-content">
-              <h4>Community-Driven</h4>
+              <h3>Community-Driven</h3>
               <p>Report issues, suggest features, contribute code. The roadmap is shaped by users, not investors.</p>
             </div>
           </div>
@@ -35,7 +35,7 @@ const codeBlock = "<span class=\"comment\">// Example safety patterns - you can 
           <div class="benefit">
             <span class="benefit-icon">🚀</span>
             <div class="benefit-content">
-              <h4>Fork Freely</h4>
+              <h3>Fork Freely</h3>
               <p>Build your own version, add custom safety patterns, integrate with your toolchain. It's your tool.</p>
             </div>
           </div>
@@ -58,7 +58,7 @@ const codeBlock = "<span class=\"comment\">// Example safety patterns - you can 
             <span class="code-file">src/safety/patterns.rs</span>
             <span class="code-badge">Rust</span>
           </div>
-          <pre class="code-content"><code><span class="comment">// Example safety patterns - you can audit every one</span>
+          <pre class="code-content" tabindex="0" role="region" aria-label="Example Rust safety patterns from src/safety/patterns.rs"><code><span class="comment">// Example safety patterns - you can audit every one</span>
 <span class="keyword">const</span> <span class="variable">DANGEROUS_PATTERNS</span>: &amp;[&amp;<span class="type">str</span>] = &amp;[
     <span class="string">r"rm -rf /"</span>,              <span class="comment">// Root delete</span>
     <span class="string">r"fork_bomb"</span>,             <span class="comment">// Fork bomb</span>
@@ -100,12 +100,28 @@ const codeBlock = "<span class=\"comment\">// Example safety patterns - you can 
     align-items: center;
   }
 
+  /* Let the code column shrink so the <pre> scrolls instead of widening the page. */
+  .content-left,
+  .content-right {
+    min-width: 0;
+  }
+
+  .code-content:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: -3px;
+  }
+
+  .github-cta:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
   .section-label {
     font-size: 14px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: #22c55e;
+    color: var(--status-safe-text);
     margin-bottom: 16px;
   }
 
@@ -141,7 +157,7 @@ const codeBlock = "<span class=\"comment\">// Example safety patterns - you can 
     flex-shrink: 0;
   }
 
-  .benefit h4 {
+  .benefit h3 {
     font-size: 18px;
     font-weight: 600;
     color: var(--color-text);
@@ -158,8 +174,8 @@ const codeBlock = "<span class=\"comment\">// Example safety patterns - you can 
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    background: #24292e;
-    color: white;
+    background: var(--bg-inverse);
+    color: var(--fg-inverse);
     padding: 14px 28px;
     border-radius: 10px;
     text-decoration: none;
@@ -168,19 +184,19 @@ const codeBlock = "<span class=\"comment\">// Example safety patterns - you can 
   }
 
   .github-cta:hover {
-    background: #1a1e22;
+    background: var(--caro-grey-800);
   }
 
   /* Code Preview */
   .code-preview {
-    background: #0d1117;
+    background: var(--term-bg);
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
   }
 
   .code-header {
-    background: #161b22;
+    background: var(--caro-grey-800);
     padding: 14px 20px;
     display: flex;
     align-items: center;
@@ -190,12 +206,12 @@ const codeBlock = "<span class=\"comment\">// Example safety patterns - you can 
   .code-file {
     font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
     font-size: 13px;
-    color: #8b949e;
+    color: var(--caro-grey-300);
   }
 
   .code-badge {
-    background: #f97316;
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     padding: 4px 10px;
     border-radius: 4px;
     font-size: 11px;
@@ -209,16 +225,16 @@ const codeBlock = "<span class=\"comment\">// Example safety patterns - you can 
     font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
     font-size: 13px;
     line-height: 1.8;
-    color: #c9d1d9;
+    color: var(--term-fg);
     overflow-x: auto;
   }
 
-  .code-content .comment { color: #8b949e; }
-  .code-content .keyword { color: #ff7b72; }
-  .code-content .variable { color: #ffa657; }
-  .code-content .type { color: #79c0ff; }
-  .code-content .string { color: #a5d6ff; }
-  .code-content .function { color: #d2a8ff; }
+  .code-content .comment { color: var(--caro-grey-300); font-style: italic; }
+  .code-content .keyword { color: var(--highlight); }
+  .code-content .variable { color: var(--term-fg); font-weight: 600; }
+  .code-content .type { color: var(--caro-beige-300); }
+  .code-content .string { color: var(--caro-grey-100); }
+  .code-content .function { color: var(--caro-white); }
 
   @media (max-width: 900px) {
     .content-grid {

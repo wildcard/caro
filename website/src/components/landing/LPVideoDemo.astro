@@ -39,8 +39,8 @@ const hasVideo = !!videoUrl;
           <div class="placeholder-content">
             <div class="play-button">
               <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                <circle cx="24" cy="24" r="24" fill="#ff6b35" fill-opacity="0.2"/>
-                <circle cx="24" cy="24" r="20" fill="#ff6b35"/>
+                <circle cx="24" cy="24" r="24" fill="var(--accent-hover)" fill-opacity="0.2"/>
+                <circle cx="24" cy="24" r="20" fill="var(--accent-hover)"/>
                 <path d="M20 16L32 24L20 32V16Z" fill="white"/>
               </svg>
             </div>
@@ -80,7 +80,7 @@ const hasVideo = !!videoUrl;
 <style>
   .video-demo {
     padding: 80px 20px;
-    background: #0a0a0f;
+    background: var(--bg-inverse);
   }
 
   .container {
@@ -99,10 +99,12 @@ const hasVideo = !!videoUrl;
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #ff6b35;
+    /* Console surface: red text cannot reach AA on grey-700, so the
+       eyebrow uses the brand's accent-on-dark (--highlight, 7.3:1). */
+    color: var(--highlight);
     margin-bottom: 16px;
     padding: 8px 16px;
-    background: rgba(255, 107, 53, 0.1);
+    background: rgba(239, 51, 51, 0.1);
     border-radius: 100px;
   }
 
@@ -116,7 +118,7 @@ const hasVideo = !!videoUrl;
 
   .section-subtitle {
     font-size: 1.125rem;
-    color: #888;
+    color: var(--caro-grey-300);
     max-width: 500px;
     margin: 0 auto;
     line-height: 1.6;
@@ -126,7 +128,7 @@ const hasVideo = !!videoUrl;
     border-radius: 16px;
     overflow: hidden;
     border: 1px solid #1e1e24;
-    background: #111116;
+    background: var(--bg-inverse);
   }
 
   .demo-video {
@@ -154,13 +156,13 @@ const hasVideo = !!videoUrl;
   .placeholder-text {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #666;
+    color: var(--term-fg);
     margin-bottom: 8px;
   }
 
   .placeholder-subtext {
     font-size: 0.9375rem;
-    color: #555;
+    color: var(--caro-grey-300);
   }
 
   .demo-steps {
@@ -171,7 +173,7 @@ const hasVideo = !!videoUrl;
     gap: 16px;
     width: 100%;
     padding: 24px;
-    background: #0a0a0f;
+    background: var(--bg-inverse);
     border-radius: 12px;
   }
 
@@ -180,9 +182,9 @@ const hasVideo = !!videoUrl;
     align-items: center;
     gap: 10px;
     padding: 12px 16px;
-    background: #16161c;
+    background: var(--caro-grey-800);
     border-radius: 8px;
-    border: 1px solid #1e1e24;
+    border: 1px solid var(--caro-grey-800);
   }
 
   .step-number {
@@ -191,8 +193,8 @@ const hasVideo = !!videoUrl;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #ff6b35;
-    color: #ffffff;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     font-size: 0.75rem;
     font-weight: 700;
     border-radius: 50%;
@@ -207,14 +209,14 @@ const hasVideo = !!videoUrl;
   .step-text code {
     font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
     font-size: 0.8125rem;
-    color: #22c55e;
+    color: var(--term-safe);
     background: rgba(34, 197, 94, 0.1);
     padding: 2px 6px;
     border-radius: 4px;
   }
 
   .step-arrow {
-    color: #ff6b35;
+    color: var(--highlight); /* red cannot reach 3:1 on the console surface */
     font-size: 1.25rem;
     font-weight: 600;
   }

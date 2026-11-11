@@ -17,7 +17,7 @@
 //! - Everything that actually executes is graded on its merits: a generated
 //!   command that hits `command not found` (exit 127) in a supported case is a
 //!   backend failure, NOT a skip — otherwise a hallucinated utility would score
-//!   as a pass. See `docs/adr/ADR-017-cloud-assisted-verification.md`.
+//!   as a pass. See `docs/adr/ADR-021-cloud-assisted-verification.md`.
 
 use async_trait::async_trait;
 use chrono::Utc;
@@ -52,7 +52,7 @@ const READ_TIMEOUT: Duration = Duration::from_millis(EXEC_TIMEOUT_MS + 1_500);
 /// `Off` is the default everywhere: execution grounding is strictly opt-in
 /// (`--execution-tier tier0` on the eval CLI) and its absence never fails a
 /// run. Remote tiers (Cloudflare containers) are future variants — see
-/// ADR-017 for the policy on which tiers may back CI-blocking jobs.
+/// ADR-021 for the policy on which tiers may back CI-blocking jobs.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ExecutionTier {
     /// Execution cases are skipped (default)
@@ -298,6 +298,11 @@ impl ExecutionEvaluator {
             est_cost_usd: 0.0,
             criteria_passed: 0,
             criteria_total: 0,
+            confidence: result.confidence,
+            confidence_source: result.confidence_source,
+            decision_failed: result.decision_failed,
+            local_risk: result.local_risk.clone(),
+            reference_risk: result.reference_risk.clone(),
         }
     }
 
@@ -323,6 +328,11 @@ impl ExecutionEvaluator {
             est_cost_usd: 0.0,
             criteria_passed: 0,
             criteria_total: 0,
+            confidence: result.confidence,
+            confidence_source: result.confidence_source,
+            decision_failed: result.decision_failed,
+            local_risk: result.local_risk.clone(),
+            reference_risk: result.reference_risk.clone(),
         }
     }
 }
@@ -556,6 +566,11 @@ impl Evaluator for ExecutionEvaluator {
             est_cost_usd: 0.0,
             criteria_passed,
             criteria_total,
+            confidence: result.confidence,
+            confidence_source: result.confidence_source,
+            decision_failed: result.decision_failed,
+            local_risk: result.local_risk.clone(),
+            reference_risk: result.reference_risk.clone(),
         })
     }
 }

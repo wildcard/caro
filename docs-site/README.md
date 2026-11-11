@@ -18,6 +18,10 @@ npm run build
 npm run preview
 ```
 
+This directory is an npm workspace. `npm install` here reads and writes the
+root `package-lock.json`, so do not commit a lockfile in this directory. See
+[Workspace and lockfile](../website/README.md#workspace-and-lockfile).
+
 ## Project Structure
 
 ```

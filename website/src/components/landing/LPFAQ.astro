@@ -1,6 +1,7 @@
 ---
 import { t, type Locale } from '../../i18n/config';
 import { translations } from '../../i18n/index';
+import TermGlyph, { type Glyph } from '../../ui/TermGlyph/TermGlyph.astro';
 
 interface Props {
   lang?: Locale;
@@ -21,7 +22,7 @@ const concerns = translations[lang].landing.faq.concerns;
       {concerns.map((item) => (
         <details class="faq-item">
           <summary class="faq-question">
-            <span class="faq-icon">{item.icon}</span>
+            <span class="faq-icon"><TermGlyph g={item.icon as Glyph} /></span>
             <span class="faq-text">{item.question}</span>
             <span class="faq-toggle">+</span>
           </summary>
@@ -81,11 +82,11 @@ const concerns = translations[lang].landing.faq.concerns;
   }
 
   .faq-item:hover {
-    border-color: rgba(255, 140, 66, 0.3);
+    border-color: rgba(239, 51, 51, 0.3);
   }
 
   .faq-item[open] {
-    border-color: #ff8c42;
+    border-color: var(--accent);
   }
 
   .faq-question {
@@ -103,8 +104,11 @@ const concerns = translations[lang].landing.faq.concerns;
     display: none;
   }
 
+  /* 24 px column keeps the answer indent (62 px) aligned with the question. */
   .faq-icon {
-    font-size: 24px;
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
     flex-shrink: 0;
   }
 
@@ -140,8 +144,8 @@ const concerns = translations[lang].landing.faq.concerns;
     text-align: center;
     margin-top: 50px;
     padding: 32px;
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.08) 0%, rgba(255, 107, 53, 0.04) 100%);
-    border: 1px solid rgba(255, 140, 66, 0.2);
+    background: rgba(239, 51, 51, 0.08);
+    border: 1px solid rgba(239, 51, 51, 0.2);
     border-radius: 12px;
   }
 
@@ -152,7 +156,7 @@ const concerns = translations[lang].landing.faq.concerns;
   }
 
   .cta-link {
-    color: #ff8c42;
+    color: var(--accent-text);
     font-weight: 600;
     text-decoration: none;
     font-size: 16px;

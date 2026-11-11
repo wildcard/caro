@@ -65,6 +65,7 @@ This directory contains the infrastructure for automated development workflows t
 ```
 .claude/automation/
 ├── README.md              # This file
+├── CONTRACT.md            # Routine runner contract: preflight, one status record per run
 ├── config/                # Configuration files
 │   ├── schedule.yaml      # Loop schedules
 │   ├── policy.yaml        # Per-path auto_dispatch / auto_rebase policy
@@ -86,9 +87,7 @@ This directory contains the infrastructure for automated development workflows t
 ├── queues/                # Work queues
 │   ├── ideas_backlog.yaml
 │   └── social_queue.yaml
-└── state/                 # Runtime state
-    ├── last_run.json
-    ├── metrics.json
+└── state/                 # Per-loop run artifacts (run status: see CONTRACT.md)
     ├── qa_runs/
     ├── idea_sourcing/
     ├── pr_management/

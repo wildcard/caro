@@ -29,37 +29,39 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
 })));
 ---
 
-<div
+<aside
   id="humanity-event-banner"
   class="humanity-event-banner"
+  aria-label="Caro celebrates"
   data-events={eventsJson}
   style="display: none;"
 >
   <div class="humanity-event-content">
-    <span class="humanity-event-message">
-      <span class="humanity-event-emoji"></span>
+    <p class="humanity-event-message">
+      <span class="humanity-event-emoji" aria-hidden="true"></span>
       <span class="humanity-event-text"></span>
       <a class="humanity-event-link" href="#" target="_blank" rel="noopener noreferrer">
-        Learn more →
+        Learn more<span class="visually-hidden"> (opens in a new tab)</span> <span aria-hidden="true">→</span>
       </a>
-    </span>
+    </p>
     <button
       id="humanity-event-dismiss"
       class="humanity-event-dismiss"
       aria-label="Dismiss event banner"
       title="Dismiss"
     >
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
         <line x1="4" y1="4" x2="12" y2="12"/>
         <line x1="12" y1="4" x2="4" y2="12"/>
       </svg>
     </button>
   </div>
-</div>
+</aside>
 
 <script>
-  import { getActiveEvents, getEventThemeClasses } from '../utils/humanity-events';
-  import type { HumanityEvent } from '../data/humanity-events';
+  import { getActiveEvents } from '../utils/humanity-events';
+  import { HUMANITY_EVENTS } from '../data/humanity-events';
+  import { getOccasion, occasionIdForSource } from '../config/occasions';
 
   // =========================================================================
   // Humanity Event Banner Controller
@@ -107,6 +109,18 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
 
     private init(): void {
       const checkDate = this.getTestDate();
+
+      // ?occasion=<id> preview: show that event's banner (if it has one),
+      // ignore dismissals, and do not add today's event classes on top.
+      const preview = document.documentElement.dataset.occasionPreview;
+      if (preview) {
+        this.currentEvent = HUMANITY_EVENTS.find((e) => occasionIdForSource(e.id) === preview) ?? null;
+        if (this.currentEvent) this.show(this.currentEvent);
+        else this.hide();
+        this.dismissBtn.addEventListener('click', () => this.dismiss());
+        return;
+      }
+
       const events = getActiveEvents(checkDate);
 
       // Find the first non-dismissed event
@@ -139,11 +153,15 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
       });
     }
 
-    private applyThemeClasses(checkDate: Date): void {
-      const themeClasses = getEventThemeClasses(checkDate);
-      for (const className of themeClasses) {
-        document.documentElement.classList.add(className);
-      }
+    // One occasion at a time: the site wears the look of the event whose
+    // banner it shows, and only if that event has a full theme. Adding every
+    // active themed event's class put e.g. a green Mental Health Day banner
+    // over Hispanic Heritage Month CTAs and art.
+    private applyThemeClasses(_checkDate: Date): void {
+      const event = this.currentEvent;
+      if (!event?.hasFullTheme) return;
+      const occasion = occasionIdForSource(event.id);
+      if (occasion) document.documentElement.classList.add(occasion);
     }
 
     private show(event: NonNullable<typeof this.currentEvent>): void {
@@ -159,12 +177,10 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
         this.linkEl.style.display = 'none';
       }
 
-      // Apply theme colors
-      if (event.theme) {
-        this.banner.style.setProperty('--banner-accent', event.theme.accent);
-        if (event.theme.accentSecondary) {
-          this.banner.style.setProperty('--banner-accent-secondary', event.theme.accentSecondary);
-        }
+      // One solid, contrast-checked fill per occasion (config/occasions.ts).
+      const occasion = getOccasion(occasionIdForSource(event.id) ?? '');
+      if (occasion) {
+        this.banner.style.setProperty('--banner-fill', occasion.fill);
       }
 
       // Show banner
@@ -195,19 +211,17 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
 </script>
 
 <style>
+  /* Solid occasion fill with white text. Every fill in config/occasions.ts
+     is tested to reach ≥ 4.5:1 with white (occasions.test.ts). */
   .humanity-event-banner {
-    --banner-accent: #ff8c42;
-    --banner-accent-secondary: #ff6b35;
-
-    background: linear-gradient(135deg, var(--banner-accent) 0%, var(--banner-accent-secondary, var(--banner-accent)) 100%);
-    color: white;
-    padding: 12px 20px;
-    text-align: center;
+    --banner-fill: var(--accent-fill);
+    background: var(--banner-fill);
+    color: var(--caro-white);
+    padding: 10px 20px;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 15px;
     position: relative;
     z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, opacity 0.3s ease;
   }
 
@@ -221,7 +235,7 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px;
+    gap: 12px;
     max-width: 1200px;
     margin: 0 auto;
   }
@@ -232,6 +246,8 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
     gap: 8px;
     flex-wrap: wrap;
     justify-content: center;
+    margin: 0;
+    text-align: center;
   }
 
   .humanity-event-emoji {
@@ -243,22 +259,25 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
   }
 
   .humanity-event-link {
-    color: white;
+    color: var(--caro-white);
     text-decoration: underline;
-    font-weight: 600;
+    text-underline-offset: 3px;
+    font-weight: 700;
     white-space: nowrap;
   }
 
   .humanity-event-link:hover {
-    text-decoration: none;
+    color: var(--caro-white);
+    text-decoration-thickness: 2px;
   }
 
   .humanity-event-dismiss {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    padding: 6px;
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: var(--caro-white);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -268,18 +287,22 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
   }
 
   .humanity-event-dismiss:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.28);
   }
 
-  /* Mobile responsive */
+  .humanity-event-banner :is(a, button):focus-visible {
+    outline: 3px solid var(--caro-white);
+    outline-offset: 2px;
+  }
+
   @media (max-width: 768px) {
     .humanity-event-banner {
-      font-size: 13px;
-      padding: 10px 15px;
+      font-size: 14px;
+      padding: 8px 12px;
     }
 
     .humanity-event-content {
-      gap: 10px;
+      gap: 8px;
     }
 
     .humanity-event-emoji {
@@ -287,7 +310,6 @@ const eventsJson = JSON.stringify(activeEvents.map(e => ({
     }
   }
 
-  /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .humanity-event-banner {
       transition: none;

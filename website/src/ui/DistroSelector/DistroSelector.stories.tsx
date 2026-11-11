@@ -126,7 +126,7 @@ export const InNavigationBar: Story = {
       <button
         style={{
           padding: '8px 16px',
-          background: 'var(--color-primary, #ff8c42)',
+          background: 'var(--accent-fill, #d42a2a)',
           color: 'white',
           border: 'none',
           borderRadius: '8px',

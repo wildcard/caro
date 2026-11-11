@@ -101,7 +101,18 @@ impl HybridBackend {
             sanitized_req.input = format!("{}\n\n{}", briefing, sanitized_req.input);
         }
 
-        let mut result = self.remote.generate_command(&sanitized_req).await?;
+        let mut result = match self.remote.generate_command(&sanitized_req).await {
+            Ok(r) => r,
+            // A clarification question may echo placeholders; restore them so
+            // the user sees their real path/user, not a redaction token.
+            Err(GeneratorError::NeedsClarification { question, p }) => {
+                return Err(GeneratorError::NeedsClarification {
+                    question: question.map(|q| session.restore(&q)),
+                    p,
+                });
+            }
+            Err(e) => return Err(e),
+        };
 
         // Restore real values that the remote echoed back as placeholders.
         result.command = session.restore(&result.command);
@@ -162,6 +173,9 @@ impl CommandGenerator for HybridBackend {
 
         match attempt {
             Ok(result) => Ok(result),
+            // A typed decision from the remote gate, not a failure: surface
+            // the question instead of letting the local model answer anyway.
+            Err(err @ GeneratorError::NeedsClarification { .. }) => Err(err),
             Err(err) => {
                 tracing::warn!("Hybrid remote enhancer error: {}", err);
                 self.fallback_local(request).await
@@ -245,6 +259,7 @@ mod tests {
                 backend_used: self.name.clone(),
                 generation_time_ms: 0,
                 confidence_score: 0.9,
+                confidence_source: crate::models::ConfidenceSource::Measured,
             })
         }
         async fn is_available(&self) -> bool {

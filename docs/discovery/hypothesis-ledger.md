@@ -47,7 +47,7 @@ from May 25, 2026. The full retroactive audit for each v2.0 hypothesis
 is in [`v2.0-validation-audit.md`](./v2.0-validation-audit.md).
 
 The three `sandbox-*`/`live-playground`/`agentic-loop` rows were coined
-by [ADR-017](../adr/ADR-017-cloud-assisted-verification.md)
+by [ADR-021](../adr/ADR-021-cloud-assisted-verification.md)
 (cloud-assisted verification). Note what is deliberately NOT under
 them: the dev-harness execution tiers (internal tooling, exempt) and
 CaroML cross-platform runbook verification (extends the shipped CaroML

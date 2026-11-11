@@ -1,6 +1,7 @@
 ---
 name: tdd-rust-engineer
 description: Use this agent when you need to implement Rust projects following strict Test-Driven Development (TDD) practices and clean code principles. Examples include: building CLI tools, implementing domain logic with comprehensive test coverage, creating modular architectures with proper separation of concerns, or when you need to ensure code quality through the red-green-refactor cycle. The agent excels at writing failing tests first, implementing minimal code to pass tests, and then refactoring while maintaining test coverage. Use this agent when you want to build robust, well-tested Rust applications with proper error handling, safety validation, and clean architecture patterns.
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

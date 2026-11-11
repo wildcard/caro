@@ -130,7 +130,7 @@ and show me the final QA preview.</code></pre>
 </DocsLayout>
 
 <style>
-  .kavana-kicker { color: #b84d24; font-weight: 900; font-size: .75rem; letter-spacing: .15em; }
-  :global(.dark) .kavana-kicker { color: #ff9d72; }
+  /* --accent-text flips with the color mode (6.1:1 light, 5.8:1 dark). */
+  .kavana-kicker { color: var(--accent-text); font-weight: 900; font-size: .75rem; letter-spacing: .15em; }
   .kavana-download { display: inline-block; padding: .8rem 1rem; border: 2px solid #33261e; border-radius: .75rem; background: #b9e4ce; color: #251f1b; font-weight: 800; text-decoration: none; box-shadow: 3px 3px 0 #33261e; }
 </style>

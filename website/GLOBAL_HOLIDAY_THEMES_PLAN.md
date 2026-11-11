@@ -12,6 +12,22 @@ This document outlines a culturally inclusive approach to holiday themes for the
 
 All themes are now **opt-in by default** as of the latest update.
 
+## Implementation (2026-10, WCAG pass)
+
+How an occasion **looks** now lives in one registry,
+`src/config/occasions.ts` (31 occasions: holidays, national days,
+humanity events). *When* it runs still comes from `src/config/holidays.ts`
+and `src/data/humanity-events.ts`.
+
+- An occasion changes only the CTA fill (one solid color, tested ≥ 4.5:1
+  with white), a 4px ribbon, decorative hero art (`src/lib/occasion-art.ts`,
+  served as static SVG) and the event banner. Copy and links keep the brand.
+- The navigation offers every **enabled** holiday that is in season for the
+  visitor (dates + locale via `lib/holiday-engine.ts`). Still opt-in.
+- Preview any occasion on any page: `?occasion=<id>&theme=dark|light`.
+  Gallery with measured contrast: `/occasions`.
+- Guards: `src/__tests__/occasions.test.ts`.
+
 ---
 
 ## Feature Development Process

@@ -41,4 +41,9 @@ When you stop work and wait for user input (questions, confirmations, task compl
 - After fix: "Verify the fix works"
 - After plan: "Review plan and start implementation"
 
+**[Legible Output]** (`.claude/rules/legible-output.md`)
+- Line 1: `**Needs you:** <question>` if the owner must decide. Then the result, then details.
+- STE-lite: ≤20 words per instruction, ≤25 per description, active voice, one term per concept.
+- Text not enough? Pick the lowest format that works: diagram, HTML artifact or video. Number open questions and give a default.
+
 EOF

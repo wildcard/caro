@@ -46,7 +46,11 @@
         "glossary": "Glosaryo",
         "terminalTerms": "Mga termino sa Terminal & Unix",
         "github": "GitHub",
-        "sourceCode": "Source code"
+        "sourceCode": "Source code",
+        "useCases": "Use Cases",
+        "byRoleSummary": "By role: SRE, DevOps, security",
+        "docs": "Docs",
+        "installAndReference": "Install, configure, reference"
       },
       "mobile": {
         "allComparisons": "Lahat ng Paghahambing",

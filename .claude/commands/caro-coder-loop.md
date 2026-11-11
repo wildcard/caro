@@ -24,8 +24,10 @@ If `Ready to Work` == 0 on v1.2.0 tasks, exit gracefully with: `"No ready v1.2.0
 # Get next ready v1.2.0 task (highest priority, Phase-1 first by dependency order)
 # Skip beads claimed by named delivery agents (`claim_policy:manual_only`) — e.g.
 # the caro-waitlist-engineer's path:deep beads filed by caro-merge-review-integrate.
-# Skip beads in the rebase queue (`loop:rebase`) — those are drained by the
-# rebase loop (follow-up; see policy.yaml + dispatcher SKILL for the contract).
+# Skip legacy rebase-queue beads (`loop:rebase`). The rebase queue was retired
+# (caro-jac.100, option C): the dispatcher now surfaces open PRs for review and
+# merge in its Hermes digest instead of filing beads. Leftover loop:rebase
+# beads get closed out, never claimed.
 NEXT=$(bd ready --json 2>/dev/null | jq -r '
   .[]
   | select(.labels[]? == "v1.2.0")

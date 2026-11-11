@@ -57,6 +57,7 @@
 
 // Sub-modules
 pub mod baseline;
+pub mod calibration;
 pub mod dataset;
 pub mod errors;
 pub mod evaluators;

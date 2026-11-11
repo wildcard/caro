@@ -1,4 +1,4 @@
-// Kitesurf website QA — ADR-017 phase P3 (dormant until CF secrets exist).
+// Kitesurf website QA — ADR-021 phase P3 (dormant until CF secrets exist).
 //
 // Structural checks only: raw-i18n-key leaks, link integrity, DOM presence,
 // renders-at-all screenshots. Kitesurf is explicitly NOT pixel-perfect, so

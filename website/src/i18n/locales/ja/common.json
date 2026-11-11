@@ -46,7 +46,11 @@
         "glossary": "用語集",
         "terminalTerms": "ターミナル＆Unix用語",
         "github": "GitHub",
-        "sourceCode": "ソースコード"
+        "sourceCode": "ソースコード",
+        "useCases": "Use Cases",
+        "byRoleSummary": "By role: SRE, DevOps, security",
+        "docs": "Docs",
+        "installAndReference": "Install, configure, reference"
       },
       "mobile": {
         "allComparisons": "すべての比較",

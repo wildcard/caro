@@ -1,6 +1,6 @@
 // Renders-at-all screenshot smoke: proves Kitesurf can rasterize the page and
 // the page isn't blank. NOT a visual-regression check — no pixel comparisons
-// here, ever (Kitesurf is explicitly not pixel-perfect; ADR-017 P3).
+// here, ever (Kitesurf is explicitly not pixel-perfect; ADR-021 P3).
 import { mkdirSync, writeFileSync } from "node:fs";
 import { test, expect, credentials, laneDormant } from "./fixtures";
 

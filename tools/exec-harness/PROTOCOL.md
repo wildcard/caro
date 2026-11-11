@@ -12,7 +12,7 @@ vendor or engine:
 | 2 | `@cloudflare/computer` (preview) backends via `worker/experimental/` | HTTPS, same shape |
 
 Future providers (E2B, local Docker, bubblewrap) implement the same request/
-response pair. See `docs/adr/ADR-017-cloud-assisted-verification.md` for the
+response pair. See `docs/adr/ADR-021-cloud-assisted-verification.md` for the
 policy on which tiers may back CI-blocking jobs.
 
 ## Transport (tier 0)

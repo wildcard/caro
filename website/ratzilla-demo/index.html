@@ -18,6 +18,10 @@
             align-items: center;
             justify-content: center;
         }
+        /* main is the flex item now; give it the width #ratzilla used to get from body. */
+        main {
+            width: min(100%, 900px);
+        }
         #ratzilla {
             width: 100%;
             max-width: 900px;
@@ -26,6 +30,9 @@
     </style>
 </head>
 <body>
-    <div id="ratzilla"></div>
+    <main>
+        <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap">Caro terminal UI demo</h1>
+        <div id="ratzilla"></div>
+    </main>
 </body>
 </html>

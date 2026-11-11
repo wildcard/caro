@@ -331,6 +331,6 @@ queue:
 
 ## Related
 
-- [SOCIAL_QUEUE_DRS.md](../.claude/automation/specs/SOCIAL_QUEUE_DRS.md)
+- [SOCIAL_QUEUE_DRS.md](../automation/specs/SOCIAL_QUEUE_DRS.md)
 - [SOCIAL_MEDIA_GUIDE.md](../../docs/devrel/SOCIAL_MEDIA_GUIDE.md)
 - `/idea-sourcing-loop` - Ideas feed into content

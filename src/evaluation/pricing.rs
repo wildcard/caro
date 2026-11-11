@@ -98,6 +98,15 @@ pub fn price_for(backend_name: &str) -> TokenPrice {
             output_per_mtok: 4.0,
         };
     }
+    if n.contains("grok-4.5") {
+        // xAI Grok 4.5 list price as reported 2026-10 (<200K-token prompts).
+        // Other Grok models fall through to the unknown-hosted default until
+        // their rates are recorded.
+        return TokenPrice {
+            input_per_mtok: 2.0,
+            output_per_mtok: 6.0,
+        };
+    }
     if n.contains("claude") || n.contains("openrouter") {
         // Generic hosted Claude/OpenRouter without an identified tier.
         return TokenPrice {
@@ -144,6 +153,19 @@ mod tests {
     fn token_estimate_uses_four_chars_per_token() {
         // 16 chars / 4 = 4
         assert_eq!(estimate_tokens("0123456789abcdef"), 4);
+    }
+
+    #[test]
+    fn grok_is_priced_not_free() {
+        // The eval registers `grok:<model>`; it must never read as $0.
+        for name in ["grok:grok-4.5", "Grok (grok-4.5)"] {
+            let p = price_for(name);
+            assert_eq!(p.input_per_mtok, 2.0, "{name}");
+            assert_eq!(p.output_per_mtok, 6.0, "{name}");
+        }
+        // Unrecorded Grok models get the conservative unknown-hosted rate.
+        let p = price_for("xai:grok-4.6");
+        assert_eq!((p.input_per_mtok, p.output_per_mtok), (1.0, 3.0));
     }
 
     #[test]

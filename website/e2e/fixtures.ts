@@ -1,7 +1,7 @@
 // Shared fixture: routes every test's browser through Cloudflare Browser Run
 // over CDP. Default engine is Kitesurf (free beta); BROWSER_MODE=chromium
 // drops the query parameter and the exact same endpoint serves real Chromium
-// (paid) — the trivial fallback ADR-017 relies on.
+// (paid) — the trivial fallback ADR-021 relies on.
 import { test as base, chromium, type Browser } from "@playwright/test";
 import { readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -14,7 +14,7 @@ export function credentials(): { accountId: string; apiToken: string } | null {
 }
 
 export const laneDormant =
-  "Kitesurf lane dormant: CARO_CF_ACCOUNT_ID / CARO_CF_API_TOKEN not set (see ADR-017 P3)";
+  "Kitesurf lane dormant: CARO_CF_ACCOUNT_ID / CARO_CF_API_TOKEN not set (see ADR-021 P3)";
 
 function wsEndpoint(accountId: string): string {
   const engine = process.env.BROWSER_MODE === "chromium" ? "" : "?browser=kitesurf";

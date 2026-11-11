@@ -1,4 +1,4 @@
-// Tier-1 exec-harness worker (ADR-017 phase P2) — DORMANT until CF secrets
+// Tier-1 exec-harness worker (ADR-021 phase P2) — DORMANT until CF secrets
 // exist. Speaks the same protocol as the tier-0 Node runner
 // (../../PROTOCOL.md) over HTTPS, backed by disposable real-Linux containers
 // via @cloudflare/sandbox (GA). Adds /detonate: executes entries from the

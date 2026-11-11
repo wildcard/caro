@@ -71,7 +71,10 @@ pub static CVE_COMPILED_PATTERNS: Lazy<Vec<CvePattern>> = Lazy::new(|| {
             let shell = p.shell_specific.as_deref().and_then(parse_shell_type);
             // Prepend the CVE ID to the description so validator warnings like
             // "Critical: CVE-2024-3094: xz backdoor trigger" surface the source.
-            let description = format!("{}: {}", p.id, p.description);
+            // YAML descriptions often cite the ID too; drop that copy so the
+            // user reads it once.
+            let summary = p.description.replace(&format!(" ({})", p.id), "");
+            let description = format!("{}: {}", p.id, summary);
             Some((regex, risk, description, shell))
         })
         .collect()

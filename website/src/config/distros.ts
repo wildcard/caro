@@ -1264,7 +1264,7 @@ export const SHELLS: Record<ShellType, ShellInfo> = {
  */
 export function getDistroTheme(osFamily: OSFamily, distro?: string | null): DistroTheme {
   const defaultTheme: DistroTheme = {
-    accentColor: '#ff8c42', // Caro orange
+    accentColor: '#ef3333', // Caro signal red
     secondaryColor: '#ea4aaa', // Caro pink
     terminalBg: '#1e1e2e',
     terminalText: '#cdd6f4',

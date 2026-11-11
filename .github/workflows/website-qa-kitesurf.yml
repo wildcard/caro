@@ -2,7 +2,7 @@
 #
 # DORMANT until CARO_CF_ACCOUNT_ID / CARO_CF_API_TOKEN repo secrets exist
 # (human-created per decision D5) — without them the job skips green.
-# Non-blocking while Kitesurf is beta (ADR-017: beta services never gate
+# Non-blocking while Kitesurf is beta (ADR-021: beta services never gate
 # merges). BROWSER_MODE=chromium on manual dispatch uses the same endpoint
 # with real Chromium (paid) as the fallback engine.
 name: Website QA (Kitesurf)

@@ -1,0 +1,47 @@
+---
+/**
+ * TermGlyph - a terminal glyph where a slot is too small for a Kyaro icon
+ * (docs/brand/ICONOGRAPHY.md, rule 7: below 28 px, or inline in text).
+ *
+ * Only the glyph family is allowed; an emoji or any other character fails
+ * the build. The text color carries through, so it works on every surface.
+ * Decorative (aria-hidden): the text next to it carries the meaning.
+ *
+ *   ▸ default marker, privacy   ■ safety   $ local, install   ❯ open source,
+ *   speed, model   >_ shell   ✓ works   ✗ blocked   ♥ support, game life
+ *
+ * @example
+ * <li><TermGlyph g="■" /> Blocks dangerous commands</li>
+ */
+const GLYPHS = ['▸', '■', '$', '❯', '>_', '✓', '✗', '♥'] as const;
+export type Glyph = (typeof GLYPHS)[number];
+
+interface Props {
+  g: Glyph;
+  class?: string;
+  [attr: `data-${string}`]: string | undefined;
+}
+
+// The rest carries the parent's scope attribute (data-astro-cid-*), so a
+// parent's scoped CSS still reaches <TermGlyph class="...">.
+const { g, class: className, ...rest } = Astro.props;
+
+if (!(GLYPHS as readonly string[]).includes(g)) {
+  throw new Error(`[TermGlyph] "${g}" is not a terminal glyph; use one of ${GLYPHS.join(' ')}`);
+}
+---
+
+<span class:list={['term-glyph', className]} aria-hidden="true" {...rest}>{g}</span>
+
+<style>
+  .term-glyph {
+    display: inline-block;
+    min-width: 1ch;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-style: normal;
+    line-height: 1;
+    font-variant-emoji: text;
+  }
+</style>

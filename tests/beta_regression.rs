@@ -116,3 +116,133 @@ async fn test_disk_space_by_directory_sorted() {
         cmd.command
     );
 }
+
+/// Content search scoped to a file type: "search for TODO in all python files"
+/// Should generate: grep -rn 'TODO' --include='*.py' .
+/// Was generating: find . -name "*.py" -type f (lists files, never searches them)
+#[tokio::test]
+async fn test_search_todo_in_python_files_searches_contents() {
+    for (platform, query) in [
+        (
+            caro::prompts::ProfileType::Bsd,
+            "search for TODO in all python files",
+        ),
+        (
+            caro::prompts::ProfileType::GnuLinux,
+            "search for TODO in all python files",
+        ),
+        (
+            caro::prompts::ProfileType::GnuLinux,
+            "find TODOs in python files",
+        ),
+        (
+            caro::prompts::ProfileType::GnuLinux,
+            "grep for TODO in .py files",
+        ),
+        (
+            caro::prompts::ProfileType::GnuLinux,
+            "search python files for TODO",
+        ),
+    ] {
+        let matcher = StaticMatcher::new(CapabilityProfile::for_platform(platform));
+        let request = CommandRequest::new(query, ShellType::Bash);
+
+        let cmd = matcher
+            .generate_command(&request)
+            .await
+            .expect("Command generation should succeed");
+        assert_eq!(
+            cmd.command, "grep -rn 'TODO' --include='*.py' .",
+            "query {:?} should search .py file contents for TODO",
+            query
+        );
+    }
+}
+
+/// Guard for the neighbouring pattern: listing python files is still a find.
+#[tokio::test]
+async fn test_find_all_python_files_still_lists_files() {
+    let matcher = StaticMatcher::new(CapabilityProfile::ubuntu());
+    for query in ["find all python files", "find python files"] {
+        let request = CommandRequest::new(query, ShellType::Bash);
+        let cmd = matcher
+            .generate_command(&request)
+            .await
+            .expect("Command generation should succeed");
+        assert_eq!(
+            cmd.command, r#"find . -name "*.py" -type f"#,
+            "query {:?}",
+            query
+        );
+    }
+}
+
+/// Issue #1516: "search for <term> in python files" must search file contents for
+/// that term. It used to return `find . -name "*.py" -type f` for any term but TODO.
+#[tokio::test]
+async fn test_search_for_term_in_python_files_greps_contents() {
+    let matcher = StaticMatcher::new(CapabilityProfile::ubuntu());
+    for (query, expected) in [
+        (
+            "search for FIXME in all python files",
+            "grep -rn 'FIXME' --include='*.py' .",
+        ),
+        (
+            "search for print in python files",
+            "grep -rn 'print' --include='*.py' .",
+        ),
+        (
+            "grep for import os in .py files",
+            "grep -rn 'import os' --include='*.py' .",
+        ),
+        (
+            "search python files for print",
+            "grep -rn 'print' --include='*.py' .",
+        ),
+        (
+            "find python files containing requests",
+            "grep -rn 'requests' --include='*.py' .",
+        ),
+        (
+            "search for print statements in python files",
+            "grep -rn 'print' --include='*.py' .",
+        ),
+        (
+            "search for \"api_key\" in python files",
+            "grep -rn 'api_key' --include='*.py' .",
+        ),
+        (
+            "Search for TODO comments in Python files",
+            "grep -rn 'TODO' --include='*.py' .",
+        ),
+    ] {
+        let request = CommandRequest::new(query, ShellType::Bash);
+        let cmd = matcher
+            .generate_command(&request)
+            .await
+            .expect("Command generation should succeed");
+        assert_eq!(cmd.command, expected, "query {:?}", query);
+    }
+}
+
+/// Issue #1516 guard: listing phrasings must keep producing a file listing.
+#[tokio::test]
+async fn test_python_file_listing_phrasings_unchanged() {
+    let matcher = StaticMatcher::new(CapabilityProfile::ubuntu());
+    for query in [
+        "locate .py files",
+        "find files ending in .py",
+        "search for python files",
+    ] {
+        let request = CommandRequest::new(query, ShellType::Bash);
+        let cmd = matcher
+            .generate_command(&request)
+            .await
+            .expect("Command generation should succeed");
+        assert_eq!(
+            cmd.command, r#"find . -name "*.py" -type f"#,
+            "query {:?}",
+            query
+        );
+    }
+}

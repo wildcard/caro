@@ -46,7 +46,11 @@
         "glossary": "معجم",
         "terminalTerms": "مصطلحات الطرفية وUnix",
         "github": "GitHub",
-        "sourceCode": "شيفرة المصدر"
+        "sourceCode": "شيفرة المصدر",
+        "useCases": "Use Cases",
+        "byRoleSummary": "By role: SRE, DevOps, security",
+        "docs": "Docs",
+        "installAndReference": "Install, configure, reference"
       },
       "mobile": {
         "allComparisons": "جميع المقارنات",

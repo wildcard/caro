@@ -1,6 +1,7 @@
 ---
 name: rust-cli-builder
 description: Use this agent when you need to build command-line interface (CLI) applications in Rust, especially when implementing natural language processing tools, shell command generators, or any CLI that requires API integration, user interaction, and command execution. Examples: <example>Context: User wants to create a CLI tool that converts natural language to shell commands. user: 'I need help building a Rust CLI that takes natural language input and generates shell commands using an LLM API' assistant: 'I'll use the rust-cli-builder agent to help you create this CLI application with proper structure, dependencies, and implementation.' <commentary>Since the user needs to build a Rust CLI application, use the rust-cli-builder agent to provide expert guidance on CLI development, dependency management, and implementation patterns.</commentary></example> <example>Context: User is working on a CLI project and needs help with argument parsing and API integration. user: 'How should I structure my Rust CLI to handle command-line arguments and make HTTP requests to external APIs?' assistant: 'Let me use the rust-cli-builder agent to provide you with best practices for CLI architecture and API integration.' <commentary>The user needs specific guidance on CLI development patterns, so the rust-cli-builder agent should be used to provide expert advice on Rust CLI best practices.</commentary></example>
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

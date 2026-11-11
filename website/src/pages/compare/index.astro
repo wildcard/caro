@@ -2,6 +2,8 @@
 import Layout from '../../layouts/Layout.astro';
 import Navigation from '../../components/Navigation.astro';
 import Footer from '../../components/Footer.astro';
+import TermGlyph from '../../ui/TermGlyph/TermGlyph.astro';
+import type { Glyph } from '../../ui/TermGlyph/TermGlyph.astro';
 
 const lang = 'en';
 
@@ -46,7 +48,7 @@ const comparisonMatrix = {
   categories: [
     {
       name: 'Privacy & Data Control',
-      icon: '🔒',
+      icon: '▸',
       description: 'How your terminal activity is handled',
       features: [
         { name: 'Works 100% offline', caro: true, copilot: false, warp: false, kiro: false, opencode: 'partial' },
@@ -58,7 +60,7 @@ const comparisonMatrix = {
     },
     {
       name: 'Safety & Guardrails',
-      icon: '🛡️',
+      icon: '■',
       description: 'What happens before a command runs',
       features: [
         { name: 'Rule-based safety validation', caro: true, copilot: false, warp: false, kiro: false, opencode: false },
@@ -70,7 +72,7 @@ const comparisonMatrix = {
     },
     {
       name: 'Shell Expertise',
-      icon: '🖥️',
+      icon: '>_',
       description: 'Specialized for terminal workflows',
       features: [
         { name: 'POSIX-first command generation', caro: true, copilot: 'partial', warp: 'partial', kiro: 'partial', opencode: 'partial' },
@@ -82,7 +84,7 @@ const comparisonMatrix = {
     },
     {
       name: 'Architecture & Extensibility',
-      icon: '🧠',
+      icon: '❯',
       description: 'Technical foundation and flexibility',
       features: [
         { name: 'Local model inference', caro: true, copilot: false, warp: false, kiro: false, opencode: 'partial' },
@@ -111,7 +113,7 @@ function renderValue(value: boolean | string) {
 >
   <Navigation />
 
-  <main class="compare-page">
+  <main id="main-content" class="compare-page">
     <section class="hero">
       <div class="container">
         <h1>Compare Caro to Alternatives</h1>
@@ -122,10 +124,10 @@ function renderValue(value: boolean | string) {
 
         <!-- Trust Badges -->
         <div class="trust-badges">
-          <a href="/telemetry" class="badge badge-link"><span class="badge-icon">🔒</span> Privacy-First*</a>
-          <span class="badge"><span class="badge-icon">🛡️</span> 52+ Safety Patterns</span>
-          <span class="badge"><span class="badge-icon">📡</span> 100% Offline</span>
-          <span class="badge"><span class="badge-icon">🦀</span> Open Source</span>
+          <a href="/telemetry" class="badge badge-link"><span class="badge-icon"><TermGlyph g="▸" /></span> Privacy-First*</a>
+          <span class="badge"><span class="badge-icon"><TermGlyph g="■" /></span> 52+ Safety Patterns</span>
+          <span class="badge"><span class="badge-icon"><TermGlyph g="$" /></span> 100% Offline</span>
+          <span class="badge"><span class="badge-icon"><TermGlyph g="❯" /></span> Open Source</span>
         </div>
       </div>
     </section>
@@ -167,12 +169,12 @@ function renderValue(value: boolean | string) {
         {comparisonMatrix.categories.map((category) => (
           <div class="matrix-category">
             <h3 class="category-header">
-              <span class="category-icon">{category.icon}</span>
+              <span class="category-icon"><TermGlyph g={category.icon as Glyph} /></span>
               {category.name}
               <span class="category-desc">{category.description}</span>
             </h3>
 
-            <div class="table-wrapper">
+            <div class="table-wrapper" tabindex="0" role="region" aria-label={`${category.name} comparison table`}>
               <table class="matrix-table">
                 <thead>
                   <tr>
@@ -189,19 +191,24 @@ function renderValue(value: boolean | string) {
                     <tr>
                       <td class="feature-name">{feature.name}</td>
                       <td class={`value ${renderValue(feature.caro).class} highlight-col`}>
-                        <span class="value-icon">{renderValue(feature.caro).icon}</span>
+                        <span class="value-icon" aria-hidden="true">{renderValue(feature.caro).icon}</span>
+                        <span class="visually-hidden">{renderValue(feature.caro).label}</span>
                       </td>
                       <td class={`value ${renderValue(feature.copilot).class}`}>
-                        <span class="value-icon">{renderValue(feature.copilot).icon}</span>
+                        <span class="value-icon" aria-hidden="true">{renderValue(feature.copilot).icon}</span>
+                        <span class="visually-hidden">{renderValue(feature.copilot).label}</span>
                       </td>
                       <td class={`value ${renderValue(feature.warp).class}`}>
-                        <span class="value-icon">{renderValue(feature.warp).icon}</span>
+                        <span class="value-icon" aria-hidden="true">{renderValue(feature.warp).icon}</span>
+                        <span class="visually-hidden">{renderValue(feature.warp).label}</span>
                       </td>
                       <td class={`value ${renderValue(feature.kiro).class}`}>
-                        <span class="value-icon">{renderValue(feature.kiro).icon}</span>
+                        <span class="value-icon" aria-hidden="true">{renderValue(feature.kiro).icon}</span>
+                        <span class="visually-hidden">{renderValue(feature.kiro).label}</span>
                       </td>
                       <td class={`value ${renderValue(feature.opencode).class}`}>
-                        <span class="value-icon">{renderValue(feature.opencode).icon}</span>
+                        <span class="value-icon" aria-hidden="true">{renderValue(feature.opencode).icon}</span>
+                        <span class="visually-hidden">{renderValue(feature.opencode).label}</span>
                       </td>
                     </tr>
                   ))}
@@ -213,10 +220,10 @@ function renderValue(value: boolean | string) {
 
         <!-- Legend -->
         <div class="legend">
-          <span class="legend-item"><span class="legend-icon yes">✓</span> Full support</span>
-          <span class="legend-item"><span class="legend-icon partial">◐</span> Partial/varies</span>
-          <span class="legend-item"><span class="legend-icon no">✗</span> Not supported</span>
-          <span class="legend-item"><span class="legend-icon planned">◎</span> Planned</span>
+          <span class="legend-item"><span class="legend-icon yes" aria-hidden="true">✓</span> Full support</span>
+          <span class="legend-item"><span class="legend-icon partial" aria-hidden="true">◐</span> Partial/varies</span>
+          <span class="legend-item"><span class="legend-icon no" aria-hidden="true">✗</span> Not supported</span>
+          <span class="legend-item"><span class="legend-icon planned" aria-hidden="true">◎</span> Planned</span>
         </div>
       </div>
     </section>
@@ -228,22 +235,22 @@ function renderValue(value: boolean | string) {
 
         <div class="reasons">
           <div class="reason">
-            <h3>🏢 For Security-Conscious Orgs</h3>
+            <h3><TermGlyph g="▸" /> For Security-Conscious Orgs</h3>
             <p>Air-gapped environments, compliance requirements, or simply not wanting shell commands to leave your network? Caro runs 100% locally with <a href="/telemetry" class="inline-link">privacy-first design</a>.</p>
           </div>
 
           <div class="reason">
-            <h3>🛡️ For SREs Who Can't Afford Mistakes</h3>
+            <h3><TermGlyph g="■" /> For SREs Who Can't Afford Mistakes</h3>
             <p>Rule-based safety checks catch dangerous commands before they execute. 52+ patterns block rm -rf /, fork bombs, and other destructive operations.</p>
           </div>
 
           <div class="reason">
-            <h3>🔧 For DevOps Who Live in the Terminal</h3>
+            <h3><TermGlyph g=">_" /> For DevOps Who Live in the Terminal</h3>
             <p>Works in YOUR terminal. No new apps, no context switching. Just shell commands that work across macOS, Linux, and BSD with POSIX compliance.</p>
           </div>
 
           <div class="reason">
-            <h3>🌐 For Developers Who Work Offline</h3>
+            <h3><TermGlyph g="$" /> For Developers Who Work Offline</h3>
             <p>Airplanes, VPNs, restricted networks. When you can't phone home, Caro still works with local model inference.</p>
           </div>
         </div>
@@ -284,7 +291,7 @@ function renderValue(value: boolean | string) {
   .hero {
     padding: 80px 20px 60px;
     text-align: center;
-    background: linear-gradient(180deg, var(--color-bg-tertiary) 0%, var(--color-bg) 100%);
+    background: var(--bg);
   }
 
   .hero h1 {
@@ -346,7 +353,7 @@ function renderValue(value: boolean | string) {
 
   .vs-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: 24px;
   }
 
@@ -362,9 +369,9 @@ function renderValue(value: boolean | string) {
   }
 
   .vs-card:hover {
-    border-color: #ff8c42;
+    border-color: var(--accent);
     transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(255, 140, 66, 0.15);
+    box-shadow: 0 12px 30px rgba(239, 51, 51, 0.15);
   }
 
   .vs-card-header {
@@ -395,7 +402,7 @@ function renderValue(value: boolean | string) {
   .vs-tagline {
     font-size: 14px;
     font-weight: 600;
-    color: #ff8c42;
+    color: var(--accent-text);
     margin-bottom: 12px;
   }
 
@@ -428,7 +435,7 @@ function renderValue(value: boolean | string) {
 
   .arrow {
     font-size: 20px;
-    color: #ff8c42;
+    color: var(--accent-text);
     transition: transform 0.2s;
   }
 
@@ -474,11 +481,19 @@ function renderValue(value: boolean | string) {
     margin-left: auto;
   }
 
+  /* position: relative contains the visually-hidden cell labels, which would
+     otherwise escape the scroller and widen the page at 375px. */
   .table-wrapper {
+    position: relative;
     overflow-x: auto;
     border-radius: 12px;
     border: 1px solid var(--color-border);
     background: var(--color-bg);
+  }
+
+  .table-wrapper:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .matrix-table {
@@ -501,9 +516,10 @@ function renderValue(value: boolean | string) {
     color: var(--color-text);
   }
 
+  /* 8% tint keeps --accent-text above 4.5:1 on the blended header cell. */
   .matrix-table th.highlight {
-    background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 140, 66, 0.05) 100%);
-    color: #ff8c42;
+    background: rgba(239, 51, 51, 0.08);
+    color: var(--accent-text);
   }
 
   .feature-col {
@@ -535,16 +551,17 @@ function renderValue(value: boolean | string) {
   }
 
   .highlight-col {
-    background: rgba(255, 140, 66, 0.05);
+    background: rgba(239, 51, 51, 0.05);
   }
 
   .value-icon {
     font-weight: 600;
   }
 
-  .value.yes .value-icon { color: #22c55e; }
-  .value.no .value-icon { color: #ef4444; }
-  .value.partial .value-icon { color: #f59e0b; }
+  /* Status glyphs must clear 3:1 (non-text) in both modes. */
+  .value.yes .value-icon { color: var(--status-safe-text); }
+  .value.no .value-icon { color: var(--accent-text); }
+  .value.partial .value-icon { color: var(--fg-muted); }
   .value.planned .value-icon { color: #8b5cf6; }
 
   .legend {
@@ -567,9 +584,9 @@ function renderValue(value: boolean | string) {
     font-weight: 600;
   }
 
-  .legend-icon.yes { color: #22c55e; }
-  .legend-icon.no { color: #ef4444; }
-  .legend-icon.partial { color: #f59e0b; }
+  .legend-icon.yes { color: var(--status-safe-text); }
+  .legend-icon.no { color: var(--accent-text); }
+  .legend-icon.partial { color: var(--fg-muted); }
   .legend-icon.planned { color: #8b5cf6; }
 
   /* Why Section */
@@ -586,7 +603,7 @@ function renderValue(value: boolean | string) {
 
   .reasons {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: 30px;
   }
 
@@ -613,8 +630,8 @@ function renderValue(value: boolean | string) {
   .final-cta {
     padding: 80px 20px;
     text-align: center;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .final-cta h2 {
@@ -623,9 +640,9 @@ function renderValue(value: boolean | string) {
     color: white;
   }
 
+  /* No opacity on the copy: faded white drops below 4.5:1 on --accent-fill. */
   .final-cta p {
     font-size: 18px;
-    opacity: 0.9;
     margin-bottom: 30px;
   }
 
@@ -647,12 +664,15 @@ function renderValue(value: boolean | string) {
     transition: all 0.2s;
   }
 
+  /* White button on the red band: --caro-red-700 is 6:1 on white in both
+     modes (--accent-hover / --accent-text are too light for white). */
   .cta-button.primary {
     background: white;
-    color: #ff6b35;
+    color: var(--caro-red-700);
   }
 
   .cta-button.primary:hover {
+    color: var(--caro-red-700);
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   }
@@ -665,21 +685,29 @@ function renderValue(value: boolean | string) {
 
   .cta-button.secondary:hover {
     background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  /* A red focus ring is invisible on the red band; use white. */
+  .final-cta a:focus-visible {
+    outline: 3px solid white;
+    outline-offset: 3px;
   }
 
   .cta-note {
     font-size: 14px;
-    opacity: 0.8;
   }
 
   .cta-note-link {
     color: white;
     text-decoration: underline;
     text-decoration-style: dotted;
+    text-underline-offset: 3px;
   }
 
   .cta-note-link:hover {
-    opacity: 1;
+    color: white;
+    text-decoration-style: solid;
   }
 
   .badge-link {
@@ -689,8 +717,8 @@ function renderValue(value: boolean | string) {
   }
 
   .badge-link:hover {
-    border-color: #ff8c42;
-    color: #ff8c42;
+    border-color: var(--accent);
+    color: var(--accent-text);
   }
 
   .inline-link {
@@ -700,7 +728,7 @@ function renderValue(value: boolean | string) {
   }
 
   .inline-link:hover {
-    color: #ff8c42;
+    color: var(--accent-text);
   }
 
   /* Responsive */
@@ -717,7 +745,7 @@ function renderValue(value: boolean | string) {
 
     .category-desc {
       display: block;
-      width: 100%;
+      flex-basis: calc(100% - 36px);
       margin-left: 36px;
       margin-top: 8px;
     }

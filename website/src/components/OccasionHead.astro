@@ -1,0 +1,67 @@
+---
+/**
+ * Occasion head — the pre-paint occasion init script and the generated
+ * occasion CSS. Include once in the <head> of every layout so holidays,
+ * humanity events and ?occasion= / ?theme= previews work site-wide.
+ * Source of truth: src/config/occasions.ts.
+ */
+import { OCCASION_IDS } from '../config/occasions';
+import { buildOccasionCss, holidayTimezones, holidayWindows } from '../lib/occasion-css';
+
+// Computed once at build.
+const occasionCss = buildOccasionCss();
+const occasionIds = OCCASION_IDS;
+const windows = holidayWindows();
+const zones = holidayTimezones();
+---
+
+<script is:inline define:vars={{ occasionIds, windows, zones }}>
+  // Occasion initialization (before render to prevent flash).
+  // 1. ?occasion=<id> previews any occasion for this page view only
+  //    (works on every host; nothing is stored). ?theme=dark|light
+  //    previews a color mode the same way.
+  // 2. Otherwise apply the holiday the visitor opted into, but only
+  //    while that holiday's date window is open. Holidays are opt-in.
+  //    A national day also needs the visitor's timezone in its country.
+  // Humanity events add their own class from HumanityEventBanner.
+  (function () {
+    var html = document.documentElement;
+    var params = new URLSearchParams(window.location.search);
+    // ?testDate=YYYY-MM-DD fakes "today" on localhost and preview deploys,
+    // for this script, the banner and the holiday menu alike.
+    var host = window.location.hostname;
+    var testDate = params.get('testDate');
+    var m = testDate && testDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m && (host === 'localhost' || host === '127.0.0.1' || /\.vercel\.app$/.test(host))) {
+      var fake = new Date(+m[1], +m[2] - 1, +m[3]);
+      // Reject dates that roll over (2026-02-31 would become March 3).
+      if (fake.getFullYear() === +m[1] && fake.getMonth() === +m[2] - 1 && fake.getDate() === +m[3]) {
+        window.__CARO_TEST_DATE = fake.toISOString();
+      }
+    }
+    var mode = params.get('theme');
+    if (mode === 'dark' || mode === 'light') {
+      html.classList.toggle('dark', mode === 'dark');
+      html.dataset.themePreview = mode;
+    }
+    var preview = params.get('occasion');
+    if (preview && occasionIds.indexOf(preview) !== -1) {
+      html.classList.add(preview);
+      html.dataset.occasionPreview = preview;
+      return;
+    }
+    var saved = null;
+    try { saved = localStorage.getItem('holidayTheme'); } catch (e) {}
+    if (!saved || saved === 'none' || !windows[saved]) return;
+    if (zones[saved]) {
+      var tz = '';
+      try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
+      if (zones[saved].indexOf(tz) === -1) return;
+    }
+    var now = window.__CARO_TEST_DATE ? new Date(window.__CARO_TEST_DATE) : new Date();
+    var today = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+    var open = windows[saved].some(function (w) { return today >= w[0] && today <= w[1]; });
+    if (open) html.classList.add(saved);
+  })();
+</script>
+<style is:inline set:html={occasionCss}></style>

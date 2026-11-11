@@ -1,0 +1,71 @@
+/**
+ * Regression guard for emoji used as icons (docs/brand/ICONOGRAPHY.md,
+ * docs/brand/icons/DEFINITIONS.md).
+ *
+ * The site is moving from emoji to Kyaro pixel icons and terminal glyphs,
+ * slot by slot. Two checks keep that from sliding back:
+ * - every <TermGlyph> uses a glyph from the terminal family
+ * - the emoji count under src/ never grows. Lower EMOJI_BUDGET when a PR
+ *   removes emoji; never raise it to make room for a new one.
+ */
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { describe, expect, it } from 'vitest';
+import { extractStructuredContent } from '../../scripts/generate-search-index.mjs';
+
+const EMOJI_BUDGET = 1817;
+
+const GLYPHS = ['▸', '■', '$', '❯', '>_', '✓', '✗', '♥'];
+// Pictographic code points that render as plain text in our fonts.
+const TEXT_SYMBOLS = new Set(['©', '®', '™', '♥', '✓', '✗', '✕', '↔', '↩', '↪', '▶', '◀']);
+
+const src = fileURLToPath(new URL('..', import.meta.url));
+
+function sourceFiles(dir: string): string[] {
+  return readdirSync(dir).flatMap((name) => {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) return name === '__tests__' ? [] : sourceFiles(path);
+    return /\.(astro|tsx?|jsx|mdx?|json|css)$/.test(name) ? [path] : [];
+  });
+}
+
+const files = sourceFiles(src).map((path) => ({
+  file: path.slice(src.length),
+  text: readFileSync(path, 'utf8'),
+}));
+
+// A flag (two regional indicators), a keycap (4️⃣), or a pictograph with its
+// optional emoji selector U+FE0F. "♥" is text; "♥️" (with U+FE0F) is emoji.
+const EMOJI = /\p{Regional_Indicator}{2}|[#*0-9]\uFE0F?\u20E3|\p{Extended_Pictographic}\uFE0F?/gu;
+
+function emojiIn(text: string): string[] {
+  return [...text.matchAll(EMOJI)].map((m) => m[0]).filter((e) => !TEXT_SYMBOLS.has(e));
+}
+
+describe('emoji used as icons', () => {
+  it('every <TermGlyph> uses a terminal glyph', () => {
+    const bad = files.flatMap(({ file, text }) =>
+      [...text.matchAll(/<TermGlyph\b[^>]*\bg="([^"]*)"/g)]
+        .filter((m) => !GLYPHS.includes(m[1]))
+        .map((m) => `${file}: g="${m[1]}"`),
+    );
+    expect(bad).toEqual([]);
+  });
+
+  it('site search text leaves out <TermGlyph>, even g=">_"', () => {
+    const { headings } = extractStructuredContent(
+      '<h3><TermGlyph g=">_" /> For DevOps</h3><h3><TermGlyph g="■" class="x" /> Safety</h3>',
+    );
+    expect(headings).toEqual(['For DevOps', 'Safety']);
+  });
+
+  it(`src/ holds at most ${EMOJI_BUDGET} emoji`, () => {
+    const counts = files
+      .map(({ file, text }) => ({ file, n: emojiIn(text).length }))
+      .filter(({ n }) => n > 0);
+    const total = counts.reduce((sum, { n }) => sum + n, 0);
+    const where = counts.map(({ file, n }) => `${file}: ${n}`).join('\n');
+    expect(total, `emoji per file:\n${where}`).toBeLessThanOrEqual(EMOJI_BUDGET);
+  });
+});

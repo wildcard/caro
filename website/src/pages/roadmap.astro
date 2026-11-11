@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
+import TermGlyph, { type Glyph } from '../ui/TermGlyph/TermGlyph.astro';
 
 // Roadmap data
 const milestones = [
@@ -13,7 +14,7 @@ const milestones = [
     totalItems: 15,
     completedItems: 0,
     focus: "Production-ready core functionality",
-    icon: "🎯",
+    icon: "▸",
     color: "#22c55e",
     deliverables: [
       { category: "Critical", items: ["Fix error blocking release (#150)"] },
@@ -37,7 +38,7 @@ const milestones = [
     totalItems: 25,
     completedItems: 0,
     focus: "Public launch, marketing, and documentation",
-    icon: "🌐",
+    icon: "▸",
     color: "#3b82f6",
     deliverables: [
       { category: "Website", items: ["Interactive terminal landing page (#130)", "Website value proposition (#138)", "SEO & social meta tags (#156)", "ASCII art morphs (#151)"] },
@@ -61,7 +62,7 @@ const milestones = [
     totalItems: 22,
     completedItems: 1,
     focus: "Innovation and advanced capabilities",
-    icon: "🚀",
+    icon: "▸",
     color: "#a855f7",
     deliverables: [
       { category: "Distributed Intelligence", items: ["Karo distributed terminal system (#133)", "Jazz integration for cross-device sync (#154)"] },
@@ -79,9 +80,9 @@ const milestones = [
 ];
 
 const strategicThemes = [
-  { quarter: "Q1 2026", theme: "Foundation", description: "Establish production-ready core, optimize performance, build reliable infrastructure", icon: "🏗️", color: "#22c55e" },
-  { quarter: "Q2 2026", theme: "Launch", description: "Public website launch, comprehensive documentation, marketing and community building", icon: "🚀", color: "#3b82f6" },
-  { quarter: "Q3 2026", theme: "Innovation", description: "Advanced AI features, distributed intelligence, voice interaction, next-gen capabilities", icon: "✨", color: "#a855f7" }
+  { quarter: "Q1 2026", theme: "Foundation", description: "Establish production-ready core, optimize performance, build reliable infrastructure", icon: "▸", detailIcon: "🏗️", color: "#22c55e" },
+  { quarter: "Q2 2026", theme: "Launch", description: "Public website launch, comprehensive documentation, marketing and community building", icon: "▸", detailIcon: "🚀", color: "#3b82f6" },
+  { quarter: "Q3 2026", theme: "Innovation", description: "Advanced AI features, distributed intelligence, voice interaction, next-gen capabilities", icon: "▸", detailIcon: "✨", color: "#a855f7" }
 ];
 
 const totalItems = milestones.reduce((sum, m) => sum + m.totalItems, 0);
@@ -95,6 +96,9 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
 >
   <Navigation />
   <!-- Presentation Container -->
+  <main id="main-content">
+  <!-- Slides hide with visibility:hidden, so the page h1 lives outside them. -->
+  <h1 class="visually-hidden">Caro Product Roadmap 2026</h1>
   <div class="presentation" id="presentation">
     <!-- Progress Bar -->
     <div class="progress-bar">
@@ -103,7 +107,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
 
     <!-- Navigation Controls -->
     <div class="nav-controls">
-      <button class="nav-btn" id="prev-btn" aria-label="Previous slide">
+      <button type="button" class="nav-btn" id="prev-btn" aria-label="Previous slide">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="15,18 9,12 15,6"></polyline>
         </svg>
@@ -111,7 +115,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       <div class="slide-counter">
         <span id="current-slide">1</span> / <span id="total-slides">7</span>
       </div>
-      <button class="nav-btn" id="next-btn" aria-label="Next slide">
+      <button type="button" class="nav-btn" id="next-btn" aria-label="Next slide">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="9,6 15,12 9,18"></polyline>
         </svg>
@@ -120,12 +124,12 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
 
     <!-- Presenter Tools -->
     <div class="presenter-tools">
-      <button class="tool-btn" id="fullscreen-btn" title="Toggle fullscreen (F)">
+      <button type="button" class="tool-btn" id="fullscreen-btn" title="Toggle fullscreen (F)" aria-label="Toggle fullscreen">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
         </svg>
       </button>
-      <button class="tool-btn" id="notes-btn" title="Toggle presenter notes (N)">
+      <button type="button" class="tool-btn" id="notes-btn" title="Toggle presenter notes (N)" aria-label="Toggle presenter notes" aria-pressed="false">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
           <polyline points="14,2 14,8 20,8"></polyline>
@@ -134,7 +138,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
           <line x1="10" y1="9" x2="8" y2="9"></line>
         </svg>
       </button>
-      <button class="tool-btn" id="overview-btn" title="Slide overview (O)">
+      <button type="button" class="tool-btn" id="overview-btn" title="Slide overview (O)" aria-label="Slide overview">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="7" height="7"></rect>
           <rect x="14" y="3" width="7" height="7"></rect>
@@ -148,11 +152,11 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
     <div class="slides-container" id="slides-container">
 
       <!-- Slide 1: Title -->
-      <section class="slide slide-title active" data-slide="1">
+      <section class="slide slide-title active" data-slide="1" tabindex="0" aria-label="Slide 1">
         <div class="slide-content">
           <div class="title-badge">Product Roadmap 2026</div>
-          <img src="/caro-prompting.gif" alt="Caro" class="title-mascot" />
-          <h1 class="title-logo">Caro</h1>
+          <img src="/caro-prompting.gif" alt="" class="title-mascot" />
+          <h2 class="title-logo">Caro</h2>
           <p class="title-tagline">Your loyal shell companion</p>
           <div class="title-stats">
             <div class="stat">
@@ -180,7 +184,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       </section>
 
       <!-- Slide 2: Timeline Overview -->
-      <section class="slide slide-timeline" data-slide="2">
+      <section class="slide slide-timeline" data-slide="2" tabindex="0" aria-label="Slide 2">
         <div class="slide-content">
           <h2>Timeline Overview</h2>
           <p class="slide-subtitle">Our journey from foundation to innovation</p>
@@ -194,7 +198,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
               {milestones.map((milestone, index) => (
                 <div class="timeline-milestone" style={`--milestone-color: ${milestone.color}`}>
                   <div class="milestone-marker">
-                    <span class="milestone-icon">{milestone.icon}</span>
+                    <span class="milestone-icon"><TermGlyph g={milestone.icon as Glyph} /></span>
                   </div>
                   <div class="milestone-info">
                     <span class="milestone-version">{milestone.version}</span>
@@ -222,7 +226,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
           <div class="themes-preview">
             {strategicThemes.map((theme) => (
               <div class="theme-card" style={`--theme-color: ${theme.color}`}>
-                <span class="theme-icon">{theme.icon}</span>
+                <span class="theme-icon"><TermGlyph g={theme.icon as Glyph} /></span>
                 <div class="theme-content">
                   <span class="theme-quarter">{theme.quarter}</span>
                   <span class="theme-name">{theme.theme}</span>
@@ -239,23 +243,23 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       </section>
 
       <!-- Slide 3: v1.1.0 -->
-      <section class="slide slide-milestone" data-slide="3">
+      <section class="slide slide-milestone" data-slide="3" tabindex="0" aria-label="Slide 3">
         <div class="slide-content">
           <div class="milestone-header" style="--accent: #22c55e">
-            <span class="milestone-badge">{milestones[0].icon} {milestones[0].version}</span>
+            <span class="milestone-badge"><TermGlyph g={milestones[0].icon as Glyph} /> {milestones[0].version}</span>
             <h2>{milestones[0].title}</h2>
             <p class="milestone-focus">{milestones[0].focus}</p>
             <div class="milestone-meta">
-              <span class="meta-item">📅 Due: {milestones[0].dueDate}</span>
-              <span class="meta-item">⏳ {milestones[0].daysRemaining} days</span>
-              <span class="meta-item">📊 {milestones[0].completedItems}/{milestones[0].totalItems} items</span>
+              <span class="meta-item"><TermGlyph g="▸" /> Due: {milestones[0].dueDate}</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[0].daysRemaining} days</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[0].completedItems}/{milestones[0].totalItems} items</span>
             </div>
           </div>
 
           <div class="deliverables-grid">
             {milestones[0].deliverables.map((group) => (
               <div class="deliverable-group">
-                <h4>{group.category}</h4>
+                <h3>{group.category}</h3>
                 <ul>
                   {group.items.map((item) => (
                     <li>{item}</li>
@@ -266,7 +270,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
           </div>
 
           <div class="success-criteria">
-            <h4>Success Criteria</h4>
+            <h3>Success Criteria</h3>
             <div class="criteria-list">
               {milestones[0].successCriteria.map((criterion) => (
                 <div class="criterion">
@@ -285,23 +289,23 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       </section>
 
       <!-- Slide 4: v1.2.0 -->
-      <section class="slide slide-milestone" data-slide="4">
+      <section class="slide slide-milestone" data-slide="4" tabindex="0" aria-label="Slide 4">
         <div class="slide-content">
           <div class="milestone-header" style="--accent: #3b82f6">
-            <span class="milestone-badge">{milestones[1].icon} {milestones[1].version}</span>
+            <span class="milestone-badge"><TermGlyph g={milestones[1].icon as Glyph} /> {milestones[1].version}</span>
             <h2>{milestones[1].title}</h2>
             <p class="milestone-focus">{milestones[1].focus}</p>
             <div class="milestone-meta">
-              <span class="meta-item">📅 Due: {milestones[1].dueDate}</span>
-              <span class="meta-item">⏳ {milestones[1].daysRemaining} days</span>
-              <span class="meta-item">📊 {milestones[1].completedItems}/{milestones[1].totalItems} items</span>
+              <span class="meta-item"><TermGlyph g="▸" /> Due: {milestones[1].dueDate}</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[1].daysRemaining} days</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[1].completedItems}/{milestones[1].totalItems} items</span>
             </div>
           </div>
 
           <div class="deliverables-grid">
             {milestones[1].deliverables.map((group) => (
               <div class="deliverable-group">
-                <h4>{group.category}</h4>
+                <h3>{group.category}</h3>
                 <ul>
                   {group.items.map((item) => (
                     <li>{item}</li>
@@ -312,7 +316,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
           </div>
 
           <div class="success-criteria">
-            <h4>Success Criteria</h4>
+            <h3>Success Criteria</h3>
             <div class="criteria-list">
               {milestones[1].successCriteria.map((criterion) => (
                 <div class="criterion">
@@ -331,23 +335,23 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       </section>
 
       <!-- Slide 5: v2.0.0 -->
-      <section class="slide slide-milestone" data-slide="5">
+      <section class="slide slide-milestone" data-slide="5" tabindex="0" aria-label="Slide 5">
         <div class="slide-content">
           <div class="milestone-header" style="--accent: #a855f7">
-            <span class="milestone-badge">{milestones[2].icon} {milestones[2].version}</span>
+            <span class="milestone-badge"><TermGlyph g={milestones[2].icon as Glyph} /> {milestones[2].version}</span>
             <h2>{milestones[2].title}</h2>
             <p class="milestone-focus">{milestones[2].focus}</p>
             <div class="milestone-meta">
-              <span class="meta-item">📅 Due: {milestones[2].dueDate}</span>
-              <span class="meta-item">⏳ {milestones[2].daysRemaining} days</span>
-              <span class="meta-item">📊 {milestones[2].completedItems}/{milestones[2].totalItems} items</span>
+              <span class="meta-item"><TermGlyph g="▸" /> Due: {milestones[2].dueDate}</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[2].daysRemaining} days</span>
+              <span class="meta-item"><TermGlyph g="▸" /> {milestones[2].completedItems}/{milestones[2].totalItems} items</span>
             </div>
           </div>
 
           <div class="deliverables-grid">
             {milestones[2].deliverables.map((group) => (
               <div class="deliverable-group">
-                <h4>{group.category}</h4>
+                <h3>{group.category}</h3>
                 <ul>
                   {group.items.map((item) => (
                     <li>{item}</li>
@@ -358,7 +362,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
           </div>
 
           <div class="success-criteria">
-            <h4>Success Criteria</h4>
+            <h3>Success Criteria</h3>
             <div class="criteria-list">
               {milestones[2].successCriteria.map((criterion) => (
                 <div class="criterion">
@@ -377,7 +381,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       </section>
 
       <!-- Slide 6: Strategic Themes -->
-      <section class="slide slide-themes" data-slide="6">
+      <section class="slide slide-themes" data-slide="6" tabindex="0" aria-label="Slide 6">
         <div class="slide-content">
           <h2>Strategic Themes</h2>
           <p class="slide-subtitle">Our quarterly focus areas for 2026</p>
@@ -385,7 +389,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
           <div class="themes-detail">
             {strategicThemes.map((theme, index) => (
               <div class="theme-detail-card" style={`--theme-color: ${theme.color}; --delay: ${index * 0.2}s`}>
-                <div class="theme-detail-icon">{theme.icon}</div>
+                <div class="theme-detail-icon">{theme.detailIcon}</div>
                 <div class="theme-detail-content">
                   <div class="theme-detail-header">
                     <span class="theme-detail-quarter">{theme.quarter}</span>
@@ -401,13 +405,13 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
           <div class="tracking-links">
             <h4>Project Tracking</h4>
             <div class="links-grid">
-              <a href="https://github.com/users/wildcard/projects/2" target="_blank" class="tracking-link">
-                <span class="link-icon">🔧</span>
+              <a href="https://github.com/users/wildcard/projects/2" target="_blank" rel="noopener noreferrer" class="tracking-link">
+                <span class="link-icon"><TermGlyph g="▸" /></span>
                 <span class="link-text">Product Development</span>
                 <span class="link-count">36 items</span>
               </a>
-              <a href="https://github.com/users/wildcard/projects/3" target="_blank" class="tracking-link">
-                <span class="link-icon">📢</span>
+              <a href="https://github.com/users/wildcard/projects/3" target="_blank" rel="noopener noreferrer" class="tracking-link">
+                <span class="link-icon"><TermGlyph g="▸" /></span>
                 <span class="link-text">Marketing & DevRel</span>
                 <span class="link-count">29 items</span>
               </a>
@@ -422,9 +426,9 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       </section>
 
       <!-- Slide 7: Summary & Call to Action -->
-      <section class="slide slide-summary" data-slide="7">
+      <section class="slide slide-summary" data-slide="7" tabindex="0" aria-label="Slide 7">
         <div class="slide-content">
-          <img src="/caro-prompting.gif" alt="Caro" class="summary-mascot" />
+          <img src="/caro-prompting.gif" alt="" class="summary-mascot" />
           <h2>Join the Journey</h2>
           <p class="slide-subtitle">Help us build the future of shell interaction</p>
 
@@ -444,7 +448,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
           </div>
 
           <div class="cta-section">
-            <a href="https://github.com/wildcard/caro" target="_blank" class="cta-button primary">
+            <a href="https://github.com/wildcard/caro" target="_blank" rel="noopener noreferrer" class="cta-button primary">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
               </svg>
@@ -467,13 +471,13 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
     </div>
 
     <!-- Slide Overview Modal -->
-    <div class="overview-modal" id="overview-modal">
+    <div class="overview-modal" id="overview-modal" role="dialog" aria-modal="true" aria-labelledby="overview-title">
       <div class="overview-content">
-        <h3>Slide Overview</h3>
+        <h2 id="overview-title">Slide Overview</h2>
         <div class="overview-grid" id="overview-grid">
           <!-- Populated by JavaScript -->
         </div>
-        <button class="close-overview" id="close-overview">Close</button>
+        <button type="button" class="close-overview" id="close-overview">Close</button>
       </div>
     </div>
 
@@ -487,6 +491,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       <div class="hint"><kbd>?</kbd> Hide hints</div>
     </div>
   </div>
+  </main>
 </Layout>
 
 <style>
@@ -511,7 +516,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
 
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #ff8c42 0%, #ff6b35 100%);
+    background: var(--accent);
     transition: width 0.3s ease;
     width: 14.28%;
   }
@@ -548,9 +553,9 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .nav-btn:hover {
-    background: #ff8c42;
-    border-color: #ff8c42;
-    color: white;
+    background: var(--accent-fill);
+    border-color: var(--accent);
+    color: var(--on-accent);
   }
 
   .nav-btn:disabled {
@@ -597,15 +602,15 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .tool-btn:hover {
-    background: #ff8c42;
-    border-color: #ff8c42;
-    color: white;
+    background: var(--accent-fill);
+    border-color: var(--accent);
+    color: var(--on-accent);
   }
 
   .tool-btn.active {
-    background: #ff8c42;
-    border-color: #ff8c42;
-    color: white;
+    background: var(--accent-fill);
+    border-color: var(--accent);
+    color: var(--on-accent);
   }
 
   /* Slides Container */
@@ -623,6 +628,10 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
     align-items: center;
     justify-content: center;
     padding: 60px 40px 120px;
+    /* Top-align + auto margins: centred when it fits, scrollable (not
+       clipped) when a slide is taller than the viewport. */
+    justify-content: flex-start;
+    overflow-y: auto;
     opacity: 0;
     visibility: hidden;
     transform: translateX(100px);
@@ -642,7 +651,23 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   .slide-content {
     max-width: 1100px;
     width: 100%;
+    margin-block: auto;
     text-align: center;
+  }
+
+  .slide:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -4px;
+  }
+
+  .nav-btn:focus-visible,
+  .tool-btn:focus-visible,
+  .tracking-link:focus-visible,
+  .cta-button:focus-visible,
+  .overview-slide:focus-visible,
+  .close-overview:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .slide h2 {
@@ -686,8 +711,8 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   /* Title Slide */
   .slide-title .title-badge {
     display: inline-block;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     padding: 8px 24px;
     border-radius: 20px;
     font-size: 14px;
@@ -710,13 +735,10 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
     50% { transform: translateY(-15px); }
   }
 
-  .title-logo {
+  .slide .title-logo {
     font-size: 96px;
     font-weight: 700;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent-text);
     margin-bottom: 16px;
   }
 
@@ -742,7 +764,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   .stat-value {
     font-size: 48px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent-text);
   }
 
   .stat-label {
@@ -791,7 +813,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
     left: 0;
     top: 0;
     height: 100%;
-    background: linear-gradient(90deg, #22c55e 0%, #3b82f6 50%, #a855f7 100%);
+    background: var(--accent);
     border-radius: 4px;
     transition: width 0.5s ease;
   }
@@ -821,7 +843,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .milestone-icon {
-    font-size: 28px;
+    font-size: 22px;
   }
 
   .milestone-info {
@@ -914,7 +936,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   .theme-quarter {
     display: block;
     font-size: 12px;
-    color: var(--theme-color);
+    color: var(--fg-muted);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -934,8 +956,8 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   .milestone-badge {
     display: inline-block;
     padding: 8px 20px;
-    background: var(--accent);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
     border-radius: 20px;
     font-size: 14px;
     font-weight: 600;
@@ -965,7 +987,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
 
   .deliverables-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
     gap: 20px;
     text-align: left;
     margin-bottom: 32px;
@@ -978,9 +1000,10 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
     padding: 20px;
   }
 
-  .deliverable-group h4 {
+  .deliverable-group h3 {
+    margin-top: 0;
     font-size: 14px;
-    color: var(--accent, #ff8c42);
+    color: var(--accent-text);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 12px;
@@ -1009,7 +1032,8 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
     padding: 24px;
   }
 
-  .success-criteria h4 {
+  .success-criteria h3 {
+    margin-top: 0;
     font-size: 16px;
     color: var(--color-text);
     margin-bottom: 16px;
@@ -1035,7 +1059,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .criterion-icon {
-    color: #22c55e;
+    color: var(--status-safe-text);
     font-weight: bold;
   }
 
@@ -1087,10 +1111,13 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
     margin-bottom: 8px;
   }
 
+  /* Theme hue stays in the border; the label uses strong ink (white on the
+     theme greens/blues/purples fails AA). */
   .theme-detail-quarter {
     padding: 4px 12px;
-    background: var(--theme-color);
-    color: white;
+    background: transparent;
+    border: 2px solid var(--theme-color);
+    color: var(--fg-strong);
     border-radius: 12px;
     font-size: 12px;
     font-weight: 600;
@@ -1145,13 +1172,13 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .tracking-link:hover {
-    border-color: #ff8c42;
+    border-color: var(--accent);
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.15);
+    box-shadow: 0 4px 15px rgba(239, 51, 51, 0.15);
   }
 
   .link-icon {
-    font-size: 24px;
+    font-size: 18px;
   }
 
   .link-text {
@@ -1191,10 +1218,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   .summary-value {
     font-size: 56px;
     font-weight: 700;
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent-text);
   }
 
   .summary-label {
@@ -1224,23 +1248,24 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .cta-button.primary {
-    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-    color: white;
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
 
   .cta-button.primary:hover {
+    background: var(--accent-fill-hover);
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--accent-fill) 30%, transparent);
   }
 
   .cta-button.secondary {
     background: transparent;
-    border: 2px solid #ff8c42;
-    color: #ff8c42;
+    border: 2px solid var(--accent);
+    color: var(--accent-text);
   }
 
   .cta-button.secondary:hover {
-    background: rgba(255, 140, 66, 0.1);
+    background: color-mix(in srgb, var(--accent-fill) 10%, transparent);
   }
 
   .contribution-note {
@@ -1277,7 +1302,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
     overflow-y: auto;
   }
 
-  .overview-content h3 {
+  .overview-content h2 {
     font-size: 24px;
     color: var(--color-text);
     margin-bottom: 24px;
@@ -1286,12 +1311,15 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
 
   .overview-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
     gap: 16px;
     margin-bottom: 24px;
   }
 
   .overview-slide {
+    width: 100%;
+    font: inherit;
+    color: inherit;
     padding: 16px;
     background: var(--color-bg-secondary);
     border: 2px solid var(--color-border);
@@ -1302,23 +1330,25 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .overview-slide:hover {
-    border-color: #ff8c42;
+    border-color: var(--accent);
     transform: translateY(-2px);
   }
 
   .overview-slide.current {
-    border-color: #ff8c42;
-    background: rgba(255, 140, 66, 0.1);
+    border-color: var(--accent);
+    background: rgba(239, 51, 51, 0.1);
   }
 
   .overview-slide-number {
+    display: block;
     font-size: 24px;
     font-weight: 700;
-    color: #ff8c42;
+    color: var(--accent-text);
     margin-bottom: 8px;
   }
 
   .overview-slide-title {
+    display: block;
     font-size: 14px;
     color: var(--color-text);
   }
@@ -1337,9 +1367,9 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
   }
 
   .close-overview:hover {
-    background: #ff8c42;
-    border-color: #ff8c42;
-    color: white;
+    background: var(--accent-fill);
+    border-color: var(--accent);
+    color: var(--on-accent);
   }
 
   /* Keyboard Hints */
@@ -1356,12 +1386,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
     border-radius: 12px;
     font-size: 12px;
     color: var(--color-text-secondary);
-    opacity: 0.8;
     transition: opacity 0.3s;
-  }
-
-  .keyboard-hints:hover {
-    opacity: 1;
   }
 
   .keyboard-hints.hidden {
@@ -1395,7 +1420,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       font-size: 32px;
     }
 
-    .title-logo {
+    .slide .title-logo {
       font-size: 64px;
     }
 
@@ -1554,6 +1579,7 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
     function toggleNotes() {
       notesVisible = !notesVisible;
       notesBtn!.classList.toggle('active', notesVisible);
+      notesBtn!.setAttribute('aria-pressed', String(notesVisible));
 
       const currentNotes = slides[currentSlide - 1].querySelector('.presenter-notes');
       if (currentNotes) {
@@ -1565,6 +1591,11 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       overviewVisible = !overviewVisible;
       overviewModal!.classList.toggle('visible', overviewVisible);
       overviewBtn!.classList.toggle('active', overviewVisible);
+      if (overviewVisible) {
+        overviewGrid!.querySelector<HTMLElement>('.overview-slide.current')?.focus();
+      } else {
+        overviewBtn!.focus();
+      }
     }
 
     function toggleHints() {
@@ -1584,10 +1615,10 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
       ];
 
       overviewGrid!.innerHTML = slideTitles.map((title, index) => `
-        <div class="overview-slide ${index + 1 === currentSlide ? 'current' : ''}" data-slide="${index + 1}">
-          <div class="overview-slide-number">${index + 1}</div>
-          <div class="overview-slide-title">${title}</div>
-        </div>
+        <button type="button" class="overview-slide ${index + 1 === currentSlide ? 'current' : ''}" data-slide="${index + 1}">
+          <span class="overview-slide-number">${index + 1}</span>
+          <span class="overview-slide-title">${title}</span>
+        </button>
       `).join('');
 
       // Add click handlers
@@ -1615,8 +1646,34 @@ const overallProgress = Math.round((totalCompleted / totalItems) * 100);
 
     // Keyboard navigation
     document.addEventListener('keydown', (e) => {
-      // Ignore if in input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'Escape' && overviewVisible) {
+        toggleOverview();
+        return;
+      }
+      // aria-modal: keep Tab inside the open overview.
+      if (e.key === 'Tab' && overviewVisible) {
+        const items = overviewModal!.querySelectorAll<HTMLElement>('button');
+        const first = items[0];
+        const last = items[items.length - 1];
+        const active = document.activeElement;
+        if (!overviewModal!.contains(active)) {
+          e.preventDefault();
+          first.focus();
+        } else if (e.shiftKey && active === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault();
+          first.focus();
+        }
+        return;
+      }
+      // Leave browser shortcuts (Ctrl+F, Cmd+N...) alone, and do not steal
+      // keys from controls: Space must still press a focused button.
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      if (target && target.closest('input, textarea, select, button, a, [contenteditable="true"]')) return;
+      if (overviewVisible) return;
 
       switch (e.key) {
         case 'ArrowRight':

@@ -66,10 +66,14 @@ brand-fidelity regression, contrast failure):
   re-implementation.
 
 Worked example: caro-bsi (kyaro-mark glyph reads as horned demon). The
-SVG and manifest entry stayed at `website/public/icons/kyaro-mark.svg`
-and `website/src/data/icon-manifest.json`; only Footer.astro's two call
-sites reverted to 🐕 emoji with `NOTE(caro-bsi)` comments. The future
-v2.1.1 swap is a 4-line forward-edit.
+SVG and its manifest entry stayed in the v2.1 glyph pack; only
+Footer.astro's two call sites reverted to 🐕 emoji with `NOTE(caro-bsi)`
+comments, so a fixed glyph would have been a 4-line forward-edit.
+
+Exception: when the owner rejects an asset outright, delete it. On
+2026-10-11 the owner rejected the whole v2.1 glyph pack, kyaro-mark
+included, as below the pixel-art bar. It was removed in favor of the
+Kyaro icon set; see [`docs/brand/ICONOGRAPHY.md`](../../docs/brand/ICONOGRAPHY.md).
 
 ## Rule 5 — Visual audit before merging brand-touching PRs
 

@@ -1,0 +1,12 @@
+{
+  // Type-checks the build-time SEO code (src/lib/seo, src/integrations).
+  // `astro build` and vitest strip types without checking them. The whole
+  // project has older type errors, so CI checks only these files (and what
+  // they import) until it is clean: `npx tsc -p tsconfig.seo.json`.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true
+  },
+  "include": ["src/lib/seo/**/*.ts", "src/integrations/**/*.ts", "src/env.d.ts"]
+}

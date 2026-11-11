@@ -2,7 +2,7 @@
   "name": "caro-website-e2e",
   "version": "0.1.0",
   "private": true,
-  "description": "Structural QA for caro.sh driven through Cloudflare Browser Run's Kitesurf engine over CDP. Own package on purpose: website/package.json stays untouched so Vercel installs are unaffected. Dormant until CF secrets exist (ADR-017 phase P3).",
+  "description": "Structural QA for caro.sh driven through Cloudflare Browser Run's Kitesurf engine over CDP. Own package on purpose: website/package.json stays untouched so Vercel installs are unaffected. Dormant until CF secrets exist (ADR-021 phase P3).",
   "type": "module",
   "license": "AGPL-3.0",
   "scripts": {

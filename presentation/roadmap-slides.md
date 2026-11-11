@@ -2,6 +2,7 @@
 theme: seriph
 background: https://images.unsplash.com/photo-1629654297299-c8506221ca97
 title: 'Caro Roadmap 2026'
+favicon: /favicon.svg
 info: |
   ## Caro Development Roadmap 2026
 

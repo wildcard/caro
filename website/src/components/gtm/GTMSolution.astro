@@ -91,7 +91,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: #22c55e;
+    color: var(--status-safe-text);
     margin-bottom: 16px;
   }
 
@@ -134,7 +134,8 @@
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 24px;
-    min-width: 220px;
+    min-width: min(220px, 100%);
+    max-width: 100%;
     text-align: center;
   }
 
@@ -152,13 +153,14 @@
     font-family: 'SF Mono', 'Monaco', 'Fira Code', monospace;
     font-size: 14px;
     padding: 12px 16px;
-    background: #1a1a2e;
+    background: var(--term-bg);
     border-radius: 8px;
-    color: #9cdcfe;
+    color: var(--term-fg);
+    overflow-wrap: anywhere;
   }
 
   .step-content code.safe {
-    color: #22c55e;
+    color: var(--term-fg);
   }
 
   .flow-step.process .step-content {
@@ -179,7 +181,7 @@
   }
 
   .process-item .check {
-    color: #22c55e;
+    color: var(--status-safe-text);
     font-weight: 600;
   }
 
@@ -193,8 +195,8 @@
   }
 
   .safe-badge {
-    background: rgba(34, 197, 94, 0.15);
-    color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--status-safe-text);
     border: 1px solid rgba(34, 197, 94, 0.3);
   }
 

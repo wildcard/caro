@@ -5,7 +5,16 @@
       "cta": "Empezar Gratis",
       "darkMode": {
         "toggle": "Activar modo oscuro"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "Agente Compañero",
@@ -254,32 +263,32 @@
         {
           "question": "Espera, Caro se ejecuta localmente. ¿Cómo se mantiene actualizado con nuevos patrones peligrosos?",
           "answer": "Los patrones de seguridad de Caro están integrados en el binario—no necesita red. Cuando actualizas Caro (cargo install caro --force), obtienes los últimos patrones. Los comandos peligrosos básicos (rm -rf /, bombas fork, limpiadores de disco) no cambian. También aceptamos contribuciones de patrones vía GitHub.",
-          "icon": "🔄"
+          "icon": "▸"
         },
         {
           "question": "¿Esto ralentizará mi respuesta a incidentes?",
           "answer": "No. Caro añade <100ms a la generación de comandos. La comprobación de seguridad es instantánea (coincidencia de patrones, no inferencia de IA). En un incidente real, esos 100ms podrían salvarte de empeorar las cosas 10 veces. La validación es síncrona—ves la advertencia inmediatamente.",
-          "icon": "⚡"
+          "icon": "❯"
         },
         {
           "question": "¿Cómo conoce mi configuración específica del sistema (BSD vs GNU, etc.)?",
           "answer": "Caro detecta tu SO y shell en tiempo de ejecución. En macOS, sabe que estás usando herramientas BSD. En Linux, se ajusta a la sintaxis GNU. Lee tu $SHELL y se ajusta en consecuencia. No necesita configuración—simplemente funciona.",
-          "icon": "🖥️"
+          "icon": "▸"
         },
         {
           "question": "¿Qué pasa si NECESITO ejecutar un comando peligroso?",
           "answer": "Caro advierte, no encarcela. Cuando ves una advertencia, aún puedes proceder—solo nos aseguramos de que lo hagas intencionalmente. Para comandos verdaderamente destructivos (rm -rf /), necesitarás confirmar. Esto es tu cinturón de seguridad, no una camisa de fuerza.",
-          "icon": "🔓"
+          "icon": "▸"
         },
         {
           "question": "¿Es esto solo otro envoltorio de IA que envía mis comandos a la nube?",
           "answer": "No. Caro se ejecuta 100% localmente. Tus comandos, rutas de archivos, nombres de servidores y estructuras de directorios nunca salen de tu ordenador. La inferencia ocurre en tu hardware. Tenemos cero telemetría. Comprueba el código fuente—tiene licencia AGPL-3.0.",
-          "icon": "🔒"
+          "icon": "▸"
         },
         {
           "question": "¿Por qué debería confiar en comandos shell generados por IA?",
           "answer": "No deberías confiar en ellos ciegamente—ese es el punto. Caro genera comandos Y los valida antes de que los ejecutes. No es 'confía en la IA'—es 'confía en la capa de seguridad basada en patrones que atrapa lo que la IA podría equivocarse'. La validación es determinista, no probabilística.",
-          "icon": "🎯"
+          "icon": "■"
         }
       ]
     },
@@ -313,7 +322,7 @@
         "rank": "¡RANGO #{{rank}}!",
         "finalScore": "¡Alcanzaste el Nivel {{level}} con {{score}} puntos!"
       },
-      "streak": "🔥 Racha:",
+      "streak": "Racha:",
       "messages": {
         "correct": [
           "¡Buen trabajo! 🎉",
@@ -351,7 +360,7 @@
     },
     "announcement": {
       "renameBanner": {
-        "emoji": "🎉",
+        "emoji": "▸",
         "title": "¡Presentamos Caro!",
         "message": "Hemos cambiado el nombre de cmdai a caro.",
         "linkText": "Leer el anuncio",
@@ -405,7 +414,7 @@
       "bottom": {
         "built": "Construido con 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "♥",
         "inspiration": "Inspirado en Caroline de Portal—lealtad transformada en compañerismo digital",
         "heritagePre": "Construido con orgullo sobre los cimientos establecidos por",
         "gnu": "GNU",

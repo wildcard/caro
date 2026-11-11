@@ -5,7 +5,16 @@
       "cta": "Mulai Gratis",
       "darkMode": {
         "toggle": "Aktifkan mode gelap"
-      }
+      },
+      "label": "Main",
+      "useCases": "Use Cases",
+      "docs": "Docs",
+      "blog": "Blog",
+      "github": "GitHub",
+      "githubLabel": "Caro on GitHub (opens in a new tab)",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "skipToContent": "Skip to main content"
     },
     "hero": {
       "badge": "Agen Pendamping",
@@ -254,32 +263,32 @@
         {
           "question": "Tunggu, Caro jalan lokal. Gimana dia tetap update dengan pola berbahaya baru?",
           "answer": "Pola keamanan Caro udah tertanam di binary—gak perlu jaringan. Saat kamu update Caro (cargo install caro --force), kamu dapet pola terbaru. Perintah berbahaya inti (rm -rf /, fork bombs, disk wipers) gak berubah. Kami juga terima kontribusi pola via GitHub.",
-          "icon": "🔄"
+          "icon": "▸"
         },
         {
           "question": "Ini bakal memperlambat respons insiden gak?",
           "answer": "Enggak. Caro nambah <100ms ke generasi perintah. Pengecekan keamanan instan (pattern matching, bukan inferensi AI). Di insiden nyata, 100ms itu bisa selamatin kamu dari bikin masalah 10x lebih parah. Validasinya sinkron—kamu langsung lihat warning-nya.",
-          "icon": "⚡"
+          "icon": "❯"
         },
         {
           "question": "Gimana dia tahu setup sistem spesifik gue (BSD vs GNU, dll.)?",
           "answer": "Caro deteksi OS dan shell kamu saat runtime. Di macOS, dia tahu kamu pakai tools BSD. Di Linux, dia sesuaikan untuk sintaks GNU. Dia baca $SHELL kamu dan sesuaikan. Gak perlu konfigurasi—langsung jalan.",
-          "icon": "🖥️"
+          "icon": "▸"
         },
         {
           "question": "Gimana kalau gue BENERAN perlu jalanin perintah berbahaya?",
           "answer": "Caro kasih warning, bukan penjara. Saat kamu lihat warning, kamu masih bisa lanjut—kami cuma pastiin kamu lakuin dengan sengaja. Untuk perintah yang beneran destruktif (rm -rf /), kamu perlu konfirmasi. Ini sabuk pengaman kamu, bukan borgol.",
-          "icon": "🔓"
+          "icon": "▸"
         },
         {
           "question": "Ini cuma wrapper AI lain yang kirim perintah gue ke cloud?",
           "answer": "Enggak. Caro jalan 100% lokal. Perintah, file path, nama server, dan struktur direktori kamu gak pernah keluar dari mesin kamu. Inferensi terjadi di hardware kamu. Kami nol telemetri. Cek source code-nya—lisensi AGPL-3.0.",
-          "icon": "🔒"
+          "icon": "▸"
         },
         {
           "question": "Kenapa gue harus percaya perintah shell yang dihasilkan AI?",
           "answer": "Kamu gak harus percaya buta—itu intinya. Caro generate perintah DAN validasi sebelum kamu jalanin. Ini bukan 'percaya AI'—ini 'percaya lapisan keamanan berbasis pola yang tangkap apa yang mungkin salah dari AI.' Validasinya deterministik, bukan probabilistik.",
-          "icon": "🎯"
+          "icon": "■"
         }
       ]
     },
@@ -313,7 +322,7 @@
         "rank": "PERINGKAT #{{rank}}!",
         "finalScore": "Anda mencapai Level {{level}} dengan {{score}} poin!"
       },
-      "streak": "🔥 Beruntun:",
+      "streak": "Beruntun:",
       "messages": {
         "correct": [
           "Keren! 🎉",
@@ -351,7 +360,7 @@
     },
     "announcement": {
       "renameBanner": {
-        "emoji": "🎉",
+        "emoji": "▸",
         "title": "Mengumumkan Caro!",
         "message": "Kami telah mengganti nama dari cmdai menjadi caro.",
         "linkText": "Baca pengumuman",
@@ -406,7 +415,7 @@
       "bottom": {
         "built": "Dibangun dengan 🦀 Rust |",
         "brandName": "caro.sh",
-        "heart": "🧡",
+        "heart": "♥",
         "inspiration": "Terinspirasi oleh Caroline dari Portal",
         "heritagePre": "Dengan bangga dibangun di atas fondasi yang diletakkan oleh",
         "gnu": "GNU",
@@ -483,7 +492,7 @@
           "level": "LEVEL",
           "score": "SKOR"
         },
-        "streak": "🔥 Streak:"
+        "streak": "Streak:"
       },
       "blog": {
         "title": "Dari Pack",
@@ -534,7 +543,7 @@
         },
         "bottom": {
           "built": "Dibangun dengan 🦀 Rust |",
-          "heart": "🧡",
+          "heart": "♥",
           "inspiration": "Terinspirasi oleh Caroline dari Portal",
           "heritagePre": "Dengan bangga dibangun di atas fondasi yang diletakkan oleh",
           "gnu": "GNU",

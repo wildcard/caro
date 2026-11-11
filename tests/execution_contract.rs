@@ -5,6 +5,8 @@ use std::env;
 use std::path::PathBuf;
 use std::time::Instant;
 
+use serial_test::serial;
+
 // Import types that will be implemented later
 // NOTE: These imports will fail until we implement the actual execution module
 use caro::execution::{ExecutionContext, ExecutionError, PlatformDetector, ShellDetector};
@@ -138,7 +140,10 @@ fn test_context_includes_essential_env_vars() {
     }
 }
 
+// SHELL is process-global; the shell-detector tests mutate it, so they
+// must not interleave (was a CI race: SHELL=bash observed as Zsh).
 #[test]
+#[serial(shell_env)]
 fn test_shell_detector_uses_env_variable() {
     // CONTRACT: ShellDetector::detect_from_env() uses platform-appropriate environment variables
     let detector = ShellDetector::new();
@@ -194,6 +199,7 @@ fn test_shell_detector_uses_env_variable() {
 }
 
 #[test]
+#[serial(shell_env)]
 #[cfg(unix)] // Windows doesn't use SHELL environment variable for shell detection
 fn test_shell_detector_handles_variants() {
     // CONTRACT: ShellDetector handles multiple shell path variants
@@ -230,7 +236,10 @@ fn test_shell_detector_handles_variants() {
     }
 }
 
+// SHELL is process-global; the shell-detector tests mutate it, so they
+// must not interleave (was a CI race: SHELL=bash observed as Zsh).
 #[test]
+#[serial(shell_env)]
 fn test_shell_detector_falls_back_to_sh() {
     // CONTRACT: ShellDetector::detect() falls back to Sh if detection fails
     let detector = ShellDetector::new();

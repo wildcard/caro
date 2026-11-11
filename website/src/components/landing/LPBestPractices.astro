@@ -143,7 +143,7 @@ const realIncidents = [
 <style>
   .practices-section {
     padding: 80px 20px;
-    background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-secondary) 100%);
+    background: var(--color-bg);
   }
 
   .container {
@@ -177,8 +177,9 @@ const realIncidents = [
 
   .incident-badge {
     display: inline-block;
-    background: rgba(239, 51, 51, 0.15);
-    color: var(--accent);
+    background: var(--color-bg);
+    border: 1px solid var(--accent);
+    color: var(--accent-text);
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
@@ -210,7 +211,7 @@ const realIncidents = [
   .incidents-takeaway {
     text-align: center;
     font-size: 16px;
-    color: var(--accent);
+    color: var(--accent-text);
     margin-bottom: 50px;
   }
 
@@ -275,17 +276,17 @@ const realIncidents = [
   }
 
   .practice-command {
-    background: #1a1a2e;
+    background: var(--term-bg);
     padding: 12px 16px;
     border-radius: 6px;
     margin-bottom: 16px;
-    overflow-x: auto;
+    overflow-wrap: anywhere;
   }
 
   .practice-command code {
     font-family: 'SF Mono', 'Monaco', monospace;
     font-size: 13px;
-    color: #9cdcfe;
+    color: var(--term-fg);
   }
 
   .caro-note {
@@ -301,7 +302,7 @@ const realIncidents = [
 
   .caro-badge {
     flex-shrink: 0;
-    color: var(--accent);
+    color: var(--status-safe-text);
     font-weight: 600;
   }
 
@@ -347,8 +348,8 @@ const realIncidents = [
   }
 
   .layer-2 {
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.3);
+    background: rgba(252, 252, 98, 0.2);
+    border: 1px solid rgba(240, 237, 59, 0.6);
   }
 
   .layer-3 {
@@ -429,11 +430,11 @@ const realIncidents = [
     display: block;
     font-size: 32px;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   .scale-stat.highlight .scale-number {
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   .scale-label {
@@ -458,7 +459,7 @@ const realIncidents = [
   }
 
   .scale-note strong {
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   @media (max-width: 768px) {
@@ -501,6 +502,20 @@ const realIncidents = [
 
     .scale-number {
       font-size: 28px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .incident-card,
+    .practice-card,
+    .layer {
+      transition: none;
+    }
+
+    .incident-card:hover,
+    .practice-card:hover,
+    .layer:hover {
+      transform: none;
     }
   }
 </style>

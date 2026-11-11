@@ -1,4 +1,4 @@
-// Tier-1 exec-harness worker — DORMANT SCAFFOLDING (ADR-017 phase P2).
+// Tier-1 exec-harness worker — DORMANT SCAFFOLDING (ADR-021 phase P2).
 // Deploys only after a human creates the Cloudflare account and secrets
 // (decision D5): wrangler secret put HARNESS_TOKEN, then `npm run deploy`.
 // Activation checklist: ../worker/README.md.

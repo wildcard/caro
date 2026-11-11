@@ -14,7 +14,6 @@
 2. **Commit early, push often, push to remote when done**
    - Every meaningful change should be committed
    - Always push to `origin` when work is complete
-   - The AGENTS.md "Landing the Plane" rules apply
 
 3. **Create a PR for review**
    ```bash
@@ -34,13 +33,14 @@
 - Smoke tests with SmolLM 135M on macOS + Linux
 - Evaluation suite for embedded models
 
-### Website Deploy (Vercel + Cloudflare Pages)
-- **caro-foss-website** → Vercel (primary website at caro.sh)
-- **docs-site + Storybook** → Cloudflare Pages (migrated in PR #1351;
-  cold-build guard: `static-sites-build.yml`)
-- **GitHub Pages** → `deploy-website.yml` workflow (secondary)
+### Website Deploy (Vercel)
+- **caro-foss-website** → Vercel (the website at caro.sh)
+- **caro-docs** → Vercel (documentation)
+- No GitHub Pages copy: `deploy-website.yml` was retired in #1579. It had
+  not deployed since at least January 2026, and a copy at
+  `wildcard.github.io/caro/` would need a `/caro` base path.
 
-### Cloudflare compute (dev harness only — ADR-017)
+### Cloudflare compute (dev harness only — ADR-021)
 - `tools/exec-harness/worker/` → Workers + Sandbox containers
   (`detonation-nightly.yml`, dormant until secrets exist)
 - `website/e2e/` → Browser Run/Kitesurf structural QA
@@ -108,5 +108,8 @@ Full i18n guide: `website/I18N_TRANSLATION_GUIDE.md`
 
 - Unit tests for all new Rust modules
 - Integration tests for safety validation
-- Website tests run via `vitest` in `website/`
+- Website tests run via `vitest` in `website/`; CI runs them in
+  `.github/workflows/website-tests.yml` on every PR. Do not add a
+  `pull_request` path filter there: a filtered-out check never reports, so a
+  required check would block every PR that skips it.
 - No false positives in safety patterns (validated by extensive test suite)

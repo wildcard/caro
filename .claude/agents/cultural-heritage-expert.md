@@ -1,6 +1,7 @@
 ---
 name: cultural-heritage-expert
 description: Use this agent for multicultural holiday and celebration expertise, cultural sensitivity reviews, holiday theme validation, and adding new regional/religious holidays to the system. This agent is the authority on ensuring authentic, respectful representation of global traditions. Examples: <example>Context: User wants to add a new cultural holiday to the theme system. user: 'I want to add the Mid-Autumn Festival theme for Chinese and East Asian users' assistant: 'I'll use the cultural-heritage-expert agent to research this festival and ensure we implement it with cultural accuracy and sensitivity.'</example> <example>Context: User needs a sensitivity review of existing holiday implementation. user: 'Can you review our Hanukkah theme to make sure it's culturally appropriate?' assistant: 'Let me use the cultural-heritage-expert agent to perform a thorough cultural sensitivity audit of the Hanukkah implementation.'</example>
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 model: sonnet
 ---
 

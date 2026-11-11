@@ -19,3 +19,26 @@ jobs:
           SHELLCHECK_OPTS: -e SC2148
         with:
           ignore_paths: .specify
+
+      - name: Test Claude Code guard hooks
+        run: .claude/hooks/tests/guard-hooks.test.sh
+
+      - name: Test Claude Code guard hooks (python3 fallback, no jq)
+        run: .claude/hooks/tests/guard-hooks.test.sh
+        env:
+          CARO_HOOKS_NO_JQ: "1"
+
+      - name: Test loop.sh budgets
+        run: tests/harness/loop.test.sh
+
+      - name: Test SessionStart readiness hook
+        run: tests/harness/session-start.test.sh
+
+      - name: Test routine status write-back
+        run: tests/harness/routine-status.test.sh
+
+      - name: Test tracked build-output guard
+        run: tests/harness/tracked-build-outputs.test.sh
+
+      - name: No tracked build outputs (#1655)
+        run: scripts/check-tracked-build-outputs.sh

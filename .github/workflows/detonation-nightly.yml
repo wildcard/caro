@@ -1,11 +1,11 @@
-# Nightly red-team detonation lane (ADR-017 phase P2).
+# Nightly red-team detonation lane (ADR-021 phase P2).
 #
 # Executes the dangerous-command corpus in disposable Cloudflare Sandbox
 # containers via tools/exec-harness/worker and uploads the blast-radius
 # evidence. DORMANT until the worker is deployed and secrets exist
 # (CARO_DETONATION_URL, CARO_DETONATION_TOKEN — human-created per decision
 # D5): without them the job skips green. Non-blocking by design: beta/GA
-# cloud services may never gate merges (ADR-017 preview-API policy).
+# cloud services may never gate merges (ADR-021 preview-API policy).
 name: Detonation Nightly
 
 on:

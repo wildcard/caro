@@ -430,7 +430,7 @@ After deploying:
 ```bash
 cd apps/devrel
 npm install
-git add package-lock.json
+git add ../../package-lock.json  # the root lockfile; apps/devrel has none
 git commit -m "chore: Update package-lock.json"
 git push
 ```
