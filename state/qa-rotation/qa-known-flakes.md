@@ -74,6 +74,7 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 - 2026-11-05: not triggered — `--dry-run` gave `ls -la` (#1751).
 - 2026-11-09: not triggered — `--dry-run` gave `ls -la` (#1756).
 - 2026-11-10: not triggered — `--dry-run` gave `ls -la`; the model was cached (#1761).
+- 2026-11-11: not triggered — `--dry-run` gave `ls -la` (#1762).
 
 **Promotion threshold**: File regression issue if explicit download failure observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Status**: Promoted to regression (behavior change constitutes a regression even under 3-in-7-days threshold). Filed as #1440.  
@@ -114,6 +115,14 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **Occurrence log**:
 - 2026-10-20: observed once (#1695)
 **Promotion threshold**: the routine's rule: 3 observations in 7 days make it a regression to file.
+
+### FLAKE-004: `caro -p` blocks on an open stdin pipe
+**First observed**: 2026-11-11 (#1762, which numbered it FLAKE-002 in main's May copy)
+**Symptom**: `caro -p 'list files' --dry-run -o json | python3 ...` hung, with stdin inherited from a non-terminal pipe; the same call with `</dev/null` finished at once.
+**Cause**: known, tracked in the open #1723: the top-level path reads stdin whenever it is not a terminal, even when `-p` gives the prompt (`src/main.rs`, checked on main). PR #1043 gates the read; it is open and held.
+**Occurrence log**:
+- 2026-11-11: observed once (#1762); not reproduced with `</dev/null`
+**Promotion threshold**: not applicable: the cause is known. Run `caro` with `</dev/null` in scripts until #1043 lands.
 ## Resolved flakes
 
 _(none yet)_
