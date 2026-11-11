@@ -6,6 +6,12 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 
 ## Active flakes
 
+### FLAKE-002: caro hang with inherited stdin in piped script
+
+**First observed**: 2026-11-11. Not reproduced with `</dev/null`. Occurrences: 1.
+
+---
+
 ### FLAKE-001: Model download failure in remote sandbox
 
 **First observed**: 2026-05-07  

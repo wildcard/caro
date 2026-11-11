@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-11-11
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -12,6 +12,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
+| 2026-11-11 | PASS | PASS (1.5.0) | PASS | PASS | PASS | gh token invalid, MCP used |
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
 
 ---
@@ -35,10 +36,10 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
-| 14 | `caro config get/set/show/reset` | cli | never | — | — |
-| 15 | `caro --output json` format correctness | cli | never | — | — |
-| 16 | `caro --output yaml` format correctness | cli | never | — | — |
-| 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
+| 14 | `caro config get/set/show/reset` | cli | 2026-11-11 | PASS | — |
+| 15 | `caro --output json` format correctness | cli | 2026-11-11 | PASS | — |
+| 16 | `caro --output yaml` format correctness | cli | 2026-11-11 | PASS | — |
+| 17 | `caro completion bash/zsh/fish` | shell-integration | 2026-11-11 | PASS | — |
 | 18 | `caro test --backend static` eval harness | cli | never | — | — |
 | 19 | Embedded model backend command quality | embedded | never | — | — |
 | 20 | Ollama backend (requires ollama installed) | ollama | never | — | — |

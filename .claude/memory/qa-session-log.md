@@ -4,6 +4,35 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-11 — Scheduled run (Slot A + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (Slot B skipped: last logged run was 2026-05-07, ~6 months of merges, too broad for one pass).
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** (1m55s)
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (advisory; no model downloaded)
+- `caro -p 'list files in current directory' --dry-run` → **PASS** (static backend, dry-run OK)
+
+### Slot C — Output formats / completion / config (#14-#17)
+- `-o json` → **PASS**: valid JSON with `generated_command`
+- `-o yaml` → **PASS**: well-formed
+- `caro completion bash|zsh|fish` → **PASS**: 566/424/89 lines; bash output passes `bash -n`
+- `caro config show` → **PASS**
+
+### Findings
+None this pass
+
+### Followups
+- `GH_TOKEN` in the routine environment is invalid (`gh` fails); GitHub MCP tools work. Rotate the token.
+- Once, `caro -p 'list files' --dry-run -o json | python3 ...` hung >120s with inherited stdin; rerun with `</dev/null` finished instantly. Not reproduced; possible stdin read in non-tty mode. Watch (FLAKE-002).
+- Slot B backlog: ~6 months of merged PRs not swept.
+
+---
+
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
