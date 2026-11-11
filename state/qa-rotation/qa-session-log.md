@@ -4,6 +4,37 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-11 — Scheduled run (Slot A + Slot C)
+
+> Folded from #1762 into this state on 2026-11-11. The run read main's May copy. Its "FLAKE-002" collides with the existing FLAKE-002 (`caro ai --once`), so the stdin hang is recorded here as FLAKE-004; it matches the open #1723 (the top-level path reads stdin whenever it is not a terminal, even with `-p`; checked in `src/main.rs`). Its PASS for surface 17 covers the valid shells only: #1750 (an unknown shell) is still open.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (Slot B skipped: last logged run was 2026-05-07, ~6 months of merges, too broad for one pass).
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (advisory; no model downloaded)
+- `caro -p 'list files in current directory' --dry-run` → **PASS** (static backend, dry-run OK)
+
+### Slot C — Output formats / completion / config (#14-#17)
+- `-o json` → **PASS**: valid JSON with `generated_command`
+- `-o yaml` → **PASS**: well-formed
+- `caro completion bash|zsh|fish` → **PASS**: 566/424/89 lines; bash output passes `bash -n`
+- `caro config show` → **PASS**
+
+### Findings
+None this pass
+
+### Followups
+- `GH_TOKEN` in the routine environment is invalid (`gh` fails); GitHub MCP tools work. Rotate the token.
+- Once, `caro -p 'list files' --dry-run -o json | python3 ...` hung >[duration omitted] with inherited stdin; rerun with `</dev/null` finished instantly. Not reproduced; possible stdin read in non-tty mode. Watch (FLAKE-002).
+- Slot B backlog: ~6 months of merged PRs not swept.
+
+---
+
+
 ## 2026-11-10 — Scheduled run (Slot A + Slot B + Slot C)
 
 > Folded from #1761 into this state on 2026-11-10. The run read main's May copy, so it could not see that #1269 is the open canonical issue for the CPU stub: its #1760 is recorded here as another duplicate of #1269, and "5th recurrence" and "regression" are not supported (the stub has been there since #1269, filed 2026-06-26). Its one-time hang under the run's time limit is recorded as the cold-start case of FLAKE-002 (#1408).
