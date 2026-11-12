@@ -4,6 +4,31 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-12 — Scheduled run (Slot A + Slot C)
+
+> Folded from #1764 into this state on 2026-11-12. The run read main's May copy. Its #1763 (`caro assess` prints the deletion clarification) is the CPU stub of #1269, not a working `assess`: the `Assess` subcommand is commented out in `src/main.rs` (disabled since v1.1.0-beta.1), so `caro assess` is read as a prompt and reaches the stub. It is recorded as another duplicate of #1269, and surface 12 stays excluded. Its `suggest` check was a usage error only, so surface 13 keeps its 2026-09-27 result.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (Slot B skipped: last logged run on main is 2026-05-07; prior rotation PRs were closed unmerged).
+
+### Slot A — Smoke
+- build: PASS; `--version`: PASS (1.5.0, aa1b0e6); `--help`: PASS; `doctor`: PASS; dry-run `list files in current directory`: PASS (`ls -la`)
+
+### Slot C — assess / suggest / test (#12, #13, #18)
+- `caro test --backend static`: PASS (11/11)
+- `caro suggest list files`: usage error (query must be one quoted arg); expected clap behavior
+- `caro assess`: FAIL — prints "What exactly should be deleted?" (same symptom as #1760)
+- `caro ai --once "show disk usage"`: still FAIL (#1760 open)
+
+### Findings
+- [#1763](https://github.com/wildcard/caro/issues/1763) — cli: `caro assess` prints deletion clarification (P1)
+
+### Followups
+- `gh` token invalid; GitHub MCP tools used.
+- Fix for #1760 should also cover #1763.
+
+---
+
 ## 2026-11-11 — Scheduled run (Slot A + Slot C)
 
 > Folded from #1762 into this state on 2026-11-11. The run read main's May copy. Its "FLAKE-002" collides with the existing FLAKE-002 (`caro ai --once`), so the stdin hang is recorded here as FLAKE-004; it matches the open #1723 (the top-level path reads stdin whenever it is not a terminal, even with `-p`; checked in `src/main.rs`). Its PASS for surface 17 covers the valid shells only: #1750 (an unknown shell) is still open.
