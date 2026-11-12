@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-11
+**Last updated**: 2026-11-12
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -71,6 +71,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-09 | PASS | PASS (1.5.0) | PASS | PASS | PASS | FLAKE-001 did not recur |
 | 2026-11-10 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Model present; `ai --once` stub bug (#1760) |
 | 2026-11-11 | PASS | PASS (1.5.0) | PASS | PASS | PASS | gh token invalid, MCP used |
+| 2026-11-12 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static dry-run OK |
 
 ---
 
@@ -89,7 +90,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-10-08 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-09-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | 2026-11-10 | FAIL | #1269 (CPU stub; #1673, #1735 and #1760 are its duplicates), #1272, #1408 (open) |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-11-12 | FAIL | #1269 (CPU stub; #1673, #1735, #1760 and #1763 are its duplicates), #1272, #1408 (open) |
 | 11 | `caro ai --continue-session` shell widget | ai | 2026-10-19 | FAIL | #1269 (CPU stub, as surface 10, when a prompt is passed). With no prompt, the `?` widget cannot take a request (#1671) |
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection. The README claimed it until #1680 fixed #1677 on 2026-10-19) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
@@ -97,7 +98,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 15 | `caro --output json` format correctness | cli | 2026-11-11 | PASS (an invalid value is silently accepted) | [#1726](https://github.com/wildcard/caro/issues/1726); --dry-run --output json shows the dry_run:true field (Slot B via fix(cli) #1532) |
 | 16 | `caro --output yaml` format correctness | cli | 2026-11-11 | PASS | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | 2026-11-11 | FAIL (an unknown shell prints the bash script and exits 0; bash, zsh and fish PASS) | [#1750](https://github.com/wildcard/caro/issues/1750) |
-| 18 | `caro test --backend static` eval harness | cli | 2026-07-25 | PASS | (from prior session PR #1373, unmerged) |
+| 18 | `caro test --backend static` eval harness | cli | 2026-11-12 | PASS | (2026-11-12 run, #1764; the earlier PASS came from prior session PR #1373, unmerged) |
 | 19 | Embedded model backend command quality | embedded | never | — | [#1523](https://github.com/wildcard/caro/issues/1523) (expected FAIL: same cpu.rs:63 bug as surface #10) |
 | 20 | Ollama backend (requires ollama installed) | ollama | never | — | — |
 | 21 | CaroML: `caro run / generate / render / history` | cli | never | — | — |
@@ -176,6 +177,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1720](https://github.com/wildcard/caro/issues/1720) | `caro guard` has no rule for destructive git commands (force push, reset --hard) | safety | 2026-10-25 | open |
 | [#1726](https://github.com/wildcard/caro/issues/1726) | `--output` accepts an invalid value and falls back to plain | cli | 2026-10-27 | open |
 | [#1735](https://github.com/wildcard/caro/issues/1735) | ai --once deletion clarification (CPU stub, duplicate of #1269) | ai | 2026-10-29 | closed (duplicate of #1269, 2026-10-29) |
+| [#1763](https://github.com/wildcard/caro/issues/1763) | `caro assess` is read as a prompt: CPU stub (duplicate of #1269) | cli | 2026-11-12 | open (duplicate of #1269) |
 | [#1760](https://github.com/wildcard/caro/issues/1760) | ai --once deletion clarification (CPU stub, duplicate of #1269) | ai | 2026-11-10 | open (duplicate of #1269) |
 | [#1750](https://github.com/wildcard/caro/issues/1750) | `caro completion` unknown-shell fallback to bash | shell-integration | 2026-11-05 | open |
 
