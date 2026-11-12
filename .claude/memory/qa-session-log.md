@@ -4,6 +4,29 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-12 — Scheduled run (Slot A + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (Slot B skipped: last logged run on main is 2026-05-07; prior rotation PRs were closed unmerged).
+
+### Slot A — Smoke
+- build: PASS; `--version`: PASS (1.5.0, aa1b0e6); `--help`: PASS; `doctor`: PASS; dry-run `list files in current directory`: PASS (`ls -la`)
+
+### Slot C — assess / suggest / test (#12, #13, #18)
+- `caro test --backend static`: PASS (11/11)
+- `caro suggest list files`: usage error (query must be one quoted arg); expected clap behavior
+- `caro assess`: FAIL — prints "What exactly should be deleted?" (same symptom as #1760)
+- `caro ai --once "show disk usage"`: still FAIL (#1760 open)
+
+### Findings
+- [#1763](https://github.com/wildcard/caro/issues/1763) — cli: `caro assess` prints deletion clarification (P1)
+
+### Followups
+- `gh` token invalid; GitHub MCP tools used.
+- Fix for #1760 should also cover #1763.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).

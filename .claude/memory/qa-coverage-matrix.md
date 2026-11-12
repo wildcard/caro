@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-11-12
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -12,6 +12,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
+| 2026-11-12 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static dry-run OK |
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
 
 ---
@@ -33,13 +34,13 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
 | 10 | `caro ai --once` scripted conversational mode | ai | never | — | — |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
-| 12 | `caro assess` system assessment | cli | never | — | — |
-| 13 | `caro suggest` command suggestions | cli | never | — | — |
+| 12 | `caro assess` system assessment | cli | 2026-11-12 | FAIL | #1763 |
+| 13 | `caro suggest` command suggestions | cli | 2026-11-12 | PASS (usage only) | — |
 | 14 | `caro config get/set/show/reset` | cli | never | — | — |
 | 15 | `caro --output json` format correctness | cli | never | — | — |
 | 16 | `caro --output yaml` format correctness | cli | never | — | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
-| 18 | `caro test --backend static` eval harness | cli | never | — | — |
+| 18 | `caro test --backend static` eval harness | cli | 2026-11-12 | PASS | — |
 | 19 | Embedded model backend command quality | embedded | never | — | — |
 | 20 | Ollama backend (requires ollama installed) | ollama | never | — | — |
 | 21 | CaroML: `caro run / generate / render / history` | cli | never | — | — |
@@ -63,6 +64,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
+| [#1763](https://github.com/wildcard/caro/issues/1763) | `caro assess` embedded stub | cli | 2026-11-12 | open |
 | [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
 
 ---
