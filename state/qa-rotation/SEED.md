@@ -261,3 +261,14 @@ The 2026-11-11 run used the old prompt and read main's May copy. It was folded o
 - **Flake numbering:** the run's "FLAKE-002" (a hang with inherited stdin) collides with the existing FLAKE-002 (`caro ai --once`). It is recorded as FLAKE-004. It matches the open #1723 (the top-level path reads stdin even with `-p`); the fix is in the held PR #1043.
 - **Slot B:** skipped by the run. Backlog: no new issues.
 - **Flakes:** FLAKE-001 was not triggered.
+
+## Added after seeding: #1764 (2026-11-12)
+
+The 2026-11-12 run used the old prompt and read main's May copy. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-12; surface 10 (FAIL, the CPU stub of #1269) gets the new date and #1763 joins its duplicate list; surface 18 (`caro test --backend static`, PASS) gets the new date and keeps its note.
+- **Re-filed known issue:** the run filed #1763 (P1): `caro assess` prints "What exactly should be deleted?". `Assess` is commented out in `src/main.rs`, so `caro assess` is read as a prompt and reaches the CPU stub of #1269. #1763 is recorded as another duplicate of #1269, which keeps P1, and surface 12 stays excluded. #1763 is still open on GitHub.
+- **Not changed:** surface 13 keeps its 2026-09-27 PASS, because the run's `caro suggest list files` was a usage error (the query must be one quoted argument), not a surface test.
+- **Corrected earlier text:** #1415, named in the FLAKE-002 entries as the open fix for #1408, was closed unmerged by its author on 2026-11-11. A note says #1408 has no open fix PR.
+- **Flakes:** FLAKE-001 was not triggered.
