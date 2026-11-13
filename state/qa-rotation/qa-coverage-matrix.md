@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-12
+**Last updated**: 2026-11-13
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -72,6 +72,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-10 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Model present; `ai --once` stub bug (#1760) |
 | 2026-11-11 | PASS | PASS (1.5.0) | PASS | PASS | PASS | gh token invalid, MCP used |
 | 2026-11-12 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static dry-run OK |
+| 2026-11-13 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static backend; 1.5.0 |
 
 ---
 
@@ -95,8 +96,8 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection. The README claimed it until #1680 fixed #1677 on 2026-10-19) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
 | 14 | `caro config get/set/show/reset` | cli | 2026-11-11 | PASS | — (minor, not filed: the `safety bogus` error repeats its message; `config show` labels `telemetry.enabled` as `telemetry`) |
-| 15 | `caro --output json` format correctness | cli | 2026-11-11 | PASS (an invalid value is silently accepted) | [#1726](https://github.com/wildcard/caro/issues/1726); --dry-run --output json shows the dry_run:true field (Slot B via fix(cli) #1532) |
-| 16 | `caro --output yaml` format correctness | cli | 2026-11-11 | PASS | — |
+| 15 | `caro --output json` format correctness | cli | 2026-11-13 | PASS (an invalid value is silently accepted) | [#1726](https://github.com/wildcard/caro/issues/1726); --dry-run --output json shows the dry_run:true field (Slot B via fix(cli) #1532) |
+| 16 | `caro --output yaml` format correctness | cli | 2026-11-13 | PASS | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | 2026-11-11 | FAIL (an unknown shell prints the bash script and exits 0; bash, zsh and fish PASS) | [#1750](https://github.com/wildcard/caro/issues/1750) |
 | 18 | `caro test --backend static` eval harness | cli | 2026-11-12 | PASS | (2026-11-12 run, #1764; the earlier PASS came from prior session PR #1373, unmerged) |
 | 19 | Embedded model backend command quality | embedded | never | — | [#1523](https://github.com/wildcard/caro/issues/1523) (expected FAIL: same cpu.rs:63 bug as surface #10) |
