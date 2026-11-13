@@ -4,6 +4,38 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-13 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC (fired 15:18 UTC).
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** (1m 46s)
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS**: advisory only, no model cached
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`, dry-run, 31 ms (static matcher)
+
+### Slot B — Recent diff
+Many PRs since 2026-05-07. Sampled the newest surfaces:
+- #1740 `caro config reset [KEY]` → PASS (help text and key list correct). Did not exercise a real reset against a set key (`safety.level` is not a valid key; valid key is `safety`).
+- #1737 `caro test --help` backend list → PASS (`static, embedded`).
+- #1710 `caro ai` no-prompt error → PASS (no longer suggests `-p`).
+
+### Slot C — `--output json` / `--output yaml` (#15, #16)
+- JSON parses with `json.load`; keys: generated_command, explanation, executed, dry_run, blocked_reason, requires_confirmation, ...
+- YAML output well-formed, same fields.
+- Ambiguous risky prompt returns clarification JSON (`needs_clarification`, `question`) rather than a command; shape differs from the normal result, so consumers must handle both.
+
+### Findings
+None this pass
+
+### Followups
+- Model download not retried this pass (static backend served the prompt), so the cold-start flake was not observed.
+- Coverage matrix is stale for most rows (last tested 2026-05-07, binary was 1.3.0).
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
