@@ -272,3 +272,14 @@ The 2026-11-12 run used the old prompt and read main's May copy. It was folded o
 - **Not changed:** surface 13 keeps its 2026-09-27 PASS, because the run's `caro suggest list files` was a usage error (the query must be one quoted argument), not a surface test.
 - **Corrected earlier text:** #1415, named in the FLAKE-002 entries as the open fix for #1408, was closed unmerged by its author on 2026-11-11. A note says #1408 has no open fix PR.
 - **Flakes:** FLAKE-001 was not triggered.
+
+## Added after seeding: #1765 (2026-11-13)
+
+The 2026-11-13 run used the old prompt and read main's May copy. It fired at 15:18 UTC. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-13; surfaces 15 and 16 (`--output json` and `--output yaml`, PASS) get the new date and keep the seed's results and links.
+- **Not changed:** surface 14 keeps its 2026-11-12 result. The run checked only help text and keys for `config reset` (#1740), `test --help` (#1737) and the `caro ai` no-prompt error (#1710).
+- **Stub shape:** the clarification JSON the run saw for an ambiguous risky prompt has the same shape as the CPU stub reply of #1269. The run did not name the backend.
+- **Backlog:** no new issues.
+- **Flakes:** FLAKE-001 was not triggered.
