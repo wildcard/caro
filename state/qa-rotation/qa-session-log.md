@@ -4,6 +4,38 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-14 — Scheduled run (Slot A + Slot C)
+
+> Folded from #1766 into this state on 2026-11-14. The run read main's May copy and used the branch `claude/peaceful-hopper-r8nypg`, not a `claude/qa-rotation-` branch. It filed no issue. Its Slot C result matches surface 14's note: the duplicated text in the invalid-safety-value error is already recorded there.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (Slot B skipped: last log entry on main is 2026-05-07; six months of merges, no representative sample).
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` -> PASS ([duration omitted])
+- `caro --version` -> PASS: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` -> PASS
+- `caro doctor` -> PASS (no model downloaded, expected)
+- `caro -p 'list files in current directory' --dry-run` -> PASS: `ls -la`, no model download needed
+
+### Slot B — Recent diff
+Skipped. Recent merged PRs are QA rotation PRs only (#1749-#1765) plus #1740 (`config reset`, covered by Slot C).
+
+### Slot C — `caro config get/set/show/reset` (#14)
+- `show`, `get`, `set safety strict`, `reset safety`, full `reset` -> PASS (isolated HOME)
+- Unknown key -> exit 1 with valid-key list; invalid safety value -> exit 1 -> PASS
+- Cosmetic: invalid-value error repeats itself ("Invalid safety level 'bogus': Invalid safety level 'bogus'. ...") (P3, not filed)
+
+### Findings
+None this pass.
+
+### Followups
+- `gh` auth failed (GH_TOKEN invalid); GitHub MCP tools used instead. Owner should rotate the token.
+- Work done on branch `claude/peaceful-hopper-r8nypg` (session-designated), not `claude/qa-rotation-2026-11-14`.
+- Earlier rotation PRs (#1749-#1765) exist but main's log has only the bootstrap entry; they may be unmerged.
+
+---
+
 ## 2026-11-13 — Scheduled run (Slot A + Slot B + Slot C)
 
 > Folded from #1765 into this state on 2026-11-13. The run read main's May copy and fired late (15:18 UTC). It filed no issue. Its Slot B checks (#1740, #1737, #1710; all merged 2026-11-02) are help and error-message checks, so surface 14 keeps its 2026-11-12 result. The clarification JSON it saw for an ambiguous risky prompt has the same shape as the CPU stub reply of #1269; the run did not name the backend.
