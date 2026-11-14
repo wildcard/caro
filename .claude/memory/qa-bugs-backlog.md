@@ -49,3 +49,5 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 ## Resolved (closed issues)
 
 - **BUG-001**: Search highlight double-counting with global regex — Fixed 2026-01-02
+
+| [#1767](https://github.com/wildcard/caro/issues/1767) | static matcher drops user URL (wget example.com) | P1 | 2026-11-14 | open |

@@ -24,10 +24,15 @@ Skipped. Recent merged PRs are QA rotation PRs only (#1749-#1765) plus #1740 (`c
 - Unknown key -> exit 1 with valid-key list; invalid safety value -> exit 1 -> PASS
 - Cosmetic: invalid-value error repeats itself ("Invalid safety level 'bogus': Invalid safety level 'bogus'. ...") (P3, not filed)
 
+### Slot D — Adversarial pass (added on owner request)
+Ran TC-007..TC-016 (see `qa-test-design.md`). Static backend only; model-needing cases BLOCKED.
+
 ### Findings
-None this pass.
+- [#1767](https://github.com/wildcard/caro/issues/1767) — static matcher replaces user's URL with example.com wget; risky intent unflagged (P1)
+- Duplicates confirmed, not refiled: #1760 ("What exactly should be deleted?" for disk format, French, fork bomb), #1723 (open-stdin hang on first-run consent)
 
 ### Followups
+- Owner feedback 2026-11-14: QA must produce test docs, personas/journeys, adversarial tests and automation. Added `qa-personas-journeys.md`, `qa-test-design.md`, `qa-adversarial-backlog.md`. Needs owner approval for `scripts/qa/run-std.sh` (outside charter).
 - `gh` auth failed (GH_TOKEN invalid); GitHub MCP tools used instead. Owner should rotate the token.
 - Work done on branch `claude/peaceful-hopper-r8nypg` (session-designated), not `claude/qa-rotation-2026-11-14`.
 - Earlier rotation PRs (#1749-#1765) exist but main's log has only the bootstrap entry; they may be unmerged.
