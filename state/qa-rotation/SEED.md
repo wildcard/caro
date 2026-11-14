@@ -283,3 +283,12 @@ The 2026-11-13 run used the old prompt and read main's May copy. It fired at 15:
 - **Stub shape:** the clarification JSON the run saw for an ambiguous risky prompt has the same shape as the CPU stub reply of #1269. The run did not name the backend.
 - **Backlog:** no new issues.
 - **Flakes:** FLAKE-001 was not triggered.
+
+## Added after seeding: #1766 (2026-11-14)
+
+The 2026-11-14 run used the old prompt and read main's May copy. It ran on the branch `claude/peaceful-hopper-r8nypg`. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-14; surface 14 (`caro config get/set/show/reset`, PASS) gets the new date and keeps the seed's note about the duplicated error text.
+- **Backlog:** no new issues.
+- **Flakes:** FLAKE-001 was not triggered.
