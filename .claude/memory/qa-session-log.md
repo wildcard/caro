@@ -4,6 +4,32 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-15 — Scheduled run (Slot A + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (Slot B skipped: last log entry on main is 2026-05-07, earlier rotation PRs were closed unmerged, so no usable last-run date).
+
+### Slot A — Smoke
+- Build `--features embedded-cpu`: PASS (1m 55s)
+- `--version`: PASS (`caro 1.5.0 (aa1b0e6 2026-11-02)`)
+- `--help`: PASS
+- `doctor`: PASS (advisory: embedded needs model download, Ollama not installed)
+- `-p 'list files in current directory' --dry-run`: PASS (`ls -la`)
+
+### Slot C — Website + `caro ai --once`
+- caro.sh `/`, `/docs/`, `/evals/`, `/es/`, `/fr/`, `/ja/`: all HTTP 200 with localized titles. JSON-LD `softwareVersion` is 1.5.0.
+- `caro ai --once "list files"`: FAIL. Returns `backend error: Clarification needed: What exactly should be deleted?`. Same as open #1760 (and #1763 for `assess`). Not refiled.
+
+### Findings
+None new this pass. #1760 and #1763 still reproduce on 1.5.0.
+
+### Followups
+- `GH_TOKEN` is invalid for `gh`; GitHub MCP tools were used.
+- Memory on main is stale because rotation PRs were closed unmerged. Merge this PR to keep Slot B dates usable.
+
+---
+
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).

@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-11-15
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -12,6 +12,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
+| 2026-11-15 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Embedded model not downloaded (doctor advisory); dry-run returned `ls -la` |
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
 
 ---
@@ -31,7 +32,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-05-07 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-05-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | never | — | — |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-11-15 | FAIL (still reproduces) | #1760 |
 | 11 | `caro ai --continue-session` shell widget | ai | never | — | — |
 | 12 | `caro assess` system assessment | cli | never | — | — |
 | 13 | `caro suggest` command suggestions | cli | never | — | — |
@@ -46,13 +47,13 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 22 | CaroML: `caro experiment / adopt / why` | cli | never | — | — |
 | 23 | CaroML: `caro do` Carofile job runner | cli | never | — | — |
 | 24 | `caro skill install` (bundled skill management) | cli | never | — | — |
-| 25 | Website homepage caro.sh (curl + parse) | website | never | — | — |
-| 26 | Website docs pages (curl + parse) | docs | never | — | — |
+| 25 | Website homepage caro.sh (curl + parse) | website | 2026-11-15 | PASS (200, schema softwareVersion 1.5.0) | — |
+| 26 | Website docs pages (curl + parse) | docs | 2026-11-15 | PASS (/docs/ and /evals/ 200) | — |
 | 27 | Install script `scripts/install.sh` | install | never | — | — |
 | 28 | Homebrew tap formula | install | never | — | — |
 | 29 | `caro --safety strict/moderate/permissive` modes | safety | never | — | — |
 | 30 | `caro --verbose` timing output | cli | never | — | — |
-| 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | never | — | — |
+| 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | 2026-11-15 | PASS (200, localized titles) | — |
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-05-07 | PASS | — |
 
 ---
