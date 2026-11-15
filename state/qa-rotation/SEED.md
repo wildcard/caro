@@ -292,3 +292,12 @@ The 2026-11-14 run used the old prompt and read main's May copy. It ran on the b
 - **Its rows win:** a smoke row for 2026-11-14; surface 14 (`caro config get/set/show/reset`, PASS) gets the new date and keeps the seed's note about the duplicated error text.
 - **Backlog:** no new issues.
 - **Flakes:** FLAKE-001 was not triggered.
+
+## Added after seeding: #1768 (2026-11-15)
+
+The 2026-11-15 run used the old prompt and read main's May copy. It ran on the branch `claude/peaceful-hopper-mbhgu8`. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-15; surface 10 (FAIL, the CPU stub of #1269) gets the new date and keeps its links; surfaces 25, 26 and 31 (website and locale checks) get PASS with the new date. Surface 31 keeps its FLAKE-003 note.
+- **Not new:** the `caro ai --once` failure is #1269. #1760 and #1763 are open duplicates. #1269 keeps P1 and its re-confirmed list gains 11-15.
+- **Flakes:** FLAKE-001 was not triggered.
