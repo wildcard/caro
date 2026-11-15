@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-14
+**Last updated**: 2026-11-15
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -74,6 +74,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-12 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static dry-run OK |
 | 2026-11-13 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static backend; 1.5.0 |
 | 2026-11-14 | PASS | PASS (1.5.0) | PASS | PASS | PASS | dry-run returned `ls -la` with no model download |
+| 2026-11-15 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Embedded model not downloaded (doctor advisory); dry-run returned `ls -la` |
 
 ---
 
@@ -92,7 +93,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-10-08 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-09-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | 2026-11-12 | FAIL | #1269 (CPU stub; #1673, #1735, #1760 and #1763 are its duplicates), #1272, #1408 (open) |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-11-15 | FAIL | #1269 (CPU stub; #1673, #1735, #1760 and #1763 are its duplicates), #1272, #1408 (open) |
 | 11 | `caro ai --continue-session` shell widget | ai | 2026-10-19 | FAIL | #1269 (CPU stub, as surface 10, when a prompt is passed). With no prompt, the `?` widget cannot take a request (#1671) |
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection. The README claimed it until #1680 fixed #1677 on 2026-10-19) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
@@ -107,13 +108,13 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 22 | CaroML: `caro experiment / adopt / why` | cli | never | — | — |
 | 23 | CaroML: `caro do` Carofile job runner | cli | never | — | — |
 | 24 | `caro skill install` (bundled skill management) | cli | never | — | — |
-| 25 | Website homepage caro.sh (curl + parse) | website | 2026-10-20 | PASS | — |
-| 26 | Website docs pages (curl + parse) | docs | never | — | — |
+| 25 | Website homepage caro.sh (curl + parse) | website | 2026-11-15 | PASS (200, schema softwareVersion 1.5.0) | — |
+| 26 | Website docs pages (curl + parse) | docs | 2026-11-15 | PASS (/docs/ and /evals/ 200) | — |
 | 27 | Install script `scripts/install.sh` | install | never | — | — |
 | 28 | Homebrew tap formula | install | never | — | — |
 | 29 | `caro --safety strict/moderate/permissive` modes | safety | never | — | — |
 | 30 | `caro --verbose` timing output | cli | 2026-10-10 | PASS | — (--dry-run --verbose confirmed Backend: static-matcher, Confidence: 1.00 in Slot A) |
-| 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | 2026-10-20 | PASS (es and fr; /es/ needed a retry, FLAKE-003) | — |
+| 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | 2026-11-15 | PASS (es, fr and ja 200 with localized titles; /es/ needed a retry on 2026-10-20, FLAKE-003) | — |
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-10-13 | PASS | — |
 | 33 | `caro ai` decision gates (clarification, Jev gap, constrained decoding) (#1459) | ai | never | — | — |
 | 34 | Executor timeout / guard hooks / loop budget enforcement (#1470) | cli | never | — | — |
