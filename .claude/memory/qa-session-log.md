@@ -4,6 +4,35 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-17 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C. Note: `gh` token invalid in sandbox; GitHub MCP tools used instead.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 06s)
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (advisory: no ready backend, expected)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`
+
+### Slot B — Recent diff
+Last merged PRs: #1740 (`config reset KEY`), #1737 (`test --help` backends), #1710 (`caro ai` no-prompt error). Smoke-tested all three: `config reset [KEY]` help OK; `test --backend` lists static, embedded; `ai --once` no-prompt error no longer suggests `-p`. All PASS.
+
+### Slot C — `caro ai --once` (#10)
+- No prompt → clear error, PASS.
+- `ai --once --new-session "list files"` and `"show disk usage"` → **FAIL**: `Clarification needed: What exactly should be deleted?` (3/3). Already filed as #1760; #1763 is the same cause in `assess`.
+- Root cause: `src/backends/embedded/cpu.rs:62` stub matches `prompt.contains("rm")`/`"delete"` against the full system prompt, so it always hits the delete branch.
+
+### Findings
+None new this pass; duplicates of #1760 / #1763 not re-filed.
+
+### Followups
+- Memory files on main are stuck at the 2026-05-07 bootstrap (#1603); earlier rotation PRs were closed unmerged. Merge this PR to unstick.
+- FLAKE-001 (model download) not observed this pass: dry-run used the static matcher.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).
