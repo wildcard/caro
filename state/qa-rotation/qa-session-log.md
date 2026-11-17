@@ -4,6 +4,37 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-17 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1770 into this state on 2026-11-17. The run read main's May copy. It filed no issue. Its `caro ai --once` failure is the CPU stub of #1269; #1760 and #1763 are open duplicates. Its Slot B checks (#1740, #1737, #1710) are help and error-message checks, so no other surface changes. The run asks to merge its PR; the state lives on `automation/routine-status`, so the PR is closed instead. The 2026-11-16 run opened no PR.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C. Note: `gh` token invalid in sandbox; GitHub MCP tools used instead.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (advisory: no ready backend, expected)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la`
+
+### Slot B — Recent diff
+Last merged PRs: #1740 (`config reset KEY`), #1737 (`test --help` backends), #1710 (`caro ai` no-prompt error). Smoke-tested all three: `config reset [KEY]` help OK; `test --backend` lists static, embedded; `ai --once` no-prompt error no longer suggests `-p`. All PASS.
+
+### Slot C — `caro ai --once` (#10)
+- No prompt → clear error, PASS.
+- `ai --once --new-session "list files"` and `"show disk usage"` → **FAIL**: `Clarification needed: What exactly should be deleted?` (3/3). Already filed as #1760; #1763 is the same cause in `assess`.
+- Root cause: `src/backends/embedded/cpu.rs:62` stub matches `prompt.contains("rm")`/`"delete"` against the full system prompt, so it always hits the delete branch.
+
+### Findings
+None new this pass; duplicates of #1760 / #1763 not re-filed.
+
+### Followups
+- Memory files on main are stuck at the 2026-05-07 bootstrap (#1603); earlier rotation PRs were closed unmerged. Merge this PR to unstick.
+- FLAKE-001 (model download) not observed this pass: dry-run used the static matcher.
+
+---
+
 ## 2026-11-15 — Scheduled run (Slot A + Slot C)
 
 > Folded from #1768 into this state on 2026-11-15. The run read main's May copy and used the branch `claude/peaceful-hopper-mbhgu8`. It filed no issue. Its `caro ai --once` failure is the CPU stub of #1269; #1760 and #1763 are open duplicates of it. The run asks to merge its PR to keep main's dates usable; the state lives on `automation/routine-status`, so the PR is closed instead.
