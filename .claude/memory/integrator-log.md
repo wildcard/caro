@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-17 (23:00 PT fire) — validation pass; merge backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; installed binary `caro 1.5.0 ( crates.io)`). PASS: Candle CPU (`caro --dry-run -p "show disk usage" </dev/null` → `df -h`); `caro guard` (`rm -rf /` → deny, `ls -la` → allow); live `https://caro.sh/integrations` (200, Ollama copy has the 1.5.0 config-error text). FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (killed by alarm, exit 142). This is #1723. Fix PR #1754 is open and mergeable; its red checks are `check-labels` and `Security Audit`.
+- **Shipped:** no new PR. Playbook step 6a (from open PR #1708) says to extend an open PR, not duplicate it. This entry and the matrix update are pushed to the open log PR #1758.
+- **Filed:** none. Dedup: #1723 matches the hang; #1623 covers Copilot CLI.
+- **Discovered:** Kilo CLI 1.0, Cline CLI 2.0, Kimi Code CLI added as `not-yet` rows. Pi 1.0 note added to the Pi row. One secondary source says Google retired Gemini CLI and Jules on 2026-11-01. Not verified; relevant to #1439 / PR #1722.
+- **Next pass should:** check if #1754, #1758 or #1708 merged. If #1754 merged and a release shipped, re-test the hang. Do not open a new PR while the backlog stays.
+
+---
+
 ## 2026-11-09 (23:00 PT fire) — validation pass; #1723 hang reproduced; no code PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (still newest on crates.io). PASS: Candle CPU (`show disk usage` → `df -h`); `caro guard` (`rm -rf /` → deny, `ls -la` → allow); `caro-shell` Example 3 (`delete everything in /tmp` → Critical block); embedded backend (`list pdf files…` → `ls -la`, still #1645). FAIL (P1): with an open stdin pipe (`sleep 15 | caro --dry-run -p "list files"`), caro printed nothing in 8s. The positional prompt behaves the same. This is #1723.
