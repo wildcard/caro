@@ -80,6 +80,8 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1272](https://github.com/wildcard/caro/issues/1272) | P1 | ai | `caro ai --once` hangs silently with zero output when no backend is available | open | 2026-06-26 |
 | [#1603](https://github.com/wildcard/caro/issues/1603) | P2 | docs/ops | QA memory files stuck at 2026-05-07 bootstrap — 25+ update PRs unmerged | open | 2026-10-11 |
 | [#1750](https://github.com/wildcard/caro/issues/1750) | P2 | shell-integration | `caro completion <unknown-shell>` prints the bash script and exits 0; help lists only bash, zsh and fish | open | 2026-11-05 |
+| [#1771](https://github.com/wildcard/caro/issues/1771) | P1 | safety | `config set safety strict` is ignored on the main path; `--safety <typo>` silently falls back to Moderate | open | 2026-11-18 |
+| [#1772](https://github.com/wildcard/caro/issues/1772) | P3 | safety | `curl ... | sh` is denied, but the reason says it targets a catastrophic, irrecoverable location | open | 2026-11-18 |
 
 ---
 
