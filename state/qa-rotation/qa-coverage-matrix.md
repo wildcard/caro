@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-17
+**Last updated**: 2026-11-18
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -76,6 +76,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-14 | PASS | PASS (1.5.0) | PASS | PASS | PASS | dry-run returned `ls -la` with no model download |
 | 2026-11-15 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Embedded model not downloaded (doctor advisory); dry-run returned `ls -la` |
 | 2026-11-17 | PASS | PASS (1.5.0) | PASS | PASS | PASS | static matcher returned `ls -la` |
+| 2026-11-18 | PASS | PASS (1.5.0) | PASS | PASS | PASS | `ls -la` via static matcher |
 
 ---
 
@@ -113,7 +114,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 26 | Website docs pages (curl + parse) | docs | 2026-11-15 | PASS (/docs/ and /evals/ 200) | — |
 | 27 | Install script `scripts/install.sh` | install | never | — | — |
 | 28 | Homebrew tap formula | install | never | — | — |
-| 29 | `caro --safety strict/moderate/permissive` modes | safety | never | — | — |
+| 29 | `caro --safety strict/moderate/permissive` modes | safety | 2026-11-18 | FAIL (config value ignored; invalid flag silently Moderate) | [#1771](https://github.com/wildcard/caro/issues/1771) |
 | 30 | `caro --verbose` timing output | cli | 2026-10-10 | PASS | — (--dry-run --verbose confirmed Backend: static-matcher, Confidence: 1.00 in Slot A) |
 | 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | 2026-11-15 | PASS (es, fr and ja 200 with localized titles; /es/ needed a retry on 2026-10-20, FLAKE-003) | — |
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-10-13 | PASS | — |
@@ -184,6 +185,8 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1763](https://github.com/wildcard/caro/issues/1763) | `caro assess` is read as a prompt: CPU stub (duplicate of #1269) | cli | 2026-11-12 | open (duplicate of #1269) |
 | [#1760](https://github.com/wildcard/caro/issues/1760) | ai --once deletion clarification (CPU stub, duplicate of #1269) | ai | 2026-11-10 | open (duplicate of #1269) |
 | [#1750](https://github.com/wildcard/caro/issues/1750) | `caro completion` unknown-shell fallback to bash | shell-integration | 2026-11-05 | open |
+| [#1771](https://github.com/wildcard/caro/issues/1771) | Safety level threading: config file + `--safety` validation | safety | 2026-11-18 | open |
+| [#1772](https://github.com/wildcard/caro/issues/1772) | `caro guard` catastrophic-floor reason text | safety | 2026-11-18 | open |
 
 ---
 
