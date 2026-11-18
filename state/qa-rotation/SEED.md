@@ -311,3 +311,13 @@ The 2026-11-17 run used the old prompt and read main's May copy. It was folded o
 - **Not new:** the `caro ai --once` failure is #1269. #1760 and #1763 are open duplicates. #1269 keeps P1 and its re-confirmed list gains 11-17.
 - **Not changed:** its Slot B checks (#1740, #1737, #1710) are help and error-message checks.
 - **Flakes:** FLAKE-001 was not triggered.
+
+## Added after seeding: #1773 (2026-11-18)
+
+The 2026-11-18 run read this state, not main's May copy, and ran on the branch `claude/peaceful-hopper-733wo2`. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-18; surface 29 (`caro --safety` modes) goes from never tested to FAIL, linked to #1771.
+- **New issues:** #1771 (P1): the config-file `safety` value is ignored on the main path, and an invalid `--safety` value silently becomes Moderate. #1772 (P3): the deny reason for `curl ... | sh` says it targets a catastrophic, irrecoverable location. Both are confirmed in main's code by static reading, and no earlier issue covers either. Both are added to the watch list and the bug-filings table.
+- **Not changed:** its Slot B checks (#1740, #1737, #1710, #1685, #1687) are help and error-message checks.
+- **Flakes:** FLAKE-001 was not triggered.
