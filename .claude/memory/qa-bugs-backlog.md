@@ -9,6 +9,8 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1771](https://github.com/wildcard/caro/issues/1771) | P1 | safety | `config set safety strict` ignored; `--safety <typo>` silently Moderate | open | 2026-11-18 |
+| [#1772](https://github.com/wildcard/caro/issues/1772) | P3 | safety | `curl \| sh` labelled "targets a catastrophic, irrecoverable location" | open | 2026-11-18 |
 
 ---
 

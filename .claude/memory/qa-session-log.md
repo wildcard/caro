@@ -4,6 +4,45 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-18 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C. State read from `automation/routine-status:state/qa-rotation/` (main's copy is the stale May bootstrap, #1603). Slot C picked from that state, not from main's matrix.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS**
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**
+- `caro doctor` → **PASS** (advisory: no ready backend, expected)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` (static matcher)
+
+### Slot B — Recent diff
+No new merges since the 2026-11-17 run (main head still aa1b0e6). Spot-checked the newest five merges:
+- #1740 `config reset <key>`: PASS (per-key reset, unknown key exits 1).
+- #1737 `test --help`: PASS (lists static, embedded).
+- #1710 `caro ai` no-prompt error: PASS (no `-p` hint).
+- #1685 `caro guard audit`: PASS (help and subcommands present).
+- #1687 fetch-and-execute patterns: verdict PASS (`curl | sh` → deny, `guard test` exit 2). The reason text is wrong → #1772.
+
+### Slot C — `caro --safety strict/moderate/permissive` modes (#29)
+Picked #29: oldest "never" rows #19 and #20 need a model or Ollama, which the sandbox lacks.
+- Valid `--safety permissive` reaches the run (`--verbose` shows `Safety: Permissive`). PASS.
+- `caro config set safety strict` then a run with no flag → `--verbose` shows `Safety: Moderate`. FAIL → #1771.
+- `--safety strct` / `--safety bogus` → exit 0, silent Moderate. FAIL → #1771.
+- End-to-end block/confirm differences could not be shown: static matcher has no Medium/High output for the prompts tried, and the embedded CPU stub answers "What exactly should be deleted?" (#1269).
+
+### Findings
+- [#1771](https://github.com/wildcard/caro/issues/1771) — safety: `config set safety strict` ignored; `--safety <typo>` silently Moderate (P1)
+- [#1772](https://github.com/wildcard/caro/issues/1772) — safety: `curl | sh` labelled "targets a catastrophic, irrecoverable location" (P3)
+
+### Followups
+- Not filed (already tracked): `delete old log files older than 7 days` → `find . -type f -mtime -7` (wrong direction, no delete; #1628 family). `kill the process on port 3000` → literal `kill PID` (#1767 family).
+- `--output json` still shows `executed: true` with `dry_run: true`; that is documented behaviour since #1217 (`src/cli/mod.rs:79`), so not a bug.
+- Prompt drift: the stored prompt still says to read main's memory and open a PR; the state contract (`.claude/automation/CONTRACT.md` §5, #1603) says use `bin/routine-status state`. This run followed the prompt and opened a PR on the session branch `claude/peaceful-hopper-733wo2`.
+- FLAKE-001 not observed (dry-run used the static matcher).
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).

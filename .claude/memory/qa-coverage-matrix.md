@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-11-18
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -13,6 +13,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
+| 2026-11-18 | PASS | PASS (1.5.0) | PASS | PASS | PASS | `ls -la` via static matcher |
 
 ---
 
@@ -50,7 +51,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 26 | Website docs pages (curl + parse) | docs | never | — | — |
 | 27 | Install script `scripts/install.sh` | install | never | — | — |
 | 28 | Homebrew tap formula | install | never | — | — |
-| 29 | `caro --safety strict/moderate/permissive` modes | safety | never | — | — |
+| 29 | `caro --safety strict/moderate/permissive` modes | safety | 2026-11-18 | FAIL (config value ignored; invalid flag silently Moderate) | [#1771](https://github.com/wildcard/caro/issues/1771) |
 | 30 | `caro --verbose` timing output | cli | never | — | — |
 | 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | never | — | — |
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-05-07 | PASS | — |
@@ -64,6 +65,8 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
+| [#1771](https://github.com/wildcard/caro/issues/1771) | Safety level threading: config file + `--safety` validation | safety | 2026-11-18 | open |
+| [#1772](https://github.com/wildcard/caro/issues/1772) | `caro guard` catastrophic-floor reason text | safety | 2026-11-18 | open |
 
 ---
 
