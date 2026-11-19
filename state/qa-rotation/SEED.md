@@ -321,3 +321,22 @@ The 2026-11-18 run read this state, not main's May copy, and ran on the branch `
 - **New issues:** #1771 (P1): the config-file `safety` value is ignored on the main path, and an invalid `--safety` value silently becomes Moderate. #1772 (P3): the deny reason for `curl ... | sh` says it targets a catastrophic, irrecoverable location. Both are confirmed in main's code by static reading, and no earlier issue covers either. Both are added to the watch list and the bug-filings table.
 - **Not changed:** its Slot B checks (#1740, #1737, #1710, #1685, #1687) are help and error-message checks.
 - **Flakes:** FLAKE-001 was not triggered.
+
+## Added after seeding: #1755 (2026-11-08, folded 2026-11-19)
+
+#1755 was missed on its day. The run used the branch `claude/peaceful-hopper-5e0vc9`, not a `claude/qa-rotation-` branch, so the daily branch-name check did not list it. Found on 2026-11-19 by listing all open PRs titled `chore(qa)`. Folded with the rules above:
+
+- **Session log:** its entry sits between 2026-11-09 and 2026-11-05, with a note.
+- **Its rows win:** a smoke row for 2026-11-08. Surface 14 (`caro config`, PASS) keeps its later date.
+- **Backlog and flakes:** no new issues. FLAKE-001 was not triggered.
+- **Check from now on:** list open PRs by title `chore(qa)`, not by branch name.
+
+## Added after seeding: #1774 (2026-11-19)
+
+The 2026-11-19 run used the old prompt and read main's May copy. It ran on the branch `claude/peaceful-hopper-ldn1zd`. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-19; surface 10 (FAIL, the CPU stub of #1269) gets the new date and keeps its links.
+- **Not new:** the `caro ai --once` failure is #1269. #1760 is an open duplicate. #1269 keeps P1 and its re-confirmed list gains 11-19. #1772 and #1720 were already recorded.
+- **Not changed:** its Slot B checks (#1740, #1737, #1710, #1683, #1685, #1687) are help, exit-code and error-message checks.
+- **Flakes:** FLAKE-001 was not triggered.
