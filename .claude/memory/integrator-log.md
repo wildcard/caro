@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-18 (23:00 PT fire) — guard adapters re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0). PASS: `caro guard --mode enforce --harness codex` (`rm -rf /` → `permissionDecision: deny`; `ls -la` → no output); `--harness grok` (camelCase payload → deny); `--harness opencode` (`rm -rf /` → `verdict: deny`, exit 2; `ls` → `verdict: none`, exit 0). These three rows were the oldest (2026-10-03). FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (alarm, exit 142). Control with `</dev/null` succeeds. This is #1723.
+- **Shipped:** no new PR. Nothing merged since 2026-11-17: #1754 (fix for #1723) and #1758 are open and mergeable, and their only red checks are `check-labels` / `Security Audit`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Dedup: `antigravity` search → #1439 and PR #1722 already track it.
+- **Discovered:** one web query checked last night's unverified claim. Secondary sources say Gemini CLI stopped serving consumer accounts on 2026-06-18 (successor: Antigravity CLI). A single source says Jules went read-only on 2026-11-11 and winds down 2026-12-31. The Jules date is not confirmed from Google's changelog. Gemini/Jules matrix rows now point at #1439.
+- **Next pass should:** check if #1754 / #1758 merged. If #1754 merged and a release shipped, re-test the hang. Then the oldest rows are MLX and the feature-gated backends (2026-10-19).
+
+---
+
 ## 2026-11-17 (23:00 PT fire) — validation pass; merge backlog unchanged; no new PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; installed binary `caro 1.5.0 ( crates.io)`). PASS: Candle CPU (`caro --dry-run -p "show disk usage" </dev/null` → `df -h`); `caro guard` (`rm -rf /` → deny, `ls -la` → allow); live `https://caro.sh/integrations` (200, Ollama copy has the 1.5.0 config-error text). FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (killed by alarm, exit 142). This is #1723. Fix PR #1754 is open and mergeable; its red checks are `check-labels` and `Security Audit`.
