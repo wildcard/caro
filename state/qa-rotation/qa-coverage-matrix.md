@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-18
+**Last updated**: 2026-11-19
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -68,6 +68,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-03 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Dry-run produced `ls -la` |
 | 2026-11-04 | PASS | PASS (1.5.0) | PASS | PASS | PASS | FLAKE-001 did not recur |
 | 2026-11-05 | PASS | PASS (1.5.0) | PASS | PASS | PASS | FLAKE-001 did not recur |
+| 2026-11-08 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static match, no model download needed |
 | 2026-11-09 | PASS | PASS (1.5.0) | PASS | PASS | PASS | FLAKE-001 did not recur |
 | 2026-11-10 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Model present; `ai --once` stub bug (#1760) |
 | 2026-11-11 | PASS | PASS (1.5.0) | PASS | PASS | PASS | gh token invalid, MCP used |
@@ -77,6 +78,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-15 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Embedded model not downloaded (doctor advisory); dry-run returned `ls -la` |
 | 2026-11-17 | PASS | PASS (1.5.0) | PASS | PASS | PASS | static matcher returned `ls -la` |
 | 2026-11-18 | PASS | PASS (1.5.0) | PASS | PASS | PASS | `ls -la` via static matcher |
+| 2026-11-19 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Dry-run served by static matcher (`ls -la`), no model download needed |
 
 ---
 
@@ -95,7 +97,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-10-08 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-09-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | 2026-11-17 | FAIL | #1269 (CPU stub; #1673, #1735, #1760 and #1763 are its duplicates), #1272, #1408 (open) |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-11-19 | FAIL | #1269 (CPU stub; #1673, #1735, #1760 and #1763 are its duplicates), #1272, #1408 (open) |
 | 11 | `caro ai --continue-session` shell widget | ai | 2026-10-19 | FAIL | #1269 (CPU stub, as surface 10, when a prompt is passed). With no prompt, the `?` widget cannot take a request (#1671) |
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection. The README claimed it until #1680 fixed #1677 on 2026-10-19) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
