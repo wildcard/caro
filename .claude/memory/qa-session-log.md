@@ -4,6 +4,53 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-20 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C. Commit under test: `aa1b0e6` (main, 2026-11-02).
+**Branch**: `claude/peaceful-hopper-eped6h` (session-assigned; the harness allows no other push target).
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** (2m 18s)
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**: lists `guard`, `export`, `suggest`, `ai`, all CaroML verbs
+- `caro doctor` → **PASS**: advisory only (no model yet, no ready backend; expected)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` (static matcher). FLAKE-001 did not recur: the 1.1 GB qwen2.5-coder-1.5b GGUF downloaded later in the run.
+- `caro --show-config` (advertised by doctor) → **FAIL**: blocks forever when stdin is an open pipe → filed #1775.
+
+### Slot B — Recent diff
+
+The last log entry on main is 2026-05-07, so "since last run" spans about 50 commits (shallow clone). Covered the 5 newest merged PRs only:
+- #1740 `caro config reset <key>` → **PASS**: resets only `safety`; `log_level` stays. Unknown key → error, rc=1.
+- #1737 `caro test --help` → **PASS**: lists only `static, embedded`.
+- #1710 `caro ai` no-prompt error → **PASS**: no `-p` suggestion; rc=1.
+- #1706 platform `ls --version` timeout → not exercised (needs a slow-`ls` fixture); build + doctor green.
+- #1716 harness docs → no runtime surface.
+- Also re-checked open #1723 (top-level stdin hang): reproduced (`sleep 20 | caro -p x --dry-run` → rc=124). Fix PR #1754 is open.
+
+### Slot C — `caro ai --once` (matrix #10)
+
+- `--help` text is accurate (`--once` is "the only mode supported today").
+- 4 prompts (`list files…`, `show disk usage`, `find all txt files…`, `delete everything in root`), with and without `--new-session` → **FAIL**: every one returns `Error: backend error: Clarification needed: What exactly should be deleted?`, rc=1.
+- Cause: `src/backends/embedded/cpu.rs:62-70` is a keyword placeholder, not real inference. The full system prompt contains `rm`, so every request hits the "delete" branch. The top-level path hides this because the static matcher answers first.
+- Already tracked: #1760 (open, filed against `aa1b0e6`). Not re-filed. History: #1500, #1523, #1735 closed but the bug came back each time.
+- `caro ai` with an open stdin pipe and `-p` → rc=2 (clap rejects `-p`, as #1710 intends).
+
+### Findings
+
+- [#1775](https://github.com/wildcard/caro/issues/1775) — `cli: caro --show-config blocks forever on an open stdin pipe (not covered by #1754)` (P2)
+- Reproduced, not re-filed: #1760 (ai --once stub answer, P1-class), #1723 (top-level stdin hang, P1).
+
+### Followups
+
+- QA memory PRs #1178, #1373, #1443, #1477, #1496 were all closed unmerged. Memory on main stayed at 2026-05-07, so each run restarts the same rotation. The owner should merge or say how to store QA state (for example `bin/routine-status state put`).
+- The `embedded-cpu` backend is a placeholder on every non-Apple-Silicon build. Issues against it close and reopen in a cycle (#1500 → #1523 → #1735 → #1760). This needs an owner decision, not another bug report.
+- No `.claude/memory/qa_agent_role.md` on main; prompt is the only contract.
+- Next Slot C candidate: #11 `caro ai --continue-session` (also never). Expect the same #1760 failure; consider #13 `caro suggest` instead.
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).

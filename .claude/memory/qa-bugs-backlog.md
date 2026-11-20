@@ -8,7 +8,8 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | closed 2026-05-09 | 2026-05-07 |
+| [#1775](https://github.com/wildcard/caro/issues/1775) | P2 | cli | `caro --show-config` blocks forever on an open stdin pipe (not covered by #1754) | open | 2026-11-20 |
 
 ---
 
