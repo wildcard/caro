@@ -62,7 +62,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1483](https://github.com/wildcard/caro/issues/1483) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (regression of #1044) | closed (duplicate) | 2026-09-29 |
 | [#1484](https://github.com/wildcard/caro/issues/1484) | P2 | ai | caro ai --once silently blocks indefinitely when no model is available | closed (duplicate) | 2026-09-29 |
 | [#1520](https://github.com/wildcard/caro/issues/1520) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (recurring drift, root cause unresolved) | closed (duplicate) | 2026-10-03 |
-| [#1269](https://github.com/wildcard/caro/issues/1269) | P1 | embedded | CPU stub `rm`-in-system-prompt: all non-static-matched queries return clarification stub | open; re-confirmed by the runs of 2026-10-16, 10-18, 10-19, 10-21, 10-22, 10-27, 10-28, 10-29, 10-30, 11-01, 11-10, 11-12, 11-15, 11-17 and 11-19 | 2026-06-26 |
+| [#1269](https://github.com/wildcard/caro/issues/1269) | P1 | embedded | CPU stub `rm`-in-system-prompt: all non-static-matched queries return clarification stub | open; re-confirmed by the runs of 2026-10-16, 10-18, 10-19, 10-21, 10-22, 10-27, 10-28, 10-29, 10-30, 11-01, 11-10, 11-12, 11-15, 11-17, 11-19 and 11-20 | 2026-06-26 |
 | [#1673](https://github.com/wildcard/caro/issues/1673) | P0 (as filed) | ai | `caro ai --once` returns the deletion clarification for every prompt — the CPU stub of canonical [#1269](https://github.com/wildcard/caro/issues/1269) (BW-006); filed by the 2026-10-15 run (#1674), which could not see this backlog | closed (duplicate of #1269, 2026-10-15) | 2026-10-15 |
 | [#1677](https://github.com/wildcard/caro/issues/1677) | P2 | docs | README documented `caro assess`, which is disabled in 1.5.0 | closed; fixed by #1680 (2026-10-19) | 2026-10-16 |
 | [#1697](https://github.com/wildcard/caro/issues/1697) | P2 | cli | `caro guard test` swallows a trailing `--output json` into the command | open | 2026-10-21 |
@@ -82,6 +82,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1750](https://github.com/wildcard/caro/issues/1750) | P2 | shell-integration | `caro completion <unknown-shell>` prints the bash script and exits 0; help lists only bash, zsh and fish | open | 2026-11-05 |
 | [#1771](https://github.com/wildcard/caro/issues/1771) | P1 | safety | `config set safety strict` is ignored on the main path; `--safety <typo>` silently falls back to Moderate | open | 2026-11-18 |
 | [#1772](https://github.com/wildcard/caro/issues/1772) | P3 | safety | `curl ... | sh` is denied, but the reason says it targets a catastrophic, irrecoverable location | open | 2026-11-18 |
+| [#1775](https://github.com/wildcard/caro/issues/1775) | P2 | cli | `caro --show-config` blocks forever on an open stdin pipe: `main()` reads stdin before the handler, and #1754 (open) does not cover it. Related: #1723 | open | 2026-11-20 |
 
 ---
 
