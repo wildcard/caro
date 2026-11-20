@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-19 (23:00 PT fire) — remote-backend roster + MLX re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-10-19). PASS: MLX embedded (`caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls -la`, exit 0; qualifier drop is still #1645). PASS: `--backend claude|ollama|vllm|exo|openrouter|grok` each → `Configuration error: Backend '<name>' requires the 'remote-backends' feature`, exit 1. `--backend-info` lists only `embedded` as available. FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (exit 142). Control with `</dev/null` → `ls -la`, exit 0. This is #1723.
+- **Shipped:** no new PR. Nothing merged since 2026-11-18. #1754 (fix for #1723) and #1758 are `MERGEABLE`/`UNSTABLE`. #1738 is `CLEAN`. #1708, #1719, #1713 and #1624 are `CONFLICTING`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Dedup: #1723 matches the hang; #1645 matches the qualifier drop.
+- **Discovered:** one web query. A single source says DeepSeek launched an enhanced coding agent on 2026-11-01; not confirmed to be a CLI, so no row added. Pi 1.5.0 reported 2026-11-02 (single source) — noted on the Pi row.
+- **Next pass should:** check if #1754 / #1758 merged. If #1754 merged and a release shipped, re-test the hang. Otherwise the oldest rows are the `caro-shell` skill and the marketing surfaces (2026-10-13).
+
+---
+
 ## 2026-11-18 (23:00 PT fire) — guard adapters re-validated; backlog unchanged; no new PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0). PASS: `caro guard --mode enforce --harness codex` (`rm -rf /` → `permissionDecision: deny`; `ls -la` → no output); `--harness grok` (camelCase payload → deny); `--harness opencode` (`rm -rf /` → `verdict: deny`, exit 2; `ls` → `verdict: none`, exit 0). These three rows were the oldest (2026-10-03). FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (alarm, exit 142). Control with `</dev/null` succeeds. This is #1723.

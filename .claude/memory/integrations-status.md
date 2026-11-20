@@ -3,7 +3,9 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-11-18 — ✓ VERIFIED published `caro 1.5.0` (still newest on crates.io). PASS: `caro guard` adapters for Codex, Grok Build and OpenCode (enforce mode, `rm -rf /` → deny, safe → allow). #1723 stdin hang still reproduces; fix PR #1754 still open. No new PR: 6a merge-backlog rule applies.
+> **Last updated:** 2026-11-19 — ✓ VERIFIED published `caro 1.5.0` (still newest on crates.io). PASS: MLX embedded (`list pdf files…` → `ls -la`, still #1645); claude/ollama/vllm/exo/openrouter/grok each → `Configuration error: … requires the 'remote-backends' feature`, exit 1; `--backend-info` lists only `embedded` as available. #1723 stdin hang still reproduces (exit 142 at 8 s; `</dev/null` control passes). No new PR: rule 6a, backlog unchanged.
+>
+> **Previous:** 2026-11-18 — ✓ VERIFIED published `caro 1.5.0` (still newest on crates.io). PASS: `caro guard` adapters for Codex, Grok Build and OpenCode (enforce mode, `rm -rf /` → deny, safe → allow). #1723 stdin hang still reproduces; fix PR #1754 still open. No new PR: 6a merge-backlog rule applies.
 >
 > **Previous:** 2026-11-09 — ✓ VERIFIED published `caro 1.5.0` (still newest on crates.io). Re-validated Candle CPU, `caro guard`, and the `caro-shell` blocking path. New finding: agent-subprocess stdin hang (#1723) reproduces on 1.5.0; fix is open as PR #1754. No code PR from the integrator tonight.
 >
@@ -33,14 +35,14 @@
 
 | Tool | Status | Last validated | Method | GH | Notes |
 |---|---|---|---|---|---|
-| Anthropic Claude API | ⚠️ partial (feature-gated) | 2026-10-19 | ✓ VERIFIED published `caro 1.5.0`: `caro --backend claude --dry-run -p "..."` → `Configuration error: Backend 'claude' requires the 'remote-backends' feature, which is not compiled into this build.` + fix instructions. `--backend-info` lists it as `not compiled` (consistent with the error). | #1081 (tracking home; wiring is done, feature-gate omission from default build remains) | #1115/#1298 divergence is CLOSED for claude: no more `Unknown backend`, no silent fallback — a clean, consistent config error. Needs `--features remote-backends` + `ANTHROPIC_API_KEY` to actually route. |
-| Ollama | ⚠️ partial (feature-gated) | 2026-10-19 | ✓ VERIFIED published `caro 1.5.0`: `caro --backend ollama --dry-run -p "..."` → `Configuration error: ... requires the 'remote-backends' feature`, exit 1. No more silent WARN-fallback. | — | Behavior improved since 2026-05-11: was silent fallback, now a loud, actionable error. `remote-backends` still not in default features. |
-| vLLM | ⚠️ partial (feature-gated) | 2026-10-19 | ✓ VERIFIED published `caro 1.5.0`: same loud config error as Ollama, no silent fallback | — | Same root cause/fix as Ollama; same improvement since 2026-05-11. |
-| Exo | ⚠️ partial (feature-gated) | 2026-10-19 | ✓ VERIFIED published `caro 1.5.0`: same loud config error as Ollama, no silent fallback | — | Same root cause/fix as Ollama; same improvement since 2026-05-11. |
-| MLX (Apple Silicon embedded) | ✅ working | 2026-10-19 | ✓ VERIFIED published `caro 1.5.0`: `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls -la` (file-type qualifier dropped — see #1645, separate from this row) | — | `embedded-mlx` is in default features; works in default `cargo install caro` build. |
+| Anthropic Claude API | ⚠️ partial (feature-gated) | 2026-11-19 | ✓ VERIFIED published `caro 1.5.0`: `caro --backend claude --dry-run -p "..."` → `Configuration error: Backend 'claude' requires the 'remote-backends' feature, which is not compiled into this build.` + fix instructions. `--backend-info` lists it as `not compiled` (consistent with the error). | #1081 (tracking home; wiring is done, feature-gate omission from default build remains) | #1115/#1298 divergence is CLOSED for claude: no more `Unknown backend`, no silent fallback — a clean, consistent config error. Needs `--features remote-backends` + `ANTHROPIC_API_KEY` to actually route. |
+| Ollama | ⚠️ partial (feature-gated) | 2026-11-19 | ✓ VERIFIED published `caro 1.5.0`: `caro --backend ollama --dry-run -p "..."` → `Configuration error: ... requires the 'remote-backends' feature`, exit 1. No more silent WARN-fallback. | — | Behavior improved since 2026-05-11: was silent fallback, now a loud, actionable error. `remote-backends` still not in default features. |
+| vLLM | ⚠️ partial (feature-gated) | 2026-11-19 | ✓ VERIFIED published `caro 1.5.0`: same loud config error as Ollama, no silent fallback | — | Same root cause/fix as Ollama; same improvement since 2026-05-11. |
+| Exo | ⚠️ partial (feature-gated) | 2026-11-19 | ✓ VERIFIED published `caro 1.5.0`: same loud config error as Ollama, no silent fallback | — | Same root cause/fix as Ollama; same improvement since 2026-05-11. |
+| MLX (Apple Silicon embedded) | ✅ working | 2026-11-19 | ✓ VERIFIED published `caro 1.5.0`: `caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls -la` (file-type qualifier dropped — see #1645, separate from this row) | — | `embedded-mlx` is in default features; works in default `cargo install caro` build. |
 | Candle CPU (embedded) | ✅ working | 2026-11-17 | ✓ VERIFIED published `caro 1.5.0`: `caro --dry-run -p "show disk usage" </dev/null` → `df -h` ✓ (auto-fallback path) | — | `embedded-cpu` is in default features; works in default build. |
-| OpenRouter | ⚠️ partial (feature-gated) | 2026-10-19 | ✓ VERIFIED published `caro 1.5.0`: `caro --backend openrouter --dry-run -p "..."` → same loud `Configuration error: ... requires the 'remote-backends' feature` | #931, #1081 | `openrouter.rs` is `openai_compat.rs`; CLI-wired since PR #1513, same feature-gate omission as the others. |
-| xAI Grok | ⚠️ partial (feature-gated) | 2026-10-19 | ✓ VERIFIED published `caro 1.5.0`: `caro --backend grok --dry-run -p "..."` → same loud `Configuration error: ... requires the 'remote-backends' feature` | PR #1513 | `--backend grok` / `--advisor grok` / `hybrid_remote = "grok"`; `XAI_API_KEY`. Consistent with claude/openrouter/ollama/vllm/exo. |
+| OpenRouter | ⚠️ partial (feature-gated) | 2026-11-19 | ✓ VERIFIED published `caro 1.5.0`: `caro --backend openrouter --dry-run -p "..."` → same loud `Configuration error: ... requires the 'remote-backends' feature` | #931, #1081 | `openrouter.rs` is `openai_compat.rs`; CLI-wired since PR #1513, same feature-gate omission as the others. |
+| xAI Grok | ⚠️ partial (feature-gated) | 2026-11-19 | ✓ VERIFIED published `caro 1.5.0`: `caro --backend grok --dry-run -p "..."` → same loud `Configuration error: ... requires the 'remote-backends' feature` | PR #1513 | `--backend grok` / `--advisor grok` / `hybrid_remote = "grok"`; `XAI_API_KEY`. Consistent with claude/openrouter/ollama/vllm/exo. |
 | Gemini / Jules | 🚧 in-progress | — | — | PR #782 | Coordinate with existing PR; don't fork |
 | LM Studio + FunctionGemma | 🚧 in-progress | — | — | PR #558 | Tracked, no action this night |
 | quant.cpp | 🚧 in-progress | — | — | PR #838 | Tracked, no action this night |
@@ -65,7 +67,7 @@
 | droid | ⏳ not-yet | — | MCP or OpenAI shim | TBD | |
 | Sourcegraph Amp | ⏳ not-yet | — | MCP | TBD | Enterprise coding agent |
 | Letta (MemGPT) | ⏳ not-yet | — | Tool registration | TBD | Persistent-memory agents |
-| Pi | ⏳ not-yet | — | TBD | TBD | Earendil Pi 1.0 (MIT, terminal agent) reported stable 2026-10-01; unverified secondary source (2026-11-17 research) |
+| Pi | ⏳ not-yet | — | TBD | TBD | Earendil Pi 1.0 (MIT, terminal agent) reported stable 2026-10-01; unverified secondary source (2026-11-17 research) Pi 1.5.0 reported 2026-11-02 (single source, unverified). |
 | Aug | ⏳ not-yet | — | TBD | TBD | |
 | CodePal | ⏳ not-yet | — | TBD | TBD | |
 | Kilo CLI | ⏳ not-yet | — | MCP or OpenAI shim | — | Kilo CLI 1.0, open-source terminal agent (discovered 2026-11-17) |
