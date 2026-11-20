@@ -340,3 +340,14 @@ The 2026-11-19 run used the old prompt and read main's May copy. It ran on the b
 - **Not new:** the `caro ai --once` failure is #1269. #1760 is an open duplicate. #1269 keeps P1 and its re-confirmed list gains 11-19. #1772 and #1720 were already recorded.
 - **Not changed:** its Slot B checks (#1740, #1737, #1710, #1683, #1685, #1687) are help, exit-code and error-message checks.
 - **Flakes:** FLAKE-001 was not triggered.
+
+## Added after seeding: #1776 (2026-11-20)
+
+The 2026-11-20 run used the old prompt and read main's May copy. It ran on the branch `claude/peaceful-hopper-eped6h`. It was folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-20; surfaces 10 (FAIL, the CPU stub of #1269) and 14 (`caro config`, PASS) get the new date and keep their links.
+- **New issue:** #1775 (P2): `caro --show-config` blocks forever on an open stdin pipe. Confirmed in main's code by static reading: `main()` reads stdin before the `--show-config` handler. #1754 does not cover it. Related to #1723. Added to the watch list and the bug-filings table.
+- **Not new:** the `caro ai --once` failure is #1269. #1760 is an open duplicate. #1269 keeps P1 and its re-confirmed list gains 11-20.
+- **Its question:** the run asks where QA state should live. It lives on `automation/routine-status` under `state/qa-rotation`; the PR is closed.
+- **Flakes:** FLAKE-001 was not triggered.
