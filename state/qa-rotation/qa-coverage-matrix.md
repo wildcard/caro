@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-19
+**Last updated**: 2026-11-20
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -79,6 +79,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-17 | PASS | PASS (1.5.0) | PASS | PASS | PASS | static matcher returned `ls -la` |
 | 2026-11-18 | PASS | PASS (1.5.0) | PASS | PASS | PASS | `ls -la` via static matcher |
 | 2026-11-19 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Dry-run served by static matcher (`ls -la`), no model download needed |
+| 2026-11-20 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher answered; the model downloaded. `--show-config` hangs on open stdin (#1775) |
 
 ---
 
@@ -97,11 +98,11 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 7 | Safety CVE patterns (ruleset load, shell filters) | safety | 2026-10-08 | PASS | — |
 | 8 | Full library test suite (cargo test --lib) | cli | 2026-09-07 | PASS | — |
 | 9 | CaroML: `caro new / check / list / jobs` | cli | 2026-05-07 | PASS | — |
-| 10 | `caro ai --once` scripted conversational mode | ai | 2026-11-19 | FAIL | #1269 (CPU stub; #1673, #1735, #1760 and #1763 are its duplicates), #1272, #1408 (open) |
+| 10 | `caro ai --once` scripted conversational mode | ai | 2026-11-20 | FAIL | #1269 (CPU stub; #1673, #1735, #1760 and #1763 are its duplicates), #1272, #1408 (open) |
 | 11 | `caro ai --continue-session` shell widget | ai | 2026-10-19 | FAIL | #1269 (CPU stub, as surface 10, when a prompt is passed). With no prompt, the `?` widget cannot take a request (#1671) |
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection. The README claimed it until #1680 fixed #1677 on 2026-10-19) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
-| 14 | `caro config get/set/show/reset` | cli | 2026-11-14 | PASS | — (minor, not filed: the `safety bogus` error repeats its message; `config show` labels `telemetry.enabled` as `telemetry`) |
+| 14 | `caro config get/set/show/reset` | cli | 2026-11-20 | PASS | — (minor, not filed: the `safety bogus` error repeats its message; `config show` labels `telemetry.enabled` as `telemetry`) |
 | 15 | `caro --output json` format correctness | cli | 2026-11-13 | PASS (an invalid value is silently accepted) | [#1726](https://github.com/wildcard/caro/issues/1726); --dry-run --output json shows the dry_run:true field (Slot B via fix(cli) #1532) |
 | 16 | `caro --output yaml` format correctness | cli | 2026-11-13 | PASS | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | 2026-11-11 | FAIL (an unknown shell prints the bash script and exits 0; bash, zsh and fish PASS) | [#1750](https://github.com/wildcard/caro/issues/1750) |
@@ -189,6 +190,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1750](https://github.com/wildcard/caro/issues/1750) | `caro completion` unknown-shell fallback to bash | shell-integration | 2026-11-05 | open |
 | [#1771](https://github.com/wildcard/caro/issues/1771) | Safety level threading: config file + `--safety` validation | safety | 2026-11-18 | open |
 | [#1772](https://github.com/wildcard/caro/issues/1772) | `caro guard` catastrophic-floor reason text | safety | 2026-11-18 | open |
+| [#1775](https://github.com/wildcard/caro/issues/1775) | `caro --show-config` with an open stdin pipe | cli | 2026-11-20 | open |
 
 ---
 
