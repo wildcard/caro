@@ -4,6 +4,52 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-21 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C. Commit under test: `aa1b0e6` (main, 2026-11-02).
+**Branch**: `claude/peaceful-hopper-32aqql` (session-assigned). No PR: this state is written with `bin/routine-status state put`, per `.claude/automation/CONTRACT.md` §5.
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS**
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**: lists `guard`, `export`, `ai`, all CaroML verbs
+- `caro doctor` → **PASS**: advisory only (no model at start, no ready backend; expected)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` (static matcher). The qwen2.5-coder-1.5b model downloaded later in the run (FLAKE-001 not triggered).
+
+### Slot B — Recent diff
+
+No commits on main since 2026-11-02, the same commit as the 2026-11-20 run. Re-checked the newest PRs quickly:
+- #1740 `config reset safety` → **PASS** (Strict → Moderate). Note: `CARO_CONFIG_DIR` is ignored; config went to `~/.config/caro` (BW-038, known).
+- #1737 `caro test --backend mlx` → **PASS**: parse-time error, rc=2.
+- #1710 `caro ai --once </dev/null` → **PASS**: message names trailing text and stdin, rc=1.
+- #1685/#1687 `caro guard test` → **PASS**: `curl … | sh` and `wget -qO- … | bash` deny rc=2; `ls -la` none rc=0. The deny reason says "targets a catastrophic, irrecoverable location", which is #1772 (open). Not re-filed.
+
+### Slot C — CaroML `run / generate / render / history` (matrix #21)
+
+This run first read main's stale May copy and re-tested #10 (`caro ai --once`): same CPU-stub result as 2026-11-20 (#1269, #1760). Not re-filed. It then read this state and picked #21, the lowest testable "never" row (#19 is blocked by #1269, #20 needs Ollama).
+- `caro new` / `check` → **PASS**. `check` accepts the scaffold's `<placeholder>` lines as `ok` (minor, not filed).
+- `caro render` → **PASS**: Markdown with title, why, platform prefs and steps.
+- `caro history` / `run --dry-run` before a lock → **PASS**: clear errors that name `caro generate`, rc=1.
+- `caro generate disk-report --platform linux` → **FAIL**: prints `generated`, rc=0, but every step is `echo "<DO text>"` from `backend = "mock"`. `--backend embedded` fails: "only `mock` is supported until PR 5". `generate --help` says the default is the configured backend. Filed **#1777** (P1, release-gap).
+- `caro run --dry-run` / `history` after generate → **PASS** (they show the mock plan and lineage correctly).
+- `caro export -o ./out.sh` → **PASS**, but the header says "`caro upgrade` to refresh", and no such subcommand exists. Filed **#1778** (P3).
+- Nothing was executed: only `--dry-run` and file output.
+
+### Findings
+
+- [#1777](https://github.com/wildcard/caro/issues/1777) — `caro generate` always uses the mock backend; help says configured backend (P1, release-gap). `fp:qa-rotation/caroml-generate-mock-only`
+- [#1778](https://github.com/wildcard/caro/issues/1778) — runbook header names nonexistent `caro upgrade` (P3). `fp:qa-rotation/runbook-caro-upgrade-missing`
+
+### Followups
+
+- **Prompt drift (again):** the scheduled prompt still says to read `.claude/memory/qa-*.md` on main and open a PR. CONTRACT.md §5 and the 2026-11-20 fold note say state lives here. The prompt should say `bin/routine-status state get qa-rotation <file>` first. Until it does, each run starts from the May copy and repeats #10.
+- `gh` CLI token is invalid; GitHub MCP and `gh api search` worked.
+- Next Slot C: #22 (CaroML `experiment / adopt / why`).
+
+---
+
 ## 2026-11-20 — Scheduled run (Slot A + Slot B + Slot C)
 
 > Folded from #1776 into this state on 2026-11-20. The run read main's May copy and used the branch `claude/peaceful-hopper-eped6h`. It filed one new issue, #1775 (P2). Static reading of main confirms it: `main()` reads stdin through `is_stdin_available()` and `read_stdin()` (around line 3578 of `src/main.rs`) before the `--show-config` handler (around line 3775), so `--show-config` blocks on an open pipe. #1754 only stops that read when a prompt is given, so it does not cover `--show-config`. No earlier issue names `--show-config`. Its `caro ai --once` failure is the CPU stub of #1269; #1760 is an open duplicate. The run asks where QA state should live: it lives on `automation/routine-status` under `state/qa-rotation`, and the PR is closed. The ids #1178, #1373, #1443, #1477 and #1496 it lists are older QA PRs that were also closed unmerged.
