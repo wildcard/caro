@@ -83,6 +83,8 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1771](https://github.com/wildcard/caro/issues/1771) | P1 | safety | `config set safety strict` is ignored on the main path; `--safety <typo>` silently falls back to Moderate | open | 2026-11-18 |
 | [#1772](https://github.com/wildcard/caro/issues/1772) | P3 | safety | `curl ... | sh` is denied, but the reason says it targets a catastrophic, irrecoverable location | open | 2026-11-18 |
 | [#1775](https://github.com/wildcard/caro/issues/1775) | P2 | cli | `caro --show-config` blocks forever on an open stdin pipe: `main()` reads stdin before the handler, and #1754 (open) does not cover it. Related: #1723 | open | 2026-11-20 |
+| [#1777](https://github.com/wildcard/caro/issues/1777) | P1 | cli | `caro generate` always uses the mock backend (`src/main.rs:1562`); help says "configured backend"; lock steps are `echo "<intent>"` | open | 2026-11-21 |
+| [#1778](https://github.com/wildcard/caro/issues/1778) | P3 | cli | Exported runbook header says `caro upgrade` to refresh; no such subcommand (`src/caroml/runbook.rs:174`) | open | 2026-11-21 |
 
 ---
 
