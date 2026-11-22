@@ -4,6 +4,52 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-22 — Scheduled run (Slot A + Slot C)
+
+> Folded from #1780 into this state on 2026-11-22. The run read this state first and copied it to its branch `claude/peaceful-hopper-o95zhc`; the folded files differ from the state only by the 2026-11-22 rows. It filed one new issue, #1779 (P1). Static reading of main confirms it: `run_caroml_experiment` in `src/main.rs` sets `adopted_id` inside the step loop, so it holds only the last step's `_stepN` id, and `caro history` shows the shared generation id. No earlier issue names `adopt` or `experiment`.
+
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C. Commit under test: `aa1b0e6` (main, 2026-11-02).
+**Branch**: `claude/peaceful-hopper-o95zhc` (session-assigned). State read first with `git show origin/automation/routine-status:state/qa-rotation/<file>`, per CONTRACT.md §5.
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS**
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**: lists `guard`, `export`, `experiment`, `adopt`, `why`, all CaroML verbs
+- `caro doctor` → **PASS**: advisory only (no model, no Ollama; expected)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` (static matcher)
+
+### Slot B — Recent diff
+
+Skipped. `origin/main` is still `aa1b0e6` (2026-11-02), the same commit as the 2026-11-21 run. No PRs merged since.
+
+### Slot C — CaroML `experiment / adopt / why` (matrix #22)
+
+Workspace: a scratch dir with a 3-step `disk-report.caro`. Nothing executed; `run` only with `--dry-run`.
+- `caro why` before a lock → **PASS**: `HardRegen`, reason "no lock file present", rc=0.
+- `caro experiment` before a lock → **PASS**: clear error naming `caro generate`, rc=1.
+- `caro generate --platform linux` then `why` → **PASS**: `UseCache`, "cache is fresh". Cosmetic: the decision prints in Debug quotes (`"UseCache"`). Not filed.
+- `caro experiment --platform linux` → adds one inactive challenger per step, but prints only `gen_2026-11-22_linux_d_step2`.
+- `caro adopt --variant gen_…_d_step2` → **FAIL**: promotes step 3 only; steps 1–2 keep `gen_…_a`. The id that `history` shows (`gen_…_d`) gives "not found". Filed **#1779** (P1). Same code: the suffix is `_d`, not `_b`, because it counts steps, not generations (noted in #1779).
+- `adopt` error paths → **PASS**: unknown id and already-active id both give clear errors, rc=1.
+- `history` → **PASS**: shows both generations with `trigger: experiment`.
+- `run --dry-run` → **PASS** (mock `echo` steps; #1777 known).
+
+### Findings
+
+- [#1779](https://github.com/wildcard/caro/issues/1779) — `caro adopt` promotes only the last step of a multi-step `caro experiment` challenger (P1). `fp:qa-rotation/caroml-adopt-single-step`
+
+### Followups
+
+- **Prompt drift (3rd run):** the scheduled prompt still says main's `.claude/memory/qa-*.md` and a PR. This run read the status-branch state first, so it did not repeat #10.
+- **Push target:** this session may push only to `claude/peaceful-hopper-o95zhc`. So this run did not run `bin/routine-status state put`. The updated state files are on that branch under `.claude/memory/`, for the owner to fold in.
+- `gh` CLI: only `gh api search` used; MCP for issue filing.
+- Next Slot C: #23 (CaroML `caro do` Carofile job runner).
+
+---
+
 ## 2026-11-21 — Scheduled run (Slot A + Slot B + Slot C)
 
 **Trigger**: scheduled cron 14:00 UTC.
