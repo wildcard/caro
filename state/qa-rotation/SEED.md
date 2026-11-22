@@ -351,3 +351,13 @@ The 2026-11-20 run used the old prompt and read main's May copy. It ran on the b
 - **Not new:** the `caro ai --once` failure is #1269. #1760 is an open duplicate. #1269 keeps P1 and its re-confirmed list gains 11-20.
 - **Its question:** the run asks where QA state should live. It lives on `automation/routine-status` under `state/qa-rotation`; the PR is closed.
 - **Flakes:** FLAKE-001 was not triggered.
+
+## Added after seeding: #1780 (2026-11-22)
+
+The 2026-11-22 run read this state first and ran on the branch `claude/peaceful-hopper-o95zhc`. It could not push to `automation/routine-status`, so it left the updated files on its branch and asked for a fold. Folded the same day:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-22; surface 22 (CaroML `experiment / adopt / why`) goes from never tested to FAIL, linked to #1779.
+- **New issue:** #1779 (P1): `caro adopt` promotes only the last step of a multi-step `caro experiment` challenger. Confirmed in main's code by static reading: `adopted_id` is overwritten on each step. No earlier issue covers it. It is in the watch list and the bug-filings table.
+- **Flakes:** FLAKE-001 was not triggered.
+
