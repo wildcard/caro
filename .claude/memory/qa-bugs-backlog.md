@@ -8,7 +8,84 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
-| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1221](https://github.com/wildcard/caro/issues/1221) | P1 | cli | --backend-info lists invalid backends (static, claude) and omits valid ones (exo, mesh, ai-horde, hybrid) | open | 2026-06-13 |
+| [#1222](https://github.com/wildcard/caro/issues/1222) | P1 | cli | e2e_safety_level_configuration test fails — cargo fallback missing --bin caro with multiple binaries | closed | 2026-06-13 |
+| [#1319](https://github.com/wildcard/caro/issues/1319) | P2 | docs | CLAUDE.md version banner shows 1.4.0 (GA) after 1.5.0 release | closed (duplicate) | 2026-07-12 |
+| [#1332](https://github.com/wildcard/caro/issues/1332) | P1 | cli | `caro config set telemetry.enabled false` fails — advertised opt-out command not wired in | closed (duplicate) | 2026-07-16 |
+| [#1277](https://github.com/wildcard/caro/issues/1277) | P1 | embedded | CPU placeholder misfires on non-static-matched queries via `caro -p` and all queries via `caro ai --once` (system prompt contains "rm", triggers danger branch) | closed (duplicate) | — |
+| [#1334](https://github.com/wildcard/caro/issues/1334) | P1 | embedded | `caro ai --once` broken (CPU stub, confirmed v1.5.0) | closed (duplicate) | 2026-07-18 |
+| [#1366](https://github.com/wildcard/caro/issues/1366) | P2 | docs | CLAUDE.md version banner shows 1.4.0 (GA) instead of 1.5.0 | closed (duplicate) | 2026-07-22 |
+| [#1372](https://github.com/wildcard/caro/issues/1372) | P2 | docs | CLAUDE.md version 1.4.0 vs 1.5.0 (recurrence #1044; duplicate of #1442) | closed (duplicate) | 2026-07-25 (from #1373 branch) |
+| [#1387](https://github.com/wildcard/caro/issues/1387) | P1 | ai | `caro ai --once` bypasses static matcher; returns fallback for every prompt when LLM unavailable | closed (duplicate) | 2026-08-01 |
+| [#1388](https://github.com/wildcard/caro/issues/1388) | P2 | docs | CLAUDE.md version shows 1.4.0 instead of 1.5.0 (recurrence of #1044) | closed (duplicate) | 2026-08-01 |
+| [#1375](https://github.com/wildcard/caro/issues/1375) | P1 | ai | `caro ai --once` CpuBackend always returns placeholder on Linux x86_64 | closed (duplicate) | 2026-07-26 |
+| [#1422](https://github.com/wildcard/caro/issues/1422) | P2 | cli | `caro ai --once` rejects global `-p`/`--prompt` flag — inconsistent with top-level usage | closed (duplicate) | 2026-07-26 |
+| [#1421](https://github.com/wildcard/caro/issues/1421) | P2 | ai | `caro ai --once` returns echo placeholder instead of informative error when no backend available | closed (duplicate) | 2026-07-26 |
+| [#1369](https://github.com/wildcard/caro/issues/1369) | P2 | cli | `caro ai --once` hint for --execute omits required global flag placement | open | 2026-07-25 |
+| [#1442](https://github.com/wildcard/caro/issues/1442) | P2 | docs | CLAUDE.md version drift 1.4.0 vs actual 1.5.0 | closed (duplicate) | 2026-09-07 |
+| [#1449](https://github.com/wildcard/caro/issues/1449) | P2 | cli | caro ai --once hangs silently with no output when embedded model is unavailable | closed (duplicate) | 2026-09-12 |
+| [#1450](https://github.com/wildcard/caro/issues/1450) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (re-drift) | closed (duplicate) | 2026-09-12 |
+| [#1494](https://github.com/wildcard/caro/issues/1494) | P1 | ai | `caro ai --once` CPU backend always returns deletion-clarification (system prompt contains "rm") — duplicate of canonical [#1269](https://github.com/wildcard/caro/issues/1269) (BW-006) | closed (duplicate) | 2026-10-01 |
+| [#1495](https://github.com/wildcard/caro/issues/1495) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 — duplicate of canonical [#1098](https://github.com/wildcard/caro/issues/1098) (BW-002); QA agent re-filed instead of commenting | closed (duplicate) | 2026-10-01 |
+| [#1499](https://github.com/wildcard/caro/issues/1499) | P1 | ai | `caro ai --once` hangs indefinitely in non-TTY environments (blocking stdin read) | closed | 2026-10-02 |
+| [#1500](https://github.com/wildcard/caro/issues/1500) | P2 | embedded | CPU backend stub returns misleading "What exactly should be deleted?" for all queries | closed (duplicate) | 2026-10-02 |
+| [#1501](https://github.com/wildcard/caro/issues/1501) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 — drift recurred after #1044 | closed (duplicate) | 2026-10-02 |
+| [#1179](https://github.com/wildcard/caro/issues/1179) | P1 | ai | `caro ai --once` lacks static-matcher fallback — always requires model download | open | 2026-05-28 |
+| [#1408](https://github.com/wildcard/caro/issues/1408) | P1 | ai | `caro ai --once` provides zero user feedback during model initialization | open; #1415 adds one stderr line before backend setup, not a fix: the download wait stays silent (2026-10-15 review) | 2026-08-15 |
+| [#1540](https://github.com/wildcard/caro/issues/1540) | P2 | ai | caro ai --once hangs silently with no feedback when no backend is ready | closed (duplicate) | 2026-10-08 |
+| [#1541](https://github.com/wildcard/caro/issues/1541) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (recurrence of #1044) | closed (duplicate) | 2026-10-08 |
+| pending-2 | P2 | ai | `caro ai --once` hangs silently (no output, no timeout msg) when no model; `doctor` doesn't warn | duplicate of #1408 and #1179 (both open), see #1540 — do not file | 2026-10-10 |
+| pending-1 | P2 | docs | CLAUDE.md version banner shows 1.4.0 (GA) instead of 1.5.0 (recurrence of #1044) | fixed by #1478 on 2026-10-11 (closed #1098) — do not file | 2026-10-10 |
+| [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | closed | 2026-05-07 |
+| [#1165](https://github.com/wildcard/caro/issues/1165) | P1 | safety | User allowlist cannot override `rm -rf /tmp/...` despite explicit allowlist pattern (regression from #1110) | open | 2026-05-23 |
+| [#1098](https://github.com/wildcard/caro/issues/1098) | P2 | docs | CLAUDE.md version drift (shows 1.4.0, Cargo.toml is 1.5.0) | closed | 2026-05-07 |
+| [#1169](https://github.com/wildcard/caro/issues/1169) | P1 | safety | `test_allowlist_functionality` broken by PR #1110 Critical pre-scan guard | closed (duplicate) | 2026-05-25 |
+| [#1170](https://github.com/wildcard/caro/issues/1170) | P2 | cli | `cargo test safety` fails — evaluation binary rejects positional filter arg | closed (duplicate) | 2026-05-25 |
+| [#884](https://github.com/wildcard/caro/issues/884) | P2 | i18n | EN landing headline refreshed but DE/JA still on old copy; EN title/H1 inconsistent | open | 2026-04-26 |
+| [#1099](https://github.com/wildcard/caro/issues/1099) | P2 | cli | `caro test --verbose` output identical to non-verbose — per-test details not shown | open | 2026-05-15 |
+| [#1107](https://github.com/wildcard/caro/issues/1107) | P1 | cli | `--backend openrouter` rejected as 'Unknown backend' despite PR #1097 adding backend | open | 2026-05-16 |
+| [#1162](https://github.com/wildcard/caro/issues/1162) | P2 | cli | `cargo test safety` fails — evaluation harness rejects standard cargo test filter | closed | 2026-05-21 |
+| [#1163](https://github.com/wildcard/caro/issues/1163) | P1 | cli | Global flags before subcommands silently bypass subcommand routing | open | 2026-05-22 |
+| [#1164](https://github.com/wildcard/caro/issues/1164) | P2 | cli | `cargo run` fails without `--bin caro` (multi-binary project missing default-run) | closed | 2026-05-22 |
+| [#1176](https://github.com/wildcard/caro/issues/1176) | P1 | safety | `test_allowlist_functionality` fails on main — Critical `rm -rf /` pattern too broad | closed (duplicate) | 2026-05-27 |
+| [#1177](https://github.com/wildcard/caro/issues/1177) | P1 | cli | `caro config set telemetry.enabled false` advertised in consent screen but rejected as unknown key | closed | 2026-05-27 |
+| [#1292](https://github.com/wildcard/caro/issues/1292) | P1 | cli | Telemetry consent screen advertises invalid config key `telemetry.enabled` | closed (duplicate) | 2026-07-11 |
+| [#1293](https://github.com/wildcard/caro/issues/1293) | P1 | cli | `--backend-info` shows wrong backends (static/claude shown; mesh/ai-horde/hybrid missing) | closed (duplicate) | 2026-07-11 |
+| [#1294](https://github.com/wildcard/caro/issues/1294) | P2 | cli | `--backend` help text missing mesh, ai-horde, hybrid (added PR #1209) | closed (duplicate) | 2026-07-11 |
+| [#1295](https://github.com/wildcard/caro/issues/1295) | P2 | ai | `caro ai --once` hangs silently with no feedback when model unavailable | closed (duplicate) | 2026-07-11 |
+| [#1361](https://github.com/wildcard/caro/issues/1361) | P1 | ai | `caro ai --once` returns `echo 'Please clarify your request'` with confidence=0.85 and exit 0 when model unavailable; CPU stub `prompt.contains("rm")` fires on system-prompt words | closed (duplicate) | 2026-07-21 |
+| [#1362](https://github.com/wildcard/caro/issues/1362) | P2 | cli | Static matcher Pattern 43 regex `^(list|show).*(all)?.*(files?)\s*$` rejects "list files in current directory"; `\s*$` over-anchored | open | 2026-07-21 |
+| [#1440](https://github.com/wildcard/caro/issues/1440) | P1 | embedded | Model download hangs indefinitely — HfHubClient has no HTTP timeout | closed | 2026-09-06 |
+| [#1444](https://github.com/wildcard/caro/issues/1444) | P2 | docs | CLAUDE.md version (1.4.0) and MSRV (1.83) out of sync with v1.5.0 (MSRV 1.85) | closed (duplicate) | 2026-09-08 |
+| [#1473](https://github.com/wildcard/caro/issues/1473) | P1 | embedded | CPU backend placeholder always returns "clarify" due to system-prompt contamination | closed (duplicate) | 2026-09-24 |
+| [#1474](https://github.com/wildcard/caro/issues/1474) | P2 | docs | CLAUDE.md version shows 1.4.0 instead of 1.5.0 — regression of #1044 | closed (duplicate) | 2026-09-24 |
+| [#1483](https://github.com/wildcard/caro/issues/1483) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (regression of #1044) | closed (duplicate) | 2026-09-29 |
+| [#1484](https://github.com/wildcard/caro/issues/1484) | P2 | ai | caro ai --once silently blocks indefinitely when no model is available | closed (duplicate) | 2026-09-29 |
+| [#1520](https://github.com/wildcard/caro/issues/1520) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (recurring drift, root cause unresolved) | closed (duplicate) | 2026-10-03 |
+| [#1269](https://github.com/wildcard/caro/issues/1269) | P1 | embedded | CPU stub `rm`-in-system-prompt: all non-static-matched queries return clarification stub | open; re-confirmed by the runs of 2026-10-16, 10-18, 10-19, 10-21, 10-22, 10-27, 10-28, 10-29, 10-30, 11-01, 11-10, 11-12, 11-15, 11-17, 11-19 and 11-20 | 2026-06-26 |
+| [#1673](https://github.com/wildcard/caro/issues/1673) | P0 (as filed) | ai | `caro ai --once` returns the deletion clarification for every prompt — the CPU stub of canonical [#1269](https://github.com/wildcard/caro/issues/1269) (BW-006); filed by the 2026-10-15 run (#1674), which could not see this backlog | closed (duplicate of #1269, 2026-10-15) | 2026-10-15 |
+| [#1677](https://github.com/wildcard/caro/issues/1677) | P2 | docs | README documented `caro assess`, which is disabled in 1.5.0 | closed; fixed by #1680 (2026-10-19) | 2026-10-16 |
+| [#1697](https://github.com/wildcard/caro/issues/1697) | P2 | cli | `caro guard test` swallows a trailing `--output json` into the command | open | 2026-10-21 |
+| [#1116](https://github.com/wildcard/caro/issues/1116) | — | cli | Static matcher falls back to an unusable template (`echo "Hello, World!"`) and reports success; re-confirmed 2026-10-18 (#1679) | open | — |
+| [#1720](https://github.com/wildcard/caro/issues/1720) | P2 | safety | No rule for destructive git commands (`git push --force`, `git reset --hard`): `caro guard test` rates them safe; a safety-policy decision, so it needs a human | open | 2026-10-25 |
+| [#1726](https://github.com/wildcard/caro/issues/1726) | P2 | cli | `--output bogus` is accepted with exit 0 and plain output: `src/main.rs` drops the parse error (`.ok()` then `.unwrap_or(Plain)`) | open | 2026-10-27 |
+| [#1281](https://github.com/wildcard/caro/issues/1281) | P1 | ai | `caro ai --once` returns `echo 'Please clarify your request'`: the same CPU-stub symptom as #1269 | open | 2026-07-01 |
+| [#1282](https://github.com/wildcard/caro/issues/1282) | P2 | cli | `caro doctor` omits remote backends compiled into the binary; re-seen 2026-10-28 (#1733) | open | 2026-07-01 |
+| [#1735](https://github.com/wildcard/caro/issues/1735) | P1 (as filed) | ai | `caro ai --once` returns the deletion clarification for every prompt — the CPU stub of canonical [#1269](https://github.com/wildcard/caro/issues/1269), re-filed by the 2026-10-29 run (#1736), which could not see this backlog | closed (duplicate of #1269, 2026-10-29) | 2026-10-29 |
+| [#1760](https://github.com/wildcard/caro/issues/1760) | P1 (as filed; labelled regression) | ai | `caro ai --once` returns the deletion clarification for every prompt — the CPU stub of canonical [#1269](https://github.com/wildcard/caro/issues/1269), re-filed by the 2026-11-10 run (#1761), which could not see this backlog | open; duplicate of #1269 | 2026-11-10 |
+| [#1763](https://github.com/wildcard/caro/issues/1763) | P1 (as filed) | cli | `caro assess` prints the deletion clarification — `assess` is not a subcommand (disabled since v1.1.0-beta.1), so it is read as a prompt and reaches the CPU stub of canonical [#1269](https://github.com/wildcard/caro/issues/1269); re-filed by the 2026-11-12 run (#1764), which could not see this backlog | open; duplicate of #1269 | 2026-11-12 |
+| [#1523](https://github.com/wildcard/caro/issues/1523) | P1 | embedded | all embedded CPU paths return wrong "Clarification needed" error — cpu.rs:63 checks full system prompt (contains "rm -rf") instead of user request text; affects ai --once, --force-llm, and any static-matcher miss | closed (duplicate) | 2026-10-04 |
+| [#1248](https://github.com/wildcard/caro/issues/1248) | P2 | ai | caro ai silently hangs in non-TTY; no error or --once suggestion | open | pre-2026-10-05 |
+| [#1530](https://github.com/wildcard/caro/issues/1530) | P2 | cli | config set backend has no 'auto' option — can't restore auto-detect without full config reset | open | 2026-10-06 |
+| [#1272](https://github.com/wildcard/caro/issues/1272) | P1 | ai | `caro ai --once` hangs silently with zero output when no backend is available | open | 2026-06-26 |
+| [#1603](https://github.com/wildcard/caro/issues/1603) | P2 | docs/ops | QA memory files stuck at 2026-05-07 bootstrap — 25+ update PRs unmerged | open | 2026-10-11 |
+| [#1750](https://github.com/wildcard/caro/issues/1750) | P2 | shell-integration | `caro completion <unknown-shell>` prints the bash script and exits 0; help lists only bash, zsh and fish | open | 2026-11-05 |
+| [#1771](https://github.com/wildcard/caro/issues/1771) | P1 | safety | `config set safety strict` is ignored on the main path; `--safety <typo>` silently falls back to Moderate | open | 2026-11-18 |
+| [#1772](https://github.com/wildcard/caro/issues/1772) | P3 | safety | `curl ... | sh` is denied, but the reason says it targets a catastrophic, irrecoverable location | open | 2026-11-18 |
+| [#1775](https://github.com/wildcard/caro/issues/1775) | P2 | cli | `caro --show-config` blocks forever on an open stdin pipe: `main()` reads stdin before the handler, and #1754 (open) does not cover it. Related: #1723 | open | 2026-11-20 |
+| [#1777](https://github.com/wildcard/caro/issues/1777) | P1 | cli | `caro generate` always uses the mock backend (`src/main.rs:1562`); help says "configured backend"; lock steps are `echo "<intent>"` | open | 2026-11-21 |
+| [#1778](https://github.com/wildcard/caro/issues/1778) | P3 | cli | Exported runbook header says `caro upgrade` to refresh; no such subcommand (`src/caroml/runbook.rs:174`) | open | 2026-11-21 |
+| [#1779](https://github.com/wildcard/caro/issues/1779) | P1 | cli | `caro adopt <printed id>` promotes only the last step; `experiment` prints only `_stepN` of the last step (`src/main.rs:1796-1806`, `src/caroml/adopt.rs:27-66`) | open | 2026-11-22 |
 
 ---
 
@@ -49,3 +126,4 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 ## Resolved (closed issues)
 
 - **BUG-001**: Search highlight double-counting with global regex — Fixed 2026-01-02
+- [#1044](https://github.com/wildcard/caro/issues/1044) — CLAUDE.md version banner drift — Closed as duplicate of #1098 (2026-10-09 confirmed closed)
