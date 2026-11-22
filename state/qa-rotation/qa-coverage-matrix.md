@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-21
+**Last updated**: 2026-11-22
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -81,6 +81,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-19 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Dry-run served by static matcher (`ls -la`), no model download needed |
 | 2026-11-20 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher answered; the model downloaded. `--show-config` hangs on open stdin (#1775) |
 | 2026-11-21 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher `ls -la`; model downloaded. Run first read main's stale May copy, then switched to this state |
+| 2026-11-22 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher `ls -la`; no merges since 11-02, Slot B skipped |
 
 ---
 
@@ -111,7 +112,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 19 | Embedded model backend command quality | embedded | never | — | [#1523](https://github.com/wildcard/caro/issues/1523) (expected FAIL: same cpu.rs:63 bug as surface #10) |
 | 20 | Ollama backend (requires ollama installed) | ollama | never | — | — |
 | 21 | CaroML: `caro run / generate / render / history` | cli | 2026-11-21 | FAIL (render, history, run --dry-run, export work; `generate` is mock-only and writes `echo "<intent>"` steps) | [#1777](https://github.com/wildcard/caro/issues/1777), [#1778](https://github.com/wildcard/caro/issues/1778) |
-| 22 | CaroML: `caro experiment / adopt / why` | cli | never | — | — |
+| 22 | CaroML: `caro experiment / adopt / why` | cli | 2026-11-22 | FAIL (`why`, `history`, error paths work; `adopt` of the printed id promotes only the last step) | [#1779](https://github.com/wildcard/caro/issues/1779) |
 | 23 | CaroML: `caro do` Carofile job runner | cli | never | — | — |
 | 24 | `caro skill install` (bundled skill management) | cli | never | — | — |
 | 25 | Website homepage caro.sh (curl + parse) | website | 2026-11-15 | PASS (200, schema softwareVersion 1.5.0) | — |
@@ -194,6 +195,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1775](https://github.com/wildcard/caro/issues/1775) | `caro --show-config` with an open stdin pipe | cli | 2026-11-20 | open |
 | [#1777](https://github.com/wildcard/caro/issues/1777) | `caro generate` mock-only backend vs help text | cli | 2026-11-21 | open |
 | [#1778](https://github.com/wildcard/caro/issues/1778) | Runbook header names nonexistent `caro upgrade` | cli | 2026-11-21 | open |
+| [#1779](https://github.com/wildcard/caro/issues/1779) | `caro experiment` / `adopt` per-step variant ids | cli | 2026-11-22 | open |
 
 ---
 
@@ -215,3 +217,4 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 - Surface #11 (`caro ai --continue-session`) is next Slot C candidate (lowest 'never' after #10 exercised 2026-09-08).
 - Surface #31 (i18n locale smoke) elevated priority after #1352 (Hebrew translations overhaul) merged 2026-07-19.
 - **2026-11-21**: next Slot C candidate is #22 (CaroML `experiment / adopt / why`). It needs a lock, so use `caro generate <task>` first; that lock is mock-only (#1777). #19 stays blocked by #1269, #20 needs Ollama.
+- **2026-11-22**: next Slot C candidate is #23 (CaroML `caro do` Carofile job runner). Use `caro do <job> --dry-run` only.
