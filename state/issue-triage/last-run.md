@@ -1,3 +1,3 @@
-last_run: 2026-11-20
-highest_issue_seen: 1775
-triaged: 1767 1771 1772 1775
+last_run: 2026-11-22
+highest_issue_seen: 1779
+triaged: 1777 1778 1779
