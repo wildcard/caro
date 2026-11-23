@@ -3,7 +3,9 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-11-19 — ✓ VERIFIED published `caro 1.5.0` (still newest on crates.io). PASS: MLX embedded (`list pdf files…` → `ls -la`, still #1645); claude/ollama/vllm/exo/openrouter/grok each → `Configuration error: … requires the 'remote-backends' feature`, exit 1; `--backend-info` lists only `embedded` as available. #1723 stdin hang still reproduces (exit 142 at 8 s; `</dev/null` control passes). No new PR: rule 6a, backlog unchanged.
+> **Last updated:** 2026-11-22 — ✓ VERIFIED published `caro 1.5.0` (still newest on crates.io; installed binary `caro 1.5.0 ( crates.io)`). Re-validated the three oldest rows: `website/src/data/integrations.ts` and README (2026-10-13; #1657 fix from #1689 is on `main`) and the `caro-shell` skill (2026-11-09). Skill Examples 1 and 2 still do not match 1.5.0 output (#1628, #1627). The MLX snippet on the website (`kill the process on port 3000`) returns a literal `kill PID` (#1116, #1662). Nothing merged since 2026-11-02; no new PR.
+>
+> **Previous:** 2026-11-19 — ✓ VERIFIED published `caro 1.5.0` (still newest on crates.io). PASS: MLX embedded (`list pdf files…` → `ls -la`, still #1645); claude/ollama/vllm/exo/openrouter/grok each → `Configuration error: … requires the 'remote-backends' feature`, exit 1; `--backend-info` lists only `embedded` as available. #1723 stdin hang still reproduces (exit 142 at 8 s; `</dev/null` control passes). No new PR: rule 6a, backlog unchanged.
 >
 > **Previous:** 2026-11-18 — ✓ VERIFIED published `caro 1.5.0` (still newest on crates.io). PASS: `caro guard` adapters for Codex, Grok Build and OpenCode (enforce mode, `rm -rf /` → deny, safe → allow). #1723 stdin hang still reproduces; fix PR #1754 still open. No new PR: 6a merge-backlog rule applies.
 >
@@ -53,7 +55,7 @@
 
 | Tool | Status | Last validated | Method | GH | Notes |
 |---|---|---|---|---|---|
-| Claude Code skill (`caro-shell`) | ⚠️ partial | 2026-11-09 | 2026-11-09: `caro --dry-run "delete everything in /tmp"` → Critical block ✓; **agent-subprocess hang (#1723, PR #1754)**: with an open stdin pipe, `caro --dry-run -p "list files"` printed nothing in 8s on 1.5.0. Earlier (2026-10-13): published 1.5.0: skill's `caro --dry-run "<prompt>"` path runs; Example 3 (`delete everything in /tmp`) → CRITICAL block ✓; Example 1 drops `src`+age (#1628); Example 2 → `docker system prune -f && …` (#1627); `--model` flag in skill → clap usage error (fixed for #1629) | #1629, #1490 | Distributed via plugin marketplace (#1624); not by `caro skill install` (that ships `caro-scaffold`) |
+| Claude Code skill (`caro-shell`) | ⚠️ partial | 2026-11-22 | 2026-11-22 (published 1.5.0, `</dev/null`): `caro --backend-info` lists claude/grok/openrouter as `not compiled` ✓; Example 1 → `find . -name "*.py" -type f` (drops `src` and `-mtime +180`, #1628); Example 2 → `docker system prune -f && docker volume prune -f` with no risk note (skill says `docker volume prune -f`, MEDIUM; #1627); `--model foo` → clap usage error with `--model-name` tip ✓ (skill already says `--model-name`). 2026-11-09: `caro --dry-run "delete everything in /tmp"` → Critical block ✓; **agent-subprocess hang (#1723, PR #1754)**: with an open stdin pipe, `caro --dry-run -p "list files"` printed nothing in 8s on 1.5.0. Earlier (2026-10-13): published 1.5.0: skill's `caro --dry-run "<prompt>"` path runs; Example 3 (`delete everything in /tmp`) → CRITICAL block ✓; Example 1 drops `src`+age (#1628); Example 2 → `docker system prune -f && …` (#1627); `--model` flag in skill → clap usage error (fixed for #1629) | #1629, #1490 | Distributed via plugin marketplace (#1624); not by `caro skill install` (that ships `caro-scaffold`) |
 | Harness guardian hook (`caro guard`) | 🧪 experimental | 2026-11-17 | ✓ VERIFIED published `caro 1.5.0`: `rm -rf /` → `permissionDecision: deny` (critical risk); `ls -la` → no output (allow). Also `tests/e2e_guard.rs` | spec 011 / ADR-020 | PreToolUse adapter for Claude Code, Grok Build, Codex; OpenCode via `integrations/opencode/caro-guard.ts`. Shadow by default |
 | Claude Code MCP server (`caro mcp serve`) | ⏳ not-yet | — | `mcp-inspect` against `caro mcp serve` | #928 | Spec: `.github/first-time-issues/06-mcp-claude-code-integration.md`; tools `generate_command` / `validate_command` / `explain_safety` / `show_decision_tree` |
 | OpenAI-compat HTTP shim (`caro serve --openai`) | ⏳ not-yet | — | `curl /v1/chat/completions` with a tool call | #929 | Highest leverage — unlocks Codex/Cursor/Continue/Aider/Tabby in one shot |
@@ -84,9 +86,9 @@
 
 | Surface | Status | Last validated | GH | Notes |
 |---|---|---|---|---|
-| `website/src/data/integrations.ts` | ❌ stale copy | 2026-10-13 | #1657 | Claude entry says `Unknown backend`, Ollama entry says silent fallback, snippet uses `--model` (usage error on 1.5.0). Coordinate with open PR #1504 |
+| `website/src/data/integrations.ts` | ⚠️ partial | 2026-11-22 | #1116, #1662 | #1657 fixed on `main` by #1689: Claude/Ollama entries describe the 1.5.0 `requires the 'remote-backends' feature` error, Ollama snippet uses `--model-name` ✓ (`caro --backend ollama --model-name qwen2.5-coder:7b --dry-run …` → config error, exit 1, as described). Open gap: MLX row snippet `caro --backend embedded "kill the process on port 3000"` → literal `kill PID` (tracked in #1116 / #1662). Open PR #1738 also edits this file |
 | `website/src/pages/integrations/index.astro` | ✅ working | 2026-11-17 | — | `curl https://caro.sh/integrations` → 200; Ollama copy shows the 1.5.0 `requires the 'remote-backends' feature` text (#1657 fix is live) |
-| README "Use caro from your agent" section | ⚠️ partial | 2026-10-13 | #1657 | `README.md:274` `--backend ollama` example needs a `remote-backends` build; PR #1504 open for matrix drift |
+| README "Use caro from your agent" section | ✅ working | 2026-11-22 | — | `README.md:273` now states `--backend ollama` needs `cargo install caro --features remote-backends` ✓ (#1689). Open PR #1738 further aligns the matrix with 1.5.0 |
 | `.github/first-time-issues/06-mcp-claude-code-integration.md` | 🚫 reference only | — | — | Spec doc; not a runtime surface |
 
 ---
