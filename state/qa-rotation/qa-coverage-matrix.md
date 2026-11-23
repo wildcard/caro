@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-22
+**Last updated**: 2026-11-23
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -82,6 +82,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-20 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher answered; the model downloaded. `--show-config` hangs on open stdin (#1775) |
 | 2026-11-21 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher `ls -la`; model downloaded. Run first read main's stale May copy, then switched to this state |
 | 2026-11-22 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher `ls -la`; no merges since 11-02, Slot B skipped |
+| 2026-11-23 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | Dry-run served by static matcher (`ls -la`), no model download needed |
 
 ---
 
@@ -104,7 +105,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 11 | `caro ai --continue-session` shell widget | ai | 2026-10-19 | FAIL | #1269 (CPU stub, as surface 10, when a prompt is passed). With no prompt, the `?` widget cannot take a request (#1671) |
 | 12 | `caro assess` system assessment | cli | N/A | N/A | (cmd disabled/commented-out since v1.1.0-beta.1; excluded from Slot C selection. The README claimed it until #1680 fixed #1677 on 2026-10-19) |
 | 13 | `caro suggest` command suggestions | cli | 2026-09-27 | PASS | — |
-| 14 | `caro config get/set/show/reset` | cli | 2026-11-20 | PASS | — (minor, not filed: the `safety bogus` error repeats its message; `config show` labels `telemetry.enabled` as `telemetry`) |
+| 14 | `caro config get/set/show/reset` | cli | 2026-11-23 | PASS | — (minor, not filed: the `safety bogus` error repeats its message; `config show` labels `telemetry.enabled` as `telemetry`) |
 | 15 | `caro --output json` format correctness | cli | 2026-11-13 | PASS (an invalid value is silently accepted) | [#1726](https://github.com/wildcard/caro/issues/1726); --dry-run --output json shows the dry_run:true field (Slot B via fix(cli) #1532) |
 | 16 | `caro --output yaml` format correctness | cli | 2026-11-13 | PASS | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | 2026-11-11 | FAIL (an unknown shell prints the bash script and exits 0; bash, zsh and fish PASS) | [#1750](https://github.com/wildcard/caro/issues/1750) |
@@ -114,7 +115,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 21 | CaroML: `caro run / generate / render / history` | cli | 2026-11-21 | FAIL (render, history, run --dry-run, export work; `generate` is mock-only and writes `echo "<intent>"` steps) | [#1777](https://github.com/wildcard/caro/issues/1777), [#1778](https://github.com/wildcard/caro/issues/1778) |
 | 22 | CaroML: `caro experiment / adopt / why` | cli | 2026-11-22 | FAIL (`why`, `history`, error paths work; `adopt` of the printed id promotes only the last step) | [#1779](https://github.com/wildcard/caro/issues/1779) |
 | 23 | CaroML: `caro do` Carofile job runner | cli | never | — | — |
-| 24 | `caro skill install` (bundled skill management) | cli | never | — | — |
+| 24 | `caro skill install` (bundled skill management) | cli | 2026-11-23 | FAIL (works only from the repo root) | [#1782](https://github.com/wildcard/caro/issues/1782) |
 | 25 | Website homepage caro.sh (curl + parse) | website | 2026-11-15 | PASS (200, schema softwareVersion 1.5.0) | — |
 | 26 | Website docs pages (curl + parse) | docs | 2026-11-15 | PASS (/docs/ and /evals/ 200) | — |
 | 27 | Install script `scripts/install.sh` | install | never | — | — |
@@ -196,6 +197,8 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1777](https://github.com/wildcard/caro/issues/1777) | `caro generate` mock-only backend vs help text | cli | 2026-11-21 | open |
 | [#1778](https://github.com/wildcard/caro/issues/1778) | Runbook header names nonexistent `caro upgrade` | cli | 2026-11-21 | open |
 | [#1779](https://github.com/wildcard/caro/issues/1779) | `caro experiment` / `adopt` per-step variant ids | cli | 2026-11-22 | open |
+| [#1782](https://github.com/wildcard/caro/issues/1782) | `caro skill install` from a non-repo current directory | cli | 2026-11-23 | open |
+| — (Slot B, #1685) | `caro guard audit verify/tail/report` with a populated, chained log | cli | 2026-11-23 | flagged (only the empty-log path tested) |
 
 ---
 
