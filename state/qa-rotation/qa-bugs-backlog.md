@@ -86,6 +86,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1777](https://github.com/wildcard/caro/issues/1777) | P1 | cli | `caro generate` always uses the mock backend (`src/main.rs:1562`); help says "configured backend"; lock steps are `echo "<intent>"` | open | 2026-11-21 |
 | [#1778](https://github.com/wildcard/caro/issues/1778) | P3 | cli | Exported runbook header says `caro upgrade` to refresh; no such subcommand (`src/caroml/runbook.rs:174`) | open | 2026-11-21 |
 | [#1779](https://github.com/wildcard/caro/issues/1779) | P1 | cli | `caro adopt <printed id>` promotes only the last step; `experiment` prints only `_stepN` of the last step (`src/main.rs:1796-1806`, `src/caroml/adopt.rs:27-66`) | open | 2026-11-22 |
+| [#1782](https://github.com/wildcard/caro/issues/1782) | P1 | cli | `caro skill install` fails outside the caro repo root: the bundled source path is relative and `Cargo.toml` `include` has no `.claude/` | open | 2026-11-23 |
 
 ---
 
