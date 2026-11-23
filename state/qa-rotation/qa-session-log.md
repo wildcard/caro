@@ -4,6 +4,53 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-23 — Scheduled run (Slot A + Slot B + Slot C)
+
+> Folded from #1783 into this state on 2026-11-23. The run read main's May copy and used the branch `claude/peaceful-hopper-44t2sh`. It filed one new issue, #1782 (P1). Static reading of main confirms it: `bundled_source_dir()` in `src/caroml/skill.rs` returns the relative path `.claude/skills/caro-scaffold`, and `Cargo.toml` `include` has no `.claude/` entry, so the source exists only when run from the repo root. No earlier issue covers it. Its Slot B checks are help and error-message checks, so no other surface changes. The run's stale coverage dates (it read main's May copy) are not folded; only its own rows are.
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+
+### Slot A — Smoke
+
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS**: all subcommands listed (`assess` absent, matches the 1.5.0 README note)
+- `caro doctor` → **PASS**: advisory only (no model, no Ollama), exit 0
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` from the static matcher in [duration omitted]
+
+### Slot B — Recent diff
+
+The last log entry on `main` is 2026-05-07 (see #1603: later QA memory PRs did not merge). 50 commits landed since then. I spot-checked the newest feature and fix merges:
+
+- #1740 `caro config reset <key>` → **PASS**: set `log_level debug`, reset to `Info`. An unknown key exits 1.
+- #1737 `caro test --help` → **PASS**: lists only `static, embedded`.
+- #1710 `caro ai` with no prompt → **PASS**: the error suggests `caro ai --once "..."` or stdin, not `-p`. Exit 1.
+- #1687 safety normalization → **PASS** with `caro guard test`: `bash <(curl …)` is high/ask. `eval "$(echo cm0gLXJmIC8= | base64 -d)"` is critical/deny with floor. A plain `echo … | base64 -d` is safe.
+- #1685 `caro guard audit verify/tail/report` → **PASS** on an empty log only. Flagged in the matrix for a populated-log pass.
+
+### Slot C — `caro skill install` (matrix #24)
+
+The matrix row with the oldest date is #10 (`caro ai --once`). Open issue #1760 already tracks it, and recent QA issues cover #11–#17. I picked #24 instead: it was never tested and has no QA issue.
+
+- From the repo root: install and uninstall work. Both files are copied to `~/.claude/skills/caro-scaffold/`.
+- From any other directory, including `src/`: `Error: skill source not found at .claude/skills/caro-scaffold`, exit 1.
+- Cause: `src/caroml/skill.rs:34` uses a relative source path. `Cargo.toml` `include` has no `.claude/`, so crates.io users never have the files.
+- A second `uninstall` prints "No skill installed" and exits 0. That is fine.
+
+### Findings
+
+- [#1782](https://github.com/wildcard/caro/issues/1782) — `cli: caro skill install fails outside the caro repo root` (P1)
+
+### Followups
+
+- Prompt drift: the routine prompt asks for the model ID `claude-sonnet-4-6` in issue and PR bodies. The harness forbids model IDs in pushed artifacts, so this run omitted it. `qa_agent_role.md` is still not on `main`.
+- Prompt drift: the routine prompt names branch `claude/qa-rotation-<date>`. The session pins `claude/peaceful-hopper-44t2sh`, so this run used that branch.
+- The memory files on `main` lag behind the daily runs (#1603). Coverage dates here can be older than the real last test. Check the recent `qa`-labelled issues before you pick Slot C.
+- FLAKE-001 is not reproducible with the current smoke prompt (static matcher). Use an LLM-only prompt to exercise the model download again.
+
+---
+
 ## 2026-11-22 — Scheduled run (Slot A + Slot C)
 
 > Folded from #1780 into this state on 2026-11-22. The run read this state first and copied it to its branch `claude/peaceful-hopper-o95zhc`; the folded files differ from the state only by the 2026-11-22 rows. It filed one new issue, #1779 (P1). Static reading of main confirms it: `run_caroml_experiment` in `src/main.rs` sets `adopted_id` inside the step loop, so it holds only the last step's `_stepN` id, and `caro history` shows the shared generation id. No earlier issue names `adopt` or `experiment`.
