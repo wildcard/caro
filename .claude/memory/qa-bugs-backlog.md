@@ -9,6 +9,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1782](https://github.com/wildcard/caro/issues/1782) | P1 | cli | `caro skill install` fails outside the caro repo root (relative skill source path) | open | 2026-11-23 |
 
 ---
 
