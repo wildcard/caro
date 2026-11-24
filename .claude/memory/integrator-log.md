@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-23 (23:00 PT fire) — Candle CPU, `caro guard` and integrations page re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-11-17). PASS: Candle CPU (`caro --dry-run -p "show disk usage" </dev/null` → `df -h`, exit 0). PASS: `caro guard --mode enforce` (`rm -rf /` → `permissionDecision: deny`, critical risk; `ls -la` → no output, exit 0). PASS: live `https://caro.sh/integrations` → 200, page has the `requires the 'remote-backends' feature` copy and `--model-name`. FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (exit 142). This is #1723.
+- **Shipped:** no new PR. Nothing merged to `main` since 2026-11-02. #1754 (fix for #1723) and #1758 are `UNSTABLE`. #1738 is `CLEAN`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Dedup: `kiro` search → no issue; the source is too thin to file one.
+- **Discovered:** one web query. No new CLI launch confirmed for November 2026. A secondary source names Kiro (AWS) in the agentic-coding landscape; added a ⏳ row. Antigravity CLI is already tracked (#1439, PR #1722).
+- **Next pass should:** check if #1754 / #1738 / #1758 merged. Six nights in a row have shipped no PR because the merge backlog is stuck; the owner should merge or close #1754, #1738 and #1758. Otherwise the oldest rows are guard adapters for codex/grok/opencode (2026-11-18).
+
+---
+
 ## 2026-11-22 (23:00 PT fire) — marketing rows and `caro-shell` skill re-validated; backlog unchanged; no new PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). All runs used `</dev/null` to avoid #1723. PASS: `website/src/data/integrations.ts` and README carry the #1689 fix on `main`; live `https://caro.sh/integrations` → 200 with the `requires the 'remote-backends' feature` copy and `--model-name`. PASS: Ollama snippet `caro --backend ollama --model-name qwen2.5-coder:7b --dry-run …` → config error, exit 1, as the site says. PASS: `caro --model foo` → usage error with a `--model-name` tip. PARTIAL: `caro-shell` Example 1 → `find . -name "*.py" -type f` (drops `src` and age, #1628). Example 2 → `docker system prune -f && docker volume prune -f`, no risk note (#1627). FAIL (P2, tracked): website MLX snippet `kill the process on port 3000` → literal `kill PID` (#1116, #1662).
