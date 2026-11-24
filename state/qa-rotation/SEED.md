@@ -370,3 +370,13 @@ The 2026-11-23 run read main's May copy, not this state, and ran on the branch `
 - **New issue:** #1782 (P1): `caro skill install` fails outside the caro repo root. Confirmed in main's code by static reading: the bundled source path is relative, and `Cargo.toml` `include` has no `.claude/` entry. No earlier issue covers it. It is in the watch list and the bug-filings table. A populated-log `caro guard audit` pass is flagged as a surface gap.
 - **Flakes:** FLAKE-001 was not triggered.
 
+## Added after seeding: #1785 (2026-11-24)
+
+The 2026-11-24 run chose its Slot C surface from this state and wrote only its own rows on the branch `claude/peaceful-hopper-8u06ui`; it could not push to `automation/routine-status`. Folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-24; surface 19 (embedded model quality) goes from never tested to FAIL, the CPU stub of #1269; surface 23 (`caro do`) goes from never tested to FAIL, linked to #1784.
+- **New issue:** #1784 (P1, safety): `caro do` runs Carofile `USE "<command>"` aliases with no safety validation. Confirmed in main's code by static reading: `dispatch_resolution` calls `CommandExecutor::execute`, which does no validation, while the module comment says the safety validator scans the command. No earlier issue covers it. It is in the watch list and the bug-filings table. The fix is a safety decision for the owner.
+- **Not new:** the embedded-backend and `caro ai --once` failures are #1269 (#1760 is an open duplicate). #1269 keeps P1 and its re-confirmed list gains 11-24.
+- **Flakes:** FLAKE-001 was not triggered.
+
