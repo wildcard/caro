@@ -62,7 +62,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1483](https://github.com/wildcard/caro/issues/1483) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (regression of #1044) | closed (duplicate) | 2026-09-29 |
 | [#1484](https://github.com/wildcard/caro/issues/1484) | P2 | ai | caro ai --once silently blocks indefinitely when no model is available | closed (duplicate) | 2026-09-29 |
 | [#1520](https://github.com/wildcard/caro/issues/1520) | P2 | docs | CLAUDE.md version banner shows 1.4.0 instead of 1.5.0 (recurring drift, root cause unresolved) | closed (duplicate) | 2026-10-03 |
-| [#1269](https://github.com/wildcard/caro/issues/1269) | P1 | embedded | CPU stub `rm`-in-system-prompt: all non-static-matched queries return clarification stub | open; re-confirmed by the runs of 2026-10-16, 10-18, 10-19, 10-21, 10-22, 10-27, 10-28, 10-29, 10-30, 11-01, 11-10, 11-12, 11-15, 11-17, 11-19 and 11-20 | 2026-06-26 |
+| [#1269](https://github.com/wildcard/caro/issues/1269) | P1 | embedded | CPU stub `rm`-in-system-prompt: all non-static-matched queries return clarification stub | open; re-confirmed by the runs of 2026-10-16, 10-18, 10-19, 10-21, 10-22, 10-27, 10-28, 10-29, 10-30, 11-01, 11-10, 11-12, 11-15, 11-17, 11-19, 11-20 and 11-24 | 2026-06-26 |
 | [#1673](https://github.com/wildcard/caro/issues/1673) | P0 (as filed) | ai | `caro ai --once` returns the deletion clarification for every prompt — the CPU stub of canonical [#1269](https://github.com/wildcard/caro/issues/1269) (BW-006); filed by the 2026-10-15 run (#1674), which could not see this backlog | closed (duplicate of #1269, 2026-10-15) | 2026-10-15 |
 | [#1677](https://github.com/wildcard/caro/issues/1677) | P2 | docs | README documented `caro assess`, which is disabled in 1.5.0 | closed; fixed by #1680 (2026-10-19) | 2026-10-16 |
 | [#1697](https://github.com/wildcard/caro/issues/1697) | P2 | cli | `caro guard test` swallows a trailing `--output json` into the command | open | 2026-10-21 |
@@ -87,6 +87,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1778](https://github.com/wildcard/caro/issues/1778) | P3 | cli | Exported runbook header says `caro upgrade` to refresh; no such subcommand (`src/caroml/runbook.rs:174`) | open | 2026-11-21 |
 | [#1779](https://github.com/wildcard/caro/issues/1779) | P1 | cli | `caro adopt <printed id>` promotes only the last step; `experiment` prints only `_stepN` of the last step (`src/main.rs:1796-1806`, `src/caroml/adopt.rs:27-66`) | open | 2026-11-22 |
 | [#1782](https://github.com/wildcard/caro/issues/1782) | P1 | cli | `caro skill install` fails outside the caro repo root: the bundled source path is relative and `Cargo.toml` `include` has no `.claude/` | open | 2026-11-23 |
+| [#1784](https://github.com/wildcard/caro/issues/1784) | P1 | safety | `caro do` runs Carofile `USE "<command>"` aliases with no safety validation, though the docs say safety scans them; `caro run` also ignores the lock's `risk_level` | open | 2026-11-24 |
 
 ---
 
