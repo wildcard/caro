@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-23
+**Last updated**: 2026-11-24
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -83,6 +83,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-21 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher `ls -la`; model downloaded. Run first read main's stale May copy, then switched to this state |
 | 2026-11-22 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher `ls -la`; no merges since 11-02, Slot B skipped |
 | 2026-11-23 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | Dry-run served by static matcher (`ls -la`), no model download needed |
+| 2026-11-24 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | Static matcher `ls -la`; the model downloaded later in the run (FLAKE-001 did not recur) |
 
 ---
 
@@ -110,11 +111,11 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 16 | `caro --output yaml` format correctness | cli | 2026-11-13 | PASS | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | 2026-11-11 | FAIL (an unknown shell prints the bash script and exits 0; bash, zsh and fish PASS) | [#1750](https://github.com/wildcard/caro/issues/1750) |
 | 18 | `caro test --backend static` eval harness | cli | 2026-11-12 | PASS | (2026-11-12 run, #1764; the earlier PASS came from prior session PR #1373, unmerged) |
-| 19 | Embedded model backend command quality | embedded | never | — | [#1523](https://github.com/wildcard/caro/issues/1523) (expected FAIL: same cpu.rs:63 bug as surface #10) |
+| 19 | Embedded model backend command quality | embedded | 2026-11-24 | FAIL (non-static prompts get the cpu.rs stub reply) | [#1523](https://github.com/wildcard/caro/issues/1523) (expected FAIL: same cpu.rs:63 bug as surface #10); [#1269](https://github.com/wildcard/caro/issues/1269) |
 | 20 | Ollama backend (requires ollama installed) | ollama | never | — | — |
 | 21 | CaroML: `caro run / generate / render / history` | cli | 2026-11-21 | FAIL (render, history, run --dry-run, export work; `generate` is mock-only and writes `echo "<intent>"` steps) | [#1777](https://github.com/wildcard/caro/issues/1777), [#1778](https://github.com/wildcard/caro/issues/1778) |
 | 22 | CaroML: `caro experiment / adopt / why` | cli | 2026-11-22 | FAIL (`why`, `history`, error paths work; `adopt` of the printed id promotes only the last step) | [#1779](https://github.com/wildcard/caro/issues/1779) |
-| 23 | CaroML: `caro do` Carofile job runner | cli | never | — | — |
+| 23 | CaroML: `caro do` Carofile job runner | cli | 2026-11-24 | FAIL (plans and errors OK; external aliases skip safety validation) | [#1784](https://github.com/wildcard/caro/issues/1784) |
 | 24 | `caro skill install` (bundled skill management) | cli | 2026-11-23 | FAIL (works only from the repo root) | [#1782](https://github.com/wildcard/caro/issues/1782) |
 | 25 | Website homepage caro.sh (curl + parse) | website | 2026-11-15 | PASS (200, schema softwareVersion 1.5.0) | — |
 | 26 | Website docs pages (curl + parse) | docs | 2026-11-15 | PASS (/docs/ and /evals/ 200) | — |
@@ -199,6 +200,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1779](https://github.com/wildcard/caro/issues/1779) | `caro experiment` / `adopt` per-step variant ids | cli | 2026-11-22 | open |
 | [#1782](https://github.com/wildcard/caro/issues/1782) | `caro skill install` from a non-repo current directory | cli | 2026-11-23 | open |
 | — (Slot B, #1685) | `caro guard audit verify/tail/report` with a populated, chained log | cli | 2026-11-23 | flagged (only the empty-log path tested) |
+| [#1784](https://github.com/wildcard/caro/issues/1784) | `caro do` external-alias safety validation (and `caro run` ignores lock `risk_level`) | safety | 2026-11-24 | open |
 
 ---
 
