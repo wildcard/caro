@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-11-24
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -13,6 +13,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
+| 2026-11-24 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | Static matcher `ls -la`; model downloaded later in the run (FLAKE-001 did not recur) |
 
 ---
 
@@ -40,11 +41,11 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 16 | `caro --output yaml` format correctness | cli | never | — | — |
 | 17 | `caro completion bash/zsh/fish` | shell-integration | never | — | — |
 | 18 | `caro test --backend static` eval harness | cli | never | — | — |
-| 19 | Embedded model backend command quality | embedded | never | — | — |
+| 19 | Embedded model backend command quality | embedded | 2026-11-24 | FAIL (non-static prompts get the cpu.rs stub reply) | #1269 |
 | 20 | Ollama backend (requires ollama installed) | ollama | never | — | — |
 | 21 | CaroML: `caro run / generate / render / history` | cli | never | — | — |
 | 22 | CaroML: `caro experiment / adopt / why` | cli | never | — | — |
-| 23 | CaroML: `caro do` Carofile job runner | cli | never | — | — |
+| 23 | CaroML: `caro do` Carofile job runner | cli | 2026-11-24 | FAIL (plans and errors OK; external aliases skip safety validation) | [#1784](https://github.com/wildcard/caro/issues/1784) |
 | 24 | `caro skill install` (bundled skill management) | cli | never | — | — |
 | 25 | Website homepage caro.sh (curl + parse) | website | never | — | — |
 | 26 | Website docs pages (curl + parse) | docs | never | — | — |
@@ -64,6 +65,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
+| [#1784](https://github.com/wildcard/caro/issues/1784) | `caro do` external-alias safety validation (and `caro run` ignores lock `risk_level`) | safety | 2026-11-24 | open |
 
 ---
 
