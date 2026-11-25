@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-24
+**Last updated**: 2026-11-25
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -84,6 +84,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-22 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher `ls -la`; no merges since 11-02, Slot B skipped |
 | 2026-11-23 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | Dry-run served by static matcher (`ls -la`), no model download needed |
 | 2026-11-24 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | Static matcher `ls -la`; the model downloaded later in the run (FLAKE-001 did not recur) |
+| 2026-11-25 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | `ls -la` from the static matcher; no model needed |
 
 ---
 
@@ -119,7 +120,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 24 | `caro skill install` (bundled skill management) | cli | 2026-11-23 | FAIL (works only from the repo root) | [#1782](https://github.com/wildcard/caro/issues/1782) |
 | 25 | Website homepage caro.sh (curl + parse) | website | 2026-11-15 | PASS (200, schema softwareVersion 1.5.0) | — |
 | 26 | Website docs pages (curl + parse) | docs | 2026-11-15 | PASS (/docs/ and /evals/ 200) | — |
-| 27 | Install script `scripts/install.sh` | install | never | — | — |
+| 27 | Install script `install.sh` (repo root) | install | 2026-11-25 | FAIL (download and checksum OK; the rc gets a broken `caro --completion` line and an ignored `CARO_SAFETY_LEVEL`) | [#1787](https://github.com/wildcard/caro/issues/1787), [#1788](https://github.com/wildcard/caro/issues/1788), [#1786](https://github.com/wildcard/caro/issues/1786) |
 | 28 | Homebrew tap formula | install | never | — | — |
 | 29 | `caro --safety strict/moderate/permissive` modes | safety | 2026-11-18 | FAIL (config value ignored; invalid flag silently Moderate) | [#1771](https://github.com/wildcard/caro/issues/1771) |
 | 30 | `caro --verbose` timing output | cli | 2026-10-10 | PASS | — (--dry-run --verbose confirmed Backend: static-matcher, Confidence: 1.00 in Slot A) |
@@ -201,6 +202,9 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1782](https://github.com/wildcard/caro/issues/1782) | `caro skill install` from a non-repo current directory | cli | 2026-11-23 | open |
 | — (Slot B, #1685) | `caro guard audit verify/tail/report` with a populated, chained log | cli | 2026-11-23 | flagged (only the empty-log path tested) |
 | [#1784](https://github.com/wildcard/caro/issues/1784) | `caro do` external-alias safety validation (and `caro run` ignores lock `risk_level`) | safety | 2026-11-24 | open |
+| [#1786](https://github.com/wildcard/caro/issues/1786) | Website /docs/installation install commands (URL, crate name, asset name) | docs | 2026-11-25 | open |
+| [#1787](https://github.com/wildcard/caro/issues/1787) | `install.sh` shell-completion line in the user rc | install | 2026-11-25 | open |
+| [#1788](https://github.com/wildcard/caro/issues/1788) | `CARO_SAFETY_LEVEL` env var honoured by the binary | safety | 2026-11-25 | open |
 
 ---
 
