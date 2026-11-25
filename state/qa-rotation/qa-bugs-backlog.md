@@ -88,6 +88,9 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1779](https://github.com/wildcard/caro/issues/1779) | P1 | cli | `caro adopt <printed id>` promotes only the last step; `experiment` prints only `_stepN` of the last step (`src/main.rs:1796-1806`, `src/caroml/adopt.rs:27-66`) | open | 2026-11-22 |
 | [#1782](https://github.com/wildcard/caro/issues/1782) | P1 | cli | `caro skill install` fails outside the caro repo root: the bundled source path is relative and `Cargo.toml` `include` has no `.claude/` | open | 2026-11-23 |
 | [#1784](https://github.com/wildcard/caro/issues/1784) | P1 | safety | `caro do` runs Carofile `USE "<command>"` aliases with no safety validation, though the docs say safety scans them; `caro run` also ignores the lock's `risk_level` | open | 2026-11-24 |
+| [#1786](https://github.com/wildcard/caro/issues/1786) | P1 | docs | /docs/installation install commands are dead (`caro.sh/install.sh` 404, `cargo install cmdai`, `caro-darwin-arm64` 404); the page text is confirmed in the repo, the live 404s are from the run | open | 2026-11-25 |
+| [#1787](https://github.com/wildcard/caro/issues/1787) | P1 | install | `install.sh` writes `caro --completion` to the rc; the flag does not exist (the subcommand is `caro completion`), so every new shell prints an error | open | 2026-11-25 |
+| [#1788](https://github.com/wildcard/caro/issues/1788) | P1 | install | Installer says Strict via `CARO_SAFETY_LEVEL`; the only reader is `merge_with_env`, which no `src` code calls, so caro runs Moderate. Related: #1771 | open | 2026-11-25 |
 
 ---
 
