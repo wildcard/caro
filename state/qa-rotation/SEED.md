@@ -380,3 +380,13 @@ The 2026-11-24 run chose its Slot C surface from this state and wrote only its o
 - **Not new:** the embedded-backend and `caro ai --once` failures are #1269 (#1760 is an open duplicate). #1269 keeps P1 and its re-confirmed list gains 11-24.
 - **Flakes:** FLAKE-001 was not triggered.
 
+## Added after seeding: #1789 (2026-11-25)
+
+The 2026-11-25 run chose its Slot C surface from this state and wrote only its own rows on the branch `claude/peaceful-hopper-y1yhxh`; it could not push to `automation/routine-status`. Folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-25; surface 27 (`install.sh`) goes from never tested to FAIL, linked to #1787, #1788 and #1786.
+- **New issues (all P1):** #1787: `install.sh` writes `caro --completion` to the user's rc, which does not exist. #1788: the installer sets `CARO_SAFETY_LEVEL` and says Strict, but nothing in `src` reads it, so caro runs Moderate; related to #1771. #1786: the website's /docs/installation lists dead install commands. Static reading of main confirms the first two and the page text of the third; the live 404s were not re-checked. No earlier issue covers any of them. All three are in the watch list and the bug-filings table. #1788 is a safety decision for the owner.
+- **Flakes:** FLAKE-001 was not triggered. FLAKE-002 gets an observation (silent start of the model download). The run's sandbox proxy limit for the `install.sh` connectivity check is an environment limit, so no new flake entry was made.
+- **Surface 27 path:** the script is `install.sh` at the repo root, not `scripts/install.sh`.
+
