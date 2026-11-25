@@ -4,6 +4,49 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-25 — Scheduled run (Slot A + Slot B + Slot C)
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + B + C.
+**State source**: `state/qa-rotation/` on `automation/routine-status` (per `.claude/automation/CONTRACT.md` section 5). This file on `main` is the May bootstrap copy. This entry holds only this run's rows, for folding into the status branch.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS** ([duration omitted])
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS** (exit 0; `guard` and `export` listed, `assess` absent)
+- `caro doctor` → **PASS** (exit 0; advisory: no model, no Ollama, guard hook not installed)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` from the static matcher
+
+### Slot B — Recent diff
+No merges since 2026-11-02 (last: #1740). Re-checked, all PASS:
+- #1740 `config reset <key>`: set/reset `safety` and `log_level`; unknown key exits 1 with the valid-key list.
+- #1737 `test --help`: `[possible values: static, embedded]`.
+- #1710 `caro ai` with no prompt: names `caro ai --once "list files"`, exit 1.
+- #1687 / #1683 `guard test`: `curl … | bash` deny rc=2; `bash <(curl …)` ask rc=3; `ls -la` none rc=0. `guard audit verify` with an empty log reports "no decisions logged yet". The floor reason text is still open #1772.
+
+### Slot C — #27 Install script `install.sh` (never tested before)
+I first ran Slot C on #10 from main's May copy, then read the live state: #10 was tested 2026-11-21. So I switched to #27, the lowest live "never" row that the sandbox can test (#20 needs Ollama).
+- Ran `install.sh` in an isolated `HOME` and `CARO_INSTALL_DIR`, cargo hidden from `PATH`, stdin closed (non-interactive).
+- The connectivity check fails in this sandbox (`https://github.com` answers 400 through the proxy). This is an environment limit, not filed. With only that function stubbed in a scratch copy: release lookup v1.5.0, download, **checksum verified**, binary runs (`caro 1.5.0 (d705666 2026-10-12)`).
+- **FAIL**: it writes `eval "$(caro --completion bash)"` to `.bashrc`. The flag does not exist, so each new shell prints a clap error and no completion is set. Filed #1787 (P1).
+- **FAIL**: it writes `export CARO_SAFETY_LEVEL="strict"` and prints "Safety level set to: strict". caro never reads the variable (`merge_with_env` has no caller) and runs Moderate. Filed #1788 (P1). It is related to #1771 (config value ignored).
+- **FAIL** (website, found while tracing the install URLs): the /docs/installation commands are dead: `caro.sh/install.sh` 404 (fails silently with `| sh`), `cargo install cmdai` (old 0.1.0 crate) and the `caro-darwin-arm64` asset 404. Filed #1786 (P1). The homepage `setup.caro.sh` and README paths work.
+- Side check of #10 `caro ai --once "list files in current directory"`: no output for 120 s while it starts the model download. `caro -p` answers the same prompt at once from the static matcher. These are known issues #1179, #1408 and #1272. Not re-filed.
+
+### Findings
+- [#1786](https://github.com/wildcard/caro/issues/1786) — docs: /docs/installation install commands are dead (P1, release-gap)
+- [#1787](https://github.com/wildcard/caro/issues/1787) — install: install.sh writes `caro --completion`, which errors on every new shell (P1, release-gap)
+- [#1788](https://github.com/wildcard/caro/issues/1788) — install: installer claims Strict via `CARO_SAFETY_LEVEL`, caro ignores it (P1, release-gap)
+
+### Followups
+- Prompt drift, as for #1783 and #1785: the stored prompt says to store memory in a PR, but `CONTRACT.md` section 5 says `bin/routine-status state put`. This session may push only to `claude/peaceful-hopper-y1yhxh`, so the state branch was not written. The owner must fold this entry.
+- Prompt drift: the stored prompt names `scripts/install.sh`. The script is at the repo root (`install.sh`).
+- `caro --verbose config get safety` is treated as a prompt, not the `config` subcommand. That is open #1163. Not re-filed.
+- `delete all log files in this directory` and `remove all node_modules folders recursively` are blocked as "adversarial: Remove all files". Possible false positive in the intent gate. Not filed; a later Slot C on #29 can check it.
+- Next: #28 Homebrew tap formula and #35 `caro export` are still "never".
+
+---
+
 ## 2026-05-07 — Scheduled run (Slot A + Slot C) [BOOTSTRAP]
 
 **Trigger**: manual invocation; first-ever run of caro-qa-agent (bootstrap pass).

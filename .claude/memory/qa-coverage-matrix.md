@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-11-25
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -13,6 +13,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
+| 2026-11-25 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | `ls -la` from the static matcher; no model needed |
 
 ---
 
@@ -48,7 +49,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 24 | `caro skill install` (bundled skill management) | cli | never | — | — |
 | 25 | Website homepage caro.sh (curl + parse) | website | never | — | — |
 | 26 | Website docs pages (curl + parse) | docs | never | — | — |
-| 27 | Install script `scripts/install.sh` | install | never | — | — |
+| 27 | Install script `install.sh` (repo root) | install | 2026-11-25 | FAIL (download and checksum OK; rc gets a broken `caro --completion` line and an ignored `CARO_SAFETY_LEVEL`) | [#1787](https://github.com/wildcard/caro/issues/1787), [#1788](https://github.com/wildcard/caro/issues/1788) |
 | 28 | Homebrew tap formula | install | never | — | — |
 | 29 | `caro --safety strict/moderate/permissive` modes | safety | never | — | — |
 | 30 | `caro --verbose` timing output | cli | never | — | — |
@@ -64,6 +65,9 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
+| [#1786](https://github.com/wildcard/caro/issues/1786) | Website /docs/installation install commands (URL, crate name, asset name) | docs | 2026-11-25 | open |
+| [#1787](https://github.com/wildcard/caro/issues/1787) | `install.sh` shell-completion line in the user rc | install | 2026-11-25 | open |
+| [#1788](https://github.com/wildcard/caro/issues/1788) | `CARO_SAFETY_LEVEL` env var honoured by the binary | safety | 2026-11-25 | open |
 
 ---
 

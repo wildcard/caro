@@ -14,9 +14,21 @@ Document flaky behaviours observed during QA runs. A flake observed 3+ times in 
 **Impact**: Slot A `--dry-run` smoke check cannot be completed in this environment. Use `caro --version`, `--help`, and `doctor` as proxy for binary health; use `cargo test --lib` for functional coverage.  
 **Occurrence log**:
 - 2026-05-07: observed once
+- 2026-11-25: not observed. The `-p` dry-run used the static matcher. `caro ai --once` sat silent for 120 s at the start of the model download (known #1408 / #1272), so the download itself was not completed.
 
 **Promotion threshold**: File regression issue if observed 3 times in 7 days OR if it reproduces on a known-good environment with a pre-downloaded model.  
 **Workaround**: Run `caro -p "..." --dry-run` from an environment with `~/.cache/caro/models/` pre-populated, or with Ollama installed as fallback backend.
+
+---
+
+### ENV-001: `install.sh` connectivity check fails behind the sandbox proxy
+
+**First observed**: 2026-11-25  
+**Symptom**: `check_network_connectivity` runs `curl -fsSL https://github.com`, which answers HTTP 400 through the sandbox proxy, so the script stops with "Cannot reach GitHub".  
+**Impact**: environment only, not a caro bug. The API and release downloads work through the same proxy.  
+**Workaround**: stub only that function in a scratch copy of the script; do not commit the copy.  
+**Occurrence log**:
+- 2026-11-25: observed once
 
 ---
 
