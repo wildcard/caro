@@ -3,7 +3,9 @@
 > Living matrix maintained by the **caro-integrator** nightly agent.
 > Updated every nightly pass (cron `0 23 * * *`).
 >
-> **Last updated:** 2026-11-23 — ✓ VERIFIED published `caro 1.5.0` (still newest on crates.io). Re-validated the three oldest rows (2026-11-17): Candle CPU (`show disk usage` → `df -h`), `caro guard` (`rm -rf /` → deny, `ls -la` → allow), live `caro.sh/integrations` (200, 1.5.0 config-error copy present). #1723 stdin hang still reproduces (exit 142). Added a ⏳ Kiro row (single secondary source). Nothing merged since 2026-11-02; no new PR.
+> **Last updated:** 2026-11-24 — ✓ VERIFIED published `caro 1.5.0` (still newest on crates.io). Re-validated the three oldest rows (2026-11-18): guard adapters for Codex (`rm -rf /` → `permissionDecision: deny`; `ls -la` → no output), Grok Build (camelCase payload → deny) and opencode (`rm -rf /` → `verdict: deny`, exit 2; `ls` → `verdict: none`, exit 0). #1723 stdin hang still reproduces (exit 142). No new tools confirmed. Nothing merged since 2026-11-02; no new PR.
+>
+> **Previous:** 2026-11-23 — ✓ VERIFIED published `caro 1.5.0` (still newest on crates.io). Re-validated the three oldest rows (2026-11-17): Candle CPU (`show disk usage` → `df -h`), `caro guard` (`rm -rf /` → deny, `ls -la` → allow), live `caro.sh/integrations` (200, 1.5.0 config-error copy present). #1723 stdin hang still reproduces (exit 142). Added a ⏳ Kiro row (single secondary source). Nothing merged since 2026-11-02; no new PR.
 >
 > **Previous:** 2026-11-22 — ✓ VERIFIED published `caro 1.5.0` (still newest on crates.io; installed binary `caro 1.5.0 ( crates.io)`). Re-validated the three oldest rows: `website/src/data/integrations.ts` and README (2026-10-13; #1657 fix from #1689 is on `main`) and the `caro-shell` skill (2026-11-09). Skill Examples 1 and 2 still do not match 1.5.0 output (#1628, #1627). The MLX snippet on the website (`kill the process on port 3000`) returns a literal `kill PID` (#1116, #1662). Nothing merged since 2026-11-02; no new PR.
 >
@@ -61,12 +63,12 @@
 | Harness guardian hook (`caro guard`) | 🧪 experimental | 2026-11-23 | ✓ VERIFIED published `caro 1.5.0`: `rm -rf /` → `permissionDecision: deny` (critical risk); `ls -la` → no output (allow). Also `tests/e2e_guard.rs` | spec 011 / ADR-020 | PreToolUse adapter for Claude Code, Grok Build, Codex; OpenCode via `integrations/opencode/caro-guard.ts`. Shadow by default |
 | Claude Code MCP server (`caro mcp serve`) | ⏳ not-yet | — | `mcp-inspect` against `caro mcp serve` | #928 | Spec: `.github/first-time-issues/06-mcp-claude-code-integration.md`; tools `generate_command` / `validate_command` / `explain_safety` / `show_decision_tree` |
 | OpenAI-compat HTTP shim (`caro serve --openai`) | ⏳ not-yet | — | `curl /v1/chat/completions` with a tool call | #929 | Highest leverage — unlocks Codex/Cursor/Continue/Aider/Tabby in one shot |
-| Codex (OpenAI) | 🧪 guard only | 2026-11-18 | ✓ VERIFIED published 1.5.0: Claude-shaped payload `rm -rf /` → `caro guard --harness codex --mode enforce` emits `permissionDecision: deny`; `ls -la` → no output. Config per docs/coding-agents/codex.md | #789 (Crush MCP config PR) | Generation still awaits OpenAI shim |
+| Codex (OpenAI) | 🧪 guard only | 2026-11-24 | ✓ VERIFIED published 1.5.0: Claude-shaped payload `rm -rf /` → `caro guard --harness codex --mode enforce` emits `permissionDecision: deny`; `ls -la` → no output. Config per docs/coding-agents/codex.md | #789 (Crush MCP config PR) | Generation still awaits OpenAI shim |
 | Cursor | ⏳ not-yet | — | OpenAI shim snippet copy-pasted into Cursor settings | — | Satisfied by OpenAI shim |
 | Continue (continue.dev) | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
 | Aider | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
 | Tabby (self-hosted) | ⏳ not-yet | — | OpenAI shim snippet | — | Satisfied by OpenAI shim |
-| opencode | 🧪 guard only | 2026-11-18 | ✓ VERIFIED published 1.5.0: `{"command":"rm -rf /"}` → `caro guard --harness opencode --mode enforce` → `verdict: deny`, exit 2; `ls` → `verdict: none`, exit 0. Plugin `integrations/opencode/caro-guard.ts` | TBD | sst/opencode; generation still awaits MCP/shim |
+| opencode | 🧪 guard only | 2026-11-24 | ✓ VERIFIED published 1.5.0: `{"command":"rm -rf /"}` → `caro guard --harness opencode --mode enforce` → `verdict: deny`, exit 2; `ls` → `verdict: none`, exit 0. Plugin `integrations/opencode/caro-guard.ts` | TBD | sst/opencode; generation still awaits MCP/shim |
 | crush | ⏳ not-yet | — | MCP or OpenAI shim | #789 (related) | Charm.sh ecosystem |
 | droid | ⏳ not-yet | — | MCP or OpenAI shim | TBD | |
 | Kiro (AWS) | ⏳ not-yet | — | MCP or hooks | — | Added 2026-11-23 from one secondary source (agentic-coding landscape post, 2026-11-03); confirm CLI surface before filing |
@@ -79,7 +81,7 @@
 | Cline CLI | ⏳ not-yet | — | MCP or OpenAI shim | — | Cline CLI 2.0 (discovered 2026-11-17) |
 | Kimi Code CLI | ⏳ not-yet | — | OpenAI shim | — | Moonshot AI terminal agent (discovered 2026-11-17) |
 | Qwen Code | ⏳ not-yet | — | OpenAI shim or native | TBD | |
-| Grok Build (xAI) | 🧪 guard only | 2026-11-18 | ✓ VERIFIED published 1.5.0: camelCase payload `rm -rf /` → `caro guard --harness grok --mode enforce` emits `permissionDecision: deny`. Reads `~/.claude/settings.json` hooks natively; or `~/.grok/hooks/caro-guard.json` | spec 011 | Grok as a *model* via `--backend grok` |
+| Grok Build (xAI) | 🧪 guard only | 2026-11-24 | ✓ VERIFIED published 1.5.0: camelCase payload `rm -rf /` → `caro guard --harness grok --mode enforce` emits `permissionDecision: deny`. Reads `~/.claude/settings.json` hooks natively; or `~/.grok/hooks/caro-guard.json` | spec 011 | Grok as a *model* via `--backend grok` |
 | Gemini CLI | ⏳ not-yet | — | Native backend or shim | #1439, PR #1722 | Retired for consumer accounts 2026-06-18; successor Antigravity CLI (secondary sources, 2026-11-18 research). Retirement tracked in #1439 / PR #1722 |
 | Jules (Google) | ⏳ not-yet | — | Native backend or shim | #1439 | Reported read-only since 2026-11-11, wind-down 2026-12-31 (single secondary source citing the Jules changelog; unverified) |
 | Autocoder | ⏳ not-yet | — | TBD | #667 (epic) | Big lift |
