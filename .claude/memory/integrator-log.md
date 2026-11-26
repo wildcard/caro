@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-25 (23:00 PT fire) — feature-gated backends and MLX re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-11-19). All runs used `</dev/null` to avoid #1723. PASS: MLX embedded (`caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls -la`, exit 0; qualifier drop is still #1645). PASS: `--backend claude|ollama|vllm|exo|openrouter|grok` each → `Configuration error: Backend '<name>' requires the 'remote-backends' feature`, exit 1. `--backend-info` lists only `embedded` as available. FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (exit 142). This is #1723.
+- **Shipped:** no new PR. Nothing merged to `main` since 2026-11-02. #1754 (fix for #1723) and #1758 are `MERGEABLE`/`UNSTABLE`. #1738 is `MERGEABLE`/`CLEAN`. #1708 is `CONFLICTING`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Nothing new to dedup.
+- **Discovered:** one web query. No new CLI launch confirmed for November 2026. Results repeat known rows: Pi 1.5.0, Antigravity CLI (#1439), Kilo CLI, Cline CLI, Kiro.
+- **Next pass should:** check if #1754 / #1738 / #1758 merged. This is the eighth night in a row with no PR because the merge backlog is stuck. Otherwise the oldest rows are the `caro-shell` skill and the marketing surfaces (2026-11-22).
+
+---
+
 ## 2026-11-24 (23:00 PT fire) — guard adapters re-validated; backlog unchanged; no new PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-11-18). PASS: `caro guard --mode enforce --harness codex` (`rm -rf /` → `permissionDecision: deny`, critical risk; `ls -la` → no output, exit 0). PASS: `--harness grok` (camelCase `toolName`/`toolInput` payload → deny). PASS: `--harness opencode` (`rm -rf /` → `verdict: deny`, exit 2; `ls` → `verdict: none`, exit 0). FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (exit 142). This is #1723.
