@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-11-26
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -13,6 +13,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
+| 2026-11-26 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher `ls -la`; model downloaded; `ai --once` stub bug still open (#1760) |
 
 ---
 
@@ -49,7 +50,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 25 | Website homepage caro.sh (curl + parse) | website | never | — | — |
 | 26 | Website docs pages (curl + parse) | docs | never | — | — |
 | 27 | Install script `scripts/install.sh` | install | never | — | — |
-| 28 | Homebrew tap formula | install | never | — | — |
+| 28 | Homebrew tap formula | install | 2026-11-26 | FAIL (version, URLs, checksums and `test do` OK; caveats use `caro --completion`; tap README points brew at a nested formula) | [#1790](https://github.com/wildcard/caro/issues/1790) |
 | 29 | `caro --safety strict/moderate/permissive` modes | safety | never | — | — |
 | 30 | `caro --verbose` timing output | cli | never | — | — |
 | 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | never | — | — |
@@ -64,6 +65,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | Issue | Surface | Domain | Filed | Status |
 |-------|---------|--------|-------|--------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | CLAUDE.md version field alignment | docs | 2026-05-07 | open |
+| [#1790](https://github.com/wildcard/caro/issues/1790) | Homebrew caveats / tap name and layout | install | 2026-11-26 | open |
 
 ---
 
