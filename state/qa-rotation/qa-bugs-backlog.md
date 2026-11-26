@@ -91,6 +91,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1786](https://github.com/wildcard/caro/issues/1786) | P1 | docs | /docs/installation install commands are dead (`caro.sh/install.sh` 404, `cargo install cmdai`, `caro-darwin-arm64` 404); the page text is confirmed in the repo, the live 404s are from the run | open | 2026-11-25 |
 | [#1787](https://github.com/wildcard/caro/issues/1787) | P1 | install | `install.sh` writes `caro --completion` to the rc; the flag does not exist (the subcommand is `caro completion`), so every new shell prints an error | open | 2026-11-25 |
 | [#1788](https://github.com/wildcard/caro/issues/1788) | P1 | install | Installer says Strict via `CARO_SAFETY_LEVEL`; the only reader is `merge_with_env`, which no `src` code calls, so caro runs Moderate. Related: #1771 | open | 2026-11-25 |
+| [#1790](https://github.com/wildcard/caro/issues/1790) | P1 | install | Homebrew caveats use `caro --completion`, which errors (same wrong flag as #1787); the tap README and the docs name different taps | open | 2026-11-26 |
 
 ---
 
