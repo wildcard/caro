@@ -390,3 +390,13 @@ The 2026-11-25 run chose its Slot C surface from this state and wrote only its o
 - **Flakes:** FLAKE-001 was not triggered. FLAKE-002 gets an observation (silent start of the model download). The run's sandbox proxy limit for the `install.sh` connectivity check is an environment limit, so no new flake entry was made.
 - **Surface 27 path:** the script is `install.sh` at the repo root, not `scripts/install.sh`.
 
+## Added after seeding: #1791 (2026-11-26)
+
+The 2026-11-26 run read this state with `bin/routine-status state get`, chose its Slot C surface from it, and wrote only its own rows on the branch `claude/peaceful-hopper-s11npz`; it could not push to `automation/routine-status`. Folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-26; surface 28 (Homebrew tap formula) goes from never tested to FAIL, linked to #1790.
+- **New issue:** #1790 (P1): the Homebrew formula caveats tell users to run `caro --completion <shell>`, which errors (same wrong flag as #1787), and the docs name two different taps. Confirmed in main's files by static reading; the run's live URL and checksum results were not re-checked. No earlier issue covers it. It is in the watch list and the bug-filings table.
+- **Not new:** its `caro ai --once` check is the CPU stub of #1269 (#1760 is an open duplicate).
+- **Flakes:** FLAKE-001 was not triggered.
+
