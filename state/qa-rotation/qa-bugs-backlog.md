@@ -92,6 +92,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | [#1787](https://github.com/wildcard/caro/issues/1787) | P1 | install | `install.sh` writes `caro --completion` to the rc; the flag does not exist (the subcommand is `caro completion`), so every new shell prints an error | open | 2026-11-25 |
 | [#1788](https://github.com/wildcard/caro/issues/1788) | P1 | install | Installer says Strict via `CARO_SAFETY_LEVEL`; the only reader is `merge_with_env`, which no `src` code calls, so caro runs Moderate. Related: #1771 | open | 2026-11-25 |
 | [#1790](https://github.com/wildcard/caro/issues/1790) | P1 | install | Homebrew caveats use `caro --completion`, which errors (same wrong flag as #1787); the tap README and the docs name different taps | open | 2026-11-26 |
+| [#1792](https://github.com/wildcard/caro/issues/1792) | P2 | ai | `caro ai --once` reports a clarification question as "Error: backend error", exit 1: `run_ai_once` wraps every generator error, so the typed `NeedsClarification` is lost. Related: #1269 | open | 2026-11-27 |
 
 ---
 
