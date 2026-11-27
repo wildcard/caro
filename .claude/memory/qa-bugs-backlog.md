@@ -9,6 +9,7 @@ Active bugs filed by caro-qa-agent requiring investigation and fixes.
 | Issue | Priority | Domain | Summary | Status | Filed |
 |-------|----------|--------|---------|--------|-------|
 | [#1044](https://github.com/wildcard/caro/issues/1044) | P2 | docs | CLAUDE.md version banner shows 1.1.0 (GA) instead of 1.3.0 | open | 2026-05-07 |
+| [#1792](https://github.com/wildcard/caro/issues/1792) | P2 | ai | `caro ai --once` reports a clarification question as "Error: backend error", exit 1 | open | 2026-11-27 |
 
 ---
 
