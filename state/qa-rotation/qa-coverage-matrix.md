@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-26
+**Last updated**: 2026-11-27
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -86,6 +86,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-24 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | Static matcher `ls -la`; the model downloaded later in the run (FLAKE-001 did not recur) |
 | 2026-11-25 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | `ls -la` from the static matcher; no model needed |
 | 2026-11-26 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher `ls -la`; model downloaded; `ai --once` stub bug still open (#1760) |
+| 2026-11-27 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | Static matcher `ls -la`; no merges since 11-02, Slot B skipped |
 
 ---
 
@@ -127,7 +128,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 30 | `caro --verbose` timing output | cli | 2026-10-10 | PASS | — (--dry-run --verbose confirmed Backend: static-matcher, Confidence: 1.00 in Slot A) |
 | 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | 2026-11-15 | PASS (es, fr and ja 200 with localized titles; /es/ needed a retry on 2026-10-20, FLAKE-003) | — |
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-10-13 | PASS | — |
-| 33 | `caro ai` decision gates (clarification, Jev gap, constrained decoding) (#1459) | ai | never | — | — |
+| 33 | `caro ai` decision gates (clarification, Jev gap, constrained decoding) (#1459) | ai | 2026-11-27 | FAIL (gate tests and main path OK per the run; `ai --once` reports a clarification as an error, exit 1) | [#1792](https://github.com/wildcard/caro/issues/1792) |
 | 34 | Executor timeout / guard hooks / loop budget enforcement (#1470) | cli | never | — | — |
 | 35 | `caro export` platform runbook writer (new in v1.5.0) | cli | never | — | — |
 | 36 | `caro guard test / setup` (spec 011, new after v1.5.0) | safety | 2026-11-21 | PARTIAL (test ok: `curl … \| sh` deny rc=2, `ls -la` none rc=0; setup and audit not run) | [#1697](https://github.com/wildcard/caro/issues/1697), [#1720](https://github.com/wildcard/caro/issues/1720) (no rule for destructive git commands) |
@@ -207,6 +208,7 @@ When a filed issue reveals a new surface gap, add it here so Slot C tracks it in
 | [#1787](https://github.com/wildcard/caro/issues/1787) | `install.sh` shell-completion line in the user rc | install | 2026-11-25 | open |
 | [#1788](https://github.com/wildcard/caro/issues/1788) | `CARO_SAFETY_LEVEL` env var honoured by the binary | safety | 2026-11-25 | open |
 | [#1790](https://github.com/wildcard/caro/issues/1790) | Homebrew caveats / tap name and layout | install | 2026-11-26 | open |
+| [#1792](https://github.com/wildcard/caro/issues/1792) | `caro ai --once` clarification exit path (typed gate lost in `runner.rs`) | ai | 2026-11-27 | open |
 
 ---
 
