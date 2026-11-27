@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-26 (23:00 PT fire) — `caro-shell` skill, marketing rows and README flags re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-11-22). All runs used `</dev/null` to avoid #1723. PASS: skill Example 3 (`delete everything in /tmp` → Critical block). PASS: Ollama snippet → `requires the 'remote-backends' feature` config error, as the site says. PARTIAL: skill Example 1 → `find . -name "*.py" -type f` (#1628); Example 2 → `docker system prune -f && docker volume prune -f` (#1627). FAIL (P2, tracked): MLX snippet `kill the process on port 3000` → `kill PID` (#1116, #1662). New check: README basic-usage flags `--shell zsh`, `--output json`, `--safety permissive`, `--confirm`, `--force-llm`, `--knowledge-backend chromadb` all parse with `--dry-run`, exit 0.
+- **Shipped:** no new PR. Nothing merged to `main` since 2026-11-02. #1754 and #1758 are `MERGEABLE`/`UNSTABLE`. #1738 is `MERGEABLE`/`CLEAN`. #1719, #1713, #1708, #1624 and #1492 are `CONFLICTING`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Dedup: `--output json --dry-run` reports `"executed": true` → by design since #1532 added `"dry_run": true` (#1217, #1417 closed). `remove old log files` → `mv source.txt /path/to/dest.txt` → already in #1662.
+- **Discovered:** one web query. No new CLI launch found for late November 2026. Results repeat known rows: Pi 1.5.0, Kilo CLI, Cline CLI 2.0, Antigravity CLI (#1439).
+- **Next pass should:** check if #1754 / #1738 / #1758 merged. This is the ninth night in a row with no PR because the merge backlog is stuck. Otherwise the oldest rows are Candle CPU, `caro guard` and the integrations page (2026-11-23).
+
+---
+
 ## 2026-11-25 (23:00 PT fire) — feature-gated backends and MLX re-validated; backlog unchanged; no new PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-11-19). All runs used `</dev/null` to avoid #1723. PASS: MLX embedded (`caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls -la`, exit 0; qualifier drop is still #1645). PASS: `--backend claude|ollama|vllm|exo|openrouter|grok` each → `Configuration error: Backend '<name>' requires the 'remote-backends' feature`, exit 1. `--backend-info` lists only `embedded` as available. FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (exit 142). This is #1723.
