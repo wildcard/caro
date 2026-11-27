@@ -400,3 +400,13 @@ The 2026-11-26 run read this state with `bin/routine-status state get`, chose it
 - **Not new:** its `caro ai --once` check is the CPU stub of #1269 (#1760 is an open duplicate).
 - **Flakes:** FLAKE-001 was not triggered.
 
+## Added after seeding: #1793 (2026-11-27)
+
+The 2026-11-27 run chose its Slot C surface from this state and wrote only its own rows on the branch `claude/peaceful-hopper-t2mkhh`; it could not push to `automation/routine-status`. Folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-27; surface 33 (`caro ai` decision gates) goes from never tested to FAIL, linked to #1792.
+- **New issue:** #1792 (P2): `caro ai --once` reports a clarification question as "Error: backend error" and exits 1. Confirmed in main's code by static reading: `run_ai_once` wraps every generator error, so the typed `NeedsClarification` is lost. No earlier issue covers it. It is in the watch list and the bug-filings table.
+- **Not new:** the wrong question text for every prompt is the CPU stub of #1269 (#1760 is an open duplicate).
+- **Flakes:** FLAKE-001 was not triggered.
+
