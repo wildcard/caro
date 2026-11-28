@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-11-27
+**Last updated**: 2026-11-28
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break by lowest surface # (see Notes for exceptions).
 
@@ -87,6 +87,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | 2026-11-25 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | `ls -la` from the static matcher; no model needed |
 | 2026-11-26 | PASS | PASS (1.5.0) | PASS | PASS | PASS | Static matcher `ls -la`; model downloaded; `ai --once` stub bug still open (#1760) |
 | 2026-11-27 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | Static matcher `ls -la`; no merges since 11-02, Slot B skipped |
+| 2026-11-28 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | Static matcher `ls -la`; model downloaded (FLAKE-001 did not recur); no merges since 11-02 |
 
 ---
 
@@ -130,7 +131,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-10-13 | PASS | — |
 | 33 | `caro ai` decision gates (clarification, Jev gap, constrained decoding) (#1459) | ai | 2026-11-27 | FAIL (gate tests and main path OK per the run; `ai --once` reports a clarification as an error, exit 1) | [#1792](https://github.com/wildcard/caro/issues/1792) |
 | 34 | Executor timeout / guard hooks / loop budget enforcement (#1470) | cli | never | — | — |
-| 35 | `caro export` platform runbook writer (new in v1.5.0) | cli | never | — | — |
+| 35 | `caro export` platform runbook writer (new in v1.5.0) | cli | 2026-11-28 | PASS (no-lock, missing task, unknown platform and no-variant platform errors OK; default path and `-o` with a new parent dir OK per the run; body has the known mock `echo` steps and `caro upgrade` header; no safety re-check of lock commands, same class as #1784) | [#1777](https://github.com/wildcard/caro/issues/1777), [#1778](https://github.com/wildcard/caro/issues/1778), [#1784](https://github.com/wildcard/caro/issues/1784) |
 | 36 | `caro guard test / setup` (spec 011, new after v1.5.0) | safety | 2026-11-21 | PARTIAL (test ok: `curl … \| sh` deny rc=2, `ls -la` none rc=0; setup and audit not run) | [#1697](https://github.com/wildcard/caro/issues/1697), [#1720](https://github.com/wildcard/caro/issues/1720) (no rule for destructive git commands) |
 
 ---
