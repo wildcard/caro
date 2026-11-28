@@ -1,6 +1,6 @@
 # QA Coverage Matrix
 
-**Last updated**: 2026-05-07
+**Last updated**: 2026-11-28
 
 This file drives Slot C surface selection. Pick the row with the oldest 'Last tested' value (treat 'never' as oldest). Tie-break randomly.
 
@@ -13,6 +13,7 @@ One row per pass. Update 'Last tested' column after every Slot A run.
 | Date | Build | --version | --help | doctor | dry-run | Notes |
 |------|-------|-----------|--------|--------|---------|-------|
 | 2026-05-07 | PASS | PASS (1.3.0) | PASS | PASS | FLAKE | Model download blocked in sandbox (see flakes); first bootstrap run |
+| 2026-11-28 | PASS | PASS (1.5.0, aa1b0e6) | PASS | PASS | PASS | Static matcher `ls -la`; model downloaded (FLAKE-001 did not recur); no merges since 11-02 |
 
 ---
 
@@ -54,6 +55,7 @@ Slot C selects from this table. Update 'Last tested', 'Result', and 'Linked issu
 | 30 | `caro --verbose` timing output | cli | never | — | — |
 | 31 | i18n website locale smoke (curl /es/, /fr/, /ja/) | i18n | never | — | — |
 | 32 | `caro doctor` advisory content accuracy | cli | 2026-05-07 | PASS | — |
+| 35 | `caro export` platform runbook writer (new in v1.5.0) | cli | 2026-11-28 | PASS (no-lock, missing task, unknown platform, no-variant platform errors OK; default path and `-o` with new parent dir OK; body has known mock `echo` steps #1777 and `caro upgrade` header #1778; no safety re-check of lock commands, same class as #1784) | #1777, #1778 |
 
 ---
 
