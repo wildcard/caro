@@ -410,3 +410,13 @@ The 2026-11-27 run chose its Slot C surface from this state and wrote only its o
 - **Not new:** the wrong question text for every prompt is the CPU stub of #1269 (#1760 is an open duplicate).
 - **Flakes:** FLAKE-001 was not triggered.
 
+## Added after seeding: #1794 (2026-11-28)
+
+The 2026-11-28 run read this state with `bin/routine-status state get`, chose its Slot C surface from it, and wrote only its own rows on the branch `claude/peaceful-hopper-78e0b4`; it could not push to `automation/routine-status`. Folded on the same day with the rules above:
+
+- **Session log:** its entry goes on top with a note.
+- **Its rows win:** a smoke row for 2026-11-28; surface 35 (`caro export`) goes from never tested to PASS, with the known mock-step and `caro upgrade` issues (#1777, #1778) and a link to #1784.
+- **No new issue.** Its observation that `run_caroml_export` has no safety re-check is consistent with a reading of main (no safety, validation or risk call in the function) but was not tested with a tampered lock. It is the same class as #1784.
+- **Not new:** the stub failures are #1269 (#1760 and #1792 are related open issues).
+- **Flakes:** FLAKE-001 was not triggered.
+
