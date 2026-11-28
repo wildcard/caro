@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-11-27 (23:00 PT fire) — Candle CPU, `caro guard` and integrations page re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-11-23). PASS: Candle CPU (`caro --dry-run -p "show disk usage" </dev/null` → `df -h`, exit 0). PASS: `caro guard --mode enforce` (`rm -rf /` → `permissionDecision: deny`, critical risk; `ls -la` → no output, exit 0). PASS: live `https://caro.sh/integrations` → 200, with the `remote-backends` config-error copy and `--model-name`. FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (exit 142). This is #1723.
+- **Shipped:** no new PR. Nothing merged to `main` since 2026-11-02. #1754 (fix for #1723) and #1758 are `MERGEABLE`/`UNSTABLE`. #1738 and #1722 are `MERGEABLE`/`CLEAN`. #1708, #1719, #1713, #1624, #1492, #1348 and #1153 are `CONFLICTING`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Nothing new to dedup.
+- **Discovered:** none. No web research tonight; the last four passes found no new CLI launches.
+- **Next pass should:** check if #1754 / #1738 / #1722 / #1758 merged. This is the tenth night in a row with no PR because the merge backlog is stuck. Otherwise the oldest rows are the Codex, opencode and Grok Build guard adapters (2026-11-24).
+
+---
+
 ## 2026-11-26 (23:00 PT fire) — `caro-shell` skill, marketing rows and README flags re-validated; backlog unchanged; no new PR
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-11-22). All runs used `</dev/null` to avoid #1723. PASS: skill Example 3 (`delete everything in /tmp` → Critical block). PASS: Ollama snippet → `requires the 'remote-backends' feature` config error, as the site says. PARTIAL: skill Example 1 → `find . -name "*.py" -type f` (#1628); Example 2 → `docker system prune -f && docker volume prune -f` (#1627). FAIL (P2, tracked): MLX snippet `kill the process on port 3000` → `kill PID` (#1116, #1662). New check: README basic-usage flags `--shell zsh`, `--output json`, `--safety permissive`, `--confirm`, `--force-llm`, `--knowledge-backend chromadb` all parse with `--dry-run`, exit 0.
