@@ -4,6 +4,44 @@ Reading order: most recent first.
 
 ---
 
+## 2026-11-28 — Scheduled run (Slot A + Slot C)
+
+> Folded from #1794 into this state on 2026-11-28. The run read this state with `bin/routine-status state get`, chose its Slot C surface from it, and wrote only its own rows on the branch `claude/peaceful-hopper-78e0b4`. It filed no issue. Its observation that `run_caroml_export` in `src/main.rs` writes lock commands without a safety re-check is consistent with a reading of main: the function has no safety, validation or risk call. It was not tested with a tampered lock, and it is the same class as #1784. Its other failures are known: the CPU stub (#1269, #1760, #1792), mock `echo` steps (#1777), the `caro upgrade` header (#1778) and the swallowed `--output` flag (#1697).
+
+**Trigger**: scheduled cron 14:00 UTC.
+**Rotation**: A + C (no Slot B: no PRs merged since the 2026-11-27 run; last merge is still #1740, 2026-11-02).
+**State source**: `state/qa-rotation/` on `automation/routine-status` (per `.claude/automation/CONTRACT.md` section 5), read with `bin/routine-status state get`. This file on `main` is the May bootstrap copy. This entry holds only this run's rows, for folding into the status branch.
+
+### Slot A — Smoke
+- `cargo build --release --features embedded-cpu` → **PASS**
+- `caro --version` → **PASS**: `caro 1.5.0 (aa1b0e6 2026-11-02)`
+- `caro --help` → **PASS** (exit 0; `guard` and `export` listed)
+- `caro doctor` → **PASS** (exit 0; advisory: no model at start, no Ollama, guard hook not installed)
+- `caro -p 'list files in current directory' --dry-run` → **PASS**: `ls -la` from the static matcher. The embedded model downloaded later in the run (FLAKE-001 did not recur).
+
+### Slot B — Recent diff
+Skipped: no merges since 2026-11-27. The run first read main's stale May copy, so it re-checked the 11-02 to 10-27 merges before it found the state branch. All PASS, nothing new:
+- #1740 `config reset safety` → back to Moderate; unknown key exits 1 and lists the valid keys.
+- #1737 `caro test --help` → `[possible values: static, embedded]`.
+- #1710 `caro ai` with no prompt → suggests `caro ai --once "list files"`, exit 1.
+- #1687 / #1683 `caro guard test` → `curl … | sh` deny rc=2, `wget … | sudo bash` deny rc=2, `bash <(curl …)` ask rc=3, `ls -la` none rc=0.
+
+### Slot C — #35 `caro export` platform runbook writer (never tested before)
+Lowest live "never" row. #20 needs Ollama; #34 has no single CLI entry point.
+- **PASS**: no lock → `run `caro generate disk` first`, exit 1. Missing task, unknown platform (`bogus`) and a platform with no active variant (`macos`) each exit 1 with a clear message. No argument → clap usage, exit 2.
+- **PASS**: `caro export disk` writes `tasks/disk.linux.sh` (shebang, `set -euo pipefail`, TASK/WHY/DO comments). `-o out/run.sh` creates the missing parent directory.
+- Known, not filed: the steps are mock `echo "<intent>"` lines (#1777). The header says `` `caro upgrade` to refresh `` (#1778).
+- Observation, not filed: `run_caroml_export` (`src/main.rs`) writes lock commands without a safety re-check. Same class as #1784. A tampered-lock test was not run in the sandbox.
+
+### Findings
+None this pass. Re-observed known bugs only: `caro ai --once` gives "What exactly should be deleted?" for every prompt (#1269 / #1760), and as an error with exit 1 (#1792). `caro -p 'show git status' --dry-run` (auto backend) prints the same stub question, exit 0 (covered by #1269 and #1792's title). `guard test '<cmd>' --output json` swallows the flag (#1697); the swallowed words also add a second pattern match.
+
+### Followups
+- Prompt drift (as on 11-23 to 11-27): the stored prompt says to read and write memory in `.claude/memory/qa-*.md` via a PR. `CONTRACT.md` section 5 says `bin/routine-status state get/put`. This session may push only to `claude/peaceful-hopper-78e0b4`, so the state branch was not written. The owner must fold this entry. The stored prompt should be updated to read state first; this run lost time re-testing known surfaces because it read main's copy first.
+- Next "never" rows: #34 executor timeout / guard hooks / loop budget. #20 stays blocked (no Ollama).
+
+---
+
 ## 2026-11-27 — Scheduled run (Slot A + Slot C)
 
 > Folded from #1793 into this state on 2026-11-27. The run chose its Slot C surface from this state and wrote only its own rows on the branch `claude/peaceful-hopper-t2mkhh`. It filed one new issue, #1792 (P2). Checked against main by static reading: `run_ai_once` in `src/ai/runner.rs` maps every generator error with `anyhow!("backend error: {}", e)`, while `src/backends/mod.rs` has a typed `NeedsClarification` error, so a clarification prints as an error and exits 1. No earlier issue covers it. The wrong question text for every prompt is the CPU stub of #1269 (#1760 is an open duplicate). The run's note on a regex hit with confidence 1.0 that drops a constraint is an observation, not a filed issue.
