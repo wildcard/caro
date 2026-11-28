@@ -5,6 +5,106 @@
 
 ---
 
+## 2026-11-27 (23:00 PT fire) — Candle CPU, `caro guard` and integrations page re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-11-23). PASS: Candle CPU (`caro --dry-run -p "show disk usage" </dev/null` → `df -h`, exit 0). PASS: `caro guard --mode enforce` (`rm -rf /` → `permissionDecision: deny`, critical risk; `ls -la` → no output, exit 0). PASS: live `https://caro.sh/integrations` → 200, with the `remote-backends` config-error copy and `--model-name`. FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (exit 142). This is #1723.
+- **Shipped:** no new PR. Nothing merged to `main` since 2026-11-02. #1754 (fix for #1723) and #1758 are `MERGEABLE`/`UNSTABLE`. #1738 and #1722 are `MERGEABLE`/`CLEAN`. #1708, #1719, #1713, #1624, #1492, #1348 and #1153 are `CONFLICTING`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Nothing new to dedup.
+- **Discovered:** none. No web research tonight; the last four passes found no new CLI launches.
+- **Next pass should:** check if #1754 / #1738 / #1722 / #1758 merged. This is the tenth night in a row with no PR because the merge backlog is stuck. Otherwise the oldest rows are the Codex, opencode and Grok Build guard adapters (2026-11-24).
+
+---
+
+## 2026-11-26 (23:00 PT fire) — `caro-shell` skill, marketing rows and README flags re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-11-22). All runs used `</dev/null` to avoid #1723. PASS: skill Example 3 (`delete everything in /tmp` → Critical block). PASS: Ollama snippet → `requires the 'remote-backends' feature` config error, as the site says. PARTIAL: skill Example 1 → `find . -name "*.py" -type f` (#1628); Example 2 → `docker system prune -f && docker volume prune -f` (#1627). FAIL (P2, tracked): MLX snippet `kill the process on port 3000` → `kill PID` (#1116, #1662). New check: README basic-usage flags `--shell zsh`, `--output json`, `--safety permissive`, `--confirm`, `--force-llm`, `--knowledge-backend chromadb` all parse with `--dry-run`, exit 0.
+- **Shipped:** no new PR. Nothing merged to `main` since 2026-11-02. #1754 and #1758 are `MERGEABLE`/`UNSTABLE`. #1738 is `MERGEABLE`/`CLEAN`. #1719, #1713, #1708, #1624 and #1492 are `CONFLICTING`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Dedup: `--output json --dry-run` reports `"executed": true` → by design since #1532 added `"dry_run": true` (#1217, #1417 closed). `remove old log files` → `mv source.txt /path/to/dest.txt` → already in #1662.
+- **Discovered:** one web query. No new CLI launch found for late November 2026. Results repeat known rows: Pi 1.5.0, Kilo CLI, Cline CLI 2.0, Antigravity CLI (#1439).
+- **Next pass should:** check if #1754 / #1738 / #1758 merged. This is the ninth night in a row with no PR because the merge backlog is stuck. Otherwise the oldest rows are Candle CPU, `caro guard` and the integrations page (2026-11-23).
+
+---
+
+## 2026-11-25 (23:00 PT fire) — feature-gated backends and MLX re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-11-19). All runs used `</dev/null` to avoid #1723. PASS: MLX embedded (`caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls -la`, exit 0; qualifier drop is still #1645). PASS: `--backend claude|ollama|vllm|exo|openrouter|grok` each → `Configuration error: Backend '<name>' requires the 'remote-backends' feature`, exit 1. `--backend-info` lists only `embedded` as available. FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (exit 142). This is #1723.
+- **Shipped:** no new PR. Nothing merged to `main` since 2026-11-02. #1754 (fix for #1723) and #1758 are `MERGEABLE`/`UNSTABLE`. #1738 is `MERGEABLE`/`CLEAN`. #1708 is `CONFLICTING`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Nothing new to dedup.
+- **Discovered:** one web query. No new CLI launch confirmed for November 2026. Results repeat known rows: Pi 1.5.0, Antigravity CLI (#1439), Kilo CLI, Cline CLI, Kiro.
+- **Next pass should:** check if #1754 / #1738 / #1758 merged. This is the eighth night in a row with no PR because the merge backlog is stuck. Otherwise the oldest rows are the `caro-shell` skill and the marketing surfaces (2026-11-22).
+
+---
+
+## 2026-11-24 (23:00 PT fire) — guard adapters re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-11-18). PASS: `caro guard --mode enforce --harness codex` (`rm -rf /` → `permissionDecision: deny`, critical risk; `ls -la` → no output, exit 0). PASS: `--harness grok` (camelCase `toolName`/`toolInput` payload → deny). PASS: `--harness opencode` (`rm -rf /` → `verdict: deny`, exit 2; `ls` → `verdict: none`, exit 0). FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (exit 142). This is #1723.
+- **Shipped:** no new PR. Nothing merged to `main` since 2026-11-02. #1754 (fix for #1723) and #1758 are `MERGEABLE`/`UNSTABLE`. #1738 is `CLEAN`. #1708, #1719, #1713, #1624 and #1492 are `CONFLICTING`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Nothing new to dedup.
+- **Discovered:** one web query. No new CLI launch confirmed for November 2026. Results repeat known rows: Pi 1.5.0, Antigravity CLI (#1439), Kilo CLI, Cline CLI, Kiro.
+- **Next pass should:** check if #1754 / #1738 / #1758 merged. This is the seventh night in a row with no PR because the merge backlog is stuck. Otherwise the oldest rows are the feature-gated backends and MLX (2026-11-19).
+
+---
+
+## 2026-11-23 (23:00 PT fire) — Candle CPU, `caro guard` and integrations page re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-11-17). PASS: Candle CPU (`caro --dry-run -p "show disk usage" </dev/null` → `df -h`, exit 0). PASS: `caro guard --mode enforce` (`rm -rf /` → `permissionDecision: deny`, critical risk; `ls -la` → no output, exit 0). PASS: live `https://caro.sh/integrations` → 200, page has the `requires the 'remote-backends' feature` copy and `--model-name`. FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (exit 142). This is #1723.
+- **Shipped:** no new PR. Nothing merged to `main` since 2026-11-02. #1754 (fix for #1723) and #1758 are `UNSTABLE`. #1738 is `CLEAN`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Dedup: `kiro` search → no issue; the source is too thin to file one.
+- **Discovered:** one web query. No new CLI launch confirmed for November 2026. A secondary source names Kiro (AWS) in the agentic-coding landscape; added a ⏳ row. Antigravity CLI is already tracked (#1439, PR #1722).
+- **Next pass should:** check if #1754 / #1738 / #1758 merged. Six nights in a row have shipped no PR because the merge backlog is stuck; the owner should merge or close #1754, #1738 and #1758. Otherwise the oldest rows are guard adapters for codex/grok/opencode (2026-11-18).
+
+---
+
+## 2026-11-22 (23:00 PT fire) — marketing rows and `caro-shell` skill re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). All runs used `</dev/null` to avoid #1723. PASS: `website/src/data/integrations.ts` and README carry the #1689 fix on `main`; live `https://caro.sh/integrations` → 200 with the `requires the 'remote-backends' feature` copy and `--model-name`. PASS: Ollama snippet `caro --backend ollama --model-name qwen2.5-coder:7b --dry-run …` → config error, exit 1, as the site says. PASS: `caro --model foo` → usage error with a `--model-name` tip. PARTIAL: `caro-shell` Example 1 → `find . -name "*.py" -type f` (drops `src` and age, #1628). Example 2 → `docker system prune -f && docker volume prune -f`, no risk note (#1627). FAIL (P2, tracked): website MLX snippet `kill the process on port 3000` → literal `kill PID` (#1116, #1662).
+- **Shipped:** no new PR. Nothing merged since 2026-11-02. #1754 and #1758 are `MERGEABLE`/`UNSTABLE`. #1738 is `CLEAN`. #1719, #1713, #1708, #1624 and #1492 are `CONFLICTING`. Rule 6a applies: #1738 already edits `integrations.ts`, so a snippet fix there would collide. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Dedup: `docker system prune` → #1627; `kill PID` → #1116 and #1662 (both name this exact prompt).
+- **Discovered:** one web query. No new CLI launch confirmed for November 2026. Existing rows already cover Antigravity CLI (#1439), Pi 1.5.0 and Kilo/Cline CLI.
+- **Next pass should:** check if #1754 / #1738 / #1758 merged. If #1754 merged and a release shipped, re-test the hang. Otherwise the oldest rows are Candle CPU, `caro guard` and the integrations page (2026-11-17).
+
+---
+
+## 2026-11-19 (23:00 PT fire) — remote-backend roster + MLX re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; binary `caro 1.5.0 ( crates.io)`). These were the oldest rows (2026-10-19). PASS: MLX embedded (`caro --backend embedded --dry-run -p "list pdf files in current directory"` → `ls -la`, exit 0; qualifier drop is still #1645). PASS: `--backend claude|ollama|vllm|exo|openrouter|grok` each → `Configuration error: Backend '<name>' requires the 'remote-backends' feature`, exit 1. `--backend-info` lists only `embedded` as available. FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (exit 142). Control with `</dev/null` → `ls -la`, exit 0. This is #1723.
+- **Shipped:** no new PR. Nothing merged since 2026-11-18. #1754 (fix for #1723) and #1758 are `MERGEABLE`/`UNSTABLE`. #1738 is `CLEAN`. #1708, #1719, #1713 and #1624 are `CONFLICTING`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Dedup: #1723 matches the hang; #1645 matches the qualifier drop.
+- **Discovered:** one web query. A single source says DeepSeek launched an enhanced coding agent on 2026-11-01; not confirmed to be a CLI, so no row added. Pi 1.5.0 reported 2026-11-02 (single source) — noted on the Pi row.
+- **Next pass should:** check if #1754 / #1758 merged. If #1754 merged and a release shipped, re-test the hang. Otherwise the oldest rows are the `caro-shell` skill and the marketing surfaces (2026-10-13).
+
+---
+
+## 2026-11-18 (23:00 PT fire) — guard adapters re-validated; backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0). PASS: `caro guard --mode enforce --harness codex` (`rm -rf /` → `permissionDecision: deny`; `ls -la` → no output); `--harness grok` (camelCase payload → deny); `--harness opencode` (`rm -rf /` → `verdict: deny`, exit 2; `ls` → `verdict: none`, exit 0). These three rows were the oldest (2026-10-03). FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (alarm, exit 142). Control with `</dev/null` succeeds. This is #1723.
+- **Shipped:** no new PR. Nothing merged since 2026-11-17: #1754 (fix for #1723) and #1758 are open and mergeable, and their only red checks are `check-labels` / `Security Audit`. Rule 6a applies. This entry and the matrix update are pushed to #1758.
+- **Filed:** none. Dedup: `antigravity` search → #1439 and PR #1722 already track it.
+- **Discovered:** one web query checked last night's unverified claim. Secondary sources say Gemini CLI stopped serving consumer accounts on 2026-06-18 (successor: Antigravity CLI). A single source says Jules went read-only on 2026-11-11 and winds down 2026-12-31. The Jules date is not confirmed from Google's changelog. Gemini/Jules matrix rows now point at #1439.
+- **Next pass should:** check if #1754 / #1758 merged. If #1754 merged and a release shipped, re-test the hang. Then the oldest rows are MLX and the feature-gated backends (2026-10-19).
+
+---
+
+## 2026-11-17 (23:00 PT fire) — validation pass; merge backlog unchanged; no new PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo search caro` → 1.5.0; installed binary `caro 1.5.0 ( crates.io)`). PASS: Candle CPU (`caro --dry-run -p "show disk usage" </dev/null` → `df -h`); `caro guard` (`rm -rf /` → deny, `ls -la` → allow); live `https://caro.sh/integrations` (200, Ollama copy has the 1.5.0 config-error text). FAIL (P1, tracked): `sleep 12 | caro --dry-run -p "list files"` printed nothing in 8 s (killed by alarm, exit 142). This is #1723. Fix PR #1754 is open and mergeable; its red checks are `check-labels` and `Security Audit`.
+- **Shipped:** no new PR. Playbook step 6a (from open PR #1708) says to extend an open PR, not duplicate it. This entry and the matrix update are pushed to the open log PR #1758.
+- **Filed:** none. Dedup: #1723 matches the hang; #1623 covers Copilot CLI.
+- **Discovered:** Kilo CLI 1.0, Cline CLI 2.0, Kimi Code CLI added as `not-yet` rows. Pi 1.0 note added to the Pi row. One secondary source says Google retired Gemini CLI and Jules on 2026-11-01. Not verified; relevant to #1439 / PR #1722.
+- **Next pass should:** check if #1754, #1758 or #1708 merged. If #1754 merged and a release shipped, re-test the hang. Do not open a new PR while the backlog stays.
+
+---
+
+## 2026-11-09 (23:00 PT fire) — validation pass; #1723 hang reproduced; no code PR
+
+- **Validated:** ✓ VERIFIED against published `caro 1.5.0` (still newest on crates.io). PASS: Candle CPU (`show disk usage` → `df -h`); `caro guard` (`rm -rf /` → deny, `ls -la` → allow); `caro-shell` Example 3 (`delete everything in /tmp` → Critical block); embedded backend (`list pdf files…` → `ls -la`, still #1645). FAIL (P1): with an open stdin pipe (`sleep 15 | caro --dry-run -p "list files"`), caro printed nothing in 8s. The positional prompt behaves the same. This is #1723.
+- **Shipped:** no code PR. Fix PR [#1754](https://github.com/wildcard/caro/pull/1754) already covers #1723 (open, mergeable, some CI red). A second fix would duplicate it. This log and the matrix update are the only changes.
+- **Filed:** none. Dedup: #1723 is the exact match.
+- **Discovered:** no new tools; no web research run tonight (budget). Many integration docs PRs are open and unmerged (#1738, #1722, #1492, #1624, #1153). They block #1439 and #1490.
+- **Next pass should:** check whether #1754 merged, then re-test the hang. Then merge-check #1722/#1738.
+
+---
+
 ## 2026-10-19 (23:00 PT fire) — release-cadence gap closed; docs fix for stale 1.5.0 claims
 
 - **Validated:** ✓ VERIFIED against published `caro 1.5.0` (`cargo install caro --force --locked`, confirmed `caro --version` → `caro 1.5.0 ( crates.io)`). **The release-cadence gap flagged every pass since 2026-05-18 is closed** — 1.5.0 was tagged + published to crates.io and GH releases on 2026-10-13. Re-ran the full remote-backend roster: `caro --backend claude/openrouter/grok/ollama/vllm/exo --dry-run -p "..."` all now return a consistent `Configuration error: Backend '<name>' requires the 'remote-backends' feature, which is not compiled into this build.` with a fix command and an embedded-backend fallback suggestion — no more `Unknown backend` for advertised names, no more silent WARN-fallback. `--backend static` correctly rejected (not CLI-servable). `--backend embedded` control case passes (`ls -la`, though see #1645 below). This closes out the #1115/#1298/#1081 divergence story as far as *wiring + error quality* goes — the only open question left on #1081 is whether `remote-backends` should become a default feature.
